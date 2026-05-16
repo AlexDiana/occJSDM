@@ -73,8 +73,8 @@ parameters {
   matrix[n, d] E;
   matrix[d, S] LL;
 
-  real<lower = 0, upper = 1> p[maxL, S];
   real<lower = 0, upper = .4> theta0[S];
+  real<lower = 0, upper = 1> p[maxL, S];
   real<lower = 0, upper = 1> q[maxL, S];
 
 }
@@ -130,7 +130,6 @@ model {
 
   }
 
-
   for(s in 1:S){
       beta0_psi[s] ~ normal(0, 1);
     }
@@ -174,8 +173,8 @@ model {
                   binomial_lpmf(
                 y[sumK[sumL[sumM[i] + m] + l] + k,s] | 1, q[l,s]);
 
-
               }
+
          }
 
           log_p_yz1 += log_sum_exp(

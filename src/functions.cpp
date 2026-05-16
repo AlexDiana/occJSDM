@@ -763,6 +763,86 @@ double dlaplace(double x, double sigma){
 
 }
 
+
+// // [[Rcpp::export]]
+// arma::mat computeGenzLoglik_cpp(const arma::mat& lower, const arma::mat& upper,
+//                            const arma::mat& Y, const arma::cube& u,
+//                            const arma::mat& L) {
+//
+//   int n = lower.n_rows;
+//   int d = lower.n_cols;
+//   int M = u.n_cols;
+//
+//   arma::mat y_sign = 2 * Y - 1;
+//
+//   arma::mat logP_all = arma::zeros(n, M);
+//
+//   for (int i = 0; i < n; ++i) {
+//     for (int m = 0; m < M; ++m) {
+//
+//       arma::vec y = arma::zeros(d);
+//       arma::vec logP_m = arma::zeros(d);
+//       // arma::cube grad_aistar = arma::zeros(d, d, d);
+//       // arma::cube grad_bistar = arma::zeros(d, d, d);
+//       // arma::cube grad_y = arma::zeros(d, d, d);
+//
+//       arma::vec abistar(d);
+//
+//       for (int idx_d = 0; idx_d < d; ++idx_d) {
+//
+//         double ai = lower(i, idx_d);
+//         double bi = upper(i, idx_d);
+//
+//         double ai_star, bi_star;
+//
+//         if (idx_d == 0) {
+//           ai_star = ai / L(idx_d, idx_d);
+//           bi_star = bi / L(idx_d, idx_d);
+//
+//         } else {
+//
+//           double sum_ai = dot(L.submat(idx_d, 0, idx_d, idx_d - 1), y.subvec(0, idx_d - 1));
+//           double sum_bi = sum_ai; // same dot product
+//
+//           ai_star = (ai - sum_ai) / L(idx_d, idx_d);
+//           bi_star = (bi - sum_bi) / L(idx_d, idx_d);
+//
+//         }
+//
+//         double Y_idxd = (y_sign(i, idx_d) + 1) / 2.0;
+//
+//         // double u_val = u(i, m, idx_d);
+//
+//         if (y_sign(i, idx_d) == 1) {
+//           y[idx_d] = sim_rnormtrunc_modified2(ai_star, Y_idxd, u(i, m, idx_d));
+//         } else {
+//           y[idx_d] = sim_rnormtrunc_modified2(bi_star, Y_idxd, u(i, m, idx_d));
+//         }
+//
+//         double logP;
+//         arma::mat grad_logP;
+//
+//         if (Y_idxd == 1) {
+//           logP = R::pnorm(ai_star, 0.0, 1.0, false, true);
+//         } else {
+//           logP = R::pnorm(bi_star, 0.0, 1.0, true, true);
+//         }
+//
+//         logP_m[idx_d] = logP;
+//
+//       }
+//
+//       logP_all(i, m) = accu(logP_m);
+//     }
+//   }
+//
+//   // double loglik = accu(logP_all);
+//
+//   return logP_all;
+// }
+
+
+
 // // [[Rcpp::export]]
 // NumericMatrix sample_cimk_cpp(const NumericMatrix& y,
 //                               const NumericMatrix& logy1,

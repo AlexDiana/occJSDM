@@ -22,7 +22,12 @@ Imports:
     tidyselect,
     stringr,
     stats,
-    ggcorrplot
+    ggcorrplot,
+    Rcpp,
+    RcppArmadillo
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
 Remotes:
     kassambara/ggcorrplot
 LazyData: true
