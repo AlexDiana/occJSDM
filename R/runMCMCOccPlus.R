@@ -50,6 +50,17 @@ runMCMCOccPlus <- function(data,
                                          nburn = 5000,
                                          niter = 5000)){
 
+  {
+    d = 2
+  threshold = 1
+  occCovariates = c()
+  ordCovariates = c("season")
+  detCovariates = c("genetic_predator")
+  MCMCparams = list(nchain = 1,
+                    nburn = 5000,
+                    niter = 5000)
+  }
+
   data_info <- as.data.frame(data$info)
   OTU <- data$OTU
 
@@ -63,6 +74,11 @@ runMCMCOccPlus <- function(data,
       stop("NA in Site, Sample or Primer columns")
     }
 
+    if(d > ncol(OTU)){
+      print("More species than factors. The number of factors will be capped to the
+            number of species")
+      d = ncol(OTU)
+    }
   }
 
   # sort the data
@@ -629,7 +645,7 @@ runMCMCOccPlus <- function(data,
     "E_output" = E_output,
     "UL_output" = UL_output,
     "U_output" = U_output,
-    "z_output" = z_output,
+    "z_output" = z_output, # TODO: summarise this object
     "p_output" = p_output,
     "q_output" = q_output,
     "theta0_output" = theta0_output,

@@ -459,6 +459,9 @@ returnDetectionCovariates <- function(fitmodel){
 
   beta_theta_output <- matrix_of_draws$beta_theta_output
 
+  beta_theta_output <- apply(beta_theta_output, c(1,2), c)
+  beta_theta_output <- aperm(beta_theta_output, c(2,3,1))
+
   dimnames(beta_theta_output)[[1]] <- detCovNames
   dimnames(beta_theta_output)[[2]] <- speciesNames
 
@@ -540,8 +543,8 @@ plotDetectionCovariates <- function(fitmodel,
     idx_species <- 1:S
   }
 
-  samples_subset <- matrix(beta_theta_output[,idxcov, idx_species],
-                           dim(beta_theta_output)[1], length(idx_species))
+  samples_subset <- matrix(beta_theta_output[idxcov, idx_species,],
+                           dim(beta_theta_output)[3], length(idx_species))
 
   data_plot <- apply(samples_subset, 2, function(x) {
     quantile(x, probs = c(0.025, 0.975))
@@ -847,7 +850,6 @@ plotFPTPStage2Rates <- function(fitmodel,
                                 primerName = NULL){
 
   S <- fitmodel$infos$S
-  # ncov_theta <- fitmodel$infos$ncov_psi
   speciesNames <- fitmodel$infos$speciesNames
   primerNames <- fitmodel$infos$primerNames
 
