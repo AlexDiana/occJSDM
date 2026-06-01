@@ -41,6 +41,10 @@ sample_w_cim_cipp <- function(y, theta, theta0, p, q, M, K, sumL, sumM, sumK, ma
     .Call('_occPlus_sample_w_cim_cipp', PACKAGE = 'occPlus', y, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z)
 }
 
+sample_betatheta_cpp <- function(w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta) {
+    .Call('_occPlus_sample_betatheta_cpp', PACKAGE = 'occPlus', w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta)
+}
+
 sample_pq_cpp <- function(c_imk, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q) {
     .Call('_occPlus_sample_pq_cpp', PACKAGE = 'occPlus', c_imk, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q)
 }

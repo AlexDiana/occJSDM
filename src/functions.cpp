@@ -250,7 +250,7 @@ arma::vec sample_Omega_cpp(arma::mat& X, arma::vec& beta, arma::vec& n){
 }
 
 // [[Rcpp::export]]
-arma::vec sample_beta_nocov_cpp(arma::vec beta, arma::mat X, arma::vec b,
+arma::vec sample_beta_nocov_cpp(arma::vec beta, arma::mat& X, arma::vec b,
                                 arma::mat B, arma::vec n, arma::vec k){
 
   arma::vec Omega = sample_Omega_cpp(X, beta, n);
@@ -707,6 +707,55 @@ NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
   }
 
   return w;
+}
+
+
+// [[Rcpp::export]]
+arma::mat sample_betatheta_cpp(const arma::mat& w,
+                               const arma::mat& z,
+                               arma::mat beta_theta,
+                               const arma::uvec& idx_z,
+                               const arma::mat& X_theta,
+                               const arma::vec& b_betatheta,
+                               const arma::mat& B_betatheta) { // Pass the R function if it's not natively in C++
+
+  int S = beta_theta.n_cols;
+
+  arma::uvec idx_z_cpp = idx_z - 1;
+
+  arma::mat z_all = z.rows(idx_z_cpp);
+
+  // Loop over columns (S)
+  for (int s = 0; s < S; ++s) {
+
+    // Get the s-th column of z_all
+    arma::vec z_col = z_all.col(s);
+
+    // Find indices where z_all[, s] == 1
+    // Armadillo's find() returns a uvec (unsigned vector of indices)
+    arma::uvec find_ones = find(z_col == 1);
+
+    if (find_ones.is_empty()) continue; // Safeguard if no rows equal 1
+
+    // k <- as.vector(t(w[z_all[,s]==1,s])) - .5
+    // In C++, w.submat(find_ones, uvec({static_cast<uword>(s)})) extracts the column subset
+    arma::vec w_sub = w.elem(find_ones + s * w.n_rows);
+    arma::vec k = w_sub - 0.5;
+
+    // n <- rep(1, length(k))
+    arma::vec n = arma::ones<arma::vec>(k.n_elem);
+
+    // X_thetasubset <- X_theta[z_all[,s]==1,,drop=F]
+    arma::mat X_thetasubset = X_theta.rows(find_ones);
+
+    // Extract current column of beta_theta
+    arma::vec beta_sub = beta_theta.col(s);
+
+    beta_theta.col(s) = sample_beta_nocov_cpp(beta_sub, X_thetasubset, b_betatheta, B_betatheta, n, k);
+
+  }
+
+  return beta_theta;
 }
 
 // [[Rcpp::export]]

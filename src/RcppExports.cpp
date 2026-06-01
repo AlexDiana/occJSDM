@@ -75,13 +75,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_beta_nocov_cpp
-arma::vec sample_beta_nocov_cpp(arma::vec beta, arma::mat X, arma::vec b, arma::mat B, arma::vec n, arma::vec k);
+arma::vec sample_beta_nocov_cpp(arma::vec beta, arma::mat& X, arma::vec b, arma::mat B, arma::vec n, arma::vec k);
 RcppExport SEXP _occPlus_sample_beta_nocov_cpp(SEXP betaSEXP, SEXP XSEXP, SEXP bSEXP, SEXP BSEXP, SEXP nSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
@@ -175,6 +175,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_betatheta_cpp
+arma::mat sample_betatheta_cpp(const arma::mat& w, const arma::mat& z, arma::mat beta_theta, const arma::uvec& idx_z, const arma::mat& X_theta, const arma::vec& b_betatheta, const arma::mat& B_betatheta);
+RcppExport SEXP _occPlus_sample_betatheta_cpp(SEXP wSEXP, SEXP zSEXP, SEXP beta_thetaSEXP, SEXP idx_zSEXP, SEXP X_thetaSEXP, SEXP b_betathetaSEXP, SEXP B_betathetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type z(zSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type beta_theta(beta_thetaSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type idx_z(idx_zSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X_theta(X_thetaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type b_betatheta(b_betathetaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type B_betatheta(B_betathetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_betatheta_cpp(w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_pq_cpp
 List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w, IntegerVector primerIdx, IntegerVector idx_k, int maxL, double a_p, double b_p, double a_q, double b_q);
 RcppExport SEXP _occPlus_sample_pq_cpp(SEXP c_imkSEXP, SEXP wSEXP, SEXP primerIdxSEXP, SEXP idx_kSEXP, SEXP maxLSEXP, SEXP a_pSEXP, SEXP b_pSEXP, SEXP a_qSEXP, SEXP b_qSEXP) {
@@ -206,6 +223,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_occPlus_sample_z_cpp", (DL_FUNC) &_occPlus_sample_z_cpp, 6},
     {"_occPlus_sample_w_cpp", (DL_FUNC) &_occPlus_sample_w_cpp, 16},
     {"_occPlus_sample_w_cim_cipp", (DL_FUNC) &_occPlus_sample_w_cim_cipp, 12},
+    {"_occPlus_sample_betatheta_cpp", (DL_FUNC) &_occPlus_sample_betatheta_cpp, 7},
     {"_occPlus_sample_pq_cpp", (DL_FUNC) &_occPlus_sample_pq_cpp, 9},
     {NULL, NULL, 0}
 };

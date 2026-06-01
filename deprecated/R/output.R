@@ -22,7 +22,7 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'
 returnOccupancyCovariates <- function(fitmodel){
 
-  # matrix_of_draws <- fitmodel$matrix_of_draws
+  matrix_of_draws <- fitmodel$matrix_of_draws
 
   S <- fitmodel$infos$S
   ncov_psi <- fitmodel$infos$ncov_psi
@@ -33,20 +33,20 @@ returnOccupancyCovariates <- function(fitmodel){
   # samples_subset <- matrix_of_draws[,grepl(param, colnames(matrix_of_draws))]
   # samples_subset <- samples_subset[,idxcov + 0:(S - 1)*ncov_psi]
 
-  beta_psi_output0 <- fitmodel$results_output$beta_psi_output
-  beta_psi_output0 <- apply(beta_psi_output0, c(1,2), c)
+  beta_psi_output0 <-
+    matrix_of_draws[,grepl("beta_psi\\[", colnames(matrix_of_draws))]
 
-  niter <- dim(beta_psi_output0)[1]
+  niter <- nrow(beta_psi_output0)
 
-  # beta_psi_output <- array(NA, dim = c(niter, ncov_psi, S))
-  # for(iter in 1:niter){
-  #   beta_psi_output[iter,,] <- matrix(beta_psi_output0[iter,], ncov_psi, S, byrow = F)
-  # }
+  beta_psi_output <- array(NA, dim = c(niter, ncov_psi, S))
+  for(iter in 1:niter){
+    beta_psi_output[iter,,] <- matrix(beta_psi_output0[iter,], ncov_psi, S, byrow = F)
+  }
 
-  dimnames(beta_psi_output0)[[2]] <- occCovNames
-  dimnames(beta_psi_output0)[[3]] <- speciesNames
+  dimnames(beta_psi_output)[[2]] <- occCovNames
+  dimnames(beta_psi_output)[[3]] <- speciesNames
 
-  beta_psi_output0
+  beta_psi_output
 
 }
 
@@ -116,7 +116,7 @@ plotOccupancyCovariates <- function(fitmodel,
     as.data.frame %>%
     mutate(Species = speciesNames[idx_species]) %>%
     mutate(speciesOrder = order(`2.5%`)) #%>%
-  # filter(Species %in% speciesNames[idx_species])
+    # filter(Species %in% speciesNames[idx_species])
 
   orderSpecies <- order(data_plot$`2.5%`)
 
@@ -157,18 +157,20 @@ plotOccupancyCovariates <- function(fitmodel,
 #' @import dplyr
 #' @import ggplot2
 #'
-returnOrdinationCovariatesOutput <- function(fitModel){
+returnOrdinationCovariatesOutput <- function(fitmodel){
 
   # if(is.null(covName)){
   #   stop("No name provided")
   # }
 
-  d <- fitModel$infos$d
-  ncov_ord <- fitModel$infos$ncov_ord
-  speciesNames <- fitModel$infos$speciesNames
-  ordCovNames <- colnames(fitModel$X_ord)
-  nsites <- length(fitModel$infos$siteNames)
-  nspecies <- length(fitModel$infos$speciesNames)
+  matrix_of_draws <- fitmodel$matrix_of_draws
+
+  d <- fitmodel$infos$d
+  ncov_ord <- fitmodel$infos$ncov_ord
+  speciesNames <- fitmodel$infos$speciesNames
+  ordCovNames <- colnames(fitmodel$X_ord)
+  nsites <- length(fitmodel$infos$siteNames)
+  nspecies <- length(fitmodel$infos$speciesNames)
 
   # if(length(idxcov) == 0){
   #   stop("Covariate name not found. If you are using a categorical covariates,
@@ -181,30 +183,34 @@ returnOrdinationCovariatesOutput <- function(fitModel){
   # }
 
   {
-    L_output0 <- fitModel$results_output$LL_output
-    beta_ord_output0 <- fitModel$results_output$beta_ord_output
-    U_output0 <- fitModel$results_output$U_output
+    U_output0 <-
+      matrix_of_draws[,grepl("U\\[", colnames(matrix_of_draws))]
+    L_output0 <-
+      matrix_of_draws[,grepl("L\\[", colnames(matrix_of_draws))]
+    beta_ord_output0 <-
+      matrix_of_draws[,grepl("beta_ord\\[", colnames(matrix_of_draws))]
 
-    niter <- dim(L_output0)[3]
+    niter <- nrow(U_output0)
 
-    L_output0 <- apply(L_output0, c(1,2), c)
-    L_output0 <- aperm(L_output0, c(1,3,2))
-
-    beta_ord_output0 <- apply(beta_ord_output0, c(1,2), c)
-    # beta_ord_output0 <- aperm(beta_ord_output0, c(1,3,2))
+    U_output <- array(NA, dim = c(niter, nsites, d))
+    for(iter in 1:niter){
+      U_output[iter,,] <- matrix(U_output0[iter,], nsites, d, byrow = F)
+    }
 
     L_output <- array(NA, dim = c(niter, d, nspecies))
     for(iter in 1:niter){
-      L_output[iter,,] <- matrix(L_output0[iter,,], d, nspecies, byrow = F)
+      L_output[iter,,] <- matrix(L_output0[iter,], d, nspecies, byrow = F)
     }
 
     beta_ord_output <- array(NA, dim = c(niter, ncov_ord, d))
     for(iter in 1:niter){
-      beta_ord_output[iter,,] <- matrix(beta_ord_output0[iter,,], ncov_ord, d, byrow = F)
+      beta_ord_output[iter,,] <- matrix(beta_ord_output0[iter,], ncov_ord, d, byrow = F)
     }
 
+    niter <- nrow(L_output)
+
     L_output_reparam <- L_output
-    U_output_reparam <- U_output0
+    U_output_reparam <- U_output
     # E_output_reparam <- E_output
     beta_ord_output_reparam <- beta_ord_output
 
@@ -224,6 +230,7 @@ returnOrdinationCovariatesOutput <- function(fitModel){
 
         L_current <- L_output[iter,,]
         # E_current <- E_output[iter,,]
+        U_current <- U_output[iter,,]
         beta_ord_current <- beta_ord_output[iter,,]
 
         qr_decomp <- qr(L_current)
@@ -236,9 +243,11 @@ returnOrdinationCovariatesOutput <- function(fitModel){
         betapsiord_new <- beta_ord_current %*% Q2
         # E_new <- E_current %*% Q2
         L_new <- invQ2 %*% L_current
+        U_new <- U_current %*% Q2
 
         L_output_reparam[iter,,] <- L_new
         # E_output_reparam[iter,] <- E_new
+        U_output_reparam[iter,,] <- U_new
         beta_ord_output_reparam[iter,,] <- betapsiord_new
       }
 
@@ -446,7 +455,7 @@ plotOrdinationCovariates <- function(fitmodel,
 #'
 returnDetectionCovariates <- function(fitmodel){
 
-  matrix_of_draws <- fitmodel$results_output
+  matrix_of_draws <- fitmodel$matrix_of_draws
 
   S <- fitmodel$infos$S
   ncov_theta <- fitmodel$infos$ncov_theta
@@ -457,13 +466,18 @@ returnDetectionCovariates <- function(fitmodel){
   # samples_subset <- matrix_of_draws[,grepl(param, colnames(matrix_of_draws))]
   # samples_subset <- samples_subset[,idxcov + 0:(S - 1)*ncov_psi]
 
-  beta_theta_output <- matrix_of_draws$beta_theta_output
+  beta_theta_output0 <-
+    matrix_of_draws[,grepl("beta_theta\\[", colnames(matrix_of_draws))]
 
-  beta_theta_output <- apply(beta_theta_output, c(1,2), c)
-  beta_theta_output <- aperm(beta_theta_output, c(2,3,1))
+  niter <- nrow(beta_theta_output0)
 
-  dimnames(beta_theta_output)[[1]] <- detCovNames
-  dimnames(beta_theta_output)[[2]] <- speciesNames
+  beta_theta_output <- array(NA, dim = c(niter, ncov_theta, S))
+  for(iter in 1:niter){
+    beta_theta_output[iter,,] <- matrix(beta_theta_output0[iter,], ncov_theta, S, byrow = F)
+  }
+
+  dimnames(beta_theta_output)[[2]] <- detCovNames
+  dimnames(beta_theta_output)[[3]] <- speciesNames
 
   beta_theta_output
 
@@ -543,8 +557,8 @@ plotDetectionCovariates <- function(fitmodel,
     idx_species <- 1:S
   }
 
-  samples_subset <- matrix(beta_theta_output[idxcov, idx_species,],
-                           dim(beta_theta_output)[3], length(idx_species))
+  samples_subset <- matrix(beta_theta_output[,idxcov, idx_species],
+                           dim(beta_theta_output)[1], length(idx_species))
 
   data_plot <- apply(samples_subset, 2, function(x) {
     quantile(x, probs = c(0.025, 0.975))
@@ -781,6 +795,8 @@ plotOccupancyRates <- function(fitmodel,
 plotCollectionRates <- function(fitmodel,
                                 idx_species = NULL){
 
+  matrix_of_draws <- fitmodel$matrix_of_draws
+
   S <- fitmodel$infos$S
   ncov_theta <- fitmodel$infos$ncov_theta
   speciesNames <- fitmodel$infos$speciesNames
@@ -789,17 +805,20 @@ plotCollectionRates <- function(fitmodel,
     idx_species <- 1:S
   }
 
-  samples_subset <- fitmodel$results_output$beta_theta_output[1,,,]
-  samples_subset <- apply(samples_subset, 1, c)
+  param <- "beta_theta"
+
+  samples_subset <- matrix_of_draws[,grepl(param, colnames(matrix_of_draws))]
+  samples_subset <- samples_subset[,1 + 0:(S-1)*ncov_theta]
+
 
   data_plot <- apply(samples_subset, 2, function(x) {
     quantile(logistic(x), probs = c(0.025, 0.975))
   }) %>%
     t %>%
     as.data.frame %>%
-    mutate(Species = speciesNames) #%>%
-    # mutate(speciesOrder = order(`2.5%`)) %>%
-    # filter(Species %in% speciesNames[idx_species])
+    mutate(Species = speciesNames) %>%
+    mutate(speciesOrder = order(`2.5%`)) %>%
+    filter(Species %in% speciesNames[idx_species])
 
   orderSpecies <- order(data_plot$`2.5%`)
 
@@ -846,10 +865,13 @@ plotCollectionRates <- function(fitmodel,
 #' @import ggplot2
 #'
 plotFPTPStage2Rates <- function(fitmodel,
-                                idx_species = NULL,
-                                primerName = NULL){
+                               idx_species = NULL,
+                               primerName = NULL){
+
+  matrix_of_draws <- fitmodel$matrix_of_draws
 
   S <- fitmodel$infos$S
+  # ncov_theta <- fitmodel$infos$ncov_psi
   speciesNames <- fitmodel$infos$speciesNames
   primerNames <- fitmodel$infos$primerNames
 
@@ -861,8 +883,8 @@ plotFPTPStage2Rates <- function(fitmodel,
     primerName <- primerNames[1]
   }
 
-  p_output <- fitmodel$results_output$p_output
-  q_output <- fitmodel$results_output$q_output
+  p_output <- matrix_of_draws[,grepl("p\\[", colnames(matrix_of_draws))]
+  q_output <- matrix_of_draws[,grepl("q\\[", colnames(matrix_of_draws))]
 
   data_plot_p <- apply(p_output, 2, function(x) {
     quantile(x, probs = c(0.025, 0.975))
@@ -884,17 +906,13 @@ plotFPTPStage2Rates <- function(fitmodel,
   idx_speciesprimer <- stringr::str_match(texts, "\\[(\\d+),(\\d+)\\]")
 
   data_plot <- cbind(data_plot_p, data_plot_q) %>%
-    mutate(Species = speciesNames) %>%
-    mutate(speciesOrder = order(p1))
-  #
-  # data_plot <- cbind(data_plot_p, data_plot_q) %>%
-  #   mutate(Species = as.numeric(idx_speciesprimer[,3]),
-  #          Primer = as.numeric(idx_speciesprimer[,2])) %>%
-  #   mutate(Species = speciesNames[Species],
-  #          Primer = primerNames[Primer]) %>%
-  #   mutate(speciesOrder = order(p1)) %>%
-  #   filter(Species %in% speciesNames[idx_species]) %>%
-  #   filter(Primer == primerName)
+    mutate(Species = as.numeric(idx_speciesprimer[,3]),
+           Primer = as.numeric(idx_speciesprimer[,2])) %>%
+    mutate(Species = speciesNames[Species],
+           Primer = primerNames[Primer]) %>%
+    mutate(speciesOrder = order(p1)) %>%
+    filter(Species %in% speciesNames[idx_species]) %>%
+    filter(Primer == primerName)
 
   # orderSpecies <- order(data_plot$`2.5%`[data_plot$Primer == data_plot$Primer[1]])
 
@@ -970,9 +988,11 @@ plotDetectionRates <- function(fitmodel,
     idx_species <- 1:S
   }
 
-  p_output <- fitmodel$results_output$p_output
+  param <- "p\\["
 
-  data_plot <- apply(p_output, c(1,2), function(x) {
+  samples_subset <- matrix_of_draws[,grepl(param, colnames(matrix_of_draws))]
+
+  data_plot <- apply(samples_subset, 2, function(x) {
     quantile(x, probs = c(0.025, 0.975))
   }) %>%
     t %>%
@@ -994,7 +1014,7 @@ plotDetectionRates <- function(fitmodel,
   detectionRates <- data_plot %>%
     ggplot(aes(x =
                  factor(Species, level = speciesNames),
-               # factor(Species, level = speciesNames[orderSpecies]),
+                 # factor(Species, level = speciesNames[orderSpecies]),
                ymin = `2.5%`,
                ymax = `97.5%`,
                color = factor(Primer),
@@ -1043,6 +1063,8 @@ plotDetectionRates <- function(fitmodel,
 plotStage1FPRates <- function(fitmodel,
                               idx_species = NULL){
 
+  matrix_of_draws <- fitmodel$matrix_of_draws
+
   S <- fitmodel$infos$S
   # ncov_theta <- fitmodel$infos$ncov_psi
   speciesNames <- fitmodel$infos$speciesNames
@@ -1052,8 +1074,9 @@ plotStage1FPRates <- function(fitmodel,
     idx_species <- 1:S
   }
 
-  samples_subset <- fitmodel$results_output$theta0_output
-  samples_subset <- apply(samples_subset, 1, c)
+  param <- "theta0\\["
+
+  samples_subset <- matrix_of_draws[,grepl(param, colnames(matrix_of_draws))]
 
   data_plot <- apply(samples_subset, 2, function(x) {
     quantile(x, probs = c(0.025, 0.975))
@@ -1116,6 +1139,8 @@ plotStage1FPRates <- function(fitmodel,
 plotStage2FPRates <- function(fitmodel,
                               idx_species = NULL){
 
+  matrix_of_draws <- fitmodel$matrix_of_draws
+
   S <- fitmodel$infos$S
   # ncov_theta <- fitmodel$infos$ncov_psi
   speciesNames <- fitmodel$infos$speciesNames
@@ -1125,31 +1150,36 @@ plotStage2FPRates <- function(fitmodel,
     idx_species <- 1:S
   }
 
-  samples_subset <- fitmodel$results_output$q_output
-  samples_subset <- apply(samples_subset, c(1,2), c)
+  param <- "q\\["
 
-  data_plot <- apply(samples_subset, 3, function(x) {
+  samples_subset <- matrix_of_draws[,grepl(param, colnames(matrix_of_draws))]
+
+  data_plot <- apply(samples_subset, 2, function(x) {
     quantile(x, probs = c(0.025, 0.975))
   }) %>%
     t %>%
     as.data.frame
 
+  texts <- rownames(data_plot)
+  idx_speciesprimer <- stringr::str_match(texts, "\\[(\\d+),(\\d+)\\]")
+
   data_plot <- data_plot %>%
-    mutate(Species = speciesNames) %>%
+    mutate(Species = as.numeric(idx_speciesprimer[,3]),
+           Primer = as.numeric(idx_speciesprimer[,2])) %>%
+    mutate(Species = speciesNames[Species],
+           Primer = primerNames[Primer]) %>%
     mutate(speciesOrder = order(`2.5%`)) %>%
     filter(Species %in% speciesNames[idx_species])
 
-  orderSpecies <- order(data_plot$`2.5%`)
+  orderSpecies <- order(data_plot$`2.5%`[data_plot$Primer == data_plot$Primer[1]])
 
   detectionRates <- data_plot %>%
-    ggplot(aes(x = factor(Species, level =  speciesNames[orderSpecies]),
+    ggplot(aes(x =
                  # factor(Species, level = speciesNames[orderSpecies]),
-                 # factor(Species, level = speciesNames),
+                 factor(Species, level = speciesNames),
                ymin = `2.5%`,
-               ymax = `97.5%`#,
-               # color = factor(Primer))
-    )
-    ) +
+               ymax = `97.5%`,
+               color = factor(Primer))) +
     geom_errorbar(position = position_dodge(width = .15), # Use the SAME width as geom_col
                   width = .5) +
     xlab("Species") +
@@ -1192,10 +1222,14 @@ plotStage2FPRates <- function(fitmodel,
 #'
 plotReadIntensity <- function(fitmodel){
 
-  mu1_output <- fitmodel$results_output$mu1_output
-  mu0_output <- fitmodel$results_output$mu0_output
-  sigma1_output <- fitmodel$results_output$sigma1_output
-  sigma0_output <- fitmodel$results_output$sigma0_output
+  matrix_of_draws <- fitmodel$matrix_of_draws
+
+  mu1_output <-
+    matrix_of_draws[,grepl("mu1", colnames(matrix_of_draws))]
+  sigma0_output <-
+    matrix_of_draws[,grepl("sigma0", colnames(matrix_of_draws))]
+  sigma1_output <-
+    matrix_of_draws[,grepl("sigma1", colnames(matrix_of_draws))]
 
   niter <- length(mu1_output)
 
@@ -1210,14 +1244,12 @@ plotReadIntensity <- function(fitmodel){
   densities_plot_neg <- matrix(NA, length(x_grid), niter)
 
   for (iter in 1:niter) {
-
     mu1 <- mu1_output[iter]
-    mu0 <- mu0_output[iter]
     sigma1 <- sigma1_output[iter]
     sigma0 <- sigma0_output[iter]
 
     densities_plot_pos[,iter] <- dnorm(x, mean = mu1, sd = sigma1)
-    densities_plot_neg[,iter] <- dnorm(x, mean = mu0, sd = sigma0)
+    densities_plot_neg[,iter] <- dnorm(x, mean = 0, sd = sigma0)
   }
 
   densities_plot_pos_quantiles <-
@@ -1312,29 +1344,27 @@ plotReadIntensity <- function(fitmodel){
 
 }
 
-generateCorrelationMatrixOutput <- function(fitModel,
+generateCorrelationMatrixOutput <- function(fitmodel,
                                             idx_species = NULL){
 
-  L_output <- fitModel$results_output$LL_output
-  beta_psi_output <- fitModel$results_output$beta_psi_output
-  S <- fitModel$infos$S
-  d <- fitModel$infos$d
+  matrix_of_draws <- fitmodel$results_output
+
+  L_output <- matrix_of_draws$LL_output
+  beta0_psi_output <- matrix_of_draws$beta_psi_output
+  S <- fitmodel$infos$S
+  d <- fitmodel$infos$d
 
   if(is.null(idx_species)){
     idx_species <- 1:S
   }
 
-  niter <- dim(L_output)[3]
-
-  L_output <- apply(L_output, c(1,2), c)
-
-  beta_psi_output <- apply(beta_psi_output, c(1,2), c)
+  niter <- nrow(L_output)
 
   Lambda_output <- array(NA, dim = c(niter, S, S))
 
   for (iter in 1:niter) {
-    L_output_current <- matrix(L_output[iter,,], S, d, byrow = T)
-    beta0psi_output_current <- matrix(beta_psi_output[iter,1,], S, 1, byrow = T)
+    L_output_current <- matrix(L_output[iter,], S, d, byrow = T)
+    beta0psi_output_current <- matrix(beta0_psi_output[iter,], S, 1, byrow = T)
     L_all_output_current <- cbind(L_output_current, beta0psi_output_current)
 
     Lambda_output[iter,,] <- cov2cor(L_all_output_current %*% t(L_all_output_current))
@@ -1343,6 +1373,8 @@ generateCorrelationMatrixOutput <- function(fitModel,
   Lambda_output[,idx_species, idx_species]
 
 }
+
+
 
 
 #' plotCorrelationMatrix
@@ -1480,7 +1512,7 @@ plotSigElementsCorMatrix <- function(fitmodel,
 #'
 computeOccupancyProbs <- function(fitmodel#,
                                   # confidence = .95
-){
+                                  ){
 
 
   matrix_of_draws <- fitmodel$matrix_of_draws

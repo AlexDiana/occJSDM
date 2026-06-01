@@ -36,7 +36,7 @@ The arguments of the function are:
 - d: number of factors;
 - occCovariates: vector of the name of the covariates for the occupancy probabilities. 
 - ordCovariates: vector of the name of the covariates for the ordination. 
-- detCovariates: vector of the name of the covariates for the detection probabilities. 
+- collCovariates: vector of the name of the covariates for the detection probabilities. 
 
 ## Data preparation
 
@@ -71,12 +71,12 @@ fitmodel  <- runOccPlus(data,
                         d = 2,
                         occCovariates = c("X_psi.1","X_psi.2"),
                         ordCovariates = c("X_ord.1","X_ord.2"),
-                        detCovariates = c("X_theta"))
+                        collCovariates = c("X_theta"))
 
 ```
 
 
-The names of the covariates in `occCovariates`, `ordCovariates` and `detCovariates`
+The names of the covariates in `occCovariates`, `ordCovariates` and `collCovariates`
 should match the column name in data$info.
 
 occPlus does not require a threshold for truncation to fit occupancy models, as
@@ -94,7 +94,7 @@ fitmodel2  <- runOccPlus(data,
                         d = 3,
                         occCovariates = c("X_psi.1","X_psi.2"),
                         ordCovariates = c("X_ord.1","X_ord.2"),
-                        detCovariates = c("X_theta"))
+                        collCovariates = c("X_theta"))
 
 log_lik1 <- extract_log_lik(fitmodel$vb_fit)
 log_lik2 <- extract_log_lik(fitmodel2$vb_fit)
@@ -118,8 +118,8 @@ First, we provide three functions for returning occupancy, ordination and detect
 covariate coefficients. The output is returned in the form (*niter* x *numberOfCovariates* x *numberOfSpecies*)
 
 ```{r}
-detCovariatesOutput <- returnDetectionCovariates(fitmodel)
-str(detCovariatesOutput)
+collCovariatesOutput <- returnDetectionCovariates(fitmodel)
+str(collCovariatesOutput)
 ```
 
 ```{r}

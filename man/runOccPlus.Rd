@@ -6,12 +6,12 @@
 \usage{
 runOccPlus(
   data,
-  d,
-  threshold = F,
+  n_factors,
+  threshold = 0,
   occCovariates = c(),
   ordCovariates = c(),
-  detCovariates = c(),
-  numSamples = 350
+  collCovariates = c(),
+  MCMCparams = list(nchain = 2, nburn = 5000, niter = 5000)
 )
 }
 \arguments{
@@ -23,11 +23,11 @@ runOccPlus(
   with the number of reads of each species in each sample.}
 }}
 
-\item{d}{Number of factors.}
+\item{n_factors}{Number of factors.}
 
 \item{threshold}{(Optional) threshold used to truncated the reads to binary data.
 Data greater than or equal to the threshold will be considered as detection.
-If this is set to F (which is the default), occPlus estimates two modes as described
+If this is set to 0 (which is the default), occPlus estimates two modes as described
 in the paper.}
 
 \item{occCovariates}{vector of the name of the covariates for the occupancy probabilities.
@@ -36,7 +36,7 @@ Names should match the column name in data$info.}
 \item{ordCovariates}{vector of the name of the covariates for the occupancy probabilities.
 Names should match the column name in data$info.}
 
-\item{detCovariates}{vector of the name of the covariates for the detection probabilities.
+\item{collCovariates}{vector of the name of the covariates for the collection probabilities.
 Names should match the column name in data$info.}
 }
 \value{
@@ -52,10 +52,10 @@ Fit the model described in Diana et al..
 \dontrun{
 # Example usage
 fitmodel  <- runOccPlus(data,
-d = 2,
+n_factors = 2,
 occCovariates = c("X_psi.1","X_psi.2"),
 ordCovariates = c("X_ord.1","X_ord.2"),
-detCovariates = c("X_theta"))
+collCovariates = c("X_theta"))
 }
 
 }

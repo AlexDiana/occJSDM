@@ -167,9 +167,6 @@ sample_betatheta <- function(w, z, beta_theta, idx_z, X_theta,
     beta_theta[,s] <- sample_beta_nocov_cpp(beta_theta[,s], X_thetasubset,
                                             b_betatheta, B_betatheta, n, k)
 
-    mean((k + .5)[X_thetasubset[,2] == 1])
-    mean((k + .5)[X_thetasubset[,2] == 0])
-
   }
 
   beta_theta
