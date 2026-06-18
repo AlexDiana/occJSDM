@@ -47,17 +47,19 @@ runOccPlus <- function(data,
                        collCovariates = c(),
                        MCMCparams = list(nchain = 2,
                                          nburn = 5000,
-                                         niter = 5000)){
+                                         niter = 5000,
+                                         nthin = 1)){
 
   {
-    n_factors = 2
-  threshold = 1
-  occCovariates = c()
-  ordCovariates = c("season")
-  collCovariates = c("genetic_predator")
-  MCMCparams = list(nchain = 1,
-                    nburn = 5000,
-                    niter = 5000)
+    # n_factors = 2
+    # threshold = 1
+    # occCovariates = c()
+    # ordCovariates = c("season")
+    # collCovariates = c("genetic_predator")
+    # MCMCparams = list(nchain = 1,
+    #                   nburn = 5000,
+    #                   niter = 5000,
+    #                   thin = 1)
   }
 
   data_info <- as.data.frame(data$info)
@@ -290,7 +292,6 @@ runOccPlus <- function(data,
     ncov_theta <- ncol(X_theta)
     ncov_ord <- ncol(X_ord)
 
-
   }
 
   # check for nas
@@ -502,7 +503,7 @@ runOccPlus <- function(data,
 
     }
 
-    for (iter in 1:(niter + nburn)) {
+    for (iter in 1:(nburn + niter * nthin)) {
 
       if(iter %% 10 == 0){
 
@@ -589,8 +590,8 @@ runOccPlus <- function(data,
 
       {
 
-        if(iter > nburn){
-          currentIter <- iter - nburn
+        if(iter > nburn & (iter - nburn) %% nthin == 0){
+          currentIter <- (iter - nburn) / nthin
           beta_psi_output_chain[,,currentIter] <- beta_psi
           beta_ord_output_chain[,,currentIter] <- beta_ord
           beta_theta_output_chain[,,currentIter] <- beta_theta
