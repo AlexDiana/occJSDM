@@ -1399,6 +1399,98 @@ computeOccupancyProbs <- function(fitModel#,
 
 }
 
+#' plotCumulativeSpeciesDetections
+#'
+#' Cumulative species detection plot
+#'
+#' @details
+#' Plot the credible interval of the overall species detections for several
+#' number of PCR, conditional on species presence in the sample
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return A plot with the credible interval of cumulative detections
+#'
+#' @examples
+#' \dontrun{
+#' plotCumulativeSpeciesDetections(fitModel, K = 5)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+plotCumulativeSpeciesDetections <- function(fitModel, K, primer = 0, alpha = .95){
+
+  p_output <- fitModel$results_output$p_output
+
+  ab_p <- apply(p_output, c(1,2), function(x){
+    x <- as.vector(x)
+    mean_x <- mean(x)
+    var_x <- var(x)
+
+    alpha <- mean_x * ((mean_x * (1 - mean_x) / var_x) - 1)
+    beta <- (1 - mean_x) * ((mean_x * (1 - mean_x) / var_x) - 1)
+    c(alpha, beta)
+  })
+
+  speciesDetected <- computeSpeciesDetected(ab_p, K, primer, alpha)
+
+  ggplot(data = NULL, aes(x = 1:K,
+                          ymin = speciesDetected[1,],
+                          ymax = speciesDetected[2,])) +
+    geom_errorbar() + theme_bw() +
+    theme(axis.text = element_text(size = 12, face = "bold"),
+          axis.title = element_text(size = 15, face = "bold")) +
+    scale_x_continuous(breaks = 1:K, name = "Number of technical replicates") +
+    scale_y_continuous(name = "Species Detected")
+
+}
+
+computeSpeciesDetected <- function(ab_p, K, primer, alpha){
+
+  S <- dim(ab_p)[3]
+
+  B <- 100
+
+  if(primer == 0){
+    idx_primer <- 1:P
+  } else {
+    idx_primer <- primer
+  }
+
+  P <- length(idx_primer)
+
+  matrixDetectedPCR <- sapply(1:B, function(b){
+
+    detectionMatrix <- sapply(1:S, function(s){
+
+      ps <- rbeta(P, ab_p[1,idx_primer,s], ab_p[2,idx_primer,s])
+      sapply(1:K, function(k){
+
+        detectionsAcrossPrimers <-
+          sapply(1:P, function(p){
+            rbinom(1, 1, ps[p])
+          })
+
+        as.numeric(any(detectionsAcrossPrimers) > 0)
+
+      })
+    })
+
+    detectionsPerPcr <- sapply(1:K, function(k){
+      sum(apply(detectionMatrix[1:k,,drop=F], 2, function(x){ any(x > 0)}))
+    })
+
+    detectionsPerPcr
+  })
+
+  apply(matrixDetectedPCR, 1, function(x){
+    quantile(x, probs = c((1 - alpha)/2, (1 + alpha)/2))
+  })
+
+}
+
 ## TODO
 plotOrdination <- function(fitModel,
                            idx_factor = c(1,2)){
@@ -1502,3 +1594,5 @@ tracePlotZ <- function(fitModel){
   qplot(1:5000, z_output[2,2,,1])
 
 }
+
+
