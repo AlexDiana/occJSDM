@@ -50,18 +50,6 @@ runOccPlus <- function(data,
                                          niter = 5000,
                                          nthin = 1)){
 
-  {
-    # n_factors = 2
-    # threshold = 1
-    # occCovariates = c()
-    # ordCovariates = c("season")
-    # collCovariates = c("genetic_predator")
-    # MCMCparams = list(nchain = 1,
-    #                   nburn = 5000,
-    #                   niter = 5000,
-    #                   thin = 1)
-  }
-
   data_info <- as.data.frame(data$info)
   OTU <- data$OTU
 
