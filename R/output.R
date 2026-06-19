@@ -1453,8 +1453,10 @@ computeSpeciesDetected <- function(ab_p, K, primer, alpha){
 
   B <- 100
 
+  P_all <- dim(ab_p)[2]
+
   if(primer == 0){
-    idx_primer <- 1:P
+    idx_primer <- 1:P_all
   } else {
     idx_primer <- primer
   }
