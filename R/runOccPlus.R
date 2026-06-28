@@ -48,7 +48,8 @@ runOccPlus <- function(data,
                        MCMCparams = list(nchain = 2,
                                          nburn = 5000,
                                          niter = 5000,
-                                         nthin = 1)){
+                                         nthin = 1),
+                       listPriors = list()){
 
   data_info <- as.data.frame(data$info)
   OTU <- data$OTU
@@ -291,12 +292,12 @@ runOccPlus <- function(data,
 
   # priors
   {
-    prior_beta_psi <- 0
-    prior_beta_psi_sd <- 1
+    prior_beta_psi <- ifelse(is.null(listPriors$prior_beta_psi), 0,  listPriors$prior_beta_psi)
+    prior_beta_psi_sd <- ifelse(is.null(listPriors$prior_beta_psi_sd), 1, listPriors$prior_beta_psi_sd)
     prior_beta_theta <- 0
     prior_beta_theta_sd <- 1
-    a_theta0 <- 1
-    b_theta0 <- 20
+    a_theta0 <- ifelse(is.null(listPriors$a_theta0), 1, listPriors$a_theta0)
+    b_theta0 <- ifelse(is.null(listPriors$b_theta0), 30, listPriors$b_theta0)
     a_p <- 5
     b_p <- 1
     a_q <- 1
@@ -619,6 +620,12 @@ runOccPlus <- function(data,
 
     }
 
+  }
+
+  minESS <- computeESS(fitModel)
+
+  if(minESS < 50) {
+    print("Effective sample size, please rerun with more iterations")
   }
 
   results_output <- list(
