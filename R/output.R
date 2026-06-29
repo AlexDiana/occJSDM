@@ -527,7 +527,8 @@ plotSpeciesRates <- function(data_plot,
 #' @import dplyr
 #' @import ggplot2
 #'
-returnOccupancyRates <- function(fitModel){
+returnOccupancyRates <- function(fitModel,
+                                 X_psi, X_ord){
 
   # conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
 
@@ -535,9 +536,15 @@ returnOccupancyRates <- function(fitModel){
   speciesNames <- fitModel$infos$speciesNames
   n <- length(fitModel$infos$siteNames)
 
-  X_psi <- fitModel$X_psi
+  if(is.null(X_psi)) {
+    X_psi <- fitModel$X_psi
+  }
+  if(is.null(X_ord)){
+    X_ord <- fitModel$X_ord
+  }
   beta_psi_output <- fitModel$results_output$beta_psi_output
-  U_output <- fitModel$results_output$U_output
+  beta_ord_output <- fitModel$results_output$beta_ord_output
+  E_output <- fitModel$results_output$E_output
   LL_output <- fitModel$results_output$LL_output
 
   nchain <- dim(beta_psi_output)[4]
@@ -547,8 +554,11 @@ returnOccupancyRates <- function(fitModel){
   for (chain in 1:nchain) {
     for (iter in 1:niter) {
       psi_output[iter + (chain - 1)*niter,,] <-
-        computePsi(X_psi, beta_psi_output[,,iter,chain],
-                     U_output[,,iter,chain], LL_output[,,iter,chain])
+        computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
+                    beta_ord_output[,,iter,chain],
+                    E_output[,,iter,chain], LL_output[,,iter,chain])
+        # computePsi(X_psi, beta_psi_output[,,iter,chain],
+        #              U_output[,,iter,chain], LL_output[,,iter,chain])
 
     }
   }
@@ -1355,111 +1365,94 @@ plotSigElementsCorMatrix <- function(fitModel,
 #' @import dplyr
 #' @import ggplot2
 #'
-computePredictiveOccupancyProbs <- function(fitModel#,
+computePredictiveOccupancyProbs <- function(fitModel,
+                                            X_psi,
+                                            X_ord
                                   # confidence = .95
 ){
 
 
-  matrix_of_draws <- fitModel$matrix_of_draws
-
-  X_psi <- fitModel$X_psi
-  ncov_psi <- ncol(X_psi)
-
-  beta0_psi_output <-
-    matrix_of_draws[,grepl("beta0_psi\\[", colnames(matrix_of_draws))]
-  beta_psi_output <-
-    matrix_of_draws[,grepl("beta_psi\\[", colnames(matrix_of_draws))]
-  U_output <-
-    matrix_of_draws[,grepl("U\\[", colnames(matrix_of_draws))]
-  L_output <-
-    matrix_of_draws[,grepl("LL\\[", colnames(matrix_of_draws))]
-
-  niter <- nrow(beta0_psi_output)
   S <- fitModel$infos$S
-  n_factors<- fitModel$infos$d
-  n <- length(fitModel$infos$siteNames)
   speciesNames <- fitModel$infos$speciesNames
+  n <- length(fitModel$infos$siteNames)
 
-  psi_output <- array(NA, dim = c(niter, n, S))
+  if(is.null(X_psi)) {
+    X_psi <- fitModel$X_psi
+  }
+  if(is.null(X_ord)){
+    X_ord <- fitModel$X_ord
+  }
+  beta_psi_output <- fitModel$results_output$beta_psi_output
+  beta_ord_output <- fitModel$results_output$beta_ord_output
+  E_output <- fitModel$results_output$E_output
+  LL_output <- fitModel$results_output$LL_output
 
-  dimnames(psi_output)[[2]] <- fitModel$infos$siteNames
-  dimnames(psi_output)[[3]] <- speciesNames
+  nchain <- dim(beta_psi_output)[4]
+  niter <- dim(beta_psi_output)[3]
 
-  for (iter in 1:niter) {
-    psi_output[iter,,] <-
-      logistic(
-        matrix(beta0_psi_output[iter,], n, S, byrow = T) +
-          X_psi %*% matrix(beta_psi_output[iter,], ncov_psi, S) +
-          matrix(U_output[iter,], n, n_factors, byrow = F) %*% matrix(L_output[iter,], n_factors, S)
-      )
+  psi_output <- array(NA, dim = c(nchain * niter, n, S))
+  for (chain in 1:nchain) {
+    for (iter in 1:niter) {
+      psi_output[iter + (chain - 1)*niter,,] <-
+        logistic(
+          computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
+                    beta_ord_output[,,iter,chain],
+                    E_output[,,iter,chain], LL_output[,,iter,chain])
+          )
+      # computePsi(X_psi, beta_psi_output[,,iter,chain],
+      #              U_output[,,iter,chain], LL_output[,,iter,chain])
+
+    }
   }
 
   psi_output
 
+  # for (iter in 1:niter) {
+  #   psi_output[iter,,] <-
+  #     logistic(
+  #       matrix(beta0_psi_output[iter,], n, S, byrow = T) +
+  #         X_psi %*% matrix(beta_psi_output[iter,], ncov_psi, S) +
+  #         matrix(U_output[iter,], n, n_factors, byrow = F) %*% matrix(L_output[iter,], n_factors, S)
+  #     )
+  # }
+  #
+  # psi_output
+
 
 }
 
+
 #' computeConditionalOccupancyProbs
 #'
-#' Computes the quantiles of the predictive occupancy probability
+#' Computes the posterior mean of the conditional occupancy probability
 #'
 #' @details
-#' Compute the credible interval of the occupancy probability
+#' Computes the posterior mean of the conditional occupancy probability
 #'
 #' @param fitModel Output from the function runOccPlus
 #'
-#' @return An array with the quantiles
+#' @return A matrix of size (site X species) with the posterior menan occupancy at
+#' each site for each species.
 #'
 #' @examples
 #' \dontrun{
-#' computePredictiveOccupancyProbs(fitModel)
+#' computeConditionalOccupancyProbs(fitModel)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-computePredictiveOccupancyProbs <- function(fitModel#,
-                                            # confidence = .95
-){
+computeConditionalOccupancyProbs <- function(fitModel){
 
+  z_output <- fitModel$results_output$z_output
 
-  matrix_of_draws <- fitModel$matrix_of_draws
+  z_mean <- apply(z_output, c(1,2), mean)
 
-  X_psi <- fitModel$X_psi
-  ncov_psi <- ncol(X_psi)
+  rownames(z_mean) <- fitModel$infos$siteNames
+  colnames(z_mean) <- fitModel$infos$speciesNames
 
-  beta0_psi_output <-
-    matrix_of_draws[,grepl("beta0_psi\\[", colnames(matrix_of_draws))]
-  beta_psi_output <-
-    matrix_of_draws[,grepl("beta_psi\\[", colnames(matrix_of_draws))]
-  U_output <-
-    matrix_of_draws[,grepl("U\\[", colnames(matrix_of_draws))]
-  L_output <-
-    matrix_of_draws[,grepl("LL\\[", colnames(matrix_of_draws))]
-
-  niter <- nrow(beta0_psi_output)
-  S <- fitModel$infos$S
-  n_factors<- fitModel$infos$d
-  n <- length(fitModel$infos$siteNames)
-  speciesNames <- fitModel$infos$speciesNames
-
-  psi_output <- array(NA, dim = c(niter, n, S))
-
-  dimnames(psi_output)[[2]] <- fitModel$infos$siteNames
-  dimnames(psi_output)[[3]] <- speciesNames
-
-  for (iter in 1:niter) {
-    psi_output[iter,,] <-
-      logistic(
-        matrix(beta0_psi_output[iter,], n, S, byrow = T) +
-          X_psi %*% matrix(beta_psi_output[iter,], ncov_psi, S) +
-          matrix(U_output[iter,], n, n_factors, byrow = F) %*% matrix(L_output[iter,], n_factors, S)
-      )
-  }
-
-  psi_output
-
+  z_mean
 
 }
 
