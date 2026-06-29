@@ -1,9 +1,9 @@
-computeMinESS <- function(fitModel){
+computeMinESS <- function(results_output){
 
-  beta_ord_output <- fitModel$results_output$beta_ord_output
-  beta_psi_output <- fitModel$results_output$beta_psi_output
-  beta_theta_output <- fitModel$results_output$beta_theta_output
-  LL_output <- fitModel$results_output$LL_output
+  beta_ord_output <- results_output$beta_ord_output
+  beta_psi_output <- results_output$beta_psi_output
+  beta_theta_output <- results_output$beta_theta_output
+  LL_output <- results_output$LL_output
 
   ESS_betaord <- matrix(NA, dim(beta_ord_output)[1],dim(beta_ord_output)[2])
   for (x in 1:nrow(ESS_betaord)) {

@@ -336,6 +336,7 @@ runOccPlus <- function(data,
   nchain <- MCMCparams$nchain
   nburn <- MCMCparams$nburn
   niter <- MCMCparams$niter
+  nthin <- MCMCparams$nthin
 
   # chain output
   {
@@ -494,14 +495,15 @@ runOccPlus <- function(data,
 
     for (iter in 1:(nburn + niter * nthin)) {
 
-      if(iter %% 10 == 0){
-
-        if(iter > nburn){
+      if(iter > nburn){
+        currentIter <- (iter - nburn) / nthin
+        if(currentIter %% 10 == 0){
           print(paste0("Chain ", chain, " - Iteration ",iter - nburn))
-        } else {
+        }
+      } else {
+        if(iter %% 10 == 0){
           print(paste0("Chain ", chain, " - Burn in Iteration ",iter))
         }
-
       }
 
       # sample z
@@ -622,12 +624,6 @@ runOccPlus <- function(data,
 
   }
 
-  minESS <- computeESS(fitModel)
-
-  if(minESS < 50) {
-    print("Effective sample size, please rerun with more iterations")
-  }
-
   results_output <- list(
     "beta_ord_output" = beta_ord_output,
     "beta_psi_output" = beta_psi_output,
@@ -636,7 +632,7 @@ runOccPlus <- function(data,
     "E_output" = E_output,
     "UL_output" = UL_output,
     "U_output" = U_output,
-    "z_output" = z_output, # TODO: summarise this object
+    "z_output" = z_output,
     "p_output" = p_output,
     "q_output" = q_output,
     "theta0_output" = theta0_output,
@@ -645,6 +641,12 @@ runOccPlus <- function(data,
     "mu0_output" = mu0_output,
     "sigma0_output" = sigma0_output
     )
+
+  minESS <- computeMinESS(results_output)
+
+  if(minESS < 50) {
+    print("Effective sample size too small, please rerun with more iterations")
+  }
 
   infos <- list(
     "S" = S,

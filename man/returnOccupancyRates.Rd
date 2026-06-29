@@ -4,7 +4,7 @@
 \alias{returnOccupancyRates}
 \title{returnOccupancyProbs}
 \usage{
-returnOccupancyRates(fitModel)
+returnOccupancyRates(fitModel, X_psi, X_ord)
 }
 \arguments{
 \item{fitModel}{Output from the function runOccPlus}

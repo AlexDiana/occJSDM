@@ -15,6 +15,14 @@ computePsi <- function(X_psi, beta_psi, U, LL){
 
 }
 
+computePsiE <- function(X_psi, beta_psi, X_ord, beta_ord, E, LL){
+
+  logit_psi = X_psi %*% beta_psi + (X_ord %*% beta_ord + E) %*% LL
+
+  logistic(logit_psi)
+
+}
+
 computeTheta <- function(X_theta, beta_theta){
   logistic(X_theta %*% beta_theta)
 }

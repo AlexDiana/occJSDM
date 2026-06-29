@@ -1335,9 +1335,9 @@ plotSigElementsCorMatrix <- function(fitModel,
 
 }
 
-#' computeOccupancyProbs
+#' computePredictiveOccupancyProbs
 #'
-#' Computes the quantiles of the occupancy probability
+#' Computes the quantiles of the predictive occupancy probability
 #'
 #' @details
 #' Compute the credible interval of the occupancy probability
@@ -1348,15 +1348,79 @@ plotSigElementsCorMatrix <- function(fitModel,
 #'
 #' @examples
 #' \dontrun{
-#' computeOccupancyProbs(fitModel)
+#' computePredictiveOccupancyProbs(fitModel)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-computeOccupancyProbs <- function(fitModel#,
+computePredictiveOccupancyProbs <- function(fitModel#,
                                   # confidence = .95
+){
+
+
+  matrix_of_draws <- fitModel$matrix_of_draws
+
+  X_psi <- fitModel$X_psi
+  ncov_psi <- ncol(X_psi)
+
+  beta0_psi_output <-
+    matrix_of_draws[,grepl("beta0_psi\\[", colnames(matrix_of_draws))]
+  beta_psi_output <-
+    matrix_of_draws[,grepl("beta_psi\\[", colnames(matrix_of_draws))]
+  U_output <-
+    matrix_of_draws[,grepl("U\\[", colnames(matrix_of_draws))]
+  L_output <-
+    matrix_of_draws[,grepl("LL\\[", colnames(matrix_of_draws))]
+
+  niter <- nrow(beta0_psi_output)
+  S <- fitModel$infos$S
+  n_factors<- fitModel$infos$d
+  n <- length(fitModel$infos$siteNames)
+  speciesNames <- fitModel$infos$speciesNames
+
+  psi_output <- array(NA, dim = c(niter, n, S))
+
+  dimnames(psi_output)[[2]] <- fitModel$infos$siteNames
+  dimnames(psi_output)[[3]] <- speciesNames
+
+  for (iter in 1:niter) {
+    psi_output[iter,,] <-
+      logistic(
+        matrix(beta0_psi_output[iter,], n, S, byrow = T) +
+          X_psi %*% matrix(beta_psi_output[iter,], ncov_psi, S) +
+          matrix(U_output[iter,], n, n_factors, byrow = F) %*% matrix(L_output[iter,], n_factors, S)
+      )
+  }
+
+  psi_output
+
+
+}
+
+#' computeConditionalOccupancyProbs
+#'
+#' Computes the quantiles of the predictive occupancy probability
+#'
+#' @details
+#' Compute the credible interval of the occupancy probability
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return An array with the quantiles
+#'
+#' @examples
+#' \dontrun{
+#' computePredictiveOccupancyProbs(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+computePredictiveOccupancyProbs <- function(fitModel#,
+                                            # confidence = .95
 ){
 
 
