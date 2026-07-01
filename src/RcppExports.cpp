@@ -211,6 +211,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// computePsiOutput
+arma::cube computePsiOutput(const arma::mat& X_psi, const arma::cube& beta_psi_output, const arma::mat& X_ord, const arma::cube& beta_ord_output, const arma::cube& LL_output, const arma::vec& conflevels);
+RcppExport SEXP _occPlus_computePsiOutput(SEXP X_psiSEXP, SEXP beta_psi_outputSEXP, SEXP X_ordSEXP, SEXP beta_ord_outputSEXP, SEXP LL_outputSEXP, SEXP conflevelsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X_psi(X_psiSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type beta_psi_output(beta_psi_outputSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X_ord(X_ordSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type beta_ord_output(beta_ord_outputSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type LL_output(LL_outputSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type conflevels(conflevelsSEXP);
+    rcpp_result_gen = Rcpp::wrap(computePsiOutput(X_psi, beta_psi_output, X_ord, beta_ord_output, LL_output, conflevels));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_occPlus_rpg", (DL_FUNC) &_occPlus_rpg, 2},
@@ -225,6 +241,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_occPlus_sample_w_cim_cipp", (DL_FUNC) &_occPlus_sample_w_cim_cipp, 12},
     {"_occPlus_sample_betatheta_cpp", (DL_FUNC) &_occPlus_sample_betatheta_cpp, 7},
     {"_occPlus_sample_pq_cpp", (DL_FUNC) &_occPlus_sample_pq_cpp, 9},
+    {"_occPlus_computePsiOutput", (DL_FUNC) &_occPlus_computePsiOutput, 6},
     {NULL, NULL, 0}
 };
 

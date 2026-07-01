@@ -812,6 +812,79 @@ double dlaplace(double x, double sigma){
 
 }
 
+arma::vec logistic(arma::vec x) {
+  return 1.0 / (1.0 + exp(-x));
+}
+
+inline void logistic_inplace(arma::rowvec& x)
+{
+  x.transform([](double z) {
+    return 1.0 / (1.0 + std::exp(-z));
+  });
+}
+
+double quantile(arma::vec x, double p) {
+
+  const int n = x.n_elem;
+  if (p <= 0.0) return x(0);
+  if (p >= 1.0) return x(n - 1);
+
+  double h = (n - 1) * p;
+  int j = std::floor(h);
+  double g = h - j;
+
+  if (j == n - 1)
+    return x(n - 1);
+
+  return (1.0 - g) * x(j) + g * x(j + 1);
+}
+
+// [[Rcpp::export]]
+arma::cube computePsiOutput(
+    const arma::mat& X_psi,
+    const arma::cube& beta_psi_output,
+    const arma::mat& X_ord,
+    const arma::cube& beta_ord_output,
+    const arma::cube& LL_output,
+    const arma::vec& conflevels)
+{
+
+  int n = X_psi.n_rows;
+  int S = beta_psi_output.n_cols;
+  int niter = beta_psi_output.n_slices;
+
+  arma::cube psi_output(3, n, S);
+
+  arma::mat mcmc_output(n, niter);
+
+  for (int j = 0; j < S; j++) {
+
+    Rcout << "Computing species " << j + 1 << " out of " << S << std::endl;
+
+    for (int iter = 0; iter < niter; iter++) {
+
+      arma::vec bpsi = beta_psi_output.slice(iter).col(j);
+
+      arma::vec bord = beta_ord_output.slice(iter) * LL_output.slice(iter).col(j);
+
+      arma::vec linpred = X_psi * bpsi + X_ord * bord;
+      mcmc_output.col(iter) = logistic(linpred);
+
+    }
+
+    for (int i = 0; i < n; i++) {
+
+      arma::vec mcmc_output_i_sorted = arma::sort(mcmc_output.row(i).t());
+
+      psi_output(0, i, j) = quantile(mcmc_output_i_sorted, conflevels[0]);
+      psi_output(1, i, j) = quantile(mcmc_output_i_sorted, conflevels[1]);
+      psi_output(2, i, j) = quantile(mcmc_output_i_sorted, conflevels[2]);
+
+    }
+  }
+
+  return psi_output;
+}
 
 // // [[Rcpp::export]]
 // arma::mat computeGenzLoglik_cpp(const arma::mat& lower, const arma::mat& upper,

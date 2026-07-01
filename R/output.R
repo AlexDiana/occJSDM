@@ -1,4 +1,65 @@
 
+thinOutput <- function(fitModel, thin = 5){
+
+  niter <- dim(fitModel$results_output$beta_ord_output)[3]
+  idx_thinned <- seq(1, niter, by = 5)
+
+  results_output <- fitModel$results_output
+
+  results_output_thinned <- lapply(1:length(results_output), function(i){
+
+    nameElem <- names(results_output)[i]
+
+    x <- results_output[[i]]
+
+    if(nameElem == "z_output"){
+
+      if(length(dim(x))== 4){
+
+        x[,,idx_thinned,,drop=F]
+
+      } else if(length(dim(x))== 2){
+
+        x
+
+      } else {
+
+        print("Dimension not recognised")
+
+      }
+
+    } else {
+
+      if(length(dim(x)) == 4){
+
+        x[,,idx_thinned,,drop=F]
+
+      } else if (length(dim(x)) == 3) {
+
+        x[,idx_thinned,,drop=F]
+
+      } else if (length(dim(x)) == 2) {
+
+        x[idx_thinned,,drop=F]
+
+      } else {
+
+        print("Dimension not recognised")
+
+      }
+
+    }
+
+  })
+
+  names(results_output_thinned) <- names(results_output)
+
+  fitModel$results_output <- results_output_thinned
+
+  fitModel
+
+}
+
 logit <- function(x){
   log(x / (1 - x))
 }
@@ -556,7 +617,7 @@ returnOccupancyRates <- function(fitModel,
       psi_output[iter + (chain - 1)*niter,,] <-
         computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
                     beta_ord_output[,,iter,chain],
-                    E_output[,,iter,chain], LL_output[,,iter,chain])
+                    LL_output[,,iter,chain])
         # computePsi(X_psi, beta_psi_output[,,iter,chain],
         #              U_output[,,iter,chain], LL_output[,,iter,chain])
 
@@ -1353,8 +1414,12 @@ plotSigElementsCorMatrix <- function(fitModel,
 #' Compute the credible interval of the occupancy probability
 #'
 #' @param fitModel Output from the function runOccPlus
+#' @param X_psi Occupancy covariates matrix for the new locations
+#' @param X_ord Ordination covariates matrix for the new locations
+#' @param summarised Should the output be return in the form of quantiles? Set to TRUE if the number of sites is very large
+#' @param confidence If quantiles are returned, the confidence level of the quantiles.
 #'
-#' @return An array with the quantiles
+#' @return An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
 #'
 #' @examples
 #' \dontrun{
@@ -1367,14 +1432,18 @@ plotSigElementsCorMatrix <- function(fitModel,
 #'
 computePredictiveOccupancyProbs <- function(fitModel,
                                             X_psi,
-                                            X_ord
-                                  # confidence = .95
+                                            X_ord,
+                                            summarised = F,
+                                            confidence = .95
 ){
 
 
+  X_psi <- as.matrix(X_psi)
+  X_ord <- as.matrix(X_ord)
+
   S <- fitModel$infos$S
   speciesNames <- fitModel$infos$speciesNames
-  n <- length(fitModel$infos$siteNames)
+  n <- nrow(X_psi)
 
   if(is.null(X_psi)) {
     X_psi <- fitModel$X_psi
@@ -1384,25 +1453,62 @@ computePredictiveOccupancyProbs <- function(fitModel,
   }
   beta_psi_output <- fitModel$results_output$beta_psi_output
   beta_ord_output <- fitModel$results_output$beta_ord_output
-  E_output <- fitModel$results_output$E_output
   LL_output <- fitModel$results_output$LL_output
 
   nchain <- dim(beta_psi_output)[4]
   niter <- dim(beta_psi_output)[3]
 
-  psi_output <- array(NA, dim = c(nchain * niter, n, S))
-  for (chain in 1:nchain) {
-    for (iter in 1:niter) {
-      psi_output[iter + (chain - 1)*niter,,] <-
-        logistic(
-          computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
-                    beta_ord_output[,,iter,chain],
-                    E_output[,,iter,chain], LL_output[,,iter,chain])
-          )
-      # computePsi(X_psi, beta_psi_output[,,iter,chain],
-      #              U_output[,,iter,chain], LL_output[,,iter,chain])
+  if(!summarised){
 
+    psi_output <- array(NA, dim = c(nchain * niter, n, S))
+    for (chain in 1:nchain) {
+      for (iter in 1:niter) {
+        psi_output[iter + (chain - 1)*niter,,] <-
+          logistic(
+            computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
+                        beta_ord_output[,,iter,chain],
+                        LL_output[,,iter,chain])
+          )
+      }
     }
+
+  } else {
+
+    conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+
+    beta_ord_output <- aperm(apply(beta_ord_output, c(1,2), c), c(2,3,1))
+    beta_psi_output <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
+    LL_output <- aperm(apply(LL_output, c(1,2), c), c(2,3,1))
+
+    # niter <- dim(beta_ord_output)[3]
+
+    psi_output <- computePsiOutput(
+      X_psi,
+      beta_psi_output,
+      X_ord,
+      beta_ord_output,
+      LL_output,
+      conflevels)
+
+    # psi_output <- array(NA, dim = c(3, n, S))
+    # for (i in 1:n) {
+    #   for (j in 1:S) {
+    #     mcmc_output <- rep(NA, niter)
+    #     for (iter in 1:niter) {
+    #       mcmc_output[iter] <- logistic(
+    #         computePsiE(X_psi[i,,drop=F], beta_psi_output[,j,iter],
+    #                     X_ord[i,,drop=F],
+    #                     beta_ord_output[,,iter],
+    #                     LL_output[,j,iter])
+    #       )
+    #
+    #     }
+    #
+    #     psi_output[,i,j] <- quantile(mcmc_output, conflevels)
+    #
+    #   }
+    # }
+
   }
 
   psi_output
@@ -1643,15 +1749,4 @@ plotOccupancyStates <- function(fitModel){
     )
 
 }
-
-tracePlotZ <- function(fitModel){
-
-  z_output <- fitModel$results_output$z_output
-
-  z_mean <- apply(z_output, c(1,2), mean)
-
-  qplot(1:5000, z_output[2,2,,1])
-
-}
-
 

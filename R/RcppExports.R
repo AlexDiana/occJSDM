@@ -49,3 +49,7 @@ sample_pq_cpp <- function(c_imk, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q) 
     .Call(`_occPlus_sample_pq_cpp`, c_imk, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q)
 }
 
+computePsiOutput <- function(X_psi, beta_psi_output, X_ord, beta_ord_output, LL_output, conflevels) {
+    .Call(`_occPlus_computePsiOutput`, X_psi, beta_psi_output, X_ord, beta_ord_output, LL_output, conflevels)
+}
+

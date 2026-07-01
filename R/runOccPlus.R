@@ -498,7 +498,7 @@ runOccPlus <- function(data,
       if(iter > nburn){
         currentIter <- (iter - nburn) / nthin
         if(currentIter %% 10 == 0){
-          print(paste0("Chain ", chain, " - Iteration ",iter - nburn))
+          print(paste0("Chain ", chain, " - Iteration ",currentIter))
         }
       } else {
         if(iter %% 10 == 0){
