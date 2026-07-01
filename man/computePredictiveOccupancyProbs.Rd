@@ -4,13 +4,27 @@
 \alias{computePredictiveOccupancyProbs}
 \title{computePredictiveOccupancyProbs}
 \usage{
-computePredictiveOccupancyProbs(fitModel)
+computePredictiveOccupancyProbs(
+  fitModel,
+  X_psi,
+  X_ord,
+  summarised = F,
+  confidence = 0.95
+)
 }
 \arguments{
 \item{fitModel}{Output from the function runOccPlus}
+
+\item{X_psi}{Occupancy covariates matrix for the new locations}
+
+\item{X_ord}{Ordination covariates matrix for the new locations}
+
+\item{summarised}{Should the output be return in the form of quantiles? Set to TRUE if the number of sites is very large}
+
+\item{confidence}{If quantiles are returned, the confidence level of the quantiles.}
 }
 \value{
-An array with the quantiles
+An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
 }
 \description{
 Computes the quantiles of the predictive occupancy probability

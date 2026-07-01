@@ -23,14 +23,14 @@ Imports:
     stringr,
     stats,
     ggcorrplot,
-    Rcpp,
-    RcppArmadillo
+    Rcpp
 LinkingTo: 
     Rcpp,
     RcppArmadillo
 Remotes:
     kassambara/ggcorrplot
 LazyData: true
+LazyDataCompression: xz
 RoxygenNote: 7.3.2
 Suggests: 
     knitr,

@@ -1,4 +1,19 @@
-
+#' thinOutput
+#'
+#' Thins the MCMC output.
+#'
+#' @details
+#' Return the same fitModel output but thinned
+#'
+#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Number of iterations to thin
+#'
+#' @return A ggplot object
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
 thinOutput <- function(fitModel, thin = 5){
 
   niter <- dim(fitModel$results_output$beta_ord_output)[3]
