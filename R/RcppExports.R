@@ -5,6 +5,14 @@ rpg <- function(n, z) {
     .Call(`_occPlus_rpg`, n, z)
 }
 
+dist_matrix <- function(coords) {
+    .Call(`_occPlus_dist_matrix`, coords)
+}
+
+gpCovMatrix <- function(D, sigma2, rho) {
+    .Call(`_occPlus_gpCovMatrix`, D, sigma2, rho)
+}
+
 samplePGvariables <- function(Xbeta) {
     .Call(`_occPlus_samplePGvariables`, Xbeta)
 }
@@ -23,10 +31,6 @@ sample_Omega_cpp <- function(X, beta, n) {
 
 sample_beta_nocov_cpp <- function(beta, X, b, B, n, k) {
     .Call(`_occPlus_sample_beta_nocov_cpp`, beta, X, b, B, n, k)
-}
-
-sample_gamma_beta_cpp <- function(gamma, beta, X, b, B, D, n, k, indexes_covariates, fixedIndexes, d_bar) {
-    .Call(`_occPlus_sample_gamma_beta_cpp`, gamma, beta, X, b, B, D, n, k, indexes_covariates, fixedIndexes, d_bar)
 }
 
 sample_z_cpp <- function(w, psi, theta, theta0, M, sumM) {

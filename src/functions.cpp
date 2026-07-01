@@ -172,6 +172,53 @@ double rpg(int n, double z){
 }
 
 // [[Rcpp::export]]
+arma::mat dist_matrix(const arma::mat& coords) {
+
+  // coords: n x d matrix (e.g. x,y or x,y,z)
+  int n = coords.n_rows;
+  int d = coords.n_cols;
+
+  arma::mat D(n, n, arma::fill::zeros);
+
+  for (int i = 0; i < n; i++) {
+    for (int j = i; j < n; j++) {
+
+      double dist_ij = 0.0;
+
+      for (int k = 0; k < d; k++) {
+        double diff = coords(i, k) - coords(j, k);
+        dist_ij += diff * diff;
+      }
+
+      dist_ij = std::sqrt(dist_ij);
+
+      D(i, j) = dist_ij;
+      D(j, i) = dist_ij; // symmetry
+    }
+  }
+
+  return D;
+}
+
+// [[Rcpp::export]]
+arma::mat gpCovMatrix(const arma::mat& D,
+                      double sigma2,
+                      double rho) {
+
+  int n = D.n_rows;
+  arma::mat Sigma(n, n);
+
+  // Gaussian exponential covariance
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      Sigma(i, j) = sigma2 * std::exp(-D(i, j) / rho);
+    }
+  }
+
+  return Sigma;
+}
+
+// [[Rcpp::export]]
 arma::mat samplePGvariables(arma::mat &Xbeta){
 
   int n1 = Xbeta.n_rows;

@@ -23,6 +23,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dist_matrix
+arma::mat dist_matrix(const arma::mat& coords);
+RcppExport SEXP _occPlus_dist_matrix(SEXP coordsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type coords(coordsSEXP);
+    rcpp_result_gen = Rcpp::wrap(dist_matrix(coords));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gpCovMatrix
+arma::mat gpCovMatrix(const arma::mat& D, double sigma2, double rho);
+RcppExport SEXP _occPlus_gpCovMatrix(SEXP DSEXP, SEXP sigma2SEXP, SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type D(DSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma2(sigma2SEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    rcpp_result_gen = Rcpp::wrap(gpCovMatrix(D, sigma2, rho));
+    return rcpp_result_gen;
+END_RCPP
+}
 // samplePGvariables
 arma::mat samplePGvariables(arma::mat& Xbeta);
 RcppExport SEXP _occPlus_samplePGvariables(SEXP XbetaSEXP) {
@@ -87,27 +111,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type k(kSEXP);
     rcpp_result_gen = Rcpp::wrap(sample_beta_nocov_cpp(beta, X, b, B, n, k));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_gamma_beta_cpp
-List sample_gamma_beta_cpp(arma::vec gamma, arma::vec beta, arma::mat X, arma::vec b, arma::mat B, int D, arma::vec n, arma::vec k, arma::vec indexes_covariates, int fixedIndexes, double d_bar);
-RcppExport SEXP _occPlus_sample_gamma_beta_cpp(SEXP gammaSEXP, SEXP betaSEXP, SEXP XSEXP, SEXP bSEXP, SEXP BSEXP, SEXP DSEXP, SEXP nSEXP, SEXP kSEXP, SEXP indexes_covariatesSEXP, SEXP fixedIndexesSEXP, SEXP d_barSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type gamma(gammaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
-    Rcpp::traits::input_parameter< int >::type D(DSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type k(kSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type indexes_covariates(indexes_covariatesSEXP);
-    Rcpp::traits::input_parameter< int >::type fixedIndexes(fixedIndexesSEXP);
-    Rcpp::traits::input_parameter< double >::type d_bar(d_barSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_gamma_beta_cpp(gamma, beta, X, b, B, D, n, k, indexes_covariates, fixedIndexes, d_bar));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -230,12 +233,13 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_occPlus_rpg", (DL_FUNC) &_occPlus_rpg, 2},
+    {"_occPlus_dist_matrix", (DL_FUNC) &_occPlus_dist_matrix, 1},
+    {"_occPlus_gpCovMatrix", (DL_FUNC) &_occPlus_gpCovMatrix, 3},
     {"_occPlus_samplePGvariables", (DL_FUNC) &_occPlus_samplePGvariables, 1},
     {"_occPlus_diagMatrixProd", (DL_FUNC) &_occPlus_diagMatrixProd, 2},
     {"_occPlus_sample_beta_cpp", (DL_FUNC) &_occPlus_sample_beta_cpp, 5},
     {"_occPlus_sample_Omega_cpp", (DL_FUNC) &_occPlus_sample_Omega_cpp, 3},
     {"_occPlus_sample_beta_nocov_cpp", (DL_FUNC) &_occPlus_sample_beta_nocov_cpp, 6},
-    {"_occPlus_sample_gamma_beta_cpp", (DL_FUNC) &_occPlus_sample_gamma_beta_cpp, 11},
     {"_occPlus_sample_z_cpp", (DL_FUNC) &_occPlus_sample_z_cpp, 6},
     {"_occPlus_sample_w_cpp", (DL_FUNC) &_occPlus_sample_w_cpp, 16},
     {"_occPlus_sample_w_cim_cipp", (DL_FUNC) &_occPlus_sample_w_cim_cipp, 12},
