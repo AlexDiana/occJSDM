@@ -1,4 +1,31 @@
 #include <RcppArmadilloExtensions/sample.h>
+#include <random>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+// [[Rcpp::plugins(openmp)]]
+
+inline std::mt19937& get_rng() {
+  thread_local std::mt19937 rng(
+#ifdef _OPENMP
+      12345 + omp_get_thread_num()
+#else
+  12345
+#endif
+  );
+  return rng;
+}
+
+inline double runif() {
+  static thread_local std::uniform_real_distribution<double> dist(0.0,1.0);
+  return dist(get_rng());
+}
+
+// inline double exprnd(double rate) {
+//   std::exponential_distribution<double> dist(rate);
+//   return dist(get_rng());
+// }
 
 using namespace Rcpp;
 
@@ -33,7 +60,8 @@ double aterm(int n, double x, double t) {
 }
 
 double exprnd(double mu) {
-  return -mu * (double)std::log(1.0 - (double)R::runif(0.0,1.0));
+  // return -mu * (double)std::log(1.0 - (double)R::runif(0.0,1.0));
+  return -mu * (double)std::log(1.0 - (double)runif());
 }
 
 double truncgamma() {
@@ -46,7 +74,8 @@ double truncgamma() {
     X = exprnd(1.0) * 2.0 + c;
     gX = MATH_SQRT_PI_2 / (double)std::sqrt(X);
 
-    if(R::runif(0.0,1.0) <= gX) {
+    // if(R::runif(0.0,1.0) <= gX) {
+    if(runif() <= gX) {
       done = true;
     }
   }
@@ -60,7 +89,8 @@ double randinvg(double mu) {
   double V = u*u;
   double out = mu + 0.5*mu * ( mu*V - (double)std::sqrt(4.0*mu*V + mu*mu * V*V) );
 
-  if(R::runif(0.0,1.0) > mu /(mu+out)) {
+  // if(R::runif(0.0,1.0) > mu /(mu+out)) {
+  if(runif() > mu /(mu+out)) {
     out = mu*mu / out;
   }
   return out;
@@ -75,7 +105,8 @@ double tinvgauss(double z, double t) {
     // Sampler based on truncated gamma
     // Algorithm 3 in the Windle (2013) PhD thesis, page 128
     while(1) {
-      u = R::runif(0.0, 1.0);
+      // u = R::runif(0.0, 1.0);
+      u = runif();
       X = 1.0 / truncgamma();
 
       if ((double)std::log(u) < (-z*z*0.5*X)) {
@@ -98,65 +129,67 @@ double samplepg(double z) {
   z = (double)std::fabs((double)z) * 0.5;
 
   // Point on the intersection IL = [0, 4/ log 3] and IR = [(log 3)/pi^2, \infty)
-double t = MATH_2_PI;
+  double t = MATH_2_PI;
 
-// Compute p, q and the ratio q / (q + p)
-// (derived from scratch; derivation is not in the original paper)
-double K = z*z/2.0 + MATH_PI2/8.0;
-double logA = (double)std::log(4.0) - MATH_LOG_PI - z;
-double logK = (double)std::log(K);
-double Kt = K * t;
-double w = (double)std::sqrt(MATH_PI_2);
+  // Compute p, q and the ratio q / (q + p)
+  // (derived from scratch; derivation is not in the original paper)
+  double K = z*z/2.0 + MATH_PI2/8.0;
+  double logA = (double)std::log(4.0) - MATH_LOG_PI - z;
+  double logK = (double)std::log(K);
+  double Kt = K * t;
+  double w = (double)std::sqrt(MATH_PI_2);
 
-double logf1 = logA + R::pnorm(w*(t*z - 1),0.0,1.0,1,1) + logK + Kt;
-double logf2 = logA + 2*z + R::pnorm(-w*(t*z+1),0.0,1.0,1,1) + logK + Kt;
-double p_over_q = (double)std::exp(logf1) + (double)std::exp(logf2);
-double ratio = 1.0 / (1.0 + p_over_q);
+  double logf1 = logA + R::pnorm(w*(t*z - 1),0.0,1.0,1,1) + logK + Kt;
+  double logf2 = logA + 2*z + R::pnorm(-w*(t*z+1),0.0,1.0,1,1) + logK + Kt;
+  double p_over_q = (double)std::exp(logf1) + (double)std::exp(logf2);
+  double ratio = 1.0 / (1.0 + p_over_q);
 
-double u, X;
+  double u, X;
 
-// Main sampling loop; page 130 of the Windle PhD thesis
-while(1)
-{
-  // Step 1: Sample X ? g(x|z)
-  u = R::runif(0.0,1.0);
-  if(u < ratio) {
-    // truncated exponential
-    X = t + exprnd(1.0)/K;
-  }
-  else {
-    // truncated Inverse Gaussian
-    X = tinvgauss(z, t);
-  }
-
-  // Step 2: Iteratively calculate Sn(X|z), starting at S1(X|z), until U ? Sn(X|z) for an odd n or U > Sn(X|z) for an even n
-  int i = 1;
-  double Sn = aterm(0, X, t);
-  double U = R::runif(0.0,1.0) * Sn;
-  int asgn = -1;
-  bool even = false;
-
+  // Main sampling loop; page 130 of the Windle PhD thesis
   while(1)
   {
-    Sn = Sn + asgn * aterm(i, X, t);
-
-    // Accept if n is odd
-    if(!even && (U <= Sn)) {
-      X = X * 0.25;
-      return X;
+    // Step 1: Sample X ? g(x|z)
+    // u = R::runif(0.0,1.0);
+    u = runif();
+    if(u < ratio) {
+      // truncated exponential
+      X = t + exprnd(1.0)/K;
+    }
+    else {
+      // truncated Inverse Gaussian
+      X = tinvgauss(z, t);
     }
 
-    // Return to step 1 if n is even
-    if(even && (U > Sn)) {
-      break;
-    }
+    // Step 2: Iteratively calculate Sn(X|z), starting at S1(X|z), until U ? Sn(X|z) for an odd n or U > Sn(X|z) for an even n
+    int i = 1;
+    double Sn = aterm(0, X, t);
+    // double U = R::runif(0.0,1.0) * Sn;
+    double U = runif() * Sn;
+    int asgn = -1;
+    bool even = false;
 
-    even = !even;
-    asgn = -asgn;
-    i++;
+    while(1)
+    {
+      Sn = Sn + asgn * aterm(i, X, t);
+
+      // Accept if n is odd
+      if(!even && (U <= Sn)) {
+        X = X * 0.25;
+        return X;
+      }
+
+      // Return to step 1 if n is even
+      if(even && (U > Sn)) {
+        break;
+      }
+
+      even = !even;
+      asgn = -asgn;
+      i++;
+    }
   }
-}
-return X;
+  return X;
 }
 
 // [[Rcpp::export]]
@@ -170,6 +203,106 @@ double rpg(int n, double z){
 
   return(x);
 }
+
+// [[Rcpp::export]]
+double rinvgamma_cpp(double a, double b){
+  return 1 / R::rgamma(a, 1 / b);
+}
+
+
+// [[Rcpp::export]]
+bool isPointInBandRight(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j){
+
+  for(int k = 0; k < X_tilde.n_rows; k++){
+
+    if((X_tilde(k,1) < y_grid[j + 1]) & (X_tilde(k,1) > y_grid[j - 1])){
+      if(X_tilde(k,0) < x_grid[i + 1]){
+        return(true);
+      }
+    }
+
+  }
+
+  return(false);
+}
+
+// [[Rcpp::export]]
+bool isPointInBandLeft(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j) {
+
+  for(int k = 0; k < X_tilde.n_rows; k++){
+
+    if((X_tilde(k,1) < y_grid[j + 1]) & (X_tilde(k,1) > y_grid[j - 1])){
+      if(X_tilde(k,0) > x_grid[i - 1]){
+        return(true);
+      }
+    }
+
+  }
+
+  return(false);
+}
+
+// [[Rcpp::export]]
+bool isPointInBandUp(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j){
+
+  for(int k = 0; k < X_tilde.n_rows; k++){
+
+    if((X_tilde(k,0) < x_grid[i + 1]) & (X_tilde(k,0) > x_grid[i - 1])){
+      if(X_tilde(k,1) > y_grid[j-1]){
+        return(true);
+      }
+    }
+
+  }
+
+  return(false);
+
+}
+
+// [[Rcpp::export]]
+bool isPointInBandDown(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j){
+
+  for(int k = 0; k < X_tilde.n_rows; k++){
+
+    if((X_tilde(k,0) < x_grid[i + 1]) & (X_tilde(k,0) > x_grid[i - 1])){
+      if(X_tilde(k,1) < y_grid[j+1]){
+        return(true);
+      }
+    }
+
+  }
+
+  return(false);
+
+}
+
+// [[Rcpp::export]]
+IntegerVector findClosestPoint(arma::mat XY_sp, arma::mat X_tilde){
+
+  IntegerVector closestPoint(XY_sp.n_rows);
+
+  for(int k = 0; k < XY_sp.n_rows; k++){
+
+    double newDistance = 0;
+    double minDistance = exp(50);
+    int bestIndex = 0;
+
+    for(int i = 0; i < X_tilde.n_rows; i++){
+      newDistance = pow(X_tilde(i, 0) - XY_sp(k, 0), 2) + pow(X_tilde(i, 1) - XY_sp(k, 1), 2);
+
+      if(newDistance < minDistance){
+        minDistance = newDistance;
+        bestIndex = i + 1;
+      }
+    }
+
+    closestPoint[k] = bestIndex;
+
+  }
+
+  return(closestPoint);
+}
+
 
 // [[Rcpp::export]]
 arma::mat dist_matrix(const arma::mat& coords) {
@@ -218,6 +351,45 @@ arma::mat gpCovMatrix(const arma::mat& D,
   return Sigma;
 }
 
+// GAUSSIAN PROCESS FUNCTIONS
+
+double k_cpp(double x1, double x2, double a, double l){
+  // return pow(1 + (x1-x2)*(x1-x2), - alphaGP);
+  return a*exp(-(x1-x2)*(x1-x2)/(2*pow(l,2)));
+  // return 1;
+}
+
+// [[Rcpp::export]]
+arma::mat K(arma::vec x1, arma::vec x2, double a, double l){
+  arma::mat res(x1.size(), x2.size());
+
+  for(int i = 0; (unsigned)i < x1.size(); i++){
+    for(int j = 0; (unsigned)j < x2.size(); j++){
+      res(i,j) = k_cpp(x1[i],x2[j], a, l);
+    }
+  }
+
+  return res;
+}
+
+double k2_cpp(arma::rowvec x1, arma::rowvec x2, double a, double l){
+  // return pow(1 + (x1-x2)*(x1-x2), - alphaGP);
+  return a*exp(-( pow(x1[0]-x2[0], 2) + pow(x1[1]-x2[1], 2) ) /(2*pow(l,2)));
+}
+
+// [[Rcpp::export]]
+arma::mat K2(arma::mat x1, arma::mat x2, double a, double l){
+  arma::mat res(x1.n_rows, x2.n_rows);
+
+  for(int i = 0; (unsigned)i < x1.n_rows; i++){
+    for(int j = 0; (unsigned)j < x2.n_rows; j++){
+      res(i,j) = k2_cpp(x1.row(i),x2.row(j), a, l);
+    }
+  }
+
+  return res;
+}
+
 // [[Rcpp::export]]
 arma::mat samplePGvariables(arma::mat &Xbeta){
 
@@ -226,13 +398,16 @@ arma::mat samplePGvariables(arma::mat &Xbeta){
 
   arma::mat Omega_mat(n1, n2);
 
+  #pragma omp parallel for collapse(2)
   for(int i = 0; i < n1; i++){
     for(int j = 0; j < n2; j++){
-
-      Omega_mat(i,j) = rpg(1, Xbeta(i, j));
-
+      Omega_mat(i,j) = rpg(1, Xbeta(i,j));
     }
   }
+ // #pragma omp parallel for
+ //  for(int k=0; k<n1*n2; k++){
+ //    Omega_mat[k]=rpg(1,Xbeta[k]);
+ //  }
 
   return(Omega_mat);
 }
@@ -263,7 +438,8 @@ arma::mat diagMatrixProd(arma::mat& X, arma::vec& D){
 }
 
 // [[Rcpp::export]]
-arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b, arma::vec& Omega, arma::vec& k){
+arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b,
+                          arma::vec& Omega, arma::vec& k){
 
   // arma::mat cov_matrix = arma::inv(arma::trans(X) * Omega * X + arma::inv(B));
   arma::mat tX = arma::trans(X);
@@ -760,141 +936,302 @@ arma::cube computePsiOutput(
   return psi_output;
 }
 
-// // [[Rcpp::export]]
-// arma::mat computeGenzLoglik_cpp(const arma::mat& lower, const arma::mat& upper,
-//                            const arma::mat& Y, const arma::cube& u,
-//                            const arma::mat& L) {
+// JSDM sampling functions
+
+// Sample B in a regression model Y ~ N(XB, sigma^2 I)
+
+// [[Rcpp::export]]
+arma::vec sampleBuniv(arma::mat& X, arma::mat& B,
+                      arma::vec& b, arma::vec& y,
+                      double sigma){
+
+  // arma::mat cov_matrix = arma::inv(arma::trans(X) * Omega * X + arma::inv(B));
+  arma::mat tX = arma::trans(X);
+  // arma::mat cov_matrix = arma::inv(tXOmega * X + arma::inv(B));
+  // arma::vec result = mvrnormArma(cov_matrix * (arma::trans(X) * k + arma::inv(B) * b), cov_matrix);
+
+  arma::mat L = arma::trans(arma::chol(tX * X * (1 / sigma*sigma) + arma::inv(B)));
+  arma::vec tmp = arma::solve(arma::trimatl(L), tX * y + arma::inv(B) * b);
+  arma::vec alpha = arma::solve(arma::trimatu(arma::trans(L)),tmp);
+
+  arma::vec result = mvrnormArmaQuick(alpha, arma::trans(arma::inv(arma::trimatl(L))));
+
+  return(result);
+}
+
+// Sample B in a regression model Y ~ N(XB, Omega)
+
+// [[Rcpp::export]]
+arma::vec sampleB(arma::mat& X, arma::mat& B, arma::vec& b,
+                  arma::vec& Omega, arma::vec& k){
+
+  // arma::mat cov_matrix = arma::inv(arma::trans(X) * Omega * X + arma::inv(B));
+  arma::mat tX = arma::trans(X);
+  arma::mat tXOmega = diagMatrixProd(tX, Omega);
+  // arma::mat cov_matrix = arma::inv(tXOmega * X + arma::inv(B));
+  // arma::vec result = mvrnormArma(cov_matrix * (arma::trans(X) * k + arma::inv(B) * b), cov_matrix);
+
+  arma::mat L = arma::trans(arma::chol(tXOmega * X + arma::inv(B)));
+  arma::vec tmp = arma::solve(arma::trimatl(L), tX * k + arma::inv(B) * b);
+  arma::vec alpha = arma::solve(arma::trimatu(arma::trans(L)),tmp);
+
+  arma::vec result = mvrnormArmaQuick(alpha, arma::trans(arma::inv(arma::trimatl(L))));
+
+  return(result);
+}
+
+// [[Rcpp::export]]
+arma::mat sample_U_cpp(arma::mat& k,
+                       arma::mat& L,
+                       arma::mat& X,
+                       arma::mat& B,
+                       arma::mat& Omega,
+                       std::string model) {
+
+  int d = L.n_rows;
+  int S = k.n_cols;
+  int n = k.n_rows;
+
+  arma::mat U(n, d, arma::fill::zeros);
+
+  if (d == 0)
+    return U;
+
+  // Compute k_new
+  arma::mat XB = X * B;
+  arma::mat k_new(n, S);
+
+  if (model == "continuous") {
+
+    k_new = (k - XB) % Omega;
+
+  } else if (model == "binary") {
+
+    k_new = k - Omega % XB;
+  } else {
+    Rcpp::stop("Unknown model");
+  }
+
+  arma::mat B_current = arma::eye(d,d);
+  arma::vec b_current(d, arma::fill::zeros);
+
+  arma::mat transL = arma::trans(L);
+
+  // Parallel loop
+// #ifdef _OPENMP
+//   omp_set_num_threads(n_threads);
+// #endif
 //
-//   int n = lower.n_rows;
-//   int d = lower.n_cols;
-//   int M = u.n_cols;
-//
-//   arma::mat y_sign = 2 * Y - 1;
-//
-//   arma::mat logP_all = arma::zeros(n, M);
-//
-//   for (int i = 0; i < n; ++i) {
-//     for (int m = 0; m < M; ++m) {
-//
-//       arma::vec y = arma::zeros(d);
-//       arma::vec logP_m = arma::zeros(d);
-//       // arma::cube grad_aistar = arma::zeros(d, d, d);
-//       // arma::cube grad_bistar = arma::zeros(d, d, d);
-//       // arma::cube grad_y = arma::zeros(d, d, d);
-//
-//       arma::vec abistar(d);
-//
-//       for (int idx_d = 0; idx_d < d; ++idx_d) {
-//
-//         double ai = lower(i, idx_d);
-//         double bi = upper(i, idx_d);
-//
-//         double ai_star, bi_star;
-//
-//         if (idx_d == 0) {
-//           ai_star = ai / L(idx_d, idx_d);
-//           bi_star = bi / L(idx_d, idx_d);
-//
-//         } else {
-//
-//           double sum_ai = dot(L.submat(idx_d, 0, idx_d, idx_d - 1), y.subvec(0, idx_d - 1));
-//           double sum_bi = sum_ai; // same dot product
-//
-//           ai_star = (ai - sum_ai) / L(idx_d, idx_d);
-//           bi_star = (bi - sum_bi) / L(idx_d, idx_d);
-//
-//         }
-//
-//         double Y_idxd = (y_sign(i, idx_d) + 1) / 2.0;
-//
-//         // double u_val = u(i, m, idx_d);
-//
-//         if (y_sign(i, idx_d) == 1) {
-//           y[idx_d] = sim_rnormtrunc_modified2(ai_star, Y_idxd, u(i, m, idx_d));
-//         } else {
-//           y[idx_d] = sim_rnormtrunc_modified2(bi_star, Y_idxd, u(i, m, idx_d));
-//         }
-//
-//         double logP;
-//         arma::mat grad_logP;
-//
-//         if (Y_idxd == 1) {
-//           logP = R::pnorm(ai_star, 0.0, 1.0, false, true);
-//         } else {
-//           logP = R::pnorm(bi_star, 0.0, 1.0, true, true);
-//         }
-//
-//         logP_m[idx_d] = logP;
-//
-//       }
-//
-//       logP_all(i, m) = accu(logP_m);
-//     }
-//   }
-//
-//   // double loglik = accu(logP_all);
-//
-//   return logP_all;
-// }
+// #pragma omp parallel for
+  for(int i = 0; i < n; i++) {
+
+    arma::vec Omega_i = arma::conv_to<arma::vec>::from(Omega.row(i));
+    arma::vec k_new_i = arma::conv_to<arma::vec>::from(k_new.row(i));
+
+    arma::vec result = sampleB(
+      transL,
+      B_current,
+      b_current,
+      Omega_i,
+      k_new_i
+    );
+
+    U.row(i) = arma::conv_to<arma::rowvec>::from(result);
+  }
 
 
+  return U;
+}
 
-// // [[Rcpp::export]]
-// NumericMatrix sample_cimk_cpp(const NumericMatrix& y,
-//                               const NumericMatrix& logy1,
-//                               NumericMatrix w,
-//                               double mu1,
-//                               double sigma1,
-//                               double mu0,
-//                               double sigma0,
-//                               const NumericMatrix& p,
-//                               const NumericMatrix& q,
-//                               IntegerVector idx_k,
-//                               IntegerVector primerIdx,
-//                               int maxL) {
-//
-//   int N3 = idx_k.size();
-//   int S = p.ncol();
-//
-//   NumericMatrix c_imk(N3, S);
-//
-//   for (int s = 0; s < S; s++) {
-//     for (int i = 0; i < N3; i++) {
-//
-//       double term1_loglik = R::dnorm(logy1(i,s), mu1, sigma1, 1);
-//       double term2_loglik = 0;
-//
-//       if(logy1(i,s) == 0){
-//         term2_loglik = log(pi0);
-//       } else {
-//         term2_loglik = R::dnorm(y(i,s), 0, sigma0, 1) - log(.5);
-//         // term2_loglik = dlaplace(logy1(i,s), sigma0);
-//       }
-//
-//       int idx_primer = primerIdx[i] - 1;
-//       double term1_prior, term2_prior;
-//
-//       if(w(idx_k[i] - 1,s) == 1){
-//         term1_prior = log(p(idx_primer,s));
-//         term2_prior = log(1 - p(idx_primer,s));
-//         // term2_prior = R::dbinom(0, 1, p(idx_primer,s), 1);
-//       } else {
-//         term1_prior = log(q(idx_primer,s));
-//         term2_prior = log(1 - q(idx_primer,s));
-//         // term1_prior = R::dbinom(1, 1, q(idx_primer,s), 1);
-//         // term2_prior = R::dbinom(0, 1, q(idx_primer,s), 1);
-//       }
-//
-//       double term12_diff = (term1_loglik + term1_prior) - (term2_loglik + term2_prior);
-//
-//       // double p_cimk1 = exp(term12_diff) / (exp(term12_diff) + 1);
-//       double p_cimk1 = 1 / (exp(-term12_diff) + 1);
-//
-//       c_imk(i,s) = R::rbinom(1, p_cimk1);
-//
-//     }
-//   }
-//
-//   return(c_imk);
-// }
+// SPATIAL APPROXIMATOR FUNCTIONS
 
+// [[Rcpp::export]]
+arma::mat XsBs(arma::mat &A,
+                     arma::mat &B,
+                     arma::mat &X_s_centers){
+
+  int n = A.n_rows;
+  int m = B.n_rows;
+  int maxPoints = X_s_centers.n_cols;
+
+  arma::mat AB_out = arma::mat(n, maxPoints);
+
+  for(int i = 0; i < n; i++){
+    for(int j = 0; j < maxPoints; j++){
+      int colIndex = X_s_centers(i, j) - 1;
+      for(int l = 0; l < m; l++){
+        AB_out(i, j) += A(i, l) * B(l, colIndex);
+      }
+    }
+  }
+
+  return(AB_out);
+
+}
+
+// [[Rcpp::export]]
+arma::mat KsBproduct(arma::mat &Ks,
+                     arma::mat &B,
+                     arma::mat &X_s_centers){
+
+  int n = Ks.n_rows;
+  int S = B.n_cols;
+  int maxPoints = X_s_centers.n_cols;
+
+  arma::mat XB = arma::zeros(n, S);
+
+  for(int s = 0; s < S; s++){
+    for(int i = 0; i < n; i++){
+      for(int j = 0; j < maxPoints; j++){
+        XB(i, s) += Ks(i, j) * B(X_s_centers(i, j) - 1, s);
+      }
+    }
+  }
+
+  return(XB);
+}
+
+// [[Rcpp::export]]
+arma::mat XtOmegaX_SoR(arma::mat X,
+                       int X_centers,
+                       arma::vec Omega,
+                       arma::mat X_s_index,
+                       arma::mat &X_s_sor){
+
+  int p = X.n_cols;
+
+  arma::mat XtOmegaX = arma::zeros(X_centers + p,
+                                    X_centers + p);
+
+  int maxPoints = X_s_index.n_cols;
+
+  // spatial  covariates times spatial covariates
+  for(int l = 0; l < maxPoints; l++){
+
+    for(int l2 = 0; l2 < maxPoints; l2++){
+
+      for (int i = 0; (unsigned)i < Omega.size(); i++){
+
+        XtOmegaX(p + X_s_index(i,l) - 1, p + X_s_index(i,l2) - 1) +=
+          X_s_sor(i, l) * Omega[i] * X_s_sor(i, l2);
+
+      }
+
+    }
+
+  }
+
+  // spatial covariates times standard covariates
+  for (int i = 0; (unsigned)i < Omega.size(); i++){
+
+    for(int j = 0; j < p; j++){
+
+      for(int l = 0; l < maxPoints; l++){
+
+        XtOmegaX(j, p + X_s_index(i,l) - 1) +=
+          X(i, j) * X_s_sor(i, l) * Omega[i];
+
+      }
+    }
+  }
+
+  for (int i = 1; i <= X_centers; i++) {
+
+    for (int j = 0; j < p; j++){
+
+      XtOmegaX(p + i - 1, j) = XtOmegaX(j, p + i - 1);
+    }
+
+  }
+
+  // standard covariates times standard covariates
+
+  for(int i = 0; i < p; i++){
+    for (int j = 0; j <= i; j++) {
+      for(int l = 0; l < Omega.size(); l++){
+        XtOmegaX(i, j) +=
+          Omega[l] * X(l, i) * X(l, j);
+      }
+    }
+  }
+
+  for (int i = 0; i < (p- 1); i++) {
+    for (int j = i; j < p; j++) {
+      XtOmegaX(i, j) = XtOmegaX(j, i);
+    }
+  }
+
+  return(XtOmegaX);
+}
+
+arma::vec XtK_SoR(arma::mat X, arma::mat &X_s_index, arma::mat &X_s_sor,
+                  arma::vec &k, int centers){
+
+  int p = X.n_cols;
+
+  arma::vec Xk = arma::zeros(p + centers);
+
+  for(int i = 0; i < p; i++){
+    Xk(i) = as_scalar(k.t() * X.col(i));
+  }
+
+  for(int i = 0; i < k.size(); i++){
+    for(int l = 0; l < X_s_index.n_cols; l++){
+      Xk(p + X_s_index(i,l) - 1) += X_s_sor(i, l) * k[i];
+    }
+  }
+
+  return(Xk);
+}
+
+
+// Sample B in a regression model Y ~ N((X|Xs)(B|Bs), Omega) where Xs is a
+// subset of regressor approximator
+
+// [[Rcpp::export]]
+arma::vec sampleB_SoR(arma::mat X, arma::mat &invB, arma::vec &b,
+                      arma::vec &k, arma::vec Omega,
+                      arma::mat &X_s_index,
+                      arma::mat &Ks,
+                      int X_centers){
+
+  arma::mat XtOmegaX = XtOmegaX_SoR(X, X_centers, Omega, X_s_index, Ks);
+  arma::mat tXk = XtK_SoR(X, X_s_index, Ks, k, X_centers);
+
+  arma::mat Lambda_B = XtOmegaX + invB;
+  arma::vec mu_B = tXk + invB * b;
+
+  arma::mat L = arma::trans(arma::chol(Lambda_B));
+  arma::vec tmp = arma::solve(arma::trimatl(L), mu_B);
+  arma::vec alpha = arma::solve(arma::trimatu(arma::trans(L)),tmp);
+
+  arma::vec z = arma::randn(invB.n_cols);
+  arma::vec v = arma::solve(arma::trimatu(arma::trans(L)), z);
+
+  arma::vec result = v + alpha;
+
+  return(result);
+}
+
+// [[Rcpp::export]]
+arma::mat spatEffectMeanCpp(arma::cube& Bs_output,
+                            arma::mat& Ks,
+                            arma::mat& Xs_centers) {
+
+  int dim1 = Ks.n_rows;
+  int dim2 = Bs_output.n_cols;
+  int niter = Bs_output.n_slices;
+
+  arma::mat spatEffect_mean(dim1, dim2, arma::fill::zeros);
+
+  for (int iter = 0; iter < niter; iter++) {
+
+    arma::mat B = Bs_output.slice(iter);
+
+    spatEffect_mean += (1.0/niter) *
+      KsBproduct(Ks, B, Xs_centers);
+
+  }
+
+  return spatEffect_mean;
+}

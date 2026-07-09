@@ -1,3 +1,24 @@
+computeESSparams <- function(param_output){
+
+  dim1 <- dim(param_output)[1]
+  dim2 <- dim(param_output)[2]
+
+  ESS_param <- matrix(NA, dim1, dim2)
+  if(dim1 > 0 & dim2 > 0){
+    for (x in 1:nrow(ESS_param)) {
+      for (y in 1:ncol(ESS_param)) {
+        chains <- lapply(1:dim(param_output)[4], function(i) coda::mcmc(param_output[x, y, , i]))
+        mcmc_list <- coda::mcmc.list(chains)
+        ESS_param[x,y] <- coda::effectiveSize(mcmc_list)
+      }
+    }
+  }
+
+
+  ESS_param
+
+}
+
 computeMinESS <- function(results_output){
 
   beta_ord_output <- results_output$beta_ord_output
