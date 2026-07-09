@@ -1,18 +1,51 @@
 
+
+buildGrid <- function(XY_sp, gridStep){
+
+  x_grid <- seq(min(XY_sp[,1]) - (1.5) * gridStep,
+                max(XY_sp[,1]) + (1.5) * gridStep, by = gridStep)
+  y_grid <- seq(min(XY_sp[,2]) - (1.5) * gridStep,
+                max(XY_sp[,2]) + (1.5) * gridStep, by = gridStep)
+
+  pointInGrid <- matrix(T, nrow = length(x_grid), ncol = length(y_grid))
+
+  for (i in 2:(length(x_grid) - 1)) {
+
+    for (j in 2:(length(y_grid) - 1)) {
+
+      isAnyPointInBandRight <- isPointInBandRight(XY_sp, x_grid, y_grid, i - 1, j - 1)
+
+      isAnyPointInBandLeft <- isPointInBandLeft(XY_sp, x_grid, y_grid, i - 1, j - 1)
+
+      isAnyPointInBandUp <- isPointInBandUp(XY_sp, x_grid, y_grid, i - 1, j - 1)
+
+      isAnyPointInBandDown <- isPointInBandDown(XY_sp, x_grid, y_grid, i - 1, j - 1)
+
+      if(!isAnyPointInBandRight | !isAnyPointInBandLeft | !isAnyPointInBandUp | !isAnyPointInBandDown){
+        pointInGrid[i,j] <- F
+      }
+
+    }
+
+  }
+
+  pointInGrid <- pointInGrid[-c(1,nrow(pointInGrid)),]
+  pointInGrid <- pointInGrid[,-c(1,ncol(pointInGrid))]
+  x_grid <- x_grid[-c(1,length(x_grid))]
+  y_grid <- y_grid[-c(1,length(y_grid))]
+
+  allPoints <- cbind(expand.grid(x_grid, y_grid), as.vector((pointInGrid)))
+  allPoints <- allPoints[allPoints[,3],-3]
+
+  allPoints
+}
+
 logistic <- function(x){
   1 / (1 + exp(-x))
 }
 
 computeU <- function(X_ord, beta_ord, E){
   X_ord %*% beta_ord + E
-}
-
-computePsi <- function(X_psi, beta_psi, U, LL){
-
-  logit_psi = X_psi %*% beta_psi + U %*% LL
-
-  logistic(logit_psi)
-
 }
 
 computePsiE <- function(X_psi, beta_psi, X_ord, beta_ord, LL){
@@ -303,8 +336,6 @@ sample_LL <- function(beta_psi, LL, Omega, X_psi, k, U,
 
     }
 
-
-
     # betapntsiLL_current <- c(beta_psi[,s], LL[,s])
 
     if(elemNonZero > 0){
@@ -342,14 +373,17 @@ sample_LL <- function(beta_psi, LL, Omega, X_psi, k, U,
 
 }
 
-sample_betapsi <- function(beta_psi, LL, Omega, X_psi, k, U,
-                             prior_beta_psi, prior_beta_psi_sd){
+sample_betapsis <- function(beta_psi, beta_s, LL, Omega, X_psi,
+                            k, U, Ks, As,
+                            prior_beta_psi, prior_beta_psi_sd){
 
   ncov_psi <- ncol(X_psi)
   d <- nrow(LL)
   S <- ncol(LL)
+  ncov_spat <- ncol(Ks)
+  n_spatfactors <- ncol(As)
 
-  beta_psi <- matrix(NA, ncov_psi, S)
+  beta_psi <- matrix(NA, ncov_psi + n_spatfactors, S)
 
   for (s in 1:S) {
 
@@ -362,6 +396,8 @@ sample_betapsi <- function(beta_psi, LL, Omega, X_psi, k, U,
     #   k_current <- k[,s]
     #
     # }
+
+    # X_psi <- cbind()
 
     b_current <- rep(prior_beta_psi, ncov_psi)
     B_current <- diag(prior_beta_psi_sd, nrow = ncov_psi)
@@ -405,6 +441,36 @@ sample_betaord <- function(k, LL, X_ord, X_psi, beta_psi, E, Omega){
   matrix(beta_ord, ncov_ord, d, byrow = F)
 }
 
+logpost_rho <- function(rho, sigma2, Es){
+
+  r <- ncol(Es)
+
+  covMatrix <- gpCovMatrix(D, sigma2, rho)
+
+  logdet1 <- - (r / 2) * log(det(covMatrix))
+
+  sumFactorTerms <- 0
+
+  # sapply(1:r, function(j){
+  #   sumFactorTerms <<- sumFactorTerms -
+  #    - (1 / 2) * )
+  # })
+  #
+  # logterm1 <-
+
+}
+
+update_rho <- function(Es, dist_matrix, sd_proposal = .1){
+
+  logrho_new <- rnorm(1, log(rho), sigma2, sd_proposal)
+
+  loglik_old <- logpost_rho(rho, sigma2, Es)
+  loglik_old <- logpost_rho(exp(logrho_new), sigma2, Es)
+
+
+
+}
+
 sample_E <- function(k, Omega, X_psi, beta_psi, X_ord, beta_ord, LL){
 
   d <- nrow(LL)
@@ -418,6 +484,29 @@ sample_E <- function(k, Omega, X_psi, beta_psi, X_ord, beta_ord, LL){
   b_current <- rep(0, d)
 
   for (i in 1:n) {
+
+    E[i,] <- sample_beta_cpp(t(LL), B_current, b_current, Omega[i,], k_new[i,])
+
+  }
+
+  E
+
+}
+
+sample_EEs <- function(k, Omega, X_psi, beta_psi, X_ord, beta_ord, LL,
+                       dns, ds){
+
+  d <- dns + ds
+  n <- nrow(k)
+
+  k_new <- k - Omega * (X_psi %*% beta_psi + X_ord %*% beta_ord %*% LL)
+
+  E <- matrix(NA, n, d)
+
+  B_current <- diag(2, nrow = d)
+  b_current <- rep(0, d)
+
+  for (k in 1:d) {
 
     E[i,] <- sample_beta_cpp(t(LL), B_current, b_current, Omega[i,], k_new[i,])
 
@@ -452,18 +541,21 @@ sample_betaordE <- function(k, Omega, X_psi, beta_psi, X_ord, LL){
 
 }
 
-sample_psivars <- function(z, X_psi, beta_psi, X_ord, beta_ord, E, LL,
+sample_psivars <- function(z, X_psi, beta_psi, X_ord, beta_ord,
+                           E, LL, Ks, As, Bs,
                            prior_beta_psi, prior_beta_psi_sd){
 
   ncov_psi <- ncol(X_psi)
   ncov_ord <- ncol(X_ord)
+  ncov_spat <- ncol(Ks)
+  n_spatfactors <- ncol(As)
 
   k <- z - .5
 
   # sample Omega
   {
     U <- (X_ord %*% beta_ord + E)
-    Xbeta_coef <- X_psi %*% beta_psi + U %*% LL
+    Xbeta_coef <- X_psi %*% beta_psi + Ks %*% (As %*% Bs) + U %*% LL
 
     Omega <- samplePGvariables(Xbeta_coef)
   }
@@ -476,9 +568,10 @@ sample_psivars <- function(z, X_psi, beta_psi, X_ord, beta_ord, E, LL,
     # LL <- list_betapsiLL$LL
   }
 
-  if(ncov_psi > 0){
-    beta_psi <- sample_betapsi(beta_psi, LL, Omega, X_psi, k, U,
-                               prior_beta_psi, prior_beta_psi_sd)
+  if(ncov_psi + n_spatfactors > 0){
+    beta_psi_s <- sample_betapsis(beta_psi, beta_s, LL, Omega, X_psi,
+                                  k, U, Ks, As,
+                                  prior_beta_psi, prior_beta_psi_sd)
   }
 
   LL <- sample_LL(beta_psi, LL, Omega, X_psi, k, U,
