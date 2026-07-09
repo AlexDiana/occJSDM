@@ -266,6 +266,8 @@ createSplinesMatrix <- function(list_ns, X_new){
 
 }
 
+getDefaultSupportPoints <- function(n) max(30, floor(n * 0.2))
+
 # DATA SIMULATION -------
 
 sampleEffects <- function(n){
@@ -388,9 +390,11 @@ simulateData <- function(
   SE <- list_eta$SE
   UL <- list_eta$UL
 
-  if(ps > 0) eta <- eta + spatField
-
-  varPart <- computeVariancePartitioning(XB, SE + spatField, UL)
+  varPart <- computeVariancePartitioning(XB, SE, UL)
+  if(useSpatField) {
+    eta <- eta + spatField
+    varPart <- computeVariancePartitioning(XB, SE + spatField, UL)
+  }
 
   # outcomes
   if(model == "continuous"){
@@ -848,7 +852,7 @@ update_jSDMcoef <- function(list_data,
     C <- list_params$C
     Bt <- list_params$Bt
     Bs <- list_params$B
-    Gs <- list_params$G
+    Gs <- list_params$Gs
     As <- list_params$As
     Cs <- list_params$Cs
     Bst <- list_params$Bst
@@ -899,7 +903,6 @@ update_jSDMcoef <- function(list_data,
   XB <- list_psiCoef$XB
   SE <- list_psiCoef$SE
   UL <- list_psiCoef$UL
-  variancePartitioning <- computeVariancePartitioning(XB, SE, UL)
 
   # sample variance of continuous output
   if(model == "continuous"){
@@ -917,7 +920,7 @@ update_jSDMcoef <- function(list_data,
   list_BBsL <- sample_BBsL(k, X, Tr, U,
                            G, A, C, sigma_b,
                            Gs, As, Cs, sigma_bs,
-                           Ks, list_XsXs_centers,
+                           Ks, list_Xs$Xs_centers,
                            Omega)
   B <- list_BBsL$B
   Bt <- list_BBsL$Bt
@@ -962,11 +965,34 @@ update_jSDMcoef <- function(list_data,
 
   # sample spatial field scale
   if(ps > 0){
-    idx_ls <- sample_ls(idx_ls, l_s_grid,
-                        SE, list_SoRSummaries,
-                        a_l_s, b_l_s, sigma_s = 1)
-    l_s <- l_s_grid[idx_ls]
-    Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
+    if(F){
+      idx_ls <- sample_ls(idx_ls, SE,
+                          list_SoRSummaries,
+                          a_l_s, b_l_s, sigma_s = 1)
+      l_s <- l_s_grid[idx_ls]
+      Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
+    }
+  }
+
+  # output variables
+  {
+    list_psiCoef <- computePsiCoef(
+      X, Ks, list_Xs$Xs_centers, Tr,
+      G, A, C, Bt,
+      Gs, As, Cs, Bst,
+      U, L)
+    eta <- list_psiCoef$eta
+    XB <- list_psiCoef$XB
+    SE <- list_psiCoef$SE
+    UL <- list_psiCoef$UL
+    variancePartitioning <- computeVariancePartitioning(XB, SE, UL)
+
+    if(model == "continuous"){
+      eta <- eta
+      psi <- NULL
+    } else if (model == "binary"){
+      psi <- logistic(eta)
+    }
   }
 
   # output params
@@ -988,6 +1014,8 @@ update_jSDMcoef <- function(list_data,
    "sigma_bs" = sigma_bs,
    "idx_ls" = idx_ls,
    "tau" = tau,
+   "eta" = eta,
+   "psi" = psi,
    "variancePartitioning" = variancePartitioning
   )
 
@@ -1144,6 +1172,48 @@ plotSpatialEffect <- function(spatEffect_output, Xs, idx_species = 1){
   ggplot(data = NULL, aes(x = Xs[,1],
                           y = Xs[,2],
                           color = spatEffect_median[,idx_species])) + geom_point()
+
+}
+
+returnCorrelationMatrix <- function(L_output, idx_species){
+
+  d <- dim(L_output)[1]
+  S <- dim(L_output)[2]
+
+  if(is.null(idx_species)){
+    idx_species <- 1:S
+  }
+
+  L_output_vec <- apply(L_output, c(1,2), c)
+
+  niter <- dim(L_output_vec)[1]
+
+  Lambda_output <- array(NA, dim = c(niter, S, S))
+
+  for (iter in 1:niter) {
+    L_output_current <- matrix(L_output_vec[iter,,], S, d, byrow = T)
+
+    Lambda_output[iter,,] <- cov2cor(L_output_current %*% t(L_output_current))
+  }
+
+  Lambda_output[,idx_species, idx_species]
+
+}
+
+plotCorrelationMatrix <- function(L_output, idx_species){
+
+  Lambda_output <- returnCorrelationMatrix(L_output, idx_species)
+
+  Lambda_quantiles <- apply(Lambda_output, c(2,3),
+                            function(x){quantile(x, probs = c(0.025, 0.5, 0.975))})
+
+  ggcorrplot::ggcorrplot(Lambda_quantiles[2,,], method = "square", type = "lower",
+                         lab = F, lab_size = 3,
+                         colors = c("blue", "white", "red"),
+                         title = "Covariance Matrix (as Correlation)") +
+    theme(plot.title = element_text(hjust = 0.5,
+                                    size = 16,
+                                    face = "bold"))
 
 }
 
