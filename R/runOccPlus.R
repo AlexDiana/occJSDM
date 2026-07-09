@@ -1,3 +1,41 @@
+get_param <- function(params, key, default = 0) {
+  if (!is.null(params[[key]])) {
+    return(params[[key]])
+  } else {
+    return(default)
+  }
+}
+
+process_covariates <- function(data_info, covariates, group_by_col, n_obs,
+                               remove_intercept = FALSE) {
+
+  # If no covariates provided, return default matrix
+  if (length(covariates) == 0) {
+    if (!remove_intercept) {
+      return(matrix(1, n_obs, 1))
+    } else {
+      return(matrix(0, n_obs, 0))
+    }
+  }
+
+  # Process the covariates
+  result <- data_info %>%
+    dplyr::group_by(!!rlang::sym(group_by_col)) %>%
+    dplyr::summarise(dplyr::across(dplyr::all_of(covariates), ~ dplyr::first(.x))) %>%
+    dplyr::select(-dplyr::all_of(group_by_col)) %>%
+    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), scale)) %>%
+    dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
+    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ ifelse(is.na(.), 0, .))) %>%
+    stats::model.matrix(~., .)
+
+  # Remove intercept if requested (first column is always intercept)
+  if (remove_intercept) {
+    result <- result[, -1, drop = FALSE]
+  }
+
+  return(result)
+}
+
 #' runOccPlus
 #'
 #' Run the OccPlus model.
@@ -40,42 +78,54 @@
 #' @import dplyr
 #'
 runOccPlus <- function(data,
-                       n_factors,
+                       listParams = list(),
                        threshold = 0,
                        occCovariates = c(),
                        ordCovariates = c(),
                        collCovariates = c(),
+                       spatCovariates = c(),
+                       traitsMatrix = NULL,
                        MCMCparams = list(nchain = 2,
                                          nburn = 5000,
                                          niter = 5000,
                                          nthin = 1),
                        listPriors = list()){
 
+
+  # set unknonwn parameters
+  {
+    d <- get_param(listParams, "n_factors")
+    gt <- get_param(listParams, "n_lattrait", 2)
+    ps <- get_param(listParams, "n_supportpoints", getDefaultSupportPoints(ns))
+  }
+
   data_info <- as.data.frame(data$info)
   OTU <- data$OTU
 
   # data checks
   {
-    if(!all(c(occCovariates, ordCovariates, collCovariates) %in% colnames(data$info))){
+    if(!all(c(occCovariates, collCovariates, spatCovariates) %in% colnames(data$info))){
       stop("Covariate names provided not in data$info")
     }
 
-    if(any(is.na(data_info$Site)) | any(is.na(data_info$Sample)) | any(is.na(data_info$Primer))){
+    if(any(is.na(data_info$Site)) |
+       any(is.na(data_info$Sample)) |
+       any(is.na(data_info$Primer))){
       stop("NA in Site, Sample or Primer columns")
     }
 
-    if(n_factors > ncol(OTU)){
+    if(d > ncol(OTU)){
       print("More species than factors. The number of factors will be capped to the
             number of species")
-      n_factors = ncol(OTU)
+      d <- ncol(OTU)
     }
   }
 
-  # sort the data
+  # clean the data
   {
     data_info <- data_info %>%
       dplyr::arrange(Site, Sample, Primer)
-  }
+
 
   # samples per site
   {
@@ -157,6 +207,7 @@ runOccPlus <- function(data,
   y <- OTU
 
   logy1 <- log(OTU + 1)
+  }
 
   # data infos
   {
@@ -217,69 +268,82 @@ runOccPlus <- function(data,
       S <- ncol(OTU)
     }
 
-    if(length(ordCovariates) > 0){
+    # For occupancy covariates (group by Site, includes intercept)
+    X_psi <- process_covariates(data_info, occCovariates, "Site", n,
+                                remove_intercept = FALSE)
 
-      X_ord <- data_info %>%
-        dplyr::group_by(Site) %>%
-        dplyr::summarise(across(all_of(ordCovariates),
-                                function(x) {x[1]}))
+    # For collection covariates (group by Sample, includes intercept)
+    X_theta <- process_covariates(data_info, collCovariates, "Sample", N,
+                                remove_intercept = FALSE)
 
-      sitesNames <- X_ord$Site
+    # For the spatial field
+    X_s <- process_covariates(data_info, spatCovariates, "Site", n,
+                                remove_intercept = TRUE)
 
-      X_ord <- X_ord %>%
-        dplyr::select(-Site) %>%
-        dplyr::mutate_if(is.numeric, scale) %>%
-        dplyr::mutate(dplyr::across(tidyselect::where(~ !is.numeric(.x)), as.factor)) %>%
-        dplyr::mutate(dplyr::across(tidyselect::where(is.numeric), ~ ifelse(is.na(.), 0, .))) %>%
-        stats::model.matrix(~., .)
+    if(F){
+      if(length(ordCovariates) > 0){
 
-      X_ord <- X_ord[,-1,drop=F]
+        X_ord <- data_info %>%
+          dplyr::group_by(Site) %>%
+          dplyr::summarise(across(all_of(ordCovariates),
+                                  function(x) {x[1]}))
 
-      rownames(X_ord) <- sitesNames
+        sitesNames <- X_ord$Site
 
-    } else {
-      X_ord <- matrix(0, n, 0)
-    }
+        X_ord <- X_ord %>%
+          dplyr::select(-Site) %>%
+          dplyr::mutate_if(is.numeric, scale) %>%
+          dplyr::mutate(dplyr::across(tidyselect::where(~ !is.numeric(.x)), as.factor)) %>%
+          dplyr::mutate(dplyr::across(tidyselect::where(is.numeric), ~ ifelse(is.na(.), 0, .))) %>%
+          stats::model.matrix(~., .)
 
-    if(length(occCovariates) > 0){
+        X_ord <- X_ord[,-1,drop=F]
 
-      X_psi <- data_info %>%
-        dplyr::group_by(Site) %>%
-        dplyr::summarise(dplyr::across(all_of(occCovariates),
-                                       function(x) {x[1]})) %>%
-        dplyr::select(-Site) %>%
-        dplyr::mutate_if(is.numeric, scale) %>%
-        dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
-        model.matrix(~., .)
+        rownames(X_ord) <- sitesNames
 
-      # X_psi <- X_psi[,-1,drop=F]
+      } else {
+        X_ord <- matrix(0, n, 0)
+      }
 
-    } else {
+      if(length(occCovariates) > 0){
 
-      X_psi <- matrix(1, n, 1)
+        X_psi <- data_info %>%
+          dplyr::group_by(Site) %>%
+          dplyr::summarise(dplyr::across(all_of(occCovariates),
+                                         function(x) {x[1]})) %>%
+          dplyr::select(-Site) %>%
+          dplyr::mutate_if(is.numeric, scale) %>%
+          dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
+          model.matrix(~., .)
 
-    }
+        # X_psi <- X_psi[,-1,drop=F]
 
-    if(length(collCovariates) > 0){
+      } else {
 
-      X_theta <- data_info %>%
-        dplyr::group_by(Sample) %>%
-        dplyr::summarise(dplyr::across(dplyr::all_of(collCovariates),
-                                       function(x) {x[1]})) %>%
-        dplyr::select(-Sample) %>%
-        dplyr::mutate_if(is.numeric, scale) %>%
-        dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
-       model.matrix(~., .)
+        X_psi <- matrix(1, n, 1)
 
-    } else {
+      }
 
-      X_theta <- matrix(1, N, 1)
+      if(length(collCovariates) > 0){
 
+        X_theta <- data_info %>%
+          dplyr::group_by(Sample) %>%
+          dplyr::summarise(dplyr::across(dplyr::all_of(collCovariates),
+                                         function(x) {x[1]})) %>%
+          dplyr::select(-Sample) %>%
+          dplyr::mutate_if(is.numeric, scale) %>%
+          dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
+          model.matrix(~., .)
+
+      } else {
+
+        X_theta <- matrix(1, N, 1)
+
+      }
     }
 
     ncov_psi <- ncol(X_psi)
     ncov_theta <- ncol(X_theta)
-    ncov_ord <- ncol(X_ord)
 
   }
 
@@ -333,10 +397,13 @@ runOccPlus <- function(data,
 
   print("Running MCMC")
 
-  nchain <- MCMCparams$nchain
-  nburn <- MCMCparams$nburn
-  niter <- MCMCparams$niter
-  nthin <- MCMCparams$nthin
+  # chain parameters
+  {
+    nchain <- MCMCparams$nchain
+    nburn <- MCMCparams$nburn
+    niter <- MCMCparams$niter
+    nthin <- ifelse(is.null(MCMCparams$nthin),1,MCMCparams$nthin)
+  }
 
   # chain output
   {
@@ -345,8 +412,8 @@ runOccPlus <- function(data,
     beta_theta_output <- array(NA, dim = c(ncov_theta, S, niter, nchain))
     LL_output <- array(NA, dim = c(n_factors, S, niter, nchain))
     E_output <- array(NA, dim = c(n, n_factors, niter, nchain))
+    Es_output <- array(NA, dim = c(n, n_spatfactors, niter, nchain))
     U_output <- array(NA, dim = c(n, n_factors, niter, nchain))
-    UL_output <- array(NA, dim = c(n, S, niter, nchain))
     z_output <- array(NA, dim = c(n, S, niter, nchain))
     p_output <- array(NA, dim = c(maxL, S, niter, nchain))
     q_output <- array(NA, dim = c(maxL, S, niter, nchain))
@@ -357,17 +424,31 @@ runOccPlus <- function(data,
     sigma0_output <- array(NA, dim = c(niter, nchain))
   }
 
+  # precompute spatial quantities
+  {
+    ps <- ifelse(ncol(X_s) > 0, getDefaultSupportPoints(n), 0)
+
+    # Spatial covariates matrix
+    list_Xs <- computeSpatialSummaries(Xs, ps, maxPoints = 5)
+    Xs_centers <- list_Xs$Xs_centers
+    Xs_index <- list_Xs$Xs_index
+    X_s_centers <- list_Xs$X_s_centers
+    X_tilde <- list_Xs$X_tilde
+    X_s <- list_Xs$X_s
+
+    list_SoRSummaries <- precomputeSORmatrices(l_s_grid, list_Xs)
+  }
+
   for (chain in 1:nchain) {
 
     # chain output
     {
-      beta_ord_output_chain <- array(NA, dim = c(ncov_ord, n_factors, niter))
-      beta_psi_output_chain <- array(NA, dim = c(ncov_psi, S, niter))
+      # beta_ord_output_chain <- array(NA, dim = c(ncov_ord, n_factors, niter))
+      # beta_psi_output_chain <- array(NA, dim = c(ncov_psi, S, niter))
       beta_theta_output_chain <- array(NA, dim = c(ncov_theta, S, niter))
-      LL_output_chain <- array(NA, dim = c(n_factors, S, niter))
-      E_output_chain <- array(NA, dim = c(n, n_factors, niter))
-      U_output_chain <- array(NA, dim = c(n, n_factors, niter))
-      UL_output_chain <- array(NA, dim = c(n, S, niter))
+      # LL_output_chain <- array(NA, dim = c(n_factors, S, niter))
+      # E_output_chain <- array(NA, dim = c(n, n_factors, niter))
+      # U_output_chain <- array(NA, dim = c(n, n_factors, niter))
       z_output_chain <- array(NA, dim = c(n, S, niter))
       p_output_chain <- array(NA, dim = c(maxL, S, niter))
       q_output_chain <- array(NA, dim = c(maxL, S, niter))
@@ -376,6 +457,25 @@ runOccPlus <- function(data,
       sigma1_output_chain <- rep(NA, niter)
       mu0_output_chain <- rep(NA, niter)
       sigma0_output_chain <- rep(NA, niter)
+
+      # jsdm params
+      {
+        B_output <- array(NA, dim = c(p, S, niter, nchain))
+        G_output <- array(NA, dim = c(g, p, niter, nchain))
+        A_output <- array(NA, dim = c(S, gt, niter, nchain))
+        C_output <- array(NA, dim = c(gt, p, niter, nchain))
+        Bs_output <- array(NA, dim = c(ps, S, niter, nchain))
+        Gs_output <- array(NA, dim = c(g, ps, niter, nchain))
+        As_output <- array(NA, dim = c(S, gt, niter, nchain))
+        Cs_output <- array(NA, dim = c(gt, ps, niter, nchain))
+        U_output  <- array(NA, dim = c(n, d, niter, nchain))
+        L_output  <- array(NA, dim = c(d, S, niter, nchain))
+        tau_output <- array(NA, dim = c(S, niter, nchain))
+        sigmab_output <- array(NA, dim = c(niter, nchain))
+        sigmabs_output <- array(NA, dim = c(niter, nchain))
+        varPart_output <- array(NA, dim = c(S, 4, niter, nchain))
+      }
+
     }
 
     # starting values
@@ -474,12 +574,13 @@ runOccPlus <- function(data,
 
       }
 
-      beta_psi <- matrix(0, ncov_psi, S)
+      # beta_psi <- matrix(0, ncov_psi, S)
       beta_theta <- matrix(0, ncov_theta, S)
-      beta_ord <- matrix(0, ncov_ord, n_factors)
-      E <- matrix(0, n, n_factors)
-      LL <- matrix(1, n_factors, S)
-
+      # beta_ord <- matrix(0, ncov_ord, n_factors)
+      # E <- matrix(0, n, n_factors)
+      # As <- matrix(0, n_spatcenters, n_spatfactors)
+      # Bs <- matrix(0, n_spatfactors, S)
+      # LL <- matrix(1, n_factors, S)
 
       theta <- computeTheta(X_theta, beta_theta)
 
@@ -487,9 +588,64 @@ runOccPlus <- function(data,
       q <- matrix(.05, maxL, S)
       theta0 <- rep(.05, S)
 
+      # jsdmParams
+      {
+        B <- matrix(0, p, S)
+        Bs <- matrix(0, ps, S)
+        L <- matrix(1, d, S)
+        diag(L) <- 1
+        L[lower.tri(L)] <- 0
+        G <- matrix(0, g, p)
+        C <- matrix(1, gt, p)
+        diag(C) <- 1
+        C[lower.tri(C)] <- 0
+        A <- matrix(0, S, gt)
+        Gs <- matrix(0, g, ps)
+        Cs <- matrix(1, gt, ps)
+        diag(Cs) <- 1
+        Cs[lower.tri(Cs)] <- 0
+        As <- matrix(0, S, gt)
+        U <- matrix(0, n, d)
+        sigma_b <- 1
+        sigma_bs <- .001
+        idx_ls <- 3 # dim(list_SoRSummaries$Ks_all)[3][5]
+        tau <- rep(1, S)
 
-      U <- computeU(X_ord, beta_ord, E)
-      psi <- computePsi(X_psi, beta_psi, U, LL)
+        Bt <- t(B) - computeBtcoef(G, Tr, A, C, matrix(0, S, p))
+        Bst <- t(Bs) - computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps))
+
+        Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
+
+        list_jSDMparams <- list(
+          "B" = B,
+          "G" = G,
+          "A" = A,
+          "C" = C,
+          "Bt" = Bt,
+          "Bs" = Bs,
+          "Gs" = Gs,
+          "As" = As,
+          "Cs" = Cs,
+          "Bst" = Bst,
+          "U" = U,
+          "L" = L,
+          "sigma_b" = sigma_b,
+          "sigma_bs" = sigma_bs,
+          "idx_ls" = idx_ls,
+          "tau" = tau
+        )
+
+        list_psiCoef <- computePsiCoef(
+          X, Ks, list_Xs$Xs_centers, Tr,
+          G, A, C, Bt,
+          Gs, As, Cs, Bst,
+          U, L)
+        psi <- logistic(list_psiCoef$eta)
+
+      }
+
+      # U <- computeU(X_ord, beta_ord, E)
+      # psi <- computePsi(X_psi, beta_psi, U, LL)
 
     }
 
@@ -511,10 +667,23 @@ runOccPlus <- function(data,
       z <- sample_z_cpp(w, psi, theta, theta0, M, sumM)
 
       # sample psi
-
       {
+        list_jsdmParam <- update_jSDMcoef(
+          list_data,
+          list_jSDMparams,
+          list_priors,
+          list_Xs,
+          list_SoRSummaries,
+          model
+        )
+        psi <- list_jsdmParam$psi
+      }
+
+      # sample psi - old
+
+      if (F) {
         list_betapsiLL <- sample_psivars(z, X_psi, beta_psi, X_ord, beta_ord,
-                                         E, LL, prior_beta_psi, prior_beta_psi_sd)
+                                         E, Es, LL, prior_beta_psi, prior_beta_psi_sd)
         beta_psi <- list_betapsiLL$beta_psi
         beta_ord <- list_betapsiLL$beta_ord
         LL <- list_betapsiLL$LL
@@ -533,7 +702,6 @@ runOccPlus <- function(data,
 
         w <- sample_w_cpp(logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q,
                           M, K, sumL, sumM, sumK, maxL, z)
-
 
       }
 
@@ -555,10 +723,9 @@ runOccPlus <- function(data,
       theta <- computeTheta(X_theta, beta_theta)
 
       # sample pq
-      # list_pq <- sample_pq(y, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q)
       list_pq <- sample_pq_cpp(c_imk, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q)
-      (p <- list_pq$p)
-      (q <- list_pq$q)
+      p <- list_pq$p
+      q <- list_pq$q
 
       # sample theta0
       theta0 <- sample_theta0(z, w, idx_z, a_theta0, b_theta0)
@@ -583,16 +750,40 @@ runOccPlus <- function(data,
 
         if(iter > nburn & (iter - nburn) %% nthin == 0){
           currentIter <- (iter - nburn) / nthin
-          beta_psi_output_chain[,,currentIter] <- beta_psi
-          beta_ord_output_chain[,,currentIter] <- beta_ord
+          # beta_psi_output_chain[,,currentIter] <- beta_psi
+          # beta_ord_output_chain[,,currentIter] <- beta_ord
           beta_theta_output_chain[,,currentIter] <- beta_theta
-          LL_output_chain[,,currentIter] <- LL
-          U_output_chain[,,currentIter] <- U
-          E_output_chain[,,currentIter] <- E
+          # LL_output_chain[,,currentIter] <- LL
+          # U_output_chain[,,currentIter] <- U
+          # E_output_chain[,,currentIter] <- E
+          # Es_output_chain[,,currentIter] <- Es
+          # rho_output_chain[currentIter] <- rho
           p_output_chain[,,currentIter] <- p
           q_output_chain[,,currentIter] <- q
           theta0_output_chain[,currentIter] <- theta0
           z_output_chain[,,currentIter] <- z
+
+          # save jsdm params
+          {
+            B_output_chain[,,currentIter] <- list_jSDMparams$B
+            G_output_chain[,,currentIter] <- list_jSDMparams$G
+            A_output_chain[,,currentIter] <- list_jSDMparams$A
+            C_output_chain[,,currentIter] <- list_jSDMparams$C
+            Bs_output_chain[,,currentIter] <- list_jSDMparams$Bs
+            Gs_output_chain[,,currentIter] <- list_jSDMparams$Gs
+            As_output_chain[,,currentIter] <- list_jSDMparams$As
+            Cs_output_chain[,,currentIter] <- list_jSDMparams$Cs
+            U_output_chain[,,currentIter] <- list_jSDMparams$U
+            L_output_chain[,,currentIter] <- list_jSDMparams$L
+            sigmab_output_chain[currentIter] <- list_jSDMparams$sigma_b
+            sigmabs_output_chain[currentIter] <- list_jSDMparams$sigma_bs
+            if(model == "continuous") tau_output_chain[,currentIter] <-
+              list_jSDMparams$tau
+
+            varPart_output_chain[,,currentIter] <-
+              as.matrix(list_jSDMparams$variancePartitioning)
+          }
+
 
           if(threshold == 0){
             mu1_output_chain[currentIter] <- mu1
@@ -605,22 +796,44 @@ runOccPlus <- function(data,
 
       }
 
-      beta_psi_output[,,,chain] <- beta_psi_output_chain
-      beta_ord_output[,,,chain] <- beta_ord_output_chain
-      beta_theta_output[,,,chain] <- beta_theta_output_chain
-      LL_output[,,,chain] <- LL_output_chain
-      U_output[,,,chain] <- U_output_chain
-      E_output[,,,chain] <- E_output_chain
-      p_output[,,,chain] <- p_output_chain
-      q_output[,,,chain] <- q_output_chain
-      theta0_output[,,chain] <- theta0_output_chain
-      z_output[,,,chain] <- z_output_chain
-      mu1_output[,chain] <- mu1_output_chain
-      sigma1_output[,chain] <- sigma1_output_chain
-      mu0_output[,chain] <- mu0_output_chain
-      sigma0_output[,chain] <- sigma0_output_chain
-
     }
+
+    # beta_psi_output[,,,chain] <- beta_psi_output_chain
+    # beta_ord_output[,,,chain] <- beta_ord_output_chain
+    # LL_output[,,,chain] <- LL_output_chain
+    # U_output[,,,chain] <- U_output_chain
+    # E_output[,,,chain] <- E_output_chain
+    # Es_output[,,,chain] <- Es_output_chain
+    # rho_output[,chain] <- rho_output_chain
+    beta_theta_output[,,,chain] <- beta_theta_output_chain
+    p_output[,,,chain] <- p_output_chain
+    q_output[,,,chain] <- q_output_chain
+    theta0_output[,,chain] <- theta0_output_chain
+    z_output[,,,chain] <- z_output_chain
+    mu1_output[,chain] <- mu1_output_chain
+    sigma1_output[,chain] <- sigma1_output_chain
+    mu0_output[,chain] <- mu0_output_chain
+    sigma0_output[,chain] <- sigma0_output_chain
+    # save jsdm params
+    {
+      B_output_chain[,,currentIter] <- B
+      G_output_chain[,,currentIter] <- G
+      A_output_chain[,,currentIter] <- A
+      C_output_chain[,,currentIter] <- C
+      Bs_output_chain[,,currentIter] <- Bs
+      Gs_output_chain[,,currentIter] <- Gs
+      As_output_chain[,,currentIter] <- As
+      Cs_output_chain[,,currentIter] <- Cs
+      U_output_chain[,,currentIter] <- U
+      L_output_chain[,,currentIter] <- L
+      sigmab_output_chain[currentIter] <- sigma_b
+      sigmabs_output_chain[currentIter] <- sigma_bs
+      if(model == "continuous") tau_output_chain[,currentIter] <- tau
+
+      variancePartitioning <- computeVariancePartitioning(XB, SE, UL)
+      varPart_output_chain[,,currentIter] <- as.matrix(variancePartitioning)
+    }
+
 
   }
 
@@ -630,7 +843,7 @@ runOccPlus <- function(data,
     "beta_theta_output" = beta_theta_output,
     "LL_output" = LL_output,
     "E_output" = E_output,
-    "UL_output" = UL_output,
+    "Es_output" = Es_output,
     "U_output" = U_output,
     "z_output" = z_output,
     "p_output" = p_output,
