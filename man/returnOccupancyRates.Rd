@@ -2,9 +2,9 @@
 % Please edit documentation in R/output.R
 \name{returnOccupancyRates}
 \alias{returnOccupancyRates}
-\title{returnOccupancyProbs}
+\title{returnOccupancyRates}
 \usage{
-returnOccupancyRates(fitModel, X_psi, X_ord)
+returnOccupancyRates(fitModel)
 }
 \arguments{
 \item{fitModel}{Output from the function runOccPlus}
@@ -22,7 +22,7 @@ Returns the 95% credible interval of the baseline occupancy rates
 }
 \examples{
 \dontrun{
-returnOccupancyRates(fitModel, idx_species = 1:5)
+returnBaselineOccupancies(fitModel, idx_species = 1:5)
 }
 
 }

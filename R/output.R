@@ -81,6 +81,79 @@ logit <- function(x){
 
 logistic <- function(x) 1 / (1 + exp(-x))
 
+# TRAITS ---------
+
+#' returnTraitsCoeff
+#'
+#' Traits covariate coefficients.
+#'
+#' @details
+#' Returns the traits covariates coefficients posterior sample
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return A ggplot object
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+returnTraitsCoeff <- function(fitModel){
+
+  # S <- fitModel$infos$S
+  # g <-
+  # ncov_psi <- fitModel$infos$ncov_psi
+  # # speciesNames <- fitModel$infos$speciesNames
+  occCovNames <- colnames(fitModel$X_psi)
+  traitNames <- colnames(fitModel$Tr)
+
+  traitsCoeffOutput <- fitModel$results_output$jsdm_output$G_output
+  traitsCoeffOutput <- apply(traitsCoeffOutput, c(1,2), c)
+
+  niter <- dim(traitsCoeffOutput)[1]
+  dimnames(traitsCoeffOutput)[[2]] <- traitNames
+  dimnames(traitsCoeffOutput)[[3]] <- occCovNames
+
+  traitsCoeffOutput <- aperm(traitsCoeffOutput, c(1,3,2))
+
+  traitsCoeffOutput
+
+}
+
+#' plotTraitsCoefficients
+#'
+#' Traits covariate coefficients.
+#'
+#' @details
+#' Plots the 95% credible interval of the occupancy covariates coefficients
+#'
+#' @param fitModel Output from the function runOccPlus
+#' @param covName Name of the covariate to be plotted (same name as in data$info)
+#' @param idx_traits Indexes of the traits to be plotted (leave out to plot all the traits).
+#'
+#' @return A ggplot object
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+plotTraitsCoefficients <- function(fitModel,
+                                    covName = NULL,
+                                    idx_traits = NULL
+){
+
+  traits_output <- returnTraitsCoeff(fitModel)
+
+  if(is.null(covName)){
+    stop("No name provided")
+  }
+
+  plotCoefficient(traits_output, covName, idx_traits) + xlab("Traits")
+
+}
+
+# OCCUPANCY COVARIATES --------
+
 #' returnOccupancyCovariates
 #'
 #' Occupancy covariate coefficients.
@@ -98,31 +171,17 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'
 returnOccupancyCovariates <- function(fitModel){
 
-  # matrix_of_draws <- fitModel$matrix_of_draws
-
-  S <- fitModel$infos$S
-  ncov_psi <- fitModel$infos$ncov_psi
-  speciesNames <- fitModel$infos$speciesNames
   occCovNames <- colnames(fitModel$X_psi)
-  # idxcov <- which(occCovNames == covName)
+  speciesNames <- fitModel$infos$speciesNames
 
-  # samples_subset <- matrix_of_draws[,grepl(param, colnames(matrix_of_draws))]
-  # samples_subset <- samples_subset[,idxcov + 0:(S - 1)*ncov_psi]
+  occCoeffOutput <- fitModel$results_output$jsdm_output$B_output
+  occCoeffOutput <- apply(occCoeffOutput, c(1,2), c)
 
-  beta_psi_output0 <- fitModel$results_output$beta_psi_output
-  beta_psi_output0 <- apply(beta_psi_output0, c(1,2), c)
+  niter <- dim(occCoeffOutput)[1]
+  dimnames(occCoeffOutput)[[2]] <- occCovNames
+  dimnames(occCoeffOutput)[[3]] <- speciesNames
 
-  niter <- dim(beta_psi_output0)[1]
-
-  # beta_psi_output <- array(NA, dim = c(niter, ncov_psi, S))
-  # for(iter in 1:niter){
-  #   beta_psi_output[iter,,] <- matrix(beta_psi_output0[iter,], ncov_psi, S, byrow = F)
-  # }
-
-  dimnames(beta_psi_output0)[[2]] <- occCovNames
-  dimnames(beta_psi_output0)[[3]] <- speciesNames
-
-  beta_psi_output0
+  occCoeffOutput
 
 }
 
@@ -148,263 +207,161 @@ plotOccupancyCovariates <- function(fitModel,
                                     idx_species = NULL
 ){
 
-  beta_psi_output <- returnOccupancyCovariates(fitModel)
+  occCov_output <- returnOccupancyCovariates(fitModel)
 
   if(is.null(covName)){
     stop("No name provided")
   }
 
-  # matrix_of_draws <- fitModel$matrix_of_draws
+  plotCoefficient(occCov_output, covName, idx_species) + xlab("Species")
+
+}
+
+
+#' returnOccupancyRates
+#'
+#' Baseline occupancy rate for each species.
+#'
+#' @details
+#' Returns the 95% credible interval of the baseline occupancy rates
+#'
+#' @param fitModel Output from the function runOccPlus
+#' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
+#'
+#' @return The credible interval plot
+#'
+#' @examples
+#' \dontrun{
+#' returnBaselineOccupancies(fitModel, idx_species = 1:5)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+returnOccupancyRates <- function(fitModel){
+
+  # conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
 
   S <- fitModel$infos$S
-  ncov_psi <- fitModel$infos$ncov_psi
   speciesNames <- fitModel$infos$speciesNames
-  occCovNames <- colnames(fitModel$X_psi)
-  idxcov <- which(occCovNames == covName)
+  n <- length(fitModel$infos$siteNames)
 
-  if(length(idxcov) == 0){
-    stop("Covariate name not found. If you are using a categorical covariates,
-         the name might have changed to code the level. Use
-         colnames(fitModel$X_occ) to find the new names")
+  beta_psi_output <- fitModel$results_output$beta_psi_output
+  beta_ord_output <- fitModel$results_output$beta_ord_output
+  E_output <- fitModel$results_output$E_output
+  LL_output <- fitModel$results_output$LL_output
+
+  nchain <- dim(beta_psi_output)[4]
+  niter <- dim(beta_psi_output)[3]
+
+  psi_output <- array(NA, dim = c(nchain * niter, n, S))
+  for (chain in 1:nchain) {
+    for (iter in 1:niter) {
+      psi_output[iter + (chain - 1)*niter,,] <-
+        computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
+                    beta_ord_output[,,iter,chain],
+                    LL_output[,,iter,chain])
+      # computePsi(X_psi, beta_psi_output[,,iter,chain],
+      #              U_output[,,iter,chain], LL_output[,,iter,chain])
+
+    }
   }
+
+  psi_output
+}
+
+#' plotOccupancyRates
+#'
+#' Baseline occupancy rate for each species.
+#'
+#' @details
+#' Plots the 95% credible interval of the baseline occupancy rates
+#'
+#' @param fitModel Output from the function runOccPlus
+#' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
+#' @param confidence Confidence level of the estimate,  default to .95
+#' @param sortSpecies Should species be sorted in the plot?
+#'
+#' @return The credible interval plot
+#'
+#' @examples
+#' \dontrun{
+#' plotSpeciesRates(fitModel, idx_species = 1:5)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+plotOccupancyRates <- function(fitModel,
+                               idx_species = NULL,
+                               confidence = .95,
+                               sortSpecies = F){
+
+  confInt <- c((1 - confidence) / 2, (1 + confidence) / 2)
+
+  psi_output <- returnOccupancyRates(fitModel)
+
+  S <- fitModel$infos$S
+  speciesNames <- fitModel$infos$speciesNames
+  X_psi <- fitModel$X_psi
+  ncov_psi <- ncol(X_psi)
 
   if(is.null(idx_species)){
     idx_species <- 1:S
   }
 
-  # samples_subset <- beta_psi_output[,,]
+  psi_mean_output <- apply(psi_output, c(2,3), function(x){
+    mean(x)
+  })
 
-  samples_subset <- matrix(beta_psi_output[,idxcov, idx_species],
-                           dim(beta_psi_output)[1], length(idx_species))
-
-  # samples_subset <- beta_ord_output[,idxcov,]
-  # samples_subset <- samples_subset[,idx_species,drop=F]
-
-  # param <- "beta_psi"
-  #
-  # samples_subset <- matrix_of_draws[,grepl(param, colnames(matrix_of_draws))]
-  # samples_subset <- samples_subset[,idxcov + 0:(S - 1)*ncov_psi]
-
-  data_plot <- apply(samples_subset, 2, function(x) {
-    quantile(x, probs = c(0.025, 0.975))
+  data_plot <- apply(psi_mean_output, 2, function(x) {
+    # quantile(logistic(x), probs = c(0.025, 0.975))
+    quantile(x, probs = confInt)
   }) %>%
     t %>%
     as.data.frame %>%
-    mutate(Species = speciesNames[idx_species]) %>%
-    mutate(speciesOrder = order(`2.5%`)) #%>%
-  # filter(Species %in% speciesNames[idx_species])
+    mutate(Species = speciesNames)
 
-  orderSpecies <- order(data_plot$`2.5%`)
+  colnames(data_plot)[1:2] <- c("Min","Max")
 
-  plot_occcovs <- data_plot %>%
-    ggplot(aes(x =  factor(Species, level = speciesNames[orderSpecies]),
-               ymin = `2.5%`,
-               ymax = `97.5%`)) + geom_errorbar() +
+  data_plot %>%
+    mutate(speciesOrder = order(Min)) %>%
+    filter(Species %in% speciesNames[idx_species])
+
+  if(sortSpecies){
+    speciesNameOrdered <- speciesNames[order(data_plot$Min)]
+  } else {
+    speciesNameOrdered <- speciesNames
+  }
+
+  plot_occupancyrates <- data_plot %>%
+    ggplot(aes(x =  factor(Species, level = speciesNameOrdered),
+               ymin = Min,
+               ymax = Max)) + geom_errorbar() +
     xlab("Species") +
     # ylim(c(0,1)) +
-    ggtitle(covName) +
+    ggtitle("Baseline Occupancy rates") +
     theme_bw() +
+    ylim(c(0,1)) +
+    ylab("") +
     theme(
-      axis.text = element_text(angle = 90,
+      axis.text = element_text(angle = 0,
                                size = 8),
+      axis.title = element_text(size = 12, face = "bold"),
       plot.title = element_text(hjust = .5,
                                 size = 15)
-    ) + geom_hline(aes(yintercept = 0), color = "red")
+    ) + coord_flip()
 
-  plot_occcovs
-
-}
+  plot_occupancyrates
 
 
-#' returnOrdinationCovariates
-#'
-#' Ordination covariate coefficients.
-#'
-#' @details
-#' Returns the 95% credible interval of the ordination covariates coefficients
-#'
-#' @param fitModel Output from the function runOccPlus
-#' @param covName Name of the covariate to be plotted (same name as in data$info)
-#' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
-#'
-#' @return A ggplot object
-#'
-#' @export
-#' @import dplyr
-#' @import ggplot2
-#'
-returnOrdinationCovariatesOutput <- function(fitModel){
-
-  # if(is.null(covName)){
-  #   stop("No name provided")
-  # }
-
-  n_factors<- fitModel$infos$n_factors
-  ncov_ord <- fitModel$infos$ncov_ord
-  speciesNames <- fitModel$infos$speciesNames
-  ordCovNames <- colnames(fitModel$X_ord)
-  nsites <- length(fitModel$infos$siteNames)
-  nspecies <- length(fitModel$infos$speciesNames)
-
-  # if(length(idxcov) == 0){
-  #   stop("Covariate name not found. If you are using a categorical covariates,
-  #        the name might have changed to code the level. Use
-  #        colnames(fitModel$X_ord) to find the new names")
-  # }
-  #
-  # if(is.null(idx_factors)){
-  #   idx_factors <- 1:d
-  # }
-
-  {
-    L_output0 <- fitModel$results_output$LL_output
-    beta_ord_output0 <- fitModel$results_output$beta_ord_output
-    U_output0 <- fitModel$results_output$U_output
-
-    niter <- dim(L_output0)[3]
-
-    L_output0 <- apply(L_output0, c(1,2), c)
-    L_output0 <- aperm(L_output0, c(1,3,2))
-
-    beta_ord_output0 <- apply(beta_ord_output0, c(1,2), c)
-    # beta_ord_output0 <- aperm(beta_ord_output0, c(1,3,2))
-
-    L_output <- array(NA, dim = c(niter, n_factors, nspecies))
-    for(iter in 1:niter){
-      L_output[iter,,] <- matrix(L_output0[iter,,], n_factors, nspecies, byrow = F)
-    }
-
-    beta_ord_output <- array(NA, dim = c(niter, ncov_ord, n_factors))
-    for(iter in 1:niter){
-      beta_ord_output[iter,,] <- matrix(beta_ord_output0[iter,,], ncov_ord, n_factors, byrow = F)
-    }
-
-    L_output_reparam <- L_output
-    U_output_reparam <- U_output0
-    # E_output_reparam <- E_output
-    beta_ord_output_reparam <- beta_ord_output
-
-    n_factors<- dim(L_output)[2]
-
-    for (iter in 1:niter) {
-      # print(iter)
-
-      if(n_factors== 1){
-
-        L1 <- L_output[iter,1,1]
-        L_output_reparam[iter,1,] <- L_output[iter,1,] / L1
-        U_output_reparam[iter,,1] <- U_output[iter,,1] * L1
-        beta_ord_output_reparam[iter,,1] <- beta_ord_output[iter,,1] * L1
-
-      } else {
-
-        L_current <- L_output[iter,,]
-        # E_current <- E_output[iter,,]
-        beta_ord_current <- beta_ord_output[iter,,]
-
-        qr_decomp <- qr(L_current)
-        Q_current <- qr.Q(qr_decomp)
-        R_current <- qr.R(qr_decomp)
-
-        Q2 <- Q_current %*% diag(diag(R_current), nrow = n_factors)
-        invQ2 <- diag(1 / diag(R_current), nrow = n_factors) %*% t(Q_current)
-
-        betapsiord_new <- beta_ord_current %*% Q2
-        # E_new <- E_current %*% Q2
-        L_new <- invQ2 %*% L_current
-
-        L_output_reparam[iter,,] <- L_new
-        # E_output_reparam[iter,] <- E_new
-        beta_ord_output_reparam[iter,,] <- betapsiord_new
-      }
-
-    }
-  }
-
-  beta_ord_output_reparam
-
-  # samples_subset <- beta_ord_output_reparam
-  # samples_subset <- samples_subset[,idxcov + 0:(d - 1)*ncov_ord,drop=F]
-
-  # samples_subset
 
 }
 
-#' plotOrdinationCovariates
-#'
-#' Ordination covariate coefficients.
-#'
-#' @details
-#' Plots the 95% credible interval of the ordination covariates coefficients
-#'
-#' @param fitModel Output from the function runOccPlus
-#' @param covName Name of the covariate to be plotted (same name as in data$info)
-#' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
-#'
-#' @return A ggplot object
-#'
-#' @export
-#' @import dplyr
-#' @import ggplot2
-#'
-plotOrdinationCovariates <- function(fitModel,
-                                     covName = NULL,
-                                     idx_factors = NULL
-){
 
-  beta_ord_output <- returnOrdinationCovariatesOutput(fitModel)
-
-  if(is.null(covName)){
-    stop("No name provided")
-  }
-
-  ordCovNames <- colnames(fitModel$X_ord)
-  idxcov <- which(ordCovNames == covName)
-
-  if(length(idxcov) == 0){
-    stop("Covariate name not found. If you are using a categorical covariates,
-         the name might have changed to code the level. Use
-         colnames(fitModel$X_ord) to find the new names")
-  }
-
-  n_factors <- fitModel$infos$n_factors
-
-  if(is.null(idx_factors)){
-    idx_factors <- 1:n_factors
-  }
-
-  samples_subset <- matrix(beta_ord_output[,idxcov, idx_factors],
-                           dim(beta_ord_output)[1], length(idx_factors))
-
-  # beta_ord_output[,idxcov,]
-  # samples_subset <- samples_subset[,idx_factors,drop=F]
-
-  data_plot <- apply(samples_subset, 2, function(x) {
-    quantile(x, probs = c(0.025, 0.975))
-  }) %>%
-    t %>%
-    as.data.frame %>%
-    mutate(Factor = 1:n_factors) %>%
-    filter(Factor %in% idx_factors)
-
-  plot_covs <- data_plot %>%
-    ggplot(aes(x = Factor,
-               ymin = `2.5%`,
-               ymax = `97.5%`)) + geom_errorbar() +
-    xlab("Factors") +
-    # ylim(c(0,1)) +
-    ggtitle(covName) +
-    theme_bw() +
-    theme(
-      axis.text = element_text(angle = 90,
-                               size = 8),
-      plot.title = element_text(hjust = .5,
-                                size = 15)
-    ) + geom_hline(aes(yintercept = 0), color = "red")
-
-  plot_covs
-
-}
+# COLLECTION COVARIATES --------
 
 #' returnCollectionCovariates
 #'
@@ -582,155 +539,6 @@ plotSpeciesRates <- function(data_plot,
 
 
 
-#' returnOccupancyProbs
-#'
-#' Baseline occupancy rate for each species.
-#'
-#' @details
-#' Returns the 95% credible interval of the baseline occupancy rates
-#'
-#' @param fitModel Output from the function runOccPlus
-#' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
-#'
-#' @return The credible interval plot
-#'
-#' @examples
-#' \dontrun{
-#' returnOccupancyRates(fitModel, idx_species = 1:5)
-#' }
-#'
-#' @export
-#' @import dplyr
-#' @import ggplot2
-#'
-returnOccupancyRates <- function(fitModel,
-                                 X_psi, X_ord){
-
-  # conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
-
-  S <- fitModel$infos$S
-  speciesNames <- fitModel$infos$speciesNames
-  n <- length(fitModel$infos$siteNames)
-
-  if(is.null(X_psi)) {
-    X_psi <- fitModel$X_psi
-  }
-  if(is.null(X_ord)){
-    X_ord <- fitModel$X_ord
-  }
-  beta_psi_output <- fitModel$results_output$beta_psi_output
-  beta_ord_output <- fitModel$results_output$beta_ord_output
-  E_output <- fitModel$results_output$E_output
-  LL_output <- fitModel$results_output$LL_output
-
-  nchain <- dim(beta_psi_output)[4]
-  niter <- dim(beta_psi_output)[3]
-
-  psi_output <- array(NA, dim = c(nchain * niter, n, S))
-  for (chain in 1:nchain) {
-    for (iter in 1:niter) {
-      psi_output[iter + (chain - 1)*niter,,] <-
-        computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
-                    beta_ord_output[,,iter,chain],
-                    LL_output[,,iter,chain])
-        # computePsi(X_psi, beta_psi_output[,,iter,chain],
-        #              U_output[,,iter,chain], LL_output[,,iter,chain])
-
-    }
-  }
-
-  psi_output
-}
-
-#' plotOccupancyRates
-#'
-#' Baseline occupancy rate for each species.
-#'
-#' @details
-#' Plots the 95% credible interval of the baseline occupancy rates
-#'
-#' @param fitModel Output from the function runOccPlus
-#' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
-#' @param confidence Confidence level of the estimate,  default to .95
-#' @param sortSpecies Should species be sorted in the plot?
-#'
-#' @return The credible interval plot
-#'
-#' @examples
-#' \dontrun{
-#' plotSpeciesRates(fitModel, idx_species = 1:5)
-#' }
-#'
-#' @export
-#' @import dplyr
-#' @import ggplot2
-#'
-plotOccupancyRates <- function(fitModel,
-                               idx_species = NULL,
-                               confidence = .95,
-                               sortSpecies = F){
-
-  confInt <- c((1 - confidence) / 2, (1 + confidence) / 2)
-
-  psi_output <- returnOccupancyRates(fitModel)
-
-  S <- fitModel$infos$S
-  speciesNames <- fitModel$infos$speciesNames
-  X_psi <- fitModel$X_psi
-  ncov_psi <- ncol(X_psi)
-
-  if(is.null(idx_species)){
-    idx_species <- 1:S
-  }
-
-  psi_mean_output <- apply(psi_output, c(2,3), function(x){
-    mean(x)
-  })
-
-  data_plot <- apply(psi_mean_output, 2, function(x) {
-    # quantile(logistic(x), probs = c(0.025, 0.975))
-    quantile(x, probs = confInt)
-  }) %>%
-    t %>%
-    as.data.frame %>%
-    mutate(Species = speciesNames)
-
-  colnames(data_plot)[1:2] <- c("Min","Max")
-
-  data_plot %>%
-    mutate(speciesOrder = order(Min)) %>%
-    filter(Species %in% speciesNames[idx_species])
-
-  if(sortSpecies){
-    speciesNameOrdered <- speciesNames[order(data_plot$Min)]
-  } else {
-    speciesNameOrdered <- speciesNames
-  }
-
-  plot_occupancyrates <- data_plot %>%
-    ggplot(aes(x =  factor(Species, level = speciesNameOrdered),
-               ymin = Min,
-               ymax = Max)) + geom_errorbar() +
-    xlab("Species") +
-    # ylim(c(0,1)) +
-    ggtitle("Baseline Occupancy rates") +
-    theme_bw() +
-    ylim(c(0,1)) +
-    ylab("") +
-    theme(
-      axis.text = element_text(angle = 0,
-                               size = 8),
-      axis.title = element_text(size = 12, face = "bold"),
-      plot.title = element_text(hjust = .5,
-                                size = 15)
-    ) + coord_flip()
-
-  plot_occupancyrates
-
-
-
-}
-
 #' plotCollectionRates
 #'
 #' Baseline collection rate for each species.
@@ -796,6 +604,8 @@ plotCollectionRates <- function(fitModel,
   plot_collectionrates
 
 }
+
+# SECOND STAGE RATES ----
 
 #' plotFPTPStage2Rates
 #'
@@ -1144,6 +954,311 @@ plotStage2FPRates <- function(fitModel,
 
 }
 
+# CORRELATION MATRIX -----
+
+#' plotResidualCorrelationMatrix
+#'
+#' Plot the residual correlation matrix
+#'
+#' @details
+#' Plots the posterior median of the correlation matrix,
+#' with nonsignificant correlation marked with an X
+#'
+#' @param fitModel Output from the function runOccPlus
+#' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
+#' @param showSignificance Should an X be shown for non significant elements?
+#'
+#' @return A ggplot object
+#'
+#' @examples
+#' \dontrun{
+#' plotResidualCorrelationMatrix(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @importFrom ggcorrplot ggcorrplot
+#'
+plotResidualCorrelationMatrix <- function(fitModel,
+                                            idx_species = NULL,
+                                            showSignificance = T,
+                                            confidence = .95){
+
+  L_output <- fitModel$results_output$jsdm_output$L_output
+  speciesNames <- fitModel$infos$speciesNames
+
+  plotCorrelationMatrix(L_output,
+                        idx_species,
+                        speciesNames,
+                        showSignificance,
+                        confidence)
+
+}
+
+# PREDICTIONS --------
+
+#' computePredictiveOccupancyProbs
+#'
+#' Computes the quantiles of the predictive occupancy probability
+#'
+#' @details
+#' Compute the credible interval of the occupancy probability
+#'
+#' @param fitModel Output from the function runOccPlus
+#' @param X_psi Occupancy covariates matrix for the new locations
+#' @param X_ord Ordination covariates matrix for the new locations
+#' @param summarised Should the output be return in the form of quantiles? Set to TRUE if the number of sites is very large
+#' @param confidence If quantiles are returned, the confidence level of the quantiles.
+#'
+#' @return An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
+#'
+#' @examples
+#' \dontrun{
+#' computePredictiveOccupancyProbs(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+computePredictiveOccupancyProbs <- function(fitModel,
+                                            X_psi,
+                                            X_s,
+                                            summarised = F,
+                                            confidence = .95
+){
+
+
+  X_psi <- as.matrix(X_psi)
+
+  S <- fitModel$infos$S
+  speciesNames <- fitModel$infos$speciesNames
+  n <- nrow(X_psi)
+
+  if(is.null(X_psi)) {
+    X_psi <- fitModel$X_psi
+  }
+
+  if(is.null(X_s)) {
+    X_s <- fitModel$X_s
+  }
+
+  #
+
+  beta_psi_output <- fitModel$results_output$beta_psi_output
+  beta_ord_output <- fitModel$results_output$beta_ord_output
+  LL_output <- fitModel$results_output$LL_output
+
+  nchain <- dim(beta_psi_output)[4]
+  niter <- dim(beta_psi_output)[3]
+
+  if(!summarised){
+
+    psi_output <- array(NA, dim = c(nchain * niter, n, S))
+    for (chain in 1:nchain) {
+      for (iter in 1:niter) {
+        psi_output[iter + (chain - 1)*niter,,] <-
+          logistic(
+            computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
+                        beta_ord_output[,,iter,chain],
+                        LL_output[,,iter,chain])
+          )
+      }
+    }
+
+  } else {
+
+    conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+
+    beta_ord_output <- aperm(apply(beta_ord_output, c(1,2), c), c(2,3,1))
+    beta_psi_output <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
+    LL_output <- aperm(apply(LL_output, c(1,2), c), c(2,3,1))
+
+    # niter <- dim(beta_ord_output)[3]
+
+    psi_output <- computePsiOutput(
+      X_psi,
+      beta_psi_output,
+      X_ord,
+      beta_ord_output,
+      LL_output,
+      conflevels)
+
+    # psi_output <- array(NA, dim = c(3, n, S))
+    # for (i in 1:n) {
+    #   for (j in 1:S) {
+    #     mcmc_output <- rep(NA, niter)
+    #     for (iter in 1:niter) {
+    #       mcmc_output[iter] <- logistic(
+    #         computePsiE(X_psi[i,,drop=F], beta_psi_output[,j,iter],
+    #                     X_ord[i,,drop=F],
+    #                     beta_ord_output[,,iter],
+    #                     LL_output[,j,iter])
+    #       )
+    #
+    #     }
+    #
+    #     psi_output[,i,j] <- quantile(mcmc_output, conflevels)
+    #
+    #   }
+    # }
+
+  }
+
+  psi_output
+
+  # for (iter in 1:niter) {
+  #   psi_output[iter,,] <-
+  #     logistic(
+  #       matrix(beta0_psi_output[iter,], n, S, byrow = T) +
+  #         X_psi %*% matrix(beta_psi_output[iter,], ncov_psi, S) +
+  #         matrix(U_output[iter,], n, n_factors, byrow = F) %*% matrix(L_output[iter,], n_factors, S)
+  #     )
+  # }
+  #
+  # psi_output
+
+
+}
+
+
+#' computeConditionalOccupancyProbs
+#'
+#' Computes the posterior mean of the conditional occupancy probability
+#'
+#' @details
+#' Computes the posterior mean of the conditional occupancy probability
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return A matrix of size (site X species) with the posterior menan occupancy at
+#' each site for each species.
+#'
+#' @examples
+#' \dontrun{
+#' computeConditionalOccupancyProbs(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+computeConditionalOccupancyProbs <- function(fitModel){
+
+  z_output <- fitModel$results_output$z_output
+
+  z_mean <- apply(z_output, c(1,2), mean)
+
+  rownames(z_mean) <- fitModel$infos$siteNames
+  colnames(z_mean) <- fitModel$infos$speciesNames
+
+  z_mean
+
+}
+
+# OTHER ----------
+
+#' returnLatentPresences
+#'
+#' Compute the latent presences
+#'
+#' @details
+#'
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return A matrix
+#'
+#' @examples
+#' \dontrun{
+#' returnLatentPresences(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+returnLatentPresences <- function(fitModel, idx_species = 1){
+
+  z_output <- fitModel$results_output$z_output
+  w_output <- fitModel$results_output$w_output
+
+  z_ouput_vec <- apply(z_output, c(1,2), c)
+  z_output_species <- z_ouput_vec[,,idx_species]
+  z_mean <- apply(z_output_species, 2, mean)
+
+  w_ouput_vec <- apply(w_output, c(1,2), c)
+  w_output_species <- w_ouput_vec[,,idx_species]
+  w_mean <- apply(w_output_species, 2, mean)
+
+  speciesNames <- fitModel$infos$speciesNames
+
+  returnVariancePartitioningMatrix(varPart_output, speciesNames)
+
+}
+
+
+#' returnVariancePartitioning
+#'
+#' Compute the variance partitioning for each species
+#'
+#' @details
+#'
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return A matrix of size (species x 4)
+#'
+#' @examples
+#' \dontrun{
+#' returnVariancePartitioning(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+returnVariancePartitioning <- function(fitModel){
+
+  varPart_output <- fitModel$results_output$jsdm_output$varPart_output
+
+  speciesNames <- fitModel$infos$speciesNames
+
+  returnVariancePartitioningMatrix(varPart_output, speciesNames)
+
+}
+
+#' plotVariancePartitioning
+#'
+#' Plot the variance partitioning for each species
+#'
+#' @details
+#'
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return A ggplot object
+#'
+#' @examples
+#' \dontrun{
+#' plotVariancePartitioning(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#' @import ggtern
+#'
+plotVariancePartitioning <- function(fitModel){
+
+  varPart_output <- fitModel$results_output$jsdm_output$varPart_output
+
+  speciesNames <- fitModel$infos$speciesNames
+
+  plotVarPart(varPart_output, speciesNames)
+
+}
+
 #' plotReadIntensity
 #'
 #' Plot the reads distribution under the true positives and false positives
@@ -1283,297 +1398,6 @@ plotReadIntensity <- function(fitModel){
           plot.title = element_text(hjust = 0.5,
                                     size = 16,
                                     face = "bold"))
-
-}
-
-generateCorrelationMatrixOutput <- function(fitModel,
-                                            idx_species = NULL){
-
-  L_output <- fitModel$results_output$LL_output
-  beta_psi_output <- fitModel$results_output$beta_psi_output
-  S <- fitModel$infos$S
-  n_factors<- fitModel$infos$n_factors
-  speciesNames <- fitModel$infos$speciesNames
-
-  if(is.null(idx_species)){
-    idx_species <- 1:S
-  }
-
-  beta_psi_output <- apply(beta_psi_output, c(1,2), c)
-  L_output <- apply(L_output, c(1,2), c)
-  niter <- dim(L_output)[1]
-
-  Lambda_output <- array(NA, dim = c(niter, S, S))
-
-  for (iter in 1:niter) {
-    L_output_current <- matrix(L_output[iter,,], n_factors, S)
-    beta0psi_output_current <- as.vector(beta_psi_output[iter,1,])
-    L_all_output_current <- rbind(L_output_current, beta0psi_output_current)
-
-    Lambda_output[iter,,] <- cov2cor(t(L_all_output_current) %*% (L_all_output_current))
-  }
-
-  dimnames(Lambda_output)[[2]] <- speciesNames
-  dimnames(Lambda_output)[[3]] <- speciesNames
-
-  Lambda_output[,idx_species, idx_species]
-
-}
-
-
-#' plotCorrelationMatrix
-#'
-#' Plot the correlation matrix
-#'
-#' @details
-#' Plots the posterior median of the correlation matrix
-#'
-#' @param fitModel Output from the function runOccPlus
-#' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
-#'
-#' @return A ggplot object
-#'
-#' @examples
-#' \dontrun{
-#' plotCorrelationMatrix(fitModel)
-#' }
-#'
-#' @export
-#' @import dplyr
-#' @importFrom ggcorrplot ggcorrplot
-#'
-plotCorrelationMatrix <- function(fitModel,
-                                  idx_species = NULL){
-
-  Lambda_output <- generateCorrelationMatrixOutput(fitModel, idx_species)
-
-  Lambda_quantiles <- apply(Lambda_output, c(2,3),
-                            function(x){quantile(x, probs = c(0.025, 0.5, 0.975))})
-
-  ggcorrplot::ggcorrplot(Lambda_quantiles[2,,],
-                         method = "square",
-                         lab = F, lab_size = 3,
-                         colors = c("blue", "white", "red"),
-                         title = "Covariance Matrix (as Correlation)") +
-    theme(plot.title = element_text(hjust = 0.5,
-                                    size = 16,
-                                    face = "bold"))
-
-
-}
-
-#' plotSigElementsCorMatrix
-#'
-#' Plot the significant elements of the Correlation matrix
-#'
-#' @details
-#' Plot the significant elements of the Correlation matrix
-#'
-#' @param fitModel Output from the function runOccPlus
-#' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
-#'
-#' @return A ggplot object
-#'
-#' @examples
-#' \dontrun{
-#' plotSigElementsCorMatrix(fitModel)
-#' }
-#'
-#' @export
-#' @import dplyr
-#' @importFrom ggcorrplot ggcorrplot
-#'
-plotSigElementsCorMatrix <- function(fitModel,
-                                     idx_species = NULL){
-
-  Lambda_output <- generateCorrelationMatrixOutput(fitModel, idx_species)
-
-  S <- fitModel$infos$S
-
-  Lambda_quantiles <- apply(Lambda_output, c(2,3),
-                            function(x){quantile(x, probs = c(0.025, 0.5, 0.975))})
-
-  if(is.null(idx_species)){
-    idx_species <- 1:S
-  }
-
-  Lambda_indexes_possign <- which(Lambda_quantiles[1,,] > 0, arr.ind = T)
-  Lambda_indexes_negsign <- which(Lambda_quantiles[3,,] < 0, arr.ind = T)
-
-  Lambda_sign <- matrix(0, length(idx_species), length(idx_species))
-  Lambda_sign[Lambda_indexes_possign] <- 1
-  Lambda_sign[Lambda_indexes_negsign] <- -1
-
-  rownames(Lambda_sign) <- fitModel$infos$speciesNames[idx_species]
-  colnames(Lambda_sign) <- rownames(Lambda_sign)
-
-  ggcorrplot(
-    Lambda_sign,
-    method = "square",
-    lab = F, lab_size = 3, insig = "blank",
-    colors = c("blue", "white", "red"),
-    title = "Significant correlations") +
-    theme(plot.title = element_text(hjust = 0.5,
-                                    size = 16,
-                                    face = "bold")) +
-    theme(legend.position = "none")
-
-
-}
-
-#' computePredictiveOccupancyProbs
-#'
-#' Computes the quantiles of the predictive occupancy probability
-#'
-#' @details
-#' Compute the credible interval of the occupancy probability
-#'
-#' @param fitModel Output from the function runOccPlus
-#' @param X_psi Occupancy covariates matrix for the new locations
-#' @param X_ord Ordination covariates matrix for the new locations
-#' @param summarised Should the output be return in the form of quantiles? Set to TRUE if the number of sites is very large
-#' @param confidence If quantiles are returned, the confidence level of the quantiles.
-#'
-#' @return An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
-#'
-#' @examples
-#' \dontrun{
-#' computePredictiveOccupancyProbs(fitModel)
-#' }
-#'
-#' @export
-#' @import dplyr
-#' @import ggplot2
-#'
-computePredictiveOccupancyProbs <- function(fitModel,
-                                            X_psi,
-                                            X_ord,
-                                            summarised = F,
-                                            confidence = .95
-){
-
-
-  X_psi <- as.matrix(X_psi)
-  X_ord <- as.matrix(X_ord)
-
-  S <- fitModel$infos$S
-  speciesNames <- fitModel$infos$speciesNames
-  n <- nrow(X_psi)
-
-  if(is.null(X_psi)) {
-    X_psi <- fitModel$X_psi
-  }
-  if(is.null(X_ord)){
-    X_ord <- fitModel$X_ord
-  }
-  beta_psi_output <- fitModel$results_output$beta_psi_output
-  beta_ord_output <- fitModel$results_output$beta_ord_output
-  LL_output <- fitModel$results_output$LL_output
-
-  nchain <- dim(beta_psi_output)[4]
-  niter <- dim(beta_psi_output)[3]
-
-  if(!summarised){
-
-    psi_output <- array(NA, dim = c(nchain * niter, n, S))
-    for (chain in 1:nchain) {
-      for (iter in 1:niter) {
-        psi_output[iter + (chain - 1)*niter,,] <-
-          logistic(
-            computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
-                        beta_ord_output[,,iter,chain],
-                        LL_output[,,iter,chain])
-          )
-      }
-    }
-
-  } else {
-
-    conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
-
-    beta_ord_output <- aperm(apply(beta_ord_output, c(1,2), c), c(2,3,1))
-    beta_psi_output <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
-    LL_output <- aperm(apply(LL_output, c(1,2), c), c(2,3,1))
-
-    # niter <- dim(beta_ord_output)[3]
-
-    psi_output <- computePsiOutput(
-      X_psi,
-      beta_psi_output,
-      X_ord,
-      beta_ord_output,
-      LL_output,
-      conflevels)
-
-    # psi_output <- array(NA, dim = c(3, n, S))
-    # for (i in 1:n) {
-    #   for (j in 1:S) {
-    #     mcmc_output <- rep(NA, niter)
-    #     for (iter in 1:niter) {
-    #       mcmc_output[iter] <- logistic(
-    #         computePsiE(X_psi[i,,drop=F], beta_psi_output[,j,iter],
-    #                     X_ord[i,,drop=F],
-    #                     beta_ord_output[,,iter],
-    #                     LL_output[,j,iter])
-    #       )
-    #
-    #     }
-    #
-    #     psi_output[,i,j] <- quantile(mcmc_output, conflevels)
-    #
-    #   }
-    # }
-
-  }
-
-  psi_output
-
-  # for (iter in 1:niter) {
-  #   psi_output[iter,,] <-
-  #     logistic(
-  #       matrix(beta0_psi_output[iter,], n, S, byrow = T) +
-  #         X_psi %*% matrix(beta_psi_output[iter,], ncov_psi, S) +
-  #         matrix(U_output[iter,], n, n_factors, byrow = F) %*% matrix(L_output[iter,], n_factors, S)
-  #     )
-  # }
-  #
-  # psi_output
-
-
-}
-
-
-#' computeConditionalOccupancyProbs
-#'
-#' Computes the posterior mean of the conditional occupancy probability
-#'
-#' @details
-#' Computes the posterior mean of the conditional occupancy probability
-#'
-#' @param fitModel Output from the function runOccPlus
-#'
-#' @return A matrix of size (site X species) with the posterior menan occupancy at
-#' each site for each species.
-#'
-#' @examples
-#' \dontrun{
-#' computeConditionalOccupancyProbs(fitModel)
-#' }
-#'
-#' @export
-#' @import dplyr
-#' @import ggplot2
-#'
-computeConditionalOccupancyProbs <- function(fitModel){
-
-  z_output <- fitModel$results_output$z_output
-
-  z_mean <- apply(z_output, c(1,2), mean)
-
-  rownames(z_mean) <- fitModel$infos$siteNames
-  colnames(z_mean) <- fitModel$infos$speciesNames
-
-  z_mean
 
 }
 
@@ -1764,4 +1588,28 @@ plotOccupancyStates <- function(fitModel){
     )
 
 }
+
+# DEPRECATED
+
+
+# plotCorrelationMatrix <- function(fitModel,
+#                                   idx_species = NULL){
+#
+#   Lambda_output <- generateCorrelationMatrixOutput(fitModel, idx_species)
+#
+#   Lambda_quantiles <- apply(Lambda_output, c(2,3),
+#                             function(x){quantile(x, probs = c(0.025, 0.5, 0.975))})
+#
+#   ggcorrplot::ggcorrplot(Lambda_quantiles[2,,],
+#                          method = "square",
+#                          lab = F, lab_size = 3,
+#                          colors = c("blue", "white", "red"),
+#                          title = "Covariance Matrix (as Correlation)") +
+#     theme(plot.title = element_text(hjust = 0.5,
+#                                     size = 16,
+#                                     face = "bold"))
+#
+#
+# }
+
 

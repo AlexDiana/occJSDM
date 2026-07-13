@@ -21,19 +21,9 @@ computeESSparams <- function(param_output){
 
 computeMinESS <- function(results_output){
 
-  beta_ord_output <- results_output$beta_ord_output
-  beta_psi_output <- results_output$beta_psi_output
+  beta_psi_output <- results_output$jsdm_output$B_output
   beta_theta_output <- results_output$beta_theta_output
-  LL_output <- results_output$LL_output
-
-  ESS_betaord <- matrix(NA, dim(beta_ord_output)[1],dim(beta_ord_output)[2])
-  for (x in 1:nrow(ESS_betaord)) {
-    for (y in 1:ncol(ESS_betaord)) {
-      chains <- lapply(1:dim(beta_ord_output)[4], function(i) coda::mcmc(beta_ord_output[x, y, , i]))
-      mcmc_list <- coda::mcmc.list(chains)
-      ESS_betaord[x,y] <- coda::effectiveSize(mcmc_list)
-    }
-  }
+  L_output <- results_output$jsdm_output$L_output
 
   ESS_betapsi <- matrix(NA, dim(beta_psi_output)[1],dim(beta_psi_output)[2])
   for (x in 1:nrow(ESS_betapsi)) {
@@ -53,16 +43,16 @@ computeMinESS <- function(results_output){
     }
   }
 
-  ESS_LL <- matrix(NA, dim(LL_output)[1],dim(LL_output)[2])
-  for (x in 1:nrow(ESS_LL)) {
-    for (y in 1:ncol(ESS_LL)) {
-      chains <- lapply(1:dim(LL_output)[4], function(i) coda::mcmc(LL_output[x, y, , i]))
+  ESS_L <- matrix(NA, dim(L_output)[1],dim(L_output)[2])
+  for (x in 1:nrow(ESS_L)) {
+    for (y in 1:ncol(ESS_L)) {
+      chains <- lapply(1:dim(L_output)[4], function(i) coda::mcmc(L_output[x, y, , i]))
       mcmc_list <- coda::mcmc.list(chains)
-      ESS_LL[x,y] <- coda::effectiveSize(mcmc_list)
+      ESS_L[x,y] <- coda::effectiveSize(mcmc_list)
     }
   }
 
-  return(min(ESS_betaord, ESS_betatheta, ESS_betapsi, ESS_LL[ESS_LL != 0]))
+  return(min(ESS_betatheta, ESS_betapsi, ESS_L[ESS_L != 0]))
 
 }
 

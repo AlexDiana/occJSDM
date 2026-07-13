@@ -9,6 +9,8 @@ reparamFactorModel <- function(U_output, L_output){
   U_output_reparam <- U_output
 
   d <- dim(L_output)[1]
+  nchain <- dim(L_output)[4]
+  niter <- dim(L_output)[3]
 
   for (chain in 1:nchain) {
 
@@ -268,6 +270,25 @@ createSplinesMatrix <- function(list_ns, X_new){
 
 getDefaultSupportPoints <- function(n) max(30, floor(n * 0.2))
 
+standardiseCovMatrix <- function(X){
+
+  meanX <- apply(X, 2, mean)
+  sdX <- apply(X, 2, sd)
+
+  X_scaled <- scale(X)
+
+  list("X" = X_scaled,
+       "meanX" = meanX,
+       "sdX" = sdX)
+
+}
+
+transformCoefficients <- function(B0_output, B_output, meanX, sdX){
+
+
+
+}
+
 # DATA SIMULATION -------
 
 sampleEffects <- function(n){
@@ -311,6 +332,9 @@ simulateData <- function(
 
   # params
   {
+
+    # Intercepts
+    B0 <- rnorm(S, sd = 1)
 
     # Traits covariate coefficients
     G <- matrix(sampleEffects(p * g), g, p)
@@ -381,8 +405,8 @@ simulateData <- function(
 
   # simulate observations
   list_eta <- computePsiCoef(
-    X, Ks, Xs_centers, Tr,
-    G, A, C, Bt,
+    X, Ks, list_Xs$Xs_centers, Tr,
+    B0, G, A, C, Bt,
     Gs, As, Cs, Bst,
     U, L)
   eta <- list_eta$eta
@@ -437,17 +461,23 @@ simulateData <- function(
     )
 
     trueParams <- list(
+      "B0" = B0,
       "B" = B,
       "Bt" = Bt,
       "G" = G,
       "A" = A,
       "C" = C,
+      "Bs" = Bs,
+      "Gs" = Gs,
+      "As" = As,
+      "Cs" = Cs,
+      "Bst" = Bst,
       "SE" = SE,
       "U" = U,
       "L" = L,
       "sigma_b" = sigma_b,
       "sigma_bs" = sigma_bs,
-      "idx_ls" = idx_ls,
+      "ls" = ls,
       "eta" = eta,
       "tau" = tau,
       "varPart" = varPart
@@ -468,18 +498,22 @@ computeBtcoef <- function(G, Tr, A, C, Btilde){
 
 computePsiCoef <- function(
     X, Ks, Xs_centers, Tr,
-    G, A, C, Bt,
+    B0, G, A, C, Bt,
     Gs, As, Cs, Bst,
     H, L){
 
   ps <- ncol(Bst)
+
+  n <- nrow(X)
+  S <- length(B0)
+
+  B0_mat <- matrix(B0, n, S, byrow = T)
 
   B <- t(computeBtcoef(G, Tr, A, C, Bt))
 
   XB_prod <- X %*% B
 
   if(ps > 0){
-    # Bs <- computeBscoef(Tr, Gs, As, Cs)
     Bs <- t(computeBtcoef(Gs, Tr, As, Cs, Bst))
     XsBs_prod <- KsBproduct(Ks, Bs, Xs_centers)
   } else {
@@ -488,10 +522,10 @@ computePsiCoef <- function(
 
   HL <- H %*% L
 
-  eta <- XB_prod + XsBs_prod + HL
+  eta <- B0_mat + XB_prod + XsBs_prod + HL
 
   list("eta" = eta,
-       "XB" = XB_prod,
+       "XB" = B0_mat + XB_prod,
        "SE" = XsBs_prod,
        "UL" = HL)
 
@@ -515,17 +549,17 @@ sample_sigmab <- function(B, Tr, G, A, C, a_sigmab, b_sigmab){
 }
 
 # sample variances of responses
-sample_tau <- function(z, psiCoef, a_tau, b_tau){
+sample_tau <- function(z, eta, a_tau, b_tau){
 
   n <- nrow(z)
   S <- ncol(z)
 
-  sumsqs <- colSums((z - psiCoef)^2)
+  sumsqs <- colSums((z - eta)^2)
 
   tau <- sapply(1:S, function(s){
 
     sqrt(
-      rinvgamma_cpp(a_sigmab + (n / 2), b_sigmab + (sumsqs[s] / 2))
+      rinvgamma_cpp(a_tau + (n / 2), b_tau + (sumsqs[s] / 2))
     )
   })
 
@@ -595,12 +629,12 @@ sample_BCsL <- function(k, X, H, G, Tr,
        "Cs" = Cs)
 }
 
-# sample the fixed effects, spatial fixed effects and the factor loadings
+# sample the intercepts, fixed effects, spatial fixed effects and the factor loadings
 sample_BBsL <- function(k, X, Tr, U,
                         G, A, C, sigma_b,
                         Gs, As, Cs, sigma_bs,
                         Ks, Xs_centers,
-                        Omega) {
+                        Omega, model) {
 
   p <- ncol(X)
   ps <- ncol(Cs)
@@ -610,11 +644,12 @@ sample_BBsL <- function(k, X, Tr, U,
   M_B <- t(computeBtcoef(G, Tr, A, C, matrix(0, S, p)))
   M_Bs <- t(computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps)))
 
+  B0 <- rep(0, S)
   B <- matrix(0, p, S)
   Bs <- matrix(0, ps, S)
   L <- matrix(0, d, S)
 
-  if(p + ps + d > 0){
+  if(1 + p + ps + d > 0){
 
     for (s in 1:S) {
 
@@ -624,21 +659,21 @@ sample_BBsL <- function(k, X, Tr, U,
         k_current <- k[,s]
       }
 
+      XU <- cbind(1, X, U)
 
-      XU <- cbind(X, U)
+      b_current <- c(0, M_B[,s], rep(0, d), rep(0, ps))
+      B_current <- diag(1, nrow = 1 + p + d + ps)
+      diag(B_current)[1 + seq_len(p)] <- sigma_b^2
 
-      b_current <- c(M_B[,s], rep(0, d), rep(0, ps))
-      B_current <- diag(1, nrow = p + d + ps)
-      diag(B_current)[seq_len(p)] <- sigma_b^2
-
-      invB_current <- diag(1 / diag(B_current), nrow = p + d + ps)
+      invB_current <- diag(1 / diag(B_current), nrow = 1 + p + d + ps)
 
       BBsL <- sampleB_SoR(XU, invB_current, b_current, k_current,
                           Omega[,s], Xs_centers, Ks, ps)
 
-      B[seq_len(p),s] <- BBsL[seq_len(p)]
-      L[seq_len(d),s] <- BBsL[p + seq_len(d)]
-      Bs[seq_len(ps),s] <- BBsL[p + d + seq_len(ps)]
+      B0[s] <- BBsL[1]
+      B[seq_len(p),s] <- BBsL[1 + seq_len(p)]
+      L[seq_len(d),s] <- BBsL[1 + p + seq_len(d)]
+      Bs[seq_len(ps),s] <- BBsL[1 + p + d + seq_len(ps)]
 
 
     }
@@ -653,7 +688,8 @@ sample_BBsL <- function(k, X, Tr, U,
        "Bt" = Bt,
        "L" = L,
        "Bs" = Bs,
-       "Bts" = Bts)
+       "Bts" = Bts,
+       "B0" = B0)
 }
 
 # sample traits (observed and unobserved) response to covariates
@@ -708,7 +744,7 @@ sample_GC <- function(B, Tr, A, sigma_b){
 sample_A <- function(B, C, Tr, G, sigma_b){
 
   p <- nrow(B)
-  gt <- ncol(A)
+  gt <- nrow(C)
   S <- ncol(B)
 
   Btilde <- B - t(Tr %*% G)
@@ -736,19 +772,21 @@ sample_A <- function(B, C, Tr, G, sigma_b){
 }
 
 # sample factor scores
-sample_U <- function(k, L, X, B, Omega, model){
+sample_U <- function(k, L, X, B, SE, B0, Omega, model){
 
   d <- nrow(L)
   n <- nrow(k)
 
   U <- matrix(NA, n, d)
 
+  B0_mat <- matrix(B0, n, S, byrow = T)
+
   if(d > 0){
 
     if(model == "continuous"){
-      k_new <- k - (X %*% B)
+      k_new <- k - (B0_mat + X %*% B + SE)
     } else if(model == "binary"){
-      k_new <- k - Omega * (X %*% B)
+      k_new <- k - Omega * (B0_mat + X %*% B + SE)
     }
 
     B_current <- diag(1, nrow = d)
@@ -846,6 +884,7 @@ update_jSDMcoef <- function(list_data,
 
   # read params
   {
+    B0 <- list_params$B0
     B <- list_params$B
     G <- list_params$G
     A <- list_params$A
@@ -896,7 +935,7 @@ update_jSDMcoef <- function(list_data,
   # compute linear predictor
   list_psiCoef <- computePsiCoef(
     X, Ks, list_Xs$Xs_centers, Tr,
-    G, A, C, Bt,
+    B0, G, A, C, Bt,
     Gs, As, Cs, Bst,
     U, L)
   psiCoef <- list_psiCoef$eta
@@ -921,12 +960,13 @@ update_jSDMcoef <- function(list_data,
                            G, A, C, sigma_b,
                            Gs, As, Cs, sigma_bs,
                            Ks, list_Xs$Xs_centers,
-                           Omega)
+                           Omega, model)
   B <- list_BBsL$B
   Bt <- list_BBsL$Bt
   Bs <- list_BBsL$Bs
   Bst <- list_BBsL$Bts
   L <- list_BBsL$L
+  B0 <- list_BBsL$B0
 
   # update variance of residuals of environmental covariates
   sigma_b <- sample_sigmab(B, Tr, G, A, C, a_sigmab, b_sigmab)
@@ -961,7 +1001,14 @@ update_jSDMcoef <- function(list_data,
   }
 
   # sample factor scores
-  U <- sample_U_cpp(k, L, X, B, Omega, model)
+  list_psiCoef <- computePsiCoef(
+    X, Ks, list_Xs$Xs_centers, Tr,
+    B0, G, A, C, Bt,
+    Gs, As, Cs, Bst,
+    U, L)
+  XB <- list_psiCoef$XB
+  SE <- list_psiCoef$SE
+  U <- sample_U_cpp(k, L, XB, SE, Omega, model)
 
   # sample spatial field scale
   if(ps > 0){
@@ -978,7 +1025,7 @@ update_jSDMcoef <- function(list_data,
   {
     list_psiCoef <- computePsiCoef(
       X, Ks, list_Xs$Xs_centers, Tr,
-      G, A, C, Bt,
+      B0, G, A, C, Bt,
       Gs, As, Cs, Bst,
       U, L)
     eta <- list_psiCoef$eta
@@ -998,6 +1045,7 @@ update_jSDMcoef <- function(list_data,
   # output params
 
   list_params <- list(
+   "B0" = B0,
    "B" = B,
    "G" = G,
    "A" = A,
@@ -1025,16 +1073,177 @@ update_jSDMcoef <- function(list_data,
 
 # OUTPUT -------------
 
-computePredictiveProbs <- function(X_new){
+plotCoefficient <- function(param_output,
+                            covName = NULL,
+                            idx_output = NULL){
+
+  if(is.null(covName)){
+    stop("No name provided")
+  }
+
+  # ncov_psi <- fitModel$infos$ncov_psi
+  outputNames <- dimnames(param_output)[[3]]
+  covariatesNames <- dimnames(param_output)[[2]]
+  S <- dim(param_output)[3]
+  idxcov <- which(covariatesNames == covName)
+
+  if(length(idxcov) == 0){
+    stop("Covariate name not found. If you are using a categorical covariates,
+         the name might have changed to code the level. Use
+         colnames(fitModel$Tr) to find the new names")
+  }
+
+  if(is.null(idx_output)){
+    idx_output <- 1:S
+  }
+
+  samples_subset <- matrix(param_output[,idxcov, idx_output],
+                           dim(param_output)[1], length(idx_output))
+
+  data_plot <- apply(samples_subset, 2, function(x) {
+    quantile(x, probs = c(0.025, 0.975))
+  }) %>%
+    t %>%
+    as.data.frame %>%
+    mutate(Output = outputNames[idx_output]) %>%
+    mutate(OutputOrder = order(`2.5%`))
+
+  orderOutputs <- order(data_plot$`2.5%`)
+
+  data_plot %>%
+    ggplot(aes(x =  factor(Output, level = outputNames[orderOutputs]),
+               ymin = `2.5%`,
+               ymax = `97.5%`)) + geom_errorbar() +
+    ggtitle(covName) +
+    theme_bw() +
+    theme(
+      axis.text = element_text(angle = 90,
+                               size = 8),
+      plot.title = element_text(hjust = .5,
+                                size = 15)
+    ) + geom_hline(aes(yintercept = 0), color = "red")
+
+}
+
+computePredictiveProbs <- function(jsdm_output,
+                                   X_new,
+                                   meanX, sdX,
+                                   Xs_new,
+                                   meanXs, sdXs,
+                                   summarised = F,
+                                   confidence = .95,
+                                   model){
+
+  X_new <- as.matrix(X_new)
+
+    S <- #fitModel$infos$S
+    # speciesNames <- fitModel$infos$speciesNames
+    n <- nrow(X_new)
+
+    if(is.null(X_new)) {
+      X_psi <- fitModel$X_psi
+    }
+
+    B0_output <- jsdm_output$B0_output
+    B_output <- jsdm_output$B_output
+    Bs_output <- jsdm_output$Bs_output
+    L_output <- jsdm_output$L_output
+
+    niter <- dim(B_output)[3]
+    nchain <- dim(B_output)[4]
+
+    # transform back coefficients to original scale
+    {
+      list_BB0_output <- transformCoefficients(B0_output, B_output, meanX, sdX)
+      B0_output <- list_BB0_output$B0_output
+      B_output <- list_BB0_output$B_output
+    }
+
+    if(!summarised){
+
+      eta_output <- array(NA, dim = c(nchain * niter, n, S))
+      for (chain in 1:nchain) {
+        for (iter in 1:niter) {
+          psi_output[iter + (chain - 1)*niter,,] <-
+            logistic(
+              computePsiCoef(
+                X_new, Ks_new, Xs_centers_new, Tr,
+
+                beta_psi_output[,,iter,chain], X_ord,
+                          beta_ord_output[,,iter,chain],
+                          LL_output[,,iter,chain])
+            )
+        }
+      }
+
+    } else {
+
+      conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+
+      beta_ord_output <- aperm(apply(beta_ord_output, c(1,2), c), c(2,3,1))
+      beta_psi_output <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
+      LL_output <- aperm(apply(LL_output, c(1,2), c), c(2,3,1))
+
+      # niter <- dim(beta_ord_output)[3]
+
+      psi_output <- computePsiOutput(
+        X_psi,
+        beta_psi_output,
+        X_ord,
+        beta_ord_output,
+        LL_output,
+        conflevels)
+
+      # psi_output <- array(NA, dim = c(3, n, S))
+      # for (i in 1:n) {
+      #   for (j in 1:S) {
+      #     mcmc_output <- rep(NA, niter)
+      #     for (iter in 1:niter) {
+      #       mcmc_output[iter] <- logistic(
+      #         computePsiE(X_psi[i,,drop=F], beta_psi_output[,j,iter],
+      #                     X_ord[i,,drop=F],
+      #                     beta_ord_output[,,iter],
+      #                     LL_output[,j,iter])
+      #       )
+      #
+      #     }
+      #
+      #     psi_output[,i,j] <- quantile(mcmc_output, conflevels)
+      #
+      #   }
+      # }
+
+    }
+
+    psi_output
+
+    # for (iter in 1:niter) {
+    #   psi_output[iter,,] <-
+    #     logistic(
+    #       matrix(beta0_psi_output[iter,], n, S, byrow = T) +
+    #         X_psi %*% matrix(beta_psi_output[iter,], ncov_psi, S) +
+    #         matrix(U_output[iter,], n, n_factors, byrow = F) %*% matrix(L_output[iter,], n_factors, S)
+    #     )
+    # }
+    #
+    # psi_output
+
+
+
+
+}
+
+V <- function(eta) {
+  apply(logistic(eta), 2, var)
+}
+
+R2 <- function(eta, y) {
 
 
 
 }
 
 computeVariancePartitioning <- function(XB, SE, UL){
-
-  V <- function(eta)
-    apply(logistic(eta), 2, var)
 
   S <- ncol(XB)
 
@@ -1081,7 +1290,7 @@ computeVariancePartitioning <- function(XB, SE, UL){
 
 }
 
-plotVariancePartitioning <- function(varPart_output, speciesNames){
+returnVariancePartitioningMatrix <-  function(varPart_output, speciesNames){
 
   varPart_output_vec <- apply(varPart_output, c(1,2), c)
   varPart_output_mean <- apply(varPart_output_vec, c(2,3), mean)
@@ -1098,6 +1307,14 @@ plotVariancePartitioning <- function(varPart_output, speciesNames){
     Biotic = varPart_output_mean[,3],
     StDev = varPart_output_sd
   )
+
+  vp
+
+}
+
+plotVarPart <- function(varPart_output, speciesNames){
+
+  vp <- returnVariancePartitioningMatrix(varPart_output, speciesNames)
 
   ggtern(vp,
          aes(x = Env,
@@ -1175,7 +1392,7 @@ plotSpatialEffect <- function(spatEffect_output, Xs, idx_species = 1){
 
 }
 
-returnCorrelationMatrix <- function(L_output, idx_species){
+returnCorrelationMatrixOutput <- function(L_output, idx_species, outputNames){
 
   d <- dim(L_output)[1]
   S <- dim(L_output)[2]
@@ -1189,6 +1406,8 @@ returnCorrelationMatrix <- function(L_output, idx_species){
   niter <- dim(L_output_vec)[1]
 
   Lambda_output <- array(NA, dim = c(niter, S, S))
+  dimnames(Lambda_output)[[2]] <- outputNames
+  dimnames(Lambda_output)[[3]] <- outputNames
 
   for (iter in 1:niter) {
     L_output_current <- matrix(L_output_vec[iter,,], S, d, byrow = T)
@@ -1200,14 +1419,37 @@ returnCorrelationMatrix <- function(L_output, idx_species){
 
 }
 
-plotCorrelationMatrix <- function(L_output, idx_species){
+plotCorrelationMatrix <- function(L_output,
+                                  idx_species,
+                                  speciesNames,
+                                  showSignificance = T,
+                                  confidence = .95){
 
-  Lambda_output <- returnCorrelationMatrix(L_output, idx_species)
+  Sigma_output <- returnCorrelationMatrixOutput(L_output, idx_species, speciesNames)
 
-  Lambda_quantiles <- apply(Lambda_output, c(2,3),
-                            function(x){quantile(x, probs = c(0.025, 0.5, 0.975))})
+  conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
 
-  ggcorrplot::ggcorrplot(Lambda_quantiles[2,,], method = "square", type = "lower",
+  Sigma_quantiles <- apply(Sigma_output, c(2,3),
+                            function(x){quantile(x, probs = conflevels)})
+
+  sig_matrix <- matrix(FALSE,
+                       nrow = dim(Sigma_quantiles)[2],
+                       ncol = dim(Sigma_quantiles)[3])
+  for(i in 1:nrow(sig_matrix)) {
+    for(j in 1:ncol(sig_matrix)) {
+      if(i < j) { # Lower triangle only
+        lower_bound <- Sigma_quantiles[1,i,j]
+        upper_bound <- Sigma_quantiles[3,i,j]
+        sig_matrix[i,j] <- (lower_bound < 0 & upper_bound > 0)
+      }
+    }
+  }
+
+  sig_coords <- which(sig_matrix, arr.ind = TRUE)
+
+  p <- ggcorrplot::ggcorrplot(Sigma_quantiles[2,,],
+                              method = "square",
+                              type = "lower",
                          lab = F, lab_size = 3,
                          colors = c("blue", "white", "red"),
                          title = "Covariance Matrix (as Correlation)") +
@@ -1215,6 +1457,26 @@ plotCorrelationMatrix <- function(L_output, idx_species){
                                     size = 16,
                                     face = "bold"))
 
+  if(showSignificance){
+
+    for(k in 1:nrow(sig_coords)) {
+      i <- sig_coords[k, 1]
+      j <- sig_coords[k, 2]
+      # Only add if in lower triangle and i != j
+      if(i < j) {
+        p <- p + annotate("text",
+                          x = j-1,
+                          y = i,
+                          label = "x",
+                          size = 6,
+                          color = "black",
+                          fontface = "bold")
+      }
+    }
+
+  }
+
+  p
 }
 
 # DEPRECATED ---------

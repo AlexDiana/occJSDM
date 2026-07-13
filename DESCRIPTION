@@ -23,7 +23,8 @@ Imports:
     stringr,
     stats,
     ggcorrplot,
-    Rcpp
+    Rcpp,
+    ggtern
 LinkingTo: 
     Rcpp,
     RcppArmadillo

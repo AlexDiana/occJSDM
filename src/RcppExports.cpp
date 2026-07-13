@@ -11,109 +11,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// rpg
-double rpg(int n, double z);
-RcppExport SEXP _occPlus_rpg(SEXP nSEXP, SEXP zSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< double >::type z(zSEXP);
-    rcpp_result_gen = Rcpp::wrap(rpg(n, z));
-    return rcpp_result_gen;
-END_RCPP
-}
-// dist_matrix
-arma::mat dist_matrix(const arma::mat& coords);
-RcppExport SEXP _occPlus_dist_matrix(SEXP coordsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type coords(coordsSEXP);
-    rcpp_result_gen = Rcpp::wrap(dist_matrix(coords));
-    return rcpp_result_gen;
-END_RCPP
-}
-// gpCovMatrix
-arma::mat gpCovMatrix(const arma::mat& D, double sigma2, double rho);
-RcppExport SEXP _occPlus_gpCovMatrix(SEXP DSEXP, SEXP sigma2SEXP, SEXP rhoSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< double >::type sigma2(sigma2SEXP);
-    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(gpCovMatrix(D, sigma2, rho));
-    return rcpp_result_gen;
-END_RCPP
-}
-// samplePGvariables
-arma::mat samplePGvariables(arma::mat& Xbeta);
-RcppExport SEXP _occPlus_samplePGvariables(SEXP XbetaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type Xbeta(XbetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(samplePGvariables(Xbeta));
-    return rcpp_result_gen;
-END_RCPP
-}
-// diagMatrixProd
-arma::mat diagMatrixProd(arma::mat& X, arma::vec& D);
-RcppExport SEXP _occPlus_diagMatrixProd(SEXP XSEXP, SEXP DSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type D(DSEXP);
-    rcpp_result_gen = Rcpp::wrap(diagMatrixProd(X, D));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_beta_cpp
-arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b, arma::vec& Omega, arma::vec& k);
-RcppExport SEXP _occPlus_sample_beta_cpp(SEXP XSEXP, SEXP BSEXP, SEXP bSEXP, SEXP OmegaSEXP, SEXP kSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type B(BSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type Omega(OmegaSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_beta_cpp(X, B, b, Omega, k));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_Omega_cpp
-arma::vec sample_Omega_cpp(arma::mat& X, arma::vec& beta, arma::vec& n);
-RcppExport SEXP _occPlus_sample_Omega_cpp(SEXP XSEXP, SEXP betaSEXP, SEXP nSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_Omega_cpp(X, beta, n));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_beta_nocov_cpp
-arma::vec sample_beta_nocov_cpp(arma::vec beta, arma::mat& X, arma::vec b, arma::mat B, arma::vec n, arma::vec k);
-RcppExport SEXP _occPlus_sample_beta_nocov_cpp(SEXP betaSEXP, SEXP XSEXP, SEXP bSEXP, SEXP BSEXP, SEXP nSEXP, SEXP kSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_beta_nocov_cpp(beta, X, b, B, n, k));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sample_z_cpp
 NumericMatrix sample_z_cpp(const NumericMatrix& w, const NumericMatrix& psi, const NumericMatrix& theta, const NumericVector& theta0, const IntegerVector& M, const IntegerVector& sumM);
 RcppExport SEXP _occPlus_sample_z_cpp(SEXP wSEXP, SEXP psiSEXP, SEXP thetaSEXP, SEXP theta0SEXP, SEXP MSEXP, SEXP sumMSEXP) {
@@ -214,38 +111,297 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// computePsiOutput
-arma::cube computePsiOutput(const arma::mat& X_psi, const arma::cube& beta_psi_output, const arma::mat& X_ord, const arma::cube& beta_ord_output, const arma::cube& LL_output, const arma::vec& conflevels);
-RcppExport SEXP _occPlus_computePsiOutput(SEXP X_psiSEXP, SEXP beta_psi_outputSEXP, SEXP X_ordSEXP, SEXP beta_ord_outputSEXP, SEXP LL_outputSEXP, SEXP conflevelsSEXP) {
+// rinvgamma_cpp
+double rinvgamma_cpp(double a, double b);
+RcppExport SEXP _occPlus_rinvgamma_cpp(SEXP aSEXP, SEXP bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X_psi(X_psiSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type beta_psi_output(beta_psi_outputSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type X_ord(X_ordSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type beta_ord_output(beta_ord_outputSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type LL_output(LL_outputSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type conflevels(conflevelsSEXP);
-    rcpp_result_gen = Rcpp::wrap(computePsiOutput(X_psi, beta_psi_output, X_ord, beta_ord_output, LL_output, conflevels));
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(rinvgamma_cpp(a, b));
+    return rcpp_result_gen;
+END_RCPP
+}
+// isPointInBandRight
+bool isPointInBandRight(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j);
+RcppExport SEXP _occPlus_isPointInBandRight(SEXP X_tildeSEXP, SEXP x_gridSEXP, SEXP y_gridSEXP, SEXP iSEXP, SEXP jSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X_tilde(X_tildeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type x_grid(x_gridSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type y_grid(y_gridSEXP);
+    Rcpp::traits::input_parameter< int >::type i(iSEXP);
+    Rcpp::traits::input_parameter< int >::type j(jSEXP);
+    rcpp_result_gen = Rcpp::wrap(isPointInBandRight(X_tilde, x_grid, y_grid, i, j));
+    return rcpp_result_gen;
+END_RCPP
+}
+// isPointInBandLeft
+bool isPointInBandLeft(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j);
+RcppExport SEXP _occPlus_isPointInBandLeft(SEXP X_tildeSEXP, SEXP x_gridSEXP, SEXP y_gridSEXP, SEXP iSEXP, SEXP jSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X_tilde(X_tildeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type x_grid(x_gridSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type y_grid(y_gridSEXP);
+    Rcpp::traits::input_parameter< int >::type i(iSEXP);
+    Rcpp::traits::input_parameter< int >::type j(jSEXP);
+    rcpp_result_gen = Rcpp::wrap(isPointInBandLeft(X_tilde, x_grid, y_grid, i, j));
+    return rcpp_result_gen;
+END_RCPP
+}
+// isPointInBandUp
+bool isPointInBandUp(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j);
+RcppExport SEXP _occPlus_isPointInBandUp(SEXP X_tildeSEXP, SEXP x_gridSEXP, SEXP y_gridSEXP, SEXP iSEXP, SEXP jSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X_tilde(X_tildeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type x_grid(x_gridSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type y_grid(y_gridSEXP);
+    Rcpp::traits::input_parameter< int >::type i(iSEXP);
+    Rcpp::traits::input_parameter< int >::type j(jSEXP);
+    rcpp_result_gen = Rcpp::wrap(isPointInBandUp(X_tilde, x_grid, y_grid, i, j));
+    return rcpp_result_gen;
+END_RCPP
+}
+// isPointInBandDown
+bool isPointInBandDown(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j);
+RcppExport SEXP _occPlus_isPointInBandDown(SEXP X_tildeSEXP, SEXP x_gridSEXP, SEXP y_gridSEXP, SEXP iSEXP, SEXP jSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X_tilde(X_tildeSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type x_grid(x_gridSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type y_grid(y_gridSEXP);
+    Rcpp::traits::input_parameter< int >::type i(iSEXP);
+    Rcpp::traits::input_parameter< int >::type j(jSEXP);
+    rcpp_result_gen = Rcpp::wrap(isPointInBandDown(X_tilde, x_grid, y_grid, i, j));
+    return rcpp_result_gen;
+END_RCPP
+}
+// findClosestPoint
+IntegerVector findClosestPoint(arma::mat XY_sp, arma::mat X_tilde);
+RcppExport SEXP _occPlus_findClosestPoint(SEXP XY_spSEXP, SEXP X_tildeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type XY_sp(XY_spSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X_tilde(X_tildeSEXP);
+    rcpp_result_gen = Rcpp::wrap(findClosestPoint(XY_sp, X_tilde));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dist_matrix
+arma::mat dist_matrix(const arma::mat& coords);
+RcppExport SEXP _occPlus_dist_matrix(SEXP coordsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type coords(coordsSEXP);
+    rcpp_result_gen = Rcpp::wrap(dist_matrix(coords));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gpCovMatrix
+arma::mat gpCovMatrix(const arma::mat& D, double sigma2, double rho);
+RcppExport SEXP _occPlus_gpCovMatrix(SEXP DSEXP, SEXP sigma2SEXP, SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type D(DSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma2(sigma2SEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    rcpp_result_gen = Rcpp::wrap(gpCovMatrix(D, sigma2, rho));
+    return rcpp_result_gen;
+END_RCPP
+}
+// K
+arma::mat K(arma::vec x1, arma::vec x2, double a, double l);
+RcppExport SEXP _occPlus_K(SEXP x1SEXP, SEXP x2SEXP, SEXP aSEXP, SEXP lSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x1(x1SEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type x2(x2SEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type l(lSEXP);
+    rcpp_result_gen = Rcpp::wrap(K(x1, x2, a, l));
+    return rcpp_result_gen;
+END_RCPP
+}
+// K2
+arma::mat K2(arma::mat x1, arma::mat x2, double a, double l);
+RcppExport SEXP _occPlus_K2(SEXP x1SEXP, SEXP x2SEXP, SEXP aSEXP, SEXP lSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x1(x1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x2(x2SEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type l(lSEXP);
+    rcpp_result_gen = Rcpp::wrap(K2(x1, x2, a, l));
+    return rcpp_result_gen;
+END_RCPP
+}
+// samplePGvariables
+arma::mat samplePGvariables(arma::mat& Xbeta);
+RcppExport SEXP _occPlus_samplePGvariables(SEXP XbetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type Xbeta(XbetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(samplePGvariables(Xbeta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sampleBuniv
+arma::vec sampleBuniv(arma::mat& X, arma::mat& B, arma::vec& b, arma::vec& y, double sigma);
+RcppExport SEXP _occPlus_sampleBuniv(SEXP XSEXP, SEXP BSEXP, SEXP bSEXP, SEXP ySEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleBuniv(X, B, b, y, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sampleB
+arma::vec sampleB(arma::mat& X, arma::mat& B, arma::vec& b, arma::vec& Omega, arma::vec& k);
+RcppExport SEXP _occPlus_sampleB(SEXP XSEXP, SEXP BSEXP, SEXP bSEXP, SEXP OmegaSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type Omega(OmegaSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleB(X, B, b, Omega, k));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_U_cpp
+arma::mat sample_U_cpp(arma::mat& k, arma::mat& L, arma::mat& XB, arma::mat& XsBs, arma::mat& Omega, std::string model);
+RcppExport SEXP _occPlus_sample_U_cpp(SEXP kSEXP, SEXP LSEXP, SEXP XBSEXP, SEXP XsBsSEXP, SEXP OmegaSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type XB(XBSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type XsBs(XsBsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type Omega(OmegaSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_U_cpp(k, L, XB, XsBs, Omega, model));
+    return rcpp_result_gen;
+END_RCPP
+}
+// XsBs
+arma::mat XsBs(arma::mat& A, arma::mat& B, arma::mat& X_s_centers);
+RcppExport SEXP _occPlus_XsBs(SEXP ASEXP, SEXP BSEXP, SEXP X_s_centersSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X_s_centers(X_s_centersSEXP);
+    rcpp_result_gen = Rcpp::wrap(XsBs(A, B, X_s_centers));
+    return rcpp_result_gen;
+END_RCPP
+}
+// KsBproduct
+arma::mat KsBproduct(arma::mat& Ks, arma::mat& B, arma::mat& X_s_centers);
+RcppExport SEXP _occPlus_KsBproduct(SEXP KsSEXP, SEXP BSEXP, SEXP X_s_centersSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type Ks(KsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X_s_centers(X_s_centersSEXP);
+    rcpp_result_gen = Rcpp::wrap(KsBproduct(Ks, B, X_s_centers));
+    return rcpp_result_gen;
+END_RCPP
+}
+// XtOmegaX_SoR
+arma::mat XtOmegaX_SoR(arma::mat X, int X_centers, arma::vec Omega, arma::mat X_s_index, arma::mat& X_s_sor);
+RcppExport SEXP _occPlus_XtOmegaX_SoR(SEXP XSEXP, SEXP X_centersSEXP, SEXP OmegaSEXP, SEXP X_s_indexSEXP, SEXP X_s_sorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< int >::type X_centers(X_centersSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type Omega(OmegaSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X_s_index(X_s_indexSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X_s_sor(X_s_sorSEXP);
+    rcpp_result_gen = Rcpp::wrap(XtOmegaX_SoR(X, X_centers, Omega, X_s_index, X_s_sor));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sampleB_SoR
+arma::vec sampleB_SoR(arma::mat X, arma::mat& invB, arma::vec& b, arma::vec& k, arma::vec Omega, arma::mat& X_s_index, arma::mat& Ks, int X_centers);
+RcppExport SEXP _occPlus_sampleB_SoR(SEXP XSEXP, SEXP invBSEXP, SEXP bSEXP, SEXP kSEXP, SEXP OmegaSEXP, SEXP X_s_indexSEXP, SEXP KsSEXP, SEXP X_centersSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type invB(invBSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type Omega(OmegaSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X_s_index(X_s_indexSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type Ks(KsSEXP);
+    Rcpp::traits::input_parameter< int >::type X_centers(X_centersSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleB_SoR(X, invB, b, k, Omega, X_s_index, Ks, X_centers));
+    return rcpp_result_gen;
+END_RCPP
+}
+// spatEffectMeanCpp
+arma::mat spatEffectMeanCpp(arma::cube& Bs_output, arma::mat& Ks, arma::mat& Xs_centers);
+RcppExport SEXP _occPlus_spatEffectMeanCpp(SEXP Bs_outputSEXP, SEXP KsSEXP, SEXP Xs_centersSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::cube& >::type Bs_output(Bs_outputSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type Ks(KsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type Xs_centers(Xs_centersSEXP);
+    rcpp_result_gen = Rcpp::wrap(spatEffectMeanCpp(Bs_output, Ks, Xs_centers));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_occPlus_rpg", (DL_FUNC) &_occPlus_rpg, 2},
-    {"_occPlus_dist_matrix", (DL_FUNC) &_occPlus_dist_matrix, 1},
-    {"_occPlus_gpCovMatrix", (DL_FUNC) &_occPlus_gpCovMatrix, 3},
-    {"_occPlus_samplePGvariables", (DL_FUNC) &_occPlus_samplePGvariables, 1},
-    {"_occPlus_diagMatrixProd", (DL_FUNC) &_occPlus_diagMatrixProd, 2},
-    {"_occPlus_sample_beta_cpp", (DL_FUNC) &_occPlus_sample_beta_cpp, 5},
-    {"_occPlus_sample_Omega_cpp", (DL_FUNC) &_occPlus_sample_Omega_cpp, 3},
-    {"_occPlus_sample_beta_nocov_cpp", (DL_FUNC) &_occPlus_sample_beta_nocov_cpp, 6},
     {"_occPlus_sample_z_cpp", (DL_FUNC) &_occPlus_sample_z_cpp, 6},
     {"_occPlus_sample_w_cpp", (DL_FUNC) &_occPlus_sample_w_cpp, 16},
     {"_occPlus_sample_w_cim_cipp", (DL_FUNC) &_occPlus_sample_w_cim_cipp, 12},
     {"_occPlus_sample_betatheta_cpp", (DL_FUNC) &_occPlus_sample_betatheta_cpp, 7},
     {"_occPlus_sample_pq_cpp", (DL_FUNC) &_occPlus_sample_pq_cpp, 9},
-    {"_occPlus_computePsiOutput", (DL_FUNC) &_occPlus_computePsiOutput, 6},
+    {"_occPlus_rinvgamma_cpp", (DL_FUNC) &_occPlus_rinvgamma_cpp, 2},
+    {"_occPlus_isPointInBandRight", (DL_FUNC) &_occPlus_isPointInBandRight, 5},
+    {"_occPlus_isPointInBandLeft", (DL_FUNC) &_occPlus_isPointInBandLeft, 5},
+    {"_occPlus_isPointInBandUp", (DL_FUNC) &_occPlus_isPointInBandUp, 5},
+    {"_occPlus_isPointInBandDown", (DL_FUNC) &_occPlus_isPointInBandDown, 5},
+    {"_occPlus_findClosestPoint", (DL_FUNC) &_occPlus_findClosestPoint, 2},
+    {"_occPlus_dist_matrix", (DL_FUNC) &_occPlus_dist_matrix, 1},
+    {"_occPlus_gpCovMatrix", (DL_FUNC) &_occPlus_gpCovMatrix, 3},
+    {"_occPlus_K", (DL_FUNC) &_occPlus_K, 4},
+    {"_occPlus_K2", (DL_FUNC) &_occPlus_K2, 4},
+    {"_occPlus_samplePGvariables", (DL_FUNC) &_occPlus_samplePGvariables, 1},
+    {"_occPlus_sampleBuniv", (DL_FUNC) &_occPlus_sampleBuniv, 5},
+    {"_occPlus_sampleB", (DL_FUNC) &_occPlus_sampleB, 5},
+    {"_occPlus_sample_U_cpp", (DL_FUNC) &_occPlus_sample_U_cpp, 6},
+    {"_occPlus_XsBs", (DL_FUNC) &_occPlus_XsBs, 3},
+    {"_occPlus_KsBproduct", (DL_FUNC) &_occPlus_KsBproduct, 3},
+    {"_occPlus_XtOmegaX_SoR", (DL_FUNC) &_occPlus_XtOmegaX_SoR, 5},
+    {"_occPlus_sampleB_SoR", (DL_FUNC) &_occPlus_sampleB_SoR, 8},
+    {"_occPlus_spatEffectMeanCpp", (DL_FUNC) &_occPlus_spatEffectMeanCpp, 3},
     {NULL, NULL, 0}
 };
 

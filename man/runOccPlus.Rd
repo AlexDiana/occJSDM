@@ -6,11 +6,12 @@
 \usage{
 runOccPlus(
   data,
-  n_factors,
+  listParams = list(),
   threshold = 0,
   occCovariates = c(),
-  ordCovariates = c(),
   collCovariates = c(),
+  spatCovariates = c(),
+  traitsMatrix = NULL,
   MCMCparams = list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1),
   listPriors = list()
 )
@@ -24,8 +25,6 @@ runOccPlus(
   with the number of reads of each species in each sample.}
 }}
 
-\item{n_factors}{Number of factors.}
-
 \item{threshold}{(Optional) threshold used to truncated the reads to binary data.
 Data greater than or equal to the threshold will be considered as detection.
 If this is set to 0 (which is the default), occPlus estimates two modes as described
@@ -34,10 +33,12 @@ in the paper.}
 \item{occCovariates}{vector of the name of the covariates for the occupancy probabilities.
 Names should match the column name in data$info.}
 
-\item{ordCovariates}{vector of the name of the covariates for the occupancy probabilities.
+\item{collCovariates}{vector of the name of the covariates for the collection probabilities.
 Names should match the column name in data$info.}
 
-\item{collCovariates}{vector of the name of the covariates for the collection probabilities.
+\item{n_factors}{Number of factors.}
+
+\item{ordCovariates}{vector of the name of the covariates for the occupancy probabilities.
 Names should match the column name in data$info.}
 }
 \value{

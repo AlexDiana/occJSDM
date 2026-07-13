@@ -81,7 +81,6 @@ runOccPlus <- function(data,
                        listParams = list(),
                        threshold = 0,
                        occCovariates = c(),
-                       ordCovariates = c(),
                        collCovariates = c(),
                        spatCovariates = c(),
                        traitsMatrix = NULL,
@@ -89,14 +88,22 @@ runOccPlus <- function(data,
                                          nburn = 5000,
                                          niter = 5000,
                                          nthin = 1),
+                       summarisedLatentPresences = T,
                        listPriors = list()){
 
-
-  # set unknonwn parameters
   {
-    d <- get_param(listParams, "n_factors")
-    gt <- get_param(listParams, "n_lattrait", 2)
-    ps <- get_param(listParams, "n_supportpoints", getDefaultSupportPoints(ns))
+    data <- data1
+    listParams = list(n_factors = 2)
+    threshold = 1
+    occCovariates = c("elevation","curvature","dist_to_edge","rainforest_500",
+                      "bamboo_500","canopy_cover_500","soil_humidity")
+    collCovariates = c("type","month","elution_volume")
+    spatCovariates = c("latitude","longitude")
+    traitsMatrix = trait.all
+    MCMCparams = list(nchain = 2,
+                      nburn = 5000,
+                      niter = 5000)
+    listPriors = list()
   }
 
   data_info <- as.data.frame(data$info)
@@ -104,6 +111,10 @@ runOccPlus <- function(data,
 
   # data checks
   {
+    if(is.null(occCovariates)) occCovariates <- c()
+    if(is.null(collCovariates)) collCovariates <- c()
+    if(is.null(spatCovariates)) spatCovariates <- c()
+
     if(!all(c(occCovariates, collCovariates, spatCovariates) %in% colnames(data$info))){
       stop("Covariate names provided not in data$info")
     }
@@ -114,11 +125,6 @@ runOccPlus <- function(data,
       stop("NA in Site, Sample or Primer columns")
     }
 
-    if(d > ncol(OTU)){
-      print("More species than factors. The number of factors will be capped to the
-            number of species")
-      d <- ncol(OTU)
-    }
   }
 
   # clean the data
@@ -126,87 +132,87 @@ runOccPlus <- function(data,
     data_info <- data_info %>%
       dplyr::arrange(Site, Sample, Primer)
 
-
-  # samples per site
-  {
-    M_df <- data_info %>%
-      dplyr::group_by(Site, Sample) %>%
-      slice(1) %>%
-      dplyr::group_by(Site) %>%
-      dplyr::summarise(M = n())
-
-    M <- M_df$M
-    names(M) <- M_df$Site
-
-    n <- length(M)
-
-    sumM <- c(0, cumsum(M)[-n])
-
-    siteNames <- unique(data_info$Site)
-
-    data_info_sample <- as.numeric(factor(data_info$Sample, levels = unique(data_info$Sample)))
-
-  }
-
-  # marker per samples
-  {
-    # number of markers
-
-    L_df <- data_info %>%
-      dplyr::group_by(Site, Sample, Primer) %>%
-      dplyr::slice(1) %>%
-      dplyr::group_by(Site, Sample) %>%
-      dplyr::summarise(L = n())
-
-    L <- L_df$L
-    names(L) <- L_df$Sample
-
-    # number of observations
+    # samples per site
     {
-      L_all <- data_info %>%
+      M_df <- data_info %>%
+        dplyr::group_by(Site, Sample) %>%
+        slice(1) %>%
+        dplyr::group_by(Site) %>%
+        dplyr::summarise(M = n())
+
+      M <- M_df$M
+      names(M) <- M_df$Site
+
+      n <- length(M)
+
+      sumM <- c(0, cumsum(M)[-n])
+
+      siteNames <- unique(data_info$Site)
+
+      data_info_sample <- as.numeric(factor(data_info$Sample, levels = unique(data_info$Sample)))
+
+      }
+
+    # marker per samples
+    {
+      # number of markers
+
+      P_df <- data_info %>%
         dplyr::group_by(Site, Sample, Primer) %>%
         dplyr::slice(1) %>%
         dplyr::group_by(Site, Sample) %>%
-        dplyr::summarise(L_m = n())
-      L_all <- L_all$L_m
+        dplyr::summarise(P = n())
 
-      sumL <- c(0, cumsum(L_all)[-length(L_all)])
+      P <- P_df$P
+      names(P) <- P_df$Sample
+
+      # number of observations
+      {
+        P_all <- data_info %>%
+          dplyr::group_by(Site, Sample, Primer) %>%
+          dplyr::slice(1) %>%
+          dplyr::group_by(Site, Sample) %>%
+          dplyr::summarise(P_m = n())
+        P_all <- P_all$P_m
+
+        sumP <- c(0, cumsum(P_all)[-length(P_all)])
+
+      }
+
+      primerNames <- unique(data_info$Primer)
+      # sumP <- c(0, cumsum(L)[-length(L)])
 
     }
 
-    primerNames <- unique(data_info$Primer)
-    # sumL <- c(0, cumsum(L)[-length(L)])
+    # pcr per marker
+    {
+      data_K <- data_info %>%
+        dplyr::group_by(Site, Sample, Primer) %>%
+        dplyr::summarise(K = n(),
+                         dplyr::across(contains("Species"),function(x){sum(x > 0)})
+        ) %>%
+        dplyr::ungroup()#%>%
+      # ungroup() %>%
+      # mutate(across(contains("Species"), function(x){sum(x > 0)}))
 
-  }
+      K <- data_K$K
 
-  # pcr per marker
-  {
-    data_K <- data_info %>%
-      dplyr::group_by(Site, Sample, Primer) %>%
-      dplyr::summarise(K = n(),
-                       dplyr::across(contains("Species"),function(x){sum(x > 0)})
-      ) %>%
-      dplyr::ungroup()#%>%
-    # ungroup() %>%
-    # mutate(across(contains("Species"), function(x){sum(x > 0)}))
+      numP <- length(K)
 
-    K <- data_K$K
+      sumK <- c(0, cumsum(K)[-numP])
 
-    numL <- length(K)
+      maxP = max(P)
 
-    sumK <- c(0, cumsum(K)[-numL])
+      idx_z <- rep(1:n, M)
+      idx_k <- as.numeric(as.factor(data_info_sample))
 
-    maxL = max(L)
+      primerIdx <- as.numeric(as.factor(data_info$Primer))
+    }
 
-    idx_z <- rep(1:n, M)
-    idx_k <- as.numeric(as.factor(data_info_sample))
+    y <- OTU
+    speciesNames <- colnames(data$OTU)
 
-    primerIdx <- as.numeric(as.factor(data_info$Primer))
-  }
-
-  y <- OTU
-
-  logy1 <- log(OTU + 1)
+    logy1 <- log(OTU + 1)
   }
 
   # data infos
@@ -214,10 +220,9 @@ runOccPlus <- function(data,
     n <- length(M)
     S <- ncol(logy1)
     N <- sum(M)
-    N2 <- numL
+    N2 <- numP
     N3 <- nrow(logy1)
 
-    speciesNames <- colnames(data$OTU)
     if(is.null(speciesNames)){
       speciesNames <- 1:S
     }
@@ -270,15 +275,41 @@ runOccPlus <- function(data,
 
     # For occupancy covariates (group by Site, includes intercept)
     X_psi <- process_covariates(data_info, occCovariates, "Site", n,
-                                remove_intercept = FALSE)
+                                remove_intercept = TRUE)
+
+    list_Xpsi_standardised <- standardiseCovMatrix(X_psi)
+    X_psi <- list_Xpsi_standardised$X
 
     # For collection covariates (group by Sample, includes intercept)
     X_theta <- process_covariates(data_info, collCovariates, "Sample", N,
-                                remove_intercept = FALSE)
+                                  remove_intercept = FALSE)
 
     # For the spatial field
-    X_s <- process_covariates(data_info, spatCovariates, "Site", n,
-                                remove_intercept = TRUE)
+    Xs <- process_covariates(data_info, spatCovariates, "Site", n,
+                             remove_intercept = TRUE)
+    list_Xs_standardised <- standardiseCovMatrix(Xs)
+    Xs <- list_Xs_standardised$X
+
+    # For the traits
+    {
+      if(!is.null(traitsMatrix)){
+        speciesNamesInTraitsMatrix <- rownames(traitsMatrix)
+        if(!all(speciesNames %in% speciesNamesInTraitsMatrix)){
+          stop("Species names in OTU not present in traits matrix")
+        }
+
+        idx_speciesNames <- match(speciesNames, speciesNamesInTraitsMatrix)
+        Tr <- traitsMatrix
+        Tr <- Tr[idx_speciesNames,]
+        Tr <- as.matrix(Tr)
+        g <- ncol(Tr)
+        traitsNames <- colnames(Tr)
+      } else {
+        g <- 0
+        Tr <- matrix(NA, S, g)
+      }
+
+    }
 
     if(F){
       if(length(ordCovariates) > 0){
@@ -347,6 +378,28 @@ runOccPlus <- function(data,
 
   }
 
+  # set unknonwn parameters
+  {
+    d <- get_param(listParams, "n_factors")
+
+    if(d > ncol(OTU)){
+      print("More species than factors. The number of factors will be capped to the
+            number of species")
+      d <- ncol(OTU)
+    }
+
+    gt <- get_param(listParams, "n_lattrait", 2)
+    if(ncol(Xs) > 0){
+      ns <- nrow(unique(Xs))
+      ps <- get_param(listParams, "n_supportpoints", getDefaultSupportPoints(ns))
+
+    } else {
+      ps <- 0
+    }
+
+
+  }
+
   # check for nas
   {
     logy_na <- is.na(logy1)
@@ -407,26 +460,48 @@ runOccPlus <- function(data,
 
   # chain output
   {
-    beta_ord_output <- array(NA, dim = c(ncov_ord, n_factors, niter, nchain))
-    beta_psi_output <- array(NA, dim = c(ncov_psi, S, niter, nchain))
     beta_theta_output <- array(NA, dim = c(ncov_theta, S, niter, nchain))
-    LL_output <- array(NA, dim = c(n_factors, S, niter, nchain))
-    E_output <- array(NA, dim = c(n, n_factors, niter, nchain))
-    Es_output <- array(NA, dim = c(n, n_spatfactors, niter, nchain))
-    U_output <- array(NA, dim = c(n, n_factors, niter, nchain))
-    z_output <- array(NA, dim = c(n, S, niter, nchain))
-    p_output <- array(NA, dim = c(maxL, S, niter, nchain))
-    q_output <- array(NA, dim = c(maxL, S, niter, nchain))
+    p_output <- array(NA, dim = c(maxP, S, niter, nchain))
+    q_output <- array(NA, dim = c(maxP, S, niter, nchain))
     theta0_output <- array(NA, dim = c(S, niter, nchain))
     mu1_output <- array(NA, dim = c(niter, nchain))
     sigma1_output <- array(NA, dim = c(niter, nchain))
     mu0_output <- array(NA, dim = c(niter, nchain))
     sigma0_output <- array(NA, dim = c(niter, nchain))
+
+    # jsdm params
+
+    {
+      B0_output <- array(NA, dim = c(S, niter, nchain))
+      B_output <- array(NA, dim = c(ncov_psi, S, niter, nchain))
+      G_output <- array(NA, dim = c(g, ncov_psi, niter, nchain))
+      A_output <- array(NA, dim = c(S, gt, niter, nchain))
+      C_output <- array(NA, dim = c(gt, ncov_psi, niter, nchain))
+      Bs_output <- array(NA, dim = c(ps, S, niter, nchain))
+      Gs_output <- array(NA, dim = c(g, ps, niter, nchain))
+      As_output <- array(NA, dim = c(S, gt, niter, nchain))
+      Cs_output <- array(NA, dim = c(gt, ps, niter, nchain))
+      U_output  <- array(NA, dim = c(n, d, niter, nchain))
+      L_output  <- array(NA, dim = c(d, S, niter, nchain))
+      tau_output <- array(NA, dim = c(S, niter, nchain))
+      sigmab_output <- array(NA, dim = c(niter, nchain))
+      sigmabs_output <- array(NA, dim = c(niter, nchain))
+      varPart_output <- array(NA, dim = c(S, 4, niter, nchain))
+    }
+
+    if(summarisedLatentPresences){
+      w_output_mean <- matrix(NA, N, S)
+      z_output_mean <- matrix(NA, n, S)
+    } else {
+      w_output <- array(NA, dim = c(N, S, niter, nchain))
+      z_output <- array(NA, dim = c(n, S, niter, nchain))
+    }
+
   }
 
   # precompute spatial quantities
   {
-    ps <- ifelse(ncol(X_s) > 0, getDefaultSupportPoints(n), 0)
+    ps <- ifelse(ncol(Xs) > 0, getDefaultSupportPoints(n), 0)
 
     # Spatial covariates matrix
     list_Xs <- computeSpatialSummaries(Xs, ps, maxPoints = 5)
@@ -436,22 +511,41 @@ runOccPlus <- function(data,
     X_tilde <- list_Xs$X_tilde
     X_s <- list_Xs$X_s
 
+    length_grid_ls <- 10
+    l_s_grid <- seq(0.01, 0.3, length.out = length_grid_ls)
     list_SoRSummaries <- precomputeSORmatrices(l_s_grid, list_Xs)
+  }
+
+  # precompute jsdm params
+  {
+    list_data <- list(
+      "X" = X_psi,
+      "Tr" = Tr)
+
+    a_sigmab <- .01; b_sigmab <- .01
+    a_sigmabs <- .01; b_sigmabs <- .01
+    a_tau <- 5; b_tau <- 5
+    a_l_s <- 1; b_l_s <- 1
+
+    list_priors <- list(
+      "a_sigmab" = a_sigmab,
+      "b_sigmab" = b_sigmab,
+      "a_sigmabs" = a_sigmabs,
+      "b_sigmabs" = b_sigmabs,
+      "a_tau" = a_tau,
+      "b_tau" = b_tau,
+      "a_l_s" = a_l_s,
+      "b_l_s" = b_l_s
+    )
   }
 
   for (chain in 1:nchain) {
 
     # chain output
     {
-      # beta_ord_output_chain <- array(NA, dim = c(ncov_ord, n_factors, niter))
-      # beta_psi_output_chain <- array(NA, dim = c(ncov_psi, S, niter))
       beta_theta_output_chain <- array(NA, dim = c(ncov_theta, S, niter))
-      # LL_output_chain <- array(NA, dim = c(n_factors, S, niter))
-      # E_output_chain <- array(NA, dim = c(n, n_factors, niter))
-      # U_output_chain <- array(NA, dim = c(n, n_factors, niter))
-      z_output_chain <- array(NA, dim = c(n, S, niter))
-      p_output_chain <- array(NA, dim = c(maxL, S, niter))
-      q_output_chain <- array(NA, dim = c(maxL, S, niter))
+      p_output_chain <- array(NA, dim = c(maxP, S, niter))
+      q_output_chain <- array(NA, dim = c(maxP, S, niter))
       theta0_output_chain <- array(NA, dim = c(S, niter))
       mu1_output_chain <- rep(NA, niter)
       sigma1_output_chain <- rep(NA, niter)
@@ -460,20 +554,26 @@ runOccPlus <- function(data,
 
       # jsdm params
       {
-        B_output <- array(NA, dim = c(p, S, niter, nchain))
-        G_output <- array(NA, dim = c(g, p, niter, nchain))
-        A_output <- array(NA, dim = c(S, gt, niter, nchain))
-        C_output <- array(NA, dim = c(gt, p, niter, nchain))
-        Bs_output <- array(NA, dim = c(ps, S, niter, nchain))
-        Gs_output <- array(NA, dim = c(g, ps, niter, nchain))
-        As_output <- array(NA, dim = c(S, gt, niter, nchain))
-        Cs_output <- array(NA, dim = c(gt, ps, niter, nchain))
-        U_output  <- array(NA, dim = c(n, d, niter, nchain))
-        L_output  <- array(NA, dim = c(d, S, niter, nchain))
-        tau_output <- array(NA, dim = c(S, niter, nchain))
-        sigmab_output <- array(NA, dim = c(niter, nchain))
-        sigmabs_output <- array(NA, dim = c(niter, nchain))
-        varPart_output <- array(NA, dim = c(S, 4, niter, nchain))
+        B0_output_chain <- array(NA, dim = c(S, niter))
+        B_output_chain <- array(NA, dim = c(ncov_psi, S, niter))
+        G_output_chain <- array(NA, dim = c(g, ncov_psi, niter))
+        A_output_chain <- array(NA, dim = c(S, gt, niter))
+        C_output_chain <- array(NA, dim = c(gt, ncov_psi, niter))
+        Bs_output_chain <- array(NA, dim = c(ps, S, niter))
+        Gs_output_chain <- array(NA, dim = c(g, ps, niter))
+        As_output_chain <- array(NA, dim = c(S, gt, niter))
+        Cs_output_chain <- array(NA, dim = c(gt, ps, niter))
+        U_output_chain <- array(NA, dim = c(n, d, niter))
+        L_output_chain <- array(NA, dim = c(d, S, niter))
+        sigmab_output_chain <- rep(NA, niter)
+        sigmabs_output_chain <- rep(NA, niter)
+        tau_output_chain <- matrix(NA, S, niter)
+        varPart_output_chain <-  array(NA, dim = c(S, 4, niter))
+      }
+
+      if(!summarisedLatentPresences){
+        z_output_chain <- array(NA, dim = c(n, S, niter))
+        w_output_chain <- array(NA, dim = c(N, S, niter))
       }
 
     }
@@ -514,9 +614,9 @@ runOccPlus <- function(data,
           for (s in 1:S) {
             for (i in 1:n) {
               for (m in 1:M[i]) {
-                idx_im1 <- sumK[sumL[sumM[i] + m] + 1] + 1
-                idx_im2 <- sumK[sumL[sumM[i] + m] + L[sumM[i] + m]] +
-                  K[sumL[sumM[i] + m] + L[sumM[i] + m]]
+                idx_im1 <- sumK[sumP[sumM[i] + m] + 1] + 1
+                idx_im2 <- sumK[sumP[sumM[i] + m] + P[sumM[i] + m]] +
+                  K[sumP[sumM[i] + m] + P[sumM[i] + m]]
                 w[sumM[i] + m,s] <- as.numeric(any(y[idx_im1:idx_im2,s] > 0))
               }
             }
@@ -533,15 +633,11 @@ runOccPlus <- function(data,
             }
           }
 
-
-
           mu1 <- 7
           sigma1 <- 3
           mu0 <- 0
           sigma0 <- 1
         }
-
-
 
       } else {
 
@@ -552,9 +648,9 @@ runOccPlus <- function(data,
         for (s in 1:S) {
           for (i in 1:n) {
             for (m in 1:M[i]) {
-              idx_im1 <- sumK[sumL[sumM[i] + m] + 1] + 1
-              idx_im2 <- sumK[sumL[sumM[i] + m] + L[sumM[i] + m]] +
-                K[sumL[sumM[i] + m] + L[sumM[i] + m]]
+              idx_im1 <- sumK[sumP[sumM[i] + m] + 1] + 1
+              idx_im2 <- sumK[sumP[sumM[i] + m] + P[sumM[i] + m]] +
+                K[sumP[sumM[i] + m] + P[sumM[i] + m]]
               w[sumM[i] + m,s] <- as.numeric(any(y[idx_im1:idx_im2,s] > 0))
             }
           }
@@ -571,7 +667,6 @@ runOccPlus <- function(data,
           }
         }
 
-
       }
 
       # beta_psi <- matrix(0, ncov_psi, S)
@@ -584,19 +679,20 @@ runOccPlus <- function(data,
 
       theta <- computeTheta(X_theta, beta_theta)
 
-      p <- matrix(.9, maxL, S)
-      q <- matrix(.05, maxL, S)
+      p <- matrix(.9, maxP, S)
+      q <- matrix(.05, maxP, S)
       theta0 <- rep(.05, S)
 
       # jsdmParams
       {
-        B <- matrix(0, p, S)
+        B0 <- rep(0, S)
+        B <- matrix(0, ncov_psi, S)
         Bs <- matrix(0, ps, S)
         L <- matrix(1, d, S)
         diag(L) <- 1
         L[lower.tri(L)] <- 0
-        G <- matrix(0, g, p)
-        C <- matrix(1, gt, p)
+        G <- matrix(0, g, ncov_psi)
+        C <- matrix(1, gt, ncov_psi)
         diag(C) <- 1
         C[lower.tri(C)] <- 0
         A <- matrix(0, S, gt)
@@ -611,12 +707,13 @@ runOccPlus <- function(data,
         idx_ls <- 3 # dim(list_SoRSummaries$Ks_all)[3][5]
         tau <- rep(1, S)
 
-        Bt <- t(B) - computeBtcoef(G, Tr, A, C, matrix(0, S, p))
+        Bt <- t(B) - computeBtcoef(G, Tr, A, C, matrix(0, S, ncov_psi))
         Bst <- t(Bs) - computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps))
 
         Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
 
         list_jSDMparams <- list(
+          "B0" = B0,
           "B" = B,
           "G" = G,
           "A" = A,
@@ -636,13 +733,14 @@ runOccPlus <- function(data,
         )
 
         list_psiCoef <- computePsiCoef(
-          X, Ks, list_Xs$Xs_centers, Tr,
-          G, A, C, Bt,
+          X_psi, Ks, list_Xs$Xs_centers, Tr,
+          B0, G, A, C, Bt,
           Gs, As, Cs, Bst,
           U, L)
-        psi <- logistic(list_psiCoef$eta)
 
       }
+
+      psi <- logistic(list_psiCoef$eta)
 
       # U <- computeU(X_ord, beta_ord, E)
       # psi <- computePsi(X_psi, beta_psi, U, LL)
@@ -653,11 +751,11 @@ runOccPlus <- function(data,
 
       if(iter > nburn){
         currentIter <- (iter - nburn) / nthin
-        if(currentIter %% 10 == 0){
+        if(currentIter %% 100 == 0){
           print(paste0("Chain ", chain, " - Iteration ",currentIter))
         }
       } else {
-        if(iter %% 10 == 0){
+        if(iter %% 100 == 0){
           print(paste0("Chain ", chain, " - Burn in Iteration ",iter))
         }
       }
@@ -668,15 +766,17 @@ runOccPlus <- function(data,
 
       # sample psi
       {
-        list_jsdmParam <- update_jSDMcoef(
+        list_data$z <- z
+
+        list_jSDMparams <- update_jSDMcoef(
           list_data,
           list_jSDMparams,
           list_priors,
           list_Xs,
           list_SoRSummaries,
-          model
+          model = "binary"
         )
-        psi <- list_jsdmParam$psi
+        psi <- list_jSDMparams$psi
       }
 
       # sample psi - old
@@ -696,12 +796,12 @@ runOccPlus <- function(data,
       if(threshold > 0){
 
         w <- sample_w_cim_cipp(y, theta, theta0, p, q,
-                               M, K, sumL, sumM, sumK, maxL, z)
+                               M, K, sumP, sumM, sumK, maxP, z)
 
       } else {
 
         w <- sample_w_cpp(logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q,
-                          M, K, sumL, sumM, sumK, maxL, z)
+                          M, K, sumP, sumM, sumK, maxP, z)
 
       }
 
@@ -719,11 +819,11 @@ runOccPlus <- function(data,
 
       # sample theta
       beta_theta <- sample_betatheta_cpp(w, z, beta_theta, idx_z, X_theta,
-                                     b_betatheta, B_betatheta)
+                                         b_betatheta, B_betatheta)
       theta <- computeTheta(X_theta, beta_theta)
 
       # sample pq
-      list_pq <- sample_pq_cpp(c_imk, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q)
+      list_pq <- sample_pq_cpp(c_imk, w, primerIdx, idx_k, maxP, a_p, b_p, a_q, b_q)
       p <- list_pq$p
       q <- list_pq$q
 
@@ -750,21 +850,15 @@ runOccPlus <- function(data,
 
         if(iter > nburn & (iter - nburn) %% nthin == 0){
           currentIter <- (iter - nburn) / nthin
-          # beta_psi_output_chain[,,currentIter] <- beta_psi
-          # beta_ord_output_chain[,,currentIter] <- beta_ord
+
           beta_theta_output_chain[,,currentIter] <- beta_theta
-          # LL_output_chain[,,currentIter] <- LL
-          # U_output_chain[,,currentIter] <- U
-          # E_output_chain[,,currentIter] <- E
-          # Es_output_chain[,,currentIter] <- Es
-          # rho_output_chain[currentIter] <- rho
           p_output_chain[,,currentIter] <- p
           q_output_chain[,,currentIter] <- q
           theta0_output_chain[,currentIter] <- theta0
-          z_output_chain[,,currentIter] <- z
 
           # save jsdm params
           {
+            B0_output_chain[,currentIter] <- list_jSDMparams$B0
             B_output_chain[,,currentIter] <- list_jSDMparams$B
             G_output_chain[,,currentIter] <- list_jSDMparams$G
             A_output_chain[,,currentIter] <- list_jSDMparams$A
@@ -777,13 +871,20 @@ runOccPlus <- function(data,
             L_output_chain[,,currentIter] <- list_jSDMparams$L
             sigmab_output_chain[currentIter] <- list_jSDMparams$sigma_b
             sigmabs_output_chain[currentIter] <- list_jSDMparams$sigma_bs
-            if(model == "continuous") tau_output_chain[,currentIter] <-
-              list_jSDMparams$tau
 
             varPart_output_chain[,,currentIter] <-
               as.matrix(list_jSDMparams$variancePartitioning)
           }
 
+          if(summarisedLatentPresences){
+            z_output_mean[,,iter,chain] <- z_output[,,iter,chain] +
+              (1 / (niter) * nchain) * z
+            w_output_mean[,,iter,chain] <- w_output[,,iter,chain] +
+              (1 / (niter) * nchain) * w
+          } else {
+            z_output_chain[,,currentIter] <- z
+            w_output_chain[,,currentIter] <- w
+          }
 
           if(threshold == 0){
             mu1_output_chain[currentIter] <- mu1
@@ -798,54 +899,82 @@ runOccPlus <- function(data,
 
     }
 
-    # beta_psi_output[,,,chain] <- beta_psi_output_chain
-    # beta_ord_output[,,,chain] <- beta_ord_output_chain
-    # LL_output[,,,chain] <- LL_output_chain
-    # U_output[,,,chain] <- U_output_chain
-    # E_output[,,,chain] <- E_output_chain
-    # Es_output[,,,chain] <- Es_output_chain
-    # rho_output[,chain] <- rho_output_chain
     beta_theta_output[,,,chain] <- beta_theta_output_chain
     p_output[,,,chain] <- p_output_chain
     q_output[,,,chain] <- q_output_chain
     theta0_output[,,chain] <- theta0_output_chain
-    z_output[,,,chain] <- z_output_chain
     mu1_output[,chain] <- mu1_output_chain
     sigma1_output[,chain] <- sigma1_output_chain
     mu0_output[,chain] <- mu0_output_chain
     sigma0_output[,chain] <- sigma0_output_chain
-    # save jsdm params
-    {
-      B_output_chain[,,currentIter] <- B
-      G_output_chain[,,currentIter] <- G
-      A_output_chain[,,currentIter] <- A
-      C_output_chain[,,currentIter] <- C
-      Bs_output_chain[,,currentIter] <- Bs
-      Gs_output_chain[,,currentIter] <- Gs
-      As_output_chain[,,currentIter] <- As
-      Cs_output_chain[,,currentIter] <- Cs
-      U_output_chain[,,currentIter] <- U
-      L_output_chain[,,currentIter] <- L
-      sigmab_output_chain[currentIter] <- sigma_b
-      sigmabs_output_chain[currentIter] <- sigma_bs
-      if(model == "continuous") tau_output_chain[,currentIter] <- tau
 
-      variancePartitioning <- computeVariancePartitioning(XB, SE, UL)
-      varPart_output_chain[,,currentIter] <- as.matrix(variancePartitioning)
+    if(!summarisedLatentPresences){
+      z_output[,,,chain] <- z_output_chain
+      w_output[,,,chain] <- w_output_chain
     }
 
+    # save jsdm params
+    {
+      B0_output[,,chain] <- B0_output_chain
+      B_output[,,,chain] <- B_output_chain
+      G_output[,,,chain] <- G_output_chain
+      A_output[,,,chain] <- A_output_chain
+      C_output[,,,chain] <- C_output_chain
+      Bs_output[,,,chain] <- Bs_output_chain
+      Gs_output[,,,chain] <- Gs_output_chain
+      As_output[,,,chain] <- As_output_chain
+      Cs_output[,,,chain] <- Cs_output_chain
+      U_output[,,,chain] <- U_output_chain
+      L_output[,,,chain] <- L_output_chain
+      sigmab_output[,chain] <- sigmab_output_chain
+      sigmabs_output[,chain] <- sigmabs_output_chain
+      varPart_output[,,,chain] <- varPart_output_chain
+      tau_output[,,chain] <- tau_output_chain
+    }
 
   }
 
-  results_output <- list(
-    "beta_ord_output" = beta_ord_output,
-    "beta_psi_output" = beta_psi_output,
-    "beta_theta_output" = beta_theta_output,
-    "LL_output" = LL_output,
-    "E_output" = E_output,
-    "Es_output" = Es_output,
+  # reparametrise factor coefficients
+  {
+    if(d > 0){
+
+      list_UL_output_reparm <- reparamFactorModel(U_output, L_output)
+      U_output <- list_UL_output_reparm$U_output
+      L_output <- list_UL_output_reparm$L_output
+
+    }
+
+    if(gt > 0){
+
+      list_AC_output_reparm <- reparamFactorModel(A_output, C_output)
+      A_output <- list_AC_output_reparm$U_output
+      C_output <- list_AC_output_reparm$L_output
+
+    }
+
+  }
+
+  jsdm_results_output <- list(
+    "B0_output" = B0_output,
+    "B_output" = B_output,
+    "G_output" = G_output,
+    "A_output" =  A_output,
+    "C_output" = C_output,
+    "Bs_output" = Bs_output,
+    "Gs_output" = Gs_output,
+    "As_output" = As_output,
+    "Cs_output" = Cs_output,
     "U_output" = U_output,
-    "z_output" = z_output,
+    "L_output" = L_output,
+    "sigmab_output" = sigmab_output,
+    "sigmabs_output" = sigmabs_output,
+    "varPart_output" = varPart_output,
+    "tau_output" = tau_output
+  )
+
+  results_output <- list(
+    "jsdm_output" = jsdm_results_output,
+    "beta_theta_output" = beta_theta_output,
     "p_output" = p_output,
     "q_output" = q_output,
     "theta0_output" = theta0_output,
@@ -853,16 +982,25 @@ runOccPlus <- function(data,
     "sigma1_output" = sigma1_output,
     "mu0_output" = mu0_output,
     "sigma0_output" = sigma0_output
-    )
+  )
+
+  if(summarisedLatentPresences){
+    results_output$z_output <- z_output_mean
+    results_output$w_output <- w_output_mean
+  } else {
+    results_output$z_output <- z_output
+    results_output$w_output <- w_output
+  }
 
   minESS <- computeMinESS(results_output)
 
   if(minESS < 50) {
-    print("Effective sample size too small, please rerun with more iterations")
+    print(paste0("Minimum ffective sample size equal to ", minESS,", please rerun with more iterations"))
   }
 
   infos <- list(
     "S" = S,
+    "g" = g,
     "M" = M,
     "n" = n,
     "K" = K,
@@ -870,18 +1008,21 @@ runOccPlus <- function(data,
     "speciesNames" = speciesNames,
     "primerNames" = primerNames,
     "siteNames" = siteNames,
-    "n_factors" = n_factors,
+    "n_factors" = d,
     "ncov_theta" = ncov_theta,
     "ncov_psi" = ncov_psi,
-    "ncov_ord" = ncov_ord,
-    "maxexplogy1" = max(exp(logy1), na.rm = T)
+    "maxexplogy1" = max(exp(logy1), na.rm = T),
+    "Xpsi_standardised" = list_Xpsi_standardised,
+    "Xs_standardised" = list_Xs_standardised
+
   )
 
   list(
     "results_output" = results_output,
     "infos" = infos,
-    "X_ord" = X_ord,
+    "Tr" = Tr,
     "X_theta" = X_theta,
+    "X_s" = X_s,
     "X_psi" = X_psi)
 
 }
