@@ -32,8 +32,8 @@ Remotes:
     kassambara/ggcorrplot
 LazyData: true
 LazyDataCompression: xz
-RoxygenNote: 7.3.2
 Suggests: 
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
