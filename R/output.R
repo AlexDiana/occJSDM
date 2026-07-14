@@ -3,12 +3,14 @@
 #' Thins the MCMC output.
 #'
 #' @details
-#' Return the same fitModel output but thinned
+#' Returns the same fitModel object, but with the MCMC iterations in
+#' `results_output` thinned, keeping only every `thin`-th iteration.
 #'
 #' @param fitModel Output from the function runOccPlus
-#' @param fitModel Number of iterations to thin
+#' @param thin Thinning interval; every `thin`-th iteration is kept (default 5)
 #'
-#' @return A ggplot object
+#' @return A fitModel object with the same structure as the input, but with
+#' the MCMC output in `results_output` thinned
 #'
 #' @export
 #' @import dplyr
@@ -75,10 +77,28 @@ thinOutput <- function(fitModel, thin = 5){
 
 }
 
+#' logit
+#'
+#' Logit transformation.
+#'
+#' @param x A numeric value or vector with values in (0, 1)
+#'
+#' @return The logit of `x`
+#'
+#' @noRd
 logit <- function(x){
   log(x / (1 - x))
 }
 
+#' logistic
+#'
+#' Logistic (inverse logit) transformation.
+#'
+#' @param x A numeric value or vector
+#'
+#' @return The logistic transform of `x`, mapped to (0, 1)
+#'
+#' @noRd
 logistic <- function(x) 1 / (1 + exp(-x))
 
 # TRAITS ---------
@@ -92,7 +112,8 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'
 #' @param fitModel Output from the function runOccPlus
 #'
-#' @return A ggplot object
+#' @return An array of posterior samples of size
+#' (iterations x occupancy covariates x traits)
 #'
 #' @export
 #' @import dplyr
@@ -163,7 +184,8 @@ plotTraitsCoefficients <- function(fitModel,
 #'
 #' @param fitModel Output from the function runOccPlus
 #'
-#' @return A ggplot object
+#' @return An array of posterior samples of size
+#' (iterations x occupancy covariates x species)
 #'
 #' @export
 #' @import dplyr
@@ -223,16 +245,17 @@ plotOccupancyCovariates <- function(fitModel,
 #' Baseline occupancy rate for each species.
 #'
 #' @details
-#' Returns the 95% credible interval of the baseline occupancy rates
+#' Returns the posterior samples of the baseline occupancy probability
+#' (intercept-only, on the probability scale) for each species.
 #'
 #' @param fitModel Output from the function runOccPlus
-#' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
-#' @return The credible interval plot
+#' @return A matrix of size (species x iterations) with the posterior
+#' samples of the baseline occupancy probability for each species
 #'
 #' @examples
 #' \dontrun{
-#' returnBaselineOccupancyRates(fitModel, idx_species = 1:5)
+#' returnBaselineOccupancyRates(fitModel)
 #' }
 #'
 #' @export
@@ -334,7 +357,8 @@ plotBaselineOccupancyRates <- function(fitModel,
 #'
 #' @param fitModel Output from the function runOccPlus
 #'
-#' @return A ggplot object
+#' @return An array of posterior samples of size
+#' (iterations x collection covariates x species)
 #'
 #' @export
 #' @import dplyr
@@ -397,6 +421,22 @@ plotCollectionCovariates <- function(fitModel,
 
 }
 
+#' plotSpeciesRates
+#'
+#' Plot the 95% credible interval of a per-species rate for a subset of species.
+#'
+#' @details
+#' Internal helper that plots error bars for a rate summarised in `data_plot`
+#' (expects columns `Species`, `2.5%`, and `97.5%`). Currently unused elsewhere
+#' in the package; `plotCollectionRates` reimplements this logic inline.
+#'
+#' @param data_plot A data frame with columns `Species`, `2.5%`, and `97.5%`
+#' @param orderSpecies Integer vector giving the plotting order of the species
+#' @param subset Indexes (into `orderSpecies`) of the species to display
+#'
+#' @return A ggplot object
+#'
+#' @noRd
 plotSpeciesRates <- function(data_plot,
                              orderSpecies,
                              subset){
@@ -436,7 +476,7 @@ plotSpeciesRates <- function(data_plot,
 #'
 #' @examples
 #' \dontrun{
-#' plotSpeciesRates(fitModel, idx_species = 1:5)
+#' plotCollectionRates(fitModel, idx_species = 1:5)
 #' }
 #'
 #' @export
@@ -499,6 +539,7 @@ plotCollectionRates <- function(fitModel,
 #'
 #' @param fitModel Output from the function runOccPlus
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
+#' @param primerName Name of the primer to plot (defaults to the first primer in `fitModel$infos$primerNames`)
 #'
 #' @return A ggplot object
 #'
@@ -821,6 +862,7 @@ plotStage2FPRates <- function(fitModel,
 #' @param fitModel Output from the function runOccPlus
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #' @param showSignificance Should an X be shown for non significant elements?
+#' @param confidence Confidence level used to assess significance, default to .95
 #'
 #' @return A ggplot object
 #'
@@ -860,11 +902,17 @@ plotResidualCorrelationMatrix <- function(fitModel,
 #'
 #' @param fitModel Output from the function runOccPlus
 #' @param X_psi Occupancy covariates matrix for the new locations
-#' @param X_ord Ordination covariates matrix for the new locations
+#' @param X_s Spatial/ordination covariates matrix for the new locations
 #' @param summarised Should the output be return in the form of quantiles? Set to TRUE if the number of sites is very large
 #' @param confidence If quantiles are returned, the confidence level of the quantiles.
 #'
 #' @return An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
+#'
+#' @note The function body currently references an object named `X_ord`
+#' rather than the `X_s` argument; as written this will error (or silently
+#' pick up an `X_ord` object from the calling environment) unless an `X_ord`
+#' variable happens to be in scope. This looks like a pre-existing bug worth
+#' fixing separately.
 #'
 #' @examples
 #' \dontrun{
@@ -1017,11 +1065,19 @@ computeConditionalOccupancyProbs <- function(fitModel){
 #' Compute the latent presences
 #'
 #' @details
-#' Compute the latent presences
+#' Computes, for a single species, the posterior mean of the latent
+#' occupancy state `z` and the latent detection state `w` across sites.
 #'
 #' @param fitModel Output from the function runOccPlus
+#' @param idx_species Index of the species to compute latent presences for (default 1)
 #'
 #' @return A matrix
+#'
+#' @note As currently written, the function computes `z_mean` and `w_mean`
+#' but then returns `returnVariancePartitioningMatrix(varPart_output, speciesNames)`,
+#' where `varPart_output` is not defined anywhere in the function body. This
+#' looks like a pre-existing bug (likely leftover from a copy-paste) that will
+#' error at runtime and should be fixed separately.
 #'
 #' @examples
 #' \dontrun{
@@ -1264,6 +1320,9 @@ plotReadIntensity <- function(fitModel){
 #' number of PCR, conditional on species presence in the sample
 #'
 #' @param fitModel Output from the function runOccPlus
+#' @param K Maximum number of technical replicates (PCRs) to consider
+#' @param primer Index of the primer to use; 0 (default) pools across all primers
+#' @param alpha Confidence level of the credible interval, default to .95
 #'
 #' @return A plot with the credible interval of cumulative detections
 #'
@@ -1303,6 +1362,28 @@ plotCumulativeSpeciesDetections <- function(fitModel, K, primer = 0, alpha = .95
 
 }
 
+#' computeSpeciesDetected
+#'
+#' Simulate the number of species detected as a function of the number of
+#' technical replicates (PCRs), given Beta-distributed detection probabilities.
+#'
+#' @details
+#' Internal helper for `plotCumulativeSpeciesDetections`. For each of `B`
+#' bootstrap replicates, simulates detections for each species across `K`
+#' technical replicates and one or more primers, then summarises the
+#' cumulative number of species detected as a function of the number of
+#' replicates used.
+#'
+#' @param ab_p Array of Beta distribution shape parameters (alpha, beta) of
+#' size (2 x primers x species), as produced in `plotCumulativeSpeciesDetections`
+#' @param K Maximum number of technical replicates (PCRs) to consider
+#' @param primer Index of the primer to use; 0 pools across all primers
+#' @param alpha Confidence level of the credible interval
+#'
+#' @return A matrix of size (2 x K) with the lower and upper bounds of the
+#' credible interval for the number of species detected, for 1 to K replicates
+#'
+#' @noRd
 computeSpeciesDetected <- function(ab_p, K, primer, alpha){
 
   S <- dim(ab_p)[3]
@@ -1349,6 +1430,22 @@ computeSpeciesDetected <- function(ab_p, K, primer, alpha){
 
 }
 
+#' plotOrdination
+#'
+#' Plot the ordination (latent factor) scores for each observation.
+#'
+#' @details
+#' Plots the posterior mean and 95% credible interval of the latent factor
+#' scores `U` for each observation, using the first two latent factors.
+#' Not yet exported (marked TODO in source); only the first two dimensions
+#' of `idx_factor` are currently used regardless of how many are supplied.
+#'
+#' @param fitModel Output from the function runOccPlus
+#' @param idx_factor Indexes of the latent factors to plot (currently only
+#' the first two are used)
+#'
+#' @return A ggplot object
+#'
 ## TODO
 plotOrdination <- function(fitModel,
                            idx_factor = c(1,2)){
@@ -1400,6 +1497,27 @@ plotOrdination <- function(fitModel,
 
 }
 
+#' plotOccupancyStates
+#'
+#' Plot a heatmap comparing estimated latent occupancy against observed
+#' detection frequencies, for each site and species.
+#'
+#' @details
+#' For each site and species, plots a tile coloured by the posterior mean
+#' latent occupancy probability, labelled with the observed frequency of
+#' detection across samples at that site.
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return A ggplot object
+#'
+#' @note This function references `data_info` and `OTU` directly rather than
+#' via `fitModel` or function arguments; these objects are not defined in the
+#' function body and are not present in `fitModel`, so as written this will
+#' error unless matching objects happen to exist in the calling environment.
+#' This looks like a pre-existing bug worth fixing separately.
+#'
+#' @noRd
 plotOccupancyStates <- function(fitModel){
 
   speciesNames <- fitModel$infos$speciesNames
