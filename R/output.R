@@ -1157,7 +1157,7 @@ returnVariancePartitioning <- function(fitModel){
 #' @export
 #' @import dplyr
 #' @import ggplot2
-#' @import ggtern
+#' @importFrom ggtern ggtern theme_showarrows
 #'
 plotVariancePartitioning <- function(fitModel){
 
