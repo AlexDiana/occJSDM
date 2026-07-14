@@ -3,7 +3,7 @@ inst/doc
 /doc/
 /Meta/
 /dev/
-caiwang_results.rda
+outputs/caiwang_results.rda
 src/*.o
 src/*.so
 data/data_out_env_trait.rdata
