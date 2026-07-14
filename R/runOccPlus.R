@@ -92,18 +92,19 @@ runOccPlus <- function(data,
                        listPriors = list()){
 
   {
-    data <- data1
-    listParams = list(n_factors = 2)
-    threshold = 1
-    occCovariates = c("elevation","curvature","dist_to_edge","rainforest_500",
-                      "bamboo_500","canopy_cover_500","soil_humidity")
-    collCovariates = c("type","month","elution_volume")
-    spatCovariates = c("latitude","longitude")
-    traitsMatrix = trait.all
-    MCMCparams = list(nchain = 2,
-                      nburn = 5000,
-                      niter = 5000)
-    listPriors = list()
+    # data <- data1
+    # listParams = list(n_factors = 2)
+    # threshold = 1
+    # occCovariates = c("elevation","curvature","dist_to_edge","rainforest_500",
+    #                   "bamboo_500","canopy_cover_500","soil_humidity")
+    # collCovariates = c("type","month","elution_volume")
+    # spatCovariates = NULL#c("latitude","longitude")
+    # traitsMatrix = trait.all
+    # MCMCparams = list(nchain = 2,
+    #                   nburn = 5000,
+    #                   niter = 5000)
+    # summarisedLatentPresences <- T
+    # listPriors = list()
   }
 
   data_info <- as.data.frame(data$info)
@@ -138,7 +139,8 @@ runOccPlus <- function(data,
         dplyr::group_by(Site, Sample) %>%
         slice(1) %>%
         dplyr::group_by(Site) %>%
-        dplyr::summarise(M = n())
+        dplyr::summarise(M = n(),
+                         .groups = "keep")
 
       M <- M_df$M
       names(M) <- M_df$Site
@@ -161,7 +163,8 @@ runOccPlus <- function(data,
         dplyr::group_by(Site, Sample, Primer) %>%
         dplyr::slice(1) %>%
         dplyr::group_by(Site, Sample) %>%
-        dplyr::summarise(P = n())
+        dplyr::summarise(P = n(),
+                         .groups = "keep")
 
       P <- P_df$P
       names(P) <- P_df$Sample
@@ -189,7 +192,8 @@ runOccPlus <- function(data,
       data_K <- data_info %>%
         dplyr::group_by(Site, Sample, Primer) %>%
         dplyr::summarise(K = n(),
-                         dplyr::across(contains("Species"),function(x){sum(x > 0)})
+                         dplyr::across(contains("Species"),function(x){sum(x > 0)}),
+                         .groups = "keep"
         ) %>%
         dplyr::ungroup()#%>%
       # ungroup() %>%
@@ -234,7 +238,8 @@ runOccPlus <- function(data,
     {
       M_marker_df <- data_info %>%
         dplyr::group_by(Site, Sample) %>%
-        dplyr::summarise(M = n())
+        dplyr::summarise(M = n(),
+                         .groups = "keep")
 
       M_marker <- M_marker_df$M
       # names(M) <- M_df$Site
@@ -274,21 +279,28 @@ runOccPlus <- function(data,
     }
 
     # For occupancy covariates (group by Site, includes intercept)
-    X_psi <- process_covariates(data_info, occCovariates, "Site", n,
-                                remove_intercept = TRUE)
+    {
+      X_psi <- process_covariates(data_info, occCovariates, "Site", n,
+                                  remove_intercept = TRUE)
 
-    list_Xpsi_standardised <- standardiseCovMatrix(X_psi)
-    X_psi <- list_Xpsi_standardised$X
+      list_Xpsi_standardised <- standardiseCovMatrix(X_psi)
+      X_psi <- list_Xpsi_standardised$X
+    }
 
     # For collection covariates (group by Sample, includes intercept)
-    X_theta <- process_covariates(data_info, collCovariates, "Sample", N,
-                                  remove_intercept = FALSE)
+    {
+      X_theta <- process_covariates(data_info, collCovariates, "Sample", N,
+                                    remove_intercept = FALSE)
+
+    }
 
     # For the spatial field
-    Xs <- process_covariates(data_info, spatCovariates, "Site", n,
-                             remove_intercept = TRUE)
-    list_Xs_standardised <- standardiseCovMatrix(Xs)
-    Xs <- list_Xs_standardised$X
+    {
+      Xs <- process_covariates(data_info, spatCovariates, "Site", n,
+                               remove_intercept = TRUE)
+      list_Xs_standardised <- standardiseCovMatrix(Xs)
+      Xs <- list_Xs_standardised$X
+    }
 
     # For the traits
     {
@@ -877,9 +889,9 @@ runOccPlus <- function(data,
           }
 
           if(summarisedLatentPresences){
-            z_output_mean[,,iter,chain] <- z_output[,,iter,chain] +
+            z_output_mean <- z_output_mean +
               (1 / (niter) * nchain) * z
-            w_output_mean[,,iter,chain] <- w_output[,,iter,chain] +
+            w_output_mean <- w_output_mean +
               (1 / (niter) * nchain) * w
           } else {
             z_output_chain[,,currentIter] <- z

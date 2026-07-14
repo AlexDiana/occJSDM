@@ -90,6 +90,8 @@ buildGrid <- function(XY_sp, gridStep){
 
 computeSpatialSummaries <- function(Xs, ps, maxPoints){
 
+  n <- nrow(Xs)
+
   if(ps > 0){
 
     # isolate unique locations and assign indexes to sites
@@ -133,10 +135,10 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
 
   } else {
 
-    Xs_index <- rep(NA, n)
+    Xs_index <- rep(NA, nrow(Xs))
     X_tilde <- matrix(NA, ps, 0)
-    X_s_centers <- matrix(NA, n, 0)
-    Xs_centers <- matrix(NA, n, 0)
+    X_s_centers <- matrix(NA, nrow(Xs), 0)
+    Xs_centers <- matrix(NA, nrow(Xs), 0)
     X_s <- matrix(NA, nrow(Xs), 2)
 
   }

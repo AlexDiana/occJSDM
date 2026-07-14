@@ -13,6 +13,7 @@ runOccPlus(
   spatCovariates = c(),
   traitsMatrix = NULL,
   MCMCparams = list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1),
+  summarisedLatentPresences = T,
   listPriors = list()
 )
 }

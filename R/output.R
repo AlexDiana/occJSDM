@@ -239,39 +239,17 @@ plotOccupancyCovariates <- function(fitModel,
 #' @import dplyr
 #' @import ggplot2
 #'
-returnOccupancyRates <- function(fitModel){
+returnBaselineOccupancyRates <- function(fitModel){
 
-  # conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
-
-  S <- fitModel$infos$S
   speciesNames <- fitModel$infos$speciesNames
-  n <- length(fitModel$infos$siteNames)
 
-  beta_psi_output <- fitModel$results_output$beta_psi_output
-  beta_ord_output <- fitModel$results_output$beta_ord_output
-  E_output <- fitModel$results_output$E_output
-  LL_output <- fitModel$results_output$LL_output
+  logisticB0_output <- logistic(fitModel$results_output$jsdm_output$B0_output)
+  dimnames(logisticB0_output)[[1]] <- speciesNames
 
-  nchain <- dim(beta_psi_output)[4]
-  niter <- dim(beta_psi_output)[3]
-
-  psi_output <- array(NA, dim = c(nchain * niter, n, S))
-  for (chain in 1:nchain) {
-    for (iter in 1:niter) {
-      psi_output[iter + (chain - 1)*niter,,] <-
-        computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
-                    beta_ord_output[,,iter,chain],
-                    LL_output[,,iter,chain])
-      # computePsi(X_psi, beta_psi_output[,,iter,chain],
-      #              U_output[,,iter,chain], LL_output[,,iter,chain])
-
-    }
-  }
-
-  psi_output
+  logisticB0_output
 }
 
-#' plotOccupancyRates
+#' plotBaselineOccupancyRates
 #'
 #' Baseline occupancy rate for each species.
 #'
@@ -281,38 +259,32 @@ returnOccupancyRates <- function(fitModel){
 #' @param fitModel Output from the function runOccPlus
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #' @param confidence Confidence level of the estimate,  default to .95
-#' @param sortSpecies Should species be sorted in the plot?
 #'
 #' @return The credible interval plot
 #'
 #' @examples
 #' \dontrun{
-#' plotSpeciesRates(fitModel, idx_species = 1:5)
+#' plotBaselineOccupancyRates(fitModel, idx_species = 1:5)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-plotOccupancyRates <- function(fitModel,
+plotBaselineOccupancyRates <- function(fitModel,
                                idx_species = NULL,
                                confidence = .95,
                                sortSpecies = F){
 
   confInt <- c((1 - confidence) / 2, (1 + confidence) / 2)
 
-  psi_output <- returnOccupancyRates(fitModel)
-
-  S <- fitModel$infos$S
-  speciesNames <- fitModel$infos$speciesNames
-  X_psi <- fitModel$X_psi
-  ncov_psi <- ncol(X_psi)
+  psi0_output <- returnBaselineOccupancyRates(fitModel)
 
   if(is.null(idx_species)){
     idx_species <- 1:S
   }
 
-  psi_mean_output <- apply(psi_output, c(2,3), function(x){
+  psi0_output_vec <- apply(psi0_output, c(2,3), function(x){
     mean(x)
   })
 
@@ -394,40 +366,12 @@ returnCollectionCovariates <- function(fitModel){
   beta_theta_output <- matrix_of_draws$beta_theta_output
 
   beta_theta_output <- apply(beta_theta_output, c(1,2), c)
-  beta_theta_output <- aperm(beta_theta_output, c(2,3,1))
+  # beta_theta_output <- aperm(beta_theta_output, c(2,3,1))
 
-  dimnames(beta_theta_output)[[1]] <- collcovNames
-  dimnames(beta_theta_output)[[2]] <- speciesNames
+  dimnames(beta_theta_output)[[2]] <- collcovNames
+  dimnames(beta_theta_output)[[3]] <- speciesNames
 
   beta_theta_output
-
-  # data_plot <- apply(samples_subset, 2, function(x) {
-  #   quantile(x, probs = c(0.025, 0.975))
-  # }) %>%
-  #   t %>%
-  #   as.data.frame %>%
-  #   mutate(Species = speciesNames) %>%
-  #   mutate(speciesOrder = order(`2.5%`)) %>%
-  #   filter(Species %in% speciesNames[idx_species])
-  #
-  # orderSpecies <- order(data_plot$`2.5%`)
-  #
-  # plot_occcovs <- data_plot %>%
-  #   ggplot(aes(x =  factor(Species, level = speciesNames[orderSpecies]),
-  #              ymin = `2.5%`,
-  #              ymax = `97.5%`)) + geom_errorbar() +
-  #   xlab("Species") +
-  #   # ylim(c(0,1)) +
-  #   ggtitle(covName) +
-  #   theme_bw() +
-  #   theme(
-  #     axis.text = element_text(angle = 90,
-  #                              size = 8),
-  #     plot.title = element_text(hjust = .5,
-  #                               size = 15)
-  #   ) + geom_hline(aes(yintercept = 0), color = "red")
-  #
-  # plot_occcovs
 
 }
 
@@ -453,63 +397,15 @@ plotCollectionCovariates <- function(fitModel,
                                     idx_species = NULL
 ){
 
-  beta_theta_output <- returnCollectionCovariates(fitModel)
+  collCov_output <- returnCollectionCovariates(fitModel)
 
   if(is.null(covName)){
     stop("No name provided")
   }
 
-  # matrix_of_draws <- fitModel$matrix_of_draws
-
-  S <- fitModel$infos$S
-  ncov_theta <- fitModel$infos$ncov_theta
-  speciesNames <- fitModel$infos$speciesNames
-  collcovNames <- colnames(fitModel$X_theta)
-  idxcov <- which(collcovNames == covName)
-
-  if(length(idxcov) == 0){
-    stop("Covariate name not found. If you are using a categorical covariates,
-         the name might have changed to code the level. Use
-         colnames(fitModel$X_det) to find the new names")
-  }
-
-  if(is.null(idx_species)){
-    idx_species <- 1:S
-  }
-
-  samples_subset <- matrix(beta_theta_output[idxcov, idx_species,],
-                           dim(beta_theta_output)[3], length(idx_species))
-
-  data_plot <- apply(samples_subset, 2, function(x) {
-    quantile(x, probs = c(0.025, 0.975))
-  }) %>%
-    t %>%
-    as.data.frame %>%
-    mutate(Species = speciesNames[idx_species]) %>%
-    mutate(speciesOrder = order(`2.5%`)) %>%
-    filter(Species %in% speciesNames[idx_species])
-
-  orderSpecies <- order(data_plot$`2.5%`)
-
-  plot_occcovs <- data_plot %>%
-    ggplot(aes(x =  factor(Species, level = speciesNames[orderSpecies]),
-               ymin = `2.5%`,
-               ymax = `97.5%`)) + geom_errorbar() +
-    xlab("Species") +
-    # ylim(c(0,1)) +
-    ggtitle(covName) +
-    theme_bw() +
-    theme(
-      axis.text = element_text(angle = 90,
-                               size = 8),
-      plot.title = element_text(hjust = .5,
-                                size = 15)
-    ) + geom_hline(aes(yintercept = 0), color = "red")
-
-  plot_occcovs
+  plotCoefficient(collCov_output, covName, idx_species) + xlab("Species")
 
 }
-
 
 plotSpeciesRates <- function(data_plot,
                              orderSpecies,
@@ -1163,7 +1059,7 @@ computeConditionalOccupancyProbs <- function(fitModel){
 #' Compute the latent presences
 #'
 #' @details
-#'
+#' Compute the latent presences
 #'
 #' @param fitModel Output from the function runOccPlus
 #'
@@ -1203,7 +1099,7 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
 #' Compute the variance partitioning for each species
 #'
 #' @details
-#'
+#' Compute the variance partitioning for each species
 #'
 #' @param fitModel Output from the function runOccPlus
 #'
@@ -1233,7 +1129,7 @@ returnVariancePartitioning <- function(fitModel){
 #' Plot the variance partitioning for each species
 #'
 #' @details
-#'
+#' Plot the variance partitioning for each species
 #'
 #' @param fitModel Output from the function runOccPlus
 #'
