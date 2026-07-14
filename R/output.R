@@ -106,17 +106,28 @@ returnTraitsCoeff <- function(fitModel){
   # # speciesNames <- fitModel$infos$speciesNames
   occCovNames <- colnames(fitModel$X_psi)
   traitNames <- colnames(fitModel$Tr)
+  g <- fitModel$infos$g
 
-  traitsCoeffOutput <- fitModel$results_output$jsdm_output$G_output
-  traitsCoeffOutput <- apply(traitsCoeffOutput, c(1,2), c)
+  if(g > 0){
 
-  niter <- dim(traitsCoeffOutput)[1]
-  dimnames(traitsCoeffOutput)[[2]] <- traitNames
-  dimnames(traitsCoeffOutput)[[3]] <- occCovNames
+    traitsCoeffOutput <- fitModel$results_output$jsdm_output$G_output
+    traitsCoeffOutput <- apply(traitsCoeffOutput, c(1,2), c)
 
-  traitsCoeffOutput <- aperm(traitsCoeffOutput, c(1,3,2))
+    niter <- dim(traitsCoeffOutput)[1]
+    dimnames(traitsCoeffOutput)[[2]] <- traitNames
+    dimnames(traitsCoeffOutput)[[3]] <- occCovNames
 
-  traitsCoeffOutput
+    traitsCoeffOutput <- aperm(traitsCoeffOutput, c(1,3,2))
+
+    traitsCoeffOutput
+
+  } else {
+
+    stop("No traits present")
+
+  }
+
+
 
 }
 
