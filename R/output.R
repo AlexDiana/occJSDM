@@ -308,6 +308,7 @@ plotBaselineOccupancyRates <- function(fitModel,
   confInt <- c((1 - confidence) / 2, (1 + confidence) / 2)
 
   psi0_output <- returnBaselineOccupancyRates(fitModel)
+  S <- fitModel$infos$S
 
   if(is.null(idx_species)){
     idx_species <- 1:S
