@@ -502,8 +502,8 @@ runOccPlus <- function(data,
     }
 
     if(summarisedLatentPresences){
-      w_output_mean <- matrix(NA, N, S)
-      z_output_mean <- matrix(NA, n, S)
+      w_output_mean <- matrix(0, N, S)
+      z_output_mean <- matrix(0, n, S)
     } else {
       w_output <- array(NA, dim = c(N, S, niter, nchain))
       z_output <- array(NA, dim = c(n, S, niter, nchain))
