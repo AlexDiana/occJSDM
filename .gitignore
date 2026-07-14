@@ -6,3 +6,5 @@ inst/doc
 caiwang_results.rda
 src/*.o
 src/*.so
+data/data_out_env_trait.rdata
+analysis/analysis.R
