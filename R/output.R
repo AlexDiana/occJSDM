@@ -218,7 +218,7 @@ plotOccupancyCovariates <- function(fitModel,
 }
 
 
-#' returnOccupancyRates
+#' returnBaselineOccupancyRates
 #'
 #' Baseline occupancy rate for each species.
 #'
@@ -232,7 +232,7 @@ plotOccupancyCovariates <- function(fitModel,
 #'
 #' @examples
 #' \dontrun{
-#' returnBaselineOccupancies(fitModel, idx_species = 1:5)
+#' returnBaselineOccupancyRates(fitModel, idx_species = 1:5)
 #' }
 #'
 #' @export
@@ -273,8 +273,7 @@ returnBaselineOccupancyRates <- function(fitModel){
 #'
 plotBaselineOccupancyRates <- function(fitModel,
                                idx_species = NULL,
-                               confidence = .95,
-                               sortSpecies = F){
+                               confidence = .95){
 
   confInt <- c((1 - confidence) / 2, (1 + confidence) / 2)
 
@@ -284,29 +283,22 @@ plotBaselineOccupancyRates <- function(fitModel,
     idx_species <- 1:S
   }
 
-  psi0_output_vec <- apply(psi0_output, c(2,3), function(x){
-    mean(x)
-  })
+  psi0_output_vec <- apply(psi0_output, 2, c)
 
-  data_plot <- apply(psi_mean_output, 2, function(x) {
-    # quantile(logistic(x), probs = c(0.025, 0.975))
+  data_plot <- apply(psi0_output_vec, 1, function(x) {
     quantile(x, probs = confInt)
   }) %>%
     t %>%
     as.data.frame %>%
-    mutate(Species = speciesNames)
+    mutate(Species = dimnames(psi0_output)[[1]])
 
   colnames(data_plot)[1:2] <- c("Min","Max")
 
-  data_plot %>%
+  data_plot <- data_plot %>%
     mutate(speciesOrder = order(Min)) %>%
     filter(Species %in% speciesNames[idx_species])
 
-  if(sortSpecies){
-    speciesNameOrdered <- speciesNames[order(data_plot$Min)]
-  } else {
-    speciesNameOrdered <- speciesNames
-  }
+  speciesNameOrdered <- speciesNames[order(data_plot$Min)]
 
   plot_occupancyrates <- data_plot %>%
     ggplot(aes(x =  factor(Species, level = speciesNameOrdered),
@@ -327,8 +319,6 @@ plotBaselineOccupancyRates <- function(fitModel,
     ) + coord_flip()
 
   plot_occupancyrates
-
-
 
 }
 
@@ -429,9 +419,6 @@ plotSpeciesRates <- function(data_plot,
     )
 
 }
-
-
-
 
 
 
@@ -565,18 +552,8 @@ plotFPTPStage2Rates <- function(fitModel,
 
   data_plot <- cbind(data_plot_p, data_plot_q) %>%
     mutate(Species = speciesNames) %>%
+    filter(Species %in% speciesNames[idx_species]) %>%
     mutate(speciesOrder = order(p1))
-  #
-  # data_plot <- cbind(data_plot_p, data_plot_q) %>%
-  #   mutate(Species = as.numeric(idx_speciesprimer[,3]),
-  #          Primer = as.numeric(idx_speciesprimer[,2])) %>%
-  #   mutate(Species = speciesNames[Species],
-  #          Primer = primerNames[Primer]) %>%
-  #   mutate(speciesOrder = order(p1)) %>%
-  #   filter(Species %in% speciesNames[idx_species]) %>%
-  #   filter(Primer == primerName)
-
-  # orderSpecies <- order(data_plot$`2.5%`[data_plot$Primer == data_plot$Primer[1]])
 
   detectionRates <- data_plot %>%
     ggplot()  +
@@ -593,7 +570,6 @@ plotFPTPStage2Rates <- function(fitModel,
                       color = "FP rate"), position = position_dodge(width = .15), # Use the SAME width as geom_col
                   width = .5) +
     xlab("Species") +
-    # ylim(c(0,1)) +
     ggtitle("Detection rates") +
     theme_bw() +
     # ylim(c(0,1)) +
@@ -639,10 +615,7 @@ plotFPTPStage2Rates <- function(fitModel,
 plotDetectionRates <- function(fitModel,
                                idx_species = NULL){
 
-  matrix_of_draws <- fitModel$matrix_of_draws
-
   S <- fitModel$infos$S
-  # ncov_theta <- fitModel$infos$ncov_psi
   speciesNames <- fitModel$infos$speciesNames
   primerNames <- fitModel$infos$primerNames
 
@@ -652,50 +625,35 @@ plotDetectionRates <- function(fitModel,
 
   p_output <- fitModel$results_output$p_output
 
-  data_plot <- apply(p_output, c(1,2), function(x) {
+  data_plot_array <- apply(p_output, c(1,2), function(x) {
     quantile(x, probs = c(0.025, 0.975))
-  }) %>%
-    t %>%
-    as.data.frame
+  })
 
-  texts <- rownames(data_plot)
-  idx_speciesprimer <- stringr::str_match(texts, "\\[(\\d+),(\\d+)\\]")
+  dimnames(data_plot_array)[[2]] <- primerNames
 
-  data_plot <- data_plot %>%
-    mutate(Species = as.numeric(idx_speciesprimer[,3]),
-           Primer = as.numeric(idx_speciesprimer[,2])) %>%
-    mutate(Species = speciesNames[Species],
-           Primer = primerNames[Primer]) %>%
-    mutate(speciesOrder = order(`2.5%`)) %>%
-    filter(Species %in% speciesNames[idx_species])
+  data_plot <- data.frame(
+    lower = as.vector(data_plot_array[1,,]),
+    upper = as.vector(data_plot_array[2,,]),
+    Primer = rep(primerNames, times = dim(data_plot_array)[3]),
+    Species = rep(speciesNames, each = dim(data_plot_array)[2])
+  ) %>%
+    filter(Species %in% speciesNames[idx_species]) %>%
+    group_by(Species) %>%
+    mutate(mean_lower = mean(lower)) %>%
+    ungroup() %>%
+    mutate(Species = reorder(factor(Species), mean_lower))
 
-  # orderSpecies <- order(data_plot$`2.5%`[data_plot$Primer == data_plot$Primer[1]])
+  plotDetectionRates <- ggplot() +
+    geom_errorbar(data = data_plot, aes(x = Species,
+                                 ymin = lower, ymax = upper, color = Primer)) +
+    labs(
+      x = "Species",
+      y = "p",
+      color = "Primer"
+    ) +
+    theme_bw() + coord_flip()
 
-  detectionRates <- data_plot %>%
-    ggplot(aes(x =
-                 factor(Species, level = speciesNames),
-               # factor(Species, level = speciesNames[orderSpecies]),
-               ymin = `2.5%`,
-               ymax = `97.5%`,
-               color = factor(Primer),
-               group = factor(Primer))) +
-    geom_errorbar(position = position_dodge(width = .15), # Use the SAME width as geom_col
-                  width = .5) +
-    xlab("Species") +
-    # ylim(c(0,1)) +
-    ggtitle("Detection rates") +
-    theme_bw() +
-    # ylim(c(0,1)) +
-    ylab("p") +
-    theme(
-      axis.text = element_text(angle = 0,
-                               size = 8),
-      axis.title = element_text(size = 12, face = "bold"),
-      plot.title = element_text(hjust = .5,
-                                size = 15)
-    ) + coord_flip()
-
-  detectionRates
+  plotDetectionRates
 
 }
 
