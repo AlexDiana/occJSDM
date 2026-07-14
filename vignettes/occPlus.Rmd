@@ -118,7 +118,7 @@ First, we provide three functions for returning occupancy, ordination and detect
 covariate coefficients. The output is returned in the form (*niter* x *numberOfCovariates* x *numberOfSpecies*)
 
 ```{r}
-collCovariatesOutput <- returnDetectionCovariates(fitmodel)
+collCovariatesOutput <- returnCollectionCovariates(fitmodel)
 str(collCovariatesOutput)
 ```
 
