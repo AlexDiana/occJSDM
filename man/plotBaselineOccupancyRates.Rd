@@ -4,12 +4,7 @@
 \alias{plotBaselineOccupancyRates}
 \title{plotBaselineOccupancyRates}
 \usage{
-plotBaselineOccupancyRates(
-  fitModel,
-  idx_species = NULL,
-  confidence = 0.95,
-  sortSpecies = F
-)
+plotBaselineOccupancyRates(fitModel, idx_species = NULL, confidence = 0.95)
 }
 \arguments{
 \item{fitModel}{Output from the function runOccPlus}

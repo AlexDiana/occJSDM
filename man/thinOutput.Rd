@@ -7,14 +7,18 @@
 thinOutput(fitModel, thin = 5)
 }
 \arguments{
-\item{fitModel}{Number of iterations to thin}
+\item{fitModel}{Output from the function runOccPlus}
+
+\item{thin}{Thinning interval; every `thin`-th iteration is kept (default 5)}
 }
 \value{
-A ggplot object
+A fitModel object with the same structure as the input, but with
+the MCMC output in `results_output` thinned
 }
 \description{
 Thins the MCMC output.
 }
 \details{
-Return the same fitModel output but thinned
+Returns the same fitModel object, but with the MCMC iterations in
+`results_output` thinned, keeping only every `thin`-th iteration.
 }

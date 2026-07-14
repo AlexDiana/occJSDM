@@ -8,6 +8,12 @@ plotCumulativeSpeciesDetections(fitModel, K, primer = 0, alpha = 0.95)
 }
 \arguments{
 \item{fitModel}{Output from the function runOccPlus}
+
+\item{K}{Maximum number of technical replicates (PCRs) to consider}
+
+\item{primer}{Index of the primer to use; 0 (default) pools across all primers}
+
+\item{alpha}{Confidence level of the credible interval, default to .95}
 }
 \value{
 A plot with the credible interval of cumulative detections

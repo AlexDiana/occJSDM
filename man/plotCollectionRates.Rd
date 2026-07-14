@@ -22,7 +22,7 @@ Plots the 95% credible interval of the baseline collection rates
 }
 \examples{
 \dontrun{
-plotSpeciesRates(fitModel, idx_species = 1:5)
+plotCollectionRates(fitModel, idx_species = 1:5)
 }
 
 }

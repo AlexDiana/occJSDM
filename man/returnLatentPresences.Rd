@@ -8,12 +8,25 @@ returnLatentPresences(fitModel, idx_species = 1)
 }
 \arguments{
 \item{fitModel}{Output from the function runOccPlus}
+
+\item{idx_species}{Index of the species to compute latent presences for (default 1)}
 }
 \value{
 A matrix
 }
 \description{
 Compute the latent presences
+}
+\details{
+Computes, for a single species, the posterior mean of the latent
+occupancy state `z` and the latent detection state `w` across sites.
+}
+\note{
+As currently written, the function computes `z_mean` and `w_mean`
+but then returns `returnVariancePartitioningMatrix(varPart_output, speciesNames)`,
+where `varPart_output` is not defined anywhere in the function body. This
+looks like a pre-existing bug (likely leftover from a copy-paste) that will
+error at runtime and should be fixed separately.
 }
 \examples{
 \dontrun{

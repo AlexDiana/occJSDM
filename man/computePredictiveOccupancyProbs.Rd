@@ -17,11 +17,11 @@ computePredictiveOccupancyProbs(
 
 \item{X_psi}{Occupancy covariates matrix for the new locations}
 
+\item{X_s}{Spatial/ordination covariates matrix for the new locations}
+
 \item{summarised}{Should the output be return in the form of quantiles? Set to TRUE if the number of sites is very large}
 
 \item{confidence}{If quantiles are returned, the confidence level of the quantiles.}
-
-\item{X_ord}{Ordination covariates matrix for the new locations}
 }
 \value{
 An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
@@ -31,6 +31,13 @@ Computes the quantiles of the predictive occupancy probability
 }
 \details{
 Compute the credible interval of the occupancy probability
+}
+\note{
+The function body currently references an object named `X_ord`
+rather than the `X_s` argument; as written this will error (or silently
+pick up an `X_ord` object from the calling environment) unless an `X_ord`
+variable happens to be in scope. This looks like a pre-existing bug worth
+fixing separately.
 }
 \examples{
 \dontrun{

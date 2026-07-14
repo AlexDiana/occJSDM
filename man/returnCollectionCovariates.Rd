@@ -10,7 +10,8 @@ returnCollectionCovariates(fitModel)
 \item{fitModel}{Output from the function runOccPlus}
 }
 \value{
-A ggplot object
+An array of posterior samples of size
+(iterations x collection covariates x species)
 }
 \description{
 Collection covariate coefficients.

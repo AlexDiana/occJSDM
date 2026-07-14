@@ -15,6 +15,9 @@ A ggplot object
 \description{
 Plot the variance partitioning for each species
 }
+\details{
+Plot the variance partitioning for each species
+}
 \examples{
 \dontrun{
 plotVariancePartitioning(fitModel)

@@ -10,7 +10,8 @@ returnOccupancyCovariates(fitModel)
 \item{fitModel}{Output from the function runOccPlus}
 }
 \value{
-A ggplot object
+An array of posterior samples of size
+(iterations x occupancy covariates x species)
 }
 \description{
 Occupancy covariate coefficients.

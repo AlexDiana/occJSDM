@@ -17,16 +17,18 @@ plotResidualCorrelationMatrix(
 \item{idx_species}{Indexes of the species to be plotted (leave out to plot all the species).}
 
 \item{showSignificance}{Should an X be shown for non significant elements?}
+
+\item{confidence}{Confidence level used to assess significance, default to .95}
 }
 \value{
 A ggplot object
 }
 \description{
-Plot the residual correlation matrix
+Plot the residual correlation matrix after accounting for the covariates
 }
 \details{
 Plots the posterior median of the correlation matrix,
-with nonsignificant correlation marked with an X
+with nonsignificant correlations marked with an X
 }
 \examples{
 \dontrun{
