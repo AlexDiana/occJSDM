@@ -840,9 +840,9 @@ runOccPlus <- function(data,
 
           if(summarisedLatentPresences){
             z_output_mean <- z_output_mean +
-              (1 / (niter) * nchain) * z
+              (1 / (niter * nchain)) * z
             w_output_mean <- w_output_mean +
-              (1 / (niter) * nchain) * w
+              (1 / (niter * nchain)) * w
           } else {
             z_output_chain[,,currentIter] <- z
             w_output_chain[,,currentIter] <- w
