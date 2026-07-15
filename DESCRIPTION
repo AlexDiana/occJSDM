@@ -34,6 +34,9 @@ LazyData: true
 LazyDataCompression: xz
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.3
+Config/testthat/edition: 3
