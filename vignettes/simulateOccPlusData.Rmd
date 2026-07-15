@@ -86,20 +86,20 @@ K <- rep(3, P * N)  # PCR replicates per site-visit-primer combo
 list_datasettings <- list(
   n = n, S = S, g = g, M = M, P = P, K = K,
   ncov_psi = ncov_psi, ncov_theta = ncov_theta
-)
+  )
 
 list_jsdmParams <- list(
   gt = gt, d = d, ds = ds,
   sigma_b = 0.5, sigma_bs = 0.5, sigma_ts = 0.5,
   sigma_h = 1, l_s = 0.3
-)
+  )
 
 list_params <- list(
   p = matrix(runif(P * S, 0.6, 0.95), P, S),   # detection prob given amplicon present
   q = matrix(runif(P * S, 0.01, 0.05), P, S),  # false-positive amplification rate
   theta0 = runif(S, 0.02, 0.1),                # baseline collection prob given absent
   theta_baseline = runif(S, 0.3, 0.7)          # baseline collection prob given present
-)
+  )
 ```
 
 ## Simulating without spatial autocorrelation
@@ -108,7 +108,7 @@ list_params <- list(
 sim_nospat <- simulateOccPlusData(
   list_datasettings, list_params, list_jsdmParams,
   useSpatField = FALSE
-)
+  )
 
 str(sim_nospat$data_list, max.level = 1)
 ```
@@ -129,7 +129,7 @@ added to each species' linear predictor for occupancy.
 sim_spat <- simulateOccPlusData(
   list_datasettings, list_params, list_jsdmParams,
   useSpatField = TRUE
-)
+  )
 
 str(sim_spat$data_list, max.level = 1)
 ```
