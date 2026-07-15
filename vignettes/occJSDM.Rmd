@@ -209,22 +209,65 @@ baselineOccupancyRates <- returnBaselineOccupancyRates(fitmodel)
 str(baselineOccupancyRates)
 ```
 
-### 
+### Residual correlation matrix
 
-### Latent presences
+We can plot the posterior median of the *residual* correlation matrix,
+after accounting for occupancy covariates (positive in red and negative
+in blue). X's mark non-significant correlations.
 
-To understand how occJSDM estimates occupancies as a function of
+```{r}
+plotResidualCorrelationMatrix(fitmodel, idx_species = 1:10)
+```
+
+### Latent presence table to diagnose how occJSDM has estimated occupancies
+
+To gain insight into how `occJSDM` estimates site occupancies for a
+given species, as a function of the observation data and the covariates,
+we generate a `latentPresences` table. The table lists for every
+observation (`Site`, `Sample`, `Primer`, and (inferred) `PCR`), the
+number of reads (`OTU`), the following values: conditional occupancy
+probability (`CondOccProb`), the conditional sample probability
+(`CondSampleProb`), the predictive occupancy probability
+(`PredOccProb`), the collection probability (`CollectionProb`), the
+detection probability (`DetectionProb`), and all the occupancy and
+collection covariates.
+
+- `CondOccProb` and `CondSampleProb`: Conditional occupancy and sample
+  probabilities. Conditional means occupancy per site or sample is
+  estimated by the model using both the site's/sample's environmental,
+  detection, and spatial covariates and the site's/sample's observation
+  data in column `OTU` ('conditional on the actual observations at that
+  site');
+
+- `PredOccProb`: Predictive occupancy probability. Predictive means the
+  species' occupancy at each site is estimated by the model using only
+  using the site's environmental, detection, and spatial covariates. In
+  Ji et al. (2025), we reported predictive occupancies;
+
+- `CollectionProb`: Collection probability is the model's estimate of
+  the probability of collecting the eDNA of the species into a given
+  sample, conditional on the eDNA being at the site. For example, this
+  probability should normally increase with sample water volume;
+
+- `DetectionProb`: Detection probability is the model's estimate of the
+  probability of successfully detecting (i.e. amplifying and sequencing)
+  the eDNA of the species from a given sample, conditional on the eDNA
+  being in the sample. This probability differs by primer;
+
+- `X_psi.n`, `X_theta.n`, and `X/Y_spat`: all the occupancy, collection,
+  and spatial covariates.
 
 ```{r}
 latentPresences <- returnLatentPresences(fitmodel, idx_species = 1)
 View(latentPresences)
 ```
 
-We can display `latentPresences` as a `gt` table with a nested banding
-scheme: the fill colour changes each time we move to a new `Site`, and
-alternates between a light and a dark shade of that colour each time we
-move to a new `Sample` within the site. This makes both the site and
-sample boundaries visually clear across all rows.
+It is helpful to display `latentPresences` as a `gt` table with a nested
+banding scheme: the fill colour changes each time we move to a new
+`Site`, and alternates between a light and a dark shade of that colour
+each time we move to a new `Sample` and new `Primer` within the site.
+This makes the site, sample, and primer boundaries visually clear across
+all rows.
 
 ```{r}
 library(gt)
@@ -253,18 +296,20 @@ latentPresences_banded <- latentPresences |>
   )
 
 tbl <- latentPresences_banded |>
-  dplyr::select(Site, Sample, Primer, OTU, MeanSitePresence,
-                MeanSamplePresence, PredOccProb, CollectionProb, row_color) |>
+  dplyr::select(Site, Sample, Primer, OTU, CondOccProb,
+                CondSampleProb, PredOccProb, CollectionProb, DetectionProb,
+                X_psi.1, X_psi.2, X_theta, X_spat, Y_spat, row_color) |>
   gt() |>
-  fmt_number(columns = c(MeanSitePresence, MeanSamplePresence,
-                         PredOccProb, CollectionProb), decimals = 2) |>
+  fmt_number(columns = c(CondOccProb, CondSampleProb,
+                         PredOccProb, CollectionProb, DetectionProb,
+                         X_psi.1, X_psi.2, X_theta, X_spat, Y_spat), decimals = 2) |>
   cols_hide(row_color) |>
   tab_header(
     title = "Latent presence summary (species 1)",
     subtitle = "Colour: Site | Shade: Sample (coarse) x Primer (fine)"
   ) |>
   tab_options(
-    container.height = px(600),
+    container.height = px(1200),
     container.overflow.y = "scroll"
   ) |>
   tab_source_note(
@@ -283,14 +328,65 @@ for (col in unique(latentPresences_banded$row_color)) {
 }
 
 tbl
+
+# to make a table with a sticky header when scrolling in RStudio's Viewer
+tbl_sticky <- tbl |>
+  tab_options(
+    container.height = px(1200),
+    container.overflow.y = "auto"
+  ) |>
+  opt_css(
+    css = "
+    .gt_table thead {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    "
+  ); tbl_sticky
 ```
 
-### Residual correlation matrix
+In this example from simulated data, Site 31 has 3 sample replicates, 3
+primers, and 2 PCR replicates per primer. The Conditional sample
+probability (`CondSampleProb`) is 100% in the top two samples because of
+the many eDNA detections in the two samples and is 0% in the third
+sample because of the weak detection signal (only 1/6 positive
+detections, which occJSDM deems to be a likely false positive. This is
+despite the sample's low eDNA collection probability of `CollectionProb`
+of 29%, which has the effect of increasing the model's belief that the
+negative detections are false negatives).
 
-We can plot the posterior median of the *residual* correlation matrix,
-after accounting for occupancy covariates (positive in red and negative
-in blue). X's mark non-significant correlations.
+Given the two high sample probabilities, it is no surprise that occJSDM
+estimates a 100% Conditional *occupancy* probability for the site
+(`CondOccProb`). Note that `CondOccProb` has also taken into account the
+site's environmental, collection, and spatial covariates (not shown).
 
-```{r}
-plotResidualCorrelationMatrix(fitmodel, idx_species = 1:10)
-```
+The Predictive occupancy probability (`PredOccProb`), which does not
+consider the site's detection data, is only 70%, which suggests that the
+site's environmental, collection, and/or spatial covariate values (not
+shown) are somewhat dissimilar from other sites where the species has
+been observed with high confidence, as judged by `occJSDM`.
+
+The Collection probabilities per sample are driven by the sample's
+collection covariates, which are fitted using the whole dataset. For
+example, the 0.29 `CollectionProb` value in the third sample could be
+because the sample's water volume was low. The high `DetectionProb`
+values (all $\geq 0.89$) are consistent with the species being easily
+amplified by all three primers (with primer pair 1 having a slightly
+higher efficiency than the other two pairs).
+
+The Latent presence table can be used to gain intuition about occJSDM
+and also to try to diagnose the reasons underlying a given species'
+occupancy estimates.
+
+![](images/latentPresences_example.png)
+
+### References
+
+Ji, Y., Diana, A., Li, X., Matechou, E., Griffin, J. E., Liu, S., Luo,
+M., Wu, C., Bai, R., Yao, C., Yin, T., Dong, F., Wu, F., Wang, K., Yu,
+Z., Chen, X., Jiang, X., Che, J., Yu, D. W., & Popescu, V. D. (2025).
+**High Quality, Granular, Timely, Trustworthy and Efficient Vertebrate
+Species Distribution Data Across a 30,000 km^2^ Protected Area
+Complex**. *Ecology Letters*, *28*(12), e70302.
+<https://doi.org/10.1111/ele.70302>
