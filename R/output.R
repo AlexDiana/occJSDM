@@ -908,7 +908,7 @@ plotResidualCorrelationMatrix <- function(fitModel,
 
 # PREDICTIONS --------
 
-#' computePredictiveOccupancyProbs
+#' predictOccupancyProbs
 #'
 #' Computes the quantiles of the predictive occupancy probability
 #'
@@ -931,14 +931,14 @@ plotResidualCorrelationMatrix <- function(fitModel,
 #'
 #' @examples
 #' \dontrun{
-#' computePredictiveOccupancyProbs(fitModel)
+#' predictOccupancyProbs(fitModel)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-computePredictiveOccupancyProbs <- function(fitModel,
+predictOccupancyProbs <- function(fitModel,
                                             X_psi,
                                             X_s,
                                             summarised = F,
@@ -1039,6 +1039,83 @@ computePredictiveOccupancyProbs <- function(fitModel,
 }
 
 
+# SITE-SAMPLE SUMMARIES ----------
+
+
+#' computePredictiveOccupancyProbs
+#'
+#' Computes the average predictive occupancy probabilities
+#'
+#' @details
+#' Computes the average predictive occupancy probabilities
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
+#'
+#'
+#' @examples
+#' \dontrun{
+#' computePredictiveOccupancyProbs(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#'
+computePredictiveOccupancyProbs <- function(fitModel){
+
+  psi_output <- fitModel$results_output$psi_output
+
+  if(length(dim(psi_output))== 4){
+    psi_mean <- apply(psi_output, c(1,2), mean)
+  } else {
+    psi_mean <- psi_output
+  }
+
+  rownames(psi_mean) <- fitModel$infos$siteNames
+  colnames(psi_mean) <- fitModel$infos$speciesNames
+
+  psi_mean
+
+}
+
+#' computeAverageCollectionProbs
+#'
+#' Computes the average collection probabilities
+#'
+#' @details
+#' Computes the average predictive occupancy probabilities
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return An array of size (samples,species)
+#'
+#'
+#' @examples
+#' \dontrun{
+#' computeAverageCollectionProbs(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#'
+computeAverageCollectionProbs <- function(fitModel){
+
+  theta_output <- fitModel$results_output$theta_output
+
+  if(length(dim(theta_output))== 4){
+    theta_mean <- apply(theta_output, c(1,2), mean)
+  } else {
+    theta_mean <- theta_output
+  }
+
+  # rownames(theta_mean) <- fitModel$infos$siteNames
+  colnames(theta_mean) <- fitModel$infos$speciesNames
+
+  theta_mean
+
+}
+
 #' computeConditionalOccupancyProbs
 #'
 #' Computes the posterior mean of the conditional occupancy probability
@@ -1116,7 +1193,6 @@ computeConditionalSamplePresenceProbs <- function(fitModel){
 
 }
 
-# OTHER ----------
 
 #' returnLatentPresences
 #'
@@ -1150,6 +1226,8 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
 
   z_mean <- computeConditionalOccupancyProbs(fitModel)
   w_mean <- computeConditionalSamplePresenceProbs(fitModel)
+  psi_mean <- computePredictiveOccupancyProbs(fitModel)
+  theta_mean <- computeAverageCollectionProbs(fitModel)
 
   siteNames <- fitModel$infos$siteNames
 
@@ -1161,10 +1239,13 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
 
   df$MeanSitePresence <- z_mean[list_idx$idx_z_k,idx_species]
   df$MeanSamplePresence <- w_mean[list_idx$idx_w_k,idx_species]
+  df$PredOccProb<- psi_mean[list_idx$idx_z_k,idx_species]
+  df$CollectionProb <- theta_mean[list_idx$idx_w_k,idx_species]
 
   df
 }
 
+# OTHER -------
 
 #' returnVariancePartitioning
 #'

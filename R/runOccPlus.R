@@ -155,8 +155,8 @@ runOccPlus <- function(data,
     # spatCovariates = NULL#c("latitude","longitude")
     # traitsMatrix = NULL
     # MCMCparams = list(nchain = 2,
-    #                   nburn = 5000,
-    #                   niter = 5000)
+    #                   nburn = 200,
+    #                   niter = 200)
     # summarisedLatentPresences <- T
     # listPriors = list()
   }
@@ -541,11 +541,15 @@ runOccPlus <- function(data,
     }
 
     if(summarisedLatentPresences){
-      w_output_mean <- matrix(0, N, S)
       z_output_mean <- matrix(0, n, S)
+      w_output_mean <- matrix(0, N, S)
+      psi_output_mean <- matrix(0, n, S)
+      theta_output_mean <- matrix(0, N, S)
     } else {
-      w_output <- array(NA, dim = c(N, S, niter, nchain))
       z_output <- array(NA, dim = c(n, S, niter, nchain))
+      w_output <- array(NA, dim = c(N, S, niter, nchain))
+      psi_output <- array(NA, dim = c(n, S, niter, nchain))
+      theta_output <- array(NA, dim = c(N, S, niter, nchain))
     }
 
   }
@@ -625,6 +629,8 @@ runOccPlus <- function(data,
       if(!summarisedLatentPresences){
         z_output_chain <- array(NA, dim = c(n, S, niter))
         w_output_chain <- array(NA, dim = c(N, S, niter))
+        psi_output_chain <- array(NA, dim = c(n, S, niter))
+        theta_output_chain <- array(NA, dim = c(N, S, niter))
       }
 
     }
@@ -843,9 +849,15 @@ runOccPlus <- function(data,
               (1 / (niter * nchain)) * z
             w_output_mean <- w_output_mean +
               (1 / (niter * nchain)) * w
+            psi_output_mean <- psi_output_mean +
+              (1 / (niter * nchain)) * psi
+            theta_output_mean <- theta_output_mean +
+              (1 / (niter * nchain)) * theta
           } else {
             z_output_chain[,,currentIter] <- z
             w_output_chain[,,currentIter] <- w
+            psi_output_chain[,,currentIter] <- psi
+            theta_output_chain[,,currentIter] <- theta
           }
 
           if(threshold == 0){
@@ -873,6 +885,8 @@ runOccPlus <- function(data,
     if(!summarisedLatentPresences){
       z_output[,,,chain] <- z_output_chain
       w_output[,,,chain] <- w_output_chain
+      psi_output[,,,chain] <- psi_output_chain
+      theta_output[,,,chain] <- theta_output_chain
     }
 
     # save jsdm params
@@ -949,9 +963,13 @@ runOccPlus <- function(data,
   if(summarisedLatentPresences){
     results_output$z_output <- z_output_mean
     results_output$w_output <- w_output_mean
+    results_output$psi_output <- psi_output_mean
+    results_output$theta_output <- theta_output_mean
   } else {
     results_output$z_output <- z_output
     results_output$w_output <- w_output
+    results_output$psi_output <- psi_output
+    results_output$theta_output <- theta_output
   }
 
   minESS <- computeMinESS(results_output)
