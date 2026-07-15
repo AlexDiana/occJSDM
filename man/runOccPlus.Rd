@@ -7,7 +7,7 @@
 runOccPlus(
   data,
   listParams = list(),
-  threshold = 0,
+  threshold = 1,
   occCovariates = c(),
   collCovariates = c(),
   spatCovariates = c(),

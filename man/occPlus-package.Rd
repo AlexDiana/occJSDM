@@ -11,10 +11,5 @@ Package documentation.
 \author{
 \strong{Maintainer}: Alex Diana \email{ad23269@essex.ac.uk}
 
-Authors:
-\itemize{
-  \item Alex Diana \email{ad23269@essex.ac.uk}
-}
-
 }
 \keyword{internal}

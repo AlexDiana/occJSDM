@@ -10,7 +10,7 @@ computeConditionalOccupancyProbs(fitModel)
 \item{fitModel}{Output from the function runOccPlus}
 }
 \value{
-A matrix of size (site X species) with the posterior menan occupancy at
+A matrix of size (site X species) with the posterior mean occupancy at
 each site for each species.
 }
 \description{
