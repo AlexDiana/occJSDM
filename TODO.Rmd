@@ -14,7 +14,16 @@ editor_options:
 
 3.  vignette data to fill in `spatCovariates` and `traitsMatrix`
 
-4.  ability to do model selection for the number of factors `n_factors`
+4.  plotVariancePartitioning(fitModel)
+
+5.  returnLatentPresences(fitModel, idx_species = 1)
+
+6.  plotBaselineOccupancyRates(fitModel, idx_species = 1:20)
+
+7.  predOccProbs \<- computePredictiveOccupancyProbs(fitModel) \# this
+    will take some time
+
+8.  ability to do model selection for the number of factors `n_factors`
     . The following was the original chunk, when occPlus used STAN:
 
 ## Model selection
