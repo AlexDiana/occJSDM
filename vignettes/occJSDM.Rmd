@@ -1,0 +1,234 @@
+---
+title: "occJSDM"
+output: 
+  rmarkdown::html_vignette:
+    fig.width: 7
+    fig.height: 4.5
+    warning: false
+    message: false
+vignette: >
+  %\VignetteIndexEntry{occJSDM}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warnings = FALSE,
+  fig.width = 7,
+  fig.height = 4.5,
+  comment = "#>"
+)
+
+options(warning = -1)
+```
+
+```{r setup, include = FALSE}
+# library(occPlus)
+devtools::load_all() # change to library(occPlus) when package finished
+```
+
+The model can be run using the `runOccPlus` function.
+
+The arguments of the function are:
+
+- data: which we explain below;
+- listParams: a list of the number of ordination factors used for
+  computing occupancy probabilities and of the number of unobserved
+  traits;
+- occCovariates: vectors of covariates predicting occupancy
+  probabilities;
+- collCovariates: vectors of covariates predicting eDNA collection (=
+  detection) probabilities;
+- spatCovariates: vectors of covariates (e.g. X, Y) used to construct a
+  spatial random field capturing residual spatial structure in occupancy
+  that is not explained by occCovariates;
+- traitsMatrix: a matrix of species traits (rows = species, columns =
+  traits) used to explain how species' occupancy responses to
+  occCovariates vary as a function of their traits;
+- MCMCparams: a list specifying the MCMC settings, including nchain
+  (number of chains), nburn (number of burn-in iterations to discard),
+  niter (number of post-burn-in iterations to keep), and nthin (thinning
+  interval, i.e. how many iterations to skip between saved samples).
+
+## Data preparation
+
+The data object is a list of two elements: `info` and `OTU`.
+
+```{r}
+data <- data
+head(data$info)
+```
+
+`data$info` is a data.frame with $N$ rows, where $N$ is the total number
+of samples analyzed and columns:
+
+- `Site`: name (or index) of the site in which this replicate was
+  collected;
+- `Sample`: name (or index) of the sample from which this replicate was
+  analyzed;
+- `Primer`: name (or index) of the primer used in this replicate;
+- `X_psi.n` are the occupancy covariates (e.g. elevation);
+- `X_theta.n` are the eDNA collection covariates (e.g. water volume per
+  sample).
+
+In this dataset, there are $100$ sites and, in the balanced case, $m=3$
+sample replicates per site and $L=3$ primers. [From this data
+structure]{.underline}, [occJSDM can infer that there are $K=2$ PCR
+replicates per sample, so a fully balanced dataset would have had
+$3 \times 3 \times 2 = 1800$ rows (i.e. observations). However, $3$ of
+the $300$ samples (one each at three different sites) are dropped to
+simulate missing observations, leaving $297$ samples and $1{,}782$ total
+replicates. This illustrates that occJSDM can work with unbalanced study
+designs, such as sites with a missing samples.]{.underline}
+
+We can see this imbalance directly by counting the number of rows per
+site: most sites have $18$ rows ($3$ samples $\times$ $3$ primers
+$\times$ $2$ PCR replicates), but the three affected sites have only
+$12$.
+
+```{r}
+data$info |> count(Site)
+```
+
+```{r}
+head(data$OTU)
+```
+
+`data$OTU` is a matrix of dimension $N \times S$, where $N$ is again the
+number of samples (in the same order as `data$info`), and $S$ is the
+number of species. Each element in the matrix is the number of reads of
+the species in that replicate, [which will be converted to
+detection/non-detection (i.e. 1/0)]{.underline}.
+
+## Model fitting
+
+Next, we can run the model by typing (leaving out `spatCovariates` and
+`traitsMatrix` for now)
+
+```{r, eval = FALSE}
+fitmodel  <- runOccPlus(data,
+                        listParams = list(n_factors = 2, 
+                                          gt = 0),
+                        occCovariates = c("X_psi.1", "X_psi.2"),
+                        collCovariates = c("X_theta"),
+                        MCMCparams = list(nchain = 2,
+                                          nburn = 500,
+                                          niter = 500)
+                        );beepr::beep()
+```
+
+The names of the covariates in `occCovariates` and `collCovariates`
+should match the column names in `data$info`.
+
+## Output
+
+There are several outputs we can obtain:
+
+### Covariate coefficients
+
+First, we provide two functions for returning collection and occupancy
+covariate coefficients. The output is returned in the form (*niter* x
+*numberOfCovariates* x *numberOfSpecies*).
+
+```{r}
+collCovariatesOutput <- returnCollectionCovariates(fitmodel)
+str(collCovariatesOutput)
+```
+
+```{r}
+occCovariatesOutput <- returnOccupancyCovariates(fitmodel)
+str(occCovariatesOutput)
+```
+
+We provide two functions for plotting collection and occupancy covariate
+coefficients:
+
+```{r}
+plotCollectionCovariates(fitmodel, idx_species = 1:10, 
+                         covName = "X_theta")
+```
+
+```{r}
+plotOccupancyCovariates(fitmodel, idx_species = 1:10, 
+                        covName = "X_psi.1")
+
+plotOccupancyCovariates(fitmodel, idx_species = 1:10, 
+                        covName = "X_psi.2")
+```
+
+### Collection, Detection, and False-Positive rates
+
+Second, we can plot collection, detection, and false-positive rates for
+Stage 1 (eDNA collection in the field) and Stage 2 (eDNA detection in
+the lab).
+
+```{r Stage 1}
+plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+plotCollectionRates(fitmodel, idx_species = 1:10) # ideally, these are high
+```
+
+```{r Stage 2}
+plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+plotDetectionRates(fitmodel, idx_species = 1:10) # ideally, these are high. 
+```
+
+Note that the Stage 2 detection rates are calculated separately for each
+primer and species, which allows one to determine how well each primer
+amplifies each species.
+
+And false positives rates at the first stage (field stage):
+
+```{r}
+plotStage1FPRates(fitmodel, idx_species = 1:20)
+```
+
+And at the second stage (lab stage):
+
+```{r}
+plotStage2FPRates(fitmodel, idx_species = 1:20)
+```
+
+### Occupancy rates
+
+To compute occupancy probabilities at each site and for each species, we
+use the following function.
+
+```{r, eval = T}
+occProbs <- computeOccupancyProbs(fitmodel)
+str(occProbs)
+```
+
+The output is stored in the form (*iterations* x *sites* x *species*).
+
+### Read intensity
+
+`occPlus` estimates a distribution of reads for true and false
+positives. We can plot the two distributions via:
+
+```{r, fig.width=7, fig.height=4.5, warnings = FALSE}
+plotReadIntensity(fitmodel)
+```
+
+### Covariance matrix
+
+We can plot the posterior median of the residual correlation matrix as
+
+```{r}
+plotCorrelationMatrix(fitmodel)
+```
+
+We can show only the positively and negatively significant elements
+(positive in red and negative in blue)
+
+```{r}
+plotSigElementsCorMatrix(fitmodel)
+```
+
+We note that this is the \textit{residual} covariance matrix,
+\textbf{after} accounting for occupancy covariates but accounting for
+ordination covariates.
