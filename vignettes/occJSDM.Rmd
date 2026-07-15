@@ -40,6 +40,8 @@ The arguments of the function are:
 - listParams: a list of the number of ordination factors used for
   computing occupancy probabilities and of the number of unobserved
   traits;
+- threshold: ≥ this number of reads is counted as a detection (default =
+  1);
 - occCovariates: vectors of covariates predicting occupancy
   probabilities;
 - collCovariates: vectors of covariates predicting eDNA collection (=
@@ -114,6 +116,7 @@ Next, we can run the model by typing (leaving out `spatCovariates` and
 fitmodel  <- runOccPlus(data,
                         listParams = list(n_factors = 2, 
                                           gt = 0),
+                        threshold = 1,
                         occCovariates = c("X_psi.1", "X_psi.2"),
                         collCovariates = c("X_theta"),
                         MCMCparams = list(nchain = 2,
@@ -177,58 +180,40 @@ plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these 
 plotDetectionRates(fitmodel, idx_species = 1:10) # ideally, these are high. 
 ```
 
-Note that the Stage 2 detection rates are calculated separately for each
-primer and species, which allows one to determine how well each primer
+The Stage 2 detection rates are calculated separately for each primer
+and species, which allows one to determine how well each primer
 amplifies each species.
 
-And false positives rates at the first stage (field stage):
+### Occupancy probabilities
+
+To compute *conditional* occupancy probabilities at each site and for
+each species, we use the following function. In occJSDM, the conditional
+occupancy means that the occupancy probability is accounting for both
+the covariates *and* the observed detection data at each site.
 
 ```{r}
-plotStage1FPRates(fitmodel, idx_species = 1:20)
+condOccProbs <- computeConditionalOccupancyProbs(fitmodel)
+str(condOccProbs)
 ```
 
-And at the second stage (lab stage):
+Finally, to allow users to build their own diagnostics, we can return
+baseline occupancy probabilities, which are the the logits of the
+intercepts (i.e. the occupancy of each species when all covariates are
+set to the normalised mean (= 0). The output is returned in the form
+(*numberOfSpecies* X *niter* X *nchain*). Because covariates are set to
+their mean values, there is no site information.
 
 ```{r}
-plotStage2FPRates(fitmodel, idx_species = 1:20)
+baselineOccupancyRates <- returnBaselineOccupancyRates(fitmodel) 
+str(baselineOccupancyRates)
 ```
 
-### Occupancy rates
+### Residual correlation matrix
 
-To compute occupancy probabilities at each site and for each species, we
-use the following function.
-
-```{r, eval = T}
-occProbs <- computeOccupancyProbs(fitmodel)
-str(occProbs)
-```
-
-The output is stored in the form (*iterations* x *sites* x *species*).
-
-### Read intensity
-
-`occPlus` estimates a distribution of reads for true and false
-positives. We can plot the two distributions via:
-
-```{r, fig.width=7, fig.height=4.5, warnings = FALSE}
-plotReadIntensity(fitmodel)
-```
-
-### Covariance matrix
-
-We can plot the posterior median of the residual correlation matrix as
+We can plot the posterior median of the *residual* correlation matrix,
+after accounting for occupancy covariates (positive in red and negative
+in blue). X's mark non-significant correlations.
 
 ```{r}
-plotCorrelationMatrix(fitmodel)
+plotResidualCorrelationMatrix(fitmodel, idx_species = 1:10)
 ```
-
-We can show only the positively and negatively significant elements
-(positive in red and negative in blue)
-
-```{r}
-plotSigElementsCorMatrix(fitmodel)
-```
-
-We note that this is the \textit{residual} covariance matrix,
-\textbf{after} accounting for occupancy covariates but accounting for
-ordination covariates.

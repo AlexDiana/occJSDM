@@ -12,6 +12,12 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+> **Deprecated:** This vignette describes the earlier STAN-based version of
+> the package (e.g. `ordCovariates`, `plotOrdinationCovariates`). It has
+> been superseded by `vignettes/occJSDM.Rmd`, which reflects the current
+> API. Kept here for historical reference only; not built as part of the
+> package.
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
