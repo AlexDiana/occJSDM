@@ -8,3 +8,5 @@ src/*.o
 src/*.so
 data/data_out_env_trait.rdata
 analysis/analysis.R
+data/sampledata_orig.rda
+data/data_todoug_20260714.csv
