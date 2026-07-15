@@ -8,23 +8,41 @@ editor_options:
 
 ## functions to add
 
-1.  ability to deal with NAs in data\$OTU
+**now**
 
-2.  Function to generate dataset
+1.  dataset1 with `spatCovariates` and `traitsMatrix`
 
-3.  vignette data to fill in `spatCovariates` and `traitsMatrix`
+2.  dataset2 from stripped down Ecology Letters dataset, and reproduce
+    all Ecoletts results as a test of the package
 
-4.  plotVariancePartitioning(fitModel)
+3.  `plotVariancePartitioning(fitmodel)` \# species covariances should
+    go on top of the triangle
 
-5.  returnLatentPresences(fitModel, idx_species = 1)
+4.  `predOccProbs <- computePredictiveOccupancyProbs(fitModel)` \# for
+    non-surveyed sites (will take some time)
 
-6.  plotBaselineOccupancyRates(fitModel, idx_species = 1:20)
+5.  `plotVariancePartitioning(fitModel)`
 
-7.  predOccProbs \<- computePredictiveOccupancyProbs(fitModel) \# this
-    will take some time
+6.  `plotBaselineOccupancyRates(fitModel, idx_species = 1:20)`
 
-8.  ability to do model selection for the number of factors `n_factors`
-    . The following was the original chunk, when occPlus used STAN:
+7.  MCMC testthat::test functions
+
+8.  model diagnostics functions from GLGS-eDNA repo
+
+**future versions**
+
+1.  ordination plot and table to generate ordination plots in ggplot2
+    (site factor scores and species loading scores, so that users can
+    generate their own ordinations with ggplot2)
+
+2.  input data validity checker functions
+
+3.  ability to deal with NAs in data\$OTU
+
+4.  JSDM-only option
+
+5.  ability to do model selection for the number of factors `n_factors`
+    . The following is the original chunk, when occPlus used STAN:
 
 ## Model selection
 
