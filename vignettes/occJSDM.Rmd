@@ -246,17 +246,16 @@ collection covariates.
   a more robust measure of occupancy, since they are calculated by
   estimating the impact of the environmental covariates across all
   sites, whereas the conditional probability at a site is sensitive to
-  the detection(s) at that site. Contrasting with predictive with
-  conditional probabilities can be useful for identifying sites where
-  the model deems a species to be present despite weakly positive
-  detection data (due to the site's favourable covariate values) and to
-  be absent despite weakly positive detection data (due to the site's
-  unfavourable covariate values). Note that the model will never judge a
-  species to be absent when there are strongly positive detection data,
-  because the model assumes that field and lab practice were carried out
-  well, so that false positive detections are always weak.]{.underline}
-
-  ### , but Supplementary Information we contrasted with the conditional occupancies to differentiate between ;
+  the detection(s) at that site. Contrasting predictive with conditional
+  probabilities can be useful for identifying sites where the model
+  deems a species to be present despite weakly positive detection data
+  (due to the site's favourable covariate values) and to be absent
+  despite weakly positive detection data (due to the site's unfavourable
+  covariate values) (see Supplementary informmation 12 in Ji et al.
+  2025). Note that the model will never judge a species to be absent
+  when there are strongly positive detection data, because the model
+  assumes that field and lab practice were carried out well, so that
+  false positive detections are assumed to always be weak;]{.underline}
 
 - `CollectionProb`: Collection probability is the model's estimate of
   the probability of collecting the eDNA of the species into a given
