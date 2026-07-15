@@ -1,0 +1,46 @@
+---
+title: "TODO"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## functions to add
+
+1.  ability to deal with NAs in data\$OTU
+
+2.  Function to generate dataset
+
+3.  vignette data to fill in `spatCovariates` and `traitsMatrix`
+
+4.  ability to do model selection for the number of factors `n_factors`
+    . The following was the original chunk, when occPlus used STAN:
+
+## Model selection
+
+Model selection for the different factors $d$ can be done using the
+`loo` package.
+
+```{r, eval = FALSE}
+library(loo)
+
+fitmodel2  <- runOccPlus(data,
+                        listParams = list(n_factors = 3, 
+                                          gt = 0),
+                        occCovariates = c("X_psi.1", "X_psi.2"),
+                        collCovariates = c("X_theta"),
+                        MCMCparams = list(nchain = 2,
+                                          nburn = 500,
+                                          niter = 500)
+                        );beepr::beep()
+
+log_lik1 <- extract_log_lik(fitmodel$vb_fit)
+log_lik2 <- extract_log_lik(fitmodel2$vb_fit)
+
+loo1 <- loo(log_lik1)
+loo1 <- loo(log_lik2)
+
+comparison <- loo_compare(loo1, loo2)
+print(comparison) # The model with elpd_diff equal to 0 is the one to be preferred
+```
