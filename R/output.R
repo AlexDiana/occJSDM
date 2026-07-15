@@ -1229,6 +1229,8 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
   psi_mean <- computePredictiveOccupancyProbs(fitModel)
   theta_mean <- computeAverageCollectionProbs(fitModel)
 
+  p_mean <- apply(fitModel$results_output$p_output, c(1,2), mean)
+
   siteNames <- fitModel$infos$siteNames
 
   df <- fitModel$infos$data_info[,c("Site","Sample","Primer")]
@@ -1241,6 +1243,7 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
   df$CondSampleProb <- w_mean[list_idx$idx_w_k,idx_species]
   df$PredOccProb<- psi_mean[list_idx$idx_z_k,idx_species]
   df$CollectionProb <- theta_mean[list_idx$idx_w_k,idx_species]
+  df$DetectionProb <- p_mean[list_idx$idx_p_k,idx_species]
 
   data_info <- fitModel$infos$data_info
   idx_columns <-  which(!(names(data_info) %in% c("Site", "Sample","Primer")))
