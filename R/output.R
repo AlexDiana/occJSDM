@@ -683,7 +683,8 @@ plotDetectionRates <- function(fitModel,
   data_plot <- data.frame(
     lower = as.vector(data_plot_array[1,,]),
     upper = as.vector(data_plot_array[2,,]),
-    Primer = rep(primerNames, times = dim(data_plot_array)[3]),
+    Primer = factor(rep(primerNames, times = dim(data_plot_array)[3]),
+                    levels = primerNames),
     Species = rep(speciesNames, each = dim(data_plot_array)[2])
   ) %>%
     filter(Species %in% speciesNames[idx_species]) %>%
@@ -694,12 +695,17 @@ plotDetectionRates <- function(fitModel,
 
   plotDetectionRates <- ggplot() +
     geom_errorbar(data = data_plot, aes(x = Species,
-                                        ymin = lower, ymax = upper, color = Primer)) +
+                                        ymin = lower, ymax = upper, color = Primer),
+                  position = position_dodge(width = 0.6)) +
     labs(
       x = "Species",
       y = "p",
       color = "Primer"
     ) +
+    # position_dodge() orders groups by factor level left-to-right, and
+    # coord_flip() inverts that into top-to-bottom; reverse the legend so
+    # it matches the on-screen vertical order of the errorbars
+    guides(color = guide_legend(reverse = TRUE)) +
     theme_bw() + coord_flip()
 
   plotDetectionRates
