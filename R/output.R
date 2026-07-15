@@ -1237,8 +1237,8 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
 
   df$OTU <- fitModel$infos$OTU[,idx_species]
 
-  df$MeanSitePresence <- z_mean[list_idx$idx_z_k,idx_species]
-  df$MeanSamplePresence <- w_mean[list_idx$idx_w_k,idx_species]
+  df$CondOccProb <- z_mean[list_idx$idx_z_k,idx_species]
+  df$CondSampleProb <- w_mean[list_idx$idx_w_k,idx_species]
   df$PredOccProb<- psi_mean[list_idx$idx_z_k,idx_species]
   df$CollectionProb <- theta_mean[list_idx$idx_w_k,idx_species]
 
