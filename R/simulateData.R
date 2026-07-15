@@ -8,6 +8,18 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'
 #' Simulate data
 #'
+#' @param list_datasettings List of data dimension settings (n, S, g, M, P, K,
+#'   ncov_psi, ncov_theta).
+#' @param list_params List of detection/amplification parameters (p, q, theta0,
+#'   theta_baseline).
+#' @param list_jsdmParams List of JSDM parameters (gt, d, ds, sigma_b, sigma_bs,
+#'   sigma_ts, sigma_h, l_s).
+#' @param useSpatField Logical. If `TRUE`, simulated occupancy incorporates a
+#'   spatially autocorrelated random field over the site coordinates `Xs`
+#'   (using `ds` latent spatial factors and length scale `l_s`). If `FALSE`
+#'   (the default), site coordinates are still simulated and returned but do
+#'   not influence occupancy.
+#'
 #' @details
 #' Simulate data
 #'
@@ -19,7 +31,8 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'
 simulateOccPlusData <- function(list_datasettings,
                          list_params,
-                         list_jsdmParams){
+                         list_jsdmParams,
+                         useSpatField = FALSE){
   # read data settings
   {
     n <- list_datasettings$n
@@ -57,7 +70,7 @@ simulateOccPlusData <- function(list_datasettings,
     n, S, ncov_psi,
     g, gt, d, tau = NULL, ds,
     sigma_b, sigma_bs, sigma_ts, sigma_h, l_s,
-    useSpatField = F, usingSplines = F, model = "binary")
+    useSpatField = useSpatField, usingSplines = F, model = "binary")
 
   # data
   {
