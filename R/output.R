@@ -1242,6 +1242,11 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
   df$PredOccProb<- psi_mean[list_idx$idx_z_k,idx_species]
   df$CollectionProb <- theta_mean[list_idx$idx_w_k,idx_species]
 
+  data_info <- fitModel$infos$data_info
+  idx_columns <-  which(!(names(data_info) %in% c("Site", "Sample","Primer")))
+  data_info_covariates <- data_info[,idx_columns]
+
+  df <- cbind(df, data_info_covariates)
   df
 }
 
