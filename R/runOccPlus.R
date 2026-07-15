@@ -36,6 +36,61 @@ process_covariates <- function(data_info, covariates, group_by_col, n_obs,
   return(result)
 }
 
+createDataIdx <- function(n, M, P, K){
+
+  N <- sum(M)
+  N2 <- P * N
+  N3 <- sum(K)
+
+  sumM <- c(0, cumsum(M)[-n])
+  sumP <- c(0, cumsum(rep(P, N))[-N])
+  sumK <- c(0, cumsum(K)[-N2])
+
+  idx_z_w <- rep(NA, N)
+  idx_z_p <- rep(NA, N2)
+  idx_w_p <- rep(NA, N2)
+  idx_z_k <- rep(NA, N3)
+  idx_p_k <- rep(NA, N3)
+  idx_w_k <- rep(NA, N3)
+
+  idx_z <- 1
+  idx_w <- 1
+  idx_p <- 1
+  idx_k <- 1
+
+  for (i in 1:n) {
+    for (m in 1:M[i]) {
+      idx_z_w[idx_w] <- i
+      for (p in 1:P) {
+        idx_z_p[idx_p] <- i
+
+        for (k in 1:K[sumP[sumM[i] + m] + p]) {
+
+          idx_z_k[idx_k] <- idx_z
+          idx_w_k[idx_k] <- idx_w
+          idx_p_k[idx_k] <- p
+
+          idx_k <- idx_k + 1
+        }
+        idx_z_p[idx_p] <- idx_z
+        idx_w_p[idx_p] <- idx_w
+
+        idx_p <- idx_p + 1
+      }
+      idx_w <- idx_w + 1
+    }
+    idx_z <- idx_z + 1
+  }
+
+  list("idx_z_w" = idx_z_w,
+       "idx_z_p" = idx_z_p,
+       "idx_w_p" = idx_w_p,
+       "idx_p_k" = idx_p_k,
+       "idx_w_k" = idx_w_k,
+       "idx_z_k" = idx_z_k)
+
+}
+
 #' runOccPlus
 #'
 #' Run the OccPlus model.
@@ -79,7 +134,7 @@ process_covariates <- function(data_info, covariates, group_by_col, n_obs,
 #'
 runOccPlus <- function(data,
                        listParams = list(),
-                       threshold = 0,
+                       threshold = 1,
                        occCovariates = c(),
                        collCovariates = c(),
                        spatCovariates = c(),
@@ -92,14 +147,13 @@ runOccPlus <- function(data,
                        listPriors = list()){
 
   {
-    # data <- data1
+    # data <- data
     # listParams = list(n_factors = 2)
     # threshold = 1
-    # occCovariates = c("elevation","curvature","dist_to_edge","rainforest_500",
-    #                   "bamboo_500","canopy_cover_500","soil_humidity")
-    # collCovariates = c("type","month","elution_volume")
+    # occCovariates = c("X_psi.EnvCov.1","X_psi.EnvCov.2")
+    # collCovariates = c("X_theta.1","X_theta.2")
     # spatCovariates = NULL#c("latitude","longitude")
-    # traitsMatrix = trait.all
+    # traitsMatrix = NULL
     # MCMCparams = list(nchain = 2,
     #                   nburn = 5000,
     #                   niter = 5000)
@@ -144,14 +198,16 @@ runOccPlus <- function(data,
 
       M <- M_df$M
       names(M) <- M_df$Site
+      siteNames <- M_df$Site
 
       n <- length(M)
+      N <- sum(M)
 
       sumM <- c(0, cumsum(M)[-n])
 
-      siteNames <- unique(data_info$Site)
+      # siteNames <- unique(data_info$Site)
 
-      data_info_sample <- as.numeric(factor(data_info$Sample, levels = unique(data_info$Sample)))
+      # data_info_sample <- as.numeric(factor(data_info$Sample, levels = unique(data_info$Sample)))
 
       }
 
@@ -166,24 +222,14 @@ runOccPlus <- function(data,
         dplyr::summarise(P = n(),
                          .groups = "keep")
 
-      P <- P_df$P
+      P <- P_df$P # this in theory allows for different primer per sample, but in practice later we don't
       names(P) <- P_df$Sample
-
-      # number of observations
-      {
-        P_all <- data_info %>%
-          dplyr::group_by(Site, Sample, Primer) %>%
-          dplyr::slice(1) %>%
-          dplyr::group_by(Site, Sample) %>%
-          dplyr::summarise(P_m = n())
-        P_all <- P_all$P_m
-
-        sumP <- c(0, cumsum(P_all)[-length(P_all)])
-
-      }
+      sumP <- c(0, cumsum(rep(P, N))[-N])
+      maxP <- P[1]
 
       primerNames <- unique(data_info$Primer)
-      # sumP <- c(0, cumsum(L)[-length(L)])
+
+      N2 <- maxP * N
 
     }
 
@@ -195,56 +241,64 @@ runOccPlus <- function(data,
                          dplyr::across(contains("Species"),function(x){sum(x > 0)}),
                          .groups = "keep"
         ) %>%
-        dplyr::ungroup()#%>%
-      # ungroup() %>%
-      # mutate(across(contains("Species"), function(x){sum(x > 0)}))
+        dplyr::ungroup()
 
       K <- data_K$K
+      sumK <- c(0, cumsum(K)[-N2])
 
-      numP <- length(K)
+      N3 <- sum(K)
 
-      sumK <- c(0, cumsum(K)[-numP])
-
-      maxP = max(P)
-
-      idx_z <- rep(1:n, M)
-      idx_k <- as.numeric(as.factor(data_info_sample))
-
-      primerIdx <- as.numeric(as.factor(data_info$Primer))
     }
 
-    y <- OTU
-    speciesNames <- colnames(data$OTU)
+    list_idx <- createDataIdx(n, M, maxP, K)
+    idx_z_w <- list_idx$idx_z_w
+    idx_z_k <- list_idx$idx_z_k
+    idx_w_p <- list_idx$idx_w_p
+    idx_z_p <- list_idx$idx_z_p
 
-    logy1 <- log(OTU + 1)
-  }
+    # read OTU data
+    {
+      y <- OTU
+      S <- ncol(OTU)
 
-  # data infos
-  {
-    n <- length(M)
-    S <- ncol(logy1)
-    N <- sum(M)
-    N2 <- numP
-    N3 <- nrow(logy1)
+      # truncate data
+      if(threshold != 0){
 
-    if(is.null(speciesNames)){
-      speciesNames <- 1:S
+        y[OTU >= threshold] <- 1
+        y[OTU < threshold] <- 0
+
+      }
+
+      # check for nas
+      {
+        y_NA <- is.na(y)
+        mode(y_NA) <- "integer"
+        y_NA[is.na(y_NA)] <- -1
+      }
+
+      speciesNames <- colnames(data$OTU)
+      if(is.null(speciesNames)){
+        speciesNames <- 1:S
+      }
+
     }
+
+    if(nrow(y) != N3) stop("Number of rows in data$OTU different from what obtained from data$info")
 
   }
 
   # create delta
   {
     {
-      M_marker_df <- data_info %>%
-        dplyr::group_by(Site, Sample) %>%
-        dplyr::summarise(M = n(),
-                         .groups = "keep")
-
-      M_marker <- M_marker_df$M
-      # names(M) <- M_df$Site
-
-      sumM_marker <- c(0, cumsum(M_marker)[-N])
+      # M_marker_df <- data_info %>%
+      #   dplyr::group_by(Site, Sample) %>%
+      #   dplyr::summarise(M = n(),
+      #                    .groups = "keep")
+      #
+      # M_marker <- M_marker_df$M
+      # # names(M) <- M_df$Site
+      #
+      # sumM_marker <- c(0, cumsum(M_marker)[-N])
 
     }
 
@@ -314,11 +368,9 @@ runOccPlus <- function(data,
         Tr <- traitsMatrix
         Tr <- Tr[idx_speciesNames,]
         Tr <- as.matrix(Tr)
-        g <- ncol(Tr)
         traitsNames <- colnames(Tr)
       } else {
-        g <- 0
-        Tr <- matrix(NA, S, g)
+        Tr <- matrix(NA, S, 0)
       }
 
     }
@@ -387,6 +439,7 @@ runOccPlus <- function(data,
 
     ncov_psi <- ncol(X_psi)
     ncov_theta <- ncol(X_theta)
+    g <- ncol(Tr)
 
   }
 
@@ -410,13 +463,6 @@ runOccPlus <- function(data,
     }
 
 
-  }
-
-  # check for nas
-  {
-    logy_na <- is.na(logy1)
-    mode(logy_na) <- "integer"
-    logy1[is.na(logy1)] <- -1
   }
 
   # priors
@@ -446,15 +492,6 @@ runOccPlus <- function(data,
 
     b_betatheta[1] <- prior_beta_theta
     B_betatheta[1,1] <- prior_beta_theta_sd
-
-  }
-
-  y <- OTU
-
-  if(threshold != 0){
-
-    y[OTU >= threshold] <- 1
-    y[OTU < threshold] <- 0
 
   }
 
@@ -592,103 +629,33 @@ runOccPlus <- function(data,
 
     # starting values
     {
-      if(threshold == 0){
+      c_imk <- y > 0
 
-        trueStartingPoint <- F
+      w <- matrix(NA, N, S)
 
-        # true starting points
-        if (trueStartingPoint){
-
-          z <- z_true
-          w <- delta
-          theta <- theta_true
-          theta0 <- theta0_true
-          beta_psi <- beta_psi_true
-          beta_ord <- beta_ord_true
-          beta_theta <- beta_theta_true
-          U <- U_true
-          E <- E_true
-          LL <- L_true
-          p <- p_true
-          q <- q_true
-          c_imk <- cimk_true
-          mu1 <- mu1_true
-          sigma1 <- sd1_true
-          mu0 <- mu0_true
-          sigma0 <- sd0_true
-
-        } else {
-
-          c_imk <- y > 0
-
-          w <- matrix(NA, N, S)
-
-          for (s in 1:S) {
-            for (i in 1:n) {
-              for (m in 1:M[i]) {
-                idx_im1 <- sumK[sumP[sumM[i] + m] + 1] + 1
-                idx_im2 <- sumK[sumP[sumM[i] + m] + P[sumM[i] + m]] +
-                  K[sumP[sumM[i] + m] + P[sumM[i] + m]]
-                w[sumM[i] + m,s] <- as.numeric(any(y[idx_im1:idx_im2,s] > 0))
-              }
-            }
-          }
-
-          z <- matrix(NA, n, S)
-
-          for (s in 1:S) {
-            for (i in 1:n) {
-              idx_i1 <- sumM[i] + 1
-              idx_i2 <- sumM[i] + M[i]
-
-              z[i,s] <- as.numeric(any(w[idx_i1:idx_i2, s] > 0))
-            }
-          }
-
-          mu1 <- 7
-          sigma1 <- 3
-          mu0 <- 0
-          sigma0 <- 1
-        }
-
-      } else {
-
-        c_imk <- y > 0
-
-        w <- matrix(NA, N, S)
-
-        for (s in 1:S) {
-          for (i in 1:n) {
-            for (m in 1:M[i]) {
-              idx_im1 <- sumK[sumP[sumM[i] + m] + 1] + 1
-              idx_im2 <- sumK[sumP[sumM[i] + m] + P[sumM[i] + m]] +
-                K[sumP[sumM[i] + m] + P[sumM[i] + m]]
-              w[sumM[i] + m,s] <- as.numeric(any(y[idx_im1:idx_im2,s] > 0))
-            }
+      for (s in 1:S) {
+        for (i in 1:n) {
+          for (m in 1:M[i]) {
+            idx_im1 <- sumK[sumP[sumM[i] + m] + 1] + 1
+            idx_im2 <- sumK[sumP[sumM[i] + m] + P[sumM[i] + m]] +
+              K[sumP[sumM[i] + m] + P[sumM[i] + m]]
+            w[sumM[i] + m,s] <- as.numeric(any(y[idx_im1:idx_im2,s] > 0))
           }
         }
-
-        z <- matrix(NA, n, S)
-
-        for (s in 1:S) {
-          for (i in 1:n) {
-            idx_i1 <- sumM[i] + 1
-            idx_i2 <- sumM[i] + M[i]
-
-            z[i,s] <- as.numeric(any(w[idx_i1:idx_i2, s] > 0))
-          }
-        }
-
       }
 
-      # beta_psi <- matrix(0, ncov_psi, S)
-      beta_theta <- matrix(0, ncov_theta, S)
-      # beta_ord <- matrix(0, ncov_ord, n_factors)
-      # E <- matrix(0, n, n_factors)
-      # As <- matrix(0, n_spatcenters, n_spatfactors)
-      # Bs <- matrix(0, n_spatfactors, S)
-      # LL <- matrix(1, n_factors, S)
+      z <- matrix(NA, n, S)
 
+      for (s in 1:S) {
+        for (i in 1:n) {
+          idx_i1 <- sumM[i] + 1
+          idx_i2 <- sumM[i] + M[i]
+
+          z[i,s] <- as.numeric(any(w[idx_i1:idx_i2, s] > 0))
+        }
+      }
+
+      beta_theta <- matrix(0, ncov_theta, S)
       theta <- computeTheta(X_theta, beta_theta)
 
       p <- matrix(.9, maxP, S)
@@ -754,9 +721,6 @@ runOccPlus <- function(data,
 
       psi <- logistic(list_psiCoef$eta)
 
-      # U <- computeU(X_ord, beta_ord, E)
-      # psi <- computePsi(X_psi, beta_psi, U, LL)
-
     }
 
     for (iter in 1:(nburn + niter * nthin)) {
@@ -821,42 +785,26 @@ runOccPlus <- function(data,
 
       if (threshold > 0) {
 
-        w_all <- w[idx_k,,drop=F]
+        w_all <- w[idx_w_k,,drop=F]
 
         # faster way to assign c_imk to 1 if logy1 > 0 for w_all = 1 and to 2
         # if log1 > 0 when w_all = 0
-        c_imk <- (logy1 > 0) * (2 - (w_all == 1))
+        c_imk <- (y > 0) * (2 - (w_all == 1))
 
       }
 
       # sample theta
-      beta_theta <- sample_betatheta_cpp(w, z, beta_theta, idx_z, X_theta,
+      beta_theta <- sample_betatheta_cpp(w, z, beta_theta, idx_z_w, X_theta,
                                          b_betatheta, B_betatheta)
       theta <- computeTheta(X_theta, beta_theta)
 
       # sample pq
-      list_pq <- sample_pq_cpp(c_imk, w, primerIdx, idx_k, maxP, a_p, b_p, a_q, b_q)
+      list_pq <- sample_pq_cpp(c_imk, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q)
       p <- list_pq$p
       q <- list_pq$q
 
       # sample theta0
-      theta0 <- sample_theta0(z, w, idx_z, a_theta0, b_theta0)
-
-      if(threshold == 0){
-
-        # sample mu1sigma1
-
-        list_mu1sigma1 <- sample_musigma(sigma1,
-                                         logy1, c_imk,
-                                         mu_mu1, sd_mu1,
-                                         a_sigma1, b_sigma1, tpfp = T)
-        mu1 <- list_mu1sigma1$mu1
-        sigma1 <- list_mu1sigma1$sigma1
-
-        # sample sigma0
-        sigma0 <- sample_sigma0(logy1, c_imk, a_sigma0, b_sigma0)
-
-      }
+      theta0 <- sample_theta0(z, w, idx_z_w, a_theta0, b_theta0)
 
       {
 
@@ -1016,14 +964,15 @@ runOccPlus <- function(data,
     "M" = M,
     "n" = n,
     "K" = K,
+    "n_factors" = d,
+    "list_idx" = list_idx,
     "data_info" = data_info,
+    "OTU" = OTU,
     "speciesNames" = speciesNames,
     "primerNames" = primerNames,
     "siteNames" = siteNames,
-    "n_factors" = d,
     "ncov_theta" = ncov_theta,
     "ncov_psi" = ncov_psi,
-    "maxexplogy1" = max(exp(logy1), na.rm = T),
     "Xpsi_standardised" = list_Xpsi_standardised,
     "Xs_standardised" = list_Xs_standardised
 

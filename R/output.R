@@ -309,6 +309,7 @@ plotBaselineOccupancyRates <- function(fitModel,
 
   psi0_output <- returnBaselineOccupancyRates(fitModel)
   S <- fitModel$infos$S
+  speciesNames <- fitModel$infos$speciesNames
 
   if(is.null(idx_species)){
     idx_species <- 1:S
@@ -1047,7 +1048,7 @@ computePredictiveOccupancyProbs <- function(fitModel,
 #'
 #' @param fitModel Output from the function runOccPlus
 #'
-#' @return A matrix of size (site X species) with the posterior menan occupancy at
+#' @return A matrix of size (site X species) with the posterior mean occupancy at
 #' each site for each species.
 #'
 #' @examples
@@ -1063,12 +1064,55 @@ computeConditionalOccupancyProbs <- function(fitModel){
 
   z_output <- fitModel$results_output$z_output
 
-  z_mean <- apply(z_output, c(1,2), mean)
+  if(length(dim(z_output))== 4){
+    z_mean <- apply(z_output, c(1,2), mean)
+  } else {
+    z_mean <- z_output
+  }
 
   rownames(z_mean) <- fitModel$infos$siteNames
   colnames(z_mean) <- fitModel$infos$speciesNames
 
   z_mean
+
+}
+
+
+#' computeConditionalSamplePresenceProbs
+#'
+#' Computes the posterior mean of a sample being occupied
+#'
+#' @details
+#' Computes the posterior mean of a sample being occupied
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return A matrix of size (samples X species) with the posterior mean presence
+#' at each sample for each species.
+#'
+#' @examples
+#' \dontrun{
+#' computeConditionalSamplePresenceProbs(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+computeConditionalSamplePresenceProbs <- function(fitModel){
+
+  w_output <- fitModel$results_output$w_output
+
+  if(length(dim(w_output)) == 4){
+    w_mean <- apply(w_output, c(1,2), mean)
+  } else {
+    w_mean <- w_output
+  }
+
+  # rownames(w_mean) <- fitModel$infos$s
+  colnames(w_mean) <- fitModel$infos$speciesNames
+
+  w_mean
 
 }
 
@@ -1104,21 +1148,21 @@ computeConditionalOccupancyProbs <- function(fitModel){
 #'
 returnLatentPresences <- function(fitModel, idx_species = 1){
 
-  z_output <- fitModel$results_output$z_output
-  w_output <- fitModel$results_output$w_output
+  z_mean <- computeConditionalOccupancyProbs(fitModel)
+  w_mean <- computeConditionalSamplePresenceProbs(fitModel)
 
-  z_ouput_vec <- apply(z_output, c(1,2), c)
-  z_output_species <- z_ouput_vec[,,idx_species]
-  z_mean <- apply(z_output_species, 2, mean)
+  siteNames <- fitModel$infos$siteNames
 
-  w_ouput_vec <- apply(w_output, c(1,2), c)
-  w_output_species <- w_ouput_vec[,,idx_species]
-  w_mean <- apply(w_output_species, 2, mean)
+  df <- fitModel$infos$data_info[,c("Site","Sample","Primer")]
 
-  speciesNames <- fitModel$infos$speciesNames
+  list_idx <- fitModel$infos$list_idx
 
-  returnVariancePartitioningMatrix(varPart_output, speciesNames)
+  df$OTU <- fitModel$infos$OTU[,idx_species]
 
+  df$MeanSitePresence <- z_mean[list_idx$idx_z_k,idx_species]
+  df$MeanSamplePresence <- w_mean[list_idx$idx_w_k,idx_species]
+
+  df
 }
 
 

@@ -93,21 +93,21 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_pq_cpp
-List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w, IntegerVector primerIdx, IntegerVector idx_k, int maxL, double a_p, double b_p, double a_q, double b_q);
-RcppExport SEXP _occPlus_sample_pq_cpp(SEXP c_imkSEXP, SEXP wSEXP, SEXP primerIdxSEXP, SEXP idx_kSEXP, SEXP maxLSEXP, SEXP a_pSEXP, SEXP b_pSEXP, SEXP a_qSEXP, SEXP b_qSEXP) {
+List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w, IntegerVector idx_p_k, IntegerVector idx_w_k, int maxP, double a_p, double b_p, double a_q, double b_q);
+RcppExport SEXP _occPlus_sample_pq_cpp(SEXP c_imkSEXP, SEXP wSEXP, SEXP idx_p_kSEXP, SEXP idx_w_kSEXP, SEXP maxPSEXP, SEXP a_pSEXP, SEXP b_pSEXP, SEXP a_qSEXP, SEXP b_qSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type c_imk(c_imkSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type w(wSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type primerIdx(primerIdxSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type idx_k(idx_kSEXP);
-    Rcpp::traits::input_parameter< int >::type maxL(maxLSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type idx_p_k(idx_p_kSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type idx_w_k(idx_w_kSEXP);
+    Rcpp::traits::input_parameter< int >::type maxP(maxPSEXP);
     Rcpp::traits::input_parameter< double >::type a_p(a_pSEXP);
     Rcpp::traits::input_parameter< double >::type b_p(b_pSEXP);
     Rcpp::traits::input_parameter< double >::type a_q(a_qSEXP);
     Rcpp::traits::input_parameter< double >::type b_q(b_qSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_pq_cpp(c_imk, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q));
+    rcpp_result_gen = Rcpp::wrap(sample_pq_cpp(c_imk, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q));
     return rcpp_result_gen;
 END_RCPP
 }

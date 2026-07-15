@@ -538,20 +538,21 @@ arma::mat sample_betatheta_cpp(const arma::mat& w,
 }
 
 // [[Rcpp::export]]
-List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w, IntegerVector primerIdx,
-                   IntegerVector idx_k, int maxL, double a_p, double b_p,
+List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w,
+                   IntegerVector idx_p_k, IntegerVector idx_w_k,
+                   int maxP, double a_p, double b_p,
                    double a_q, double b_q) {
 
   int S = w.ncol();
-  int n_k = idx_k.size();
+  int n_k = idx_w_k.size();
 
-  NumericMatrix p(maxL, S);
-  NumericMatrix q(maxL, S);
+  NumericMatrix p(maxP, S);
+  NumericMatrix q(maxP, S);
 
   // Main loop through columns (S)
   for (int s = 0; s < S; ++s) {
 
-    for (int l = 0; l < maxL; ++l) {
+    for (int l = 0; l < maxP; ++l) {
 
       int w1_primerl_cases_1 = 0;
       int w1_primerl_cases_0 = 0;
@@ -560,13 +561,13 @@ List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w, IntegerVector primerIdx
 
       for (int i = 0; i < n_k; ++i) {
 
-        int idx_ki = idx_k[i] - 1;
+        int idx_ki = idx_w_k[i] - 1;
 
-        if(primerIdx[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 1){
+        if(idx_p_k[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 1){
           w1_primerl_cases_1 += 1;
-        } else if(primerIdx[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 0){
+        } else if(idx_p_k[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 0){
           w1_primerl_cases_0 += 1;
-        } else if(primerIdx[i] == (l+1) & w(idx_ki, s) == 0 & c_imk(i,s) == 2){
+        } else if(idx_p_k[i] == (l+1) & w(idx_ki, s) == 0 & c_imk(i,s) == 2){
           w0_primerl_cases_1 += 1;
         } else {
           w0_primerl_cases_0 += 1;

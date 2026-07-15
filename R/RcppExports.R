@@ -17,8 +17,8 @@ sample_betatheta_cpp <- function(w, z, beta_theta, idx_z, X_theta, b_betatheta, 
     .Call(`_occPlus_sample_betatheta_cpp`, w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta)
 }
 
-sample_pq_cpp <- function(c_imk, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q) {
-    .Call(`_occPlus_sample_pq_cpp`, c_imk, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q)
+sample_pq_cpp <- function(c_imk, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q) {
+    .Call(`_occPlus_sample_pq_cpp`, c_imk, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q)
 }
 
 rinvgamma_cpp <- function(a, b) {
