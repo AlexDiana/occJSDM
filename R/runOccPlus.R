@@ -256,6 +256,7 @@ runOccPlus <- function(data,
     idx_w_p <- list_idx$idx_w_p
     idx_z_p <- list_idx$idx_z_p
     idx_w_k <- list_idx$idx_w_k
+    idx_p_k <- list_idx$idx_p_k
 
     # read OTU data
     {
