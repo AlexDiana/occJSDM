@@ -11,7 +11,10 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #' @param list_datasettings List of data dimension settings (n, S, g, M, P, K,
 #'   ncov_psi, ncov_theta).
 #' @param list_params List of detection/amplification parameters (p, q, theta0,
-#'   theta_baseline).
+#'   theta_baseline). Optionally also `mu1`, `sigma1`, `mu0`, `sigma0`
+#'   controlling the simulated read-count intensities (see Details); if
+#'   omitted these default to `mu1 = 5`, `sigma1 = 1`, `mu0 = 1.5`,
+#'   `sigma0 = 1`.
 #' @param list_jsdmParams List of JSDM parameters (gt, d, ds, sigma_b, sigma_bs,
 #'   sigma_ts, sigma_h, l_s).
 #' @param useSpatField Logical. If `TRUE`, simulated occupancy incorporates a
@@ -21,7 +24,11 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'   not influence occupancy.
 #'
 #' @details
-#' Simulate data
+#' Simulate data. `data_list$y` contains simulated read counts (matching the
+#' `threshold = 0` mode of `runOccPlus()`), rather than binary detections:
+#' for a true detection, `log(y + 1) ~ Normal(mu1, sigma1)`; for a
+#' false-positive/contamination detection, `log(y + 1) ~ Normal(mu0, sigma0)`;
+#' otherwise `y = 0`. The realised counts are `round(exp(log(y + 1)) - 1)`.
 #'
 #' @return Description of the return value (e.g., a list, data frame, or numeric output).
 #'
@@ -141,28 +148,27 @@ simulateOccPlusData <- function(list_datasettings,
     })
   })
 
-  y <- sapply(1:S, function(s){
-    sapply(1:N3, function(i){
-      if(cimk_true[i,s] == 1){
+  # Read-count model (matches the threshold = 0 mode of runOccPlus()): given
+  # a true detection (cimk_true == 1), log(y + 1) ~ Normal(mu1, sigma1); given
+  # a false-positive/contamination detection (cimk_true == 2),
+  # log(y + 1) ~ Normal(mu0, sigma0). No reads (cimk_true == 0) gives y = 0.
+  mu1_true <- get_param(list_params, "mu1", 5)
+  sigma1_true <- get_param(list_params, "sigma1", 1)
+  mu0_true <- get_param(list_params, "mu0", 1.5)
+  sigma0_true <- get_param(list_params, "sigma0", 1)
 
-        1
+  logy1 <- matrix(0, N3, S)
+  logy1[cimk_true == 1] <- rnorm(sum(cimk_true == 1), mu1_true, sigma1_true)
+  logy1[cimk_true == 2] <- rnorm(sum(cimk_true == 2), mu0_true, sigma0_true)
 
-      } else if (cimk_true[i,s] == 2) {
-
-        1
-
-      } else {
-
-        0
-
-      }
-    })
-  })
+  y <- round(exp(logy1) - 1)
+  y[y < 0] <- 0
 
   speciesNames <- paste0("OTU_", 1:S)
 
   colnames(y) <- speciesNames
   rownames(Tr) <- speciesNames
+  colnames(Tr) <- paste0("Trait_", seq_len(ncol(Tr)))
 
   true_params <- list(
     "beta_theta_true" = beta_theta_true,
@@ -171,7 +177,11 @@ simulateOccPlusData <- function(list_datasettings,
     "w_true" = w,
     "theta_true" = theta_true,
     "p_true" = p_true,
-    "q_true" = q_true
+    "q_true" = q_true,
+    "mu1_true" = mu1_true,
+    "sigma1_true" = sigma1_true,
+    "mu0_true" = mu0_true,
+    "sigma0_true" = sigma0_true
   )
 
   data_list <- list(
@@ -184,5 +194,114 @@ simulateOccPlusData <- function(list_datasettings,
 
   list(true_params = true_params,
        data_list = data_list)
+}
+
+#' toRunOccPlusFormat
+#'
+#' Convert the output of \code{simulateOccPlusData()} into the
+#' \code{info}/\code{OTU} list format expected by \code{runOccPlus()}
+#' (the same shape as \code{sampledata}).
+#'
+#' @param sim Output of \code{simulateOccPlusData()}, i.e. a list with
+#'   elements \code{true_params} and \code{data_list}.
+#' @param n Number of sites (must match \code{list_datasettings$n} used to
+#'   generate \code{sim}).
+#' @param M Integer vector of length \code{n}: number of samples per site
+#'   (must match \code{list_datasettings$M}).
+#' @param P Integer: number of primers per sample (must match
+#'   \code{list_datasettings$P}).
+#' @param K Integer vector of length \code{P * sum(M)}: number of PCR
+#'   replicates per sample/primer combination (must match
+#'   \code{list_datasettings$K}).
+#' @param drop_theta_intercept Logical. \code{simulateOccPlusData()} builds
+#'   \code{X_theta} with an intercept column of 1s in the first position.
+#'   \code{runOccPlus()} adds its own intercept internally via
+#'   \code{process_covariates()}, so by default (\code{TRUE}) that column is
+#'   dropped from the returned \code{info} data.frame.
+#'
+#' @details
+#' \code{simulateOccPlusData()} returns covariates at the site level
+#' (\code{X_psi}) and sample level (\code{X_theta}), while \code{runOccPlus()}
+#' expects a single \code{info} data.frame with one row per PCR replicate and
+#' \code{Site}/\code{Sample}/\code{Primer} id columns. This function expands
+#' \code{X_psi}/\code{X_theta} to the PCR-replicate level (using the same
+#' indexing as \code{createDataIdx()}) and combines them with the id columns
+#' and \code{sim$data_list$y} (renamed to \code{OTU}).
+#'
+#' Note \code{n}, \code{M}, \code{P}, \code{K} are not stored in \code{sim}
+#' itself, so they must be supplied here matching the \code{list_datasettings}
+#' originally passed to \code{simulateOccPlusData()}.
+#'
+#' @return A list with elements \code{info} (data.frame with \code{Site},
+#'   \code{Sample}, \code{Primer} id columns plus expanded \code{X_psi.*},
+#'   \code{X_theta.*}, and \code{Xs.*} covariates, one row per PCR
+#'   replicate), \code{OTU} (the simulated detection matrix, same number of
+#'   rows as \code{info}), \code{spatCovariates} (character vector of the
+#'   \code{Xs.*} column names in \code{info}, ready to pass as the
+#'   \code{spatCovariates} argument of \code{runOccPlus()}), and
+#'   \code{traitsMatrix} (the \code{S} x \code{g} trait matrix
+#'   \code{sim$data_list$Tr}, with row names matching the species names in
+#'   \code{OTU}'s column names, ready to pass as the \code{traitsMatrix}
+#'   argument of \code{runOccPlus()}).
+#'
+#' @export
+toRunOccPlusFormat <- function(sim, n, M, P, K, drop_theta_intercept = TRUE) {
+
+  X_psi <- sim$data_list$X_psi
+  X_theta <- sim$data_list$X_theta
+  Xs <- sim$data_list$Xs
+  Tr <- sim$data_list$Tr
+  y <- sim$data_list$y
+
+  idx <- createDataIdx(n, M, P, K)
+
+  N3 <- length(idx$idx_z_k)
+  if (nrow(y) != N3) {
+    stop("nrow(sim$data_list$y) does not match n/M/P/K -- ",
+         "these must be the same list_datasettings used to create `sim`.")
+  }
+
+  if (drop_theta_intercept) {
+    X_theta <- X_theta[, -1, drop = FALSE]
+  }
+
+  X_psi_rep <- X_psi[idx$idx_z_k, , drop = FALSE]
+  X_theta_rep <- X_theta[idx$idx_w_k, , drop = FALSE]
+  Xs_rep <- Xs[idx$idx_z_k, , drop = FALSE]
+
+  colnames(X_psi_rep) <- if (ncol(X_psi_rep) == 1) {
+    "X_psi"
+  } else {
+    paste0("X_psi.", seq_len(ncol(X_psi_rep)))
+  }
+
+  colnames(X_theta_rep) <- if (ncol(X_theta_rep) == 1) {
+    "X_theta"
+  } else {
+    paste0("X_theta.", seq_len(ncol(X_theta_rep)))
+  }
+
+  colnames(Xs_rep) <- if (ncol(Xs_rep) == 1) {
+    "Xs"
+  } else {
+    paste0("Xs.", seq_len(ncol(Xs_rep)))
+  }
+
+  info <- data.frame(
+    Site = idx$idx_z_k,
+    Sample = idx$idx_w_k,
+    Primer = idx$idx_p_k,
+    X_psi_rep,
+    X_theta_rep,
+    Xs_rep,
+    check.names = FALSE
+  )
+
+  list(
+    info = info,
+    OTU = y,
+    spatCovariates = colnames(Xs_rep),
+    traitsMatrix = Tr
+  )
 }
 

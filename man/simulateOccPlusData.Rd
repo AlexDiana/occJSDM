@@ -16,7 +16,10 @@ simulateOccPlusData(
 ncov_psi, ncov_theta).}
 
 \item{list_params}{List of detection/amplification parameters (p, q, theta0,
-theta_baseline).}
+theta_baseline). Optionally also `mu1`, `sigma1`, `mu0`, `sigma0`
+controlling the simulated read-count intensities (see Details); if
+omitted these default to `mu1 = 5`, `sigma1 = 1`, `mu0 = 1.5`,
+`sigma0 = 1`.}
 
 \item{list_jsdmParams}{List of JSDM parameters (gt, d, ds, sigma_b, sigma_bs,
 sigma_ts, sigma_h, l_s).}
@@ -34,5 +37,9 @@ Description of the return value (e.g., a list, data frame, or numeric output).
 Simulate data
 }
 \details{
-Simulate data
+Simulate data. `data_list$y` contains simulated read counts (matching the
+`threshold = 0` mode of `runOccPlus()`), rather than binary detections:
+for a true detection, `log(y + 1) ~ Normal(mu1, sigma1)`; for a
+false-positive/contamination detection, `log(y + 1) ~ Normal(mu0, sigma0)`;
+otherwise `y = 0`. The realised counts are `round(exp(log(y + 1)) - 1)`.
 }

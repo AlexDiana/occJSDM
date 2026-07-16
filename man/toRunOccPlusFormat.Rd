@@ -31,9 +31,16 @@ dropped from the returned \code{info} data.frame.}
 }
 \value{
 A list with elements \code{info} (data.frame with \code{Site},
-  \code{Sample}, \code{Primer} id columns plus expanded \code{X_psi.*} and
-  \code{X_theta.*} covariates, one row per PCR replicate) and \code{OTU}
-  (the simulated detection matrix, same number of rows as \code{info}).
+  \code{Sample}, \code{Primer} id columns plus expanded \code{X_psi.*},
+  \code{X_theta.*}, and \code{Xs.*} covariates, one row per PCR
+  replicate), \code{OTU} (the simulated detection matrix, same number of
+  rows as \code{info}), \code{spatCovariates} (character vector of the
+  \code{Xs.*} column names in \code{info}, ready to pass as the
+  \code{spatCovariates} argument of \code{runOccPlus()}), and
+  \code{traitsMatrix} (the \code{S} x \code{g} trait matrix
+  \code{sim$data_list$Tr}, with row names matching the species names in
+  \code{OTU}'s column names, ready to pass as the \code{traitsMatrix}
+  argument of \code{runOccPlus()}).
 }
 \description{
 Convert the output of \code{simulateOccPlusData()} into the
