@@ -10,39 +10,65 @@ editor_options:
 
 **now**
 
-1.  dataset1 with `spatCovariates` and `traitsMatrix`
+1.  dataset2 from Ecology Letters dataset, and reproduce all Ecoletts
+    results as a test of the package
 
-2.  dataset2 from stripped down Ecology Letters dataset, and reproduce
-    all Ecoletts results as a test of the package
+2.  [text to explain better the threshold parameter]{.underline}
+
+    1.  [threshold=0]{.underline} (should give an error for \<1)
+
+    2.  [threshold=1: any number of reads ≥ the threshold value value
+        (default = 1) is considered a detection in that
+        observation.]{.underline}
+
+    3.  [threshold\>1]{.underline}
 
 3.  `plotVariancePartitioning(fitmodel)` \# species covariances should
     go on top of the triangle
 
-4.  `predOccProbs <- computePredictiveOccupancyProbs(fitModel)` \# for
-    non-surveyed sites (will take some time)
+4.  default value for gt in listParams()
 
-5.  `plotVariancePartitioning(fitModel)`
+5.  `plotBaselineOccupancyRates(fitmodel, idx_species = 1:10)`
 
-6.  `plotBaselineOccupancyRates(fitModel, idx_species = 1:20)`
+6.  model diagnostics functions from GLGS-eDNA repo
 
-7.  MCMC testthat::test functions
-
-8.  model diagnostics functions from GLGS-eDNA repo
-
-**future versions**
-
-1.  ordination plot and table to generate ordination plots in ggplot2
+7.  ordination plot and table to generate ordination plots in ggplot2
     (site factor scores and species loading scores, so that users can
     generate their own ordinations with ggplot2)
 
-2.  input data validity checker functions
+**Future versions**
 
-3.  ability to deal with NAs in data\$OTU
+1.  Overleaf document for the occJSDM math, which we will add as a
+    markdown vignette
 
-4.  JSDM-only option
+2.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed sites
+    (will take some time)
 
-5.  ability to do model selection for the number of factors `n_factors`
-    . The following is the original chunk, when occPlus used STAN:
+3.  calculate gt automatically from number of species, number of
+    measured traits, and let people know that if they want to change gt,
+    they can
+
+4.  input-data validity checker functions
+
+5.  ability to deal with NAs in data\$OTU
+
+6.  use study design to trigger different models
+
+    1.  m=k=p=1: JSDM only
+
+    2.  m\>1, k=p=1: classical occupancy
+
+    3.  count = TRUE: count data
+
+7.  use spike-in to estimate abundance change (i.e. eDNAPlus)
+
+8.  GAMs
+
+9.  AIC function to compare models
+
+10. ability to do model selection for the number of factors `n_factors`
+    (plus a rule of thumb default). The following is the original chunk,
+    when occPlus used STAN:
 
 ## Model selection
 
