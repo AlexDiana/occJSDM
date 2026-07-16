@@ -70,9 +70,9 @@ spatial field is switched on.
 set.seed(5162)
 
 n <- 100          # sites
-M <- rep(2, n)    # visits per site
-P <- 2            # primers/markers
-S <- 6            # species/OTUs
+M <- rep(3, n)    # visits per site
+P <- 3            # primers/markers
+S <- 10           # species/OTUs
 g <- 3            # observed trait covariates
 gt <- 2           # unobserved (latent) trait dimensions
 d <- 2            # latent factor dimensions (residual co-occurrence)
@@ -81,7 +81,7 @@ ncov_psi <- 2     # environmental covariates for occupancy
 ncov_theta <- 2   # covariates for eDNA collection probability
 
 N <- sum(M)
-K <- rep(3, P * N)  # PCR replicates per site-visit-primer combo
+K <- rep(2, P * N)  # PCR replicates per site-visit-primer combo
 
 list_datasettings <- list(
   n = n, S = S, g = g, M = M, P = P, K = K,
@@ -102,7 +102,33 @@ list_params <- list(
   )
 ```
 
-## Simulating without spatial autocorrelation
+## Simulating a dataset and converting to a format that occJSDM can use
+
+```{r}
+sim <- simulateOccPlusData(
+  list_datasettings, list_params, list_jsdmParams,
+  useSpatField = TRUE
+)
+
+str(sim$data_list, max.level = 1)
+
+data <- toRunOccPlusFormat(
+  sim,
+  n = list_datasettings$n,
+  M = list_datasettings$M,
+  P = list_datasettings$P,
+  K = list_datasettings$K
+)
+
+str(data, max.level = 1)
+head(data$info); dim(data$info); names(data$info) # 3 study design columns, 2 occupancy covariates (X_psi), 1 collection covariate (X_theta), and two spatial covariates (X.s)
+head(data$OTU); dim(data$OTU) # 1800 rows X 10 OTUs
+head(data$traitsMatrix); dim(data$traitsMatrix) # 10 species X 3 traits
+```
+
+## Spatial autocorrelation
+
+### Simulating without spatial autocorrelation
 
 ```{r}
 sim_nospat <- simulateOccPlusData(
@@ -118,7 +144,7 @@ coordinates `Xs` (`n` x `2`), regardless of `useSpatField`. With
 `useSpatField = FALSE`, `Xs` is generated but does not enter the
 occupancy process.
 
-## Simulating with spatial autocorrelation
+### Simulating with spatial autocorrelation
 
 Using the same settings, we now switch on the spatial field. The spatial
 component uses `ds` latent spatial factors and length scale `l_s` to
@@ -134,7 +160,7 @@ sim_spat <- simulateOccPlusData(
 str(sim_spat$data_list, max.level = 1)
 ```
 
-## Checking how much variance is spatial
+### Checking how much variance is spatial
 
 Each simulation's `true_params$jsdmParams_true$varPart` decomposes the
 linear predictor's variance per species into Environmental, Spatial, and
@@ -152,7 +178,7 @@ As expected, the "Spatial" column is (numerically) negligible when
 though it varies considerably across species -- when
 `useSpatField = TRUE`.
 
-## Visualizing simulated occupancy across sites
+### Visualizing simulated occupancy across sites
 
 We can compare the true occupancy states (`z_true`) for a single
 species, plotted at its site coordinates, with and without the spatial

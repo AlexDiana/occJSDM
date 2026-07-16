@@ -30,6 +30,8 @@ options(warning = -1)
 ```{r setup, include = FALSE}
 # library(occPlus)
 devtools::load_all() # change to library(occPlus) when package finished
+# devtools::document() # run manually after editing roxygen comments
+# devtools::check() # run manually before commits/releases, builds package, runs examples/tests/vignettes, checks CRAN-style compliance
 ```
 
 The model can be run using the `runOccPlus` function.
@@ -38,17 +40,17 @@ The arguments of the function are:
 
 - `data`: which we explain below;
 - `listParams`: a list of the number of ordination factors used for
-  computing occupancy probabilities and of the number of unobserved
-  traits;
+  computing occupancy probabilities `n_factors`, and of the number of
+  unobserved traits `gt`;
 - `threshold`: ≥ this number of reads is counted as a detection (default
   = 1);
 - `occCovariates`: vectors of covariates predicting occupancy
   probabilities;
 - `collCovariates`: vectors of covariates predicting eDNA collection (=
   detection) probabilities;
-- `spatCovariates`: vectors of covariates (e.g. X, Y) used to construct
-  a spatial random field capturing residual spatial structure in
-  occupancy that is not explained by occCovariates;
+- `spatCovariates`: vectors of covariates used to construct a spatial
+  random field capturing residual spatial structure in occupancy that is
+  not explained by occCovariates;
 - `traitsMatrix`: a matrix of species traits (rows = species, columns =
   traits) used to explain how species' occupancy responses to
   `occCovariates` vary as a function of their traits;
@@ -60,10 +62,12 @@ The arguments of the function are:
 
 ## Data preparation
 
-The data object is a list of two elements: `info` and `OTU`.
+The included data object is a list of four elements: `info`, `OTU,`
+`spatCovariates`, and `traitsMatrix` and was created in the vignette
+`simulateOccPlusData.Rmd`.
 
 ```{r}
-data <- data
+data <- sampledata #default name 
 head(data$info)
 ```
 
@@ -73,61 +77,110 @@ of samples analyzed and columns:
 - `Site`: name (or index) of the site in which this replicate was
   collected;
 - `Sample`: name (or index) of the sample from which this replicate was
-  analyzed;
+  analyzed. Following usual practice, samples are uniquely numbered
+  across the whole dataset;
 - `Primer`: name (or index) of the primer used in this replicate;
-- `X_psi.n` are the occupancy covariates (e.g. elevation);
+- `X_psi.n` are the occupancy covariates (e.g. elevation, normalised);
 - `X_theta.n` are the eDNA collection covariates (e.g. water volume per
-  sample).
+  sample, normalised).
+- `Xs.n` are the spatial covariates of each sampling site (e.g. easting
+  and northing in a UTM coordinate system, normalised)
 
-In this dataset, there are $100$ sites and, in the balanced case, $m=3$
-sample replicates per site and $L=3$ primers. [From this data
-structure]{.underline}, [occJSDM can infer that there are $K=2$ PCR
+In this dataset, there are $n=100$ sites, $S=10$ species, and, in the
+balanced case, $M=3$ sample replicates per site and $P=3$ primers. From
+this data structure, occJSDM can infer that there are $K=2$ PCR
 replicates per sample, so a fully balanced dataset would have had
-$3 \times 3 \times 2 = 1800$ rows (i.e. observations). However, $3$ of
-the $300$ samples (one each at three different sites) are dropped to
-simulate missing observations, leaving $297$ samples and $1{,}782$ total
-replicates. This illustrates that occJSDM can work with unbalanced study
-designs, such as sites with a missing samples.]{.underline}
+$3 \times 3 \times 2 = 1800$ rows (i.e. observations).
 
-We can see this imbalance directly by counting the number of rows per
-site: most sites have $18$ rows ($3$ samples $\times$ $3$ primers
-$\times$ $2$ PCR replicates), but the three affected sites have only
-$12$.
+However, in this vignette, we want to illustrate that `occJSDM` can work
+with unbalanced study designs, such as sites with a missing samples.
+Thus, we drop $3$ of the $300$ samples (one each at three different
+sites) to simulate missing observations, leaving $297$ samples and
+$1{,}782$ total replicates.
+
+```{r}
+data$info |> count(Site)
+
+set.seed(3947)
+
+samples_by_site <- data$info |>
+  dplyr::distinct(Site, Sample) # samples are uniquely numbered
+
+# One sample dropped at each of 3 distinct sites
+dropped_samples <- samples_by_site |>
+  dplyr::group_by(Site) |>
+  dplyr::slice_sample(n = 1) |> # randomly select a sample from each site
+  dplyr::ungroup() |>
+  dplyr::slice_sample(n = 3) |> # randomly select a row (= a site)
+  dplyr::pull(Sample) # pull out sample numbers
+
+dropped_samples
+
+keep_idx <- !(data$info$Sample %in% dropped_samples)
+
+data$info <- data$info[keep_idx, ]
+data$OTU <- data$OTU[keep_idx, ]
+
+nrow(data$info)
+length(unique(data$info$Sample))
+```
 
 ```{r}
 data$info |> count(Site)
 ```
 
+After checking, sites have $18$ rows ($3$ samples $\times$ $3$ primers
+$\times$ $2$ PCR replicates), but the three affected sites have only
+$12$.
+
 ```{r}
-head(data$OTU)
+head(data$OTU); dim(data$OTU)
 ```
 
-`data$OTU` is a matrix of dimension $N \times S$, where $N$ is again the
-number of samples (in the same order as `data$info`), and $S$ is the
-number of species. Each element in the matrix is the number of reads of
-the species in that replicate, [which will be converted to
-detection/non-detection (i.e. 1/0)]{.underline}.
+`data$OTU` is a matrix of dimensions $N \times S$, where $N$ is again
+the number of samples (in the same order as `data$info`), and $S$ is the
+number of species. Each element in the matrix is the number of amplicon
+reads assigned to that species in that replicate, which `occJSDM`
+converts to detection/non-detection (i.e. 1/0).
+
+```{r}
+head(data$traitsMatrix)
+```
+
+`data$traitsMatrix` is a matrix of dimensions $S \times T$ , where $S$
+is the number of species and $T$ is the number of traits.
+
+```{r}
+head(data$spatCovariates)
+```
+
+Finally, data\$spatCovariates merely names the columns in `data$info`
+that are the spatial covariates: `c("Xs.1", "Xs.2")`. Spatial covariates
+can be entered either way (see below).
 
 ## Model fitting
 
-Next, we can run the model by typing (leaving out `spatCovariates` and
-`traitsMatrix` for now)
+Next, we can run the model:
 
 ```{r, eval = FALSE}
-fitmodel  <- runOccPlus(data,
-                        listParams = list(n_factors = 2, 
-                                          gt = 0),
-                        threshold = 1,
-                        occCovariates = c("X_psi.1", "X_psi.2"),
-                        collCovariates = c("X_theta"),
-                        MCMCparams = list(nchain = 2,
-                                          nburn = 500,
-                                          niter = 500)
-                        );beepr::beep()
+fitmodel <- runOccPlus(data = data,
+                       listParams = list(n_factors = 2, gt = 2),
+                       threshold = 1,
+                       occCovariates = c("X_psi.1", "X_psi.2"),
+                       collCovariates = c("X_theta"),
+                       spatCovariates = data$spatCovariates, 
+                                      # or c("Xs.1", "Xs.2")
+                       traitsMatrix = data$traitsMatrix,
+                       MCMCparams = list(nchain = 2,
+                                         nburn = 500,
+                                         niter = 500)
+                       );beepr::beep()
 ```
 
-The names of the covariates in `occCovariates` and `collCovariates`
-should match the column names in `data$info`.
+The names of the covariates in `occCovariates`, `collCovariates`, and
+`spatCovariates` should match the column names in `data$info`. In this
+run, we have set `nburn` and `niter` to very low values, which accounts
+for the low minimum ESS \~ 40.
 
 ## Output
 
@@ -135,7 +188,7 @@ There are several outputs we can obtain:
 
 ### Covariate coefficients
 
-First, we provide two functions for returning collection and occupancy
+We provide two functions for returning collection and occupancy
 covariate coefficients. The output is returned in the form (*niter* x
 *numberOfCovariates* x *numberOfSpecies*).
 
@@ -167,9 +220,8 @@ plotOccupancyCovariates(fitmodel, idx_species = 1:10,
 
 ### Collection, Detection, and False-Positive rates
 
-Second, we can plot collection, detection, and false-positive rates for
-Stage 1 (eDNA collection in the field) and Stage 2 (eDNA detection in
-the lab).
+We can plot collection, detection, and false-positive rates for Stage 1
+(eDNA collection in the field) and Stage 2 (eDNA detection in the lab).
 
 ```{r Stage 1}
 plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
@@ -185,17 +237,53 @@ The Stage 2 detection rates are calculated separately for each primer
 and species, which allows one to determine how well each primer
 amplifies each species.
 
+### Trait X Env interactions
+
+We can plot trait X env interaction effects.
+
+```{r}
+plotTraitsCoefficients(fitmodel, covName = "X_psi.1")
+plotTraitsCoefficients(fitmodel, covName = "X_psi.2")
+```
+
 ### Occupancy probabilities
 
-To compute *conditional* occupancy probabilities at each site and for
-each species, we use the following function. In occJSDM, the conditional
-occupancy means that the occupancy probability is accounting for both
-the covariates *and* the observed detection data at each site.
+To compute *conditional* occupancy probabilities at each surveyed site
+and for each species, we use `computeConditionalOccupancyProbs()`. In
+occJSDM, the conditional occupancy means that the occupancy probability
+is accounting for both the covariates *and* the observed detection data
+at each site. The output is a matrix of
 
 ```{r}
 condOccProbs <- computeConditionalOccupancyProbs(fitmodel)
 str(condOccProbs)
 ```
+
+To compute predictive occupancy probabilities at each surveyed site and
+for each species, we use `computePredictiveOccupancyProbs()`.
+
+```{r}
+predOccProbs <- computePredictiveOccupancyProbs(fitmodel)
+str(predOccProbs)
+```
+
+Both outputs are $n \times S$ matrices, where $n$ is the number of
+sites, and $S$ is the number of species.
+
+[In Ji et al. (2025), we reported predictive occupancies because they
+are a more robust measure of occupancy, since they are calculated by
+estimating the impact of the environmental covariates across all sites,
+whereas the conditional probability at a site is sensitive to the
+detection(s) at that site. Contrasting predictive with conditional
+probabilities can be useful for identifying sites where the model deems
+a species to be present despite weakly positive detection data (due to
+the site's favourable covariate values) and to be absent despite weakly
+positive detection data (due to the site's unfavourable covariate
+values) (see Supplementary Information 12 in Ji et al. 2025). Note that
+the model will never judge a species to be absent when there are
+strongly positive detection data, because the model assumes that field
+and lab practice were carried out well, so that false positive
+detections are assumed to always be weak.]{.underline}
 
 Finally, to allow users to build their own diagnostics, we can return
 baseline occupancy probabilities, which are the the logits of the
@@ -206,6 +294,7 @@ their mean values, there is no site information.
 
 ```{r}
 baselineOccupancyRates <- returnBaselineOccupancyRates(fitmodel) 
+
 str(baselineOccupancyRates)
 ```
 
@@ -221,11 +310,11 @@ plotResidualCorrelationMatrix(fitmodel, idx_species = 1:10)
 
 ### Latent presence table to diagnose how occJSDM has estimated occupancies
 
-To gain insight into how `occJSDM` estimates site occupancies for a
-given species, as a function of the observation data and the covariates,
-we generate a `latentPresences` table. The table lists for every
-observation (`Site`, `Sample`, `Primer`, and (inferred) `PCR`), the
-number of reads (`OTU`), the following values: conditional occupancy
+To gain insight into how `occJSDM` estimates individual site occupancies
+for a given species, as a function of the observation data and the
+covariates, we generate a `latentPresences` table. The table lists for
+every observation (`Site`, `Sample`, `Primer`, and (inferred) `PCR`),
+the number of reads (`OTU`), the following values: conditional occupancy
 probability (`CondOccProb`), the conditional sample probability
 (`CondSampleProb`), the predictive occupancy probability
 (`PredOccProb`), the collection probability (`CollectionProb`), the
@@ -241,21 +330,8 @@ collection covariates.
 
 - `PredOccProb`: Predictive occupancy probability. Predictive means the
   species' occupancy at each site is estimated by the model using only
-  using the site's environmental, detection, and spatial covariates. [In
-  Ji et al. (2025), we reported predictive occupancies because they are
-  a more robust measure of occupancy, since they are calculated by
-  estimating the impact of the environmental covariates across all
-  sites, whereas the conditional probability at a site is sensitive to
-  the detection(s) at that site. Contrasting predictive with conditional
-  probabilities can be useful for identifying sites where the model
-  deems a species to be present despite weakly positive detection data
-  (due to the site's favourable covariate values) and to be absent
-  despite weakly positive detection data (due to the site's unfavourable
-  covariate values) (see Supplementary informmation 12 in Ji et al.
-  2025). Note that the model will never judge a species to be absent
-  when there are strongly positive detection data, because the model
-  assumes that field and lab practice were carried out well, so that
-  false positive detections are assumed to always be weak;]{.underline}
+  using the site's environmental, detection, and spatial
+  covariates[;]{.underline}
 
 - `CollectionProb`: Collection probability is the model's estimate of
   the probability of collecting the eDNA of the species into a given
@@ -311,11 +387,11 @@ latentPresences_banded <- latentPresences |>
 tbl <- latentPresences_banded |>
   dplyr::select(Site, Sample, Primer, OTU, CondOccProb,
                 CondSampleProb, PredOccProb, CollectionProb, DetectionProb,
-                X_psi.1, X_psi.2, X_theta, X_spat, Y_spat, row_color) |>
+                X_psi.1, X_psi.2, X_theta, Xs.1, Xs.2, row_color) |>
   gt() |>
   fmt_number(columns = c(CondOccProb, CondSampleProb,
                          PredOccProb, CollectionProb, DetectionProb,
-                         X_psi.1, X_psi.2, X_theta, X_spat, Y_spat), decimals = 2) |>
+                         X_psi.1, X_psi.2, X_theta, Xs.1, Xs.2), decimals = 2) |>
   cols_hide(row_color) |>
   tab_header(
     title = "Latent presence summary (species 1)",
@@ -359,11 +435,11 @@ tbl_sticky <- tbl |>
   ); tbl_sticky
 ```
 
-In this example from simulated data, Site 31 has 3 sample replicates, 3
-primers, and 2 PCR replicates per primer. The Conditional sample
-probability (`CondSampleProb`) is 100% in the top two samples because of
-the many eDNA detections in the two samples and is 0% in the third
-sample because of the weak detection signal (only 1/6 positive
+In this example from a previous simulation, Site 31 has 3 sample
+replicates, 3 primers, and 2 PCR replicates per primer. The Conditional
+sample probability (`CondSampleProb`) is 100% in the top two samples
+because of the many eDNA detections in the two samples and is 0% in the
+third sample because of the weak detection signal (only 1/6 positive
 detections, which occJSDM deems to be a likely false positive. This is
 despite the sample's low eDNA collection probability of `CollectionProb`
 of 29%, which has the effect of increasing the model's belief that the
