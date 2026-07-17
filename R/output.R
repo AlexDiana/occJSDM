@@ -906,6 +906,49 @@ plotResidualCorrelationMatrix <- function(fitModel,
 
 }
 
+#' returnResidualCorrelationMatrix
+#'
+#' Return the quantiles of the residual correlation matrix after accounting for the covariates
+#'
+#' @details
+#' Return the quantiles of the residual correlation matrix after accounting for the covariates
+#'
+#' @param fitModel Output from the function runOccPlus
+#' @param confidence Confidence level used to assess significance, default to .95
+#'
+#' @return A ggplot object
+#'
+#' @examples
+#' \dontrun{
+#' returnResidualCorrelationMatrix(fitModel)
+#' }
+#'
+#' @export
+#' @import dplyr
+#'
+returnResidualCorrelationMatrix <- function(fitModel,
+                                            confidence = .95){
+
+  L_output <- fitModel$results_output$jsdm_output$L_output
+  speciesNames <- fitModel$infos$speciesNames
+
+  Sigma_output <- returnCorrelationMatrixOutput(L_output,
+                                                seq_along(speciesNames),
+                                                speciesNames)
+
+  conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+
+  Sigma_quantiles <- apply(Sigma_output, c(2,3),
+                           function(x){quantile(x, probs = conflevels)})
+
+  Sigma_quantiles
+}
+
+
+# ORDINATON OUTPUT -----
+
+
+
 # PREDICTIONS --------
 
 #' predictOccupancyProbs
@@ -1154,7 +1197,6 @@ computeConditionalOccupancyProbs <- function(fitModel){
 
 }
 
-
 #' computeConditionalSamplePresenceProbs
 #'
 #' Computes the posterior mean of a sample being occupied
@@ -1192,7 +1234,6 @@ computeConditionalSamplePresenceProbs <- function(fitModel){
   w_mean
 
 }
-
 
 #' returnLatentPresences
 #'
