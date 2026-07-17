@@ -1239,9 +1239,88 @@ V <- function(eta) {
   apply(logistic(eta), 2, var)
 }
 
-R2 <- function(eta, y) {
+# valid for logistic regression
+pseudo_R2 <- function(eta, y) {
 
+  1 -
 
+}
+
+partition_r2 <- function(y, A, B, C) {
+  # Null model (intercept only)
+  null_ll <- logLik(glm(y ~ 1, family = binomial))
+
+  # Get R² for all subsets
+  r2_0 <- 0
+  r2_A <- 1 - logLik(glm(y ~ A, family = binomial)) / null_ll
+  r2_B <- 1 - logLik(glm(y ~ B, family = binomial)) / null_ll
+  r2_C <- 1 - logLik(glm(y ~ C, family = binomial)) / null_ll
+  r2_AB <- 1 - logLik(glm(y ~ A + B, family = binomial)) / null_ll
+  r2_AC <- 1 - logLik(glm(y ~ A + C, family = binomial)) / null_ll
+  r2_BC <- 1 - logLik(glm(y ~ B + C, family = binomial)) / null_ll
+  r2_ABC <- 1 - logLik(glm(y ~ A + B + C, family = binomial)) / null_ll
+
+  # LMG averaging (average over all 6 possible orders)
+  # A's contribution
+  contrib_A <- (r2_A + (r2_AB - r2_B) + (r2_AC - r2_C) + (r2_ABC - r2_BC)) / 4
+  contrib_B <- (r2_B + (r2_AB - r2_A) + (r2_BC - r2_C) + (r2_ABC - r2_AC)) / 4
+  contrib_C <- (r2_C + (r2_AC - r2_A) + (r2_BC - r2_B) + (r2_ABC - r2_AB)) / 4
+
+  # Convert to percentages (all positive because R² only increases when adding variables)
+  total <- contrib_A + contrib_B + contrib_C
+  return(c(A = contrib_A/total*100,
+           B = contrib_B/total*100,
+           C = contrib_C/total*100))
+}
+
+# Use it
+result <- partition_r2(y, A, B, C)
+print(round(result, 2))
+
+computeVariancePartitioning_R2 <- function(XB, SE, UL){
+
+  S <- ncol(XB)
+
+  # Variances for every subset
+  V0   <- rep(0, S)
+  VE   <- V(XB)
+  VS   <- V(SE)
+  VF   <- V(UL)
+  VES  <- V(XB + SE)
+  VEF  <- V(XB + UL)
+  VSF  <- V(SE + UL)
+  VESF <- V(XB + SE + UL)
+
+  # Shapley contributions
+
+  CE <-
+    (VE - V0 +
+       (VES - VS) +
+       (VEF - VF) +
+       (VESF - VSF)) / 4
+
+  CS <-
+    (VS - V0 +
+       (VES - VE) +
+       (VSF - VF) +
+       (VESF - VEF)) / 4
+
+  CF <-
+    (VF - V0 +
+       (VEF - VE) +
+       (VSF - VS) +
+       (VESF - VES)) / 4
+
+  Total <- CE + CS + CF
+
+  out <- data.frame(
+    Environmental = CE / Total,
+    Spatial = CS / Total,
+    Biotic = CF / Total,
+    Total = Total
+  )
+
+  out
 
 }
 

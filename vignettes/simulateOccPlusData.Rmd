@@ -66,6 +66,8 @@ We use the same dimension, trait, and detection-process settings for
 both datasets, so that the *only* difference between them is whether the
 spatial field is switched on.
 
+COMMENT(increase number of sites and species)
+
 ```{r}
 set.seed(5162)
 
@@ -91,7 +93,7 @@ list_datasettings <- list(
 list_jsdmParams <- list(
   gt = gt, d = d, ds = ds,
   sigma_b = 0.5, sigma_bs = 0.5, sigma_ts = 0.5,
-  sigma_h = 1, l_s = 0.3
+  sigma_h = 1, sigma_s = .5, l_s = 0.3
   )
 
 list_params <- list(

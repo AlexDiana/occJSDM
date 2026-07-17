@@ -180,7 +180,7 @@ fitmodel <- runOccPlus(data = data,
 The names of the covariates in `occCovariates`, `collCovariates`, and
 `spatCovariates` should match the column names in `data$info`. In this
 run, we have set `nburn` and `niter` to very low values, which accounts
-for the low minimum ESS \~ 40.
+for the low minimum ESS \~ 40. COMMENT(Save the fitmodel object and do not run this)
 
 ## Output
 
@@ -218,14 +218,32 @@ plotOccupancyCovariates(fitmodel, idx_species = 1:10,
                         covName = "X_psi.2")
 ```
 
-### Collection, Detection, and False-Positive rates
+We note that if a categorical covariate is used, the design matrix will contain
+the new levels for that categorical covariates and therefore the names will changes. 
+To check the new covariates names, type 
+```{r}
+colnames(fitmodel$X_psi)
+```
+or
+```{r}
+colnames(fitmodel$X_theta)
+```
 
-We can plot collection, detection, and false-positive rates for Stage 1
-(eDNA collection in the field) and Stage 2 (eDNA detection in the lab).
+### Occupancy, Collection, Detection, and False-Positive rates
+
+We can plot occupancy, collection, detection, and false-positive rates for Stage 1
+(eDNA collection in the field) and Stage 2 (eDNA detection in the lab). 
+
+We note that occupancy and collection rates are the occupancy and collection
+probability when fixing each covariate at its mean level.
 
 ```{r Stage 1}
-plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+plotOccupancyRates(fitmodel, idx_species = 1:10) 
+```
+
+```{r Stage 1}
 plotCollectionRates(fitmodel, idx_species = 1:10) # ideally, these are high
+plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
 ```
 
 ```{r Stage 2}
@@ -250,10 +268,9 @@ plotTraitsCoefficients(fitmodel, covName = "X_psi.2")
 
 To compute *conditional* occupancy probabilities at each surveyed site
 and for each species, we use `computeConditionalOccupancyProbs()`. In
-occJSDM, the conditional occupancy means that the occupancy probability
-is accounting for both the covariates *and* the observed detection data
-at each site. The output is a matrix of
-
+occJSDM, the conditional occupancy probability is the occupancy probability
+accounting for both the covariates *and* the observed detection data
+at each site. 
 ```{r}
 condOccProbs <- computeConditionalOccupancyProbs(fitmodel)
 str(condOccProbs)
@@ -268,7 +285,8 @@ str(predOccProbs)
 ```
 
 Both outputs are $n \times S$ matrices, where $n$ is the number of
-sites, and $S$ is the number of species.
+sites, and $S$ is the number of species, and they contain the posterior means of 
+the conditional/predictive occupancy probability.
 
 [In Ji et al. (2025), we reported predictive occupancies because they
 are a more robust measure of occupancy, since they are calculated by
@@ -285,18 +303,6 @@ strongly positive detection data, because the model assumes that field
 and lab practice were carried out well, so that false positive
 detections are assumed to always be weak.]{.underline}
 
-Finally, to allow users to build their own diagnostics, we can return
-baseline occupancy probabilities, which are the the logits of the
-intercepts (i.e. the occupancy of each species when all covariates are
-set to the normalised mean (= 0). The output is returned in the form
-(*numberOfSpecies* X *niter* X *nchain*). Because covariates are set to
-their mean values, there is no site information.
-
-```{r}
-baselineOccupancyRates <- returnBaselineOccupancyRates(fitmodel) 
-
-str(baselineOccupancyRates)
-```
 
 ### Residual correlation matrix
 
@@ -311,7 +317,7 @@ plotResidualCorrelationMatrix(fitmodel, idx_species = 1:10)
 ### Latent presence table to diagnose how occJSDM has estimated occupancies
 
 To gain insight into how `occJSDM` estimates individual site occupancies
-for a given species, as a function of the observation data and the
+for a given species as a function of the observation data and the
 covariates, we generate a `latentPresences` table. The table lists for
 every observation (`Site`, `Sample`, `Primer`, and (inferred) `PCR`),
 the number of reads (`OTU`), the following values: conditional occupancy
@@ -357,6 +363,8 @@ banding scheme: the fill colour changes each time we move to a new
 each time we move to a new `Sample` and new `Primer` within the site.
 This makes the site, sample, and primer boundaries visually clear across
 all rows.
+
+COMMENT(HAve this as an additional output function)
 
 ```{r}
 library(gt)
