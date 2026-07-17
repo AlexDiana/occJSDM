@@ -8,51 +8,64 @@ editor_options:
 
 ## functions to add
 
-**now**
+**0.1.0 Public release**
 
-1.  dataset2 from Ecology Letters dataset, and reproduce all Ecoletts
-    results as a test of the package
+1.  change all `occPlus` to `occJSDM`
 
-2.  [text to explain better the threshold parameter]{.underline}
+2.  add **Detection rates** title to `plotDetectionRates()`
 
-    1.  [threshold=0]{.underline} (should give an error for \<1)
+3.  `computeConditionalOccupancyProbs()` and
+    `computePredictiveOccupancyProbs()`: Mean or median? how to get
+    quantiles?
 
-    2.  [threshold=1: any number of reads ≥ the threshold value value
-        (default = 1) is considered a detection in that
-        observation.]{.underline}
+4.  reproduce all Ecoletts results as a test of the package and decide
+    whether to include in repo
 
-    3.  [threshold\>1]{.underline}
+5.  confirm existence of `nthin` parameter in runOccPlus()
 
-3.  `plotVariancePartitioning(fitmodel)` \# species covariances should
+6.  text to explain better the threshold parameter
+
+    1.  threshold≠0 (0 value should give an error for \<1)
+
+    2.  threshold≥1: any number of reads ≥ the threshold value value
+        (default = 1) is considered a detection in that observation
+
+7.  `plotVariancePartitioning(fitmodel)` \# species covariances should
     go on top of the triangle
 
-4.  default value for gt in listParams()
+8.  default value for gt in listParams()
 
-5.  `plotBaselineOccupancyRates(fitmodel, idx_species = 1:10)`
+9.  `plotBaselineOccupancyRates(fitmodel, idx_species = 1:10)`
 
-6.  model diagnostics functions from GLGS-eDNA repo
+10. model diagnostics functions from GLGS-eDNA repo
 
-7.  ordination plot and table to generate ordination plots in ggplot2
+11. ordination plot and table to generate ordination plots in ggplot2
     (site factor scores and species loading scores, so that users can
     generate their own ordinations with ggplot2)
 
-**Future versions**
+**MEE paper**
 
 1.  Overleaf document for the occJSDM math, which we will add as a
     markdown vignette
 
 2.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed sites
-    (will take some time)
 
-3.  calculate gt automatically from number of species, number of
+3.  GAMs for JSDM
+
+4.  calculate gt automatically from number of species, number of
     measured traits, and let people know that if they want to change gt,
-    they can
+    they can.
 
-4.  input-data validity checker functions
+5.  return species pairwise correlation matrices as matrices, not just
+    as a corrplot, so that users can make our own corrplots and sort
+    species by traits
 
-5.  ability to deal with NAs in data\$OTU
+6.  input-data validity checker functions (e.g. threshold ≤ 0 throws an
+    error)
 
-6.  use study design to trigger different models
+7.  ability to deal with NAs in data\$OTU
+
+8.  use study design to trigger different models
 
     1.  m=k=p=1: JSDM only
 
@@ -60,22 +73,22 @@ editor_options:
 
     3.  count = TRUE: count data
 
-7.  use spike-in to estimate abundance change (i.e. eDNAPlus)
+**Future versions**
 
-8.  GAMs
+1.  source-sink inference (sites where env covariate coeffcients are
+    negative but spatial covariate coefficients are positive)
 
-9.  AIC function to compare models
+2.  use spike-in to estimate abundance change (i.e. eDNAPlus)
 
-10. ability to do model selection for the number of factors `n_factors`
-    (plus a rule of thumb default). The following is the original chunk,
-    when occPlus used STAN:
+3.  model selection of environmental, spatial covariates via AIC etc.
 
-## Model selection
+4.  model selection of environmental, spatial covariates via
+    regularisation
 
-Model selection for the different factors $d$ can be done using the
-`loo` package.
+5.  model selection of `n_factors` (plus a rule of thumb default). The
+    following is the original chunk for when occPlus used STAN:
 
-```{r, eval = FALSE}
+```{r Model selection, eval = FALSE}
 library(loo)
 
 fitmodel2  <- runOccPlus(data,
@@ -97,3 +110,4 @@ loo1 <- loo(log_lik2)
 comparison <- loo_compare(loo1, loo2)
 print(comparison) # The model with elpd_diff equal to 0 is the one to be preferred
 ```
+
