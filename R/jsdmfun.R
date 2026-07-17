@@ -1468,14 +1468,14 @@ plotVarPart <- function(varPart_output, speciesNames){
   vp <- returnVariancePartitioningMatrix(varPart_output, speciesNames)
 
   ggtern(vp,
-         aes(x = Spatial,
-             y = Env,
-             z = Biotic)) +
+         aes(x = Env,
+             y = Biotic,
+             z = Spatial)) +
     geom_point(alpha = 0.7) +
     labs(
-      T = "Environment",
-      L = "Spatial",
-      R = "Biotic"
+      L = "Environment",
+      T = "Biotic",
+      R = "Spatial"
     ) +
     theme_bw() +
     theme_showarrows() +

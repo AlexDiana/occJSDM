@@ -910,10 +910,10 @@ plotResidualCorrelationMatrix <- function(fitModel,
 
 #' predictOccupancyProbs
 #'
-#' Computes the quantiles of the predictive occupancy probability
+#' Computes the quantiles of the predictive occupancy probability at new sites
 #'
 #' @details
-#' Compute the credible interval of the occupancy probability
+#' Compute the credible interval of the occupancy probability at new sites
 #'
 #' @param fitModel Output from the function runOccPlus
 #' @param X_psi Occupancy covariates matrix for the new locations
@@ -1044,7 +1044,7 @@ predictOccupancyProbs <- function(fitModel,
 
 #' computePredictiveOccupancyProbs
 #'
-#' Computes the average predictive occupancy probabilities
+#' Computes the average predictive occupancy probabilities at the existing site
 #'
 #' @details
 #' Computes the average predictive occupancy probabilities
