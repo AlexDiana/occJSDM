@@ -54,12 +54,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_w_cim_cipp
-NumericMatrix sample_w_cim_cipp(const NumericMatrix& y, const NumericMatrix& theta, const NumericVector& theta0, const NumericMatrix& p, const NumericMatrix& q, const IntegerVector& M, const IntegerVector& K, const IntegerVector& sumL, const IntegerVector& sumM, const IntegerVector& sumK, int maxL, const NumericMatrix& z);
-RcppExport SEXP _occPlus_sample_w_cim_cipp(SEXP ySEXP, SEXP thetaSEXP, SEXP theta0SEXP, SEXP pSEXP, SEXP qSEXP, SEXP MSEXP, SEXP KSEXP, SEXP sumLSEXP, SEXP sumMSEXP, SEXP sumKSEXP, SEXP maxLSEXP, SEXP zSEXP) {
+NumericMatrix sample_w_cim_cipp(const NumericMatrix& y, const NumericMatrix& y_NA, const NumericMatrix& theta, const NumericVector& theta0, const NumericMatrix& p, const NumericMatrix& q, const IntegerVector& M, const IntegerVector& K, const IntegerVector& sumL, const IntegerVector& sumM, const IntegerVector& sumK, int maxL, const NumericMatrix& z);
+RcppExport SEXP _occPlus_sample_w_cim_cipp(SEXP ySEXP, SEXP y_NASEXP, SEXP thetaSEXP, SEXP theta0SEXP, SEXP pSEXP, SEXP qSEXP, SEXP MSEXP, SEXP KSEXP, SEXP sumLSEXP, SEXP sumMSEXP, SEXP sumKSEXP, SEXP maxLSEXP, SEXP zSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type y_NA(y_NASEXP);
     Rcpp::traits::input_parameter< const NumericMatrix& >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< const NumericVector& >::type theta0(theta0SEXP);
     Rcpp::traits::input_parameter< const NumericMatrix& >::type p(pSEXP);
@@ -71,7 +72,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const IntegerVector& >::type sumK(sumKSEXP);
     Rcpp::traits::input_parameter< int >::type maxL(maxLSEXP);
     Rcpp::traits::input_parameter< const NumericMatrix& >::type z(zSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_w_cim_cipp(y, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z));
+    rcpp_result_gen = Rcpp::wrap(sample_w_cim_cipp(y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -93,12 +94,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_pq_cpp
-List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w, IntegerVector idx_p_k, IntegerVector idx_w_k, int maxP, double a_p, double b_p, double a_q, double b_q);
-RcppExport SEXP _occPlus_sample_pq_cpp(SEXP c_imkSEXP, SEXP wSEXP, SEXP idx_p_kSEXP, SEXP idx_w_kSEXP, SEXP maxPSEXP, SEXP a_pSEXP, SEXP b_pSEXP, SEXP a_qSEXP, SEXP b_qSEXP) {
+List sample_pq_cpp(NumericMatrix& c_imk, IntegerMatrix& y_NA, NumericMatrix w, IntegerVector idx_p_k, IntegerVector idx_w_k, int maxP, double a_p, double b_p, double a_q, double b_q);
+RcppExport SEXP _occPlus_sample_pq_cpp(SEXP c_imkSEXP, SEXP y_NASEXP, SEXP wSEXP, SEXP idx_p_kSEXP, SEXP idx_w_kSEXP, SEXP maxPSEXP, SEXP a_pSEXP, SEXP b_pSEXP, SEXP a_qSEXP, SEXP b_qSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type c_imk(c_imkSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type c_imk(c_imkSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix& >::type y_NA(y_NASEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type w(wSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type idx_p_k(idx_p_kSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type idx_w_k(idx_w_kSEXP);
@@ -107,7 +109,52 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type b_p(b_pSEXP);
     Rcpp::traits::input_parameter< double >::type a_q(a_qSEXP);
     Rcpp::traits::input_parameter< double >::type b_q(b_qSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_pq_cpp(c_imk, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q));
+    rcpp_result_gen = Rcpp::wrap(sample_pq_cpp(c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q));
+    return rcpp_result_gen;
+END_RCPP
+}
+// computeModelLoglikJSDM_cpp
+NumericVector computeModelLoglikJSDM_cpp(NumericMatrix z, NumericMatrix eta, String model, Nullable<NumericVector> tau);
+RcppExport SEXP _occPlus_computeModelLoglikJSDM_cpp(SEXP zSEXP, SEXP etaSEXP, SEXP modelSEXP, SEXP tauSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type z(zSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type eta(etaSEXP);
+    Rcpp::traits::input_parameter< String >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type tau(tauSEXP);
+    rcpp_result_gen = Rcpp::wrap(computeModelLoglikJSDM_cpp(z, eta, model, tau));
+    return rcpp_result_gen;
+END_RCPP
+}
+// computeModelLoglikFirstStage_cpp
+NumericVector computeModelLoglikFirstStage_cpp(NumericMatrix w, NumericMatrix z, NumericMatrix theta, NumericVector theta0, IntegerVector idx_z_w);
+RcppExport SEXP _occPlus_computeModelLoglikFirstStage_cpp(SEXP wSEXP, SEXP zSEXP, SEXP thetaSEXP, SEXP theta0SEXP, SEXP idx_z_wSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type w(wSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type z(zSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta0(theta0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type idx_z_w(idx_z_wSEXP);
+    rcpp_result_gen = Rcpp::wrap(computeModelLoglikFirstStage_cpp(w, z, theta, theta0, idx_z_w));
+    return rcpp_result_gen;
+END_RCPP
+}
+// computeModelLoglikSecondStage_cpp
+NumericVector computeModelLoglikSecondStage_cpp(NumericMatrix y, NumericMatrix w, NumericMatrix p, NumericMatrix q, IntegerVector idx_w_k, IntegerVector idx_p_k);
+RcppExport SEXP _occPlus_computeModelLoglikSecondStage_cpp(SEXP ySEXP, SEXP wSEXP, SEXP pSEXP, SEXP qSEXP, SEXP idx_w_kSEXP, SEXP idx_p_kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type w(wSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type p(pSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type q(qSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type idx_w_k(idx_w_kSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type idx_p_k(idx_p_kSEXP);
+    rcpp_result_gen = Rcpp::wrap(computeModelLoglikSecondStage_cpp(y, w, p, q, idx_w_k, idx_p_k));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -380,9 +427,12 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_occPlus_sample_z_cpp", (DL_FUNC) &_occPlus_sample_z_cpp, 6},
     {"_occPlus_sample_w_cpp", (DL_FUNC) &_occPlus_sample_w_cpp, 16},
-    {"_occPlus_sample_w_cim_cipp", (DL_FUNC) &_occPlus_sample_w_cim_cipp, 12},
+    {"_occPlus_sample_w_cim_cipp", (DL_FUNC) &_occPlus_sample_w_cim_cipp, 13},
     {"_occPlus_sample_betatheta_cpp", (DL_FUNC) &_occPlus_sample_betatheta_cpp, 7},
-    {"_occPlus_sample_pq_cpp", (DL_FUNC) &_occPlus_sample_pq_cpp, 9},
+    {"_occPlus_sample_pq_cpp", (DL_FUNC) &_occPlus_sample_pq_cpp, 10},
+    {"_occPlus_computeModelLoglikJSDM_cpp", (DL_FUNC) &_occPlus_computeModelLoglikJSDM_cpp, 4},
+    {"_occPlus_computeModelLoglikFirstStage_cpp", (DL_FUNC) &_occPlus_computeModelLoglikFirstStage_cpp, 5},
+    {"_occPlus_computeModelLoglikSecondStage_cpp", (DL_FUNC) &_occPlus_computeModelLoglikSecondStage_cpp, 6},
     {"_occPlus_rinvgamma_cpp", (DL_FUNC) &_occPlus_rinvgamma_cpp, 2},
     {"_occPlus_isPointInBandRight", (DL_FUNC) &_occPlus_isPointInBandRight, 5},
     {"_occPlus_isPointInBandLeft", (DL_FUNC) &_occPlus_isPointInBandLeft, 5},

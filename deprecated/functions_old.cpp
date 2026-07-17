@@ -1,4 +1,4 @@
-#include <RcppArmadillo.h>
+#include <RcppArmadilloExtensions/sample.h>
 #include <random>
 #ifdef _OPENMP
 #include <omp.h>
@@ -48,7 +48,7 @@ const double TRUNC_RECIP = 1.0 / .64;
 
 // old code
 
-static double aterm(int n, double x, double t) {
+double aterm(int n, double x, double t) {
   double f = 0;
   if(x <= t) {
     f = MATH_LOG_PI + (double)std::log(n + 0.5) + 1.5*(MATH_LOG_2_PI- (double)std::log(x)) - 2*(n + 0.5)*(n + 0.5)/x;
@@ -59,12 +59,12 @@ static double aterm(int n, double x, double t) {
   return (double)exp(f);
 }
 
-static double exprnd(double mu) {
+double exprnd(double mu) {
   // return -mu * (double)std::log(1.0 - (double)R::runif(0.0,1.0));
   return -mu * (double)std::log(1.0 - (double)runif());
 }
 
-static double truncgamma() {
+double truncgamma() {
   double c = MATH_PI_2;
   double X, gX;
 
@@ -83,7 +83,7 @@ static double truncgamma() {
   return X;
 }
 
-static double randinvg(double mu) {
+double randinvg(double mu) {
   // sampling
   double u = R::rnorm(0.0,1.0);
   double V = u*u;
@@ -96,7 +96,7 @@ static double randinvg(double mu) {
   return out;
 }
 
-static double tinvgauss(double z, double t) {
+double tinvgauss(double z, double t) {
   double X, u;
   double mu = 1.0/z;
 
@@ -124,7 +124,7 @@ static double tinvgauss(double z, double t) {
   return X;
 }
 
-static double samplepg(double z) {
+double samplepg(double z) {
   //  PG(b, z) = 0.25 * J*(b, z/2)
   z = (double)std::fabs((double)z) * 0.5;
 
@@ -192,7 +192,9 @@ static double samplepg(double z) {
   return X;
 }
 
-static double rpg(int n, double z){
+// [[Rcpp::export]]
+
+double rpg(int n, double z){
 
   double x = 0;
   for(int i = 0; i < n; i++){
@@ -206,6 +208,7 @@ static double rpg(int n, double z){
 double rinvgamma_cpp(double a, double b){
   return 1 / R::rgamma(a, 1 / b);
 }
+
 
 // [[Rcpp::export]]
 bool isPointInBandRight(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j){
@@ -409,13 +412,20 @@ arma::mat samplePGvariables(arma::mat &Xbeta){
   return(Omega_mat);
 }
 
-static arma::vec mvrnormArmaQuick(arma::vec mu, arma::mat cholsigma) {
+arma::vec mvrnormArma(arma::vec mu, arma::mat sigma) {
+  int ncols = sigma.n_cols;
+  arma::vec Y = arma::randn(ncols);
+  return mu + arma::chol(sigma) * Y;
+}
+
+arma::vec mvrnormArmaQuick(arma::vec mu, arma::mat cholsigma) {
   int ncols = cholsigma.n_cols;
   arma::vec Y = arma::randn(ncols);
   return mu + cholsigma * Y;
 }
 
-static arma::mat diagMatrixProd(arma::mat& X, arma::vec& D){
+// [[Rcpp::export]]
+arma::mat diagMatrixProd(arma::mat& X, arma::vec& D){
 
   arma::mat result(X.n_rows, D.size());
   for(int i = 0; i < result.n_rows; i++){
@@ -427,8 +437,440 @@ static arma::mat diagMatrixProd(arma::mat& X, arma::vec& D){
   return(result);
 }
 
+// [[Rcpp::export]]
+arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b,
+                          arma::vec& Omega, arma::vec& k){
+
+  // arma::mat cov_matrix = arma::inv(arma::trans(X) * Omega * X + arma::inv(B));
+  arma::mat tX = arma::trans(X);
+  arma::mat tXOmega = diagMatrixProd(tX, Omega);
+  // arma::mat cov_matrix = arma::inv(tXOmega * X + arma::inv(B));
+  // arma::vec result = mvrnormArma(cov_matrix * (arma::trans(X) * k + arma::inv(B) * b), cov_matrix);
+
+  arma::mat L = arma::trans(arma::chol(tXOmega * X + arma::inv(B)));
+  arma::vec tmp = arma::solve(arma::trimatl(L), tX * k + arma::inv(B) * b);
+  arma::vec alpha = arma::solve(arma::trimatu(arma::trans(L)),tmp);
+
+  arma::vec result = mvrnormArmaQuick(alpha, arma::trans(arma::inv(arma::trimatl(L))));
+
+  return(result);
+}
+
+// [[Rcpp::export]]
+arma::vec sample_Omega_cpp(arma::mat& X, arma::vec& beta, arma::vec& n){
+
+  int nsize = n.size();
+  arma::vec Omega_vec(nsize);
+
+  for(int i = 0; i < nsize; i++){
+
+    arma::vec b = X.row(i) * beta;
+    Omega_vec[i] = rpg(n[i], b[0]);
+
+  }
+
+  return(Omega_vec);
+}
+
+// [[Rcpp::export]]
+arma::vec sample_beta_nocov_cpp(arma::vec beta, arma::mat& X, arma::vec b,
+                                arma::mat B, arma::vec n, arma::vec k){
+
+  arma::vec Omega = sample_Omega_cpp(X, beta, n);
+
+  beta = sample_beta_cpp(X, B, b, Omega, k);
+
+  return(beta);
+}
+
+double log_L_gamma_cpp(arma::vec gamma, arma::mat X, arma::vec indexes_covariates,
+                       arma::vec b, arma::mat B, arma::vec Omega, arma::vec k){
+
+
+  IntegerVector index_present(indexes_covariates.size());
+  int l = 0;
+  for(int i = 0; i < indexes_covariates.size(); i++){
+    if(gamma[indexes_covariates[i]-1] == 1){
+      index_present[l] = i;
+      l += 1;
+    }
+  }
+
+  arma::mat X_gamma(X.n_rows, l);
+  arma::vec b_gamma(l);
+  arma::mat B_gamma(l, l);
+
+  for(int i = 0; i < l; i++){
+    X_gamma.col(i) = X.col(index_present[i]);
+    b_gamma[i] = b[index_present[i]];
+    for(int j = 0; j < l; j++){
+      B_gamma(i,j) = B(index_present[i], index_present[j]);
+    }
+  }
+
+  arma::mat tX = arma::trans(X_gamma);
+  arma::mat tXOmega = diagMatrixProd(tX, Omega);
+  arma::mat cholXgOmX = arma::chol(tXOmega * X_gamma + arma::inv(B_gamma));
+
+  double firstTerm = (.5) * log(det(arma::inv(B_gamma))) - log(det(cholXgOmX));
+
+  arma::mat tXKbplusBb = arma::trans(X_gamma) * k + arma::inv(B_gamma) * b_gamma;
+
+  arma::vec v = solve(arma::trimatl(arma::trans(cholXgOmX)),tXKbplusBb);
+  arma::mat vtv = arma::trans(v) * v;
+
+  arma::mat secondTerm = - .5 * ( (arma::trans(b_gamma) * arma::inv(B_gamma) * b_gamma) - vtv);
+
+  // double firstTerm = (.5) * log(det(arma::inv(B_gamma))) -
+  //   (.5) * log(det(arma::trans(X_gamma) * Omega * X_gamma + arma::inv(B_gamma)));
+
+  // arma::mat tXKbplusBb = arma::trans(X_gamma) * k + arma::inv(B_gamma) * b_gamma;
+
+  // arma::mat secondTerm = - .5 * ( (arma::trans(b_gamma) * arma::inv(B_gamma) * b_gamma) -
+  //     arma::trans(tXKbplusBb) * arma::inv(arma::trans(X_gamma) * Omega * X_gamma +
+  //     arma::inv(B_gamma)) * tXKbplusBb);
+
+  return(firstTerm + secondTerm(0,0));
+}
+
+
+// [[Rcpp::export]]
+NumericMatrix sample_z_cpp(const NumericMatrix& w,
+                           const NumericMatrix& psi,
+                           const NumericMatrix& theta,
+                           const NumericVector& theta0,
+                           const IntegerVector& M,
+                           const IntegerVector& sumM) {
+
+  int S = psi.ncol();
+  int n = psi.nrow();
+  NumericMatrix z(n, S);
+
+  for (int s = 0; s < S; s++) {
+    for (int i = 0; i < n; i++) {
+
+      // compute p_zsequal1
+      double log_p1 = 0.0;
+      for (int m = 0; m < M[i]; m++) {
+        int idx = sumM[i] + m;
+        log_p1 += R::dbinom(w(idx, s), 1.0, theta(idx, s), true);
+      }
+      log_p1 += R::dbinom(1.0, 1.0, psi(i, s), true);
+
+      // compute p_zsequal0
+      double log_p0 = 0.0;
+      for (int m = 0; m < M[i]; m++) {
+        int idx = sumM[i] + m;
+        log_p0 += R::dbinom(w(idx, s), 1.0, theta0[s], true);
+      }
+      log_p0 += R::dbinom(0.0, 1.0, psi(i, s), true);
+
+      // probability
+      double maxlog = std::max(log_p1, log_p0);
+      double p1 = std::exp(log_p1 - maxlog);
+      double p0 = std::exp(log_p0 - maxlog);
+      double p_1 = p1 / (p1 + p0);
+
+      // sample z[i, s]
+      z(i, s) = R::rbinom(1.0, p_1);
+    }
+  }
+  return z;
+}
+
+// [[Rcpp::export]]
+NumericMatrix sample_w_cpp(const NumericMatrix& logy1,
+                           double mu0, double sigma0,
+                           double mu1, double sigma1,
+                           const NumericMatrix& theta,
+                           const NumericVector& theta0,
+                           const NumericMatrix& p,
+                           const NumericMatrix& q,
+                           const IntegerVector& M,
+                           const IntegerVector& K,
+                           const IntegerVector& sumL,
+                           const IntegerVector& sumM,
+                           const IntegerVector& sumK,
+                           int maxL,
+                           const NumericMatrix& z) {
+
+  int S = theta.ncol();
+  int N = theta.nrow();
+  int n = M.size();
+
+  NumericMatrix w(N, S);
+
+  for (int s = 0; s < S; s++) {
+    for (int i = 0; i < n; i++) {
+      for (int m = 0; m < M[i]; m++) {
+
+        // compute log p(w = 1)
+        double log_p1 = 0.0;
+        for (int l = 0; l < maxL; l++) {
+          int idxL = sumL[sumM[i] + m] + l;
+          for (int k = 0; k < K[idxL]; k++) {
+            int idxK = sumK[idxL] + k;
+            if(logy1(idxK, s) == 0){
+              log_p1 += log(1 - p(l,s));
+            } else {
+              log_p1 += log(p(l,s)) + R::dnorm(logy1(idxK, s), mu1, sigma1, true);
+            }
+          }
+        }
+
+        // compute log p(w = 0)
+        double log_p0 = 0.0;
+        for (int l = 0; l < maxL; l++) {
+          int idxL = sumL[sumM[i] + m] + l;
+          for (int k = 0; k < K[idxL]; k++) {
+            int idxK = sumK[idxL] + k;
+            if(logy1(idxK, s) == 0){
+              log_p0 += log(1 - q(l,s));
+            } else {
+              log_p0 += log(q(l,s)) + R::dnorm(logy1(idxK, s), mu0, sigma0, true);
+            }
+          }
+        }
+
+        // conditional on z[i, s]
+        if (z(i, s) == 1.0) {
+          // log_p1 += log(theta(sumM[i] + m, s));
+          // log_p0 += log(1 - theta(sumM[i] + m, s));;//R::dbinom(0.0, 1.0, theta(sumM[i] + m, s), true);
+          log_p1 += R::dbinom(1.0, 1.0, theta(sumM[i] + m, s), true);
+          log_p0 += R::dbinom(0.0, 1.0, theta(sumM[i] + m, s), true);
+        } else {
+          log_p1 += //log(theta0[s]);
+            R::dbinom(1.0, 1.0, theta0[s], true);
+          log_p0 += //log(1 - theta0[s]);
+            R::dbinom(0.0, 1.0, theta0[s], true);
+        }
+
+        // numerical stability
+        double maxlog = std::max(log_p1, log_p0);
+        double p1exp = std::exp(log_p1 - maxlog);
+        double p0exp = std::exp(log_p0 - maxlog);
+        double p_ws1 = p1exp / (p1exp + p0exp);
+
+        // sample w
+        w(sumM[i] + m, s) = R::rbinom(1.0, p_ws1);
+      }
+    }
+  }
+
+  return w;
+}
+
+// [[Rcpp::export]]
+NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
+                                const NumericMatrix& theta,
+                                const NumericVector& theta0,
+                                const NumericMatrix& p,
+                                const NumericMatrix& q,
+                                const IntegerVector& M,
+                                const IntegerVector& K,
+                                const IntegerVector& sumL,
+                                const IntegerVector& sumM,
+                                const IntegerVector& sumK,
+                                int maxL,
+                                const NumericMatrix& z) {
+
+  int S = theta.ncol();
+  int N = theta.nrow();
+  int n = M.size();
+
+  NumericMatrix w(N, S);
+
+  // Precompute logs for p and q
+  NumericMatrix log_p(maxL, S), log_1p(maxL, S);
+  NumericMatrix log_q(maxL, S), log_1q(maxL, S);
+
+  for(int s = 0; s < S; s++) {
+    for(int l = 0; l < maxL; l++) {
+      log_p(l, s) = std::log(p(l, s));
+      log_1p(l, s) = std::log(1.0 - p(l, s));
+      log_q(l, s) = std::log(q(l, s));
+      log_1q(l, s) = std::log(1.0 - q(l, s));
+    }
+  }
+
+  for (int s = 0; s < S; s++) {
+    for (int i = 0; i < n; i++) {
+      for (int m = 0; m < M[i]; m++) {
+
+        // compute log p(w = 1)
+        double log_p1 = 0.0;
+        for (int l = 0; l < maxL; l++) {
+          int idxL = sumL[sumM[i] + m] + l;
+          for (int k = 0; k < K[idxL]; k++) {
+            int idxK = sumK[idxL] + k;
+
+            log_p1 += y(idxK, s) * log_p(l, s) + (1 - y(idxK, s)) * log_1p(l, s);
+
+            // if(y(idxK, s) == 0){
+            //   log_p1 += log(1 - p(l,s));
+            // } else {
+            //   log_p1 += log(p(l,s));
+            // }
+          }
+        }
+
+        // compute log p(w = 0)
+        double log_p0 = 0.0;
+        for (int l = 0; l < maxL; l++) {
+          int idxL = sumL[sumM[i] + m] + l;
+          for (int k = 0; k < K[idxL]; k++) {
+            int idxK = sumK[idxL] + k;
+
+            log_p0 += y(idxK, s) * log_q(l,s) + (1 - y(idxK, s)) * log_1q(l,s);
+
+            // if(y(idxK, s) == 0){
+            //   log_p0 += log(1 - q(l,s));
+            // } else {
+            //   log_p0 += log(q(l,s));
+            // }
+          }
+        }
+
+        // conditional on z[i, s]
+        if (z(i, s) == 1.0) {
+          log_p1 += log(theta(sumM[i] + m, s));
+          log_p0 += log(1 - theta(sumM[i] + m, s));;//R::dbinom(0.0, 1.0, theta(sumM[i] + m, s), true);
+          // log_p1 += R::dbinom(1.0, 1.0, theta(sumM[i] + m, s), true);
+          // log_p0 += R::dbinom(0.0, 1.0, theta(sumM[i] + m, s), true);
+        } else {
+          log_p1 += log(theta0[s]);
+          // R::dbinom(1.0, 1.0, theta0[s], true);
+          log_p0 += log(1 - theta0[s]);
+          // R::dbinom(0.0, 1.0, theta0[s], true);
+        }
+
+        // numerical stability
+        double maxlog = std::max(log_p1, log_p0);
+        double p1exp = std::exp(log_p1 - maxlog);
+        double p0exp = std::exp(log_p0 - maxlog);
+        double p_ws1 = p1exp / (p1exp + p0exp);
+
+        // sample w
+        w(sumM[i] + m, s) = R::rbinom(1.0, p_ws1);
+      }
+    }
+  }
+
+  return w;
+}
+
+
+// [[Rcpp::export]]
+arma::mat sample_betatheta_cpp(const arma::mat& w,
+                               const arma::mat& z,
+                               arma::mat beta_theta,
+                               const arma::uvec& idx_z,
+                               const arma::mat& X_theta,
+                               const arma::vec& b_betatheta,
+                               const arma::mat& B_betatheta) { // Pass the R function if it's not natively in C++
+
+  int S = beta_theta.n_cols;
+
+  arma::uvec idx_z_cpp = idx_z - 1;
+
+  arma::mat z_all = z.rows(idx_z_cpp);
+
+  // Loop over columns (S)
+  for (int s = 0; s < S; ++s) {
+
+    // Get the s-th column of z_all
+    arma::vec z_col = z_all.col(s);
+
+    // Find indices where z_all[, s] == 1
+    // Armadillo's find() returns a uvec (unsigned vector of indices)
+    arma::uvec find_ones = find(z_col == 1);
+
+    if (find_ones.is_empty()) continue; // Safeguard if no rows equal 1
+
+    // k <- as.vector(t(w[z_all[,s]==1,s])) - .5
+    // In C++, w.submat(find_ones, uvec({static_cast<uword>(s)})) extracts the column subset
+    arma::vec w_sub = w.elem(find_ones + s * w.n_rows);
+    arma::vec k = w_sub - 0.5;
+
+    // n <- rep(1, length(k))
+    arma::vec n = arma::ones<arma::vec>(k.n_elem);
+
+    // X_thetasubset <- X_theta[z_all[,s]==1,,drop=F]
+    arma::mat X_thetasubset = X_theta.rows(find_ones);
+
+    // Extract current column of beta_theta
+    arma::vec beta_sub = beta_theta.col(s);
+
+    beta_theta.col(s) = sample_beta_nocov_cpp(beta_sub, X_thetasubset, b_betatheta, B_betatheta, n, k);
+
+  }
+
+  return beta_theta;
+}
+
+// [[Rcpp::export]]
+List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w, IntegerVector primerIdx,
+                   IntegerVector idx_k, int maxL, double a_p, double b_p,
+                   double a_q, double b_q) {
+
+  int S = w.ncol();
+  int n_k = idx_k.size();
+
+  NumericMatrix p(maxL, S);
+  NumericMatrix q(maxL, S);
+
+  // Main loop through columns (S)
+  for (int s = 0; s < S; ++s) {
+
+    for (int l = 0; l < maxL; ++l) {
+
+      int w1_primerl_cases_1 = 0;
+      int w1_primerl_cases_0 = 0;
+      int w0_primerl_cases_1 = 0;
+      int w0_primerl_cases_0 = 0;
+
+      for (int i = 0; i < n_k; ++i) {
+
+        int idx_ki = idx_k[i] - 1;
+
+        if(primerIdx[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 1){
+          w1_primerl_cases_1 += 1;
+        } else if(primerIdx[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 0){
+          w1_primerl_cases_0 += 1;
+        } else if(primerIdx[i] == (l+1) & w(idx_ki, s) == 0 & c_imk(i,s) == 2){
+          w0_primerl_cases_1 += 1;
+        } else {
+          w0_primerl_cases_0 += 1;
+        }
+
+      }
+
+      p(l, s) = R::rbeta(a_p + w1_primerl_cases_1, b_p + w1_primerl_cases_0);
+      q(l, s) = R::rbeta(a_q + w0_primerl_cases_1, b_q + w0_primerl_cases_0);
+    }
+  }
+
+  return List::create(
+    _["p"] = p,
+    _["q"] = q
+  );
+}
+
+double dlaplace(double x, double sigma){
+
+  return(- log(sigma) - x / sigma);
+
+}
+
 arma::vec logistic(arma::vec x) {
   return 1.0 / (1.0 + exp(-x));
+}
+
+inline void logistic_inplace(arma::rowvec& x)
+{
+  x.transform([](double z) {
+    return 1.0 / (1.0 + std::exp(-z));
+  });
 }
 
 double quantile(arma::vec x, double p) {
@@ -447,27 +889,23 @@ double quantile(arma::vec x, double p) {
   return (1.0 - g) * x(j) + g * x(j + 1);
 }
 
-// // [[Rcpp::export]]
-arma::cube computeNewOutputs(
-    const arma::mat& X,
-    const arma::mat& B0_output,
-    const arma::cube& B_output,
-    const arma::cube& Ks_all,
-    const arma::cube& Bs_output,
-    const arma::cube& L_output,
-    const arma::vec sigmah_output,
-    const arma::vec idx_ls_output,
-    const arma::vec& conflevels,
-    std::string model)
+// [[Rcpp::export]]
+arma::cube computePsiOutput(
+    const arma::mat& X_psi,
+    const arma::cube& beta_psi_output,
+    const arma::mat& X_ord,
+    const arma::cube& beta_ord_output,
+    const arma::cube& LL_output,
+    const arma::vec& conflevels)
 {
 
-  int n = X.n_rows;
-  int S = B_output.n_cols;
-  int d = L_output.n_rows;
-  int niter = B_output.n_slices;
+  int n = X_psi.n_rows;
+  int S = beta_psi_output.n_cols;
+  int niter = beta_psi_output.n_slices;
+
+  arma::cube psi_output(3, n, S);
 
   arma::mat mcmc_output(n, niter);
-  arma::cube output(3, n, S);
 
   for (int j = 0; j < S; j++) {
 
@@ -475,23 +913,12 @@ arma::cube computeNewOutputs(
 
     for (int iter = 0; iter < niter; iter++) {
 
-      arma::vec B = B_output.slice(iter).col(j);
+      arma::vec bpsi = beta_psi_output.slice(iter).col(j);
 
-      int idx_ls = idx_ls_output[iter];
-      arma::mat Ks = Ks_all.slice(idx_ls - 1);
-      arma::vec Bs = Bs_output.slice(iter).col(j);
+      arma::vec bord = beta_ord_output.slice(iter) * LL_output.slice(iter).col(j);
 
-      arma::mat U = arma::randn(n, d) * sigmah_output[iter];
-      arma::vec L = L_output.slice(iter).col(j);
-
-      arma::vec linpred = B0_output(j, iter) + X * B + Ks * Bs + U * L;
-
-      if(model == "continuous"){
-        mcmc_output.col(iter) = linpred;
-      } else if (model == "binary"){
-        mcmc_output.col(iter) = logistic(linpred);
-      }
-
+      arma::vec linpred = X_psi * bpsi + X_ord * bord;
+      mcmc_output.col(iter) = logistic(linpred);
 
     }
 
@@ -499,14 +926,14 @@ arma::cube computeNewOutputs(
 
       arma::vec mcmc_output_i_sorted = arma::sort(mcmc_output.row(i).t());
 
-      output(0, i, j) = quantile(mcmc_output_i_sorted, conflevels[0]);
-      output(1, i, j) = quantile(mcmc_output_i_sorted, conflevels[1]);
-      output(2, i, j) = quantile(mcmc_output_i_sorted, conflevels[2]);
+      psi_output(0, i, j) = quantile(mcmc_output_i_sorted, conflevels[0]);
+      psi_output(1, i, j) = quantile(mcmc_output_i_sorted, conflevels[1]);
+      psi_output(2, i, j) = quantile(mcmc_output_i_sorted, conflevels[2]);
 
     }
   }
 
-  return output;
+  return psi_output;
 }
 
 // JSDM sampling functions
@@ -556,8 +983,8 @@ arma::vec sampleB(arma::mat& X, arma::mat& B, arma::vec& b,
 // [[Rcpp::export]]
 arma::mat sample_U_cpp(arma::mat& k,
                        arma::mat& L,
-                       arma::mat& XB,
-                       arma::mat& XsBs,
+                       arma::mat& X,
+                       arma::mat& B,
                        arma::mat& Omega,
                        std::string model) {
 
@@ -571,15 +998,16 @@ arma::mat sample_U_cpp(arma::mat& k,
     return U;
 
   // Compute k_new
+  arma::mat XB = X * B;
   arma::mat k_new(n, S);
 
   if (model == "continuous") {
 
-    k_new = (k - (XB + XsBs)) % Omega;
+    k_new = (k - XB) % Omega;
 
   } else if (model == "binary") {
 
-    k_new = k - Omega % (XB + XsBs);
+    k_new = k - Omega % XB;
   } else {
     Rcpp::stop("Unknown model");
   }

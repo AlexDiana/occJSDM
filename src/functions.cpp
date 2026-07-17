@@ -391,6 +391,7 @@ NumericMatrix sample_w_cpp(const NumericMatrix& logy1,
 
 // [[Rcpp::export]]
 NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
+                                const NumericMatrix& y_NA,
                                 const NumericMatrix& theta,
                                 const NumericVector& theta0,
                                 const NumericMatrix& p,
@@ -431,15 +432,15 @@ NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
         for (int l = 0; l < maxL; l++) {
           int idxL = sumL[sumM[i] + m] + l;
           for (int k = 0; k < K[idxL]; k++) {
+
             int idxK = sumK[idxL] + k;
 
-            log_p1 += y(idxK, s) * log_p(l, s) + (1 - y(idxK, s)) * log_1p(l, s);
+            if(y_NA(idxK, s) == 0){
 
-            // if(y(idxK, s) == 0){
-            //   log_p1 += log(1 - p(l,s));
-            // } else {
-            //   log_p1 += log(p(l,s));
-            // }
+              log_p1 += y(idxK, s) * log_p(l, s) + (1 - y(idxK, s)) * log_1p(l, s);
+
+            }
+
           }
         }
 
@@ -450,13 +451,11 @@ NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
           for (int k = 0; k < K[idxL]; k++) {
             int idxK = sumK[idxL] + k;
 
-            log_p0 += y(idxK, s) * log_q(l,s) + (1 - y(idxK, s)) * log_1q(l,s);
+            if(y_NA(idxK, s) == 0){
 
-            // if(y(idxK, s) == 0){
-            //   log_p0 += log(1 - q(l,s));
-            // } else {
-            //   log_p0 += log(q(l,s));
-            // }
+              log_p0 += y(idxK, s) * log_q(l,s) + (1 - y(idxK, s)) * log_1q(l,s);
+
+            }
           }
         }
 
@@ -538,7 +537,9 @@ arma::mat sample_betatheta_cpp(const arma::mat& w,
 }
 
 // [[Rcpp::export]]
-List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w,
+List sample_pq_cpp(NumericMatrix& c_imk,
+                   IntegerMatrix& y_NA,
+                   NumericMatrix w,
                    IntegerVector idx_p_k, IntegerVector idx_w_k,
                    int maxP, double a_p, double b_p,
                    double a_q, double b_q) {
@@ -563,14 +564,18 @@ List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w,
 
         int idx_ki = idx_w_k[i] - 1;
 
-        if(idx_p_k[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 1){
-          w1_primerl_cases_1 += 1;
-        } else if(idx_p_k[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 0){
-          w1_primerl_cases_0 += 1;
-        } else if(idx_p_k[i] == (l+1) & w(idx_ki, s) == 0 & c_imk(i,s) == 2){
-          w0_primerl_cases_1 += 1;
-        } else {
-          w0_primerl_cases_0 += 1;
+        if(y_NA(i,s) == 0){
+
+          if(idx_p_k[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 1){
+            w1_primerl_cases_1 += 1;
+          } else if(idx_p_k[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 0){
+            w1_primerl_cases_0 += 1;
+          } else if(idx_p_k[i] == (l+1) & w(idx_ki, s) == 0 & c_imk(i,s) == 2){
+            w0_primerl_cases_1 += 1;
+          } else {
+            w0_primerl_cases_0 += 1;
+          }
+
         }
 
       }
@@ -587,4 +592,101 @@ List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w,
 }
 
 
+//// WAIC FUNCTIONS
 
+// Inline helper for the logistic function
+inline double logistic(double x) {
+  return 1.0 / (1.0 + std::exp(-x));
+}
+
+// [[Rcpp::export]]
+NumericVector computeModelLoglikJSDM_cpp(NumericMatrix z,
+                                         NumericMatrix eta,
+                                         String model,
+                                         Nullable<NumericVector> tau = R_NilValue) {
+  int n = z.nrow();
+  int S = z.ncol();
+  NumericVector logliks(n * S);
+  int idx = 0;
+
+  if (model == "continuous") {
+    if (tau.isNull()) {
+      stop("tau must be provided for continuous model");
+    }
+    NumericVector tau_vec(tau);
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < S; ++j) {
+        logliks[idx++] = R::dnorm(z(i, j), eta(i, j), tau_vec[j], 1);
+      }
+    }
+  } else if (model == "binary") {
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < S; ++j) {
+        double psi = logistic(eta(i, j));
+        logliks[idx++] = R::dbinom(z(i, j), 1, psi, 1);
+      }
+    }
+  } else if (model == "counts") {
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < S; ++j) {
+        double mu = std::exp(eta(i, j));
+        logliks[idx++] = R::dpois(z(i, j), mu, 1);
+      }
+    }
+  } else {
+    stop("Unknown model type");
+  }
+
+  return logliks;
+}
+
+// [[Rcpp::export]]
+NumericVector computeModelLoglikFirstStage_cpp(NumericMatrix w,
+                                               NumericMatrix z,
+                                               NumericMatrix theta,
+                                               NumericVector theta0,
+                                               IntegerVector idx_z_w) {
+  int n_w = w.nrow();
+  int S_w = w.ncol();
+  NumericVector logliks(n_w * S_w);
+  int idx = 0;
+
+  for (int i = 0; i < n_w; ++i) {
+    // Convert 1-based R index to 0-based C++ index
+    int z_row_idx = idx_z_w[i] - 1;
+
+    for (int s = 0; s < S_w; ++s) {
+      if (z(z_row_idx, s) == 1) {
+        logliks[idx++] = R::dbinom(w(i, s), 1, theta(i, s), 1);
+      } else {
+        logliks[idx++] = R::dbinom(w(i, s), 1, theta0[s], 1);
+      }
+    }
+  }
+
+  return logliks;
+}
+
+// [[Rcpp::export]]
+NumericVector computeModelLoglikSecondStage_cpp(NumericMatrix y, NumericMatrix w, NumericMatrix p, NumericMatrix q, IntegerVector idx_w_k, IntegerVector idx_p_k) {
+  int n_y = y.nrow();
+  int S_y = y.ncol();
+  NumericVector logliks(n_y * S_y);
+  int idx = 0;
+
+  // Outer loop is columns (s), inner is rows (i) to match the R version's flattening behavior
+  for (int s = 0; s < S_y; ++s) {
+    for (int i = 0; i < n_y; ++i) {
+      int w_row_idx = idx_w_k[i] - 1; // Convert to 0-based index
+      int p_row_idx = idx_p_k[i] - 1; // Convert to 0-based index
+
+      if (w(w_row_idx, s) == 1) {
+        logliks[idx++] = R::dbinom(y(i, s), 1, p(p_row_idx, s), 1);
+      } else {
+        logliks[idx++] = R::dbinom(y(i, s), 1, q(p_row_idx, s), 1);
+      }
+    }
+  }
+
+  return logliks;
+}

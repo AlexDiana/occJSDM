@@ -36,22 +36,31 @@ process_covariates <- function(data_info, covariates, group_by_col, n_obs,
   return(result)
 }
 
-createDataIdx <- function(n, M, P, K){
+createDataIdx <- function(n, M, P, K, twostage){
 
   N <- sum(M)
-  N2 <- P * N
-  N3 <- sum(K)
-
   sumM <- c(0, cumsum(M)[-n])
-  sumP <- c(0, cumsum(rep(P, N))[-N])
-  sumK <- c(0, cumsum(K)[-N2])
-
   idx_z_w <- rep(NA, N)
-  idx_z_p <- rep(NA, N2)
-  idx_w_p <- rep(NA, N2)
-  idx_z_k <- rep(NA, N3)
-  idx_p_k <- rep(NA, N3)
-  idx_w_k <- rep(NA, N3)
+
+  if(twostage){
+    N2 <- P * N
+    N3 <- sum(K)
+    sumP <- c(0, cumsum(rep(P, N))[-N])
+    sumK <- c(0, cumsum(K)[-N2])
+
+
+    idx_z_p <- rep(NA, N2)
+    idx_w_p <- rep(NA, N2)
+    idx_z_k <- rep(NA, N3)
+    idx_p_k <- rep(NA, N3)
+    idx_w_k <- rep(NA, N3)
+  } else {
+    idx_z_p <- NULL
+    idx_w_p <- NULL
+    idx_z_k <- NULL
+    idx_p_k <- NULL
+    idx_w_k <- NULL
+  }
 
   idx_z <- 1
   idx_w <- 1
@@ -61,22 +70,29 @@ createDataIdx <- function(n, M, P, K){
   for (i in 1:n) {
     for (m in 1:M[i]) {
       idx_z_w[idx_w] <- i
-      for (p in 1:P) {
-        idx_z_p[idx_p] <- i
 
-        for (k in 1:K[sumP[sumM[i] + m] + p]) {
+      if(twostage){
 
-          idx_z_k[idx_k] <- idx_z
-          idx_w_k[idx_k] <- idx_w
-          idx_p_k[idx_k] <- p
+        for (p in 1:P) {
+          idx_z_p[idx_p] <- i
 
-          idx_k <- idx_k + 1
+          for (k in 1:K[sumP[sumM[i] + m] + p]) {
+
+            idx_z_k[idx_k] <- idx_z
+            idx_w_k[idx_k] <- idx_w
+            idx_p_k[idx_k] <- p
+
+            idx_k <- idx_k + 1
+          }
+          idx_z_p[idx_p] <- idx_z
+          idx_w_p[idx_p] <- idx_w
+
+          idx_p <- idx_p + 1
         }
-        idx_z_p[idx_p] <- idx_z
-        idx_w_p[idx_p] <- idx_w
 
-        idx_p <- idx_p + 1
       }
+
+
       idx_w <- idx_w + 1
     }
     idx_z <- idx_z + 1
@@ -89,6 +105,114 @@ createDataIdx <- function(n, M, P, K){
        "idx_w_k" = idx_w_k,
        "idx_z_k" = idx_z_k)
 
+}
+
+inferDataModel <- function(data){
+
+  stages_type <- NULL
+
+  data_info <- data$info
+  OTU <- data$OTU
+
+  site_present <- !is.null(data_info$Site)
+  sample_present <- !is.null(data_info$Sample)
+  primer_present <- !is.null(data_info$Primer)
+
+  if(site_present){ # site column present
+
+    if(all(!duplicated(data_info$Site))){ # no repeated observation at each site
+
+      stages_type <- "no_stage"
+      print("No repeated observation for any site")
+
+    } else { # repeated observation at each site
+
+      if(!sample_present){ # sample column missing
+
+        print("Sample column missing, but detected repeated observations for some sites")
+        stages_type <- "one_stage"
+
+      } else { # sample column present
+
+        if(all(!duplicated(data_info$Sample))){ # no repeated observation in each sample
+
+          stages_type <- "one_stage"
+          print("No repeated observation for any sample")
+
+        } else {
+
+          stages_type <- "two_stage"
+          print("Detected repeated observation for some sample")
+
+        }
+
+      }
+
+    }
+  } else { # site column missing
+    stages_type <- "no_stage"
+    print("Site column missing")
+  }
+
+  # infer the data type
+  {
+    # if(stages_t)
+    if(mode(OTU) != "numeric"){
+      stop("Data in OTU need to be numeric")
+    } else if(all(round(OTU) == OTU, na.rm = T)) { ## TODO: write that the data are integer
+      if(all(unique(OTU) %in% c(0,1,NA), na.rm = T)){
+        print("Only 0 and 1 detected")
+        data_type <- "binary"
+      } else {
+        print("Count data detected")
+        data_type <- "counts"
+      }
+    } else {
+      print("Continuous observations detected")
+      data_type <- "continuous"
+    }
+  }
+
+  if(stages_type == "no_stage"){
+    if(data_type == "binary"){
+      model <- "binary"
+    } else if(data_type == "continuous"){
+      model <- "continuous"
+    } else if(data_type == "counts"){
+      model <- "counts"
+    }
+  } else if(stages_type == "one_stage"){
+    model <- "occupancy"
+  } else if(stages_type == "two_stage"){
+    model <- "two_stage"
+  } else {
+    stop("No model recognised")
+  }
+
+  if(model == "binary") print(paste("occJSDM has inferred one-stage binary data"))
+  if(model == "continuous") print(paste("occJSDM has inferred one-stage counts data"))
+  if(model == "counts") print(paste("occJSDM has inferred one-stage counts data"))
+  if(model == "occupancy") print(paste("occJSDM has inferred occupancy data"))
+  if(model == "two_stage") print(paste("occJSDM has inferred two stage (eDNA style) data"))
+
+
+  print("Check your data if this is not what you were expecting!")
+
+  if(model == "counts") stop("Counts model not supported yet :(")
+
+  model
+
+}
+
+create_waic_quantities <- function(n_obs){
+
+  M2 <- rep(0, n_obs)
+  mean_log <- rep(0, n_obs)
+  mean_lik <- rep(0, n_obs)
+
+  list("M2" = M2,
+       "mean_log" = mean_log,
+       "mean_lik" = mean_lik)
 }
 
 #' runOccPlus
@@ -132,7 +256,7 @@ createDataIdx <- function(n, M, P, K){
 #' @export
 #' @import dplyr
 #'
-runOccPlus <- function(data,
+runOccJSDM <- function(data,
                        listParams = list(),
                        threshold = 1,
                        occCovariates = c(),
@@ -147,25 +271,42 @@ runOccPlus <- function(data,
                        listPriors = list()){
 
   {
-    # data <- data
-    # listParams = list(n_factors = 2)
+    # listParams = list(n_factors = 3)
     # threshold = 1
     # occCovariates = c("X_psi.EnvCov.1","X_psi.EnvCov.2")
-    # collCovariates = c("X_theta.1","X_theta.2")
-    # spatCovariates = NULL#c("latitude","longitude")
-    # traitsMatrix = NULL
+    # collCovariates = NULL
+    # spatCovariates <- NULL
     # MCMCparams = list(nchain = 2,
-    #                   nburn = 200,
-    #                   niter = 200)
+    #                   nburn = 500,
+    #                   niter = 500)
+    # listPriors <- list()
     # summarisedLatentPresences <- T
-    # listPriors = list()
   }
 
-  data_info <- as.data.frame(data$info)
-  OTU <- data$OTU
+  # read data_info and OTU
+  {
+    if(is.null(data$info) || is.null(data$OTU)){
+      stop("data_info or OTU missing")
+    } else {
+      data_info <- as.data.frame(data$info)
+      OTU <- data$OTU
+    }
+
+    if(nrow(data_info) != nrow(OTU)){
+      stop("OTU and data_info cannot have different number of rows")
+    }
+
+  }
 
   # data checks
   {
+
+    if(any(is.na(data_info$Site)) |
+       any(is.na(data_info$Sample)) |
+       any(is.na(data_info$Primer))){
+      stop("NA in Site, Sample or Primer columns")
+    }
+
     if(is.null(occCovariates)) occCovariates <- c()
     if(is.null(collCovariates)) collCovariates <- c()
     if(is.null(spatCovariates)) spatCovariates <- c()
@@ -174,108 +315,153 @@ runOccPlus <- function(data,
       stop("Covariate names provided not in data$info")
     }
 
-    if(any(is.na(data_info$Site)) |
-       any(is.na(data_info$Sample)) |
-       any(is.na(data_info$Primer))){
-      stop("NA in Site, Sample or Primer columns")
+  }
+
+  # data structure infer
+  {
+    model <- inferDataModel(data)
+
+    if(is.null(data_info$Site)){
+      data_info$Site <- 1:nrow(data_info)
+    }
+
+    if(model == "occupancy" & is.null(data_info$Sample)){
+      data_info$Site <- 1:nrow(data_info)
+    }
+
+    if(model %in% c("binary","continuous","counts")){
+      z <- y
+    } else if(model == "occupancy"){
+      w <- y
+    }
+
+    if(model %in% c("binary","occupancy","two_stage")){
+      jsdmModel <- "binary"
+    } else if(model == "continuous") {
+      jsdmModel <- "continuous"
+    }  else if(model == "counts") {
+      jsdmModel <- "counts"
     }
 
   }
 
   # clean the data
   {
-    data_info <- data_info %>%
-      dplyr::arrange(Site, Sample, Primer)
+    if(model == "occupancy"){
+      data_info <- data_info %>%
+        dplyr::arrange(Site, Sample)
+    } else if(model == "two_stage"){
+      data_info <- data_info %>%
+        dplyr::arrange(Site, Sample, Primer)
+
+    }
 
     # samples per site
     {
-      M_df <- data_info %>%
-        dplyr::group_by(Site, Sample) %>%
-        slice(1) %>%
-        dplyr::group_by(Site) %>%
-        dplyr::summarise(M = n(),
-                         .groups = "keep")
+      if(model %in% c("occupancy","two_stage")){
+        M_df <- data_info %>%
+          dplyr::group_by(Site, Sample) %>%
+          slice(1) %>%
+          dplyr::group_by(Site) %>%
+          dplyr::summarise(M = n(),
+                           .groups = "keep")
 
-      M <- M_df$M
-      names(M) <- M_df$Site
-      siteNames <- M_df$Site
+        M <- M_df$M
+        names(M) <- M_df$Site
+        siteNames <- M_df$Site
 
-      n <- length(M)
-      N <- sum(M)
+        n <- length(M)
+        N <- sum(M)
 
-      sumM <- c(0, cumsum(M)[-n])
-
-      # siteNames <- unique(data_info$Site)
-
-      # data_info_sample <- as.numeric(factor(data_info$Sample, levels = unique(data_info$Sample)))
-
+        sumM <- c(0, cumsum(M)[-n])
       }
+
+    }
 
     # marker per samples
     {
-      # number of markers
+      if(model == "two_stage"){
+        # number of markers
 
-      P_df <- data_info %>%
-        dplyr::group_by(Site, Sample, Primer) %>%
-        dplyr::slice(1) %>%
-        dplyr::group_by(Site, Sample) %>%
-        dplyr::summarise(P = n(),
-                         .groups = "keep")
+        P_df <- data_info %>%
+          dplyr::group_by(Site, Sample, Primer) %>%
+          dplyr::slice(1) %>%
+          dplyr::group_by(Site, Sample) %>%
+          dplyr::summarise(P = n(),
+                           .groups = "keep")
 
-      P <- P_df$P # this in theory allows for different primer per sample, but in practice later we don't
-      names(P) <- P_df$Sample
-      sumP <- c(0, cumsum(rep(P, N))[-N])
-      maxP <- P[1]
+        P <- P_df$P # this in theory allows for different primer per sample, but in practice later we don't
+        names(P) <- P_df$Sample
+        maxP <- P[1]
+        sumP <- c(0, cumsum(rep(maxP, N))[-N])
 
-      primerNames <- unique(data_info$Primer)
+        primerNames <- unique(data_info$Primer)
 
-      N2 <- maxP * N
+        N2 <- maxP * N
 
+      }
     }
 
     # pcr per marker
     {
-      data_K <- data_info %>%
-        dplyr::group_by(Site, Sample, Primer) %>%
-        dplyr::summarise(K = n(),
-                         dplyr::across(contains("Species"),function(x){sum(x > 0)}),
-                         .groups = "keep"
-        ) %>%
-        dplyr::ungroup()
+      if(model == "two_stage"){
+        data_K <- data_info %>%
+          dplyr::group_by(Site, Sample, Primer) %>%
+          dplyr::summarise(K = n(),
+                           dplyr::across(contains("Species"),function(x){sum(x > 0)}),
+                           .groups = "keep"
+          ) %>%
+          dplyr::ungroup()
 
-      K <- data_K$K
-      sumK <- c(0, cumsum(K)[-N2])
+        K <- data_K$K
+        sumK <- c(0, cumsum(K)[-N2])
 
-      N3 <- sum(K)
+        N3 <- sum(K)
+
+      }
 
     }
 
-    list_idx <- createDataIdx(n, M, maxP, K)
-    idx_z_w <- list_idx$idx_z_w
-    idx_z_k <- list_idx$idx_z_k
-    idx_w_p <- list_idx$idx_w_p
-    idx_z_p <- list_idx$idx_z_p
-    idx_w_k <- list_idx$idx_w_k
-    idx_p_k <- list_idx$idx_p_k
+    if(model %in% c("occupancy","two_stage")){
+      list_idx <- createDataIdx(n, M, maxP, K, model == "two_stage")
+      idx_z_w <- list_idx$idx_z_w
+      idx_z_k <- list_idx$idx_z_k
+      idx_w_p <- list_idx$idx_w_p
+      idx_z_p <- list_idx$idx_z_p
+      idx_w_k <- list_idx$idx_w_k
+      idx_p_k <- list_idx$idx_p_k
+    }
 
     # read OTU data
     {
       y <- OTU
-      S <- ncol(OTU)
+      if(is.null(dim(y))){
+        S <- 1
+      } else {
+        S <- ncol(y)
+      }
 
-      # truncate data
-      if(threshold != 0){
+      if(model %in% c("occupancy","two_stage")){
 
-        y[OTU >= threshold] <- 1
-        y[OTU < threshold] <- 0
+        # truncate data
+        if(threshold >= 1){
 
+          y[y >= threshold] <- 1
+          y[y < threshold] <- 0
+
+        } else {
+
+          stop("Threshold has to be greater than 0")
+
+        }
       }
 
       # check for nas
       {
         y_NA <- is.na(y)
         mode(y_NA) <- "integer"
-        y_NA[is.na(y_NA)] <- -1
+
+        # TODO("Don't allow for NA other than for two_stage")
       }
 
       speciesNames <- colnames(data$OTU)
@@ -285,54 +471,13 @@ runOccPlus <- function(data,
 
     }
 
-    if(nrow(y) != N3) stop("Number of rows in data$OTU different from what obtained from data$info")
+    # if(nrow(y) != N3) stop("Number of rows in data$OTU different from what obtained from data$info")
 
-  }
-
-  # create delta
-  {
-    {
-      # M_marker_df <- data_info %>%
-      #   dplyr::group_by(Site, Sample) %>%
-      #   dplyr::summarise(M = n(),
-      #                    .groups = "keep")
-      #
-      # M_marker <- M_marker_df$M
-      # # names(M) <- M_df$Site
-      #
-      # sumM_marker <- c(0, cumsum(M_marker)[-N])
-
-    }
-
-    # delta <- matrix(NA, N, S)
-    #
-    # for (s in 1:S) {
-    #
-    #   for (i in 1:n) {
-    #
-    #     for (m in 1:M[i]) {
-    #
-    #       delta[sumM[i] + m,s] <-
-    #         as.numeric(all(OTU[sumM_marker[sumM[i] + m] + 1:M_marker[sumM[i] + m], s] == 0))
-    #
-    #     }
-    #
-    #   }
-    #
-    # }
-    #
-    # delta[is.na(delta)] <- 0
-
+    n_obs <- nrow(y)
   }
 
   # create covariates matrix
   {
-
-    if(is.null(dim(OTU))){
-      S <- 1
-    } else {
-      S <- ncol(OTU)
-    }
 
     # For occupancy covariates (group by Site, includes intercept)
     {
@@ -343,13 +488,6 @@ runOccPlus <- function(data,
       X_psi <- list_Xpsi_standardised$X
     }
 
-    # For collection covariates (group by Sample, includes intercept)
-    {
-      X_theta <- process_covariates(data_info, collCovariates, "Sample", N,
-                                    remove_intercept = FALSE)
-
-    }
-
     # For the spatial field
     {
       Xs <- process_covariates(data_info, spatCovariates, "Site", n,
@@ -358,16 +496,26 @@ runOccPlus <- function(data,
       Xs <- list_Xs_standardised$X
     }
 
+    # For collection covariates (group by Sample, includes intercept)
+    {
+      if(model %in% c("occupancy","two_stage")){
+        X_theta <- process_covariates(data_info, collCovariates, "Sample", N,
+                                      remove_intercept = FALSE)
+      } else {
+        X_theta <- NULL
+      }
+    }
+
     # For the traits
     {
-      if(!is.null(traitsMatrix)){
-        speciesNamesInTraitsMatrix <- rownames(traitsMatrix)
+      if(!is.null(data$traits)){
+        speciesNamesInTraitsMatrix <- rownames(data$traits)
         if(!all(speciesNames %in% speciesNamesInTraitsMatrix)){
           stop("Species names in OTU not present in traits matrix")
         }
 
         idx_speciesNames <- match(speciesNames, speciesNamesInTraitsMatrix)
-        Tr <- traitsMatrix
+        Tr <- data$traits
         Tr <- Tr[idx_speciesNames,]
         Tr <- as.matrix(Tr)
         traitsNames <- colnames(Tr)
@@ -375,68 +523,6 @@ runOccPlus <- function(data,
         Tr <- matrix(NA, S, 0)
       }
 
-    }
-
-    if(F){
-      if(length(ordCovariates) > 0){
-
-        X_ord <- data_info %>%
-          dplyr::group_by(Site) %>%
-          dplyr::summarise(across(all_of(ordCovariates),
-                                  function(x) {x[1]}))
-
-        sitesNames <- X_ord$Site
-
-        X_ord <- X_ord %>%
-          dplyr::select(-Site) %>%
-          dplyr::mutate_if(is.numeric, scale) %>%
-          dplyr::mutate(dplyr::across(tidyselect::where(~ !is.numeric(.x)), as.factor)) %>%
-          dplyr::mutate(dplyr::across(tidyselect::where(is.numeric), ~ ifelse(is.na(.), 0, .))) %>%
-          stats::model.matrix(~., .)
-
-        X_ord <- X_ord[,-1,drop=F]
-
-        rownames(X_ord) <- sitesNames
-
-      } else {
-        X_ord <- matrix(0, n, 0)
-      }
-
-      if(length(occCovariates) > 0){
-
-        X_psi <- data_info %>%
-          dplyr::group_by(Site) %>%
-          dplyr::summarise(dplyr::across(all_of(occCovariates),
-                                         function(x) {x[1]})) %>%
-          dplyr::select(-Site) %>%
-          dplyr::mutate_if(is.numeric, scale) %>%
-          dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
-          model.matrix(~., .)
-
-        # X_psi <- X_psi[,-1,drop=F]
-
-      } else {
-
-        X_psi <- matrix(1, n, 1)
-
-      }
-
-      if(length(collCovariates) > 0){
-
-        X_theta <- data_info %>%
-          dplyr::group_by(Sample) %>%
-          dplyr::summarise(dplyr::across(dplyr::all_of(collCovariates),
-                                         function(x) {x[1]})) %>%
-          dplyr::select(-Sample) %>%
-          dplyr::mutate_if(is.numeric, scale) %>%
-          dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
-          model.matrix(~., .)
-
-      } else {
-
-        X_theta <- matrix(1, N, 1)
-
-      }
     }
 
     ncov_psi <- ncol(X_psi)
@@ -456,6 +542,7 @@ runOccPlus <- function(data,
     }
 
     gt <- get_param(listParams, "n_lattrait", 2)
+
     if(ncol(Xs) > 0){
       ns <- nrow(unique(Xs))
       ps <- get_param(listParams, "n_supportpoints", getDefaultSupportPoints(ns))
@@ -484,16 +571,14 @@ runOccPlus <- function(data,
     a_sigma1 <- 1
     b_sigma1 <- 1
 
-    mu_mu1 <- 3
-    sd_mu1 <- 3
-    mu_mu0 <- 1
-    sd_mu0 <- .5
+    if(model %in% c("occupancy","two_stage")){
+      b_betatheta <- rep(1, ncov_theta)
+      B_betatheta <- diag(1, nrow = ncov_theta)
 
-    b_betatheta <- rep(1, ncov_theta)
-    B_betatheta <- diag(1, nrow = ncov_theta)
+      b_betatheta[1] <- prior_beta_theta
+      B_betatheta[1,1] <- prior_beta_theta_sd
+    }
 
-    b_betatheta[1] <- prior_beta_theta
-    B_betatheta[1,1] <- prior_beta_theta_sd
 
   }
 
@@ -511,14 +596,52 @@ runOccPlus <- function(data,
 
   # chain output
   {
-    beta_theta_output <- array(NA, dim = c(ncov_theta, S, niter, nchain))
-    p_output <- array(NA, dim = c(maxP, S, niter, nchain))
-    q_output <- array(NA, dim = c(maxP, S, niter, nchain))
-    theta0_output <- array(NA, dim = c(S, niter, nchain))
-    mu1_output <- array(NA, dim = c(niter, nchain))
-    sigma1_output <- array(NA, dim = c(niter, nchain))
-    mu0_output <- array(NA, dim = c(niter, nchain))
-    sigma0_output <- array(NA, dim = c(niter, nchain))
+    if(model %in% c("occupancy","two_stage")){
+      beta_theta_output <- array(NA, dim = c(ncov_theta, S, niter, nchain))
+      theta0_output <- array(NA, dim = c(S, niter, nchain))
+      if(summarisedLatentPresences){
+        z_output_mean <- matrix(0, n, S)
+        psi_output_mean <- matrix(0, n, S)
+        theta_output_mean <- matrix(0, N, S)
+      } else {
+        z_output <- array(NA, dim = c(n, S, niter, nchain))
+        psi_output <- array(NA, dim = c(n, S, niter, nchain))
+        theta_output <- array(NA, dim = c(N, S, niter, nchain))
+      }
+    } else {
+      beta_theta_output <- NULL
+      theta0_output <- NULL
+      if(summarisedLatentPresences){
+        z_output_mean <- NULL
+        psi_output_mean <- NULL
+        theta_output_mean <- NULL
+      } else {
+        z_output <- NULL
+        psi_output <- NULL
+        theta_output <- NULL
+      }
+
+    }
+
+    if(model == "two_stage"){
+      p_output <- array(NA, dim = c(maxP, S, niter, nchain))
+      q_output <- array(NA, dim = c(maxP, S, niter, nchain))
+
+      if(summarisedLatentPresences){
+        w_output_mean <- matrix(0, N, S)
+      } else {
+        w_output <- array(NA, dim = c(N, S, niter, nchain))
+      }
+    } else {
+      p_output <- NULL
+      q_output <- NULL
+
+      if(summarisedLatentPresences){
+        w_output_mean <- NULL
+      } else {
+        w_output <- NULL
+      }
+    }
 
     # jsdm params
 
@@ -538,18 +661,6 @@ runOccPlus <- function(data,
       sigmab_output <- array(NA, dim = c(niter, nchain))
       sigmabs_output <- array(NA, dim = c(niter, nchain))
       varPart_output <- array(NA, dim = c(S, 4, niter, nchain))
-    }
-
-    if(summarisedLatentPresences){
-      z_output_mean <- matrix(0, n, S)
-      w_output_mean <- matrix(0, N, S)
-      psi_output_mean <- matrix(0, n, S)
-      theta_output_mean <- matrix(0, N, S)
-    } else {
-      z_output <- array(NA, dim = c(n, S, niter, nchain))
-      w_output <- array(NA, dim = c(N, S, niter, nchain))
-      psi_output <- array(NA, dim = c(n, S, niter, nchain))
-      theta_output <- array(NA, dim = c(N, S, niter, nchain))
     }
 
   }
@@ -594,18 +705,42 @@ runOccPlus <- function(data,
     )
   }
 
+  # WAIC calculation
+  {
+
+    list_waic_jsdm <- create_waic_quantities(n * S)
+
+    if(model %in% c("occupancy","two_stage")){
+      list_waic_w <- create_waic_quantities(N * S)
+    }
+
+    if(model %in% "two_stage"){
+      list_waic_y <- create_waic_quantities(N3 * S)
+    }
+
+  }
+
   for (chain in 1:nchain) {
 
     # chain output
     {
-      beta_theta_output_chain <- array(NA, dim = c(ncov_theta, S, niter))
-      p_output_chain <- array(NA, dim = c(maxP, S, niter))
-      q_output_chain <- array(NA, dim = c(maxP, S, niter))
-      theta0_output_chain <- array(NA, dim = c(S, niter))
-      mu1_output_chain <- rep(NA, niter)
-      sigma1_output_chain <- rep(NA, niter)
-      mu0_output_chain <- rep(NA, niter)
-      sigma0_output_chain <- rep(NA, niter)
+      if(model %in% c("occupancy","two_stage")){
+        beta_theta_output_chain <- array(NA, dim = c(ncov_theta, S, niter))
+        theta0_output_chain <- array(NA, dim = c(S, niter))
+        if(!summarisedLatentPresences){
+          z_output_chain <- array(NA, dim = c(n, S, niter))
+          psi_output_chain <- array(NA, dim = c(n, S, niter))
+          theta_output_chain <- array(NA, dim = c(N, S, niter))
+        }
+      }
+
+      if(model == "two_stage"){
+        p_output_chain <- array(NA, dim = c(maxP, S, niter))
+        q_output_chain <- array(NA, dim = c(maxP, S, niter))
+        if(!summarisedLatentPresences){
+          w_output_chain <- array(NA, dim = c(N, S, niter))
+        }
+      }
 
       # jsdm params
       {
@@ -626,49 +761,55 @@ runOccPlus <- function(data,
         varPart_output_chain <-  array(NA, dim = c(S, 4, niter))
       }
 
-      if(!summarisedLatentPresences){
-        z_output_chain <- array(NA, dim = c(n, S, niter))
-        w_output_chain <- array(NA, dim = c(N, S, niter))
-        psi_output_chain <- array(NA, dim = c(n, S, niter))
-        theta_output_chain <- array(NA, dim = c(N, S, niter))
-      }
-
     }
 
     # starting values
     {
-      c_imk <- y > 0
+      if(model == "two_stage"){
 
-      w <- matrix(NA, N, S)
+        w <- matrix(NA, N, S)
 
-      for (s in 1:S) {
-        for (i in 1:n) {
-          for (m in 1:M[i]) {
-            idx_im1 <- sumK[sumP[sumM[i] + m] + 1] + 1
-            idx_im2 <- sumK[sumP[sumM[i] + m] + P[sumM[i] + m]] +
-              K[sumP[sumM[i] + m] + P[sumM[i] + m]]
-            w[sumM[i] + m,s] <- as.numeric(any(y[idx_im1:idx_im2,s] > 0))
+        for (s in 1:S) {
+          for (i in 1:n) {
+            for (m in 1:M[i]) {
+              idx_im1 <- sumK[sumP[sumM[i] + m] + 1] + 1
+              idx_im2 <- sumK[sumP[sumM[i] + m] + P[sumM[i] + m]] +
+                K[sumP[sumM[i] + m] + P[sumM[i] + m]]
+              y_subset <- y[idx_im1:idx_im2,s]
+              y_subset <- y_subset[!is.na(y_subset)]
+              if(length(y_subset) > 0){
+                w[sumM[i] + m,s] <- as.numeric(any(y_subset > 0))
+              } else {
+                w[sumM[i] + m,s] <- 1
+              }
+            }
           }
         }
+
+        c_imk <- as.numeric(y > 0)
+
+        p <- matrix(.9, maxP, S)
+        q <- matrix(.05, maxP, S)
+
       }
 
-      z <- matrix(NA, n, S)
+      if(model %in% c("occupancy","two_stage")){
 
-      for (s in 1:S) {
-        for (i in 1:n) {
-          idx_i1 <- sumM[i] + 1
-          idx_i2 <- sumM[i] + M[i]
+        z <- matrix(NA, n, S)
 
-          z[i,s] <- as.numeric(any(w[idx_i1:idx_i2, s] > 0))
+        for (s in 1:S) {
+          for (i in 1:n) {
+            idx_i1 <- sumM[i] + 1
+            idx_i2 <- sumM[i] + M[i]
+
+            z[i,s] <- as.numeric(any(w[idx_i1:idx_i2, s] > 0))
+          }
         }
+
+        beta_theta <- matrix(0, ncov_theta, S)
+        theta <- computeTheta(X_theta, beta_theta)
+        theta0 <- rep(.05, S)
       }
-
-      beta_theta <- matrix(0, ncov_theta, S)
-      theta <- computeTheta(X_theta, beta_theta)
-
-      p <- matrix(.9, maxP, S)
-      q <- matrix(.05, maxP, S)
-      theta0 <- rep(.05, S)
 
       # jsdmParams
       {
@@ -746,9 +887,11 @@ runOccPlus <- function(data,
 
       # sample z
 
-      z <- sample_z_cpp(w, psi, theta, theta0, M, sumM)
+      if(model %in% c("occupancy","two_stage")){
+        z <- sample_z_cpp(w, psi, theta, theta0, M, sumM)
+      }
 
-      # sample psi
+      # sample jsdm coef
       {
         list_data$z <- z
 
@@ -758,71 +901,86 @@ runOccPlus <- function(data,
           list_priors,
           list_Xs,
           list_SoRSummaries,
-          model = "binary"
+          model = jsdmModel
         )
         psi <- list_jSDMparams$psi
-      }
-
-      # sample psi - old
-
-      if (F) {
-        list_betapsiLL <- sample_psivars(z, X_psi, beta_psi, X_ord, beta_ord,
-                                         E, Es, LL, prior_beta_psi, prior_beta_psi_sd)
-        beta_psi <- list_betapsiLL$beta_psi
-        beta_ord <- list_betapsiLL$beta_ord
-        LL <- list_betapsiLL$LL
-        E <- list_betapsiLL$E
-        U <- computeU(X_ord, beta_ord, E)
-        psi <- computePsi(X_psi, beta_psi, U, LL)
+        eta <- list_jSDMparams$eta
       }
 
       # sample w
-      if(threshold > 0){
+      if(model == "two_stage"){
+        if(threshold > 0){
 
-        w <- sample_w_cim_cipp(y, theta, theta0, p, q,
-                               M, K, sumP, sumM, sumK, maxP, z)
+          w <- sample_w_cim_cipp(y, y_NA, theta, theta0, p, q,
+                                 M, K, sumP, sumM, sumK, maxP, z)
 
-      } else {
-
-        w <- sample_w_cpp(logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q,
-                          M, K, sumP, sumM, sumK, maxP, z)
-
+        }
       }
 
       # sample cimk
+      if(model == "two_stage"){
+        if (threshold > 0) {
 
-      if (threshold > 0) {
+          w_all <- w[idx_w_k,,drop=F]
 
-        w_all <- w[idx_w_k,,drop=F]
+          # faster way to assign c_imk to 1 if logy1 > 0 for w_all = 1 and to 2
+          # if log1 > 0 when w_all = 0
+          c_imk <- (y > 0) * (2 - (w_all == 1))
 
-        # faster way to assign c_imk to 1 if logy1 > 0 for w_all = 1 and to 2
-        # if log1 > 0 when w_all = 0
-        c_imk <- (y > 0) * (2 - (w_all == 1))
-
+        }
       }
 
       # sample theta
-      beta_theta <- sample_betatheta_cpp(w, z, beta_theta, idx_z_w, X_theta,
-                                         b_betatheta, B_betatheta)
-      theta <- computeTheta(X_theta, beta_theta)
+      if(model %in% c("occupancy","two_stage")){
+        beta_theta <- sample_betatheta_cpp(w, z, beta_theta, idx_z_w, X_theta,
+                                           b_betatheta, B_betatheta)
+        theta <- computeTheta(X_theta, beta_theta)
+      }
 
       # sample pq
-      list_pq <- sample_pq_cpp(c_imk, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q)
-      p <- list_pq$p
-      q <- list_pq$q
+      if(model == "two_stage"){
+        list_pq <- sample_pq_cpp(c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q)
+        p <- list_pq$p
+        q <- list_pq$q
+      }
 
       # sample theta0
-      theta0 <- sample_theta0(z, w, idx_z_w, a_theta0, b_theta0)
+      if(model %in% c("occupancy","two_stage")){
+        theta0 <- sample_theta0(z, w, idx_z_w, a_theta0, b_theta0)
+      }
 
       {
 
         if(iter > nburn & (iter - nburn) %% nthin == 0){
           currentIter <- (iter - nburn) / nthin
 
-          beta_theta_output_chain[,,currentIter] <- beta_theta
-          p_output_chain[,,currentIter] <- p
-          q_output_chain[,,currentIter] <- q
-          theta0_output_chain[,currentIter] <- theta0
+          if(model %in% c("occupancy","two_stage")){
+            beta_theta_output_chain[,,currentIter] <- beta_theta
+            theta0_output_chain[,currentIter] <- theta0
+            if(summarisedLatentPresences){
+              z_output_mean <- z_output_mean +
+                (1 / (niter * nchain)) * z
+              psi_output_mean <- psi_output_mean +
+                (1 / (niter * nchain)) * psi
+              theta_output_mean <- theta_output_mean +
+                (1 / (niter * nchain)) * theta
+            } else {
+              z_output_chain[,,currentIter] <- z
+              psi_output_chain[,,currentIter] <- psi
+              theta_output_chain[,,currentIter] <- theta
+            }
+          }
+
+          if(model == "two_stages"){
+            p_output_chain[,,currentIter] <- p
+            q_output_chain[,,currentIter] <- q
+            if(summarisedLatentPresences){
+              w_output_mean <- w_output_mean +
+                (1 / (niter * nchain)) * w
+            } else {
+              w_output_chain[,,currentIter] <- w
+            }
+          }
 
           # save jsdm params
           {
@@ -844,27 +1002,27 @@ runOccPlus <- function(data,
               as.matrix(list_jSDMparams$variancePartitioning)
           }
 
-          if(summarisedLatentPresences){
-            z_output_mean <- z_output_mean +
-              (1 / (niter * nchain)) * z
-            w_output_mean <- w_output_mean +
-              (1 / (niter * nchain)) * w
-            psi_output_mean <- psi_output_mean +
-              (1 / (niter * nchain)) * psi
-            theta_output_mean <- theta_output_mean +
-              (1 / (niter * nchain)) * theta
-          } else {
-            z_output_chain[,,currentIter] <- z
-            w_output_chain[,,currentIter] <- w
-            psi_output_chain[,,currentIter] <- psi
-            theta_output_chain[,,currentIter] <- theta
-          }
 
-          if(threshold == 0){
-            mu1_output_chain[currentIter] <- mu1
-            sigma1_output_chain[currentIter] <- sigma1
-            mu0_output_chain[currentIter] <- mu0
-            sigma0_output_chain[currentIter] <- sigma0
+          # update WIAC
+          {
+            # TODO(check speed of this)
+
+            loglik_jsdm <- computeModelLoglikJSDM_cpp(z, eta, jsdmModel, tau)
+            list_waic_jsdm <- update_waic_summary(loglik_jsdm, list_waic_jsdm, iter)
+
+            if(model %in% c("occupancy","two_stage")){
+              logliks_firststage <- computeModelLoglikFirstStage_cpp(w, z, theta, theta0,
+                                                                 list_idx$idx_z_w)
+              list_waic_w <- update_waic_summary(logliks_firststage, list_waic_w, iter)
+            }
+
+            if(model == "two_stage"){
+              logliks_secondstage <- computeModelLoglikSecondStage_cpp(y, w, p, q,
+                                                                   list_idx$idx_w_k,
+                                                                   list_idx$idx_p_k)
+              list_waic_y <- update_waic_summary(logliks_secondstage, list_waic_y, iter)
+            }
+
           }
 
         }
@@ -873,20 +1031,22 @@ runOccPlus <- function(data,
 
     }
 
-    beta_theta_output[,,,chain] <- beta_theta_output_chain
-    p_output[,,,chain] <- p_output_chain
-    q_output[,,,chain] <- q_output_chain
-    theta0_output[,,chain] <- theta0_output_chain
-    mu1_output[,chain] <- mu1_output_chain
-    sigma1_output[,chain] <- sigma1_output_chain
-    mu0_output[,chain] <- mu0_output_chain
-    sigma0_output[,chain] <- sigma0_output_chain
+    if(model %in% c("occupancy","two_stage")){
+      beta_theta_output[,,,chain] <- beta_theta_output_chain
+      theta0_output[,,chain] <- theta0_output_chain
+      if(!summarisedLatentPresences){
+        z_output[,,,chain] <- z_output_chain
+        psi_output[,,,chain] <- psi_output_chain
+        theta_output[,,,chain] <- theta_output_chain
+      }
+    }
 
-    if(!summarisedLatentPresences){
-      z_output[,,,chain] <- z_output_chain
-      w_output[,,,chain] <- w_output_chain
-      psi_output[,,,chain] <- psi_output_chain
-      theta_output[,,,chain] <- theta_output_chain
+    if(model == "two_stage"){
+      p_output[,,,chain] <- p_output_chain
+      q_output[,,,chain] <- q_output_chain
+      if(!summarisedLatentPresences){
+        w_output[,,,chain] <- w_output_chain
+      }
     }
 
     # save jsdm params
@@ -910,6 +1070,25 @@ runOccPlus <- function(data,
 
   }
 
+  # compute WAIC
+  {
+    numIters <- niter * nchain
+    WAIC_jsdm <- compute_waic(list_waic_jsdm, numIters)
+
+    if(model %in% c("occupancy","two_stage")){
+      WAIC_w <- compute_waic(list_waic_w, numIters)
+    } else {
+      WAIC_w <- 0
+    }
+    if(model %in% "two_stage"){
+      WAIC_y <- compute_waic(list_waic_y, numIters)
+    } else {
+      WAIC_y <- 0
+    }
+
+    WAIC <- WAIC_jsdm + WAIC_w + WAIC_y
+  }
+
   # reparametrise factor coefficients
   {
     if(d > 0){
@@ -929,6 +1108,7 @@ runOccPlus <- function(data,
     }
 
   }
+
 
   jsdm_results_output <- list(
     "B0_output" = B0_output,
@@ -954,10 +1134,7 @@ runOccPlus <- function(data,
     "p_output" = p_output,
     "q_output" = q_output,
     "theta0_output" = theta0_output,
-    "mu1_output" = mu1_output,
-    "sigma1_output" = sigma1_output,
-    "mu0_output" = mu0_output,
-    "sigma0_output" = sigma0_output
+    "WAIC" = WAIC
   )
 
   if(summarisedLatentPresences){
@@ -984,6 +1161,8 @@ runOccPlus <- function(data,
     "M" = M,
     "n" = n,
     "K" = K,
+    "model" = model,
+    "jsdmModel" = jsdmModel,
     "n_factors" = d,
     "list_idx" = list_idx,
     "data_info" = data_info,
