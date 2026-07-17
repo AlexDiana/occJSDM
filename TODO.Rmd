@@ -8,64 +8,35 @@ editor_options:
 
 ## functions to add
 
-**0.1.0 Public release**
+**0.1.0 Public release (Doug does all but 3 and 7)**
 
-1.  change all `occPlus` to `occJSDM`
+1.  change all `occPlus` to `occJSDM` across whole package
 
 2.  add **Detection rates** title to `plotDetectionRates()`
 
 3.  `computeConditionalOccupancyProbs()` and
-    `computePredictiveOccupancyProbs()`: Mean or median? how to get
-    quantiles?
+    `computePredictiveOccupancyProbs()`: Mean or median? quantiles for
+    predictive.
 
-4.  reproduce all Ecoletts results as a test of the package and decide
-    whether to include in repo
-
-5.  confirm existence of `nthin` parameter in runOccPlus()
-
-6.  text to explain better the threshold parameter
+4.  text to explain better the threshold parameter
 
     1.  threshold≠0 (0 value should give an error for \<1)
 
     2.  threshold≥1: any number of reads ≥ the threshold value value
         (default = 1) is considered a detection in that observation
 
-7.  `plotVariancePartitioning(fitmodel)` \# species covariances should
-    go on top of the triangle
+5.  `plotVariancePartitioning(fitmodel)` \# *add text*
 
-8.  default value for gt in listParams()
+6.  model diagnostics functions from GLGS-eDNA repo and save a fitmodel
+    object for people to load if they don't want to run the vignette
 
-9.  `plotBaselineOccupancyRates(fitmodel, idx_species = 1:10)`
-
-10. model diagnostics functions from GLGS-eDNA repo
-
-11. ordination plot and table to generate ordination plots in ggplot2
+7.  ordination plot and table to generate ordination plots in ggplot2
     (site factor scores and species loading scores, so that users can
     generate their own ordinations with ggplot2)
 
-**MEE paper**
+8.  document that occJSDM has ability to deal with NAs in data\$OTU
 
-1.  Overleaf document for the occJSDM math, which we will add as a
-    markdown vignette
-
-2.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed sites
-
-3.  GAMs for JSDM
-
-4.  calculate gt automatically from number of species, number of
-    measured traits, and let people know that if they want to change gt,
-    they can.
-
-5.  return species pairwise correlation matrices as matrices, not just
-    as a corrplot, so that users can make our own corrplots and sort
-    species by traits
-
-6.  input-data validity checker functions (e.g. threshold ≤ 0 throws an
-    error)
-
-7.  ability to deal with NAs in data\$OTU
-
-8.  use study design to trigger different models
+9.  document that occJSDM uses study design to trigger different models
 
     1.  m=k=p=1: JSDM only
 
@@ -73,41 +44,43 @@ editor_options:
 
     3.  count = TRUE: count data
 
+    4.  simulateoccplusdata() has an argument to create binary,
+        continuous, occupancy, or two-stage data
+
+**MEE paper**
+
+1.  Overleaf document for the occJSDM math, which we will add as a
+    markdown vignette
+
+2.  **reproduce all Ecoletts results as a test of the package and decide
+    whether to include in repo**
+
+3.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed sites
+
+4.  GAMs for JSDM
+
+5.  calculate gt automatically from number of species, number of
+    measured traits, and let people know that if they want to change gt,
+    they can.
+
+6.  return species pairwise correlation matrices as matrices, not just
+    as a corrplot, so that users can make our own corrplots and sort
+    species by traits
+
+7.  add ability to analyse count data
+
+8.  scenario for source-sink inference (sites where env covariate
+    coeffcients are negative but spatial covariate coefficients are
+    positive), using an explicit source-sink simulation
+
+9.  remove effect of space on environmental covariates. remove the
+    effect of unobserved environmental on observed environmental
+    covariates and space. thus, adding factors (unobserved env
+    covariates) doesn't change the effect of observed env covariates
+
 **Future versions**
 
-1.  source-sink inference (sites where env covariate coeffcients are
-    negative but spatial covariate coefficients are positive)
+1.  use spike-in to estimate abundance change (i.e. eDNAPlus)
 
-2.  use spike-in to estimate abundance change (i.e. eDNAPlus)
-
-3.  model selection of environmental, spatial covariates via AIC etc.
-
-4.  model selection of environmental, spatial covariates via
-    regularisation
-
-5.  model selection of `n_factors` (plus a rule of thumb default). The
-    following is the original chunk for when occPlus used STAN:
-
-```{r Model selection, eval = FALSE}
-library(loo)
-
-fitmodel2  <- runOccPlus(data,
-                        listParams = list(n_factors = 3, 
-                                          gt = 0),
-                        occCovariates = c("X_psi.1", "X_psi.2"),
-                        collCovariates = c("X_theta"),
-                        MCMCparams = list(nchain = 2,
-                                          nburn = 500,
-                                          niter = 500)
-                        );beepr::beep()
-
-log_lik1 <- extract_log_lik(fitmodel$vb_fit)
-log_lik2 <- extract_log_lik(fitmodel2$vb_fit)
-
-loo1 <- loo(log_lik1)
-loo1 <- loo(log_lik2)
-
-comparison <- loo_compare(loo1, loo2)
-print(comparison) # The model with elpd_diff equal to 0 is the one to be preferred
-```
-
+2.  model selection of environmental, spatial covariates via
+    regularisation/shrinkage
