@@ -9,16 +9,28 @@ sample_w_cpp <- function(logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q, M
     .Call(`_occPlus_sample_w_cpp`, logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z)
 }
 
-sample_w_cim_cipp <- function(y, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z) {
-    .Call(`_occPlus_sample_w_cim_cipp`, y, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z)
+sample_w_cim_cipp <- function(y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z) {
+    .Call(`_occPlus_sample_w_cim_cipp`, y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z)
 }
 
 sample_betatheta_cpp <- function(w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta) {
     .Call(`_occPlus_sample_betatheta_cpp`, w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta)
 }
 
-sample_pq_cpp <- function(c_imk, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q) {
-    .Call(`_occPlus_sample_pq_cpp`, c_imk, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q)
+sample_pq_cpp <- function(c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q) {
+    .Call(`_occPlus_sample_pq_cpp`, c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q)
+}
+
+computeModelLoglikJSDM_cpp <- function(z, eta, model, tau = NULL) {
+    .Call(`_occPlus_computeModelLoglikJSDM_cpp`, z, eta, model, tau)
+}
+
+computeModelLoglikFirstStage_cpp <- function(w, z, theta, theta0, idx_z_w) {
+    .Call(`_occPlus_computeModelLoglikFirstStage_cpp`, w, z, theta, theta0, idx_z_w)
+}
+
+computeModelLoglikSecondStage_cpp <- function(y, w, p, q, idx_w_k, idx_p_k) {
+    .Call(`_occPlus_computeModelLoglikSecondStage_cpp`, y, w, p, q, idx_w_k, idx_p_k)
 }
 
 rinvgamma_cpp <- function(a, b) {

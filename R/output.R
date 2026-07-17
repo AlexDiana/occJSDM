@@ -269,17 +269,19 @@ plotOccupancyCovariates <- function(fitModel,
 #' @import dplyr
 #' @import ggplot2
 #'
-returnBaselineOccupancyRates <- function(fitModel){
+returnOccupancyRates <- function(fitModel){
 
   speciesNames <- fitModel$infos$speciesNames
 
   logisticB0_output <- logistic(fitModel$results_output$jsdm_output$B0_output)
-  dimnames(logisticB0_output)[[1]] <- speciesNames
+  logisticB0_output <- apply(logisticB0_output, 1, c)
+
+  dimnames(logisticB0_output)[[2]] <- speciesNames
 
   logisticB0_output
 }
 
-#' plotBaselineOccupancyRates
+#' plotOccupancyRates
 #'
 #' Baseline occupancy rate for each species.
 #'
@@ -294,20 +296,20 @@ returnBaselineOccupancyRates <- function(fitModel){
 #'
 #' @examples
 #' \dontrun{
-#' plotBaselineOccupancyRates(fitModel, idx_species = 1:5)
+#' plotOccupancyRates(fitModel, idx_species = 1:5)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-plotBaselineOccupancyRates <- function(fitModel,
-                                       idx_species = NULL,
-                                       confidence = .95){
+plotOccupancyRates <- function(fitModel,
+                               idx_species = NULL,
+                               confidence = .95){
 
   confInt <- c((1 - confidence) / 2, (1 + confidence) / 2)
 
-  psi0_output <- returnBaselineOccupancyRates(fitModel)
+  psi0_output <- returnOccupancyRates(fitModel)
   S <- fitModel$infos$S
   speciesNames <- fitModel$infos$speciesNames
 
@@ -315,14 +317,12 @@ plotBaselineOccupancyRates <- function(fitModel,
     idx_species <- 1:S
   }
 
-  psi0_output_vec <- apply(psi0_output, 2, c)
-
-  data_plot <- apply(psi0_output_vec, 1, function(x) {
+  data_plot <- apply(psi0_output, 2, function(x) {
     quantile(x, probs = confInt)
   }) %>%
     t %>%
     as.data.frame %>%
-    mutate(Species = dimnames(psi0_output)[[1]])
+    mutate(Species = dimnames(psi0_output)[[2]])
 
   colnames(data_plot)[1:2] <- c("Min","Max")
 
@@ -1254,6 +1254,30 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
 }
 
 # OTHER -------
+
+#' extractWAIC
+#'
+#' Compute the WAIC for model comparison
+#'
+#' @details
+#' Compute the WAIC for model comparison
+#'
+#' @param fitModel Output from the function runOccPlus
+#'
+#' @return The WAIC
+#'
+#' @examples
+#' \dontrun{
+#' extractWAIC(fitModel)
+#' }
+#'
+#' @export
+#'
+extractWAIC <- function(fitModel){
+
+  fitModel$results_output$WAIC
+
+}
 
 #' returnVariancePartitioning
 #'

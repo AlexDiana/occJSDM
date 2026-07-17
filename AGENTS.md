@@ -42,7 +42,26 @@ The `threshold` argument to `runOccPlus()` controls how `OTU` is interpreted: - 
 
 `man/*.Rd` files are currently tracked and committed in git (not gitignored), despite an earlier commit (`dd158a9`, prior to this session) whose message claimed intent to "stop generating/tracking man/\*.Rd" -- that intent was never followed through in `.gitignore`. Regenerating docs via `devtools::document()` after adding/changing roxygen tags will produce `man/*.Rd` diffs that should be committed (or the gitignore situation resolved) deliberately.
 
+## Current work status
+
+- **Most recent commits** (as of July 2026):
+  - `45ac31c` Remove sampleresults.rda/traitdata_caiwang.rdata; gitignore CaiWang_data/ and deprecated/analysis/
+  - `6f05f66` Update AGENTS.md and TODO.Rmd
+  - Vignettes (`occJSDM.Rmd`, `simulateOccPlusData.Rmd`) have been updated with new data fields and workflows
+  - testthat infrastructure added with tests for `toRunOccPlusFormat()`
+- **Pending changes**: TODO.Rmd has been modified locally (not yet committed) with reordered priority items
+- **Current priorities** (from TODO.Rmd):
+  1. Change all `occPlus` references to `occJSDM` (naming convention cleanup)
+  2. Reproduce Ecology Letters dataset results as a test of the package
+  3. Add text explaining the `threshold` parameter better
+  4. Fix `plotVariancePartitioning()` to place species covariances on top of the triangle
+  5. Set default value for `gt` in `listParams()`
+  6. Add `plotBaselineOccupancyRates()` function
+  7. Add model diagnostics functions from GLGS-eDNA repo
+  8. Create ordination plot functionality
+
 ## Notes
 
 - When editing files that are also open in the RStudio editor, prefer re-reading the file immediately before and after edits -- a prior session saw a file get corrupted/duplicated after an `edit` call, likely from an editor/disk desync; rewriting the whole file with `write` fixed it.
 - This repo's git history shows a pattern of committing by concern (e.g. testthat setup, generated docs, vignette content fixes kept separate from unrelated whitespace-only diffs) rather than one large commit -- worth continuing when making multiple unrelated changes.
+- TODO.Rmd tracks near-term and future development priorities; keep synchronized with actual work being done.

@@ -189,8 +189,8 @@ There are several outputs we can obtain:
 ### Covariate coefficients
 
 We provide two functions for returning collection and occupancy
-covariate coefficients. The output is returned in the form (*niter* x
-*numberOfCovariates* x *numberOfSpecies*).
+covariate coefficient values. The output is returned in the form
+(*niter* x *numberOfCovariates* x *numberOfSpecies*).
 
 ```{r}
 collCovariatesOutput <- returnCollectionCovariates(fitmodel)
@@ -237,6 +237,9 @@ We can plot occupancy, collection, detection, and false-positive rates for Stage
 We note that occupancy and collection rates are the occupancy and collection
 probability when fixing each covariate at its mean level.
 
+The outputs are ggplot2 objects and so can be combined with the
+`patchwork` library.
+
 ```{r Stage 1}
 plotOccupancyRates(fitmodel, idx_species = 1:10) 
 ```
@@ -247,8 +250,10 @@ plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these 
 ```
 
 ```{r Stage 2}
-plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
-plotDetectionRates(fitmodel, idx_species = 1:10) # ideally, these are high. 
+p1 <- plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+p2 <- plotDetectionRates(fitmodel, idx_species = 1:10) # ideally, these are high. 
+library(patchwork)
+p1 + p2
 ```
 
 The Stage 2 detection rates are calculated separately for each primer
@@ -303,12 +308,14 @@ strongly positive detection data, because the model assumes that field
 and lab practice were carried out well, so that false positive
 detections are assumed to always be weak.]{.underline}
 
-
 ### Residual correlation matrix
 
 We can plot the posterior median of the *residual* correlation matrix,
 after accounting for occupancy covariates (positive in red and negative
-in blue). X's mark non-significant correlations.
+in blue). X's mark non-significant correlations. Given that the vignette
+dataset was synthesised with the environmental and spatial covariates
+used to fit the model, it is not surprising that there is essentially no
+residual correlation.
 
 ```{r}
 plotResidualCorrelationMatrix(fitmodel, idx_species = 1:10)
@@ -354,7 +361,6 @@ collection covariates.
 
 ```{r}
 latentPresences <- returnLatentPresences(fitmodel, idx_species = 1)
-View(latentPresences)
 ```
 
 It is helpful to display `latentPresences` as a `gt` table with a nested

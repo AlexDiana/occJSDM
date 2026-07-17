@@ -104,6 +104,12 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
       do.call(paste, as.data.frame(X_s))
     )
 
+    # indexes assigning the new location X_s to the original
+    X_s_index <- match(
+      do.call(paste, as.data.frame(X_s)),
+      do.call(paste, as.data.frame(Xs))
+    )
+
     # location of support points
     # X_tilde <- as.matrix(buildGrid(X_s, gridStep = .4))
     list_kmeans <- kmeans(X_s, centers = ps)
@@ -136,6 +142,7 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
   } else {
 
     Xs_index <- rep(NA, nrow(Xs))
+    X_s_index <- NULL
     X_tilde <- matrix(NA, ps, 0)
     X_s_centers <- matrix(NA, nrow(Xs), 0)
     Xs_centers <- matrix(NA, nrow(Xs), 0)
@@ -145,6 +152,7 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
 
   list(
     "Xs_index" = Xs_index, # indexes matching original locations to new locations
+    "X_s_index" = X_s_index, # indexes recovering the new unique locations from the original
     "X_tilde" = X_tilde, # location of support points
     "X_s_centers" = X_s_centers, # indexes to match new locations to the coefficients
     "Xs_centers" = Xs_centers, # indexes to match original locations to the coefficients
@@ -158,7 +166,7 @@ computeSORmatrix <- function(l_s, X_tilde, X_s, Xs_index, X_s_centers){
 
   if(ps > 0){
 
-    K_uu <- K2(X_tilde, X_tilde, 1, l_s) + diag(exp(-10), nrow = nrow(X_tilde))
+    K_uu <- K2(X_tilde, X_tilde, 1, l_s) + diag(0.0001, nrow = nrow(X_tilde))
     L_Kmm <- FastGP::rcppeigen_get_chol(K_uu)
     invL_Kmm <- FastGP::rcppeigen_invert_matrix(L_Kmm)
     K_staru <- K2(X_s, X_tilde, 1, l_s)
@@ -166,8 +174,9 @@ computeSORmatrix <- function(l_s, X_tilde, X_s, Xs_index, X_s_centers){
     Ks <- t(sapply(1:nrow(KnmLmt), function(i){ KnmLmt[i,X_s_centers[i,]]}))
     Ks <- Ks[Xs_index,]
 
-    logDetKuu <- sum(log(FastGP::rcppeigen_get_diag(K_uu))) * 2
-    sq_term <- FastGP::rcppeigen_get_chol(FastGP::rcppeigen_invert_matrix(K_uu))
+    K_xx <- K2(X_s, X_s, 1, l_s) + diag(exp(-10), nrow = nrow(X_s))
+    logDetKuu <- sum(log(FastGP::rcppeigen_get_diag(K_xx))) * 2
+    sq_term <- FastGP::rcppeigen_get_chol(FastGP::rcppeigen_invert_matrix(K_xx))
 
   } else {
 
@@ -185,7 +194,6 @@ computeSORmatrix <- function(l_s, X_tilde, X_s, Xs_index, X_s_centers){
 
 precomputeSORmatrices <- function(l_s_grid, list_Xs){
 
-
   length_grid_ls <- length(l_s_grid)
 
   X_tilde <- list_Xs$X_tilde
@@ -196,10 +204,11 @@ precomputeSORmatrices <- function(l_s_grid, list_Xs){
   X_centers <- nrow(X_tilde)
   maxPoints <- ncol(X_s_centers)
   n <- length(Xs_index)
+  ns <- nrow(X_s)
 
   Ks_all <- array(NA, dim = c(n, maxPoints, length_grid_ls))
   logDetKuu_grid <- rep(NA, length_grid_ls)
-  Lm1_grid <- array(NA, c(X_centers, X_centers, length_grid_ls))
+  Lm1_grid <- array(NA, c(ns, ns, length_grid_ls))
 
   if(X_centers > 0){
     for (j in 1:length_grid_ls) {
@@ -300,8 +309,8 @@ sampleEffects <- function(n){
 }
 
 simulateData <- function(
-    n, S, p, g, gt, d, tau, ds,
-    sigma_b, sigma_bs, sigma_ts, sigma_h, l_s,
+    n, S, p, g, gt, d, tau, ds, ns,
+    sigma_b, sigma_bs, sigma_ts, sigma_h, sigma_s, l_s,
     useSpatField, usingSplines, model){
 
   # simulate data
@@ -323,7 +332,6 @@ simulateData <- function(
     Tr <- matrix(rnorm(S * g), S, g)
 
     # Spatial locations
-    ns <- n
     Xs <- matrix(runif(ns * 2), ns, 2)
     if(ns < n){
       Xs <- Xs[sample(1:ns, n, replace = T),]
@@ -386,7 +394,7 @@ simulateData <- function(
   {
     if(useSpatField){
 
-      K_mat <- K2(Xs, Xs, 1, l_s) + diag(0.001, nrow = n)
+      K_mat <- K2(Xs, Xs, sigma_s, l_s) + diag(0.001, nrow = ns)
 
       Lambda <- matrix(rnorm(ds * S), ds, S)
       Sigma <- t(Lambda) %*% Lambda + diag(0.001, nrow = S)
@@ -398,7 +406,10 @@ simulateData <- function(
 
       spatField <- t(LU) %*% Z %*% LV
 
+    } else {
+      spatField <- matrix(0, n, S)
     }
+
 
     Xs_centers <- matrix(NA, 0, 0)
     Ks <- matrix(NA, 0, 0)
@@ -415,12 +426,6 @@ simulateData <- function(
   XB <- list_eta$XB
   SE <- list_eta$SE
   UL <- list_eta$UL
-
-  varPart <- computeVariancePartitioning(XB, SE, UL)
-  if(useSpatField) {
-    eta <- eta + spatField
-    varPart <- computeVariancePartitioning(XB, SE + spatField, UL)
-  }
 
   # outcomes
   if(model == "continuous"){
@@ -453,6 +458,13 @@ simulateData <- function(
 
   }
 
+
+  varPart <- computeVariancePartitioning_stdevs(XB, SE, UL)
+  if(useSpatField) {
+    eta <- eta + spatField
+    varPart <- computeVariancePartitioning_stdevs(XB, SE + spatField, UL)
+  }
+
   # save true values
   {
     data <- list(
@@ -475,10 +487,12 @@ simulateData <- function(
       "Cs" = Cs,
       "Bst" = Bst,
       "SE" = SE,
+      "spatField" = spatField,
       "U" = U,
       "L" = L,
       "sigma_b" = sigma_b,
       "sigma_bs" = sigma_bs,
+      "sigma_s" = sigma_s,
       "ls" = ls,
       "eta" = eta,
       "tau" = tau,
@@ -819,7 +833,7 @@ loglik_spatialEffect <- function(KsBs_s, Lm1, logdet, sigma_s){
 }
 
 # sample scale parameter of spatial field
-sample_ls <- function(idx_ls, KsBs, list_SoRSummaries,
+sample_ls <- function(idx_ls, SE, list_SoRSummaries,
                       a_l_s, b_l_s, sigma_s){
 
   if(!is.null(list_SoRSummaries)){
@@ -841,26 +855,26 @@ sample_ls <- function(idx_ls, KsBs, list_SoRSummaries,
 
     loglikelihood_current <- sum(
       sapply(1:S, function(s){
-        loglik_spatialEffect(KsBs[,s], Lm1_grid[,,idx_ls], ldet_grid[idx_ls], sigma_s, n_data)
+        loglik_spatialEffect(SE[,s], Lm1_grid[,,idx_ls], ldet_grid[idx_ls], sigma_s)
       })
     )
 
-    logPrior <- dgamma(l_s_current, a_l_s, b_l_s, log = T)
+    logPrior_current <- dgamma(l_s_current, a_l_s, b_l_s, log = T)
 
-    logposterior_current <- logPrior + loglikelihood
+    logposterior_current <- logPrior_current + loglikelihood_current
 
     # proposed point
     l_s_star <- l_s_grid[idx_ls_star]
 
     loglikelihood_star <- sum(
       sapply(1:S, function(s){
-        loglik_spatialEffect(KsBs[,s], sq_grid[,,idx_ls_star], ldet_grid[idx_ls_star], sigma_s, n_data)
+        loglik_spatialEffect(SE[,s], Lm1_grid[,,idx_ls_star], ldet_grid[idx_ls_star], sigma_s)
       })
     )
 
-    logPrior <- dgamma(l_s_star, a_l_s, b_l_s, log = T)
+    logPrior_star <- dgamma(l_s_star, a_l_s, b_l_s, log = T)
 
-    logposterior_star <- logPrior + loglikelihood
+    logposterior_star <- logPrior_star + loglikelihood_star
 
     if(runif(1) < exp(logposterior_star - logposterior_current)){
       idx_ls <- idx_ls_star
@@ -1015,7 +1029,7 @@ update_jSDMcoef <- function(list_data,
   # sample spatial field scale
   if(ps > 0){
     if(F){
-      idx_ls <- sample_ls(idx_ls, SE,
+      idx_ls <- sample_ls(idx_ls, Bs,
                           list_SoRSummaries,
                           a_l_s, b_l_s, sigma_s = 1)
       l_s <- l_s_grid[idx_ls]
@@ -1034,7 +1048,7 @@ update_jSDMcoef <- function(list_data,
     XB <- list_psiCoef$XB
     SE <- list_psiCoef$SE
     UL <- list_psiCoef$UL
-    variancePartitioning <- computeVariancePartitioning(XB, SE, UL)
+    variancePartitioning <- computeVariancePartitioning_stdevs(XB, SE, UL)
 
     if(model == "continuous"){
       eta <- eta
@@ -1235,24 +1249,42 @@ computePredictiveProbs <- function(jsdm_output,
 
 }
 
-V <- function(eta) {
-  apply(logistic(eta), 2, var)
-}
 
 # valid for logistic regression
 pseudo_R2 <- function(eta, y) {
 
-  1 -
+  S <- ncol(y)
+  n <- nrow(y)
+
+  mean_y <- mean(y, na.rm = T)
+
+  L_null <- sum(
+    sapply(1:S, function(s){
+      sapply(1:n, function(i){
+        dbinom(y[i,s], 1, mean_y, log = T)
+      })
+    })
+  )
+
+  L_full <- sum(
+    sapply(1:S, function(s){
+      sapply(1:n, function(i){
+        dbinom(y[i,s], 1, logistic(eta[i,s]), log = T)
+      })
+    })
+  )
+
+  1 - L_null / L_full
 
 }
 
 partition_r2 <- function(y, A, B, C) {
-  # Null model (intercept only)
+
   null_ll <- logLik(glm(y ~ 1, family = binomial))
 
   # Get R² for all subsets
   r2_0 <- 0
-  r2_A <- 1 - logLik(glm(y ~ A, family = binomial)) / null_ll
+  r2_A <- pseudo_R2(A + B + C)
   r2_B <- 1 - logLik(glm(y ~ B, family = binomial)) / null_ll
   r2_C <- 1 - logLik(glm(y ~ C, family = binomial)) / null_ll
   r2_AB <- 1 - logLik(glm(y ~ A + B, family = binomial)) / null_ll
@@ -1273,45 +1305,48 @@ partition_r2 <- function(y, A, B, C) {
            C = contrib_C/total*100))
 }
 
-# Use it
-result <- partition_r2(y, A, B, C)
-print(round(result, 2))
-
-computeVariancePartitioning_R2 <- function(XB, SE, UL){
+computeVariancePartitioning_R2 <- function(XB, SE, UL, y, model){
 
   S <- ncol(XB)
 
-  # Variances for every subset
-  V0   <- rep(0, S)
-  VE   <- V(XB)
-  VS   <- V(SE)
-  VF   <- V(UL)
-  VES  <- V(XB + SE)
-  VEF  <- V(XB + UL)
-  VSF  <- V(SE + UL)
-  VESF <- V(XB + SE + UL)
+  if(model == "binary"){
+    # Variances for every subset
+    R20   <- rep(0, S)
+    R2E   <- pseudo_R2(XB, y)
+    R2S   <- pseudo_R2(SE, y)
+    R2F   <- pseudo_R2(UL, y)
+    R2ES  <- pseudo_R2(XB + SE, y)
+    R2EF  <- pseudo_R2(XB + UL, y)
+    R2SF  <- pseudo_R2(SE + UL, y)
+    R2ESF <- pseudo_R2(XB + SE + UL, y)
 
-  # Shapley contributions
+    # Shapley contributions
 
-  CE <-
-    (VE - V0 +
-       (VES - VS) +
-       (VEF - VF) +
-       (VESF - VSF)) / 4
+    CE <-
+      (R2E - R20 +
+         (R2ES - R2S) +
+         (R2EF - R2F) +
+         (R2ESF - R2SF)) / 4
 
-  CS <-
-    (VS - V0 +
-       (VES - VE) +
-       (VSF - VF) +
-       (VESF - VEF)) / 4
+    CS <-
+      (R2S - R20 +
+         (R2ES - R2E) +
+         (R2SF - R2F) +
+         (R2ESF - R2EF)) / 4
 
-  CF <-
-    (VF - V0 +
-       (VEF - VE) +
-       (VSF - VS) +
-       (VESF - VES)) / 4
+    CF <-
+      (R2F - R20 +
+         (R2EF - R2E) +
+         (R2SF - R2S) +
+         (R2ESF - R2ES)) / 4
 
-  Total <- CE + CS + CF
+    Total <- CE + CS + CF
+  } else {
+    CE <- NA
+    CS <- NA
+    CF <- NA
+    Total <- NA
+  }
 
   out <- data.frame(
     Environmental = CE / Total,
@@ -1324,39 +1359,40 @@ computeVariancePartitioning_R2 <- function(XB, SE, UL){
 
 }
 
-computeVariancePartitioning <- function(XB, SE, UL){
+SD <- function(eta) {
+  apply(logistic(eta), 2, sd)
+}
 
-  S <- ncol(XB)
+computeVariancePartitioning_stdevs <- function(XB, SE, UL){
 
-  # Variances for every subset
-  V0   <- rep(0, S)
-  VE   <- V(XB)
-  VS   <- V(SE)
-  VF   <- V(UL)
-  VES  <- V(XB + SE)
-  VEF  <- V(XB + UL)
-  VSF  <- V(SE + UL)
-  VESF <- V(XB + SE + UL)
+  VE   <- SD(XB)
+  VS   <- SD(SE)
+  VF   <- SD(UL)
+  VES  <- SD(XB + SE)
+  VEF  <- SD(XB + UL)
+  VSF  <- SD(SE + UL)
+  VESF <- SD(XB + SE + UL)
 
-  # Shapley contributions
+  VE <- pmax(VE, 0)
+  VES_VS <- pmax(VES - VS, 0)
+  VEF_VF <- pmax(VEF - VF, 0)
+  VESF_VSF <- pmax(VESF - VSF, 0)
 
-  CE <-
-    (VE - V0 +
-       (VES - VS) +
-       (VEF - VF) +
-       (VESF - VSF)) / 4
+  VS <- pmax(VS, 0)
+  VES_VE <- pmax(VES - VE, 0)
+  VSF_VF <- pmax(VSF - VF, 0)
+  VESF_VEF <- pmax(VESF - VEF, 0)
 
-  CS <-
-    (VS - V0 +
-       (VES - VE) +
-       (VSF - VF) +
-       (VESF - VEF)) / 4
+  VF <- pmax(VF, 0)
+  VEF_VE <- pmax(VEF - VE, 0)
+  VSF_VS <- pmax(VSF - VS, 0)
+  VESF_VES <- pmax(VESF - VES, 0)
 
-  CF <-
-    (VF - V0 +
-       (VEF - VE) +
-       (VSF - VS) +
-       (VESF - VES)) / 4
+  CE <- VE + VES_VS + VEF_VF + VESF_VSF
+
+  CS <- VS + VES_VE + VSF_VF + VESF_VEF
+
+  CF <- VF + VEF_VE + VSF_VS + VESF_VES
 
   Total <- CE + CS + CF
 
@@ -1364,8 +1400,42 @@ computeVariancePartitioning <- function(XB, SE, UL){
     Environmental = CE / Total,
     Spatial = CS / Total,
     Biotic = CF / Total,
-    Total = Total
+    Total = VESF
   )
+
+  out
+
+}
+
+computeVariancePartitioning_linvars <- function(XB, SE, UL){
+
+  S <- ncol(XB)
+
+  out <- data.frame(
+    Environmental = rep(NA, S),
+    Spatial = rep(NA, S),
+    Biotic = rep(NA, S),
+    Total = rep(NA, S)
+  )
+
+  for (s in 1:S) {
+
+    alpha_12 <- var(XB[,s]) / (var(XB[,s]) + var(SE[,s]))
+    alpha_23 <- var(SE[,s]) / (var(UL[,s]) + var(SE[,s]))
+    alpha_13 <- var(XB[,s]) / (var(XB[,s]) + var(UL[,s]))
+
+    total_var <- var(XB[,s]+SE[,s]+UL[,s])
+    contrib <- c(var(XB[,s])+ alpha_12 * cov(XB[,s],SE[,s])+ alpha_13 * cov(XB[,s],UL[,s]),
+                 var(SE[,s])+ (1 - alpha_12) * cov(XB[,s],SE[,s])+ alpha_23 * cov(SE[,s],UL[,s]),
+                 var(UL[,s])+ (1 - alpha_13) *cov(XB[,s],UL[,s])+ (1 - alpha_23) * cov(SE[,s],UL[,s]))
+    percent <- contrib / total_var
+
+    out$Environmental[s] <- percent[1]
+    out$Spatial[s] <- percent[2]
+    out$Biotic[s] <- percent[3]
+    out$Total[s] <- total_var
+
+  }
 
   out
 
@@ -1398,14 +1468,13 @@ plotVarPart <- function(varPart_output, speciesNames){
   vp <- returnVariancePartitioningMatrix(varPart_output, speciesNames)
 
   ggtern(vp,
-         aes(x = Env,
-             y = Spatial,
-             z = Biotic,
-             size = StDev)) +
+         aes(x = Spatial,
+             y = Env,
+             z = Biotic)) +
     geom_point(alpha = 0.7) +
     labs(
-      T = "Spatial",
-      L = "Environment",
+      T = "Environment",
+      L = "Spatial",
       R = "Biotic"
     ) +
     theme_bw() +

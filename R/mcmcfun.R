@@ -558,4 +558,123 @@ loglik_sigma1 <- function(w, logy1){
 
 }
 
-# compute_lppd <- function()
+# WAIC CALCULATIONS -----
+
+update_waic_summary <- function(logliks, list_waic, iter){
+
+  M2 <- list_waic$M2
+  mean_log <- list_waic$mean_log
+  mean_lik <- list_waic$mean_lik
+
+  delta_log <- logliks - mean_log
+  mean_log <- mean_log + delta_log / iter
+
+  delta2_log <- logliks - mean_log
+  M2 <- M2 + delta_log * delta2_log
+
+  delta_lik <- exp(logliks) - mean_lik
+  mean_lik <- mean_lik + delta_lik / iter
+
+  list("M2" = M2,
+       "mean_log" = mean_log,
+       "mean_lik" = mean_lik)
+
+}
+
+compute_waic <- function(list_waic, numIters){
+
+  mean_lik <- list_waic$mean_lik
+  var_loglik <- list_waic$M2 / (numIters - 1)
+
+  lppd <- sum(log(mean_lik), na.rm = T)
+  p_waic <- sum(var_loglik , na.rm = T)
+
+  WAIC <- - 2 * (lppd - p_waic)
+
+  WAIC
+}
+
+computeModelLoglikJSDM <- function(z, eta, model, tau = NULL){
+
+  n <- nrow(z)
+  S <- ncol(z)
+
+  if(model == "continuous"){
+
+    logliks <- as.vector(
+      sapply(1:n, function(i){
+        sapply(1:S, function(j){
+          dnorm(z[i,j], eta[i,j], tau[j], log = T)
+        })
+      })
+    )
+
+  } else if(model == "binary"){
+
+    psi <- logistic(eta)
+
+    logliks <- as.vector(
+      sapply(1:n, function(i){
+        sapply(1:S, function(j){
+          dbinom(z[i,j], 1, psi[i,j], log = T)
+        })
+      })
+    )
+
+  } else if (model == "counts"){
+
+    mu <- exp(eta)
+
+    logliks <- as.vector(
+      sapply(1:n, function(i){
+        sapply(1:S, function(j){
+          dpois(z[i,j], lambda = mu[i,j], log = T)
+        })
+      })
+    )
+
+  }
+
+  logliks
+
+}
+
+computeModelLoglikFirstStage <- function(w, z, theta, theta0, idx_z_w){
+
+  z_rep <- z[idx_z_w,]
+
+  logliks <- as.vector(
+    sapply(1:nrow(w), function(i){
+      sapply(1:ncol(w), function(s){
+        if(z_rep[i,s] == 1){
+          dbinom(w[i,s], 1, theta[i,s], log = T)
+        } else {
+          dbinom(w[i,s], 1, theta0[s], log = T)
+        }
+
+      })
+    })
+  )
+
+  logliks
+}
+
+computeModelLoglikSecondStage <- function(y, w, p, q, idx_w_k, idx_p_k){
+
+    w_rep <- w[idx_w_k,]
+
+    logliks <- as.vector(
+      sapply(1:ncol(y), function(s){
+        sapply(1:nrow(y), function(i){
+          if(w_rep[i,s] == 1){
+            dbinom(y[i,s], 1, p[idx_p_k[i],s], log = T)
+          } else {
+            dbinom(y[i,s], 1, q[idx_p_k[i],s], log = T)
+          }
+        })
+      })
+    )
+
+
+  logliks
+}
