@@ -1152,7 +1152,7 @@ runOccJSDM <- function(data,
   minESS <- computeMinESS(results_output)
 
   if(minESS < 50) {
-    print(paste0("Minimum ffective sample size equal to ", minESS,", please rerun with more iterations"))
+    print(paste0("Minimum effective sample size equal to ", minESS,", please rerun with more iterations"))
   }
 
   infos <- list(

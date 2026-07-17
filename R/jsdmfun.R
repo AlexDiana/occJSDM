@@ -1472,11 +1472,11 @@ plotVarPart <- function(varPart_output, speciesNames){
              y = Biotic,
              z = Spatial)) +
     geom_point(alpha = 0.7) +
-    labs(
-      L = "Environment",
-      T = "Biotic",
-      R = "Spatial"
-    ) +
+    # labs(
+    #   L = "Environment",
+    #   T = "Biotic",
+    #   R = "Spatial"
+    # ) +
     theme_bw() +
     theme_showarrows() +
     theme(
