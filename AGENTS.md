@@ -38,6 +38,14 @@ The `threshold` argument to `runOccPlus()` controls how `OTU` is interpreted: - 
 - Both bugs already have `@note` roxygen comments flagging them in the source.
 - `computeAverageCollectionProbs()` and `computeConditionalSamplePresenceProbs()` were confirmed working (via live testing against fitted model objects) as long as the fitted model actually populated `results_output$theta_output` / `results_output$w_output` (always true for a fresh `runOccPlus()` fit with default `summarisedLatentPresences = TRUE`).
 
+## Git and build artifacts
+
+- `src/*.o` and `src/*.so` files are **tracked in git** despite being ignored in `.gitignore` (added in lines 7-8). These are compiled object files and should not be committed. To fix: `git rm --cached src/*.o src/*.so` and commit. They were tracked before `.gitignore` rules were added and remain in git history until explicitly removed.
+
+## ggtern and plotting
+
+- `plotVariancePartitioning()` (via `plotVarPart()` in `R/jsdmfun.R`, line 1466) produces a warning: "Ignoring unknown labels: L, T, R" because it calls `labs(L = "Environment", T = "Biotic", R = "Spatial")`. The `ggplot2::labs()` function doesn't recognize ternary-axis parameters `L`, `T`, `R`. **Fix**: Remove the `labs()` call entirely — the axis labels are correctly set by the aesthetic names (`Env`, `Biotic`, `Spatial`) in the `aes()` mapping and don't require additional specification. The theme elements `tern.axis.title.T`, `tern.axis.title.L`, `tern.axis.title.R` already control styling.
+
 ## `man/*.Rd` tracking
 
 `man/*.Rd` files are currently tracked and committed in git (not gitignored), despite an earlier commit (`dd158a9`, prior to this session) whose message claimed intent to "stop generating/tracking man/\*.Rd" -- that intent was never followed through in `.gitignore`. Regenerating docs via `devtools::document()` after adding/changing roxygen tags will produce `man/*.Rd` diffs that should be committed (or the gitignore situation resolved) deliberately.

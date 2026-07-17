@@ -8,15 +8,19 @@ editor_options:
 
 ## functions to add
 
-**0.1.0 Public release (Doug does all but 3 and 7)**
+**0.1.0 Public release (Doug does all but 3, 7, 9)**
 
 1.  change all `occPlus` to `occJSDM` across whole package
 
 2.  add **Detection rates** title to `plotDetectionRates()`
 
 3.  `computeConditionalOccupancyProbs()` and
-    `computePredictiveOccupancyProbs()`: Mean or median? quantiles for
-    predictive.
+    `computePredictiveOccupancyProbs()`: document that it's the mean.
+    document that with argument `summariseLatentPresences  = F` (default
+    = T), fitmodel saves quantiles and thus one can calculate
+    conditional and predictive occupancy intervals, but the cost is a
+    much larger fitmodel object (e.g. 500 sites X 100 species X 4000
+    niter = 800 MB unthinned), but you can thin it to reduce file size.
 
 4.  text to explain better the threshold parameter
 
@@ -36,7 +40,9 @@ editor_options:
 
 8.  document that occJSDM has ability to deal with NAs in data\$OTU
 
-9.  document that occJSDM uses study design to trigger different models
+9.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed sites
+
+10. document that occJSDM uses study design to trigger different models
 
     1.  m=k=p=1: JSDM only
 
@@ -44,7 +50,7 @@ editor_options:
 
     3.  count = TRUE: count data
 
-    4.  simulateoccplusdata() has an argument to create binary,
+    4.  `simulateoccplusdata()` has an argument to create binary,
         continuous, occupancy, or two-stage data
 
 **MEE paper**
@@ -55,25 +61,23 @@ editor_options:
 2.  **reproduce all Ecoletts results as a test of the package and decide
     whether to include in repo**
 
-3.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed sites
+3.  GAMs for JSDM
 
-4.  GAMs for JSDM
-
-5.  calculate gt automatically from number of species, number of
+4.  calculate gt automatically from number of species, number of
     measured traits, and let people know that if they want to change gt,
     they can.
 
-6.  return species pairwise correlation matrices as matrices, not just
+5.  return species pairwise correlation matrices as matrices, not just
     as a corrplot, so that users can make our own corrplots and sort
     species by traits
 
-7.  add ability to analyse count data
+6.  add ability to analyse count data
 
-8.  scenario for source-sink inference (sites where env covariate
+7.  scenario for source-sink inference (sites where env covariate
     coeffcients are negative but spatial covariate coefficients are
     positive), using an explicit source-sink simulation
 
-9.  remove effect of space on environmental covariates. remove the
+8.  remove effect of space on environmental covariates. remove the
     effect of unobserved environmental on observed environmental
     covariates and space. thus, adding factors (unobserved env
     covariates) doesn't change the effect of observed env covariates
