@@ -8,8 +8,8 @@ editor_options:
 
 ## functions to add
 
-**0.1.0 Public release (Doug does everything that isn't under Alex to
-dos)**
+**v0.1.0-beta** **Public release (Doug does everything that isn't under
+Alex to dos)**
 
 1.  Alex to dos
 
@@ -70,12 +70,14 @@ dos)**
 
 7.  ~~document `plotVariancePartitioning(fitmodel)`~~
 
-8.  model diagnostics functions from GLGS-eDNA repo and save a fitmodel
-    object for people to load if they don't want to run the vignette
+8.  model diagnostics functions from GLGS-eDNA repo
 
-9.  ~~document that occJSDM has ability to deal with NAs in data\$OTU~~
+9.  ~~save a fitmodel object for people to load if they don't want to
+    run the vignette~~
 
-10. ~~document that occJSDM uses study design to trigger different
+10. ~~document that occJSDM has ability to deal with NAs in data\$OTU~~
+
+11. ~~document that occJSDM uses study design to trigger different
     models~~
 
     1.  ~~m=k=p=1: JSDM only~~
@@ -89,11 +91,11 @@ dos)**
     5.  ~~`simulateOccJSDMDataGeneral()` has an argument to create
         binary, continuous, occupancy, or two-stage data~~
 
-11. ~~document return species pairwise correlation matrices as matrices,
+12. ~~document return species pairwise correlation matrices as matrices,
     not just as a corrplot, so that users can make our own corrplots and
     sort species by traits (`returnResidualCorrelationMatrix()`)~~
 
-12. ~~document increase in observed species with k~~
+13. ~~document increase in observed species with k~~
 
 **MEE paper**
 
