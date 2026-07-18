@@ -20,10 +20,15 @@ dos)**
     2.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed
         sites
 
+    3.  fix scalar `p`/`q` indexing bug in `simulateOccJSDMData()`:
+        `list_params$p` and `list_params$q` are scalars but the function
+        body indexes them as matrices (`p_true[idx_p_k[i], s]`). Need to
+        expand to `matrix(p, nrow = P, ncol = S)` before use.
+
 2.  ~~change all `occPlus` to `occJSDM` across whole package~~ DONE
 
-3.  purge `data/traitdata_caiwang.rdata` (need to coordinate with Alex
-    because he will need to clear his worktree and re-clone)
+3.  purge `data/traitdata_caiwang.rdata` from git history (need to
+    coordinate with Alex because he will need to re-clone)
 
 4.  add **Detection rates** title to `plotDetectionRates()`
 
@@ -57,7 +62,7 @@ dos)**
 
     3.  count = TRUE: count data
 
-    4.  `simulateoccplusdata()` has an argument to create binary,
+    4.  `simulateOccJSDMDataGeneral()` has an argument to create binary,
         continuous, occupancy, or two-stage data
 
 11. document return species pairwise correlation matrices as matrices,
