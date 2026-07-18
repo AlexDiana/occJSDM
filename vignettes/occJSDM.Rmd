@@ -184,6 +184,10 @@ run, we have set `nburn`, `niter`, and `nthin` to very low values, which
 accounts for the low minimum ESS \~ 40. The default value for `gt` is 2,
 but we show it here.
 
+```{r}
+
+```
+
 # COMMENT (Save the fitmodel object for a large number of iterations and do not run this)
 
 ## Output
@@ -224,7 +228,7 @@ plotOccupancyCovariates(fitmodel, idx_species = 1:10,
 
 We note that if a categorical covariate is used, the design matrix will
 contain the new levels for that categorical covariates and therefore the
-names will changes. To check the new covariates names, type
+names will change. To check the new covariate names, type
 
 ```{r}
 colnames(fitmodel$X_psi)
@@ -253,15 +257,16 @@ plotOccupancyRates(fitmodel, idx_species = 1:10)
 ```
 
 ```{r Stage 1b}
-plotCollectionRates(fitmodel, idx_species = 1:10) # ideally, these are high
-plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+library(patchwork)
+p1 <- plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+p2 <- plotCollectionRates(fitmodel, idx_species = 1:10) # ideally, these are high
+p1 + p2
 ```
 
 ```{r Stage 2}
-p1 <- plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
-p2 <- plotDetectionRates(fitmodel, idx_species = 1:10) # ideally, these are high. 
-library(patchwork)
-p1 + p2
+p3 <- plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+p4 <- plotDetectionRates(fitmodel, idx_species = 1:10) # ideally, these are high. 
+p3 + p4
 ```
 
 The Stage 2 detection rates are calculated separately for each primer
@@ -302,8 +307,8 @@ Both outputs are $n \times S$ matrices, where $n$ is the number of
 sites, and $S$ is the number of species, and they contain the posterior
 means of the conditional/predictive occupancy probability.
 
-[In Ji et al. (2025), we reported predictive occupancies because they
-are a more robust measure of occupancy, since they are calculated by
+In Ji et al. (2025), we reported predictive occupancies because they are
+a more robust measure of occupancy, since they are calculated by
 estimating the impact of the environmental covariates across all sites,
 whereas the conditional probability at a site is sensitive to the
 detection(s) at that site. Contrasting predictive with conditional
@@ -315,7 +320,7 @@ values) (see Supplementary Information 12 in Ji et al. 2025). Note that
 the model will never judge a species to be absent when there are
 strongly positive detection data, because the model assumes that field
 and lab practice were carried out well, so that false positive
-detections are assumed to always be weak.]{.underline}
+detections are assumed to always be weak.
 
 ### Residual correlation matrix
 
