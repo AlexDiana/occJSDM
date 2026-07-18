@@ -34,6 +34,15 @@ dos)**
         explicitly, and either wire up the `traitsMatrix` argument or
         remove it from the signature.
 
+    5.  fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
+        introduced in `af5ebe3`): the newly added `ESS_beta0psi` matrix
+        (intended to hold ESS for the new `beta0_psi_output`
+        intercept term) is allocated but never populated -- the second
+        loop still fills `ESS_betapsi` from `beta_psi_output` instead
+        of `ESS_beta0psi` from `beta0_psi_output`. Fix the loop to
+        reference the correct variables, and add `ESS_beta0psi` to the
+        final `min()`.
+
 2.  ~~change all `occPlus` to `occJSDM` across whole package~~ DONE
 
 3.  purge `data/traitdata_caiwang.rdata` from git history (need to
@@ -57,58 +66,72 @@ dos)**
     2.  ~~threshold≥1: any number of reads ≥ the threshold value value
         (default = 1) is considered a detection in that observation~~
 
-7.  document `plotVariancePartitioning(fitmodel)`
+7.  ~~document `plotVariancePartitioning(fitmodel)`~~
 
 8.  model diagnostics functions from GLGS-eDNA repo and save a fitmodel
     object for people to load if they don't want to run the vignette
 
 9.  ~~document that occJSDM has ability to deal with NAs in data\$OTU~~
 
-10. document that occJSDM uses study design to trigger different models
+10. ~~document that occJSDM uses study design to trigger different
+    models~~
 
-    1.  m=k=p=1: JSDM only
+    1.  ~~m=k=p=1: JSDM only~~
 
-    2.  m\>1, k=p=1: classical occupancy
+    2.  ~~m\>1, k=p=1: classical occupancy~~
 
-    3.  count = TRUE: count data
+    3.  ~~m\>1, k\>1, p≥1: two-stage eDNA table (as in Ji et al. 2025)~~
 
-    4.  `simulateOccJSDMDataGeneral()` has an argument to create binary,
-        continuous, occupancy, or two-stage data
+    4.  ~~count = TRUE: count data~~
 
-11. document return species pairwise correlation matrices as matrices,
+    5.  ~~`simulateOccJSDMDataGeneral()` has an argument to create
+        binary, continuous, occupancy, or two-stage data~~
+
+11. ~~document return species pairwise correlation matrices as matrices,
     not just as a corrplot, so that users can make our own corrplots and
-    sort species by traits (`returnResidualCorrelationMatrix()`)
+    sort species by traits (`returnResidualCorrelationMatrix()`)~~
 
-12. document increase in observed species with m and k
+12. ~~document increase in observed species with k~~
 
 **MEE paper**
 
-1.  Overleaf document for the occJSDM math, which we will add as a
-    markdown vignette
+1.  Doug to dos
 
-2.  **reproduce all Ecoletts results as a test of the package and decide
-    whether to include in repo**
+    1.  **reproduce all Ecoletts results as a test of the package and
+        decide whether to include in repo**
 
-3.  GAMs for JSDM
+2.  Alex to dos
 
-4.  calculate `gt` automatically from number of species, number of
-    measured traits, and let people know that if they want to change
-    `gt`, they can.
+    1.  Overleaf document for the occJSDM math, which we will add as a
+        markdown vignette
 
-5.  add ability to analyse count data
+    2.  GAMs for JSDM
 
-6.  scenario for source-sink inference (sites where env covariate
-    coeffcients are negative but spatial covariate coefficients are
-    positive), using an explicit source-sink simulation
+    3.  calculate `gt` automatically from number of species, number of
+        measured traits, and let people know that if they want to change
+        `gt`, they can.
 
-7.  remove effect of space on environmental covariates. remove the
-    effect of unobserved environmental on observed environmental
-    covariates and space. thus, adding factors (unobserved env
-    covariates) doesn't change the effect of observed env covariates
+    4.  ability to analyse count data
+
+    5.  `plotCumulativeSpeciesDetections()` for different values of M.
+
+    6.  scenario for source-sink inference (sites where env covariate
+        coeffcients are negative but spatial covariate coefficients are
+        positive), using an explicit source-sink simulation
+
+    7.  remove effect of space on environmental covariates. remove the
+        effect of unobserved environmental on observed environmental
+        covariates and space. thus, adding factors (unobserved env
+        covariates) doesn't change the effect of observed env covariates
+
+    8.  site variance partitioning to complement the species variation
+        partitioning (see Leibold et al., Cai et al.). Consider calling
+        it **variation** partitioning.
 
 **Future versions**
 
 1.  use spike-in to estimate abundance change (i.e. eDNAPlus)
 
 2.  model selection of environmental, spatial covariates via
-    regularisation/shrinkage
+    regularisation/shrinkage, which would be useful with e.g. geospatial
+    foundation model embeddings as env covariates
