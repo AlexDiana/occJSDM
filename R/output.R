@@ -6,7 +6,7 @@
 #' Returns the same fitModel object, but with the MCMC iterations in
 #' `results_output` thinned, keeping only every `thin`-th iteration.
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param thin Thinning interval; every `thin`-th iteration is kept (default 5)
 #'
 #' @return A fitModel object with the same structure as the input, but with
@@ -110,7 +110,7 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #' @details
 #' Returns the traits covariates coefficients posterior sample
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return An array of posterior samples of size
 #' (iterations x occupancy covariates x traits)
@@ -155,7 +155,7 @@ returnTraitsCoeff <- function(fitModel){
 #' @details
 #' Plots the 95% credible interval of the occupancy covariates coefficients
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param covName Name of the covariate to be plotted (same name as in data$info)
 #' @param idx_traits Indexes of the traits to be plotted (leave out to plot all the traits).
 #'
@@ -189,7 +189,7 @@ plotTraitsCoefficients <- function(fitModel,
 #' @details
 #' Returns the occupancy covariates coefficients posterior sample
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return An array of posterior samples of size
 #' (iterations x occupancy covariates x species)
@@ -221,7 +221,7 @@ returnOccupancyCovariates <- function(fitModel){
 #' @details
 #' Plots the 95% credible interval of the occupancy covariates coefficients
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param covName Name of the covariate to be plotted (same name as in data$info)
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
@@ -255,7 +255,7 @@ plotOccupancyCovariates <- function(fitModel,
 #' Returns the posterior samples of the baseline occupancy probability
 #' (intercept-only, on the probability scale) for each species.
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A matrix of size (species x iterations) with the posterior
 #' samples of the baseline occupancy probability for each species
@@ -288,7 +288,7 @@ returnOccupancyRates <- function(fitModel){
 #' @details
 #' Plots the 95% credible interval of the baseline occupancy rates
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #' @param confidence Confidence level of the estimate,  default to .95
 #'
@@ -364,7 +364,7 @@ plotOccupancyRates <- function(fitModel,
 #' @details
 #' Returns the collection covariates coefficients posterior sample
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return An array of posterior samples of size
 #' (iterations x collection covariates x species)
@@ -405,7 +405,7 @@ returnCollectionCovariates <- function(fitModel){
 #' @details
 #' Plots the 95% credible interval of the collection covariates coefficients
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param covName Name of the covariate to be plotted (same name as in data$info)
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
@@ -478,7 +478,7 @@ plotSpeciesRates <- function(data_plot,
 #' @details
 #' Plots the 95% credible interval of the baseline collection rates
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
 #' @return The credible interval plot
@@ -546,7 +546,7 @@ plotCollectionRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the true and false positives at the lab stage
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #' @param primerName Name of the primer to plot (defaults to the first primer in `fitModel$infos$primerNames`)
 #'
@@ -647,7 +647,7 @@ plotFPTPStage2Rates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the true positives at the lab stage
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
 #' @return A ggplot object
@@ -725,7 +725,7 @@ plotDetectionRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the false positives rate at the field stage
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
 #' @return A ggplot object
@@ -797,7 +797,7 @@ plotStage1FPRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the false positives at the lab stage
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
 #' @return A ggplot object
@@ -876,7 +876,7 @@ plotStage2FPRates <- function(fitModel,
 #' Plots the posterior median of the correlation matrix,
 #' with nonsignificant correlations marked with an X
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #' @param showSignificance Should an X be shown for non significant elements?
 #' @param confidence Confidence level used to assess significance, default to .95
@@ -915,7 +915,7 @@ plotResidualCorrelationMatrix <- function(fitModel,
 #' @details
 #' Return the quantiles of the residual correlation matrix after accounting for the covariates
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param confidence Confidence level used to assess significance, default to .95
 #'
 #' @return A ggplot object
@@ -1020,7 +1020,7 @@ returnOrdination <- function(fitModel,
 #' @details
 #' Compute the credible interval of the occupancy probability at new sites
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param X_psi Occupancy covariates matrix for the new locations
 #' @param X_s Spatial/ordination covariates matrix for the new locations
 #' @param summarised Should the output be return in the form of quantiles? Set to TRUE if the number of sites is very large
@@ -1154,7 +1154,7 @@ predictOccupancyProbs <- function(fitModel,
 #' @details
 #' Computes the average predictive occupancy probabilities
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
 #'
@@ -1191,7 +1191,7 @@ computePredictiveOccupancyProbs <- function(fitModel){
 #' @details
 #' Computes the average predictive occupancy probabilities
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return An array of size (samples,species)
 #'
@@ -1228,7 +1228,7 @@ computeAverageCollectionProbs <- function(fitModel){
 #' @details
 #' Computes the posterior mean of the conditional occupancy probability
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A matrix of size (site X species) with the posterior mean occupancy at
 #' each site for each species.
@@ -1266,7 +1266,7 @@ computeConditionalOccupancyProbs <- function(fitModel){
 #' @details
 #' Computes the posterior mean of a sample being occupied
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A matrix of size (samples X species) with the posterior mean presence
 #' at each sample for each species.
@@ -1305,7 +1305,7 @@ computeConditionalSamplePresenceProbs <- function(fitModel){
 #' Computes, for a single species, the posterior mean of the latent
 #' occupancy state `z` and the latent detection state `w` across sites.
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Index of the species to compute latent presences for (default 1)
 #'
 #' @return A matrix
@@ -1522,7 +1522,7 @@ plotLatentPresences <- function(latentPresences,
 #' @details
 #' Compute the WAIC for model comparison
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return The WAIC
 #'
@@ -1546,7 +1546,7 @@ extractWAIC <- function(fitModel){
 #' @details
 #' Compute the variance partitioning for each species
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A matrix of size (species x 4)
 #'
@@ -1576,7 +1576,7 @@ returnVariancePartitioning <- function(fitModel){
 #' @details
 #' Plot the variance partitioning for each species
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A ggplot object
 #'
@@ -1607,7 +1607,7 @@ plotVariancePartitioning <- function(fitModel){
 #' @details
 #' Plots the 95% credible interval of density of true positives and false positives
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A ggplot object
 #'
@@ -1750,7 +1750,7 @@ plotReadIntensity <- function(fitModel){
 #' Plot the credible interval of the overall species detections for several
 #' number of PCR, conditional on species presence in the sample
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param K Maximum number of technical replicates (PCRs) to consider
 #' @param primer Index of the primer to use; 0 (default) pools across all primers
 #' @param alpha Confidence level of the credible interval, default to .95
@@ -1872,7 +1872,7 @@ computeSpeciesDetected <- function(ab_p, K, primer, alpha){
 #' latent occupancy probability, labelled with the observed frequency of
 #' detection across samples at that site.
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A ggplot object
 #'

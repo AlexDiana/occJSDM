@@ -18,12 +18,12 @@ list_jsdmParams <- list(
   sigma_b = 1, sigma_bs = 1, sigma_ts = 1, sigma_h = 1, l_s = 1
 )
 
-test_that("toRunOccPlusFormat returns info/OTU with expected dimensions and names", {
+test_that("toRunOccJSDMFormat returns info/OTU with expected dimensions and names", {
   set.seed(8214)
 
-  sim <- simulateOccPlusData(list_datasettings, list_params, list_jsdmParams)
+  sim <- simulateOccJSDMData(list_datasettings, list_params, list_jsdmParams)
 
-  converted <- toRunOccPlusFormat(
+  converted <- toRunOccJSDMFormat(
     sim,
     n = list_datasettings$n,
     M = list_datasettings$M,
@@ -54,12 +54,12 @@ test_that("toRunOccPlusFormat returns info/OTU with expected dimensions and name
   expect_true(all(converted$info$Primer %in% seq_len(list_datasettings$P)))
 })
 
-test_that("toRunOccPlusFormat keeps the theta intercept column when requested", {
+test_that("toRunOccJSDMFormat keeps the theta intercept column when requested", {
   set.seed(3067)
 
-  sim <- simulateOccPlusData(list_datasettings, list_params, list_jsdmParams)
+  sim <- simulateOccJSDMData(list_datasettings, list_params, list_jsdmParams)
 
-  converted <- toRunOccPlusFormat(
+  converted <- toRunOccJSDMFormat(
     sim,
     n = list_datasettings$n,
     M = list_datasettings$M,
@@ -72,15 +72,15 @@ test_that("toRunOccPlusFormat keeps the theta intercept column when requested", 
   expect_true(all(converted$info$X_theta.1 == 1))
 })
 
-test_that("toRunOccPlusFormat errors when n/M/P/K don't match sim", {
+test_that("toRunOccJSDMFormat errors when n/M/P/K don't match sim", {
   set.seed(5921)
 
-  sim <- simulateOccPlusData(list_datasettings, list_params, list_jsdmParams)
+  sim <- simulateOccJSDMData(list_datasettings, list_params, list_jsdmParams)
 
   # A K vector inconsistent with n/M/P (and therefore with sim$data_list$y)
   # should error, whether inside createDataIdx() or the row-count check.
   expect_error(
-    toRunOccPlusFormat(
+    toRunOccJSDMFormat(
       sim,
       n = list_datasettings$n,
       M = list_datasettings$M,

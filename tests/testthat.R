@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(occPlus)
+library(occJSDM)
 
-test_check("occPlus")
+test_check("occJSDM")

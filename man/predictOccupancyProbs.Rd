@@ -7,7 +7,7 @@
 predictOccupancyProbs(fitModel, X_psi, X_s, summarised = F, confidence = 0.95)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 
 \item{X_psi}{Occupancy covariates matrix for the new locations}
 

@@ -7,7 +7,7 @@
 plotCumulativeSpeciesDetections(fitModel, K, primer = 0, alpha = 0.95)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 
 \item{K}{Maximum number of technical replicates (PCRs) to consider}
 

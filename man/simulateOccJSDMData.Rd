@@ -5,6 +5,8 @@
 \title{simulateOccJSDMData}
 \usage{
 simulateOccJSDMData(list_datasettings, list_params, list_jsdmParams, model)
+
+simulateOccJSDMData(list_datasettings, list_params, list_jsdmParams, model)
 }
 \arguments{
 \item{list_datasettings}{List of data dimension settings (n, S, g, M, P, K,
@@ -30,13 +32,23 @@ not influence occupancy.}
 }
 \value{
 Description of the return value (e.g., a list, data frame, or numeric output).
+
+Description of the return value (e.g., a list, data frame, or numeric output).
 }
 \description{
+Simulate data
+
 Simulate data
 }
 \details{
 Simulate data. `data_list$y` contains simulated read counts (matching the
-`threshold = 0` mode of `runOccPlus()`), rather than binary detections:
+`threshold = 0` mode of `runOccJSDM()`), rather than binary detections:
+for a true detection, `log(y + 1) ~ Normal(mu1, sigma1)`; for a
+false-positive/contamination detection, `log(y + 1) ~ Normal(mu0, sigma0)`;
+otherwise `y = 0`. The realised counts are `round(exp(log(y + 1)) - 1)`.
+
+Simulate data. `data_list$y` contains simulated read counts (matching the
+`threshold = 0` mode of `runOccJSDM()`), rather than binary detections:
 for a true detection, `log(y + 1) ~ Normal(mu1, sigma1)`; for a
 false-positive/contamination detection, `log(y + 1) ~ Normal(mu0, sigma0)`;
 otherwise `y = 0`. The realised counts are `round(exp(log(y + 1)) - 1)`.

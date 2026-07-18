@@ -7,7 +7,7 @@
 plotReadIntensity(fitModel)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 }
 \value{
 A ggplot object

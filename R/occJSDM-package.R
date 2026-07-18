@@ -1,8 +1,8 @@
-#' occPlus
+#' occJSDM
 #'
 #' Package documentation.
 #'
 #' @keywords internal
-#' @useDynLib occPlus, .registration = TRUE
+#' @useDynLib occJSDM, .registration = TRUE
 #' @importFrom Rcpp evalCpp
 "_PACKAGE"

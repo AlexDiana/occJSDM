@@ -2,7 +2,7 @@
 % Please edit documentation in R/runOccJSDM.R
 \name{runOccJSDM}
 \alias{runOccJSDM}
-\title{runOccPlus}
+\title{runOccJSDM}
 \usage{
 runOccJSDM(
   data,
@@ -28,7 +28,7 @@ runOccJSDM(
 
 \item{threshold}{(Optional) threshold used to truncated the reads to binary data.
 Data greater than or equal to the threshold will be considered as detection.
-If this is set to 0 (which is the default), occPlus estimates two modes as described
+If this is set to 0 (which is the default), occJSDM estimates two modes as described
 in the paper.}
 
 \item{occCovariates}{vector of the name of the covariates for the occupancy probabilities.
@@ -46,7 +46,7 @@ Names should match the column name in data$info.}
 Description of the return value (e.g., a list, data frame, or numeric output).
 }
 \description{
-Run the OccPlus model.
+Run the occJSDM model.
 }
 \details{
 Fit the model described in Diana et al..
@@ -54,7 +54,7 @@ Fit the model described in Diana et al..
 \examples{
 \dontrun{
 # Example usage
-fitmodel  <- runOccPlus(data,
+fitmodel  <- runOccJSDM(data,
 n_factors = 2,
 occCovariates = c("X_psi.1","X_psi.2"),
 ordCovariates = c("X_ord.1","X_ord.2"),

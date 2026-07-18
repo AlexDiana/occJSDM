@@ -28,13 +28,13 @@ options(warning = -1)
 ```
 
 ```{r setup, include = FALSE}
-# library(occPlus)
-devtools::load_all() # change to library(occPlus) when package finished
+# library(occJSDM)
+devtools::load_all() # change to library(occJSDM) when package finished
 # devtools::document() # run manually after editing roxygen comments
 # devtools::check() # run manually before commits/releases, builds package, runs examples/tests/vignettes, checks CRAN-style compliance
 ```
 
-The model can be run using the `runOccPlus` function.
+The model can be run using the `runOccJSDM` function.
 
 The arguments of the function are:
 
@@ -64,7 +64,7 @@ The arguments of the function are:
 
 The included data object is a list of four elements: `info`, `OTU,`
 `spatCovariates`, and `traitsMatrix` and was created in the vignette
-`simulateOccPlusData.Rmd`.
+`simulateOccJSDMData.Rmd`.
 
 ```{r}
 data <- sampledata #default name 

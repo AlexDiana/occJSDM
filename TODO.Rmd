@@ -8,15 +8,26 @@ editor_options:
 
 ## functions to add
 
-**0.1.0 Public release (Alex does 2, 3, 7, 9; Doug does the rest)**
+**0.1.0 Public release (Doug does everything that isn't under Alex to
+dos)**
 
-1.  change all `occPlus` to `occJSDM` across whole package
+1.  Alex to dos
 
-2.  Alex changes name of repo to occJSDM
+    1.  ordination plot and table to generate ordination plots in
+        ggplot2 (site factor scores and species loading scores, so that
+        users can generate their own ordinations with ggplot2)
 
-3.  add **Detection rates** title to `plotDetectionRates()`
+    2.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed
+        sites
 
-4.  `computeConditionalOccupancyProbs()` and
+2.  ~~change all `occPlus` to `occJSDM` across whole package~~ DONE
+
+3.  purge `data/traitdata_caiwang.rdata` (need to coordinate with Alex
+    because he will need to clear his worktree and re-clone)
+
+4.  add **Detection rates** title to `plotDetectionRates()`
+
+5.  `computeConditionalOccupancyProbs()` and
     `computePredictiveOccupancyProbs()`: document that it's the mean.
     document that with argument `summariseLatentPresences  = F` (default
     = T), fitmodel saves quantiles and thus one can calculate
@@ -24,27 +35,21 @@ editor_options:
     much larger fitmodel object (e.g. 500 sites X 100 species X 4000
     niter = 800 MB unthinned), but you can thin it to reduce file size.
 
-5.  text to explain better the threshold parameter
+6.  text to explain better the threshold parameter
 
     1.  threshold≠0 (0 value should give an error for \<1)
 
     2.  threshold≥1: any number of reads ≥ the threshold value value
         (default = 1) is considered a detection in that observation
 
-6.  `plotVariancePartitioning(fitmodel)` \# *add text*
+7.  document `plotVariancePartitioning(fitmodel)`
 
-7.  model diagnostics functions from GLGS-eDNA repo and save a fitmodel
+8.  model diagnostics functions from GLGS-eDNA repo and save a fitmodel
     object for people to load if they don't want to run the vignette
-
-8.  ordination plot and table to generate ordination plots in ggplot2
-    (site factor scores and species loading scores, so that users can
-    generate their own ordinations with ggplot2)
 
 9.  document that occJSDM has ability to deal with NAs in data\$OTU
 
-10. `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed sites
-
-11. document that occJSDM uses study design to trigger different models
+10. document that occJSDM uses study design to trigger different models
 
     1.  m=k=p=1: JSDM only
 
@@ -55,11 +60,11 @@ editor_options:
     4.  `simulateoccplusdata()` has an argument to create binary,
         continuous, occupancy, or two-stage data
 
-12. document return species pairwise correlation matrices as matrices,
+11. document return species pairwise correlation matrices as matrices,
     not just as a corrplot, so that users can make our own corrplots and
     sort species by traits (`returnResidualCorrelationMatrix()`)
 
-13. document increase in observed species with m and k
+12. document increase in observed species with m and k
 
 **MEE paper**
 

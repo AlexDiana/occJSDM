@@ -1,5 +1,5 @@
 ---
-title: "simulateOccPlusData"
+title: "simulateOccJSDMData"
 output: 
   rmarkdown::html_vignette:
     fig.width: 7
@@ -7,7 +7,7 @@ output:
     warning: false
     message: false
 vignette: >
-  %\VignetteIndexEntry{simulateOccPlusData}
+  %\VignetteIndexEntry{simulateOccJSDMData}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -28,12 +28,12 @@ options(warning = -1)
 ```
 
 ```{r setup, include = FALSE}
-# library(occPlus)
-devtools::load_all() # change to library(occPlus) when package finished
+# library(occJSDM)
+devtools::load_all() # change to library(occJSDM) when package finished
 library(tidyverse)
 ```
 
-`simulateOccPlusData()` simulates a full occJSDM-style dataset: species
+`simulateOccJSDMData()` simulates a full occJSDM-style dataset: species
 occupancy driven by environmental covariates, species traits, and
 (optionally) a spatially autocorrelated random field, plus a two-stage
 eDNA collection/detection process on top of the true occupancy states.
@@ -107,14 +107,14 @@ list_params <- list(
 ## Simulating a dataset and converting to a format that occJSDM can use
 
 ```{r}
-sim <- simulateOccPlusData(
+sim <- simulateOccJSDMData(
   list_datasettings, list_params, list_jsdmParams,
   useSpatField = TRUE
 )
 
 str(sim$data_list, max.level = 1)
 
-data <- toRunOccPlusFormat(
+data <- toRunOccJSDMFormat(
   sim,
   n = list_datasettings$n,
   M = list_datasettings$M,
@@ -133,7 +133,7 @@ head(data$traitsMatrix); dim(data$traitsMatrix) # 10 species X 3 traits
 ### Simulating without spatial autocorrelation
 
 ```{r}
-sim_nospat <- simulateOccPlusData(
+sim_nospat <- simulateOccJSDMData(
   list_datasettings, list_params, list_jsdmParams,
   useSpatField = FALSE
   )
@@ -154,7 +154,7 @@ build a Gaussian-process-correlated random field over `Xs`, which is
 added to each species' linear predictor for occupancy.
 
 ```{r}
-sim_spat <- simulateOccPlusData(
+sim_spat <- simulateOccJSDMData(
   list_datasettings, list_params, list_jsdmParams,
   useSpatField = TRUE
   )

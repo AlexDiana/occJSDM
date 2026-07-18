@@ -7,7 +7,7 @@
 plotTraitsCoefficients(fitModel, covName = NULL, idx_traits = NULL)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 
 \item{covName}{Name of the covariate to be plotted (same name as in data$info)}
 

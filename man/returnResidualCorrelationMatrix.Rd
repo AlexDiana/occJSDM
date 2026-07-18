@@ -7,7 +7,7 @@
 returnResidualCorrelationMatrix(fitModel, confidence = 0.95)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 
 \item{confidence}{Confidence level used to assess significance, default to .95}
 }

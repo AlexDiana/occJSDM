@@ -18,10 +18,10 @@
 
 # gailagongshan
 {
-  load("~/occPlus/dev/gailagongshan_occplus.rda")
+  load("~/occJSDM/dev/gailagongshan_occplus.rda")
 }
 
-# fit_ednaplus <- runOccPlusPro(data, d = 1,
+# fit_ednaplus <- runOccJSDMPro(data, d = 1,
 #                               ordCovariates = c("altitude"),
 #                               detCovariates = c("input_volume"))
 
@@ -305,7 +305,7 @@ logy1 <- log(y + 1)
 
 # MODEL -----
 
-fitmodel  <- runOccPlus(data,
+fitmodel  <- runOccJSDM(data,
                         d = 10,
                         occCovariates = c(),
                         ordCovariates = c("latitude","longitude","tributary"),

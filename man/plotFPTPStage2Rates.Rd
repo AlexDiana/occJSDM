@@ -7,7 +7,7 @@
 plotFPTPStage2Rates(fitModel, idx_species = NULL, primerName = NULL)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 
 \item{idx_species}{Indexes of the species to be plotted (leave out to plot all the species).}
 

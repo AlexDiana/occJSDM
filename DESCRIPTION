@@ -1,4 +1,4 @@
-Package: occPlus
+Package: occJSDM
 Type: Package
 Title: Fitting occupancy models for eDNA reads data
 Version: 0.1.0

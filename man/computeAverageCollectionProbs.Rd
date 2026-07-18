@@ -7,7 +7,7 @@
 computeAverageCollectionProbs(fitModel)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 }
 \value{
 An array of size (samples,species)
