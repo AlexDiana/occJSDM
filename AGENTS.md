@@ -11,10 +11,13 @@ R package for fitting occupancy models to eDNA metabarcoding reads data (joint s
 - `src/jsdm.cpp`, `src/functions.cpp` (via `RcppExports.R`) -- Rcpp/Armadillo backend, including the spatial kernel `K2()` (squared-exponential GP kernel over site coordinates) and `sample_w_cpp()` (samples latent collection state `w` from continuous read intensities when `threshold = 0`).
 - `vignettes/occJSDM.Rmd` -- walkthrough of fitting a model with `runOccJSDM()` and using the output/plotting functions.
 - `vignettes/simulateOccJSDMData.Rmd` -- walkthrough of `simulateOccJSDMData()`: parameter lists, simulating and converting to `runOccJSDM()` format via `toRunOccJSDMFormat()`, simulating with/without spatial autocorrelation via `useSpatField`, checking variance partitioning, visualizing occupancy and the linear predictor spatially, and how trait covariates (`Tr`) shape species-specific occupancy coefficients via the `G` matrix.
-- `TODO.Rmd` -- outstanding feature list (e.g. NA handling in `data$OTU`, model selection via `loo`, filling in `spatCovariates` and `traitsMatrix` in the vignette, better documenting the `threshold` parameter, MCMC testthat tests).
+- `TODO.Rmd` -- structured outstanding feature list, organized as **v0.1.0-beta Public release** (Alex to dos / Doug to dos), **MEE paper** (Doug to dos / Alex to dos), and **Future versions**. See "Current work status" below for the current item list.
 - `analysis/analysis.R` -- ad hoc analysis script (not part of package build).
 - `tests/testthat/` -- unit tests (testthat edition 3, set up via `usethis::use_testthat(3)`); currently covers `toRunOccJSDMFormat()` (dimensions, column names, intercept handling, mismatched-dimension errors).
-- `data/` -- `sampledata.rda` / `sampledata_orig.rda` (example dataset used in `occJSDM.Rmd`), `sampleresults.rda`, `data_out_env_trait.rdata`, and `CaiWang_data/` (a data directory the user is actively reorganizing; `traitdata_caiwang.rdata` was recently removed in favor of this).
+- `data/` -- `sampledata.rda` / `sampledata_orig.rda` (example dataset used in `occJSDM.Rmd`), `sampleresults.rda` (precomputed fit used by the vignette, `nchain=2, nburn=5000, niter=5000, nthin=1`), `data_out_env_trait.rdata`, and `CaiWang_data/` (a data directory the user is actively reorganizing; `traitdata_caiwang.rdata` was recently removed in favor of this).
+- `CITATION.cff` -- citation metadata; primary citation is the Ji et al. (2025) *Ecology Letters* methods paper, secondary is the software repo (`https://github.com/AlexDiana/occJSDM`). No CRAN/Zenodo listing exists, so this positioning follows standard practice for a research tool wrapping a published method.
+- `README.md` -- minimal readme with install instructions, vignette pointers, and a "How to cite" section (since GitHub's citation button is easy to miss).
+- `DESCRIPTION` -- `Authors@R` lists Alex Diana (`Alex.diana92@yahoo.it`, maintainer/`"cre"`) and Douglas W. Yu (`dougwyu@mac.com`, `"aut"`).
 
 ## Data structures
 
@@ -37,6 +40,24 @@ The `threshold` argument to `runOccJSDM()` controls how `OTU` is interpreted: - 
 - `returnLatentPresences()` (`R/output.R`) references an undefined `varPart_output` object (likely leftover from a copy-paste) and will error at runtime.
 - Both bugs already have `@note` roxygen comments flagging them in the source.
 - `computeAverageCollectionProbs()` and `computeConditionalSamplePresenceProbs()` were confirmed working (via live testing against fitted model objects) as long as the fitted model actually populated `results_output$theta_output` / `results_output$w_output` (always true for a fresh `runOccJSDM()` fit with default `summarisedLatentPresences = TRUE`).
+- `computeMinESS()` (`R/diagnostics.R`, bug introduced in commit `af5ebe3`): an `ESS_beta0psi` matrix is allocated to hold ESS for the new `beta0_psi_output` (intercept) term, but the loop body still populates the pre-existing `ESS_betapsi` from `beta_psi_output`, leaving `ESS_beta0psi` unfilled (all NA) and excluded from the final `min()`. Flagged as TODO.Rmd item 1.5 (Alex to dos); not yet fixed.
+- Trait-reading fragility in `runOccJSDM()`: it checks `data$traits` via partial name-matching against `data$traitsMatrix` (relying on `$`'s partial matching, since `traitsMatrix` is the only element of `data` starting with `"traits"`), not the unused `traitsMatrix` function argument. Flagged as TODO.Rmd item 1.4 (Alex to dos).
+- Scalar `p`/`q` indexing bug in `simulateOccJSDMData()`: `list_params$p`/`list_params$q` are scalars but the function body indexes them as matrices (`p_true[idx_p_k[i], s]`); needs `matrix(p, nrow = P, ncol = S)` expansion before use. Flagged as TODO.Rmd item 1.3 (Alex to dos).
+- Counts model (`data_type == "counts"`, auto-detected from `OTU` values) is unsupported downstream: `stop("Counts model not supported yet")`. No explicit user-facing `count=` argument exists (see TODO.Rmd item under MEE paper / Alex to dos, "ability to analyse count data").
+
+## Model inference logic (`inferDataModel()`, `R/runOccJSDM.R:110-155`)
+
+`runOccJSDM()` classifies the fitted model type based on **row-level duplication of `Site`/`Sample` in `data$info`**, not directly on M/K/P:
+- No repeated values in `Site` → JSDM-only (M=K=P=1).
+- `Site` repeats, `Sample` does not → classical occupancy model (M>1, K=P=1).
+- `Sample` repeats (due to K>1 and/or P>1) → two-stage eDNA model, including the case M=1 with K>1 or P>1 (a single site sampled with multiple PCR replicates/primers).
+
+## Output functions of note
+
+- `returnVariancePartitioning(fitModel)` -- per-species table of (Env, Spatial, Biotic, StDev) variance fractions; feeds `plotVariancePartitioning()`.
+- `returnResidualCorrelationMatrix(fitModel, confidence = .95)` -- returns a 3 × S × S array (quantile × species × species) of posterior credible intervals for pairwise residual correlations. The 50% slice gives the median correlation matrix; comparing bounds' signs gives a significance flag.
+- `plotCumulativeSpeciesDetections(fitModel, K, primer = 0, alpha = .95)` -- credible interval for cumulative species detected as a function of PCR replicates (K), via bootstrapped per-species Beta-distributed detection probabilities. No M-based (sample/visit-level) equivalent exists yet (TODO.Rmd, MEE paper / Alex to dos).
+- Ordination is incomplete: `returnOrdination()` and `plotOrdinationScores()` (both unexported, near-duplicates) return a `ggplot` of site factor scores with credible-interval error bars, despite `returnOrdination()`'s docstring claiming to return a plain 3 × sites × factors quantile array. Neither handles species loading scores. TODO.Rmd item 1.1 (Alex to dos) calls for both site and species scores as plain tables/matrices plus ggplot2-based plotting, still unaddressed.
 
 ## Git and build artifacts
 
@@ -52,21 +73,9 @@ The `threshold` argument to `runOccJSDM()` controls how `OTU` is interpreted: - 
 
 ## Current work status
 
-- **Most recent commits** (as of July 2026):
-  - `45ac31c` Remove sampleresults.rda/traitdata_caiwang.rdata; gitignore CaiWang_data/ and deprecated/analysis/
-  - `6f05f66` Update AGENTS.md and TODO.Rmd
-  - Vignettes (`occJSDM.Rmd`, `simulateOccJSDMData.Rmd`) were updated with new data fields and workflows
-  - testthat infrastructure added with tests for `toRunOccJSDMFormat()`
-- **Pending changes**: TODO.Rmd has been modified locally (not yet committed) with reordered priority items
-- **Current priorities** (from TODO.Rmd):
-  1. ~~Change all `occPlus` references to `occJSDM`~~ DONE
-  2. Reproduce Ecology Letters dataset results as a test of the package
-  3. Add text explaining the `threshold` parameter better
-  4. Fix `plotVariancePartitioning()` to place species covariances on top of the triangle
-  5. Set default value for `gt` in `listParams()`
-  6. Add `plotBaselineOccupancyRates()` function
-  7. Add model diagnostics functions from GLGS-eDNA repo
-  8. Create ordination plot functionality
+- **Most recent commits** (as of July 2026, newest first): `03a0dd7`, `da32649`, `f555bb0`, `ae317bf` (all "Update/clean up TODO.Rmd"), `e957292` (comprehensive `occJSDM.Rmd` vignette overhaul -- filled placeholders, rewrote the M/K/P model-inference bullet list to describe the Site/Sample row-duplication mechanism accurately, added sections on cumulative species detections and residual correlation structure, renamed several section headings, added references to Cai et al. 2025, Leibold et al. 2021, Pichler et al. 2025), `4099ae8` (Update TODO.Rmd), `3d3cd6f` (marked items done, restructured MEE paper section into Doug/Alex sub-lists, flagged the `computeMinESS()` bug), `276e3ec` (added `CITATION.cff`/`README.md`, fixed `DESCRIPTION`'s `Authors@R`), `24df008` (merge from Alex's fork), `af5ebe3` (Alex's pulled commit -- fixed several real bugs: mislabeled "continuous" data-type message, `model == "occupancy"` assigning the fallback ID to `Site` instead of `Sample`, moved OTU-reading/NA-handling earlier, threaded `list_jsdmParams$tau` through to `simulateData()` instead of hardcoding `NULL`, guarded factor-model reparameterization with `ncov_psi > 0 & gt > 0`).
+- **Working tree**: clean, `main` up to date with `origin/main` as of this session.
+- **TODO.Rmd structure** (current, see file for full detail): organized as **v0.1.0-beta Public release** (1. Alex to dos: ordination table/plot, `computePredictiveOccupancyProbs()`, scalar p/q indexing bug, trait-reading fragility, `computeMinESS()` bug; 2. Doug to dos: purge `traitdata_caiwang.rdata` from git history, port model diagnostics functions from GLGS-eDNA repo), **MEE paper** (1. Doug to dos: reproduce Ecology Letters results as a package test; 2. Alex to dos: Overleaf math vignette, GAMs for JSDM, auto-calculate `gt`, count-data support, M-based `plotCumulativeSpeciesDetections()`, source-sink inference scenario, remove space's effect on env covariates, site-level variance/"variation" partitioning), and **Future versions** (spike-in abundance-change estimation, model selection via regularisation/shrinkage e.g. for geospatial foundation model embeddings).
 
 ## Notes
 
