@@ -30,7 +30,7 @@ dos)**
 3.  purge `data/traitdata_caiwang.rdata` from git history (need to
     coordinate with Alex because he will need to re-clone)
 
-4.  add **Detection rates** title to `plotDetectionRates()`
+4.  ~~add **Detection rates** title to `plotDetectionRates()`~~ DONE
 
 5.  `computeConditionalOccupancyProbs()` and
     `computePredictiveOccupancyProbs()`: document that it's the mean.

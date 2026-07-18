@@ -702,6 +702,7 @@ plotDetectionRates <- function(fitModel,
                                           ymin = lower, ymax = upper, color = Primer),
                     position = position_dodge(width = 0.6)) +
       labs(
+        title = "Detection rates",
         x = "Species",
         y = "p",
         color = "Primer"
@@ -855,6 +856,7 @@ plotStage2FPRates <- function(fitModel,
     ggtitle("Stage 2 FP rates") +
     theme_bw() +
     ylab("q") +
+    labs(color = "Primer") +
     theme(
       axis.text = element_text(angle = 0, size = 8),
       axis.title = element_text(size = 12, face = "bold"),
