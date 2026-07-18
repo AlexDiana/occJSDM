@@ -665,52 +665,57 @@ plotFPTPStage2Rates <- function(fitModel,
 plotDetectionRates <- function(fitModel,
                                idx_species = NULL){
 
-  S <- fitModel$infos$S
-  speciesNames <- fitModel$infos$speciesNames
-  primerNames <- fitModel$infos$primerNames
+  if(fitModel$infos$model == "two_stage"){
 
-  if(is.null(idx_species)){
-    idx_species <- 1:S
+
+    S <- fitModel$infos$S
+    speciesNames <- fitModel$infos$speciesNames
+    primerNames <- fitModel$infos$primerNames
+
+    if(is.null(idx_species)){
+      idx_species <- 1:S
+    }
+
+    p_output <- fitModel$results_output$p_output
+
+    data_plot_array <- apply(p_output, c(1,2), function(x) {
+      quantile(x, probs = c(0.025, 0.975))
+    })
+
+    dimnames(data_plot_array)[[2]] <- primerNames
+
+    data_plot <- data.frame(
+      lower = as.vector(data_plot_array[1,,]),
+      upper = as.vector(data_plot_array[2,,]),
+      Primer = factor(rep(primerNames, times = dim(data_plot_array)[3]),
+                      levels = primerNames),
+      Species = rep(speciesNames, each = dim(data_plot_array)[2])
+    ) %>%
+      filter(Species %in% speciesNames[idx_species]) %>%
+      group_by(Species) %>%
+      mutate(mean_lower = mean(lower)) %>%
+      ungroup() %>%
+      mutate(Species = reorder(factor(Species), mean_lower))
+
+    plotDetectionRates <- ggplot() +
+      geom_errorbar(data = data_plot, aes(x = Species,
+                                          ymin = lower, ymax = upper, color = Primer),
+                    position = position_dodge(width = 0.6)) +
+      labs(
+        x = "Species",
+        y = "p",
+        color = "Primer"
+      ) +
+      # position_dodge() orders groups by factor level left-to-right, and
+      # coord_flip() inverts that into top-to-bottom; reverse the legend so
+      # it matches the on-screen vertical order of the errorbars
+      guides(color = guide_legend(reverse = TRUE)) +
+      theme_bw() + coord_flip()
+
+    plotDetectionRates
+  } else {
+    stop("Cannot generate detection rates if the model is not two-stage")
   }
-
-  p_output <- fitModel$results_output$p_output
-
-  data_plot_array <- apply(p_output, c(1,2), function(x) {
-    quantile(x, probs = c(0.025, 0.975))
-  })
-
-  dimnames(data_plot_array)[[2]] <- primerNames
-
-  data_plot <- data.frame(
-    lower = as.vector(data_plot_array[1,,]),
-    upper = as.vector(data_plot_array[2,,]),
-    Primer = factor(rep(primerNames, times = dim(data_plot_array)[3]),
-                    levels = primerNames),
-    Species = rep(speciesNames, each = dim(data_plot_array)[2])
-  ) %>%
-    filter(Species %in% speciesNames[idx_species]) %>%
-    group_by(Species) %>%
-    mutate(mean_lower = mean(lower)) %>%
-    ungroup() %>%
-    mutate(Species = reorder(factor(Species), mean_lower))
-
-  plotDetectionRates <- ggplot() +
-    geom_errorbar(data = data_plot, aes(x = Species,
-                                        ymin = lower, ymax = upper, color = Primer),
-                  position = position_dodge(width = 0.6)) +
-    labs(
-      x = "Species",
-      y = "p",
-      color = "Primer"
-    ) +
-    # position_dodge() orders groups by factor level left-to-right, and
-    # coord_flip() inverts that into top-to-bottom; reverse the legend so
-    # it matches the on-screen vertical order of the errorbars
-    guides(color = guide_legend(reverse = TRUE)) +
-    theme_bw() + coord_flip()
-
-  plotDetectionRates
-
 }
 
 #' plotStage1FPRates
@@ -947,7 +952,67 @@ returnResidualCorrelationMatrix <- function(fitModel,
 
 # ORDINATON OUTPUT -----
 
+#' returnOrdination
+#'
+#' Return the quantiles of the factors scores for each observation.
+#'
+#' @details
+#' An ob
+#'
+#' @param fitModel Output from the function runOccJSDM
+#' @param confidence Confidence
+#'
+#' @return An object of size (3 x number of sites x number of factors)
+#'
+returnOrdination <- function(fitModel,
+                             confidence = .95){
 
+  n_factors <- fitModel$infos$n_factors
+
+  if(n_factors== 0){
+    stop("No factor used")
+  }
+
+  if(n_factors > 2){
+    print("More than 2 factors present, the ordination plot will use the first
+          two factors only")
+  }
+
+  U_output <- fitModel$results_output$U_output
+
+  plot_data <- as.data.frame.table(U_output) %>%
+    rename(Chain = Var1, Iter = Var2, Obs = Var3, Dim = Var4) %>%
+    mutate(Obs = as.numeric(Obs)) %>%
+    group_by(Obs, Dim) %>%
+    summarise(
+      mean_val = mean(Freq),
+      lower    = quantile(Freq, 0.025),
+      upper    = quantile(Freq, 0.975),
+      .groups  = "drop"
+    ) %>%
+    # Pivot wider so Dim 1 and Dim 2 are in separate columns for 2D plotting
+    pivot_wider(
+      names_from = Dim,
+      values_from = c(mean_val, lower, upper),
+      names_sep = "_d"
+    )
+
+  # --- 3. Plot with ggplot2 ---
+  ggplot(plot_data, aes(x = mean_val_d1, y = mean_val_d2)) +
+    # Horizontal error bars (Uncertainty in Dimension 1)
+    geom_errorbarh(aes(xmin = lower_d1, xmax = upper_d1), color = "gray60", alpha = 0.7) +
+    # Vertical error bars (Uncertainty in Dimension 2)
+    geom_errorbar(aes(ymin = lower_d2, ymax = upper_d2), color = "gray60", alpha = 0.7) +
+    # Central estimate points
+    geom_point(color = "firebrick", size = 2) +
+    labs(
+      title = "Observation Estimates with 95% Credible Intervals",
+      x = "Dimension 1",
+      y = "Dimension 2"
+    ) +
+    theme_minimal()
+
+}
 
 # PREDICTIONS --------
 
@@ -982,10 +1047,10 @@ returnResidualCorrelationMatrix <- function(fitModel,
 #' @import ggplot2
 #'
 predictOccupancyProbs <- function(fitModel,
-                                            X_psi,
-                                            X_s,
-                                            summarised = F,
-                                            confidence = .95
+                                  X_psi,
+                                  X_s,
+                                  summarised = F,
+                                  confidence = .95
 ){
 
 
@@ -1642,72 +1707,6 @@ computeSpeciesDetected <- function(ab_p, K, primer, alpha){
 
 }
 
-#' plotOrdination
-#'
-#' Plot the ordination (latent factor) scores for each observation.
-#'
-#' @details
-#' Plots the posterior mean and 95% credible interval of the latent factor
-#' scores `U` for each observation, using the first two latent factors.
-#' Not yet exported (marked TODO in source); only the first two dimensions
-#' of `idx_factor` are currently used regardless of how many are supplied.
-#'
-#' @param fitModel Output from the function runOccPlus
-#' @param idx_factor Indexes of the latent factors to plot (currently only
-#' the first two are used)
-#'
-#' @return A ggplot object
-#'
-## TODO
-plotOrdination <- function(fitModel,
-                           idx_factor = c(1,2)){
-
-  n_factors <- fitModel$infos$n_factors
-
-  if(n_factors== 0){
-    stop("No factor used")
-  }
-
-  if(n_factors > 2){
-    print("More than 2 factors present, the ordination plot will use the first
-          two factors only")
-  }
-
-  U_output <- fitModel$results_output$U_output
-
-  plot_data <- as.data.frame.table(U_output) %>%
-    rename(Chain = Var1, Iter = Var2, Obs = Var3, Dim = Var4) %>%
-    mutate(Obs = as.numeric(Obs)) %>%
-    group_by(Obs, Dim) %>%
-    summarise(
-      mean_val = mean(Freq),
-      lower    = quantile(Freq, 0.025),
-      upper    = quantile(Freq, 0.975),
-      .groups  = "drop"
-    ) %>%
-    # Pivot wider so Dim 1 and Dim 2 are in separate columns for 2D plotting
-    pivot_wider(
-      names_from = Dim,
-      values_from = c(mean_val, lower, upper),
-      names_sep = "_d"
-    )
-
-  # --- 3. Plot with ggplot2 ---
-  ggplot(plot_data, aes(x = mean_val_d1, y = mean_val_d2)) +
-    # Horizontal error bars (Uncertainty in Dimension 1)
-    geom_errorbarh(aes(xmin = lower_d1, xmax = upper_d1), color = "gray60", alpha = 0.7) +
-    # Vertical error bars (Uncertainty in Dimension 2)
-    geom_errorbar(aes(ymin = lower_d2, ymax = upper_d2), color = "gray60", alpha = 0.7) +
-    # Central estimate points
-    geom_point(color = "firebrick", size = 2) +
-    labs(
-      title = "Observation Estimates with 95% Credible Intervals",
-      x = "Dimension 1",
-      y = "Dimension 2"
-    ) +
-    theme_minimal()
-
-}
 
 #' plotOccupancyStates
 #'

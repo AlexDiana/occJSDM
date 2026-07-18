@@ -971,7 +971,7 @@ runOccJSDM <- function(data,
             }
           }
 
-          if(model == "two_stages"){
+          if(model == "two_stage"){
             p_output_chain[,,currentIter] <- p
             q_output_chain[,,currentIter] <- q
             if(summarisedLatentPresences){
@@ -1001,7 +1001,6 @@ runOccJSDM <- function(data,
             varPart_output_chain[,,currentIter] <-
               as.matrix(list_jSDMparams$variancePartitioning)
           }
-
 
           # update WIAC
           {
@@ -1161,20 +1160,19 @@ runOccJSDM <- function(data,
     "M" = M,
     "n" = n,
     "K" = K,
-    "model" = model,
     "jsdmModel" = jsdmModel,
     "n_factors" = d,
     "list_idx" = list_idx,
     "data_info" = data_info,
-    "OTU" = OTU,
     "speciesNames" = speciesNames,
     "primerNames" = primerNames,
     "siteNames" = siteNames,
     "ncov_theta" = ncov_theta,
     "ncov_psi" = ncov_psi,
+    "OTU" = OTU,
     "Xpsi_standardised" = list_Xpsi_standardised,
-    "Xs_standardised" = list_Xs_standardised
-
+    "Xs_standardised" = list_Xs_standardised,
+    "model" = model
   )
 
   list(

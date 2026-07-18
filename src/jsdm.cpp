@@ -509,6 +509,42 @@ arma::cube computeNewOutputs(
   return output;
 }
 
+// [[Rcpp::export]]
+arma::cube convert_to_correlation(arma::cube L_output_vec, int niter, int S, int d) {
+  // Initialize the output 3D array (cube) with dimensions: niter x S x S
+  arma::cube Lambda_output(S, S, niter, arma::fill::zeros);
+
+  for (int iter = 0; iter < niter; ++iter) {
+    // 1. Extract the slice for the current iteration and treat it as a matrix.
+    // In Armadillo, cube slicing gives us an S x d view.
+    // Because R stores arrays in column-major order, we transpose or copy carefully
+    // to match R's `matrix(..., byrow = TRUE)` behavior.
+    arma::mat L_output_current(S, d);
+
+    // Replicating byrow = TRUE from the original R code
+    for (int i = 0; i < S; ++i) {
+      for (int j = 0; j < d; ++j) {
+        L_output_current(i, j) = L_output_vec(iter, i, j);
+      }
+    }
+
+    // 2. Compute the covariance matrix: L %*% t(L)
+    arma::mat cov_mat = L_output_current * L_output_current.t();
+
+    // 3. Convert Covariance to Correlation (Equivalent to cov2cor)
+    // R's cov2cor divides by the square root of the diagonal elements: inv(diag(sqrt(cov)))
+    arma::vec inv_sqrt_diag = 1.0 / arma::sqrt(cov_mat.diag());
+    arma::mat cor_mat = cov_mat % (inv_sqrt_diag * inv_sqrt_diag.t());
+
+    // 4. Store the result in the current slice of our output cube
+    Lambda_output.slice(iter) = cor_mat;
+  }
+
+  // Note: RcppArmadillo automatically converts an arma::cube back into a 3D R array.
+  // The dimensions in R will be [S, S, niter].
+  return Lambda_output;
+}
+
 // JSDM sampling functions
 
 // Sample B in a regression model Y ~ N(XB, sigma^2 I)

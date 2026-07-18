@@ -77,6 +77,10 @@ samplePGvariables <- function(Xbeta) {
     .Call(`_occPlus_samplePGvariables`, Xbeta)
 }
 
+convert_to_correlation <- function(L_output_vec, niter, S, d) {
+    .Call(`_occPlus_convert_to_correlation`, L_output_vec, niter, S, d)
+}
+
 sampleBuniv <- function(X, B, b, y, sigma) {
     .Call(`_occPlus_sampleBuniv`, X, B, b, y, sigma)
 }

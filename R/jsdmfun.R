@@ -1556,14 +1556,15 @@ returnCorrelationMatrixOutput <- function(L_output, idx_species, outputNames){
   niter <- dim(L_output_vec)[1]
 
   Lambda_output <- array(NA, dim = c(niter, S, S))
-  dimnames(Lambda_output)[[2]] <- outputNames
-  dimnames(Lambda_output)[[3]] <- outputNames
 
   for (iter in 1:niter) {
     L_output_current <- matrix(L_output_vec[iter,,], S, d, byrow = T)
 
     Lambda_output[iter,,] <- cov2cor(L_output_current %*% t(L_output_current))
   }
+
+  dimnames(Lambda_output)[[2]] <- outputNames
+  dimnames(Lambda_output)[[3]] <- outputNames
 
   Lambda_output[,idx_species, idx_species]
 
@@ -1609,20 +1610,39 @@ plotCorrelationMatrix <- function(L_output,
 
   if(showSignificance){
 
-    for(k in 1:nrow(sig_coords)) {
-      i <- sig_coords[k, 1]
-      j <- sig_coords[k, 2]
-      # Only add if in lower triangle and i != j
-      if(i < j) {
-        p <- p + annotate("text",
-                          x = j-1,
-                          y = i,
-                          label = "x",
-                          size = 6,
-                          color = "black",
-                          fontface = "bold")
-      }
-    }
+    annotation_data <- sig_coords[sig_coords[, 1] < sig_coords[, 2], , drop = FALSE]
+
+    # Convert to a data frame for ggplot
+    plot_annotations <- data.frame(
+      x = annotation_data[, 2] - 1,   # j - 1
+      y = annotation_data[, 1],       # i
+      label = "x"
+    )
+
+    # 2. Add everything to your plot in ONE single layer
+    p <- p + geom_text(
+      data = plot_annotations,
+      aes(x = x, y = y, label = label),
+      size = 6,
+      color = "black",
+      fontface = "bold",
+      inherit.aes = FALSE
+    )
+
+    # for(k in 1:nrow(sig_coords)) {
+    #   i <- sig_coords[k, 1]
+    #   j <- sig_coords[k, 2]
+    #   # Only add if in lower triangle and i != j
+    #   if(i < j) {
+    #     p <- p + annotate("text",
+    #                       x = j-1,
+    #                       y = i,
+    #                       label = "x",
+    #                       size = 6,
+    #                       color = "black",
+    #                       fontface = "bold")
+    #   }
+    # }
 
   }
 

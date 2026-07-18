@@ -305,6 +305,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// convert_to_correlation
+arma::cube convert_to_correlation(arma::cube L_output_vec, int niter, int S, int d);
+RcppExport SEXP _occPlus_convert_to_correlation(SEXP L_output_vecSEXP, SEXP niterSEXP, SEXP SSEXP, SEXP dSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::cube >::type L_output_vec(L_output_vecSEXP);
+    Rcpp::traits::input_parameter< int >::type niter(niterSEXP);
+    Rcpp::traits::input_parameter< int >::type S(SSEXP);
+    Rcpp::traits::input_parameter< int >::type d(dSEXP);
+    rcpp_result_gen = Rcpp::wrap(convert_to_correlation(L_output_vec, niter, S, d));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sampleBuniv
 arma::vec sampleBuniv(arma::mat& X, arma::mat& B, arma::vec& b, arma::vec& y, double sigma);
 RcppExport SEXP _occPlus_sampleBuniv(SEXP XSEXP, SEXP BSEXP, SEXP bSEXP, SEXP ySEXP, SEXP sigmaSEXP) {
@@ -444,6 +458,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_occPlus_K", (DL_FUNC) &_occPlus_K, 4},
     {"_occPlus_K2", (DL_FUNC) &_occPlus_K2, 4},
     {"_occPlus_samplePGvariables", (DL_FUNC) &_occPlus_samplePGvariables, 1},
+    {"_occPlus_convert_to_correlation", (DL_FUNC) &_occPlus_convert_to_correlation, 4},
     {"_occPlus_sampleBuniv", (DL_FUNC) &_occPlus_sampleBuniv, 5},
     {"_occPlus_sampleB", (DL_FUNC) &_occPlus_sampleB, 5},
     {"_occPlus_sample_U_cpp", (DL_FUNC) &_occPlus_sample_U_cpp, 6},
