@@ -13,7 +13,7 @@ computePredictiveOccupancyProbs(fitModel)
 An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
 }
 \description{
-Computes the average predictive occupancy probabilities
+Computes the average predictive occupancy probabilities at the existing site
 }
 \details{
 Computes the average predictive occupancy probabilities

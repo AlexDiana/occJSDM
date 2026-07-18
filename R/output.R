@@ -1356,6 +1356,163 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
   df
 }
 
+
+#' plotLatentPresences
+#'
+#' Display latent presences as a colour-banded gt table
+#'
+#' @details
+#' Takes the data frame returned by \code{\link{returnLatentPresences}} and
+#' renders a \pkg{gt} table with a nested banding scheme: fill colour changes
+#' with each new Site, and alternates between lighter and darker shades for
+#' each Sample and Primer within a Site. This makes the hierarchical
+#' site/sample/primer structure visually clear.
+#'
+#' Requires the \pkg{gt} and \pkg{colorspace} packages.
+#'
+#' @param latentPresences Data frame returned by \code{\link{returnLatentPresences}}
+#' @param sticky_header Logical; if \code{TRUE}, the table header stays fixed
+#'   while scrolling in the RStudio Viewer (default \code{TRUE})
+#' @param title Character string for the table title
+#'   (default \code{"Latent presence summary"})
+#' @param subtitle Character string for the subtitle (default describes the
+#'   colour scheme)
+#' @param container_height Height of the scrollable container in pixels
+#'   (default 1200)
+#' @param base_colors Character vector of base colours to cycle through for
+#'   successive sites (default: a 4-colour Tableau-inspired palette)
+#' @param shade_amounts Numeric vector of length 4 giving the lighten amounts
+#'   for the four sub-shades within each site colour (ordered lightest to
+#'   darkest; default \code{c(0.78, 0.60, 0.45, 0.28)})
+#' @param species_name Optional character string identifying the species. If
+#'   provided, it is appended to \code{title} in parentheses
+#'   (e.g. \code{"Latent presence summary (Lepisosteus osseus)"})
+#' @param decimals Number of decimal places for numeric columns (default 2)
+#' @param columns Character vector of column names to display. If \code{NULL}
+#'   (default), all columns are shown
+#'
+#' @return A \code{gt_tbl} object
+#'
+#' @examples
+#' \dontrun{
+#' lp <- returnLatentPresences(fitModel, idx_species = 1)
+#' plotLatentPresences(lp, title = "Species 1")
+#' }
+#'
+#' @export
+#'
+plotLatentPresences <- function(latentPresences,
+                                sticky_header = TRUE,
+                                title = "Latent presence summary",
+                                subtitle = paste0(
+                                  "Colour: Site | ",
+                                  "Shade: Sample (coarse) x Primer (fine)"
+                                ),
+                                container_height = 1200,
+                                base_colors = c("#4E79A7", "#F28E2B",
+                                                "#59A14F", "#E15759"),
+                                shade_amounts = c(0.78, 0.60, 0.45, 0.28),
+                                species_name = NULL,
+                                decimals = 2,
+                                columns = NULL) {
+
+  if (!is.null(species_name)) {
+    title <- paste0(title, " (", species_name, ")")
+  }
+
+  if (!requireNamespace("gt", quietly = TRUE)) {
+    stop("Package 'gt' is required. Install it with install.packages('gt').")
+  }
+  if (!requireNamespace("colorspace", quietly = TRUE)) {
+    stop("Package 'colorspace' is required. Install it with install.packages('colorspace').")
+  }
+
+  stopifnot(length(shade_amounts) == 4)
+
+  # Build shade lookup: rows = base colours, cols = 4 sub-shades
+
+  shade_lookup <- sapply(shade_amounts, function(amt) {
+    colorspace::lighten(base_colors, amt)
+  })
+
+  df_banded <- latentPresences |>
+    dplyr::mutate(
+      site_group   = cumsum(Site   != dplyr::lag(Site,   default = dplyr::first(Site))),
+      sample_group = cumsum(Sample != dplyr::lag(Sample, default = dplyr::first(Sample))),
+      primer_group = cumsum(Primer != dplyr::lag(Primer, default = dplyr::first(Primer))),
+      site_color_idx  = (site_group %% length(base_colors)) + 1,
+      sample_parity   = sample_group %% 2,
+      primer_parity   = primer_group %% 2,
+      shade_level     = sample_parity * 2 + primer_parity + 1,
+      row_color       = shade_lookup[cbind(site_color_idx, shade_level)]
+    )
+
+  # Select columns
+
+  if (!is.null(columns)) {
+    display_cols <- intersect(columns, names(df_banded))
+    if (length(display_cols) == 0) {
+      stop("None of the requested columns found in latentPresences.")
+    }
+    df_display <- df_banded[, c(display_cols, "row_color"), drop = FALSE]
+  } else {
+    # Drop the helper columns used for banding (except row_color, hidden later)
+    helper_cols <- c("site_group", "sample_group", "primer_group",
+                     "site_color_idx", "sample_parity", "primer_parity",
+                     "shade_level")
+    df_display <- df_banded[, !(names(df_banded) %in% helper_cols), drop = FALSE]
+  }
+
+  # Identify numeric columns to format (exclude row_color and id columns)
+  id_cols <- c("Site", "Sample", "Primer", "OTU", "row_color")
+  numeric_cols <- setdiff(
+    names(df_display)[vapply(df_display, is.numeric, logical(1))],
+    id_cols
+  )
+
+  tbl <- df_display |>
+    gt::gt() |>
+    gt::fmt_number(columns = dplyr::all_of(numeric_cols), decimals = decimals) |>
+    gt::cols_hide("row_color") |>
+    gt::tab_header(title = title, subtitle = subtitle) |>
+    gt::tab_options(
+      container.height = gt::px(container_height),
+      container.overflow.y = "auto"
+    ) |>
+    gt::tab_source_note(
+      source_note = gt::html(paste0(
+        "<b>Colour</b> = Site &middot; <b>shade</b> = Sample (coarse) ",
+        "within a Site &middot; <b>fine shade</b> = Primer within a Sample."
+      ))
+    )
+
+  # Apply row-level fill colours
+  for (col in unique(df_banded$row_color)) {
+    tbl <- tbl |>
+      gt::tab_style(
+        style = gt::cell_fill(color = col),
+        locations = gt::cells_body(rows = df_banded$row_color == col)
+      )
+  }
+
+  # Sticky header CSS
+  if (sticky_header) {
+    tbl <- tbl |>
+      gt::opt_css(
+        css = "
+        .gt_table thead {
+          position: sticky;
+          top: 0;
+          z-index: 2;
+        }
+        "
+      )
+  }
+
+  tbl
+}
+
+
 # OTHER -------
 
 #' extractWAIC
