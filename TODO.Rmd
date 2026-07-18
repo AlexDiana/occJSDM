@@ -43,6 +43,8 @@ dos)**
         reference the correct variables, and add `ESS_beta0psi` to the
         final `min()`.
 
+    6.  `plotCumulativeSpeciesDetections()` as a function of $M$
+
 2.  ~~change all `occPlus` to `occJSDM` across whole package~~ DONE
 
 3.  purge `data/traitdata_caiwang.rdata` from git history (need to
