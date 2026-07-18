@@ -8,8 +8,7 @@ editor_options:
 
 ## functions to add
 
-**v0.1.0-beta** **Public release (Doug does everything that isn't under
-Alex to dos)**
+**v0.1.0-beta** **Public release**
 
 1.  Alex to dos
 
