@@ -378,6 +378,7 @@ simulateOccJSDMData <- function(list_datasettings,
     sigma_h <- list_jsdmParams$sigma_h
     sigma_s <- list_jsdmParams$sigma_s
     l_s <- list_jsdmParams$l_s
+    tau <- list_jsdmParams$tau
     useSpatField <- list_jsdmParams$useSpatField
   }
 
@@ -397,7 +398,7 @@ simulateOccJSDMData <- function(list_datasettings,
 
   list_simjSDMData <- simulateData(
     n, S, ncov_psi,
-    g, gt, d, tau = NULL, ds, n,
+    g, gt, d, tau, ds, n,
     sigma_b, sigma_bs, sigma_ts, sigma_h, sigma_s, l_s,
     useSpatField = useSpatField, usingSplines = F, model = jSDMsimModel)
 

@@ -190,7 +190,7 @@ inferDataModel <- function(data){
   }
 
   if(model == "binary") print(paste("occJSDM has inferred one-stage binary data"))
-  if(model == "continuous") print(paste("occJSDM has inferred one-stage counts data"))
+  if(model == "continuous") print(paste("occJSDM has inferred one-stage continuous data"))
   if(model == "counts") print(paste("occJSDM has inferred one-stage counts data"))
   if(model == "occupancy") print(paste("occJSDM has inferred occupancy data"))
   if(model == "two_stage") print(paste("occJSDM has inferred two stage (eDNA style) data"))
@@ -273,7 +273,7 @@ runOccJSDM <- function(data,
   {
     # listParams = list(n_factors = 3)
     # threshold = 1
-    # occCovariates = c("X_psi.EnvCov.1","X_psi.EnvCov.2")
+    # occCovariates = NULL
     # collCovariates = NULL
     # spatCovariates <- NULL
     # MCMCparams = list(nchain = 2,
@@ -295,6 +295,51 @@ runOccJSDM <- function(data,
     if(nrow(data_info) != nrow(OTU)){
       stop("OTU and data_info cannot have different number of rows")
     }
+
+    # read OTU data
+    {
+      y <- OTU
+      if(is.null(dim(y))){
+        S <- 1
+      } else {
+        S <- ncol(y)
+      }
+
+      if(model %in% c("occupancy","two_stage")){
+
+        # truncate data
+        if(threshold >= 1){
+
+          y[y >= threshold] <- 1
+          y[y < threshold] <- 0
+
+        } else {
+
+          stop("Threshold has to be greater than 0")
+
+        }
+      }
+
+      # check for nas
+      {
+        y_NA <- is.na(y)
+        mode(y_NA) <- "integer"
+
+        if(sum(y_NA) > 0 & model != "two_stage"){
+          stop("NAs are allowed only in the two-stage model", .call = F)
+        }
+      }
+
+      speciesNames <- colnames(data$OTU)
+      if(is.null(speciesNames)){
+        speciesNames <- 1:S
+      }
+
+    }
+
+    # if(nrow(y) != N3) stop("Number of rows in data$OTU different from what obtained from data$info")
+
+    n_obs <- nrow(y)
 
   }
 
@@ -326,7 +371,7 @@ runOccJSDM <- function(data,
     }
 
     if(model == "occupancy" & is.null(data_info$Sample)){
-      data_info$Site <- 1:nrow(data_info)
+      data_info$Sample <- 1:nrow(data_info)
     }
 
     if(model %in% c("binary","continuous","counts")){
@@ -374,6 +419,9 @@ runOccJSDM <- function(data,
         N <- sum(M)
 
         sumM <- c(0, cumsum(M)[-n])
+      } else {
+        n <- nrow(data_info)
+        siteNames <- 1:n
       }
 
     }
@@ -432,48 +480,6 @@ runOccJSDM <- function(data,
       idx_p_k <- list_idx$idx_p_k
     }
 
-    # read OTU data
-    {
-      y <- OTU
-      if(is.null(dim(y))){
-        S <- 1
-      } else {
-        S <- ncol(y)
-      }
-
-      if(model %in% c("occupancy","two_stage")){
-
-        # truncate data
-        if(threshold >= 1){
-
-          y[y >= threshold] <- 1
-          y[y < threshold] <- 0
-
-        } else {
-
-          stop("Threshold has to be greater than 0")
-
-        }
-      }
-
-      # check for nas
-      {
-        y_NA <- is.na(y)
-        mode(y_NA) <- "integer"
-
-        # TODO("Don't allow for NA other than for two_stage")
-      }
-
-      speciesNames <- colnames(data$OTU)
-      if(is.null(speciesNames)){
-        speciesNames <- 1:S
-      }
-
-    }
-
-    # if(nrow(y) != N3) stop("Number of rows in data$OTU different from what obtained from data$info")
-
-    n_obs <- nrow(y)
   }
 
   # create covariates matrix
@@ -1098,7 +1104,7 @@ runOccJSDM <- function(data,
 
     }
 
-    if(gt > 0){
+    if(ncov_psi > 0 & gt > 0){
 
       list_AC_output_reparm <- reparamFactorModel(A_output, C_output)
       A_output <- list_AC_output_reparm$U_output

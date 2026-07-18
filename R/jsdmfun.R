@@ -1693,7 +1693,9 @@ plotFactorScores <- function(jsdm_output,
   )
 
   p <- ggplot(plot_data, aes(x = x, y = y)) +
-    geom_point(aes(size = variability), alpha = 0.6, color = "darkblue") +
+    # geom_point(aes(size = variability), alpha = 0.6, color = "darkblue") +
+    geom_circle(aes(x0 = x, y0 = y, r = r),
+                fill = "darkblue", alpha = 0.2, color = "darkblue") +
     # geom_text_repel(
     geom_text(
       aes(label = name),
@@ -1705,8 +1707,8 @@ plotFactorScores <- function(jsdm_output,
     theme_minimal() +
     theme(legend.position = "none") +
     labs(
-      x = paste0("Factor",idx_factors[1]),
-      y = paste0("Factor",idx_factors[2])
+      x = paste0("Factor ",idx_factors[1]),
+      y = paste0("Factor ",idx_factors[2])
     )
 
   p

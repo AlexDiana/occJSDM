@@ -950,7 +950,7 @@ returnResidualCorrelationMatrix <- function(fitModel,
 }
 
 
-# ORDINATON OUTPUT -----
+# ORDINATON -----
 
 #' returnOrdination
 #'
@@ -965,6 +965,69 @@ returnResidualCorrelationMatrix <- function(fitModel,
 #' @return An object of size (3 x number of sites x number of factors)
 #'
 returnOrdination <- function(fitModel,
+                             confidence = .95){
+
+  n_factors <- fitModel$infos$n_factors
+
+  if(n_factors== 0){
+    stop("No factor used")
+  }
+
+  if(n_factors > 2){
+    print("More than 2 factors present, the ordination plot will use the first
+          two factors only")
+  }
+
+  U_output <- fitModel$results_output$U_output
+
+  plot_data <- as.data.frame.table(U_output) %>%
+    rename(Chain = Var1, Iter = Var2, Obs = Var3, Dim = Var4) %>%
+    mutate(Obs = as.numeric(Obs)) %>%
+    group_by(Obs, Dim) %>%
+    summarise(
+      mean_val = mean(Freq),
+      lower    = quantile(Freq, 0.025),
+      upper    = quantile(Freq, 0.975),
+      .groups  = "drop"
+    ) %>%
+    # Pivot wider so Dim 1 and Dim 2 are in separate columns for 2D plotting
+    pivot_wider(
+      names_from = Dim,
+      values_from = c(mean_val, lower, upper),
+      names_sep = "_d"
+    )
+
+  # --- 3. Plot with ggplot2 ---
+  ggplot(plot_data, aes(x = mean_val_d1, y = mean_val_d2)) +
+    # Horizontal error bars (Uncertainty in Dimension 1)
+    geom_errorbarh(aes(xmin = lower_d1, xmax = upper_d1), color = "gray60", alpha = 0.7) +
+    # Vertical error bars (Uncertainty in Dimension 2)
+    geom_errorbar(aes(ymin = lower_d2, ymax = upper_d2), color = "gray60", alpha = 0.7) +
+    # Central estimate points
+    geom_point(color = "firebrick", size = 2) +
+    labs(
+      title = "Observation Estimates with 95% Credible Intervals",
+      x = "Dimension 1",
+      y = "Dimension 2"
+    ) +
+    theme_minimal()
+
+}
+
+#' plotOrdinationScores
+#'
+#' Plot the ordinaton scores
+#'
+#' @details
+#'
+#'
+#' @param fitModel Output from the function runOccJSDM
+#' @param idx_factors Confidence
+#' @param confidence Confidence of the quantiles, default to
+#'
+#' @return A ggplot object
+#'
+plotOrdinationScores <- function(fitModel,
                              confidence = .95){
 
   n_factors <- fitModel$infos$n_factors

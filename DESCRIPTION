@@ -25,7 +25,9 @@ Imports:
     ggcorrplot,
     Rcpp,
     ggtern,
-    ggforce
+    ggforce,
+    cli,
+    rlang
 LinkingTo: 
     Rcpp,
     RcppArmadillo

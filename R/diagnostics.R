@@ -21,11 +21,21 @@ computeESSparams <- function(param_output){
 
 computeMinESS <- function(results_output){
 
+  beta0_psi_output <- results_output$jsdm_output$B0_output
   beta_psi_output <- results_output$jsdm_output$B_output
   beta_theta_output <- results_output$beta_theta_output
   L_output <- results_output$jsdm_output$L_output
 
   ESS_betapsi <- matrix(NA, dim(beta_psi_output)[1],dim(beta_psi_output)[2])
+  for (x in 1:nrow(ESS_betapsi)) {
+    for (y in 1:ncol(ESS_betapsi)) {
+      chains <- lapply(1:dim(beta_psi_output)[4], function(i) coda::mcmc(beta_psi_output[x, y, , i]))
+      mcmc_list <- coda::mcmc.list(chains)
+      ESS_betapsi[x,y] <- coda::effectiveSize(mcmc_list)
+    }
+  }
+
+  ESS_beta0psi <- matrix(NA, dim(beta_psi_output)[1],dim(beta_psi_output)[2])
   for (x in 1:nrow(ESS_betapsi)) {
     for (y in 1:ncol(ESS_betapsi)) {
       chains <- lapply(1:dim(beta_psi_output)[4], function(i) coda::mcmc(beta_psi_output[x, y, , i]))
