@@ -24,7 +24,8 @@ Imports:
     stats,
     ggcorrplot,
     Rcpp,
-    ggtern
+    ggtern,
+    ggforce
 LinkingTo: 
     Rcpp,
     RcppArmadillo

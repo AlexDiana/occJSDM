@@ -1649,6 +1649,69 @@ plotCorrelationMatrix <- function(L_output,
   p
 }
 
+returnFactorScores <- function(jsdm_output,
+                               confidence = .95){
+
+  U_output <- jsdm_output$U_output
+  U_output_vec <- apply(U_output, c(1,2), c)
+
+  conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+
+  U_output_quantiles <- apply(U_output_vec, c(2,3),
+                           function(x){quantile(x, probs = conflevels)})
+
+  U_output_quantiles
+}
+
+plotFactorScores <- function(jsdm_output,
+                             idx_factors,
+                             siteNames){
+
+  factorScoresOutput <- returnFactorScores(jsdm_output)
+
+  if(length(idx_factors) != 2) {
+    stop("Two factors can be used in this plot")
+  }
+
+  factorScoresOutput <- factorScoresOutput[,,idx_factors]
+
+  x_coords <- factorScoresOutput[2, , 1]
+  y_coords <- factorScoresOutput[2, , 2]
+  x_lower <- factorScoresOutput[1, , 1]
+  y_lower <- factorScoresOutput[1, , 2]
+  x_upper <- factorScoresOutput[3, , 1]
+  y_upper <- factorScoresOutput[3, , 2]
+
+  variability <- sqrt((x_upper - x_lower)^2 + (y_upper - y_lower)^2)
+
+  plot_data <- data.frame(
+    x = x_coords,
+    y = y_coords,
+    variability = variability,
+    r = variability / 2,
+    name = siteNames
+  )
+
+  p <- ggplot(plot_data, aes(x = x, y = y)) +
+    geom_point(aes(size = variability), alpha = 0.6, color = "darkblue") +
+    # geom_text_repel(
+    geom_text(
+      aes(label = name),
+      size = 3.5            # Size of the text font
+      # max.overlaps = 20,     # Adjusts how many overlaps it tolerates before hiding some
+      # box.padding = 0.3      # Space around the text box
+    ) +
+    scale_size_area(max_size = 8, name = "Standard Deviation") +
+    theme_minimal() +
+    theme(legend.position = "none") +
+    labs(
+      x = paste0("Factor",idx_factors[1]),
+      y = paste0("Factor",idx_factors[2])
+    )
+
+  p
+}
+
 # DEPRECATED ---------
 
 # sample traits (observed and unobserved) response to covariates
