@@ -5,8 +5,13 @@ Version: 0.1.0
 Authors@R: c(
     person(
       "Alex", "Diana",
-      email = "ad23269@essex.ac.uk",
+      email = "Alex.diana92@yahoo.it",
       role = c("aut", "cre")
+    ),
+    person(
+      "Douglas W.", "Yu",
+      email = "dougwyu@mac.com",
+      role = "aut"
     )
   )
 Description: More about what it does (maybe more than one line).

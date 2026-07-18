@@ -1,0 +1,68 @@
+cff-version: 1.2.0
+message: >-
+  If you use occJSDM, please cite the methods paper (Ji et al., 2025) as
+  the primary reference for the statistical model, and cite this software
+  repository for the specific implementation/version used.
+title: "occJSDM: Occupancy Joint Species Distribution Models"
+version: 0.1.0
+date-released: 2026-07-18
+url: "https://github.com/AlexDiana/occJSDM"
+license: Apache-2.0
+authors:
+  - family-names: Diana
+    given-names: Alex
+    email: Alex.diana92@yahoo.it
+  - family-names: Yu
+    given-names: "Douglas W."
+    email: dougwyu@mac.com
+preferred-citation:
+  type: article
+  title: >-
+    High Quality, Granular, Timely, Trustworthy and Efficient Vertebrate
+    Species Distribution Data Across a 30,000 km2 Protected Area Complex
+  journal: "Ecology Letters"
+  volume: 28
+  issue: 12
+  year: 2025
+  doi: "10.1111/ele.70302"
+  authors:
+    - family-names: Ji
+      given-names: Y.
+    - family-names: Diana
+      given-names: A.
+    - family-names: Li
+      given-names: X.
+    - family-names: Matechou
+      given-names: E.
+    - family-names: Griffin
+      given-names: J. E.
+    - family-names: Liu
+      given-names: S.
+    - family-names: Luo
+      given-names: M.
+    - family-names: Wu
+      given-names: C.
+    - family-names: Bai
+      given-names: R.
+    - family-names: Yao
+      given-names: C.
+    - family-names: Yin
+      given-names: T.
+    - family-names: Dong
+      given-names: F.
+    - family-names: Wu
+      given-names: F.
+    - family-names: Wang
+      given-names: K.
+    - family-names: Yu
+      given-names: Z.
+    - family-names: Chen
+      given-names: X.
+    - family-names: Jiang
+      given-names: X.
+    - family-names: Che
+      given-names: J.
+    - family-names: Yu
+      given-names: "Douglas W."
+    - family-names: Popescu
+      given-names: V. D.
