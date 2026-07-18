@@ -816,54 +816,51 @@ plotStage2FPRates <- function(fitModel,
                               idx_species = NULL){
 
   S <- fitModel$infos$S
-  # ncov_theta <- fitModel$infos$ncov_psi
   speciesNames <- fitModel$infos$speciesNames
   primerNames <- fitModel$infos$primerNames
+  maxP <- length(primerNames)
 
   if(is.null(idx_species)){
     idx_species <- 1:S
   }
 
-  samples_subset <- fitModel$results_output$q_output
-  samples_subset <- apply(samples_subset, c(1,2), c)
+  # q_output: (maxP, S, niter, nchain)
+  q_output <- fitModel$results_output$q_output
 
-  data_plot <- apply(samples_subset, 3, function(x) {
-    quantile(x, probs = c(0.025, 0.975))
-  }) %>%
-    t %>%
-    as.data.frame
+  # Build a data frame of quantiles per (Primer, Species)
+  data_plot <- expand.grid(Primer = seq_len(maxP), Species = seq_len(S)) |>
+    dplyr::rowwise() |>
+    dplyr::mutate(
+      `2.5%`  = quantile(q_output[Primer, Species, , ], probs = 0.025, na.rm = TRUE),
+      `97.5%` = quantile(q_output[Primer, Species, , ], probs = 0.975, na.rm = TRUE)
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::mutate(Species = speciesNames[Species],
+                  Primer  = primerNames[Primer]) |>
+    dplyr::filter(Species %in% speciesNames[idx_species])
 
-  data_plot <- data_plot %>%
-    mutate(Species = speciesNames) %>%
-    mutate(speciesOrder = order(`2.5%`)) %>%
-    filter(Species %in% speciesNames[idx_species])
+  # Order species by lower bound of first primer
+  first_primer <- data_plot |>
+    dplyr::filter(Primer == primerNames[1])
+  species_order <- first_primer$Species[order(first_primer$`2.5%`)]
 
-  orderSpecies <- order(data_plot$`2.5%`)
-
-  detectionRates <- data_plot %>%
-    ggplot(aes(x = factor(Species, level =  speciesNames[orderSpecies]),
-               # factor(Species, level = speciesNames[orderSpecies]),
-               # factor(Species, level = speciesNames),
+  detectionRates <- data_plot |>
+    ggplot(aes(x = factor(Species, levels = species_order),
                ymin = `2.5%`,
-               ymax = `97.5%`#,
-               # color = factor(Primer))
-    )
-    ) +
-    geom_errorbar(position = position_dodge(width = .15), # Use the SAME width as geom_col
+               ymax = `97.5%`,
+               color = factor(Primer))) +
+    geom_errorbar(position = position_dodge(width = .15),
                   width = .5) +
     xlab("Species") +
-    # ylim(c(0,1)) +
     ggtitle("Stage 2 FP rates") +
     theme_bw() +
-    # ylim(c(0,1)) +
     ylab("q") +
     theme(
-      axis.text = element_text(angle = 0,
-                               size = 8),
+      axis.text = element_text(angle = 0, size = 8),
       axis.title = element_text(size = 12, face = "bold"),
-      plot.title = element_text(hjust = .5,
-                                size = 15)
-    ) + coord_flip()
+      plot.title = element_text(hjust = .5, size = 15)
+    ) +
+    coord_flip()
 
   detectionRates
 
