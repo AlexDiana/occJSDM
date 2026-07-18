@@ -252,7 +252,7 @@ The outputs are ggplot2 objects and so can be combined with the
 plotOccupancyRates(fitmodel, idx_species = 1:10) 
 ```
 
-```{r Stage 1}
+```{r Stage 1b}
 plotCollectionRates(fitmodel, idx_species = 1:10) # ideally, these are high
 plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
 ```
