@@ -4,7 +4,12 @@
 \alias{simulateOccJSDMData}
 \title{simulateOccJSDMData}
 \usage{
-simulateOccJSDMData(list_datasettings, list_params, list_jsdmParams, model)
+simulateOccJSDMData(
+  list_datasettings,
+  list_params,
+  list_jsdmParams,
+  useSpatField = FALSE
+)
 }
 \arguments{
 \item{list_datasettings}{List of data dimension settings (n, S, g, M, P, K,
@@ -18,9 +23,6 @@ omitted these default to `mu1 = 5`, `sigma1 = 1`, `mu0 = 1.5`,
 
 \item{list_jsdmParams}{List of JSDM parameters (gt, d, ds, sigma_b, sigma_bs,
 sigma_ts, sigma_h, l_s).}
-
-\item{model}{Supported data formats are "binary","continous","occupancy"
-and "two-stage"}
 
 \item{useSpatField}{Logical. If `TRUE`, simulated occupancy incorporates a
 spatially autocorrelated random field over the site coordinates `Xs`
@@ -36,7 +38,7 @@ Simulate data
 }
 \details{
 Simulate data. `data_list$y` contains simulated read counts (matching the
-`threshold = 0` mode of `runOccPlus()`), rather than binary detections:
+`threshold = 0` mode of `runOccJSDM()`), rather than binary detections:
 for a true detection, `log(y + 1) ~ Normal(mu1, sigma1)`; for a
 false-positive/contamination detection, `log(y + 1) ~ Normal(mu0, sigma0)`;
 otherwise `y = 0`. The realised counts are `round(exp(log(y + 1)) - 1)`.

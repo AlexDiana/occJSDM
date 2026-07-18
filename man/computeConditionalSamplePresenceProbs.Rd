@@ -7,7 +7,7 @@
 computeConditionalSamplePresenceProbs(fitModel)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 }
 \value{
 A matrix of size (samples X species) with the posterior mean presence

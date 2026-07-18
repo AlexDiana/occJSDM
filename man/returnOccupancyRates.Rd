@@ -7,7 +7,7 @@
 returnOccupancyRates(fitModel)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 }
 \value{
 A matrix of size (species x iterations) with the posterior

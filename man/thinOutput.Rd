@@ -7,7 +7,7 @@
 thinOutput(fitModel, thin = 5)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 
 \item{thin}{Thinning interval; every `thin`-th iteration is kept (default 5)}
 }

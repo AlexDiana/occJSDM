@@ -45,7 +45,7 @@ data$OTU[data$info$elution_volume == 0,] <- NA
 
 # RUN MODEL -----
 
-fitmodel  <- runOccPlus(data,
+fitmodel  <- runOccJSDM(data,
                         d = 2,
                         occCovariates = c(),
                         ordCovariates = c("altitude"),

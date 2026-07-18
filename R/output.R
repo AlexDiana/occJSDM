@@ -6,7 +6,7 @@
 #' Returns the same fitModel object, but with the MCMC iterations in
 #' `results_output` thinned, keeping only every `thin`-th iteration.
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param thin Thinning interval; every `thin`-th iteration is kept (default 5)
 #'
 #' @return A fitModel object with the same structure as the input, but with
@@ -110,7 +110,7 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #' @details
 #' Returns the traits covariates coefficients posterior sample
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return An array of posterior samples of size
 #' (iterations x occupancy covariates x traits)
@@ -155,7 +155,7 @@ returnTraitsCoeff <- function(fitModel){
 #' @details
 #' Plots the 95% credible interval of the occupancy covariates coefficients
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param covName Name of the covariate to be plotted (same name as in data$info)
 #' @param idx_traits Indexes of the traits to be plotted (leave out to plot all the traits).
 #'
@@ -189,7 +189,7 @@ plotTraitsCoefficients <- function(fitModel,
 #' @details
 #' Returns the occupancy covariates coefficients posterior sample
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return An array of posterior samples of size
 #' (iterations x occupancy covariates x species)
@@ -221,7 +221,7 @@ returnOccupancyCovariates <- function(fitModel){
 #' @details
 #' Plots the 95% credible interval of the occupancy covariates coefficients
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param covName Name of the covariate to be plotted (same name as in data$info)
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
@@ -255,7 +255,7 @@ plotOccupancyCovariates <- function(fitModel,
 #' Returns the posterior samples of the baseline occupancy probability
 #' (intercept-only, on the probability scale) for each species.
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A matrix of size (species x iterations) with the posterior
 #' samples of the baseline occupancy probability for each species
@@ -288,7 +288,7 @@ returnOccupancyRates <- function(fitModel){
 #' @details
 #' Plots the 95% credible interval of the baseline occupancy rates
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #' @param confidence Confidence level of the estimate,  default to .95
 #'
@@ -364,7 +364,7 @@ plotOccupancyRates <- function(fitModel,
 #' @details
 #' Returns the collection covariates coefficients posterior sample
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return An array of posterior samples of size
 #' (iterations x collection covariates x species)
@@ -405,7 +405,7 @@ returnCollectionCovariates <- function(fitModel){
 #' @details
 #' Plots the 95% credible interval of the collection covariates coefficients
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param covName Name of the covariate to be plotted (same name as in data$info)
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
@@ -478,7 +478,7 @@ plotSpeciesRates <- function(data_plot,
 #' @details
 #' Plots the 95% credible interval of the baseline collection rates
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
 #' @return The credible interval plot
@@ -546,7 +546,7 @@ plotCollectionRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the true and false positives at the lab stage
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #' @param primerName Name of the primer to plot (defaults to the first primer in `fitModel$infos$primerNames`)
 #'
@@ -647,7 +647,7 @@ plotFPTPStage2Rates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the true positives at the lab stage
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
 #' @return A ggplot object
@@ -702,6 +702,7 @@ plotDetectionRates <- function(fitModel,
                                           ymin = lower, ymax = upper, color = Primer),
                     position = position_dodge(width = 0.6)) +
       labs(
+        title = "Detection rates",
         x = "Species",
         y = "p",
         color = "Primer"
@@ -725,7 +726,7 @@ plotDetectionRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the false positives rate at the field stage
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
 #' @return A ggplot object
@@ -797,7 +798,7 @@ plotStage1FPRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the false positives at the lab stage
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
 #' @return A ggplot object
@@ -816,54 +817,52 @@ plotStage2FPRates <- function(fitModel,
                               idx_species = NULL){
 
   S <- fitModel$infos$S
-  # ncov_theta <- fitModel$infos$ncov_psi
   speciesNames <- fitModel$infos$speciesNames
   primerNames <- fitModel$infos$primerNames
+  maxP <- length(primerNames)
 
   if(is.null(idx_species)){
     idx_species <- 1:S
   }
 
-  samples_subset <- fitModel$results_output$q_output
-  samples_subset <- apply(samples_subset, c(1,2), c)
+  # q_output: (maxP, S, niter, nchain)
+  q_output <- fitModel$results_output$q_output
 
-  data_plot <- apply(samples_subset, 3, function(x) {
-    quantile(x, probs = c(0.025, 0.975))
-  }) %>%
-    t %>%
-    as.data.frame
+  # Build a data frame of quantiles per (Primer, Species)
+  data_plot <- expand.grid(Primer = seq_len(maxP), Species = seq_len(S)) |>
+    dplyr::rowwise() |>
+    dplyr::mutate(
+      `2.5%`  = quantile(q_output[Primer, Species, , ], probs = 0.025, na.rm = TRUE),
+      `97.5%` = quantile(q_output[Primer, Species, , ], probs = 0.975, na.rm = TRUE)
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::mutate(Species = speciesNames[Species],
+                  Primer  = primerNames[Primer]) |>
+    dplyr::filter(Species %in% speciesNames[idx_species])
 
-  data_plot <- data_plot %>%
-    mutate(Species = speciesNames) %>%
-    mutate(speciesOrder = order(`2.5%`)) %>%
-    filter(Species %in% speciesNames[idx_species])
+  # Order species by lower bound of first primer
+  first_primer <- data_plot |>
+    dplyr::filter(Primer == primerNames[1])
+  species_order <- first_primer$Species[order(first_primer$`2.5%`)]
 
-  orderSpecies <- order(data_plot$`2.5%`)
-
-  detectionRates <- data_plot %>%
-    ggplot(aes(x = factor(Species, level =  speciesNames[orderSpecies]),
-               # factor(Species, level = speciesNames[orderSpecies]),
-               # factor(Species, level = speciesNames),
+  detectionRates <- data_plot |>
+    ggplot(aes(x = factor(Species, levels = species_order),
                ymin = `2.5%`,
-               ymax = `97.5%`#,
-               # color = factor(Primer))
-    )
-    ) +
-    geom_errorbar(position = position_dodge(width = .15), # Use the SAME width as geom_col
+               ymax = `97.5%`,
+               color = factor(Primer))) +
+    geom_errorbar(position = position_dodge(width = .15),
                   width = .5) +
     xlab("Species") +
-    # ylim(c(0,1)) +
     ggtitle("Stage 2 FP rates") +
     theme_bw() +
-    # ylim(c(0,1)) +
     ylab("q") +
+    labs(color = "Primer") +
     theme(
-      axis.text = element_text(angle = 0,
-                               size = 8),
+      axis.text = element_text(angle = 0, size = 8),
       axis.title = element_text(size = 12, face = "bold"),
-      plot.title = element_text(hjust = .5,
-                                size = 15)
-    ) + coord_flip()
+      plot.title = element_text(hjust = .5, size = 15)
+    ) +
+    coord_flip()
 
   detectionRates
 
@@ -879,7 +878,7 @@ plotStage2FPRates <- function(fitModel,
 #' Plots the posterior median of the correlation matrix,
 #' with nonsignificant correlations marked with an X
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #' @param showSignificance Should an X be shown for non significant elements?
 #' @param confidence Confidence level used to assess significance, default to .95
@@ -918,7 +917,7 @@ plotResidualCorrelationMatrix <- function(fitModel,
 #' @details
 #' Return the quantiles of the residual correlation matrix after accounting for the covariates
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param confidence Confidence level used to assess significance, default to .95
 #'
 #' @return A ggplot object
@@ -1086,7 +1085,7 @@ plotOrdinationScores <- function(fitModel,
 #' @details
 #' Compute the credible interval of the occupancy probability at new sites
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param X_psi Occupancy covariates matrix for the new locations
 #' @param X_s Spatial/ordination covariates matrix for the new locations
 #' @param summarised Should the output be return in the form of quantiles? Set to TRUE if the number of sites is very large
@@ -1220,7 +1219,7 @@ predictOccupancyProbs <- function(fitModel,
 #' @details
 #' Computes the average predictive occupancy probabilities
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
 #'
@@ -1257,7 +1256,7 @@ computePredictiveOccupancyProbs <- function(fitModel){
 #' @details
 #' Computes the average predictive occupancy probabilities
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return An array of size (samples,species)
 #'
@@ -1294,7 +1293,7 @@ computeAverageCollectionProbs <- function(fitModel){
 #' @details
 #' Computes the posterior mean of the conditional occupancy probability
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A matrix of size (site X species) with the posterior mean occupancy at
 #' each site for each species.
@@ -1332,7 +1331,7 @@ computeConditionalOccupancyProbs <- function(fitModel){
 #' @details
 #' Computes the posterior mean of a sample being occupied
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A matrix of size (samples X species) with the posterior mean presence
 #' at each sample for each species.
@@ -1371,7 +1370,7 @@ computeConditionalSamplePresenceProbs <- function(fitModel){
 #' Computes, for a single species, the posterior mean of the latent
 #' occupancy state `z` and the latent detection state `w` across sites.
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Index of the species to compute latent presences for (default 1)
 #'
 #' @return A matrix
@@ -1422,6 +1421,163 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
   df
 }
 
+
+#' plotLatentPresences
+#'
+#' Display latent presences as a colour-banded gt table
+#'
+#' @details
+#' Takes the data frame returned by \code{\link{returnLatentPresences}} and
+#' renders a \pkg{gt} table with a nested banding scheme: fill colour changes
+#' with each new Site, and alternates between lighter and darker shades for
+#' each Sample and Primer within a Site. This makes the hierarchical
+#' site/sample/primer structure visually clear.
+#'
+#' Requires the \pkg{gt} and \pkg{colorspace} packages.
+#'
+#' @param latentPresences Data frame returned by \code{\link{returnLatentPresences}}
+#' @param sticky_header Logical; if \code{TRUE}, the table header stays fixed
+#'   while scrolling in the RStudio Viewer (default \code{TRUE})
+#' @param title Character string for the table title
+#'   (default \code{"Latent presence summary"})
+#' @param subtitle Character string for the subtitle (default describes the
+#'   colour scheme)
+#' @param container_height Height of the scrollable container in pixels
+#'   (default 1200)
+#' @param base_colors Character vector of base colours to cycle through for
+#'   successive sites (default: a 4-colour Tableau-inspired palette)
+#' @param shade_amounts Numeric vector of length 4 giving the lighten amounts
+#'   for the four sub-shades within each site colour (ordered lightest to
+#'   darkest; default \code{c(0.78, 0.60, 0.45, 0.28)})
+#' @param species_name Optional character string identifying the species. If
+#'   provided, it is appended to \code{title} in parentheses
+#'   (e.g. \code{"Latent presence summary (Lepisosteus osseus)"})
+#' @param decimals Number of decimal places for numeric columns (default 2)
+#' @param columns Character vector of column names to display. If \code{NULL}
+#'   (default), all columns are shown
+#'
+#' @return A \code{gt_tbl} object
+#'
+#' @examples
+#' \dontrun{
+#' lp <- returnLatentPresences(fitModel, idx_species = 1)
+#' plotLatentPresences(lp, title = "Species 1")
+#' }
+#'
+#' @export
+#'
+plotLatentPresences <- function(latentPresences,
+                                sticky_header = TRUE,
+                                title = "Latent presence summary",
+                                subtitle = paste0(
+                                  "Colour: Site | ",
+                                  "Shade: Sample (coarse) x Primer (fine)"
+                                ),
+                                container_height = 1200,
+                                base_colors = c("#4E79A7", "#F28E2B",
+                                                "#59A14F", "#E15759"),
+                                shade_amounts = c(0.78, 0.60, 0.45, 0.28),
+                                species_name = NULL,
+                                decimals = 2,
+                                columns = NULL) {
+
+  if (!is.null(species_name)) {
+    title <- paste0(title, " (", species_name, ")")
+  }
+
+  if (!requireNamespace("gt", quietly = TRUE)) {
+    stop("Package 'gt' is required. Install it with install.packages('gt').")
+  }
+  if (!requireNamespace("colorspace", quietly = TRUE)) {
+    stop("Package 'colorspace' is required. Install it with install.packages('colorspace').")
+  }
+
+  stopifnot(length(shade_amounts) == 4)
+
+  # Build shade lookup: rows = base colours, cols = 4 sub-shades
+
+  shade_lookup <- sapply(shade_amounts, function(amt) {
+    colorspace::lighten(base_colors, amt)
+  })
+
+  df_banded <- latentPresences |>
+    dplyr::mutate(
+      site_group   = cumsum(Site   != dplyr::lag(Site,   default = dplyr::first(Site))),
+      sample_group = cumsum(Sample != dplyr::lag(Sample, default = dplyr::first(Sample))),
+      primer_group = cumsum(Primer != dplyr::lag(Primer, default = dplyr::first(Primer))),
+      site_color_idx  = (site_group %% length(base_colors)) + 1,
+      sample_parity   = sample_group %% 2,
+      primer_parity   = primer_group %% 2,
+      shade_level     = sample_parity * 2 + primer_parity + 1,
+      row_color       = shade_lookup[cbind(site_color_idx, shade_level)]
+    )
+
+  # Select columns
+
+  if (!is.null(columns)) {
+    display_cols <- intersect(columns, names(df_banded))
+    if (length(display_cols) == 0) {
+      stop("None of the requested columns found in latentPresences.")
+    }
+    df_display <- df_banded[, c(display_cols, "row_color"), drop = FALSE]
+  } else {
+    # Drop the helper columns used for banding (except row_color, hidden later)
+    helper_cols <- c("site_group", "sample_group", "primer_group",
+                     "site_color_idx", "sample_parity", "primer_parity",
+                     "shade_level")
+    df_display <- df_banded[, !(names(df_banded) %in% helper_cols), drop = FALSE]
+  }
+
+  # Identify numeric columns to format (exclude row_color and id columns)
+  id_cols <- c("Site", "Sample", "Primer", "OTU", "row_color")
+  numeric_cols <- setdiff(
+    names(df_display)[vapply(df_display, is.numeric, logical(1))],
+    id_cols
+  )
+
+  tbl <- df_display |>
+    gt::gt() |>
+    gt::fmt_number(columns = dplyr::all_of(numeric_cols), decimals = decimals) |>
+    gt::cols_hide("row_color") |>
+    gt::tab_header(title = title, subtitle = subtitle) |>
+    gt::tab_options(
+      container.height = gt::px(container_height),
+      container.overflow.y = "auto"
+    ) |>
+    gt::tab_source_note(
+      source_note = gt::html(paste0(
+        "<b>Colour</b> = Site &middot; <b>shade</b> = Sample (coarse) ",
+        "within a Site &middot; <b>fine shade</b> = Primer within a Sample."
+      ))
+    )
+
+  # Apply row-level fill colours
+  for (col in unique(df_banded$row_color)) {
+    tbl <- tbl |>
+      gt::tab_style(
+        style = gt::cell_fill(color = col),
+        locations = gt::cells_body(rows = df_banded$row_color == col)
+      )
+  }
+
+  # Sticky header CSS
+  if (sticky_header) {
+    tbl <- tbl |>
+      gt::opt_css(
+        css = "
+        .gt_table thead {
+          position: sticky;
+          top: 0;
+          z-index: 2;
+        }
+        "
+      )
+  }
+
+  tbl
+}
+
+
 # OTHER -------
 
 #' extractWAIC
@@ -1431,7 +1587,7 @@ returnLatentPresences <- function(fitModel, idx_species = 1){
 #' @details
 #' Compute the WAIC for model comparison
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return The WAIC
 #'
@@ -1455,7 +1611,7 @@ extractWAIC <- function(fitModel){
 #' @details
 #' Compute the variance partitioning for each species
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A matrix of size (species x 4)
 #'
@@ -1485,7 +1641,7 @@ returnVariancePartitioning <- function(fitModel){
 #' @details
 #' Plot the variance partitioning for each species
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A ggplot object
 #'
@@ -1516,7 +1672,7 @@ plotVariancePartitioning <- function(fitModel){
 #' @details
 #' Plots the 95% credible interval of density of true positives and false positives
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A ggplot object
 #'
@@ -1659,7 +1815,7 @@ plotReadIntensity <- function(fitModel){
 #' Plot the credible interval of the overall species detections for several
 #' number of PCR, conditional on species presence in the sample
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #' @param K Maximum number of technical replicates (PCRs) to consider
 #' @param primer Index of the primer to use; 0 (default) pools across all primers
 #' @param alpha Confidence level of the credible interval, default to .95
@@ -1781,7 +1937,7 @@ computeSpeciesDetected <- function(ab_p, K, primer, alpha){
 #' latent occupancy probability, labelled with the observed frequency of
 #' detection across samples at that site.
 #'
-#' @param fitModel Output from the function runOccPlus
+#' @param fitModel Output from the function runOccJSDM
 #'
 #' @return A ggplot object
 #'

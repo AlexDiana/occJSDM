@@ -7,7 +7,7 @@
 predictOccupancyProbs(fitModel, X_psi, X_s, summarised = F, confidence = 0.95)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 
 \item{X_psi}{Occupancy covariates matrix for the new locations}
 
@@ -21,10 +21,10 @@ predictOccupancyProbs(fitModel, X_psi, X_s, summarised = F, confidence = 0.95)
 An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
 }
 \description{
-Computes the quantiles of the predictive occupancy probability
+Computes the quantiles of the predictive occupancy probability at new sites
 }
 \details{
-Compute the credible interval of the occupancy probability
+Compute the credible interval of the occupancy probability at new sites
 }
 \note{
 The function body currently references an object named `X_ord`

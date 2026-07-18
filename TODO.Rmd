@@ -8,39 +8,61 @@ editor_options:
 
 ## functions to add
 
-**0.1.0 Public release (Doug does all but 3, 7, 9)**
+**0.1.0 Public release (Doug does everything that isn't under Alex to
+dos)**
 
-1.  change all `occPlus` to `occJSDM` across whole package
+1.  Alex to dos
 
-2.  add **Detection rates** title to `plotDetectionRates()`
+    1.  ordination plot and table to generate ordination plots in
+        ggplot2 (site factor scores and species loading scores, so that
+        users can generate their own ordinations with ggplot2)
 
-3.  `computeConditionalOccupancyProbs()` and
+    2.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed
+        sites
+
+    3.  fix scalar `p`/`q` indexing bug in `simulateOccJSDMData()`:
+        `list_params$p` and `list_params$q` are scalars but the function
+        body indexes them as matrices (`p_true[idx_p_k[i], s]`). Need to
+        expand to `matrix(p, nrow = P, ncol = S)` before use.
+
+    4.  fix trait-reading code in `runOccJSDM()`: it checks
+        `data$traits`, not `data$traitsMatrix` or the unused
+        `traitsMatrix` function argument. This currently works only
+        because R's `$` partially matches list names (`traitsMatrix` is
+        the only element of `data` starting with `"traits"`), which is
+        fragile. Fix the source to reference `data$traitsMatrix`
+        explicitly, and either wire up the `traitsMatrix` argument or
+        remove it from the signature.
+
+2.  ~~change all `occPlus` to `occJSDM` across whole package~~ DONE
+
+3.  purge `data/traitdata_caiwang.rdata` from git history (need to
+    coordinate with Alex because he will need to re-clone)
+
+4.  ~~add **Detection rates** title to `plotDetectionRates()`~~ DONE
+
+5.  ~~`computeConditionalOccupancyProbs()` and
     `computePredictiveOccupancyProbs()`: document that it's the mean.
     document that with argument `summariseLatentPresences  = F` (default
     = T), fitmodel saves quantiles and thus one can calculate
     conditional and predictive occupancy intervals, but the cost is a
     much larger fitmodel object (e.g. 500 sites X 100 species X 4000
-    niter = 800 MB unthinned), but you can thin it to reduce file size.
+    niter = 800 MB unthinned), but you can thin it to reduce file
+    size.~~ DONE
 
-4.  text to explain better the threshold parameter
+6.  ~~text to explain better the threshold parameter~~ DONE
 
-    1.  threshold≠0 (0 value should give an error for \<1)
+    1.  ~~threshold≠0 (0 value should give an error for \<1)~~
 
-    2.  threshold≥1: any number of reads ≥ the threshold value value
-        (default = 1) is considered a detection in that observation
+    2.  ~~threshold≥1: any number of reads ≥ the threshold value value
+        (default = 1) is considered a detection in that observation~~
 
-5.  `plotVariancePartitioning(fitmodel)` \# *add text*
+7.  document `plotVariancePartitioning(fitmodel)`
 
-6.  model diagnostics functions from GLGS-eDNA repo and save a fitmodel
+8.  model diagnostics functions from GLGS-eDNA repo and save a fitmodel
     object for people to load if they don't want to run the vignette
 
-7.  ordination plot and table to generate ordination plots in ggplot2
-    (site factor scores and species loading scores, so that users can
-    generate their own ordinations with ggplot2)
-
-8.  document that occJSDM has ability to deal with NAs in data\$OTU
-
-9.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed sites
+9.  ~~document that occJSDM has ability to deal with NAs in data\$OTU~~
 
 10. document that occJSDM uses study design to trigger different models
 
@@ -50,8 +72,14 @@ editor_options:
 
     3.  count = TRUE: count data
 
-    4.  `simulateoccplusdata()` has an argument to create binary,
+    4.  `simulateOccJSDMDataGeneral()` has an argument to create binary,
         continuous, occupancy, or two-stage data
+
+11. document return species pairwise correlation matrices as matrices,
+    not just as a corrplot, so that users can make our own corrplots and
+    sort species by traits (`returnResidualCorrelationMatrix()`)
+
+12. document increase in observed species with m and k
 
 **MEE paper**
 
@@ -63,21 +91,17 @@ editor_options:
 
 3.  GAMs for JSDM
 
-4.  calculate gt automatically from number of species, number of
-    measured traits, and let people know that if they want to change gt,
-    they can.
+4.  calculate `gt` automatically from number of species, number of
+    measured traits, and let people know that if they want to change
+    `gt`, they can.
 
-5.  return species pairwise correlation matrices as matrices, not just
-    as a corrplot, so that users can make our own corrplots and sort
-    species by traits
+5.  add ability to analyse count data
 
-6.  add ability to analyse count data
-
-7.  scenario for source-sink inference (sites where env covariate
+6.  scenario for source-sink inference (sites where env covariate
     coeffcients are negative but spatial covariate coefficients are
     positive), using an explicit source-sink simulation
 
-8.  remove effect of space on environmental covariates. remove the
+7.  remove effect of space on environmental covariates. remove the
     effect of unobserved environmental on observed environmental
     covariates and space. thus, adding factors (unobserved env
     covariates) doesn't change the effect of observed env covariates

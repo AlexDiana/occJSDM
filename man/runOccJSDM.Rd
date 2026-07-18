@@ -2,7 +2,7 @@
 % Please edit documentation in R/runOccJSDM.R
 \name{runOccJSDM}
 \alias{runOccJSDM}
-\title{runOccPlus}
+\title{runOccJSDM}
 \usage{
 runOccJSDM(
   data,
@@ -20,44 +20,132 @@ runOccJSDM(
 \arguments{
 \item{data}{A list with two elements:
 \describe{
-  \item{info}{A data.frame of N rows (where N is the total number of samples
-  analyzed). Further information in the vignette.}
-  \item{OTU}{A matrix of dimension (N x S), where S is the number of species,
-  with the number of reads of each species in each sample.}
+  \item{info}{A data.frame with one row per observation (i.e. per PCR
+  replicate for two-stage eDNA data), containing \code{Site}, \code{Sample},
+  and \code{Primer} id columns (as applicable to the inferred model) plus
+  the occupancy/collection/spatial covariate columns named in
+  \code{occCovariates}/\code{collCovariates}/\code{spatCovariates}. See the
+  vignette for the full expected shape.}
+  \item{OTU}{A matrix of dimension (N x S), where N is
+  \code{nrow(data$info)} and S is the number of species, containing the
+  number of reads of each species in each observation.}
 }}
 
-\item{threshold}{(Optional) threshold used to truncated the reads to binary data.
-Data greater than or equal to the threshold will be considered as detection.
-If this is set to 0 (which is the default), occPlus estimates two modes as described
-in the paper.}
+\item{listParams}{(Optional) list of model-size hyperparameters:
+\describe{
+  \item{n_factors}{Number of latent JSDM factors used for the residual
+  species covariance. Capped to the number of species if larger.}
+  \item{n_lattrait}{Number of latent trait factors (\code{gt}). Default
+  \code{2}.}
+  \item{n_supportpoints}{Number of spatial support points used to
+  approximate the Gaussian process over site coordinates when
+  \code{spatCovariates} is non-empty. Defaults to
+  \code{getDefaultSupportPoints(n)}.}
+}}
 
-\item{occCovariates}{vector of the name of the covariates for the occupancy probabilities.
-Names should match the column name in data$info.}
+\item{threshold}{Threshold used to truncate the reads to binary detections
+for occupancy/two-stage models. Reads greater than or equal to the
+threshold are considered a detection (default \code{1}). Must be
+\code{>= 1} -- continuous detection modeling (\code{threshold = 0}) is not
+supported; any value less than \code{1} raises an error.}
 
-\item{collCovariates}{vector of the name of the covariates for the collection probabilities.
-Names should match the column name in data$info.}
+\item{occCovariates}{(Optional) vector of the names of the occupancy
+covariates (site-level). Names should match column names in
+\code{data$info}.}
 
-\item{n_factors}{Number of factors.}
+\item{collCovariates}{(Optional) vector of the names of the collection
+covariates (sample-level, relevant for occupancy/two-stage models only).
+Names should match column names in \code{data$info}.}
 
-\item{ordCovariates}{vector of the name of the covariates for the occupancy probabilities.
-Names should match the column name in data$info.}
+\item{spatCovariates}{(Optional) vector of the names of the site
+coordinate columns used to fit a spatially autocorrelated random field
+over occupancy. Names should match column names in \code{data$info}. If
+omitted, no spatial field is fit.}
+
+\item{traitsMatrix}{(Optional) species (rows) by trait (columns) matrix of
+species traits, matched to \code{colnames(data$OTU)} by row name. This
+function argument itself is currently unused; instead, pass the matrix as
+\code{data$traitsMatrix} (see the vignette). If \code{data$traitsMatrix}
+is \code{NULL}, no trait effects are fit.}
+
+\item{MCMCparams}{(Optional) list of MCMC settings: \code{nchain} (number
+of chains), \code{nburn} (number of burn-in iterations to discard),
+\code{niter} (number of post-burn-in iterations to keep), and
+\code{nthin} (thinning interval, default \code{1}). Defaults to
+\code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1)}.}
+
+\item{summarisedLatentPresences}{(Optional) logical, default \code{TRUE}.
+If \code{TRUE}, the returned latent-presence/probability arrays
+(\code{z_output}, \code{w_output}, \code{psi_output}, \code{theta_output})
+are collapsed to posterior means, which keeps the fitted object small. If
+\code{FALSE}, the full posterior samples are kept instead, which allows
+computing credible intervals for conditional/predictive occupancy
+probabilities but produces a much larger object.}
+
+\item{listPriors}{(Optional) list of prior hyperparameters. Currently
+supported: \code{prior_beta_psi}/\code{prior_beta_psi_sd} (mean/sd of the
+Normal prior on the occupancy intercept, default \code{0}/\code{1}) and
+\code{a_theta0}/\code{b_theta0} (Beta prior shape parameters for the
+baseline collection probability, default \code{1}/\code{30}).}
 }
 \value{
-Description of the return value (e.g., a list, data frame, or numeric output).
+A list with:
+\describe{
+  \item{results_output}{Posterior samples/summaries, including
+  \code{jsdm_output} (JSDM coefficient posteriors), \code{beta_theta_output},
+  \code{p_output}, \code{q_output}, \code{theta0_output} (detection-process
+  posteriors), \code{WAIC}, and (per \code{summarisedLatentPresences})
+  either posterior means or full samples of \code{z_output} (latent
+  occupancy), \code{w_output} (latent collection), \code{psi_output}
+  (occupancy probabilities), and \code{theta_output} (collection
+  probabilities).}
+  \item{infos}{Metadata about the fitted model (e.g. \code{S}, \code{n},
+  \code{M}, \code{K}, \code{speciesNames}, \code{primerNames},
+  \code{siteNames}, \code{ncov_psi}, \code{ncov_theta}, the \code{OTU}
+  matrix used for fitting, and standardisation info for \code{X_psi}/
+  \code{Xs}), used internally by the plotting/output helpers (e.g.
+  \code{\link{plotOccupancyRates}}, \code{\link{plotDetectionRates}}).}
+  \item{Tr}{The species trait matrix actually used to fit the model.}
+  \item{X_theta}{The collection covariate design matrix (including
+  intercept) used to fit the model.}
+  \item{X_s}{The site coordinates used for the spatial field.}
+  \item{X_psi}{The (standardised) occupancy covariate design matrix used
+  to fit the model.}
+}
 }
 \description{
-Run the OccPlus model.
+Fit an occupancy joint species distribution model (JSDM), accounting for
+species traits, optional spatial autocorrelation, and (for eDNA-style
+data) a two-stage detection process (field collection + PCR
+amplification/lab detection).
 }
 \details{
-Fit the model described in Diana et al..
+Fit the model described in Diana et al.. The model actually fit is
+inferred automatically from the shape of \code{data} (via the internal
+\code{inferDataModel()}): whether \code{data$info} has repeated
+observations per \code{Site} (and, within a \code{Site}, per
+\code{Sample}) determines whether the data are treated as single-visit
+JSDM data, classical (one-stage) occupancy data, or two-stage (eDNA-style)
+occupancy/detection data. A message is printed describing which model was
+inferred -- check that it matches expectations for your data.
+}
+\note{
+The traits-reading code checks \code{data$traits} rather than
+\code{data$traitsMatrix} or the \code{traitsMatrix} argument. This
+currently works because R's \code{$} operator partially matches list
+names, and \code{traitsMatrix} is the only element of \code{data} whose
+name starts with \code{"traits"} -- but it is fragile (e.g. it would
+break or silently return \code{NULL} if \code{data} ever gained another
+element starting with \code{"traits"}, or if
+\code{options(warnPartialMatchDollar = TRUE)} were set). Consider fixing
+the source to reference \code{data$traitsMatrix} explicitly.
 }
 \examples{
 \dontrun{
 # Example usage
-fitmodel  <- runOccPlus(data,
-n_factors = 2,
-occCovariates = c("X_psi.1","X_psi.2"),
-ordCovariates = c("X_ord.1","X_ord.2"),
+fitmodel <- runOccJSDM(data,
+listParams = list(n_factors = 2),
+occCovariates = c("X_psi.1", "X_psi.2"),
 collCovariates = c("X_theta"))
 }
 

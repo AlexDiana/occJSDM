@@ -4,7 +4,7 @@ logit <- function(x) log(x / (1-x))
 
 logistic <- function(x) 1 / (1 + exp(-x))
 
-#' simulateOccPlusData
+#' simulateOccJSDMData
 #'
 #' Simulate data
 #'
@@ -25,7 +25,7 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'
 #' @details
 #' Simulate data. `data_list$y` contains simulated read counts (matching the
-#' `threshold = 0` mode of `runOccPlus()`), rather than binary detections:
+#' `threshold = 0` mode of `runOccJSDM()`), rather than binary detections:
 #' for a true detection, `log(y + 1) ~ Normal(mu1, sigma1)`; for a
 #' false-positive/contamination detection, `log(y + 1) ~ Normal(mu0, sigma0)`;
 #' otherwise `y = 0`. The realised counts are `round(exp(log(y + 1)) - 1)`.
@@ -36,7 +36,7 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #' @export
 #' @import tidyverse
 #'
-simulateOccPlusData <- function(list_datasettings,
+simulateOccJSDMData <- function(list_datasettings,
                          list_params,
                          list_jsdmParams,
                          useSpatField = FALSE){
@@ -98,7 +98,7 @@ simulateOccPlusData <- function(list_datasettings,
     sumP <- c(0, cumsum(rep(P, N))[-N])
     sumK <- c(0, cumsum(K)[-N2])
 
-    list_idx <- createDataIdx(n, M, P, K)
+    list_idx <- createDataIdx(n, M, P, K, twostage = TRUE)
     idx_z_w <- list_idx$idx_z_w
     idx_z_k <- list_idx$idx_z_k
     idx_w_p <- list_idx$idx_w_p
@@ -149,7 +149,7 @@ simulateOccPlusData <- function(list_datasettings,
     })
   })
 
-  # Read-count model (matches the threshold = 0 mode of runOccPlus()): given
+  # Read-count model (matches the threshold = 0 mode of runOccJSDM()): given
   # a true detection (cimk_true == 1), log(y + 1) ~ Normal(mu1, sigma1); given
   # a false-positive/contamination detection (cimk_true == 2),
   # log(y + 1) ~ Normal(mu0, sigma0). No reads (cimk_true == 0) gives y = 0.
@@ -197,13 +197,13 @@ simulateOccPlusData <- function(list_datasettings,
        data_list = data_list)
 }
 
-#' toRunOccPlusFormat
+#' toRunOccJSDMFormat
 #'
-#' Convert the output of \code{simulateOccPlusData()} into the
-#' \code{info}/\code{OTU} list format expected by \code{runOccPlus()}
+#' Convert the output of \code{simulateOccJSDMData()} into the
+#' \code{info}/\code{OTU} list format expected by \code{runOccJSDM()}
 #' (the same shape as \code{sampledata}).
 #'
-#' @param sim Output of \code{simulateOccPlusData()}, i.e. a list with
+#' @param sim Output of \code{simulateOccJSDMData()}, i.e. a list with
 #'   elements \code{true_params} and \code{data_list}.
 #' @param n Number of sites (must match \code{list_datasettings$n} used to
 #'   generate \code{sim}).
@@ -214,15 +214,15 @@ simulateOccPlusData <- function(list_datasettings,
 #' @param K Integer vector of length \code{P * sum(M)}: number of PCR
 #'   replicates per sample/primer combination (must match
 #'   \code{list_datasettings$K}).
-#' @param drop_theta_intercept Logical. \code{simulateOccPlusData()} builds
+#' @param drop_theta_intercept Logical. \code{simulateOccJSDMData()} builds
 #'   \code{X_theta} with an intercept column of 1s in the first position.
-#'   \code{runOccPlus()} adds its own intercept internally via
+#'   \code{runOccJSDM()} adds its own intercept internally via
 #'   \code{process_covariates()}, so by default (\code{TRUE}) that column is
 #'   dropped from the returned \code{info} data.frame.
 #'
 #' @details
-#' \code{simulateOccPlusData()} returns covariates at the site level
-#' (\code{X_psi}) and sample level (\code{X_theta}), while \code{runOccPlus()}
+#' \code{simulateOccJSDMData()} returns covariates at the site level
+#' (\code{X_psi}) and sample level (\code{X_theta}), while \code{runOccJSDM()}
 #' expects a single \code{info} data.frame with one row per PCR replicate and
 #' \code{Site}/\code{Sample}/\code{Primer} id columns. This function expands
 #' \code{X_psi}/\code{X_theta} to the PCR-replicate level (using the same
@@ -231,7 +231,7 @@ simulateOccPlusData <- function(list_datasettings,
 #'
 #' Note \code{n}, \code{M}, \code{P}, \code{K} are not stored in \code{sim}
 #' itself, so they must be supplied here matching the \code{list_datasettings}
-#' originally passed to \code{simulateOccPlusData()}.
+#' originally passed to \code{simulateOccJSDMData()}.
 #'
 #' @return A list with elements \code{info} (data.frame with \code{Site},
 #'   \code{Sample}, \code{Primer} id columns plus expanded \code{X_psi.*},
@@ -239,14 +239,14 @@ simulateOccPlusData <- function(list_datasettings,
 #'   replicate), \code{OTU} (the simulated detection matrix, same number of
 #'   rows as \code{info}), \code{spatCovariates} (character vector of the
 #'   \code{Xs.*} column names in \code{info}, ready to pass as the
-#'   \code{spatCovariates} argument of \code{runOccPlus()}), and
+#'   \code{spatCovariates} argument of \code{runOccJSDM()}), and
 #'   \code{traitsMatrix} (the \code{S} x \code{g} trait matrix
 #'   \code{sim$data_list$Tr}, with row names matching the species names in
 #'   \code{OTU}'s column names, ready to pass as the \code{traitsMatrix}
-#'   argument of \code{runOccPlus()}).
+#'   argument of \code{runOccJSDM()}).
 #'
 #' @export
-toRunOccPlusFormat <- function(sim, n, M, P, K, drop_theta_intercept = TRUE) {
+toRunOccJSDMFormat <- function(sim, n, M, P, K, drop_theta_intercept = TRUE) {
 
   X_psi <- sim$data_list$X_psi
   X_theta <- sim$data_list$X_theta
@@ -254,7 +254,7 @@ toRunOccPlusFormat <- function(sim, n, M, P, K, drop_theta_intercept = TRUE) {
   Tr <- sim$data_list$Tr
   y <- sim$data_list$y
 
-  idx <- createDataIdx(n, M, P, K)
+  idx <- createDataIdx(n, M, P, K, twostage = TRUE)
 
   N3 <- length(idx$idx_z_k)
   if (nrow(y) != N3) {
@@ -312,9 +312,9 @@ logit <- function(x) log(x / (1-x))
 
 logistic <- function(x) 1 / (1 + exp(-x))
 
-#' simulateOccJSDMData
+#' simulateOccJSDMDataGeneral
 #'
-#' Simulate data
+#' Simulate data for any supported model type
 #'
 #' @param list_datasettings List of data dimension settings (n, S, g, M, P, K,
 #'   ncov_psi, ncov_theta).
@@ -325,28 +325,19 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'   `sigma0 = 1`.
 #' @param list_jsdmParams List of JSDM parameters (gt, d, ds, sigma_b, sigma_bs,
 #'   sigma_ts, sigma_h, l_s).
-#' @param useSpatField Logical. If `TRUE`, simulated occupancy incorporates a
-#'   spatially autocorrelated random field over the site coordinates `Xs`
-#'   (using `ds` latent spatial factors and length scale `l_s`). If `FALSE`
-#'   (the default), site coordinates are still simulated and returned but do
-#'   not influence occupancy.
-#' @param model Supported data formats are "binary","continous","occupancy"
-#'  and "two-stage"
+#' @param model Supported data formats are "binary","continuous","occupancy"
+#'  and "two_stage"
 #'
 #' @details
-#' Simulate data. `data_list$y` contains simulated read counts (matching the
-#' `threshold = 0` mode of `runOccPlus()`), rather than binary detections:
-#' for a true detection, `log(y + 1) ~ Normal(mu1, sigma1)`; for a
-#' false-positive/contamination detection, `log(y + 1) ~ Normal(mu0, sigma0)`;
-#' otherwise `y = 0`. The realised counts are `round(exp(log(y + 1)) - 1)`.
+#' General-purpose simulation function that supports multiple model types.
+#' For two-stage eDNA data specifically, use \code{\link{simulateOccJSDMData}}.
 #'
-#' @return Description of the return value (e.g., a list, data frame, or numeric output).
-#'
+#' @return A list with simulated data and true parameters.
 #'
 #' @export
 #' @import tidyverse
 #'
-simulateOccJSDMData <- function(list_datasettings,
+simulateOccJSDMDataGeneral <- function(list_datasettings,
                                 list_params,
                                 list_jsdmParams,
                                 model){
@@ -471,7 +462,7 @@ simulateOccJSDMData <- function(list_datasettings,
         })
       })
 
-      # Read-count model (matches the threshold = 0 mode of runOccPlus()): given
+      # Read-count model (matches the threshold = 0 mode of runOccJSDM()): given
       # a true detection (cimk_true == 1), log(y + 1) ~ Normal(mu1, sigma1); given
       # a false-positive/contamination detection (cimk_true == 2),
       # log(y + 1) ~ Normal(mu0, sigma0). No reads (cimk_true == 0) gives y = 0.

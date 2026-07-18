@@ -7,7 +7,7 @@
 returnLatentPresences(fitModel, idx_species = 1)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 
 \item{idx_species}{Index of the species to compute latent presences for (default 1)}
 }

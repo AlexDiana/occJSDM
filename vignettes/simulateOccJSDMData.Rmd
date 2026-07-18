@@ -1,0 +1,305 @@
+---
+title: "simulateOccJSDMData"
+output: 
+  rmarkdown::html_vignette:
+    fig.width: 7
+    fig.height: 4.5
+    warning: false
+    message: false
+vignette: >
+  %\VignetteIndexEntry{simulateOccJSDMData}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warnings = FALSE,
+  fig.width = 7,
+  fig.height = 4.5,
+  comment = "#>"
+)
+
+options(warning = -1)
+```
+
+```{r setup, include = FALSE}
+# library(occJSDM)
+devtools::load_all() # change to library(occJSDM) when package finished
+library(tidyverse)
+```
+
+`simulateOccJSDMData()` simulates a full occJSDM-style dataset: species
+occupancy driven by environmental covariates, species traits, and
+(optionally) a spatially autocorrelated random field, plus a two-stage
+eDNA collection/detection process on top of the true occupancy states.
+
+The function takes three lists of settings, plus a `useSpatField`
+switch:
+
+- `list_datasettings`: sample-size and dimension settings -- `n`
+  (sites), `S` (species), `g` (number of observed trait covariates), `M`
+  (visits per site), `P` (primers), `K` (PCR replicates per
+  site-visit-primer), `ncov_psi` (occupancy covariates), and
+  `ncov_theta` (eDNA collection covariates).
+- `list_jsdmParams`: JSDM structural parameters -- `gt` (latent trait
+  dimensions), `d` (latent factor dimensions capturing residual species
+  co-occurrence), `ds` (spatial latent factor dimensions),
+  `sigma_b`/`sigma_bs`/`sigma_ts`/`sigma_h` (variance components), and
+  `l_s` (spatial length scale).
+- `list_params`: detection-process parameters -- `p` and `q` (detection
+  and false-positive amplification rates, `P` x `S` matrices), `theta0`
+  and `theta_baseline` (baseline eDNA collection probabilities given
+  absence/presence).
+- `useSpatField`: if `TRUE`, occupancy incorporates a spatially
+  autocorrelated Gaussian process over the simulated site coordinates
+  `Xs`; if `FALSE` (the default), `Xs` is still simulated and returned
+  but does not influence occupancy.
+
+## Setting up shared simulation parameters
+
+We use the same dimension, trait, and detection-process settings for
+both datasets, so that the *only* difference between them is whether the
+spatial field is switched on.
+
+COMMENT(increase number of sites and species)
+
+```{r}
+set.seed(5162)
+
+n <- 100          # sites
+M <- rep(3, n)    # visits per site
+P <- 3            # primers/markers
+S <- 10           # species/OTUs
+g <- 3            # observed trait covariates
+gt <- 2           # unobserved (latent) trait dimensions
+d <- 2            # latent factor dimensions (residual co-occurrence)
+ds <- 2           # spatial latent factor dimensions
+ncov_psi <- 2     # environmental covariates for occupancy
+ncov_theta <- 2   # covariates for eDNA collection probability
+
+N <- sum(M)
+K <- rep(2, P * N)  # PCR replicates per site-visit-primer combo
+
+list_datasettings <- list(
+  n = n, S = S, g = g, M = M, P = P, K = K,
+  ncov_psi = ncov_psi, ncov_theta = ncov_theta
+  )
+
+list_jsdmParams <- list(
+  gt = gt, d = d, ds = ds,
+  sigma_b = 0.5, sigma_bs = 0.5, sigma_ts = 0.5,
+  sigma_h = 1, sigma_s = .5, l_s = 0.3
+  )
+
+list_params <- list(
+  p = matrix(runif(P * S, 0.6, 0.95), P, S),   # detection prob given amplicon present
+  q = matrix(runif(P * S, 0.01, 0.05), P, S),  # false-positive amplification rate
+  theta0 = runif(S, 0.02, 0.1),                # baseline collection prob given absent
+  theta_baseline = runif(S, 0.3, 0.7)          # baseline collection prob given present
+  )
+```
+
+## Simulating a dataset and converting to a format that occJSDM can use
+
+```{r}
+sim <- simulateOccJSDMData(
+  list_datasettings, list_params, list_jsdmParams,
+  useSpatField = TRUE
+)
+
+str(sim$data_list, max.level = 1)
+
+data <- toRunOccJSDMFormat(
+  sim,
+  n = list_datasettings$n,
+  M = list_datasettings$M,
+  P = list_datasettings$P,
+  K = list_datasettings$K
+)
+
+str(data, max.level = 1)
+head(data$info); dim(data$info); names(data$info) # 3 study design columns, 2 occupancy covariates (X_psi), 1 collection covariate (X_theta), and two spatial covariates (X.s)
+head(data$OTU); dim(data$OTU) # 1800 rows X 10 OTUs
+head(data$traitsMatrix); dim(data$traitsMatrix) # 10 species X 3 traits
+```
+
+## Spatial autocorrelation
+
+### Simulating without spatial autocorrelation
+
+```{r}
+sim_nospat <- simulateOccJSDMData(
+  list_datasettings, list_params, list_jsdmParams,
+  useSpatField = FALSE
+  )
+
+str(sim_nospat$data_list, max.level = 1)
+```
+
+`data_list` always contains the trait matrix `Tr` (`S` x `g`) and site
+coordinates `Xs` (`n` x `2`), regardless of `useSpatField`. With
+`useSpatField = FALSE`, `Xs` is generated but does not enter the
+occupancy process.
+
+### Simulating with spatial autocorrelation
+
+Using the same settings, we now switch on the spatial field. The spatial
+component uses `ds` latent spatial factors and length scale `l_s` to
+build a Gaussian-process-correlated random field over `Xs`, which is
+added to each species' linear predictor for occupancy.
+
+```{r}
+sim_spat <- simulateOccJSDMData(
+  list_datasettings, list_params, list_jsdmParams,
+  useSpatField = TRUE
+  )
+
+str(sim_spat$data_list, max.level = 1)
+```
+
+### Checking how much variance is spatial
+
+Each simulation's `true_params$jsdmParams_true$varPart` decomposes the
+linear predictor's variance per species into Environmental, Spatial, and
+Biotic components (plus a Total row of residual/intercept variance).
+This is a quick way to check that turning on `useSpatField` actually
+contributes spatial variance.
+
+```{r}
+sim_nospat$true_params$jsdmParams_true$varPart
+sim_spat$true_params$jsdmParams_true$varPart
+```
+
+As expected, the "Spatial" column is (numerically) negligible when
+`useSpatField = FALSE`, and becomes a non-trivial share of variance --
+though it varies considerably across species -- when
+`useSpatField = TRUE`.
+
+### Visualizing simulated occupancy across sites
+
+We can compare the true occupancy states (`z_true`) for a single
+species, plotted at its site coordinates, with and without the spatial
+field switched on.
+
+```{r}
+species_idx <- 5
+
+df_compare <- bind_rows(
+  tibble(
+    x = sim_nospat$data_list$Xs[, 1],
+    y = sim_nospat$data_list$Xs[, 2],
+    occupied = factor(sim_nospat$true_params$z_true[, species_idx], levels = c(0, 1)),
+    field = "useSpatField = FALSE"
+  ),
+  tibble(
+    x = sim_spat$data_list$Xs[, 1],
+    y = sim_spat$data_list$Xs[, 2],
+    occupied = factor(sim_spat$true_params$z_true[, species_idx], levels = c(0, 1)),
+    field = "useSpatField = TRUE"
+  )
+)
+
+ggplot(df_compare, aes(x, y, color = occupied)) +
+  geom_point(size = 2.5) +
+  facet_wrap(~field) +
+  labs(
+    title = paste0("Simulated true occupancy for species ", species_idx),
+    x = "Spatial coordinate 1", y = "Spatial coordinate 2", color = "Occupied (z)"
+  )
+```
+
+Because occupancy is thresholded to 0/1 and the environmental and biotic
+terms often explain more variance than the spatial term (see the
+`varPart` tables above), spatial clustering is not always obvious by eye
+in the binary occupancy map, even when the underlying field is genuinely
+spatially structured. The continuous linear predictor
+(`true_params$jsdmParams_true$eta`) is a less noisy way to inspect the
+spatial pattern directly:
+
+```{r}
+df_eta <- tibble(
+  x = sim_spat$data_list$Xs[, 1],
+  y = sim_spat$data_list$Xs[, 2],
+  eta = sim_spat$true_params$jsdmParams_true$eta[, species_idx]
+)
+
+ggplot(df_eta, aes(x, y, color = eta)) +
+  geom_point(size = 3) +
+  scale_color_viridis_c() +
+  labs(
+    title = paste0("Linear predictor (eta) for species ", species_idx, ", useSpatField = TRUE"),
+    x = "Spatial coordinate 1", y = "Spatial coordinate 2", color = "eta"
+  )
+```
+
+To make the spatial signal visually dominant, increase `l_s` (broader,
+smoother spatial patches) and/or reduce `sigma_h`/`sigma_b` (less
+non-spatial noise from latent factors and environmental covariates).
+
+## How traits shape species-specific occupancy responses
+
+Species' responses to environmental covariates are not simulated
+independently: each species' coefficient vector for `X_psi` is built
+partly from its trait values `Tr`, via a trait-covariate coefficient
+matrix `G` (`g` x `ncov_psi`). Specifically,
+
+$$B = (Tr \, G + A \, C + B_t)^\top,$$
+
+where `A` and `C` represent an *unobserved* trait dimension and its
+response, and `Bt` is residual, trait-independent variation. `B`
+(`ncov_psi` x `S`) is the matrix of true environmental-covariate
+coefficients actually used to simulate occupancy.
+
+```{r}
+G_true <- sim_nospat$true_params$jsdmParams_true$G
+B_true <- sim_nospat$true_params$jsdmParams_true$B
+Tr_true <- sim_nospat$data_list$Tr
+
+G_true   # g x ncov_psi: how each trait shifts each covariate's coefficient
+```
+
+`G`'s entries are drawn from `{-1, 0, 1}`, so each trait either has no
+effect, a positive effect, or a negative effect on a given covariate's
+coefficient. We can isolate the trait-driven component of `B`,
+`Tr %*% G`, and compare it to the full coefficient matrix to see how
+much of species-to-species variation in the covariate response is
+attributable to traits versus the unobserved/residual terms.
+
+```{r}
+trait_component <- Tr_true %*% G_true   # S x ncov_psi
+
+df_trait <- tibble(
+  species = paste0("OTU_", seq_len(S)),
+  trait1 = Tr_true[, 1],
+  coef_cov1_full = B_true[1, ],
+  coef_cov1_trait_only = trait_component[, 1]
+)
+
+df_trait
+```
+
+Plotting each species' true coefficient for the first covariate against
+its value for the first trait shows the trait-driven relationship,
+though the full coefficient (which also includes the unobserved-trait
+and residual terms) will scatter around it rather than fall exactly on a
+line.
+
+```{r}
+ggplot(df_trait, aes(trait1, coef_cov1_full)) +
+  geom_point(size = 2.5) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "dashed") +
+  labs(
+    title = "Species' occupancy response to covariate 1 vs. trait 1",
+    x = "Trait 1 value", y = "True coefficient for covariate 1 (B)"
+  )
+```
+
+The sign and magnitude of the slope is governed by `G_true[1, 1]` (trait
+1's effect on covariate 1); when it is `0`, species' coefficients vary
+with trait 1 only through the unobserved-trait pathway (`A %*% C`) and
+residual noise (`Bt`), so no relationship is expected.

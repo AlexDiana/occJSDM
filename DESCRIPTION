@@ -1,4 +1,4 @@
-Package: occPlus
+Package: occJSDM
 Type: Package
 Title: Fitting occupancy models for eDNA reads data
 Version: 0.1.0
@@ -36,6 +36,8 @@ Remotes:
 LazyData: true
 LazyDataCompression: xz
 Suggests: 
+    colorspace,
+    gt,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)

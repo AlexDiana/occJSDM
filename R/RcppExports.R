@@ -2,114 +2,114 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 sample_z_cpp <- function(w, psi, theta, theta0, M, sumM) {
-    .Call(`_occPlus_sample_z_cpp`, w, psi, theta, theta0, M, sumM)
+    .Call(`_occJSDM_sample_z_cpp`, w, psi, theta, theta0, M, sumM)
 }
 
 sample_w_cpp <- function(logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z) {
-    .Call(`_occPlus_sample_w_cpp`, logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z)
+    .Call(`_occJSDM_sample_w_cpp`, logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z)
 }
 
 sample_w_cim_cipp <- function(y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z) {
-    .Call(`_occPlus_sample_w_cim_cipp`, y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z)
+    .Call(`_occJSDM_sample_w_cim_cipp`, y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z)
 }
 
 sample_betatheta_cpp <- function(w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta) {
-    .Call(`_occPlus_sample_betatheta_cpp`, w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta)
+    .Call(`_occJSDM_sample_betatheta_cpp`, w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta)
 }
 
 sample_pq_cpp <- function(c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q) {
-    .Call(`_occPlus_sample_pq_cpp`, c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q)
+    .Call(`_occJSDM_sample_pq_cpp`, c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q)
 }
 
 computeModelLoglikJSDM_cpp <- function(z, eta, model, tau = NULL) {
-    .Call(`_occPlus_computeModelLoglikJSDM_cpp`, z, eta, model, tau)
+    .Call(`_occJSDM_computeModelLoglikJSDM_cpp`, z, eta, model, tau)
 }
 
 computeModelLoglikFirstStage_cpp <- function(w, z, theta, theta0, idx_z_w) {
-    .Call(`_occPlus_computeModelLoglikFirstStage_cpp`, w, z, theta, theta0, idx_z_w)
+    .Call(`_occJSDM_computeModelLoglikFirstStage_cpp`, w, z, theta, theta0, idx_z_w)
 }
 
 computeModelLoglikSecondStage_cpp <- function(y, w, p, q, idx_w_k, idx_p_k) {
-    .Call(`_occPlus_computeModelLoglikSecondStage_cpp`, y, w, p, q, idx_w_k, idx_p_k)
+    .Call(`_occJSDM_computeModelLoglikSecondStage_cpp`, y, w, p, q, idx_w_k, idx_p_k)
 }
 
 rinvgamma_cpp <- function(a, b) {
-    .Call(`_occPlus_rinvgamma_cpp`, a, b)
+    .Call(`_occJSDM_rinvgamma_cpp`, a, b)
 }
 
 isPointInBandRight <- function(X_tilde, x_grid, y_grid, i, j) {
-    .Call(`_occPlus_isPointInBandRight`, X_tilde, x_grid, y_grid, i, j)
+    .Call(`_occJSDM_isPointInBandRight`, X_tilde, x_grid, y_grid, i, j)
 }
 
 isPointInBandLeft <- function(X_tilde, x_grid, y_grid, i, j) {
-    .Call(`_occPlus_isPointInBandLeft`, X_tilde, x_grid, y_grid, i, j)
+    .Call(`_occJSDM_isPointInBandLeft`, X_tilde, x_grid, y_grid, i, j)
 }
 
 isPointInBandUp <- function(X_tilde, x_grid, y_grid, i, j) {
-    .Call(`_occPlus_isPointInBandUp`, X_tilde, x_grid, y_grid, i, j)
+    .Call(`_occJSDM_isPointInBandUp`, X_tilde, x_grid, y_grid, i, j)
 }
 
 isPointInBandDown <- function(X_tilde, x_grid, y_grid, i, j) {
-    .Call(`_occPlus_isPointInBandDown`, X_tilde, x_grid, y_grid, i, j)
+    .Call(`_occJSDM_isPointInBandDown`, X_tilde, x_grid, y_grid, i, j)
 }
 
 findClosestPoint <- function(XY_sp, X_tilde) {
-    .Call(`_occPlus_findClosestPoint`, XY_sp, X_tilde)
+    .Call(`_occJSDM_findClosestPoint`, XY_sp, X_tilde)
 }
 
 dist_matrix <- function(coords) {
-    .Call(`_occPlus_dist_matrix`, coords)
+    .Call(`_occJSDM_dist_matrix`, coords)
 }
 
 gpCovMatrix <- function(D, sigma2, rho) {
-    .Call(`_occPlus_gpCovMatrix`, D, sigma2, rho)
+    .Call(`_occJSDM_gpCovMatrix`, D, sigma2, rho)
 }
 
 K <- function(x1, x2, a, l) {
-    .Call(`_occPlus_K`, x1, x2, a, l)
+    .Call(`_occJSDM_K`, x1, x2, a, l)
 }
 
 K2 <- function(x1, x2, a, l) {
-    .Call(`_occPlus_K2`, x1, x2, a, l)
+    .Call(`_occJSDM_K2`, x1, x2, a, l)
 }
 
 samplePGvariables <- function(Xbeta) {
-    .Call(`_occPlus_samplePGvariables`, Xbeta)
+    .Call(`_occJSDM_samplePGvariables`, Xbeta)
 }
 
 convert_to_correlation <- function(L_output_vec, niter, S, d) {
-    .Call(`_occPlus_convert_to_correlation`, L_output_vec, niter, S, d)
+    .Call(`_occJSDM_convert_to_correlation`, L_output_vec, niter, S, d)
 }
 
 sampleBuniv <- function(X, B, b, y, sigma) {
-    .Call(`_occPlus_sampleBuniv`, X, B, b, y, sigma)
+    .Call(`_occJSDM_sampleBuniv`, X, B, b, y, sigma)
 }
 
 sampleB <- function(X, B, b, Omega, k) {
-    .Call(`_occPlus_sampleB`, X, B, b, Omega, k)
+    .Call(`_occJSDM_sampleB`, X, B, b, Omega, k)
 }
 
 sample_U_cpp <- function(k, L, XB, XsBs, Omega, model) {
-    .Call(`_occPlus_sample_U_cpp`, k, L, XB, XsBs, Omega, model)
+    .Call(`_occJSDM_sample_U_cpp`, k, L, XB, XsBs, Omega, model)
 }
 
 XsBs <- function(A, B, X_s_centers) {
-    .Call(`_occPlus_XsBs`, A, B, X_s_centers)
+    .Call(`_occJSDM_XsBs`, A, B, X_s_centers)
 }
 
 KsBproduct <- function(Ks, B, X_s_centers) {
-    .Call(`_occPlus_KsBproduct`, Ks, B, X_s_centers)
+    .Call(`_occJSDM_KsBproduct`, Ks, B, X_s_centers)
 }
 
 XtOmegaX_SoR <- function(X, X_centers, Omega, X_s_index, X_s_sor) {
-    .Call(`_occPlus_XtOmegaX_SoR`, X, X_centers, Omega, X_s_index, X_s_sor)
+    .Call(`_occJSDM_XtOmegaX_SoR`, X, X_centers, Omega, X_s_index, X_s_sor)
 }
 
 sampleB_SoR <- function(X, invB, b, k, Omega, X_s_index, Ks, X_centers) {
-    .Call(`_occPlus_sampleB_SoR`, X, invB, b, k, Omega, X_s_index, Ks, X_centers)
+    .Call(`_occJSDM_sampleB_SoR`, X, invB, b, k, Omega, X_s_index, Ks, X_centers)
 }
 
 spatEffectMeanCpp <- function(Bs_output, Ks, Xs_centers) {
-    .Call(`_occPlus_spatEffectMeanCpp`, Bs_output, Ks, Xs_centers)
+    .Call(`_occJSDM_spatEffectMeanCpp`, Bs_output, Ks, Xs_centers)
 }
 
