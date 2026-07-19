@@ -30,7 +30,9 @@ options(warning = -1)
 ```{r setup, include = FALSE}
 # library(occJSDM)
 devtools::load_all() # change to library(occJSDM) when package finished
-library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(tibble)
 ```
 
 `simulateOccJSDMData()` simulates a full occJSDM-style dataset: species
@@ -55,18 +57,20 @@ switch:
   and false-positive amplification rates, `P` x `S` matrices), `theta0`
   and `theta_baseline` (baseline eDNA collection probabilities given
   absence/presence).
-- `useSpatField`: if `TRUE`, occupancy incorporates a spatially
-  autocorrelated Gaussian process over the simulated site coordinates
-  `Xs`; if `FALSE` (the default), `Xs` is still simulated and returned
-  but does not influence occupancy.
+- `useSpatField` (an element of `list_jsdmParams`, with no default -- it
+  must be supplied): site coordinates (`Xs`) are simulated identically
+  either way (independent `Uniform(0, 1)` draws per site) -- what
+  differs is whether they're *used*. If `TRUE`, occupancy incorporates a
+  spatially autocorrelated Gaussian process built from `Xs` via a
+  squared-exponential kernel. If `FALSE`, that spatial term is set to an
+  exact zero matrix instead, so `Xs` is simulated and returned but has
+  no influence on occupancy.
 
 ## Setting up shared simulation parameters
 
 We use the same dimension, trait, and detection-process settings for
 both datasets, so that the *only* difference between them is whether the
 spatial field is switched on.
-
-COMMENT(increase number of sites and species)
 
 ```{r}
 set.seed(5162)
@@ -93,7 +97,8 @@ list_datasettings <- list(
 list_jsdmParams <- list(
   gt = gt, d = d, ds = ds,
   sigma_b = 0.5, sigma_bs = 0.5, sigma_ts = 0.5,
-  sigma_h = 1, sigma_s = .5, l_s = 0.3
+  sigma_h = 1, sigma_s = .5, l_s = 0.3,
+  useSpatField = TRUE
   )
 
 list_params <- list(
@@ -104,28 +109,38 @@ list_params <- list(
   )
 ```
 
-## Simulating a dataset and converting to a format that occJSDM can use
+## Simulating a dataset for occJSDM()
+
+We fix a seed immediately before this call (and reuse it below for
+`sim_nospat`) so that both simulations draw the *same* site coordinates
+`Xs` -- `Xs` is generated early in `simulateData()`, before the code
+path diverges on `useSpatField`, so reseeding to the same value before
+each call keeps `Xs` (and `X_psi`, `Tr`) identical across the two
+datasets. This isolates `useSpatField`'s effect for a cleaner comparison
+later.
 
 ```{r}
+sim_seed <- 7391
+
+set.seed(sim_seed)
 sim <- simulateOccJSDMData(
-  list_datasettings, list_params, list_jsdmParams,
-  useSpatField = TRUE
-)
+  list_datasettings, 
+  list_params, 
+  list_jsdmParams,
+  model = "two_stage"
+  )
 
-str(sim$data_list, max.level = 1)
-
-data <- toRunOccJSDMFormat(
-  sim,
-  n = list_datasettings$n,
-  M = list_datasettings$M,
-  P = list_datasettings$P,
-  K = list_datasettings$K
-)
+data <- sim$data_list # data for runOccJSDM()
 
 str(data, max.level = 1)
-head(data$info); dim(data$info); names(data$info) # 3 study design columns, 2 occupancy covariates (X_psi), 1 collection covariate (X_theta), and two spatial covariates (X.s)
-head(data$OTU); dim(data$OTU) # 1800 rows X 10 OTUs
-head(data$traitsMatrix); dim(data$traitsMatrix) # 10 species X 3 traits
+head(data$info); dim(data$info); names(data$info) # study design columns (Site, Sample, Primer), occupancy covariates (X_psi.EnvCov.n), spatial covariates (Xs.n), and collection covariates (X_theta.n)
+head(data$OTU); dim(data$OTU) # rows = PCR replicates, columns = OTUs
+head(data$traits); dim(data$traits) # species x traits
+
+
+# save as default dataset for occJSDM package
+# sampledata <- data
+# usethis::use_data(sampledata, overwrite = TRUE)
 ```
 
 ## Spatial autocorrelation
@@ -133,31 +148,33 @@ head(data$traitsMatrix); dim(data$traitsMatrix) # 10 species X 3 traits
 ### Simulating without spatial autocorrelation
 
 ```{r}
+list_jsdmParams_nospat <- modifyList(list_jsdmParams, list(useSpatField = FALSE))
+
+set.seed(sim_seed)
 sim_nospat <- simulateOccJSDMData(
-  list_datasettings, list_params, list_jsdmParams,
-  useSpatField = FALSE
+  list_datasettings, list_params, list_jsdmParams_nospat,
+  model = "two_stage"
   )
 
 str(sim_nospat$data_list, max.level = 1)
 ```
 
-`data_list` always contains the trait matrix `Tr` (`S` x `g`) and site
-coordinates `Xs` (`n` x `2`), regardless of `useSpatField`. With
-`useSpatField = FALSE`, `Xs` is generated but does not enter the
-occupancy process.
+`data_list` always contains the trait matrix `traits` (`S` x `g`) and
+site coordinates (`info$Xs.1`/`info$Xs.2`, one row per PCR replicate,
+repeated within a site), regardless of `useSpatField` -- site
+coordinates are simulated either way, but only feed into occupancy when
+`useSpatField = TRUE`.
 
 ### Simulating with spatial autocorrelation
 
-Using the same settings, we now switch on the spatial field. The spatial
-component uses `ds` latent spatial factors and length scale `l_s` to
-build a Gaussian-process-correlated random field over `Xs`, which is
-added to each species' linear predictor for occupancy.
+We rename `sim` to `sim_spat`, to remind ourselves that this dataset has
+spatial factors. The spatial component uses `ds` latent spatial factors
+and length scale `l_s` to build a Gaussian-process-correlated random
+field over `Xs`, which is added to each species' linear predictor for
+occupancy.
 
 ```{r}
-sim_spat <- simulateOccJSDMData(
-  list_datasettings, list_params, list_jsdmParams,
-  useSpatField = TRUE
-  )
+sim_spat <- sim
 
 str(sim_spat$data_list, max.level = 1)
 ```
@@ -189,16 +206,23 @@ field switched on.
 ```{r}
 species_idx <- 5
 
+# One row per site: info repeats Site/Xs across PCR replicates, so
+# de-duplicate before joining to the site-level z_true matrix.
+site_coords <- function(sim) {
+  info <- sim$data_list$info
+  info[!duplicated(info$Site), c("Site", "Xs.1", "Xs.2")]
+}
+
 df_compare <- bind_rows(
   tibble(
-    x = sim_nospat$data_list$Xs[, 1],
-    y = sim_nospat$data_list$Xs[, 2],
+    x = site_coords(sim_nospat)$Xs.1,
+    y = site_coords(sim_nospat)$Xs.2,
     occupied = factor(sim_nospat$true_params$z_true[, species_idx], levels = c(0, 1)),
     field = "useSpatField = FALSE"
   ),
   tibble(
-    x = sim_spat$data_list$Xs[, 1],
-    y = sim_spat$data_list$Xs[, 2],
+    x = site_coords(sim_spat)$Xs.1,
+    y = site_coords(sim_spat)$Xs.2,
     occupied = factor(sim_spat$true_params$z_true[, species_idx], levels = c(0, 1)),
     field = "useSpatField = TRUE"
   )
@@ -223,8 +247,8 @@ spatial pattern directly:
 
 ```{r}
 df_eta <- tibble(
-  x = sim_spat$data_list$Xs[, 1],
-  y = sim_spat$data_list$Xs[, 2],
+  x = site_coords(sim_spat)$Xs.1,
+  y = site_coords(sim_spat)$Xs.2,
   eta = sim_spat$true_params$jsdmParams_true$eta[, species_idx]
 )
 
@@ -258,7 +282,7 @@ coefficients actually used to simulate occupancy.
 ```{r}
 G_true <- sim_nospat$true_params$jsdmParams_true$G
 B_true <- sim_nospat$true_params$jsdmParams_true$B
-Tr_true <- sim_nospat$data_list$Tr
+Tr_true <- sim_nospat$data_list$traits
 
 G_true   # g x ncov_psi: how each trait shifts each covariate's coefficient
 ```
@@ -275,7 +299,7 @@ trait_component <- Tr_true %*% G_true   # S x ncov_psi
 
 df_trait <- tibble(
   species = paste0("OTU_", seq_len(S)),
-  trait1 = Tr_true[, 1],
+  trait2 = Tr_true[, 2],
   coef_cov1_full = B_true[1, ],
   coef_cov1_trait_only = trait_component[, 1]
 )
@@ -284,22 +308,25 @@ df_trait
 ```
 
 Plotting each species' true coefficient for the first covariate against
-its value for the first trait shows the trait-driven relationship,
+its value for the second trait shows the trait-driven relationship,
 though the full coefficient (which also includes the unobserved-trait
 and residual terms) will scatter around it rather than fall exactly on a
 line.
 
 ```{r}
-ggplot(df_trait, aes(trait1, coef_cov1_full)) +
+ggplot(df_trait, aes(trait2, coef_cov1_full)) +
   geom_point(size = 2.5) +
   geom_smooth(method = "lm", se = FALSE, linetype = "dashed") +
   labs(
-    title = "Species' occupancy response to covariate 1 vs. trait 1",
-    x = "Trait 1 value", y = "True coefficient for covariate 1 (B)"
+    title = "Species' occupancy response to covariate 1 vs. trait 2",
+    x = "Trait 2 value", y = "True coefficient for covariate 1 (B)"
   )
 ```
 
-The sign and magnitude of the slope is governed by `G_true[1, 1]` (trait
-1's effect on covariate 1); when it is `0`, species' coefficients vary
-with trait 1 only through the unobserved-trait pathway (`A %*% C`) and
-residual noise (`Bt`), so no relationship is expected.
+The sign and magnitude of the slope is governed by `G_true[2, 1]` (trait
+2's effect on covariate 1) -- shown above to be nonzero, so a
+relationship is expected here, with its sign matching `G_true[2, 1]`,
+attenuated by the unobserved-trait pathway (`A %*% C`) and residual
+noise (`Bt`). Had `G_true[2, 1]` been `0` instead, species' coefficients
+would vary with trait 2 only through those other pathways, and no
+systematic relationship would be expected.
