@@ -17,3 +17,6 @@ An object of size (quantiles x number of factors x number of species)
 \description{
 Return the quantiles of the factors loadings for each species
 }
+\details{
+Return the quantiles of the factors loadings for each species
+}

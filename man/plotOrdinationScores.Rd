@@ -19,3 +19,6 @@ A ggplot object
 \description{
 Plot the ordination scores with their credible interval
 }
+\details{
+Plot the ordination scores with their credible interval
+}

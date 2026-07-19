@@ -549,18 +549,16 @@ occupancy estimates.
 
 ```{r}
 # these are the original ones but we can use the old ones
-X_psi <- fitModel$X_psi
-X_s <- fitModel$X_s
+X_psi_new <- data$info[, c("X_psi.EnvCov.1","X_psi.EnvCov.2","X_psi.EnvCov.3")]
+X_s_new <- data$info[, c("Xs.1","Xs.2")]
 
 predictNewSites(fitModel,
-                X_psi,
-                X_s,
+                X_psi_new,
+                X_s_new,
                 useEnvCov = T,
                 useSpatial = T,
                 useBiotic = T)
 ```
-
-
 
 ### References
 

@@ -434,7 +434,8 @@ runOccJSDM <- function(data,
     # summarisedLatentPresences <- T
   }
 
-  # read data_info and OTU
+
+  # data structure infer
   {
     if(is.null(data$info) || is.null(data$OTU)){
       stop("data_info or OTU missing")
@@ -447,50 +448,75 @@ runOccJSDM <- function(data,
       stop("OTU and data_info cannot have different number of rows")
     }
 
-    # read OTU data
-    {
-      y <- OTU
-      if(is.null(dim(y))){
-        S <- 1
-      } else {
-        S <- ncol(y)
-      }
+    model <- inferDataModel(data)
 
-      if(model %in% c("occupancy","two_stage")){
-
-        # truncate data
-        if(threshold >= 1){
-
-          y[y >= threshold] <- 1
-          y[y < threshold] <- 0
-
-        } else {
-
-          stop("Threshold has to be greater than 0")
-
-        }
-      }
-
-      # check for nas
-      {
-        y_NA <- is.na(y)
-        mode(y_NA) <- "integer"
-
-        if(sum(y_NA) > 0 & model != "two_stage"){
-          stop("NAs are allowed only in the two-stage model", .call = F)
-        }
-      }
-
-      speciesNames <- colnames(data$OTU)
-      if(is.null(speciesNames)){
-        speciesNames <- 1:S
-      }
-
+    if(model %in% c("binary","occupancy","two_stage")){
+      jsdmModel <- "binary"
+    } else if(model == "continuous") {
+      jsdmModel <- "continuous"
+    }  else if(model == "counts") {
+      jsdmModel <- "counts"
     }
 
-    # if(nrow(y) != N3) stop("Number of rows in data$OTU different from what obtained from data$info")
+    if(is.null(data_info$Site)){
+      data_info$Site <- 1:nrow(data_info)
+    }
+
+    if(model == "occupancy" & is.null(data_info$Sample)){
+      data_info$Sample <- 1:nrow(data_info)
+    }
+
+  }
+
+
+  # read OTU data
+  {
+    y <- OTU
+    if(is.null(dim(y))){
+      S <- 1
+    } else {
+      S <- ncol(y)
+    }
+
+    if(model %in% c("occupancy","two_stage")){
+
+      # truncate data
+      if(threshold >= 1){
+
+        y[y >= threshold] <- 1
+        y[y < threshold] <- 0
+
+      } else {
+
+        stop("Threshold has to be greater than 0")
+
+      }
+    }
+
+    if(model %in% c("binary","continuous","counts")){
+      z <- y
+    } else if(model == "occupancy"){
+      w <- y
+    }
+
+    # check for nas
+    {
+      y_NA <- is.na(y)
+      mode(y_NA) <- "integer"
+
+      if(sum(y_NA) > 0 & model != "two_stage"){
+        stop("NAs are allowed only in the two-stage model", .call = F)
+      }
+    }
+
+    speciesNames <- colnames(data$OTU)
+    if(is.null(speciesNames)){
+      speciesNames <- 1:S
+    }
+
 
     n_obs <- nrow(y)
+
 
   }
 
@@ -513,34 +539,6 @@ runOccJSDM <- function(data,
 
     if(!all(c(occCovariates, collCovariates, spatCovariates) %in% colnames(data$info))){
       stop("Covariate names provided not in data$info")
-    }
-
-  }
-
-  # data structure infer
-  {
-    model <- inferDataModel(data)
-
-    if(is.null(data_info$Site)){
-      data_info$Site <- 1:nrow(data_info)
-    }
-
-    if(model == "occupancy" & is.null(data_info$Sample)){
-      data_info$Sample <- 1:nrow(data_info)
-    }
-
-    if(model %in% c("binary","continuous","counts")){
-      z <- y
-    } else if(model == "occupancy"){
-      w <- y
-    }
-
-    if(model %in% c("binary","occupancy","two_stage")){
-      jsdmModel <- "binary"
-    } else if(model == "continuous") {
-      jsdmModel <- "continuous"
-    }  else if(model == "counts") {
-      jsdmModel <- "counts"
     }
 
   }
@@ -762,6 +760,59 @@ runOccJSDM <- function(data,
     nthin <- ifelse(is.null(MCMCparams$nthin),1,MCMCparams$nthin)
   }
 
+  # precompute spatial quantities
+  {
+    # Spatial covariates matrix
+    list_Xs <- computeSpatialSummaries(Xs, ps, maxPoints = 5)
+    Xs_centers <- list_Xs$Xs_centers
+    Xs_index <- list_Xs$Xs_index
+    X_s_centers <- list_Xs$X_s_centers
+    X_tilde <- list_Xs$X_tilde
+    X_s <- list_Xs$X_s
+
+    length_grid_ls <- 10
+    l_s_grid <- seq(0.01, 0.3, length.out = length_grid_ls)
+    list_SoRSummaries <- precomputeSORmatrices(l_s_grid, list_Xs)
+  }
+
+  # precompute jsdm params
+  {
+    list_data <- list(
+      "X" = X_psi,
+      "Tr" = Tr)
+
+    a_sigmab <- .01; b_sigmab <- .01
+    a_sigmabs <- .01; b_sigmabs <- .01
+    a_tau <- 5; b_tau <- 5
+    a_l_s <- 1; b_l_s <- 1
+
+    list_priors <- list(
+      "a_sigmab" = a_sigmab,
+      "b_sigmab" = b_sigmab,
+      "a_sigmabs" = a_sigmabs,
+      "b_sigmabs" = b_sigmabs,
+      "a_tau" = a_tau,
+      "b_tau" = b_tau,
+      "a_l_s" = a_l_s,
+      "b_l_s" = b_l_s
+    )
+  }
+
+  # WAIC calculation
+  {
+
+    list_waic_jsdm <- create_waic_quantities(n * S)
+
+    if(model %in% c("occupancy","two_stage")){
+      list_waic_w <- create_waic_quantities(N * S)
+    }
+
+    if(model %in% "two_stage"){
+      list_waic_y <- create_waic_quantities(N3 * S)
+    }
+
+  }
+
   # chain output
   {
     if(model %in% c("occupancy","two_stage")){
@@ -825,61 +876,6 @@ runOccJSDM <- function(data,
       sigmah_output <- array(NA, dim = c(niter, nchain))
       idx_ls_output <- array(NA, dim = c(niter, nchain))
       varPart_output <- array(NA, dim = c(S, 4, niter, nchain))
-    }
-
-  }
-
-  # precompute spatial quantities
-  {
-    ps <- ifelse(ncol(Xs) > 0, getDefaultSupportPoints(n), 0)
-
-    # Spatial covariates matrix
-    list_Xs <- computeSpatialSummaries(Xs, ps, maxPoints = 5)
-    Xs_centers <- list_Xs$Xs_centers
-    Xs_index <- list_Xs$Xs_index
-    X_s_centers <- list_Xs$X_s_centers
-    X_tilde <- list_Xs$X_tilde
-    X_s <- list_Xs$X_s
-
-    length_grid_ls <- 10
-    l_s_grid <- seq(0.01, 0.3, length.out = length_grid_ls)
-    list_SoRSummaries <- precomputeSORmatrices(l_s_grid, list_Xs)
-  }
-
-  # precompute jsdm params
-  {
-    list_data <- list(
-      "X" = X_psi,
-      "Tr" = Tr)
-
-    a_sigmab <- .01; b_sigmab <- .01
-    a_sigmabs <- .01; b_sigmabs <- .01
-    a_tau <- 5; b_tau <- 5
-    a_l_s <- 1; b_l_s <- 1
-
-    list_priors <- list(
-      "a_sigmab" = a_sigmab,
-      "b_sigmab" = b_sigmab,
-      "a_sigmabs" = a_sigmabs,
-      "b_sigmabs" = b_sigmabs,
-      "a_tau" = a_tau,
-      "b_tau" = b_tau,
-      "a_l_s" = a_l_s,
-      "b_l_s" = b_l_s
-    )
-  }
-
-  # WAIC calculation
-  {
-
-    list_waic_jsdm <- create_waic_quantities(n * S)
-
-    if(model %in% c("occupancy","two_stage")){
-      list_waic_w <- create_waic_quantities(N * S)
-    }
-
-    if(model %in% "two_stage"){
-      list_waic_y <- create_waic_quantities(N3 * S)
     }
 
   }

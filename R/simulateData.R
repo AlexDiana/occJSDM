@@ -118,9 +118,9 @@ simulateOccJSDMData <- function(list_datasettings,
   }
 
   if(model %in% c("occupancy","two_stage")){
-    X_theta <- cbind(1, matrix(rnorm(N * (ncov_theta - 1)), N, ncov_theta - 1))
+    X_theta <- cbind(1, matrix(rnorm(N * ncov_theta), N, ncov_theta))
 
-    beta_theta_true <- matrix(sample(c(-1,1,0), ncov_theta * S, replace = T), ncov_theta, S)
+    beta_theta_true <- matrix(sample(c(-1,1,0), (ncov_theta + 1) * S, replace = T), ncov_theta + 1, S)
     beta_theta_true[1,] <- logit(theta_baseline)
     theta_true <- logistic(X_theta %*% beta_theta_true)
 

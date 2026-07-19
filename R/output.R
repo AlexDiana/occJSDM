@@ -956,7 +956,7 @@ returnResidualCorrelationMatrix <- function(fitModel,
 #' Return the quantiles of the factors scores for each observation.
 #'
 #' @details
-#'
+#'  Return the quantiles of the factors scores for each observation.
 #'
 #' @param fitModel Output from the function runOccJSDM
 #' @param confidence Confidence level
@@ -985,7 +985,7 @@ returnOrdinationScores <- function(fitModel,
 #' Plot the ordination scores with their credible interval
 #'
 #' @details
-#'
+#' Plot the ordination scores with their credible interval
 #'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_factors Which factors to plot (2 should be selected)
@@ -1015,7 +1015,7 @@ plotOrdinationScores <- function(fitModel,
 #' Return the quantiles of the factors loadings for each species
 #'
 #' @details
-#'
+#' Return the quantiles of the factors loadings for each species
 #'
 #' @param fitModel Output from the function runOccJSDM
 #' @param confidence Confidence level
@@ -1044,7 +1044,7 @@ returnFactorLoadings <- function(fitModel,
 #' Plot the ordination loadings with their credible interval
 #'
 #' @details
-#'
+#' Plot the ordination loadings with their credible interval
 #'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_factors Which factors to plot (2 should be selected)
@@ -1165,7 +1165,10 @@ predictNewSites <- function(fitModel,
   # create spatial matrix
   if(useSpatial){
     Ks <-
-      createSpatialPredMatrix(l_s_grid, fitModel$infos$l_s_grid, list_Xs$X_tilde, fitModel$infos$list_X_s_mat)
+      createSpatialPredMatrix(X_s,
+                              fitModel$infos$l_s_grid,
+                              fitModel$infos$list_Xs$X_tilde,
+                              fitModel$infos$list_X_s_mat)
   } else {
     Ks <- array(NA, dim = c(0,0,0))
   }
@@ -1193,71 +1196,34 @@ predictNewSites <- function(fitModel,
   if(!summarised){
 
     stop("Only summarised version for now")
-    # psi_output <- array(NA, dim = c(nchain * niter, n, S))
-    # for (chain in 1:nchain) {
-    #   for (iter in 1:niter) {
-    #     psi_output[iter + (chain - 1)*niter,,] <-
-    #       logistic(
-    #         computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
-    #                     beta_ord_output[,,iter,chain],
-    #                     LL_output[,,iter,chain])
-    #       )
-    #   }
-    # }
 
   } else {
 
     conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
 
     B0_output_vec <- aperm(apply(B0_output, c(1,2), c), c(2,3,1))
-    beta_psi_output <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
-    LL_output <- aperm(apply(LL_output, c(1,2), c), c(2,3,1))
+    B_output_vec <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
+    Bs_output_vec <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
+    L_output <- aperm(apply(L_output, c(1,2), c), c(2,3,1))
+    sigmah_output <-
+    idx_ls_output <-
 
-    # niter <- dim(beta_ord_output)[3]
-
-    psi_output <- computeNewOutputs(
+      pred_output <- computeNewOutputs(
       X_psi,
       B0_output,
-      X_ord,
-      beta_ord_output,
-      LL_output,
+      B_output,
+      Ks,
+      Bs_output,
+      L_output,
+      sigmah_output,
+      idx_ls_output,
       conflevels,
-      jsdmModel)
-
-    # psi_output <- array(NA, dim = c(3, n, S))
-    # for (i in 1:n) {
-    #   for (j in 1:S) {
-    #     mcmc_output <- rep(NA, niter)
-    #     for (iter in 1:niter) {
-    #       mcmc_output[iter] <- logistic(
-    #         computePsiE(X_psi[i,,drop=F], beta_psi_output[,j,iter],
-    #                     X_ord[i,,drop=F],
-    #                     beta_ord_output[,,iter],
-    #                     LL_output[,j,iter])
-    #       )
-    #
-    #     }
-    #
-    #     psi_output[,i,j] <- quantile(mcmc_output, conflevels)
-    #
-    #   }
-    # }
+      useEnvCov, useSpatial, useBiotic,
+      fitModel$infos$jsdmModel)
 
   }
 
-  psi_output
-
-  # for (iter in 1:niter) {
-  #   psi_output[iter,,] <-
-  #     logistic(
-  #       matrix(beta0_psi_output[iter,], n, S, byrow = T) +
-  #         X_psi %*% matrix(beta_psi_output[iter,], ncov_psi, S) +
-  #         matrix(U_output[iter,], n, n_factors, byrow = F) %*% matrix(L_output[iter,], n_factors, S)
-  #     )
-  # }
-  #
-  # psi_output
-
+  pred_output
 
 }
 

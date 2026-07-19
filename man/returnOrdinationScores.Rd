@@ -17,3 +17,6 @@ An object of size (quantiles x number of sites x number of factors)
 \description{
 Return the quantiles of the factors scores for each observation.
 }
+\details{
+Return the quantiles of the factors scores for each observation.
+}

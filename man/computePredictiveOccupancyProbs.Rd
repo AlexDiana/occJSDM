@@ -10,7 +10,7 @@ computePredictiveOccupancyProbs(fitModel)
 \item{fitModel}{Output from the function runOccJSDM}
 }
 \value{
-An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
+An matrix of size (sites,species) with the posterior means
 }
 \description{
 Computes the average predictive occupancy probabilities at the existing site

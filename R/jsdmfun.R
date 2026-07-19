@@ -453,10 +453,10 @@ simulateData <- function(
   }
 
 
-  varPart <- computeVariancePartitioning_stdevs(XB, SE, UL)
+  varPart <- computeVariancePartitioning_stdevs(XB, SE, UL, model)
   if(useSpatField) {
     eta <- eta + spatField
-    varPart <- computeVariancePartitioning_stdevs(XB, SE + spatField, UL)
+    varPart <- computeVariancePartitioning_stdevs(XB, SE + spatField, UL, model)
   }
 
   # save true values
@@ -1043,7 +1043,7 @@ update_jSDMcoef <- function(list_data,
     XB <- list_psiCoef$XB
     SE <- list_psiCoef$SE
     UL <- list_psiCoef$UL
-    variancePartitioning <- computeVariancePartitioning_stdevs(XB, SE, UL)
+    variancePartitioning <- computeVariancePartitioning_stdevs(XB, SE, UL, model)
 
     if(model == "continuous"){
       eta <- eta
@@ -1355,19 +1355,27 @@ computeVariancePartitioning_R2 <- function(XB, SE, UL, y, model){
 
 }
 
-SD <- function(eta) {
-  apply(logistic(eta), 2, sd)
+SD <- function(eta, model) {
+
+  if(model == "continuous"){
+    apply(eta, 2, sd)
+  } else if (model == "binary"){
+    apply(logistic(eta), 2, sd)
+  } else {
+    stop("Using unavailable model")
+  }
+
 }
 
-computeVariancePartitioning_stdevs <- function(XB, SE, UL){
+computeVariancePartitioning_stdevs <- function(XB, SE, UL, model){
 
-  VE   <- SD(XB)
-  VS   <- SD(SE)
-  VF   <- SD(UL)
-  VES  <- SD(XB + SE)
-  VEF  <- SD(XB + UL)
-  VSF  <- SD(SE + UL)
-  VESF <- SD(XB + SE + UL)
+  VE   <- SD(XB, model)
+  VS   <- SD(SE, model)
+  VF   <- SD(UL, model)
+  VES  <- SD(XB + SE, model)
+  VEF  <- SD(XB + UL, model)
+  VSF  <- SD(SE + UL, model)
+  VESF <- SD(XB + SE + UL, model)
 
   VE <- pmax(VE, 0)
   VES_VS <- pmax(VES - VS, 0)
