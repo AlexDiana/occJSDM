@@ -32,8 +32,8 @@ editor_options:
         use.~~ **fixed**: `model <- inferDataModel(data)` moved up to
         line 451
 
-    3.  gitignore and stop tracking `src/occPlus.dll` (also filename
-        should be changed on Alex's end)
+    3.  ~~gitignore and stop tracking `src/occPlus.dll` (also filename
+        should be changed on Alex's end)~~
 
     4.  `predictNewSites(fitmodel)` for non-surveyed sites
 
