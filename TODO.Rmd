@@ -37,13 +37,14 @@ editor_options:
     3.  ~~gitignore and stop tracking `src/occPlus.dll` (also filename
         should be changed on Alex's end)~~
 
-    4.  ~~`predictNewSites(fitmodel)` for non-surveyed sites~~ -- **done**:
-        added to the vignette's "Prediction at new sites" section,
-        deduplicating `data$info` by `Site` to build `X_psi_new`/`X_s_new`
-        for the original sites as a worked example (see `44c0b03`); a
-        simulation with known true occupancy probabilities confirmed
-        `predictNewSites()` recovers truth about as well as the fitted
-        estimate (`computePredictiveOccupancyProbs()`) does.
+    4.  ~~`predictNewSites(fitmodel)` for non-surveyed sites~~ --
+        **done**: added to the vignette's "Prediction at new sites"
+        section, deduplicating `data$info` by `Site` to build
+        `X_psi_new`/`X_s_new` for the original sites as a worked example
+        (see `44c0b03`); a simulation with known true occupancy
+        probabilities confirmed `predictNewSites()` recovers truth about
+        as well as the fitted estimate
+        (`computePredictiveOccupancyProbs()`) does.
 
     5.  ~~fix `Xs` recycling bug in `simulateOccJSDMData()`
         (`R/simulateData.R`)~~ -- **fixed**: `data_info` now binds
