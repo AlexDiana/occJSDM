@@ -777,23 +777,16 @@ Again, mixing looks good across all 10 species for primer 1.
 ### Prediction at new sites
 
 ```{r}
-# these are the original ones but we can use the old ones
+# these are the original ones
+X_psi_new <- data$info[, c("X_psi.EnvCov.1","X_psi.EnvCov.2")]
+X_s_new <- data$info[, c("Xs.1","Xs.2")]
 
-# X_psi_new <- data$info[, c("X_psi.EnvCov.1","X_psi.EnvCov.2","X_psi.EnvCov.3")]
-# X_s_new <- data$info[, c("Xs.1","Xs.2")]
-#
-# predictNewSites(fitModel,
-#                 X_psi_new,
-#                 X_s_new,
-# X_psi <- fitmodel$X_psi
-# X_s <- fitmodel$X_s
-#
-# predictNewSites(fitmodel,
-#                 X_psi,
-#                 X_s,
-#                 useEnvCov = T,
-#                 useSpatial = T,
-#                 useBiotic = T)
+predictions <- predictNewSites(fitmodel,
+                X_psi_new,
+                X_s_new,
+                useEnvCov = T,
+                useSpatial = T,
+                useBiotic = T)
 ```
 
 ### References
