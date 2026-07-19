@@ -277,72 +277,8 @@ if this list included much larger deviations, it would be worth
 increasing `niter` and/or `nthin` before trusting the affected
 coefficients.
 
-### Traceplots for a single covariate
-
-`plotTraceplot()` expects a 4-dimensional posterior array
-(`[covariate/primer, species, niter, nchain]`), so to visualise mixing
-for a single covariate, e.g. `X_theta.1`, one of the collection
-covariates, we first need to slice that covariate's row out of the
-matching coefficient array while keeping the array 4-dimensional
-(`drop = FALSE`), so that the remaining dimension is still correctly
-interpreted as species.
-
-Which coefficient array and set of column names to use depends on which
-type of covariate/parameter we want:
-
-| Covariate/parameter | Column names | Coefficient array |
-|----|----|----|
-| `X_psi.*` (occupancy covariates) | `colnames(fitmodel$X_psi)` | `fitmodel$results_output$jsdm_output$B_output` (`beta_psi`) |
-| species intercept | -- (species-only) | `fitmodel$results_output$jsdm_output$B0_output` (`beta0_psi`) |
-| `X_theta.*` (collection covariates) | `colnames(fitmodel$X_theta)` | `fitmodel$results_output$beta_theta_output` (`beta_theta`) |
-| primer-level rates | `fitmodel$infos$primerNames` (as character) | `fitmodel$results_output$p_output`, `fitmodel$results_output$q_output` |
-| species-only false-positive rate | -- (species-only) | `fitmodel$results_output$theta0_output` (`theta0`) |
-
-A short helper makes it easy to slice out a single covariate/primer from
-whichever array applies:
-
-```{r}
-extractCovariateSlice <- function(param_output, covNames, covName) {
-  idx <- match(covName, covNames)
-  if (is.na(idx)) {
-    stop(covName, " not found in ", paste(covNames, collapse = ", "))
-  }
-  param_output[idx, , , , drop = FALSE]
-}
-
-X_theta1_output <- extractCovariateSlice(
-  fitmodel$results_output$beta_theta_output,
-  colnames(fitmodel$X_theta),
-  "X_theta.1"
-)
-
-plotTraceplot(X_theta1_output,
-              param_name = "X_theta.1",
-              dimnames2 = fitmodel$infos$speciesNames)
-```
-
-The trace plots show good mixing for `X_theta.1` across all 10 species,
-with the two chains overlapping closely and no visible trend or
-stickiness. The same helper works for any covariate of
-`beta_psi`/`beta_theta` (using `colnames(fitmodel$X_psi)`/
-`colnames(fitmodel$X_theta)`), or any primer of `p`/`q` (using
-`fitmodel$infos$primerNames`, coerced to character since primers are
-numbered). For example, here is the trace plot of the true detection
-rate `p` for primer 1:
-
-```{r}
-p_primer1_output <- extractCovariateSlice(
-  fitmodel$results_output$p_output,
-  as.character(fitmodel$infos$primerNames),
-  "1"
-)
-
-plotTraceplot(p_primer1_output,
-              param_name = "p (primer 1)",
-              dimnames2 = fitmodel$infos$speciesNames)
-```
-
-Again, mixing looks good across all 10 species for primer 1.
+At the end of the vignette, we provide code for generating traceplots
+for individual covariates.
 
 ## Outputs
 
@@ -770,6 +706,73 @@ and also to try to diagnose the reasons underlying a given species'
 occupancy estimates.
 
 ![](images/latentPresences_example.png)
+
+### Traceplots for a single covariate
+
+`plotTraceplot()` expects a 4-dimensional posterior array
+(`[covariate/primer, species, niter, nchain]`), so to visualise mixing
+for a single covariate, e.g. `X_theta.1`, one of the collection
+covariates, we first need to slice that covariate's row out of the
+matching coefficient array while keeping the array 4-dimensional
+(`drop = FALSE`), so that the remaining dimension is still correctly
+interpreted as species.
+
+Which coefficient array and set of column names to use depends on which
+type of covariate/parameter we want:
+
+| Covariate/parameter | Column names | Coefficient array |
+|------------------------|------------------------|------------------------|
+| `X_psi.*` (occupancy covariates) | `colnames(fitmodel$X_psi)` | `fitmodel$results_output$jsdm_output$B_output` (`beta_psi`) |
+| species intercept | -- (species-only) | `fitmodel$results_output$jsdm_output$B0_output` (`beta0_psi`) |
+| `X_theta.*` (collection covariates) | `colnames(fitmodel$X_theta)` | `fitmodel$results_output$beta_theta_output` (`beta_theta`) |
+| primer-level rates | `fitmodel$infos$primerNames` (as character) | `fitmodel$results_output$p_output`, `fitmodel$results_output$q_output` |
+| species-only false-positive rate | -- (species-only) | `fitmodel$results_output$theta0_output` (`theta0`) |
+
+A short helper makes it easy to slice out a single covariate/primer from
+whichever array applies:
+
+```{r}
+extractCovariateSlice <- function(param_output, covNames, covName) {
+  idx <- match(covName, covNames)
+  if (is.na(idx)) {
+    stop(covName, " not found in ", paste(covNames, collapse = ", "))
+  }
+  param_output[idx, , , , drop = FALSE]
+}
+
+X_theta1_output <- extractCovariateSlice(
+  fitmodel$results_output$beta_theta_output,
+  colnames(fitmodel$X_theta),
+  "X_theta.1"
+)
+
+plotTraceplot(X_theta1_output,
+              param_name = "X_theta.1",
+              dimnames2 = fitmodel$infos$speciesNames)
+```
+
+The trace plots show good mixing for `X_theta.1` across all 10 species,
+with the two chains overlapping closely and no visible trend or
+stickiness. The same helper works for any covariate of
+`beta_psi`/`beta_theta` (using `colnames(fitmodel$X_psi)`/
+`colnames(fitmodel$X_theta)`), or any primer of `p`/`q` (using
+`fitmodel$infos$primerNames`, coerced to character since primers are
+numbered). For example, here is the trace plot of the true detection
+rate `p` for primer 1:
+
+```{r}
+p_primer1_output <- extractCovariateSlice(
+  fitmodel$results_output$p_output,
+  as.character(fitmodel$infos$primerNames),
+  "1"
+)
+
+plotTraceplot(p_primer1_output,
+              param_name = "p (primer 1)",
+              dimnames2 = fitmodel$infos$speciesNames)
+```
+
+Again, mixing looks good across all 10 species for primer 1.
 
 ### Prediction at new sites
 
