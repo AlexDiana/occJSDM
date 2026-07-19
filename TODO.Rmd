@@ -12,11 +12,10 @@ editor_options:
 
 1.  Alex to dos
 
- 
     2.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed
         sites
 
-    4.  fix trait-reading code in `runOccJSDM()`: it checks
+    3.  fix trait-reading code in `runOccJSDM()`: it checks
         `data$traits`, not `data$traitsMatrix` or the unused
         `traitsMatrix` function argument. This currently works only
         because R's `$` partially matches list names (`traitsMatrix` is
@@ -25,20 +24,20 @@ editor_options:
         explicitly, and either wire up the `traitsMatrix` argument or
         remove it from the signature.
 
-    5.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
+    4.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
         introduced in `af5ebe3`)~~ -- **fixed**: `computeMinESS()` now
         computes `ESS_beta0psi` from `beta0_psi_output` directly and
         includes it in the final `min()`.
 
-    6.  fix `model`-used-before-assignment bug in `runOccJSDM()`
+    5.  fix `model`-used-before-assignment bug in `runOccJSDM()`
         (`R/runOccJSDM.R`): the "read OTU data" block (around line 459)
         references `model` to decide whether to truncate reads at
         `threshold`, but `model <- inferDataModel(data)` isn't assigned
         until later, in the "data structure infer" block (around line
         522). This throws `object 'model' not found` on every call.
         Confirmed still present after the `a9700ab` refactor. Fix by
-        moving the `inferDataModel(data)` call earlier, before its
-        first use.
+        moving the `inferDataModel(data)` call earlier, before its first
+        use.
 
 2.  Doug to dos
 
@@ -69,12 +68,12 @@ editor_options:
         coeffcients are negative but spatial covariate coefficients are
         positive), using an explicit source-sink simulation
 
-    7.  remove effect of space on environmental covariates. remove the
+    6.  remove effect of space on environmental covariates. remove the
         effect of unobserved environmental on observed environmental
         covariates and space. thus, adding factors (unobserved env
         covariates) doesn't change the effect of observed env covariates
 
-    8.  site variance partitioning to complement the species variation
+    7.  site variance partitioning to complement the species variation
         partitioning (see Leibold et al., Cai et al.). Consider calling
         it **variation** partitioning.
 
