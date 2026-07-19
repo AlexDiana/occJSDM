@@ -12,14 +12,16 @@ editor_options:
 
 1.  Alex to dos
 
-    1.  fix trait-reading code in `runOccJSDM()`: it checks
+    1.  ~~fix trait-reading code in `runOccJSDM()`: it checks
         `data$traits`, not `data$traitsMatrix` or the unused
         `traitsMatrix` function argument. This currently works only
         because R's `$` partially matches list names (`traitsMatrix` is
         the only element of `data` starting with `"traits"`), which is
-        fragile. Fix the source to reference `data$traitsMatrix`
-        explicitly, and either wire up the `traitsMatrix` argument or
-        remove it from the signature.
+        fragile.~~ **fixed**: the source now references `data$traits`
+        explicitly (no more reliance on partial matching). The
+        `traitsMatrix` function argument is still unused/unwired
+        (defaults to `NULL`) -- minor leftover, not the fragility bug
+        itself.
 
     2.  ~~fix `model`-used-before-assignment bug in `runOccJSDM()`
         (`R/runOccJSDM.R`): the "read OTU data" block (around line 459)
@@ -39,10 +41,10 @@ editor_options:
 
     5.  ~~fix `Xs` recycling bug in `simulateOccJSDMData()`
         (`R/simulateData.R`)~~ -- **fixed**: `data_info` now binds
-        `Xs = Xs[idx_z_k,]` (indexed the same way as `X_psi`) in both the
-        `"occupancy"` and `"two_stage"` branches, so `info$Xs.1`/`Xs.2`
-        correctly repeat one coordinate pair per site across its
-        replicate rows instead of recycling unrelated pairs.
+        `Xs = Xs[idx_z_k,]` (indexed the same way as `X_psi`) in both
+        the `"occupancy"` and `"two_stage"` branches, so
+        `info$Xs.1`/`Xs.2` correctly repeat one coordinate pair per site
+        across its replicate rows instead of recycling unrelated pairs.
 
     6.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
         introduced in `af5ebe3`)~~ -- **fixed**: `computeMinESS()` now
