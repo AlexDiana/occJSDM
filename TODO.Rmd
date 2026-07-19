@@ -51,6 +51,34 @@ editor_options:
         computes `ESS_beta0psi` from `beta0_psi_output` directly and
         includes it in the final `min()`
 
+    7.  fix `runOccJSDM()` throwing `object 'M' not found` for
+        `model %in% c("binary","continuous")` (JSDM-only) data: `M` (and
+        `K`) are only ever assigned inside the
+        `model %in% c("occupancy","two_stage")` branch (around line
+        536-559 of `R/runOccJSDM.R`), but the final `infos` list (around
+        line 1306/1308) references `M`/`K` unconditionally. Confirmed
+        live: any JSDM-only fit (no `Site` column, or `Site` with no
+        repeats) errors after MCMC completes, right when assembling
+        `infos`. Fix: default `M <- rep(1, n)` / `K <- rep(1, n)` (or
+        similar) in the `else` branch alongside where `siteNames <- 1:n`
+        is already set for this case.
+
+    8.  fix `simulateOccJSDMData(model = "occupancy")`
+        (`R/simulateData.R`): its `data_info` construction binds
+        `Site = idx_z_k`, `X_psi = X_psi[idx_z_k,]`,
+        `Xs = Xs[idx_z_k,]`, but `idx_z_k` is only populated by
+        `createDataIdx()` when `twostage = TRUE` -- for
+        `model == "occupancy"` (`twostage = FALSE`), `idx_z_k` is
+        `NULL`, so this errors with
+        `arguments imply differing number of rows: 0, N`. Confirmed
+        live. Fix: use `idx_z_w` (the per-sample site index, populated
+        regardless of `twostage`) instead of `idx_z_k` for the
+        `"occupancy"` branch. Workaround used this session: simulate via
+        `model = "two_stage"` with trivial `P = 1`, `K = rep(1, N)`
+        instead, which routes through the working `idx_z_k`-populated
+        code path and produces an equivalent classical single-PCR-rep
+        occupancy dataset.
+
 2.  Doug to dos
 
     1.  purge `data/traitdata_caiwang.rdata` from git history (need to
