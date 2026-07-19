@@ -179,6 +179,15 @@ fitmodel <- runOccJSDM(data = data,
                        )
 ```
 
+Fitting the model above takes several minutes, so to keep this vignette
+fast to build, we instead load a precomputed fit (`sampleresults`,
+shipped with the package) generated with `nburn=5000` and `niter=5000`:
+
+```{r}
+data(sampleresults) # nburn=5000 and niter=5000
+fitmodel <- sampleresults
+```
+
 `runOccJSDM()` uses the study design in `data` to trigger different
 models. To recap, $M$ is the number of sample replicates per site, $K$
 is the number of PCR replicates per sample, and $P$ is the number of
@@ -224,15 +233,6 @@ potential species detection (which might be discounted later as a false
 positive), but we give the user the option to manually set this
 threshold higher. We do not recommend this, however, nor is
 `threshold = 0` allowed.
-
-Fitting the model above takes several minutes, so to keep this vignette
-fast to build, we instead load a precomputed fit (`sampleresults`,
-shipped with the package) generated with `nburn=5000` and `niter=5000`:
-
-```{r}
-data(sampleresults) # nburn=5000 and niter=5000
-fitmodel <- sampleresults
-```
 
 ## Output
 
@@ -431,7 +431,7 @@ plotVariancePartitioning(fitmodel)
 varpart <- returnVariancePartitioning(fitmodel)
 ```
 
-### Cumulative species detections as a function of PCR replicates 
+### Cumulative species detections as a function of PCR replicates
 
 To help allocate effort, we can plot the expected number of species
 detected as a function of the number of PCR replicates per sample $K$,
@@ -549,15 +549,22 @@ occupancy estimates.
 
 ```{r}
 # these are the original ones but we can use the old ones
-X_psi_new <- data$info[, c("X_psi.EnvCov.1","X_psi.EnvCov.2","X_psi.EnvCov.3")]
-X_s_new <- data$info[, c("Xs.1","Xs.2")]
 
-predictNewSites(fitModel,
-                X_psi_new,
-                X_s_new,
-                useEnvCov = T,
-                useSpatial = T,
-                useBiotic = T)
+# X_psi_new <- data$info[, c("X_psi.EnvCov.1","X_psi.EnvCov.2","X_psi.EnvCov.3")]
+# X_s_new <- data$info[, c("Xs.1","Xs.2")]
+# 
+# predictNewSites(fitModel,
+#                 X_psi_new,
+#                 X_s_new,
+# X_psi <- fitmodel$X_psi
+# X_s <- fitmodel$X_s
+# 
+# predictNewSites(fitmodel,
+#                 X_psi,
+#                 X_s,
+#                 useEnvCov = T,
+#                 useSpatial = T,
+#                 useBiotic = T)
 ```
 
 ### References
