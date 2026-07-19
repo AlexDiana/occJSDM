@@ -217,7 +217,7 @@ simulateOccJSDMData <- function(list_datasettings,
     data_info <- data.frame(
       Site = idx_z_k,
       X_psi = X_psi[idx_z_k,],
-      Xs = Xs,
+      Xs = Xs[idx_z_k,],
       X_theta = X_theta[,-1]
     )
   } else if (model == "two_stage"){
@@ -226,7 +226,7 @@ simulateOccJSDMData <- function(list_datasettings,
       Sample = idx_w_k,
       Primer = idx_p_k,
       X_psi = X_psi[idx_z_k,],
-      Xs = Xs,
+      Xs = Xs[idx_z_k,],
       X_theta = X_theta[idx_w_k,-1]
     )
   }

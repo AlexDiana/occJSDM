@@ -12,21 +12,41 @@ editor_options:
 
 1.  Alex to dos
 
-    1.  fix trait-reading code in `runOccJSDM()`: it checks
+    1.  ~~fix trait-reading code in `runOccJSDM()`: it checks
         `data$traits`, not `data$traitsMatrix` or the unused
         `traitsMatrix` function argument. This currently works only
         because R's `$` partially matches list names (`traitsMatrix` is
         the only element of `data` starting with `"traits"`), which is
-        fragile. Fix the source to reference `data$traitsMatrix`
-        explicitly, and either wire up the `traitsMatrix` argument or
-        remove it from the signature.
+        fragile.~~ **fixed**: the source now references `data$traits`
+        explicitly (no more reliance on partial matching). The
+        `traitsMatrix` function argument is still unused/unwired
+        (defaults to `NULL`) -- minor leftover, not the fragility bug
+        itself.
 
-    3.  gitignore and stop tracking `src/occPlus.dll` (also filename
-        should be changed on Alex's end)
+    2.  ~~fix `model`-used-before-assignment bug in `runOccJSDM()`
+        (`R/runOccJSDM.R`): the "read OTU data" block (around line 459)
+        references `model` to decide whether to truncate reads at
+        `threshold`, but `model <- inferDataModel(data)` isn't assigned
+        until later, in the "data structure infer" block (around line
+        522). This throws `object 'model' not found` on every call.
+        Confirmed still present after the `a9700ab` refactor. Fix by
+        moving the `inferDataModel(data)` call earlier, before its first
+        use.~~ **fixed**: `model <- inferDataModel(data)` moved up to
+        line 451
+
+    3.  ~~gitignore and stop tracking `src/occPlus.dll` (also filename
+        should be changed on Alex's end)~~
 
     4.  `predictNewSites(fitmodel)` for non-surveyed sites
 
-    5.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
+    5.  ~~fix `Xs` recycling bug in `simulateOccJSDMData()`
+        (`R/simulateData.R`)~~ -- **fixed**: `data_info` now binds
+        `Xs = Xs[idx_z_k,]` (indexed the same way as `X_psi`) in both
+        the `"occupancy"` and `"two_stage"` branches, so
+        `info$Xs.1`/`Xs.2` correctly repeat one coordinate pair per site
+        across its replicate rows instead of recycling unrelated pairs.
+
+    6.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
         introduced in `af5ebe3`)~~ -- **fixed**: `computeMinESS()` now
         computes `ESS_beta0psi` from `beta0_psi_output` directly and
         includes it in the final `min()`
@@ -38,12 +58,18 @@ editor_options:
 
     2.  ~~model diagnostics functions from GLGS-eDNA repo~~ -- **done**:
         `computeRhat()`, `summarisePosterior()`, `plotTraceplot()`, and
-        `returnConvergenceDiagnostics()` added to `R/diagnostics.R` and
-        exported (Rhat, tidy posterior summary table, trace plots).
+        `returnConvergenceDiagnostics()` added to `R/diagnostics.R`.
+        `computeRhat()`/`summarisePosterior()` were later de-exported
+        (`@noRd`) since they're redundant with
+        `returnConvergenceDiagnostics()` as user-facing functions; only
+        `plotTraceplot()`/`returnConvergenceDiagnostics()` are exported.
         `compare_to_true()`/`plot_estimated_vs_true()` (simulation-truth
         comparison, requiring `true_params`) were **not** ported -- left
-        as a possible future item. A "Model diagnostics" vignette
-        section and a testthat test were also deferred.
+        as a possible future item. ~~A "Model diagnostics" vignette
+        section... deferred~~ -- **done**: added to
+        `vignettes/occJSDM.Rmd` (with a "Traceplots for a single
+        covariate" subsection). A testthat test for `R/diagnostics.R` is
+        still not done.
 
 **MEE paper**
 

@@ -130,7 +130,7 @@ computeMinESS <- function(results_output) {
 #'   one or both of the leading index dimensions).
 #'
 #' @return A `dim1` x `dim2` matrix of Rhat values.
-#' @export
+#' @noRd
 computeRhat <- function(param_output) {
   param_output <- as4d(param_output)
 
@@ -223,7 +223,7 @@ paramOutputToLong <- function(param_output, param_name = "parameter",
 #'
 #' @return A tibble with columns `param`, `idx1`, `idx2`, `label1`, `label2`,
 #'   `mean`, `sd`, `q2.5`, `q97.5`, `rhat`, `ess`.
-#' @export
+#' @noRd
 summarisePosterior <- function(param_output, param_name = "parameter",
                                 dimnames1 = NULL, dimnames2 = NULL) {
   param_output <- as4d(param_output)

@@ -25,7 +25,7 @@ A list with six elements:
     model.}
   \item{X_theta}{The collection covariate design matrix (including
     intercept) used to fit the model.}
-  \item{X_s}{The site coordinates used for the spatial field.}
+  \item{Xs}{The site coordinates used for the spatial field.}
   \item{X_psi}{The (standardised) occupancy covariate design matrix used
     to fit the model.}
 }
