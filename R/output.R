@@ -246,6 +246,189 @@ plotOccupancyCovariates <- function(fitModel,
 
 }
 
+#' returnOccupancyGradient
+#'
+#' Predicted occupancy probability across a covariate gradient.
+#'
+#' @details
+#' Returns, for a single occupancy covariate, the posterior credible
+#' interval of predicted occupancy probability across a grid of values
+#' of that covariate, for each species. All other occupancy covariates
+#' are held fixed at their median (observed) value. Predictions are
+#' computed from row-matched posterior draws -- i.e. the same MCMC
+#' iteration is used for every grid point of a given species -- so the
+#' resulting interval reflects genuine posterior uncertainty in the
+#' species' intercept and coefficients rather than treating each grid
+#' point as an independent estimate.
+#'
+#' This complements \code{\link{plotOccupancyCovariates}}, which shows
+#' the credible interval of the covariate's raw coefficient (on the
+#' logit scale, relative to zero) -- useful for assessing whether an
+#' effect is credibly nonzero and in which direction. Because the logit
+#' link is nonlinear, a given coefficient can correspond to a large or
+#' small change in occupancy probability depending on where the species'
+#' baseline occupancy sits; \code{returnOccupancyGradient} (and
+#' \code{\link{plotOccupancyGradient}}) show that effect directly, on
+#' the natural probability scale.
+#'
+#' @param fitModel Output from the function runOccJSDM
+#' @param covName Name of the covariate to vary (same name as in data$info)
+#' @param idx_species Indexes of the species to include (leave out for all species)
+#' @param n_grid Number of grid points spanning the covariate's range (default 40)
+#' @param confidence Confidence level of the credible interval, default .95
+#' @param quantile_range Quantiles of the observed covariate values used to
+#' set the lower/upper bounds of the grid, default c(.02, .98) (avoids
+#' extrapolating too far beyond the bulk of the observed data)
+#'
+#' @return A tibble with columns \code{species}, \code{x} (covariate value),
+#' and the lower/median/upper quantiles of predicted occupancy probability
+#'
+#' @examples
+#' \dontrun{
+#' returnOccupancyGradient(fitModel, covName = "X_psi.1")
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @importFrom purrr map_dfr
+#' @importFrom tibble tibble
+#'
+returnOccupancyGradient <- function(fitModel,
+                                     covName = NULL,
+                                     idx_species = NULL,
+                                     n_grid = 40,
+                                     confidence = .95,
+                                     quantile_range = c(.02, .98)){
+
+  if(is.null(covName)){
+    stop("No name provided")
+  }
+
+  occCovNames <- colnames(fitModel$X_psi)
+  speciesNames <- fitModel$infos$speciesNames
+  S <- fitModel$infos$S
+
+  if(!(covName %in% occCovNames)){
+    stop("Covariate name not found. If you are using a categorical covariates,
+         the name might have changed to code the level. Use
+         colnames(fitModel$X_psi) to find the new names")
+  }
+
+  if(is.null(idx_species)){
+    idx_species <- seq_len(S)
+  }
+
+  otherCovNames <- setdiff(occCovNames, covName)
+  otherCovMedian <- apply(fitModel$X_psi, 2, median)
+
+  B0_output <- fitModel$results_output$jsdm_output$B0_output
+  B_output <- fitModel$results_output$jsdm_output$B_output
+
+  beta0_draws <- apply(B0_output, 1, c)
+  dimnames(beta0_draws) <- list(NULL, speciesNames)
+
+  betaAll_draws <- apply(B_output, c(1,2), c)
+  niter <- dim(betaAll_draws)[1]
+  dimnames(betaAll_draws)[[2]] <- occCovNames
+  dimnames(betaAll_draws)[[3]] <- speciesNames
+
+  grid_vals <- seq(
+    quantile(fitModel$X_psi[, covName], quantile_range[1]),
+    quantile(fitModel$X_psi[, covName], quantile_range[2]),
+    length.out = n_grid
+  )
+
+  conflevels <- c((1 - confidence) / 2, .5, (1 + confidence) / 2)
+
+  purrr::map_dfr(speciesNames[idx_species], function(sp){
+
+    otherContribution <- if(length(otherCovNames) > 0){
+      B_other <- matrix(betaAll_draws[, otherCovNames, sp],
+                        nrow = niter, ncol = length(otherCovNames))
+      as.vector(B_other %*% otherCovMedian[otherCovNames])
+    } else {
+      0
+    }
+
+    # Same posterior draw reused across the whole grid for a given
+    # species, so uncertainty is not double-counted across grid points
+    eta <- outer(betaAll_draws[, covName, sp], grid_vals) +
+      (beta0_draws[, sp] + otherContribution)
+
+    psi <- logistic(eta)
+    q <- apply(psi, 2, quantile, probs = conflevels)
+
+    tibble::tibble(
+      species = sp,
+      x = grid_vals,
+      low = q[1, ],
+      med = q[2, ],
+      high = q[3, ]
+    )
+  })
+}
+
+#' plotOccupancyGradient
+#'
+#' Plot predicted occupancy probability across a covariate gradient.
+#'
+#' @details
+#' Plots, for a single occupancy covariate, a smooth curve of predicted
+#' occupancy probability (with a credible band) across the observed
+#' range of that covariate, faceted by species, with a rug of the
+#' observed covariate values. See \code{\link{returnOccupancyGradient}}
+#' for details on how the curve and interval are computed, and how this
+#' plot complements \code{\link{plotOccupancyCovariates}}.
+#'
+#' @param fitModel Output from the function runOccJSDM
+#' @param covName Name of the covariate to vary (same name as in data$info)
+#' @param idx_species Indexes of the species to include (leave out for all species)
+#' @param n_grid Number of grid points spanning the covariate's range (default 40)
+#' @param confidence Confidence level of the credible interval, default .95
+#'
+#' @return A ggplot object
+#'
+#' @examples
+#' \dontrun{
+#' plotOccupancyGradient(fitModel, covName = "X_psi.1")
+#' }
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+plotOccupancyGradient <- function(fitModel,
+                                   covName = NULL,
+                                   idx_species = NULL,
+                                   n_grid = 40,
+                                   confidence = .95){
+
+  speciesNames <- fitModel$infos$speciesNames
+
+  if(is.null(idx_species)){
+    idx_species <- seq_len(fitModel$infos$S)
+  }
+
+  gradient_df <- returnOccupancyGradient(fitModel, covName, idx_species,
+                                          n_grid, confidence)
+
+  rug_df <- data.frame(x = fitModel$X_psi[, covName])
+
+  gradient_df %>%
+    mutate(species = factor(species, levels = speciesNames[idx_species])) %>%
+    ggplot(aes(x = x, y = med)) +
+    geom_ribbon(aes(ymin = low, ymax = high), fill = "steelblue", alpha = 0.25) +
+    geom_line(color = "steelblue") +
+    geom_rug(data = rug_df, aes(x = x, y = NULL), sides = "b",
+             alpha = 0.3, inherit.aes = FALSE) +
+    facet_wrap(~ species) +
+    ylim(c(0,1)) +
+    labs(x = covName, y = "Occupancy probability",
+         title = paste0("Predicted occupancy vs ", covName)) +
+    theme_bw()
+
+}
+
 
 #' returnBaselineOccupancyRates
 #'
@@ -1067,6 +1250,122 @@ plotFactorLoadings <- function(fitModel,
                           idx_factors,
                           speciesNames)
 
+}
+
+#' plotBiplot
+#'
+#' Plot a biplot of site ordination scores and species factor loadings,
+#' using posterior medians only (no credible intervals).
+#'
+#' @details
+#' Sites are plotted as points at their posterior median factor scores
+#' (see \code{\link{returnOrdinationScores}}), and species are plotted as
+#' arrows at their posterior median factor loadings (see
+#' \code{\link{returnFactorLoadings}}). Species arrows are rescaled so
+#' their extent matches \code{arrow_scale} times the site score radius,
+#' purely for visual balance -- this does not affect relative arrow
+#' lengths or directions.
+#'
+#' Under the model's identifiability constraint, species \code{i} anchors
+#' factor \code{i} (its loading is fixed to 1 rather than estimated; see
+#' \code{\link{returnFactorLoadings}}). When one of the fixed
+#' species/factor pairs falls within \code{idx_factors}, a caption flags
+#' this so the fixed arrow(s) are not mistaken for an estimated pattern.
+#'
+#' @param fitModel Output from the function runOccJSDM
+#' @param idx_factors Which factors to plot (2 should be selected)
+#' @param arrow_scale Target extent of the species arrows, as a fraction
+#' of the maximum site score radius (default 0.8)
+#' @param label_size Species label text size (default 3.5)
+#'
+#' @return A ggplot object
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#' @importFrom ggrepel geom_text_repel
+#'
+plotBiplot <- function(fitModel,
+                        idx_factors = c(1, 2),
+                        arrow_scale = 0.8,
+                        label_size = 3.5){
+
+  n_factors <- fitModel$infos$n_factors
+
+  if(length(idx_factors) != 2) stop("idx_factors must have length 2")
+  if(any(idx_factors > n_factors)){
+    stop("idx_factors exceeds the number of factors fit (", n_factors, ")")
+  }
+
+  siteScoresArr <- returnOrdinationScores(fitModel)
+  speciesLoadingsArr <- returnFactorLoadings(fitModel)
+
+  siteNames <- dimnames(siteScoresArr)[[2]]
+  speciesNames <- dimnames(speciesLoadingsArr)[[3]]
+
+  site_df <- data.frame(
+    site = siteNames,
+    x = siteScoresArr["50%", , idx_factors[1]],
+    y = siteScoresArr["50%", , idx_factors[2]]
+  )
+
+  species_df <- data.frame(
+    species = speciesNames,
+    x = speciesLoadingsArr["50%", idx_factors[1], ],
+    y = speciesLoadingsArr["50%", idx_factors[2], ]
+  )
+
+  # Rescale species arrows to match the site score spread (standard
+  # biplot scaling); guard against a degenerate all-zero loadings case
+  site_radius <- max(sqrt(site_df$x^2 + site_df$y^2))
+  species_radius <- max(sqrt(species_df$x^2 + species_df$y^2))
+  scale_factor <- if(species_radius > 0){
+    arrow_scale * site_radius / species_radius
+  } else {
+    1
+  }
+  species_df$x <- species_df$x * scale_factor
+  species_df$y <- species_df$y * scale_factor
+
+  # Species i anchors factor i under the model's identifiability
+  # constraint (reparamFactorModel()); only flag anchors whose factor is
+  # actually being plotted
+  fixed_factors <- idx_factors[idx_factors <= n_factors & idx_factors <= length(speciesNames)]
+  fixed_species <- speciesNames[fixed_factors]
+
+  caption_text <- NULL
+  if(length(fixed_species) > 0){
+    pairs_txt <- paste0(fixed_species, " (Factor ", fixed_factors, ")")
+    verb <- if(length(pairs_txt) > 1) "loadings are" else "loading is"
+    caption_text <- paste0(
+      paste(pairs_txt, collapse = " and "), " ", verb,
+      "\nfixed to 1 for identifiability and ",
+      if(length(pairs_txt) > 1) "are" else "is",
+      " not estimated."
+    )
+  }
+
+  ggplot() +
+    geom_point(data = site_df, aes(x, y), color = "grey50", alpha = 0.6) +
+    geom_segment(
+      data = species_df,
+      aes(x = 0, y = 0, xend = x, yend = y),
+      arrow = arrow(length = unit(0.2, "cm")),
+      color = "steelblue"
+    ) +
+    ggrepel::geom_text_repel(
+      data = species_df,
+      aes(x, y, label = species),
+      color = "steelblue",
+      size = label_size
+    ) +
+    labs(
+      x = paste0("Factor ", idx_factors[1]),
+      y = paste0("Factor ", idx_factors[2]),
+      caption = caption_text
+    ) +
+    theme_minimal() +
+    theme(plot.caption = element_text(hjust = 0, face = "italic", size = 8))
 }
 
 # PREDICTIONS --------

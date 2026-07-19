@@ -35,7 +35,8 @@ Imports:
     rlang,
     coda,
     purrr,
-    tibble
+    tibble,
+    ggrepel
 LinkingTo: 
     Rcpp,
     RcppArmadillo

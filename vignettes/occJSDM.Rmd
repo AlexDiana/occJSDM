@@ -184,7 +184,7 @@ fast to build, we instead load a precomputed fit (`sampleresults`,
 shipped with the package) generated with `nburn=5000` and `niter=5000`:
 
 ```{r}
-data(sampleresults) # nburn=5000 and niter=5000
+data(sampleresults) # nburn=5000, niter=5000, nthin=1
 fitmodel <- sampleresults
 ```
 
@@ -234,7 +234,13 @@ positive), but we give the user the option to manually set this
 threshold higher. We do not recommend this, however, nor is
 `threshold = 0` allowed.
 
-## Output
+## Model diagnostics
+
+```{r}
+
+```
+
+## Outputs
 
 There are several outputs we can obtain:
 
@@ -275,65 +281,52 @@ contain the new levels for that categorical covariates and therefore the
 names will change. To check the new covariate names, type
 
 ```{r}
-colnames(fitmodel$X_psi)
+colnames(fitmodel$X_psi) # here, the covariates are continuous, so the names do not change
 ```
 
 or
 
 ```{r}
-colnames(fitmodel$X_theta)
+colnames(fitmodel$X_theta) # here, the covariate is continuous, so the name does not change
 ```
 
-### Baseline Occupancy, Collection, Detection, and False-Positive rates
+### Baseline Occupancy Probabilities and Marginal-effect plots
 
-We can plot baseline occupancy, collection, detection, and
-false-positive rates for Stage 1 (eDNA collection in the field) and
-Stage 2 (eDNA detection in the lab).
-
-We note that baseline occupancy and collection rates are the occupancy
-and collection probabilities when fixing all covariates at their mean
-levels.
-
-The outputs are `ggplot2` objects and so can be combined with the
-`patchwork` library.
+We can plot baseline occupancy rates, which are the predicted occupancy
+probabilities for species $j$ when all covariates are at zero (i.e. no
+environmental, spatial, or biotic/factor contributions because
+covariates have been normalised). In short, these are the
+species-specific intercepts.
 
 ```{r baseline occupancy}
 plotOccupancyRates(fitmodel, idx_species = 1:10) 
+
+baselineOccupancyRates <- returnOccupancyRates(fitmodel)
+str(baselineOccupancyRates)
 ```
 
-Stage 1 (in the field)
+`returnOccupancyRates()` returns an $(niter \times nchain) \times S$
+array.
+
+We can also create marginal-effect plots showing predicted occupancy
+probability across the observed range of a single covariate, holding all
+other covariates at their median value. This complements
+`plotOccupancyCovariates()` above: that plot shows whether a covariate's
+coefficient is credibly different from zero (on the logit scale), while
+`plotOccupancyGradient()` shows the size and shape of that effect on the
+natural probability scale -- useful since, because of the nonlinear
+logit link, the same coefficient can correspond to a large or small
+change in occupancy probability depending on where a species' baseline
+occupancy sits.
 
 ```{r}
-library(patchwork)
-p1 <- plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
-p2 <- plotCollectionRates(fitmodel, idx_species = 1:10) # ideally, these are high
-p1 + p2
-```
-
-Stage 2 (in the lab)
-
-```{r}
-p3 <- plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
-p4 <- plotDetectionRates(fitmodel, idx_species = 1:10) # ideally, these are high. 
-p3 + p4
-```
-
-The Stage 2 detection rates are calculated separately for each primer
-and species, which allows one to compare how well each primer amplifies
-each species. For example, low Stage 2 rates could mean primer
-mismatches and/or taxa that release low amounts of eDNA in the
-environment.
-
-### Trait X Environment Interactions
-
-We can plot trait X env interaction effects.
-
-```{r}
-plotTraitsCoefficients(fitmodel, covName = "X_psi.1")
-plotTraitsCoefficients(fitmodel, covName = "X_psi.2")
+plotOccupancyGradient(fitmodel, covName = "X_psi.1")
 ```
 
 ### Conditional and Predictive Occupancy Probabilities
+
+We now compute occupancy probabilities after taking into account the
+covariate values at each surveyed site.
 
 To compute mean *conditional* occupancy probabilities at each surveyed
 site and for each species, we use `computeConditionalOccupancyProbs()`.
@@ -384,14 +377,126 @@ detections are assumed to always be weak.
 
 ### Ordination
 
-Check the help of this function for info
+`occJSDM` predicts species occupancies by calculating site factors and
+species factor loadings (Ji et al. 2025). For species $j$, the log-odds
+of occupancy is
+
+$$\text{logit}(\psi_j)=\beta{0j}+X\beta_j+U L_j$$
+
+where $U$ is the matrix of site factor scores
+(`returnOrdinationScores()`) and $L_j$ is species $j$'s vector of factor
+loadings. The term $U
+L_j$ captures residual correlation among species: e.g. co-occurrence
+driven by unmeasured environmental gradients or biotic interactions that
+isn't explained by the observed covariates $X$.
 
 ```{r}
-returnOrdinationScores(fitmodel)
 plotOrdinationScores(fitmodel)
+siteScores <- returnOrdinationScores(fitmodel)
+str(siteScores)
 
-returnFactorLoadings(fitmodel)
 plotFactorLoadings(fitmodel)
+speciesLoadings <- returnFactorLoadings(fitmodel)
+str(speciesLoadings)
+```
+
+`returnOrdinationScores()` returns a 3-dimensional array of size
+`quantiles x sites x n_factors` giving the posterior credible intervals
+(`2.5%`, `50%`, `97.5%`) for each site's latent factor score(s) from the
+JSDM's ordination.
+
+`returnFactorLoadings()` returns a 3-dimensional array of size
+`quantiles x factors x species` giving the posterior credible intervals
+(`2.5%`, `50%`, `97.5%`) for each species' loading on the factors from
+the JSDM's ordination.
+
+We can also create a biplot with just the median scores.
+
+```{r}
+plotBiplot(
+  fitmodel,
+  idx_factors = c(1,2),
+  arrow_scale = 0.8,
+  label_size = 3.5
+)
+```
+
+### Collection, Detection, and False-Positive rates
+
+We can plot collection, detection, and false-positive rates for Stage 1
+(eDNA collection in the field) and Stage 2 (eDNA detection in the lab).
+
+We note that collection rates are the collection probabilities when
+fixing all covariates at their mean levels.
+
+The outputs are `ggplot2` objects and so can be combined with the
+`patchwork` library.
+
+Stage 1 (in the field)
+
+```{r}
+library(patchwork)
+p1 <- plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+p2 <- plotCollectionRates(fitmodel, idx_species = 1:10) # ideally, these are high
+p1 + p2
+```
+
+Stage 2 (in the lab)
+
+```{r}
+p3 <- plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+p4 <- plotDetectionRates(fitmodel, idx_species = 1:10) # ideally, these are high. 
+p3 + p4
+```
+
+The Stage 2 detection rates are calculated separately for each primer
+and species, which allows one to compare how well each primer amplifies
+each species. For example, low Stage 2 rates could mean primer
+mismatches and/or taxa that release low amounts of eDNA in the
+environment.
+
+### Trait X Environment Interactions
+
+We can plot trait X env interaction effects.
+
+```{r}
+plotTraitsCoefficients(fitmodel, covName = "X_psi.1")
+plotTraitsCoefficients(fitmodel, covName = "X_psi.2")
+
+traitValues <- returnTraitsCoeff(fitmodel)
+str(traitValues)
+```
+
+`returnTraitsCoeff()` returns the posterior samples of the trait ×
+environment interaction coefficients, as an array of dimension
+`(niter * nchain) x occupancy covariates x traits`.
+
+`plotTraitsCoefficients()` only draws the 95% credible interval (as an
+error bar) for each covariate/trait pair, without showing the posterior
+mean. If we want numeric summaries -- e.g. to report point estimates
+alongside the credible interval, or to sort/filter the pairs
+programmatically -- we can summarise the `returnTraitsCoeff()` array
+into a tidy table ourselves. The same pattern works for any other
+posterior array returned by this package (e.g.
+`returnOccupancyCovariates()`, `returnCollectionCsovariates()`).
+
+```{r}
+traitsSummary <- expand.grid(
+  cov = dimnames(traitValues)[[2]],
+  trait = dimnames(traitValues)[[3]],
+  stringsAsFactors = FALSE
+) |>
+  purrr::pmap_dfr(function(cov, trait) {
+    x <- traitValues[, cov, trait]
+    tibble::tibble(
+      cov = cov, trait = trait,
+      mean = mean(x),
+      q2.5 = quantile(x, 0.025),
+      q97.5 = quantile(x, 0.975)
+    )
+  })
+
+traitsSummary
 ```
 
 ### Residual correlation matrix
@@ -452,10 +557,25 @@ predictive performance. Models fit to the same data but with different
 specifications (e.g. different numbers of latent factors `n_factor`,
 with/without spatial structure) can be compared.
 
-```{r}
-extractWAIC(fitmodel)
-# extractWAIC(fitmodel2)
-# extractWAIC(fitmodel3)
+```{r, eval=FALSE}
+fitmodel2 <- runOccJSDM(data = data,
+                       listParams = list(n_factors = 3, gt = 2),
+                       threshold = 1,
+                       occCovariates = c("X_psi.1", "X_psi.2"),
+                       collCovariates = c("X_theta"),
+                       spatCovariates = data$spatCovariates, 
+                       # or c("Xs.1", "Xs.2")
+                       traitsMatrix = data$traitsMatrix,
+                       MCMCparams = list(nchain = 2,
+                                         nburn = 5000,
+                                         niter = 5000,
+                                         nthin = 1),
+                       summarisedLatentPresences = T
+                       )
+
+extractWAIC(fitmodel) # n_factors=2, WAIC=31619.24
+extractWAIC(fitmodel2) # n_factors=3, WAIC=31573.5
+# n_factors=3 is better
 ```
 
 ### Latent presence table to diagnose how occJSDM has estimated occupancies
@@ -593,3 +713,4 @@ Macher, J.-N. (2025). **Metacommunity Theory and Metabarcoding Reveal
 the Environmental, Spatial and Biotic Drivers of Meiofaunal Communities
 in Sandy Beaches**. *Molecular Ecology*, *34*(8), e17733.
 <https://doi.org/10.1111/mec.17733>
+
