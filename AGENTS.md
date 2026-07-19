@@ -83,8 +83,8 @@ Not ported: `compare_to_true()`/`plot_estimated_vs_true()` from GLGS-eDNA, since
 
 ## Git and build artifacts
 
-- `src/*.o` and `src/*.so` files are **tracked in git** despite being ignored in `.gitignore` (added in lines 7-8). These are compiled object files and should not be committed. To fix: `git rm --cached src/*.o src/*.so` and commit. They were tracked before `.gitignore` rules were added and remain in git history until explicitly removed.
-- Alex's `a9700ab` commit newly added and committed `src/occJSDM.dll` (a compiled Windows binary, \~8.6 MB) -- same class of problem as the `.o`/`.so` files above (compiled artifact that shouldn't be tracked), just not yet covered by `.gitignore`. Worth raising with Alex and adding `src/*.dll` to `.gitignore`, then `git rm --cached src/occJSDM.dll`.
+- **`src/*.o`/`src/*.so` tracking is fixed**: confirmed this session (`git ls-files 'src/*.o' 'src/*.so'` returns nothing) -- no longer tracked, despite the earlier note in this file claiming they were. Superseded.
+- **`src/occJSDM.dll` untracking is fixed** (this session, `1b4b8ad`): `.gitignore` already had `src/*.dll` (so new dll files won't get re-added), but the file itself was still tracked from before that rule existed (`git check-ignore` doesn't flag already-tracked files even when a matching ignore rule exists). Ran `git rm --cached src/occJSDM.dll` and committed -- the file remains on disk locally (needed for Doug's Windows build) but git no longer tracks it. Still exists in git *history* (introduced by Alex's `a9700ab` commit, ~8.6 MB compiled Windows binary) -- purging history would need the same reclone coordination with Alex as the `traitdata_caiwang.rdata` item below.
 - `.gitignore` also changed in `a9700ab`: added a blanket `/deprecated/` rule (replacing the narrower `deprecated/analysis/`).
 
 ## ggtern and plotting
