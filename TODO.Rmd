@@ -58,12 +58,18 @@ editor_options:
 
     2.  ~~model diagnostics functions from GLGS-eDNA repo~~ -- **done**:
         `computeRhat()`, `summarisePosterior()`, `plotTraceplot()`, and
-        `returnConvergenceDiagnostics()` added to `R/diagnostics.R` and
-        exported (Rhat, tidy posterior summary table, trace plots).
+        `returnConvergenceDiagnostics()` added to `R/diagnostics.R`.
+        `computeRhat()`/`summarisePosterior()` were later de-exported
+        (`@noRd`) since they're redundant with
+        `returnConvergenceDiagnostics()` as user-facing functions; only
+        `plotTraceplot()`/`returnConvergenceDiagnostics()` are exported.
         `compare_to_true()`/`plot_estimated_vs_true()` (simulation-truth
         comparison, requiring `true_params`) were **not** ported -- left
-        as a possible future item. A "Model diagnostics" vignette
-        section and a testthat test were also deferred.
+        as a possible future item. ~~A "Model diagnostics" vignette
+        section... deferred~~ -- **done**: added to
+        `vignettes/occJSDM.Rmd` (with a "Traceplots for a single
+        covariate" subsection). A testthat test for `R/diagnostics.R` is
+        still not done.
 
 **MEE paper**
 
