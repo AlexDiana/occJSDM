@@ -32,7 +32,10 @@ Imports:
     ggtern,
     ggforce,
     cli,
-    rlang
+    rlang,
+    coda,
+    purrr,
+    tibble
 LinkingTo: 
     Rcpp,
     RcppArmadillo

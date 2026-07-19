@@ -1,25 +1,66 @@
-computeESSparams <- function(param_output){
+#' Pad a posterior array to 4 dimensions
+#'
+#' Internal helper. MCMC output arrays produced by [runOccJSDM()] vary in
+#' shape depending on whether a parameter is indexed by nothing (scalar,
+#' `[niter, nchain]`), one index (e.g. species-only, `[dim1, niter, nchain]`),
+#' or two indices (e.g. covariate x species, `[dim1, dim2, niter, nchain]`).
+#' This pads the first two cases up to the common 4-dimensional shape so
+#' downstream diagnostics can treat every parameter uniformly.
+#'
+#' @param param_output A numeric array with 2, 3, or 4 dimensions, with the
+#'   last two dimensions always being `niter` and `nchain`.
+#' @return A 4-dimensional array `[dim1, dim2, niter, nchain]`.
+#' @noRd
+as4d <- function(param_output) {
+  d <- dim(param_output)
+  if (is.null(d)) {
+    stop("param_output must be an array with 2, 3, or 4 dimensions")
+  }
+
+  nd <- length(d)
+
+  if (nd == 4) {
+    return(param_output)
+  } else if (nd == 3) {
+    return(array(param_output, dim = c(d[1], 1, d[2], d[3])))
+  } else if (nd == 2) {
+    return(array(param_output, dim = c(1, 1, d[1], d[2])))
+  } else {
+    stop("param_output must be an array with 2, 3, or 4 dimensions")
+  }
+}
+
+#' Compute effective sample size for an MCMC output array
+#'
+#' @param param_output A numeric array with 2, 3, or 4 dimensions
+#'   (`[dim1, dim2, niter, nchain]`, or a 2- or 3-dimensional array missing
+#'   one or both of the leading index dimensions).
+#'
+#' @return A `dim1` x `dim2` matrix of effective sample sizes (pooled across
+#'   chains).
+#' @noRd
+computeESSparams <- function(param_output) {
+  param_output <- as4d(param_output)
 
   dim1 <- dim(param_output)[1]
   dim2 <- dim(param_output)[2]
+  nchain <- dim(param_output)[4]
 
-  ESS_param <- matrix(NA, dim1, dim2)
-  if(dim1 > 0 & dim2 > 0){
-    for (x in 1:nrow(ESS_param)) {
-      for (y in 1:ncol(ESS_param)) {
-        chains <- lapply(1:dim(param_output)[4], function(i) coda::mcmc(param_output[x, y, , i]))
+  ESS_param <- matrix(NA_real_, dim1, dim2)
+  if (dim1 > 0 & dim2 > 0) {
+    for (x in 1:dim1) {
+      for (y in 1:dim2) {
+        chains <- lapply(1:nchain, function(i) coda::mcmc(param_output[x, y, , i]))
         mcmc_list <- coda::mcmc.list(chains)
-        ESS_param[x,y] <- coda::effectiveSize(mcmc_list)
+        ESS_param[x, y] <- coda::effectiveSize(mcmc_list)
       }
     }
   }
 
-
   ESS_param
-
 }
 
-computeMinESS <- function(results_output){
+computeMinESS <- function(results_output) {
 
   beta0_psi_output <- results_output$jsdm_output$B0_output
   beta_psi_output <- results_output$jsdm_output$B_output
@@ -77,3 +118,255 @@ computeMinESS <- function(results_output){
 
 }
 
+#' Compute Gelman-Rubin Rhat for an MCMC output array
+#'
+#' Per-element potential scale reduction factor (Rhat), via
+#' [coda::gelman.diag()]. Elements with fewer than two chains, or where any
+#' chain never moved (zero variance, which makes [coda::gelman.diag()]
+#' error), are returned as `NA`.
+#'
+#' @param param_output A numeric array with 2, 3, or 4 dimensions
+#'   (`[dim1, dim2, niter, nchain]`, or a 2- or 3-dimensional array missing
+#'   one or both of the leading index dimensions).
+#'
+#' @return A `dim1` x `dim2` matrix of Rhat values.
+#' @export
+computeRhat <- function(param_output) {
+  param_output <- as4d(param_output)
+
+  dim1 <- dim(param_output)[1]
+  dim2 <- dim(param_output)[2]
+  nchain <- dim(param_output)[4]
+
+  Rhat <- matrix(NA_real_, dim1, dim2)
+
+  if (nchain < 2) {
+    return(Rhat)
+  }
+
+  for (x in seq_len(dim1)) {
+    for (y in seq_len(dim2)) {
+      chains <- lapply(seq_len(nchain), function(i) coda::mcmc(param_output[x, y, , i]))
+      variances <- vapply(chains, function(ch) stats::var(as.numeric(ch)), numeric(1))
+      if (any(variances == 0)) {
+        Rhat[x, y] <- NA_real_
+      } else {
+        mcmc_list <- coda::mcmc.list(chains)
+        Rhat[x, y] <- tryCatch(
+          coda::gelman.diag(mcmc_list, autoburnin = FALSE)$psrf[1, 1],
+          error = function(e) NA_real_
+        )
+      }
+    }
+  }
+
+  Rhat
+}
+
+#' Reshape a posterior array into a long-format tibble
+#'
+#' Internal helper feeding [plotTraceplot()]. Produces one row per draw per
+#' chain per parameter element.
+#'
+#' @param param_output A numeric array with 2, 3, or 4 dimensions.
+#' @param param_name A label for the parameter, stored in the `param` column.
+#' @param dimnames1 Optional labels for the first index dimension (e.g.
+#'   covariate names). Defaults to `1:dim1`.
+#' @param dimnames2 Optional labels for the second index dimension (e.g.
+#'   species names). Defaults to `1:dim2`.
+#'
+#' @return A tibble with columns `param`, `label1`, `label2`, `chain`, `iter`,
+#'   `value`.
+#' @noRd
+paramOutputToLong <- function(param_output, param_name = "parameter",
+                               dimnames1 = NULL, dimnames2 = NULL) {
+  param_output <- as4d(param_output)
+
+  dim1 <- dim(param_output)[1]
+  dim2 <- dim(param_output)[2]
+  niter <- dim(param_output)[3]
+  nchain <- dim(param_output)[4]
+
+  label1 <- if (!is.null(dimnames1)) dimnames1 else as.character(seq_len(dim1))
+  label2 <- if (!is.null(dimnames2)) dimnames2 else as.character(seq_len(dim2))
+
+  purrr::map_dfr(seq_len(dim1), function(x) {
+    purrr::map_dfr(seq_len(dim2), function(y) {
+      purrr::map_dfr(seq_len(nchain), function(ch) {
+        tibble::tibble(
+          param = param_name,
+          label1 = label1[x],
+          label2 = label2[y],
+          chain = factor(ch),
+          iter = seq_len(niter),
+          value = param_output[x, y, , ch]
+        )
+      })
+    })
+  })
+}
+
+#' Summarise a posterior array into a tidy diagnostics table
+#'
+#' Computes posterior mean, standard deviation, 95% credible interval,
+#' Rhat, and effective sample size for every element of a posterior array,
+#' pooling draws across chains for the summary statistics.
+#'
+#' @param param_output A numeric array with 2, 3, or 4 dimensions
+#'   (`[dim1, dim2, niter, nchain]`, or a 2- or 3-dimensional array missing
+#'   one or both of the leading index dimensions).
+#' @param param_name A label for the parameter, stored in the `param` column.
+#' @param dimnames1 Optional labels for the first index dimension (e.g.
+#'   covariate names). Defaults to `1:dim1`.
+#' @param dimnames2 Optional labels for the second index dimension (e.g.
+#'   species names). Defaults to `1:dim2`.
+#'
+#' @return A tibble with columns `param`, `idx1`, `idx2`, `label1`, `label2`,
+#'   `mean`, `sd`, `q2.5`, `q97.5`, `rhat`, `ess`.
+#' @export
+summarisePosterior <- function(param_output, param_name = "parameter",
+                                dimnames1 = NULL, dimnames2 = NULL) {
+  param_output <- as4d(param_output)
+
+  dim1 <- dim(param_output)[1]
+  dim2 <- dim(param_output)[2]
+
+  ess <- computeESSparams(param_output)
+  rhat <- computeRhat(param_output)
+
+  label1 <- if (!is.null(dimnames1)) dimnames1 else as.character(seq_len(dim1))
+  label2 <- if (!is.null(dimnames2)) dimnames2 else as.character(seq_len(dim2))
+
+  purrr::map_dfr(seq_len(dim1), function(x) {
+    purrr::map_dfr(seq_len(dim2), function(y) {
+      draws <- as.vector(param_output[x, y, , ])
+      tibble::tibble(
+        param = param_name,
+        idx1 = x,
+        idx2 = y,
+        label1 = label1[x],
+        label2 = label2[y],
+        mean = mean(draws),
+        sd = stats::sd(draws),
+        q2.5 = as.numeric(stats::quantile(draws, .025)),
+        q97.5 = as.numeric(stats::quantile(draws, .975)),
+        rhat = rhat[x, y],
+        ess = ess[x, y]
+      )
+    })
+  })
+}
+
+#' Plot MCMC trace plots for a posterior array
+#'
+#' Faceted per-chain trace plots for every element of a posterior array.
+#'
+#' @param param_output A numeric array with 2, 3, or 4 dimensions
+#'   (`[dim1, dim2, niter, nchain]`, or a 2- or 3-dimensional array missing
+#'   one or both of the leading index dimensions).
+#' @param param_name A label for the parameter, used for the y-axis title.
+#' @param dimnames1 Optional labels for the first index dimension (e.g.
+#'   covariate names). Defaults to `1:dim1`.
+#' @param dimnames2 Optional labels for the second index dimension (e.g.
+#'   species names). Defaults to `1:dim2`.
+#'
+#' @return A `ggplot` object.
+#' @export
+plotTraceplot <- function(param_output, param_name = "parameter",
+                           dimnames1 = NULL, dimnames2 = NULL) {
+  df <- paramOutputToLong(param_output, param_name, dimnames1, dimnames2)
+
+  facet_formula <- if (dplyr::n_distinct(df$label2) > 1) {
+    ggplot2::vars(label1, label2)
+  } else {
+    ggplot2::vars(label1)
+  }
+
+  ggplot2::ggplot(df, ggplot2::aes(x = iter, y = value, color = chain)) +
+    ggplot2::geom_line(alpha = .7) +
+    ggplot2::facet_wrap(facet_formula, scales = "free_y") +
+    ggplot2::labs(x = "Iteration", y = param_name, color = "Chain")
+}
+
+#' Assemble a tidy MCMC convergence diagnostics table for a fitted model
+#'
+#' Convenience wrapper around [summarisePosterior()] that assembles one
+#' tidy table across the main occupancy/detection coefficients of a fitted
+#' [runOccJSDM()] model: `beta0_psi`, `beta_psi`, `beta_theta`, `p`, `q`, and
+#' `theta0`. Components not present in `fitmodel$results_output` (e.g.
+#' `beta_theta`/`p`/`q` for a JSDM-only fit) are silently skipped.
+#'
+#' @param fitmodel A model object returned by [runOccJSDM()].
+#'
+#' @return A tibble with columns `param`, `idx1`, `idx2`, `label1`, `label2`,
+#'   `mean`, `sd`, `q2.5`, `q97.5`, `rhat`, `ess`, one row per parameter
+#'   element.
+#' @export
+returnConvergenceDiagnostics <- function(fitmodel) {
+  results_output <- fitmodel$results_output
+
+  speciesNames <- fitmodel$infos$speciesNames
+  psiCovNames <- colnames(fitmodel$X_psi)
+  thetaCovNames <- colnames(fitmodel$X_theta)
+  primerNames <- if (!is.null(fitmodel$infos$primerNames)) {
+    as.character(fitmodel$infos$primerNames)
+  } else {
+    NULL
+  }
+
+  pieces <- list()
+
+  if (!is.null(results_output$jsdm_output$B0_output)) {
+    pieces$beta0_psi <- summarisePosterior(
+      results_output$jsdm_output$B0_output,
+      param_name = "beta0_psi",
+      dimnames1 = speciesNames
+    )
+  }
+
+  if (!is.null(results_output$jsdm_output$B_output)) {
+    pieces$beta_psi <- summarisePosterior(
+      results_output$jsdm_output$B_output,
+      param_name = "beta_psi",
+      dimnames1 = psiCovNames,
+      dimnames2 = speciesNames
+    )
+  }
+
+  if (!is.null(results_output$beta_theta_output)) {
+    pieces$beta_theta <- summarisePosterior(
+      results_output$beta_theta_output,
+      param_name = "beta_theta",
+      dimnames1 = thetaCovNames,
+      dimnames2 = speciesNames
+    )
+  }
+
+  if (!is.null(results_output$p_output)) {
+    pieces$p <- summarisePosterior(
+      results_output$p_output,
+      param_name = "p",
+      dimnames1 = primerNames,
+      dimnames2 = speciesNames
+    )
+  }
+
+  if (!is.null(results_output$q_output)) {
+    pieces$q <- summarisePosterior(
+      results_output$q_output,
+      param_name = "q",
+      dimnames1 = primerNames,
+      dimnames2 = speciesNames
+    )
+  }
+
+  if (!is.null(results_output$theta0_output)) {
+    pieces$theta0 <- summarisePosterior(
+      results_output$theta0_output,
+      param_name = "theta0",
+      dimnames1 = speciesNames
+    )
+  }
+
+  dplyr::bind_rows(pieces)
+}
