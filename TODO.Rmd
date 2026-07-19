@@ -25,14 +25,10 @@ editor_options:
         explicitly, and either wire up the `traitsMatrix` argument or
         remove it from the signature.
 
-    5.  fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
-        introduced in `af5ebe3`): the newly added `ESS_beta0psi` matrix
-        (intended to hold ESS for the new `beta0_psi_output` intercept
-        term) is allocated but never populated -- the second loop still
-        fills `ESS_betapsi` from `beta_psi_output` instead of
-        `ESS_beta0psi` from `beta0_psi_output`. Fix the loop to
-        reference the correct variables, and add `ESS_beta0psi` to the
-        final `min()`.
+    5.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
+        introduced in `af5ebe3`)~~ -- **fixed**: `computeMinESS()` now
+        computes `ESS_beta0psi` from `beta0_psi_output` directly and
+        includes it in the final `min()`.
 
 2.  Doug to dos
 
