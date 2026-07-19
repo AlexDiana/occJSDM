@@ -418,6 +418,33 @@ strongly positive detection data, because the model assumes that field
 and lab practice were carried out well, so that false positive
 detections are assumed to always be weak.
 
+### Prediction at new sites
+
+We often want to use the fitted JSDM to predict species occupancies at
+new sites with known covariate values. For convenience, this example
+uses the same covariate values as the sites in the input dataset
+`sampledata.rda`.
+
+`predictNewSites()` returns a `quantile x site x species` array (`2.5%`,
+`50%`, `97.5%`), and an array command extracts any of the quantiles.
+
+```{r}
+site_rows <- !duplicated(data$info$Site)
+X_psi_new <- data$info[site_rows, c("X_psi.EnvCov.1","X_psi.EnvCov.2")]
+X_s_new <- data$info[site_rows, c("Xs.1","Xs.2")]
+
+predictions <- predictNewSites(fitmodel,
+                               X_psi_new,
+                               X_s_new,
+                               useEnvCov = T,
+                               useSpatial = T,
+                               useBiotic = T)
+
+predictions_median <- predictions[2, , ] # extract the median predictions
+```
+
+This function is still under active development.
+
 ### Ordination
 
 `occJSDM` predicts species occupancies by calculating site factors and
@@ -773,21 +800,6 @@ plotTraceplot(p_primer1_output,
 ```
 
 Again, mixing looks good across all 10 species for primer 1.
-
-### Prediction at new sites
-
-```{r}
-# these are the original ones
-X_psi_new <- data$info[, c("X_psi.EnvCov.1","X_psi.EnvCov.2")]
-X_s_new <- data$info[, c("Xs.1","Xs.2")]
-
-predictions <- predictNewSites(fitmodel,
-                X_psi_new,
-                X_s_new,
-                useEnvCov = T,
-                useSpatial = T,
-                useBiotic = T)
-```
 
 ### References
 
