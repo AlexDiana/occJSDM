@@ -29,6 +29,8 @@ runOccJSDM(
   \item{OTU}{A matrix of dimension (N x S), where N is
   \code{nrow(data$info)} and S is the number of species, containing the
   number of reads of each species in each observation.}
+  \item{traits}{(Optional) species (rows) by trait (columns) matrix of
+species traits, matched to \code{colnames(data$OTU)} by row name. }
 }}
 
 \item{listParams}{(Optional) list of model-size hyperparameters:
@@ -61,12 +63,6 @@ Names should match column names in \code{data$info}.}
 coordinate columns used to fit a spatially autocorrelated random field
 over occupancy. Names should match column names in \code{data$info}. If
 omitted, no spatial field is fit.}
-
-\item{traitsMatrix}{(Optional) species (rows) by trait (columns) matrix of
-species traits, matched to \code{colnames(data$OTU)} by row name. This
-function argument itself is currently unused; instead, pass the matrix as
-\code{data$traitsMatrix} (see the vignette). If \code{data$traitsMatrix}
-is \code{NULL}, no trait effects are fit.}
 
 \item{MCMCparams}{(Optional) list of MCMC settings: \code{nchain} (number
 of chains), \code{nburn} (number of burn-in iterations to discard),
@@ -128,17 +124,6 @@ observations per \code{Site} (and, within a \code{Site}, per
 JSDM data, classical (one-stage) occupancy data, or two-stage (eDNA-style)
 occupancy/detection data. A message is printed describing which model was
 inferred -- check that it matches expectations for your data.
-}
-\note{
-The traits-reading code checks \code{data$traits} rather than
-\code{data$traitsMatrix} or the \code{traitsMatrix} argument. This
-currently works because R's \code{$} operator partially matches list
-names, and \code{traitsMatrix} is the only element of \code{data} whose
-name starts with \code{"traits"} -- but it is fragile (e.g. it would
-break or silently return \code{NULL} if \code{data} ever gained another
-element starting with \code{"traits"}, or if
-\code{options(warnPartialMatchDollar = TRUE)} were set). Consider fixing
-the source to reference \code{data$traitsMatrix} explicitly.
 }
 \examples{
 \dontrun{

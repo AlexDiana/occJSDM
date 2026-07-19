@@ -13,6 +13,7 @@ Package documentation.
 
 Authors:
 \itemize{
+  \item Alex Diana \email{Alex.diana92@yahoo.it}
   \item Douglas W. Yu \email{dougwyu@mac.com}
 }
 

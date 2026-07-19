@@ -8,6 +8,7 @@ outputs/caiwang_results.rda
 src/*.o
 src/*.so
 src/*.dll
+src/*.dylib
 data/data_out_env_trait.rdata
 analysis/analysis.R
 data/sampledata_orig.rda
