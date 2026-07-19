@@ -88,8 +88,13 @@ editor_options:
 
 2.  Doug to dos
 
-    1.  purge `data/traitdata_caiwang.rdata` from git history (need to
-        coordinate with Alex because he will need to re-clone)
+    1.  ~~purge `data/traitdata_caiwang.rdata` from git history (need to
+        coordinate with Alex because he will need to re-clone)~~ --
+        **done**: purged via `git filter-repo` and force-pushed the
+        rewritten `main` history to `origin` (`AlexDiana/occJSDM`). All
+        commit hashes from `11c5449` onward changed as a result --
+        **Alex needs to re-clone or hard-reset** his local copy, since
+        his existing history is now divergent.
 
     2.  ~~model diagnostics functions from GLGS-eDNA repo~~ -- **done**:
         `computeRhat()`, `summarisePosterior()`, `plotTraceplot()`, and
