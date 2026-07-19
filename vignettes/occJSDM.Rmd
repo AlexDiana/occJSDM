@@ -713,4 +713,3 @@ Macher, J.-N. (2025). **Metacommunity Theory and Metabarcoding Reveal
 the Environmental, Spatial and Biotic Drivers of Meiofaunal Communities
 in Sandy Beaches**. *Molecular Ecology*, *34*(8), e17733.
 <https://doi.org/10.1111/mec.17733>
-
