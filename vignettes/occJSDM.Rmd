@@ -552,13 +552,13 @@ occupancy estimates.
 
 # X_psi_new <- data$info[, c("X_psi.EnvCov.1","X_psi.EnvCov.2","X_psi.EnvCov.3")]
 # X_s_new <- data$info[, c("Xs.1","Xs.2")]
-# 
+#
 # predictNewSites(fitModel,
 #                 X_psi_new,
 #                 X_s_new,
 # X_psi <- fitmodel$X_psi
 # X_s <- fitmodel$X_s
-# 
+#
 # predictNewSites(fitmodel,
 #                 X_psi,
 #                 X_s,
