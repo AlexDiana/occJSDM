@@ -6,34 +6,103 @@ get_param <- function(params, key, default = 0) {
   }
 }
 
-process_covariates <- function(data_info, covariates, group_by_col, n_obs,
-                               remove_intercept = FALSE) {
+transformCovariatesMatrix <- function(df, list_matrix, remove_intercept){
 
-  # If no covariates provided, return default matrix
-  if (length(covariates) == 0) {
-    if (!remove_intercept) {
-      return(matrix(1, n_obs, 1))
-    } else {
-      return(matrix(0, n_obs, 0))
+  names_df <- list_matrix$names_df
+  mean_df <- list_matrix$mean_df
+  sd_df <- list_matrix$sd_df
+  cat_levels <- list_matrix$cat_levels
+  is_numeric <- list_matrix$is_numeric
+
+  if(any(is.na(df))) stop("NA in covariates matrix")
+
+  # missing columns
+  missing_cols <- setdiff(names_df, colnames(df))
+  if (length(missing_cols) > 0) {
+    stop(paste("New data is missing critical columns required by the model:",
+               paste(missing_cols, collapse = ", ")))
+  }
+
+  # sort the new data and convert non numeric to
+  df <- df[,names_df,drop=F] %>%
+    dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor))
+
+  # standardise numerical and categorical
+  for (col in 1:ncol(df)) {
+    if(is_numeric[col]){
+
+      df[,col] <- (df[,col] - mean_df[col]) / sd_df[col]
+
+    }else{
+
+      levels(df[,col]) <- cat_levels[[col]]
+
     }
   }
 
-  # Process the covariates
-  result <- data_info %>%
-    dplyr::group_by(!!rlang::sym(group_by_col)) %>%
-    dplyr::summarise(dplyr::across(dplyr::all_of(covariates), ~ dplyr::first(.x))) %>%
-    dplyr::select(-dplyr::all_of(group_by_col)) %>%
-    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), scale)) %>%
-    dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
-    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ ifelse(is.na(.), 0, .))) %>%
-    stats::model.matrix(~., .)
+  df <- stats::model.matrix(~., df)
 
   # Remove intercept if requested (first column is always intercept)
   if (remove_intercept) {
-    result <- result[, -1, drop = FALSE]
+    df <- df[, -1, drop = FALSE]
   }
 
-  return(result)
+  return(df)
+
+}
+
+process_covariates <- function(data_info, covariates, group_by_col, n_obs,
+                               remove_intercept = FALSE) {
+
+  if (length(covariates) > 0) {
+
+  # Process the covariates
+  df <- data_info %>%
+    dplyr::group_by(!!rlang::sym(group_by_col)) %>%
+    dplyr::summarise(dplyr::across(dplyr::all_of(covariates), ~ dplyr::first(.x))) %>%
+    dplyr::select(-dplyr::all_of(group_by_col)) %>%
+    dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor))
+
+  is_numeric <- sapply(df, is.numeric)
+
+  names_df <- colnames(df)
+
+  means_df <- sapply(df, function(x) if(is.numeric(x)) mean(x, na.rm = TRUE) else NA)
+  sd_df   <- sapply(df, function(x) if(is.numeric(x)) sd(x, na.rm = TRUE) else NA)
+
+  cat_levels <- list()
+  for (col in 1:ncol(df)) {
+    if(is_numeric[col]){
+      cat_levels[[col]] <- NA
+    }else{
+      cat_levels[[col]] <- levels(as.factor(df[[col]]))
+    }
+  }
+
+  list_matrix <- list(
+    "names_df" = names_df,
+    "mean_df" = means_df,
+    "sd_df" = sd_df,
+    "cat_levels" = cat_levels,
+    "is_numeric" = is_numeric
+  )
+
+  out_matrix <- transformCovariatesMatrix(df, list_matrix, remove_intercept)
+
+  } else {
+
+    if (!remove_intercept) {
+      out_matrix <- (matrix(1, n_obs, 1))
+    } else {
+      out_matrix <- (matrix(0, n_obs, 0))
+    }
+
+    list_matrix <- NULL
+  }
+
+  list("df" = out_matrix,
+       "list_matrix" = list_matrix)
+
 }
 
 createDataIdx <- function(n, M, P, K, twostage){
@@ -355,9 +424,9 @@ runOccJSDM <- function(data,
   {
     # listParams = list(n_factors = 3)
     # threshold = 1
-    # occCovariates = NULL
+    # occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2", "X_psi.EnvCov.3")
     # collCovariates = NULL
-    # spatCovariates <- NULL
+    # spatCovariates <- c("Xs.1","Xs.2")
     # MCMCparams = list(nchain = 2,
     #                   nburn = 500,
     #                   niter = 500)
@@ -437,6 +506,10 @@ runOccJSDM <- function(data,
     if(is.null(occCovariates)) occCovariates <- c()
     if(is.null(collCovariates)) collCovariates <- c()
     if(is.null(spatCovariates)) spatCovariates <- c()
+
+    if(!all(sapply(data_info[,spatCovariates], is.numeric))) {
+      stop("Non numeric columns in spatial covariates")
+    }
 
     if(!all(c(occCovariates, collCovariates, spatCovariates) %in% colnames(data$info))){
       stop("Covariate names provided not in data$info")
@@ -529,6 +602,8 @@ runOccJSDM <- function(data,
 
         N2 <- maxP * N
 
+      } else {
+        primerNames <- NULL
       }
     }
 
@@ -560,6 +635,8 @@ runOccJSDM <- function(data,
       idx_z_p <- list_idx$idx_z_p
       idx_w_k <- list_idx$idx_w_k
       idx_p_k <- list_idx$idx_p_k
+    } else {
+      list_idx <- NULL
     }
 
   }
@@ -569,28 +646,30 @@ runOccJSDM <- function(data,
 
     # For occupancy covariates (group by Site, includes intercept)
     {
-      X_psi <- process_covariates(data_info, occCovariates, "Site", n,
+      list_X_psi <- process_covariates(data_info, occCovariates, "Site", n,
                                   remove_intercept = TRUE)
-
-      list_Xpsi_standardised <- standardiseCovMatrix(X_psi)
-      X_psi <- list_Xpsi_standardised$X
+      X_psi <- list_X_psi$df
+      list_Xpsi_mat <- list_X_psi$list_matrix
     }
 
     # For the spatial field
     {
-      Xs <- process_covariates(data_info, spatCovariates, "Site", n,
+      list_Xs <- process_covariates(data_info, spatCovariates, "Site", n,
                                remove_intercept = TRUE)
-      list_Xs_standardised <- standardiseCovMatrix(Xs)
-      Xs <- list_Xs_standardised$X
+      Xs <- list_Xs$df
+      list_Xs_mat <- list_Xs$list_matrix
     }
 
     # For collection covariates (group by Sample, includes intercept)
     {
       if(model %in% c("occupancy","two_stage")){
-        X_theta <- process_covariates(data_info, collCovariates, "Sample", N,
+        list_X_theta <- process_covariates(data_info, collCovariates, "Sample", N,
                                       remove_intercept = FALSE)
+        X_theta <- list_X_theta$df
+        list_X_theta_mat <- list_X_theta$list_matrix
       } else {
         X_theta <- NULL
+        list_X_theta_mat <- NULL
       }
     }
 
@@ -629,7 +708,8 @@ runOccJSDM <- function(data,
       d <- ncol(OTU)
     }
 
-    gt <- get_param(listParams, "n_lattrait", 2)
+    gt_default <- floor(sqrt(min(S, ncov_psi)))
+    gt <- get_param(listParams, "n_lattrait", gt_default)
 
     if(ncol(Xs) > 0){
       ns <- nrow(unique(Xs))
@@ -690,24 +770,23 @@ runOccJSDM <- function(data,
       if(summarisedLatentPresences){
         z_output_mean <- matrix(0, n, S)
         psi_output_mean <- matrix(0, n, S)
-        theta_output_mean <- matrix(0, N, S)
       } else {
         z_output <- array(NA, dim = c(n, S, niter, nchain))
         psi_output <- array(NA, dim = c(n, S, niter, nchain))
-        theta_output <- array(NA, dim = c(N, S, niter, nchain))
       }
+      theta_output_mean <- matrix(0, N, S)
+
     } else {
       beta_theta_output <- NULL
       theta0_output <- NULL
       if(summarisedLatentPresences){
         z_output_mean <- NULL
         psi_output_mean <- NULL
-        theta_output_mean <- NULL
       } else {
         z_output <- NULL
         psi_output <- NULL
-        theta_output <- NULL
       }
+      theta_output_mean <- NULL
 
     }
 
@@ -723,12 +802,7 @@ runOccJSDM <- function(data,
     } else {
       p_output <- NULL
       q_output <- NULL
-
-      if(summarisedLatentPresences){
-        w_output_mean <- NULL
-      } else {
-        w_output <- NULL
-      }
+      w_output_mean <- NULL
     }
 
     # jsdm params
@@ -748,6 +822,8 @@ runOccJSDM <- function(data,
       tau_output <- array(NA, dim = c(S, niter, nchain))
       sigmab_output <- array(NA, dim = c(niter, nchain))
       sigmabs_output <- array(NA, dim = c(niter, nchain))
+      sigmah_output <- array(NA, dim = c(niter, nchain))
+      idx_ls_output <- array(NA, dim = c(niter, nchain))
       varPart_output <- array(NA, dim = c(S, 4, niter, nchain))
     }
 
@@ -845,6 +921,8 @@ runOccJSDM <- function(data,
         L_output_chain <- array(NA, dim = c(d, S, niter))
         sigmab_output_chain <- rep(NA, niter)
         sigmabs_output_chain <- rep(NA, niter)
+        sigmah_output_chain <- rep(NA, niter)
+        idx_ls_output_chain <- rep(NA, niter)
         tau_output_chain <- matrix(NA, S, niter)
         varPart_output_chain <-  array(NA, dim = c(S, 4, niter))
       }
@@ -920,6 +998,7 @@ runOccJSDM <- function(data,
         U <- matrix(0, n, d)
         sigma_b <- 1
         sigma_bs <- .001
+        sigma_h <- 1
         idx_ls <- 3 # dim(list_SoRSummaries$Ks_all)[3][5]
         tau <- rep(1, S)
 
@@ -944,6 +1023,7 @@ runOccJSDM <- function(data,
           "L" = L,
           "sigma_b" = sigma_b,
           "sigma_bs" = sigma_bs,
+          "sigma_h" = sigma_h,
           "idx_ls" = idx_ls,
           "tau" = tau
         )
@@ -1050,24 +1130,19 @@ runOccJSDM <- function(data,
                 (1 / (niter * nchain)) * z
               psi_output_mean <- psi_output_mean +
                 (1 / (niter * nchain)) * psi
-              theta_output_mean <- theta_output_mean +
-                (1 / (niter * nchain)) * theta
             } else {
               z_output_chain[,,currentIter] <- z
               psi_output_chain[,,currentIter] <- psi
-              theta_output_chain[,,currentIter] <- theta
             }
+            theta_output_mean <- theta_output_mean +
+              (1 / (niter * nchain)) * theta
           }
 
           if(model == "two_stage"){
             p_output_chain[,,currentIter] <- p
             q_output_chain[,,currentIter] <- q
-            if(summarisedLatentPresences){
-              w_output_mean <- w_output_mean +
-                (1 / (niter * nchain)) * w
-            } else {
-              w_output_chain[,,currentIter] <- w
-            }
+            w_output_mean <- w_output_mean +
+              (1 / (niter * nchain)) * w
           }
 
           # save jsdm params
@@ -1085,6 +1160,7 @@ runOccJSDM <- function(data,
             L_output_chain[,,currentIter] <- list_jSDMparams$L
             sigmab_output_chain[currentIter] <- list_jSDMparams$sigma_b
             sigmabs_output_chain[currentIter] <- list_jSDMparams$sigma_bs
+            idx_ls_output_chain[currentIter] <- list_jSDMparams$idx_ls
 
             varPart_output_chain[,,currentIter] <-
               as.matrix(list_jSDMparams$variancePartitioning)
@@ -1092,8 +1168,6 @@ runOccJSDM <- function(data,
 
           # update WIAC
           {
-            # TODO(check speed of this)
-
             loglik_jsdm <- computeModelLoglikJSDM_cpp(z, eta, jsdmModel, tau)
             list_waic_jsdm <- update_waic_summary(loglik_jsdm, list_waic_jsdm, iter)
 
@@ -1124,16 +1198,12 @@ runOccJSDM <- function(data,
       if(!summarisedLatentPresences){
         z_output[,,,chain] <- z_output_chain
         psi_output[,,,chain] <- psi_output_chain
-        theta_output[,,,chain] <- theta_output_chain
       }
     }
 
     if(model == "two_stage"){
       p_output[,,,chain] <- p_output_chain
       q_output[,,,chain] <- q_output_chain
-      if(!summarisedLatentPresences){
-        w_output[,,,chain] <- w_output_chain
-      }
     }
 
     # save jsdm params
@@ -1151,8 +1221,11 @@ runOccJSDM <- function(data,
       L_output[,,,chain] <- L_output_chain
       sigmab_output[,chain] <- sigmab_output_chain
       sigmabs_output[,chain] <- sigmabs_output_chain
+      sigmah_output[,chain] <- sigmah_output_chain
+      idx_ls_output[,chain] <- idx_ls_output_chain
       varPart_output[,,,chain] <- varPart_output_chain
       tau_output[,,chain] <- tau_output_chain
+
     }
 
   }
@@ -1196,7 +1269,6 @@ runOccJSDM <- function(data,
 
   }
 
-
   jsdm_results_output <- list(
     "B0_output" = B0_output,
     "B_output" = B_output,
@@ -1211,6 +1283,8 @@ runOccJSDM <- function(data,
     "L_output" = L_output,
     "sigmab_output" = sigmab_output,
     "sigmabs_output" = sigmabs_output,
+    "sigmah_output" = sigmah_output,
+    "idx_ls_output" = idx_ls_output,
     "varPart_output" = varPart_output,
     "tau_output" = tau_output
   )
@@ -1226,20 +1300,19 @@ runOccJSDM <- function(data,
 
   if(summarisedLatentPresences){
     results_output$z_output <- z_output_mean
-    results_output$w_output <- w_output_mean
+
     results_output$psi_output <- psi_output_mean
-    results_output$theta_output <- theta_output_mean
   } else {
     results_output$z_output <- z_output
-    results_output$w_output <- w_output
     results_output$psi_output <- psi_output
-    results_output$theta_output <- theta_output
   }
+  results_output$w_output <- w_output_mean
+  results_output$theta_output <- theta_output_mean
 
   minESS <- computeMinESS(results_output)
 
   if(minESS < 50) {
-    print(paste0("Minimum effective sample size equal to ", minESS,", please rerun with more iterations"))
+    print(paste0("Minimum effective sample size equal to ", round(minESS),", please rerun with more iterations"))
   }
 
   infos <- list(
@@ -1248,7 +1321,7 @@ runOccJSDM <- function(data,
     "M" = M,
     "n" = n,
     "K" = K,
-    "jsdmModel" = jsdmModel,
+    "ps" = ps,
     "n_factors" = d,
     "list_idx" = list_idx,
     "data_info" = data_info,
@@ -1258,9 +1331,13 @@ runOccJSDM <- function(data,
     "ncov_theta" = ncov_theta,
     "ncov_psi" = ncov_psi,
     "OTU" = OTU,
-    "Xpsi_standardised" = list_Xpsi_standardised,
-    "Xs_standardised" = list_Xs_standardised,
-    "model" = model
+    "list_Xs" = list_Xs,
+    "list_X_psi_mat" = list_Xpsi_mat,
+    "list_Xs_mat" = list_Xs_mat,
+    "list_X_theta_mat" = list_X_theta_mat,
+    "l_s_grid" = l_s_grid,
+    "model" = model,
+    "jsdmModel" = jsdmModel
   )
 
   list(
@@ -1268,7 +1345,7 @@ runOccJSDM <- function(data,
     "infos" = infos,
     "Tr" = Tr,
     "X_theta" = X_theta,
-    "X_s" = X_s,
+    "Xs" = Xs,
     "X_psi" = X_psi)
 
 }

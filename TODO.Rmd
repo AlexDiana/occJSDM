@@ -12,17 +12,9 @@ editor_options:
 
 1.  Alex to dos
 
-    1.  ordination plot and table to generate ordination plots in
-        ggplot2 (site factor scores and species loading scores, so that
-        users can generate their own ordinations with ggplot2)
-
+ 
     2.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed
         sites
-
-    3.  fix scalar `p`/`q` indexing bug in `simulateOccJSDMData()`:
-        `list_params$p` and `list_params$q` are scalars but the function
-        body indexes them as matrices (`p_true[idx_p_k[i], s]`). Need to
-        expand to `matrix(p, nrow = P, ncol = S)` before use.
 
     4.  fix trait-reading code in `runOccJSDM()`: it checks
         `data$traits`, not `data$traitsMatrix` or the unused
@@ -63,15 +55,11 @@ editor_options:
 
     2.  GAMs for JSDM
 
-    3.  calculate `gt` automatically from number of species, number of
-        measured traits, and let people know that if they want to change
-        `gt`, they can.
+    3.  ability to analyse count data
 
-    4.  ability to analyse count data
+    4.  `plotCumulativeSpeciesDetections()` for different values of M.
 
-    5.  `plotCumulativeSpeciesDetections()` for different values of M.
-
-    6.  scenario for source-sink inference (sites where env covariate
+    5.  scenario for source-sink inference (sites where env covariate
         coeffcients are negative but spatial covariate coefficients are
         positive), using an explicit source-sink simulation
 

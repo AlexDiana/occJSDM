@@ -305,6 +305,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// computeNewOutputs
+arma::cube computeNewOutputs(const arma::mat& X, const arma::mat& B0_output, const arma::cube& B_output, const arma::cube& Ks_all, const arma::cube& Bs_output, const arma::cube& L_output, const arma::vec sigmah_output, const arma::vec idx_ls_output, const arma::vec& conflevels, bool useEnvCov, bool useSpatial, bool useBiotic, std::string model);
+RcppExport SEXP _occJSDM_computeNewOutputs(SEXP XSEXP, SEXP B0_outputSEXP, SEXP B_outputSEXP, SEXP Ks_allSEXP, SEXP Bs_outputSEXP, SEXP L_outputSEXP, SEXP sigmah_outputSEXP, SEXP idx_ls_outputSEXP, SEXP conflevelsSEXP, SEXP useEnvCovSEXP, SEXP useSpatialSEXP, SEXP useBioticSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type B0_output(B0_outputSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type B_output(B_outputSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type Ks_all(Ks_allSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type Bs_output(Bs_outputSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type L_output(L_outputSEXP);
+    Rcpp::traits::input_parameter< const arma::vec >::type sigmah_output(sigmah_outputSEXP);
+    Rcpp::traits::input_parameter< const arma::vec >::type idx_ls_output(idx_ls_outputSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type conflevels(conflevelsSEXP);
+    Rcpp::traits::input_parameter< bool >::type useEnvCov(useEnvCovSEXP);
+    Rcpp::traits::input_parameter< bool >::type useSpatial(useSpatialSEXP);
+    Rcpp::traits::input_parameter< bool >::type useBiotic(useBioticSEXP);
+    Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(computeNewOutputs(X, B0_output, B_output, Ks_all, Bs_output, L_output, sigmah_output, idx_ls_output, conflevels, useEnvCov, useSpatial, useBiotic, model));
+    return rcpp_result_gen;
+END_RCPP
+}
 // convert_to_correlation
 arma::cube convert_to_correlation(arma::cube L_output_vec, int niter, int S, int d);
 RcppExport SEXP _occJSDM_convert_to_correlation(SEXP L_output_vecSEXP, SEXP niterSEXP, SEXP SSEXP, SEXP dSEXP) {
@@ -458,6 +481,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_occJSDM_K", (DL_FUNC) &_occJSDM_K, 4},
     {"_occJSDM_K2", (DL_FUNC) &_occJSDM_K2, 4},
     {"_occJSDM_samplePGvariables", (DL_FUNC) &_occJSDM_samplePGvariables, 1},
+    {"_occJSDM_computeNewOutputs", (DL_FUNC) &_occJSDM_computeNewOutputs, 13},
     {"_occJSDM_convert_to_correlation", (DL_FUNC) &_occJSDM_convert_to_correlation, 4},
     {"_occJSDM_sampleBuniv", (DL_FUNC) &_occJSDM_sampleBuniv, 5},
     {"_occJSDM_sampleB", (DL_FUNC) &_occJSDM_sampleB, 5},

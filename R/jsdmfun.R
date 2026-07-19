@@ -281,24 +281,18 @@ createSplinesMatrix <- function(list_ns, X_new){
 
 getDefaultSupportPoints <- function(n) max(30, floor(n * 0.2))
 
-standardiseCovMatrix <- function(X){
-
-  meanX <- apply(X, 2, mean)
-  sdX <- apply(X, 2, sd)
-
-  X_scaled <- scale(X)
-
-  list("X" = X_scaled,
-       "meanX" = meanX,
-       "sdX" = sdX)
-
-}
-
-transformCoefficients <- function(B0_output, B_output, meanX, sdX){
-
-
-
-}
+# standardiseCovMatrix <- function(X){
+#
+#   meanX <- apply(X, 2, mean)
+#   sdX <- apply(X, 2, sd)
+#
+#   X_scaled <- scale(X)
+#
+#   list("X" = X_scaled,
+#        "meanX" = meanX,
+#        "sdX" = sdX)
+#
+# }
 
 # DATA SIMULATION -------
 
@@ -915,6 +909,7 @@ update_jSDMcoef <- function(list_data,
     L <- list_params$L
     sigma_b <- list_params$sigma_b
     sigma_bs <- list_params$sigma_bs
+    sigma_h <- list_params$sigma_h
     idx_ls <- list_params$idx_ls
     tau <- list_params$tau
 
@@ -1076,6 +1071,7 @@ update_jSDMcoef <- function(list_data,
    "L" = L,
    "sigma_b" = sigma_b,
    "sigma_bs" = sigma_bs,
+   "sigma_h" = sigma_h,
    "idx_ls" = idx_ls,
    "tau" = tau,
    "eta" = eta,
@@ -1661,13 +1657,15 @@ returnFactorScores <- function(jsdm_output,
                            function(x){quantile(x, probs = conflevels)})
 
   U_output_quantiles
+
 }
 
 plotFactorScores <- function(jsdm_output,
                              idx_factors,
-                             siteNames){
+                             siteNames,
+                             confidence = .95){
 
-  factorScoresOutput <- returnFactorScores(jsdm_output)
+  factorScoresOutput <- returnFactorScores(jsdm_output, confidence)
 
   if(length(idx_factors) != 2) {
     stop("Two factors can be used in this plot")
@@ -1684,17 +1682,90 @@ plotFactorScores <- function(jsdm_output,
 
   variability <- sqrt((x_upper - x_lower)^2 + (y_upper - y_lower)^2)
 
+  w_x <- x_upper - x_lower
+  w_y <- y_upper - y_lower
+
   plot_data <- data.frame(
     x = x_coords,
     y = y_coords,
     variability = variability,
-    r = variability / 2,
+    r = sqrt((w_x * w_y) / pi),
     name = siteNames
   )
 
   p <- ggplot(plot_data, aes(x = x, y = y)) +
     # geom_point(aes(size = variability), alpha = 0.6, color = "darkblue") +
-    geom_circle(aes(x0 = x, y0 = y, r = r),
+    ggforce::geom_circle(aes(x0 = x, y0 = y, r = r),
+                fill = "darkblue", alpha = 0.2, color = "darkblue") +
+    # geom_text_repel(
+    geom_text(
+      aes(label = name),
+      size = 3.5            # Size of the text font
+      # max.overlaps = 20,     # Adjusts how many overlaps it tolerates before hiding some
+      # box.padding = 0.3      # Space around the text box
+    ) +
+    scale_size_area(max_size = 8, name = "Standard Deviation") +
+    theme_minimal() +
+    theme(legend.position = "none") +
+    labs(
+      x = paste0("Factor ",idx_factors[1]),
+      y = paste0("Factor ",idx_factors[2])
+    )
+
+  p
+}
+
+returnFactorLoadings_jsdm <- function(jsdm_output,
+                               confidence = .95){
+
+  L_output <- jsdm_output$L_output
+  L_output_vec <- apply(L_output, c(1,2), c)
+
+  conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+
+  L_output_quantiles <- apply(L_output_vec, c(2,3),
+                           function(x){quantile(x, probs = conflevels)})
+
+  L_output_quantiles
+
+}
+
+plotFactorLoadings_jsdm <- function(jsdm_output,
+                                    idx_factors,
+                                    speciesNames,
+                                    confidence = .95){
+
+  factorLoadingsOutput <- returnFactorLoadings_jsdm(jsdm_output, confidence)
+
+  if(length(idx_factors) != 2) {
+    stop("Two factors can be used in this plot")
+  }
+
+  factorLoadingsOutput <- factorLoadingsOutput[,idx_factors,]
+
+  x_coords <- factorLoadingsOutput[2, 1, ]
+  y_coords <- factorLoadingsOutput[2, 2, ]
+  x_lower <- factorLoadingsOutput[1, 1, ]
+  y_lower <- factorLoadingsOutput[1, 2, ]
+  x_upper <- factorLoadingsOutput[3, 1, ]
+  y_upper <- factorLoadingsOutput[3, 2, ]
+
+  variability <- sqrt((x_upper - x_lower)^2 + (y_upper - y_lower)^2)
+
+  w_x <- x_upper - x_lower
+  w_y <- y_upper - y_lower
+
+  plot_data <- data.frame(
+    x = x_coords,
+    y = y_coords,
+    variability = variability,
+    r = sqrt((w_x * w_y) / pi),
+    name = speciesNames
+  )
+
+  p <- ggplot(plot_data, aes(x = x, y = y)) +
+    # geom_point(aes(size = variability), alpha = 0.6, color = "darkblue") +
+    ggforce::geom_circle(aes(x0 = x, y0 = y, r = r),
                 fill = "darkblue", alpha = 0.2, color = "darkblue") +
     # geom_text_repel(
     geom_text(

@@ -4,12 +4,7 @@
 \alias{simulateOccJSDMData}
 \title{simulateOccJSDMData}
 \usage{
-simulateOccJSDMData(
-  list_datasettings,
-  list_params,
-  list_jsdmParams,
-  useSpatField = FALSE
-)
+simulateOccJSDMData(list_datasettings, list_params, list_jsdmParams, model)
 }
 \arguments{
 \item{list_datasettings}{List of data dimension settings (n, S, g, M, P, K,
@@ -24,22 +19,16 @@ omitted these default to `mu1 = 5`, `sigma1 = 1`, `mu0 = 1.5`,
 \item{list_jsdmParams}{List of JSDM parameters (gt, d, ds, sigma_b, sigma_bs,
 sigma_ts, sigma_h, l_s).}
 
-\item{useSpatField}{Logical. If `TRUE`, simulated occupancy incorporates a
-spatially autocorrelated random field over the site coordinates `Xs`
-(using `ds` latent spatial factors and length scale `l_s`). If `FALSE`
-(the default), site coordinates are still simulated and returned but do
-not influence occupancy.}
+\item{model}{Supported data formats are "binary","continuous","occupancy"
+and "two_stage"}
 }
 \value{
-Description of the return value (e.g., a list, data frame, or numeric output).
+A list with simulated data and true parameters.
 }
 \description{
-Simulate data
+Simulate data for any supported model type
 }
 \details{
-Simulate data. `data_list$y` contains simulated read counts (matching the
-`threshold = 0` mode of `runOccJSDM()`), rather than binary detections:
-for a true detection, `log(y + 1) ~ Normal(mu1, sigma1)`; for a
-false-positive/contamination detection, `log(y + 1) ~ Normal(mu0, sigma0)`;
-otherwise `y = 0`. The realised counts are `round(exp(log(y + 1)) - 1)`.
+General-purpose simulation function that supports multiple model types.
+For two-stage eDNA data specifically, use \code{\link{simulateOccJSDMData}}.
 }

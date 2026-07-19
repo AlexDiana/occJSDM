@@ -447,7 +447,7 @@ double quantile(arma::vec x, double p) {
   return (1.0 - g) * x(j) + g * x(j + 1);
 }
 
-// // [[Rcpp::export]]
+// [[Rcpp::export]]
 arma::cube computeNewOutputs(
     const arma::mat& X,
     const arma::mat& B0_output,
@@ -458,6 +458,9 @@ arma::cube computeNewOutputs(
     const arma::vec sigmah_output,
     const arma::vec idx_ls_output,
     const arma::vec& conflevels,
+    bool useEnvCov,
+    bool useSpatial,
+    bool useBiotic,
     std::string model)
 {
 
@@ -484,7 +487,21 @@ arma::cube computeNewOutputs(
       arma::mat U = arma::randn(n, d) * sigmah_output[iter];
       arma::vec L = L_output.slice(iter).col(j);
 
-      arma::vec linpred = B0_output(j, iter) + X * B + Ks * Bs + U * L;
+      arma::vec linpred(n, arma::fill::value(B0_output(j, iter)));
+      // arma::vec linpred = B0_output(j, iter) + X * B + Ks * Bs + U * L;
+
+      if(useEnvCov){
+        linpred = linpred + X * B;
+      }
+
+      if(useSpatial){
+        linpred = linpred + Ks * Bs;
+      }
+
+      if(useEnvCov){
+        linpred = linpred + U * L;
+      }
+
 
       if(model == "continuous"){
         mcmc_output.col(iter) = linpred;

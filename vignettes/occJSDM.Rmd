@@ -382,6 +382,18 @@ strongly positive detection data, because the model assumes that field
 and lab practice were carried out well, so that false positive
 detections are assumed to always be weak.
 
+### Ordination
+
+Check the help of this function for info
+
+```{r}
+returnOrdinationScores(fitmodel)
+plotOrdinationScores(fitmodel)
+
+returnFactorLoadings(fitmodel)
+plotFactorLoadings(fitmodel)
+```
+
 ### Residual correlation matrix
 
 We can plot the posterior median of the *residual* correlation matrix,
@@ -532,6 +544,23 @@ and also to try to diagnose the reasons underlying a given species'
 occupancy estimates.
 
 ![](images/latentPresences_example.png)
+
+### Prediction at new sites
+
+```{r}
+# these are the original ones but we can use the old ones
+X_psi <- fitModel$X_psi
+X_s <- fitModel$X_s
+
+predictNewSites(fitModel,
+                X_psi,
+                X_s,
+                useEnvCov = T,
+                useSpatial = T,
+                useBiotic = T)
+```
+
+
 
 ### References
 

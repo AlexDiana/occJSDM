@@ -3,6 +3,7 @@ inst/doc
 /doc/
 /Meta/
 /dev/
+/deprecated/
 outputs/caiwang_results.rda
 src/*.o
 src/*.so
@@ -13,4 +14,3 @@ data/data_todoug_20260714.csv
 data/CaiWang_data/
 data/traitdata_caiwang.rdata
 traitdata_caiwang.rdata
-deprecated/analysis/

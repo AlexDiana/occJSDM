@@ -9,7 +9,13 @@
 Package documentation.
 }
 \author{
-\strong{Maintainer}: Alex Diana \email{ad23269@essex.ac.uk}
+\strong{Maintainer}: Alex Diana \email{Alex.diana92@yahoo.it}
+
+Authors:
+\itemize{
+  \item Alex Diana \email{Alex.diana92@yahoo.it}
+  \item Douglas W. Yu \email{dougwyu@mac.com}
+}
 
 }
 \keyword{internal}

@@ -77,6 +77,10 @@ samplePGvariables <- function(Xbeta) {
     .Call(`_occJSDM_samplePGvariables`, Xbeta)
 }
 
+computeNewOutputs <- function(X, B0_output, B_output, Ks_all, Bs_output, L_output, sigmah_output, idx_ls_output, conflevels, useEnvCov, useSpatial, useBiotic, model) {
+    .Call(`_occJSDM_computeNewOutputs`, X, B0_output, B_output, Ks_all, Bs_output, L_output, sigmah_output, idx_ls_output, conflevels, useEnvCov, useSpatial, useBiotic, model)
+}
+
 convert_to_correlation <- function(L_output_vec, niter, S, d) {
     .Call(`_occJSDM_convert_to_correlation`, L_output_vec, niter, S, d)
 }

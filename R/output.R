@@ -951,134 +951,154 @@ returnResidualCorrelationMatrix <- function(fitModel,
 
 # ORDINATON -----
 
-#' returnOrdination
+#' returnOrdinationScores
 #'
 #' Return the quantiles of the factors scores for each observation.
 #'
 #' @details
-#' An ob
+#'
 #'
 #' @param fitModel Output from the function runOccJSDM
-#' @param confidence Confidence
+#' @param confidence Confidence level
 #'
-#' @return An object of size (3 x number of sites x number of factors)
+#' @return An object of size (quantiles x number of sites x number of factors)
 #'
-returnOrdination <- function(fitModel,
-                             confidence = .95){
+#' @export
+#' @import dplyr
+#'
+returnOrdinationScores <- function(fitModel,
+                                  confidence = .95){
 
-  n_factors <- fitModel$infos$n_factors
+  if(fitModel$infos$n_factors == 0) stop("No factor used")
 
-  if(n_factors== 0){
-    stop("No factor used")
-  }
+  siteNames <- fitModel$infos$siteNames
+  factorScoresOutput <- returnFactorScores(fitModel$results_output$jsdm_output,
+                                           confidence)
 
-  if(n_factors > 2){
-    print("More than 2 factors present, the ordination plot will use the first
-          two factors only")
-  }
+  dimnames(factorScoresOutput)[[2]] <- fitModel$infos$siteNames
 
-  U_output <- fitModel$results_output$U_output
-
-  plot_data <- as.data.frame.table(U_output) %>%
-    rename(Chain = Var1, Iter = Var2, Obs = Var3, Dim = Var4) %>%
-    mutate(Obs = as.numeric(Obs)) %>%
-    group_by(Obs, Dim) %>%
-    summarise(
-      mean_val = mean(Freq),
-      lower    = quantile(Freq, 0.025),
-      upper    = quantile(Freq, 0.975),
-      .groups  = "drop"
-    ) %>%
-    # Pivot wider so Dim 1 and Dim 2 are in separate columns for 2D plotting
-    pivot_wider(
-      names_from = Dim,
-      values_from = c(mean_val, lower, upper),
-      names_sep = "_d"
-    )
-
-  # --- 3. Plot with ggplot2 ---
-  ggplot(plot_data, aes(x = mean_val_d1, y = mean_val_d2)) +
-    # Horizontal error bars (Uncertainty in Dimension 1)
-    geom_errorbarh(aes(xmin = lower_d1, xmax = upper_d1), color = "gray60", alpha = 0.7) +
-    # Vertical error bars (Uncertainty in Dimension 2)
-    geom_errorbar(aes(ymin = lower_d2, ymax = upper_d2), color = "gray60", alpha = 0.7) +
-    # Central estimate points
-    geom_point(color = "firebrick", size = 2) +
-    labs(
-      title = "Observation Estimates with 95% Credible Intervals",
-      x = "Dimension 1",
-      y = "Dimension 2"
-    ) +
-    theme_minimal()
-
+  factorScoresOutput
 }
 
 #' plotOrdinationScores
 #'
-#' Plot the ordinaton scores
+#' Plot the ordination scores with their credible interval
 #'
 #' @details
 #'
 #'
 #' @param fitModel Output from the function runOccJSDM
-#' @param idx_factors Confidence
+#' @param idx_factors Which factors to plot (2 should be selected)
 #' @param confidence Confidence of the quantiles, default to
 #'
 #' @return A ggplot object
 #'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
 plotOrdinationScores <- function(fitModel,
-                             confidence = .95){
+                                 idx_factors = c(1,2),
+                                 confidence = .95){
 
   n_factors <- fitModel$infos$n_factors
+  siteNames <- fitModel$infos$siteNames
 
-  if(n_factors== 0){
-    stop("No factor used")
-  }
+  plotFactorScores(fitModel$results_output$jsdm_output,
+                   idx_factors,
+                   siteNames)
 
-  if(n_factors > 2){
-    print("More than 2 factors present, the ordination plot will use the first
-          two factors only")
-  }
+}
 
-  U_output <- fitModel$results_output$U_output
+#' returnFactorLoadings
+#'
+#' Return the quantiles of the factors loadings for each species
+#'
+#' @details
+#'
+#'
+#' @param fitModel Output from the function runOccJSDM
+#' @param confidence Confidence level
+#'
+#' @return An object of size (quantiles x number of factors x number of species)
+#'
+#' @export
+#' @import dplyr
+#'
+returnFactorLoadings <- function(fitModel,
+                                  confidence = .95){
 
-  plot_data <- as.data.frame.table(U_output) %>%
-    rename(Chain = Var1, Iter = Var2, Obs = Var3, Dim = Var4) %>%
-    mutate(Obs = as.numeric(Obs)) %>%
-    group_by(Obs, Dim) %>%
-    summarise(
-      mean_val = mean(Freq),
-      lower    = quantile(Freq, 0.025),
-      upper    = quantile(Freq, 0.975),
-      .groups  = "drop"
-    ) %>%
-    # Pivot wider so Dim 1 and Dim 2 are in separate columns for 2D plotting
-    pivot_wider(
-      names_from = Dim,
-      values_from = c(mean_val, lower, upper),
-      names_sep = "_d"
-    )
+  if(fitModel$infos$n_factors == 0) stop("No factor used")
 
-  # --- 3. Plot with ggplot2 ---
-  ggplot(plot_data, aes(x = mean_val_d1, y = mean_val_d2)) +
-    # Horizontal error bars (Uncertainty in Dimension 1)
-    geom_errorbarh(aes(xmin = lower_d1, xmax = upper_d1), color = "gray60", alpha = 0.7) +
-    # Vertical error bars (Uncertainty in Dimension 2)
-    geom_errorbar(aes(ymin = lower_d2, ymax = upper_d2), color = "gray60", alpha = 0.7) +
-    # Central estimate points
-    geom_point(color = "firebrick", size = 2) +
-    labs(
-      title = "Observation Estimates with 95% Credible Intervals",
-      x = "Dimension 1",
-      y = "Dimension 2"
-    ) +
-    theme_minimal()
+  speciesNames <- fitModel$infos$speciesNames
+  factorLoadingsOutput <- returnFactorLoadings_jsdm(fitModel$results_output$jsdm_output,
+                                           confidence)
+
+  dimnames(factorLoadingsOutput)[[3]] <- speciesNames
+
+  factorLoadingsOutput
+}
+
+#' plotFactorLoadings
+#'
+#' Plot the ordination loadings with their credible interval
+#'
+#' @details
+#'
+#'
+#' @param fitModel Output from the function runOccJSDM
+#' @param idx_factors Which factors to plot (2 should be selected)
+#' @param confidence Confidence of the quantiles, default to 95
+#'
+#' @return A ggplot object
+#'
+#' @export
+#' @import dplyr
+#' @import ggplot2
+#'
+plotFactorLoadings <- function(fitModel,
+                                 idx_factors = c(1,2),
+                                 confidence = .95){
+
+  n_factors <- fitModel$infos$n_factors
+  speciesNames <- fitModel$infos$speciesNames
+
+  plotFactorLoadings_jsdm(fitModel$results_output$jsdm_output,
+                          idx_factors,
+                          speciesNames)
 
 }
 
 # PREDICTIONS --------
 
-#' predictOccupancyProbs
+createSpatialPredMatrix <- function(Xs, l_s_grid, X_tilde, list_Xs_mat){
+
+  ps <- nrow(X_tilde)
+
+  Xs <- transformCovariatesMatrix(Xs, list_Xs_mat, remove_intercept = T)
+  n <- nrow(Xs)
+
+  Ks_all <- array(NA, dim = c(n, ps, length_grid_ls))
+
+  for (j in 1:length_grid_ls) {
+
+    l_s <- l_s_grid[j]
+
+    K_uu <- K2(X_tilde, X_tilde, 1, l_s) + diag(0.0001, nrow = nrow(X_tilde))
+    L_Kmm <- FastGP::rcppeigen_get_chol(K_uu)
+    invL_Kmm <- FastGP::rcppeigen_invert_matrix(L_Kmm)
+    K_staru <- K2(Xs, X_tilde, 1, l_s)
+    KnmLmt <- K_staru %*% t(invL_Kmm)
+
+    Ks_all[,,j] <- KnmLmt
+
+  }
+
+  Ks_all
+
+}
+
+#' predictNewSites
 #'
 #' Computes the quantiles of the predictive occupancy probability at new sites
 #'
@@ -1101,75 +1121,108 @@ plotOrdinationScores <- function(fitModel,
 #'
 #' @examples
 #' \dontrun{
-#' predictOccupancyProbs(fitModel)
+#' predictNewSites(fitModel)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-predictOccupancyProbs <- function(fitModel,
-                                  X_psi,
-                                  X_s,
-                                  summarised = F,
-                                  confidence = .95
+predictNewSites <- function(fitModel,
+                            X_psi,
+                            X_s,
+                            useEnvCov = T,
+                            useSpatial = T,
+                            useBiotic = NULL,
+                            summarised = F,
+                            confidence = .95
 ){
-
-
-  X_psi <- as.matrix(X_psi)
 
   S <- fitModel$infos$S
   speciesNames <- fitModel$infos$speciesNames
-  n <- nrow(X_psi)
 
-  if(is.null(X_psi)) {
-    X_psi <- fitModel$X_psi
+  areEnvCovEstimated <- fitModel$infos$ncov_psi > 0
+  isSpatFieldEstimated <- fitModel$infos$ps > 0
+  areFactorsEstimated <- fitModel$infos$n_factors > 0
+
+  if(useEnvCov & areEnvCovEstimated & is.null(X_psi)) {
+    stop("No covariates matrix included")
   }
 
-  if(is.null(X_s)) {
-    X_s <- fitModel$X_s
+  # create env cov matrix
+  if(useEnvCov) {
+
+    X_psi <- transformCovariatesMatrix(X_psi, fitModel$infos$list_X_psi_mat, remove_intercept = T)
+
+  } else {
+    X_psi <- matrix(NA, 0, 0)
   }
 
-  #
+  if(useSpatial & isSpatFieldEstimated & is.null(X_s)) {
+    stop("No spatial locations present")
+  }
 
-  beta_psi_output <- fitModel$results_output$beta_psi_output
-  beta_ord_output <- fitModel$results_output$beta_ord_output
-  LL_output <- fitModel$results_output$LL_output
+  # create spatial matrix
+  if(useSpatial){
+    Ks <-
+      createSpatialPredMatrix(l_s_grid, fitModel$infos$l_s_grid, list_Xs$X_tilde, fitModel$infos$list_X_s_mat)
+  } else {
+    Ks <- array(NA, dim = c(0,0,0))
+  }
+
+  if(is.null(useBiotic)){
+    if(areFactorsEstimated) {
+      useBiotic <- T
+    } else {
+      useBiotic <- F
+    }
+  } else if(useBiotic & !areFactorsEstimated) {
+    stop("No factors were estimated in the model")
+  }
+
+  B0_output <- fitModel$results_output$jsdm_output$B0_output
+  B_output <- fitModel$results_output$jsdm_output$B_output
+  Bs_output <- fitModel$results_output$jsdm_output$Bs_output
+  L_output <- fitModel$results_output$jsdm_output$L_output
+  sigmah_output <- fitModel$results_output$jsdm_output$sigmah_output
+  idx_ls_output <- fitModel$results_output$jsdm_output$idx_ls_output
 
   nchain <- dim(beta_psi_output)[4]
   niter <- dim(beta_psi_output)[3]
 
   if(!summarised){
 
-    psi_output <- array(NA, dim = c(nchain * niter, n, S))
-    for (chain in 1:nchain) {
-      for (iter in 1:niter) {
-        psi_output[iter + (chain - 1)*niter,,] <-
-          logistic(
-            computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
-                        beta_ord_output[,,iter,chain],
-                        LL_output[,,iter,chain])
-          )
-      }
-    }
+    stop("Only summarised version for now")
+    # psi_output <- array(NA, dim = c(nchain * niter, n, S))
+    # for (chain in 1:nchain) {
+    #   for (iter in 1:niter) {
+    #     psi_output[iter + (chain - 1)*niter,,] <-
+    #       logistic(
+    #         computePsiE(X_psi, beta_psi_output[,,iter,chain], X_ord,
+    #                     beta_ord_output[,,iter,chain],
+    #                     LL_output[,,iter,chain])
+    #       )
+    #   }
+    # }
 
   } else {
 
     conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
 
-    beta_ord_output <- aperm(apply(beta_ord_output, c(1,2), c), c(2,3,1))
+    B0_output_vec <- aperm(apply(B0_output, c(1,2), c), c(2,3,1))
     beta_psi_output <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
     LL_output <- aperm(apply(LL_output, c(1,2), c), c(2,3,1))
 
     # niter <- dim(beta_ord_output)[3]
 
-    psi_output <- computePsiOutput(
+    psi_output <- computeNewOutputs(
       X_psi,
-      beta_psi_output,
+      B0_output,
       X_ord,
       beta_ord_output,
       LL_output,
-      conflevels)
+      conflevels,
+      jsdmModel)
 
     # psi_output <- array(NA, dim = c(3, n, S))
     # for (i in 1:n) {
@@ -1211,7 +1264,6 @@ predictOccupancyProbs <- function(fitModel,
 
 # SITE-SAMPLE SUMMARIES ----------
 
-
 #' computePredictiveOccupancyProbs
 #'
 #' Computes the average predictive occupancy probabilities at the existing site
@@ -1221,7 +1273,7 @@ predictOccupancyProbs <- function(fitModel,
 #'
 #' @param fitModel Output from the function runOccJSDM
 #'
-#' @return An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
+#' @return An matrix of size (sites,species) with the posterior means
 #'
 #'
 #' @examples
@@ -1271,15 +1323,8 @@ computePredictiveOccupancyProbs <- function(fitModel){
 #'
 computeAverageCollectionProbs <- function(fitModel){
 
-  theta_output <- fitModel$results_output$theta_output
+  theta_mean <- fitModel$results_output$theta_output
 
-  if(length(dim(theta_output))== 4){
-    theta_mean <- apply(theta_output, c(1,2), mean)
-  } else {
-    theta_mean <- theta_output
-  }
-
-  # rownames(theta_mean) <- fitModel$infos$siteNames
   colnames(theta_mean) <- fitModel$infos$speciesNames
 
   theta_mean
@@ -1347,15 +1392,8 @@ computeConditionalOccupancyProbs <- function(fitModel){
 #'
 computeConditionalSamplePresenceProbs <- function(fitModel){
 
-  w_output <- fitModel$results_output$w_output
+  w_mean <- fitModel$results_output$w_output
 
-  if(length(dim(w_output)) == 4){
-    w_mean <- apply(w_output, c(1,2), mean)
-  } else {
-    w_mean <- w_output
-  }
-
-  # rownames(w_mean) <- fitModel$infos$s
   colnames(w_mean) <- fitModel$infos$speciesNames
 
   w_mean
