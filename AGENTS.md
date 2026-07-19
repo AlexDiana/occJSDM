@@ -29,7 +29,7 @@ The `threshold` argument to `runOccJSDM()` controls how `OTU` is interpreted: - 
 
 ## Known issues in existing code
 
-- `runOccJSDM()` (`R/runOccJSDM.R`) has a **`model`-used-before-assignment bug**: the "read OTU data" block (`if(model %in% c("occupancy","two_stage"))`, deciding whether to truncate reads at `threshold`) runs at line ~459, but `model <- inferDataModel(data)` isn't assigned until the later "data structure infer" block at line ~522. Every call to `runOccJSDM()` throws `object 'model' not found`. Confirmed present as of Alex's `a9700ab` refactor (his commit touched `R/runOccJSDM.R` extensively but didn't fix this ordering). Fix: move `model <- inferDataModel(data)` earlier, before its first use. Not yet in `TODO.Rmd` -- worth adding if not already fixed upstream.
+- `runOccJSDM()` (`R/runOccJSDM.R`) has a **`model`-used-before-assignment bug**: the "read OTU data" block (`if(model %in% c("occupancy","two_stage"))`, deciding whether to truncate reads at `threshold`) runs at line \~459, but `model <- inferDataModel(data)` isn't assigned until the later "data structure infer" block at line \~522. Every call to `runOccJSDM()` throws `object 'model' not found`. Confirmed present as of Alex's `a9700ab` refactor (his commit touched `R/runOccJSDM.R` extensively but didn't fix this ordering). Fix: move `model <- inferDataModel(data)` earlier, before its first use. Not yet in `TODO.Rmd` -- worth adding if not already fixed upstream.
 - `predictOccupancyProbs()` was renamed `predictNewSites()` (plus a new helper `createSpatialPredMatrix()`) in Alex's `a9700ab` refactor, but the underlying bug is unfixed: the function body still references an undefined `X_ord` object rather than its own argument, per the `@note` roxygen comment still present in the source.
 - `returnLatentPresences()` (`R/output.R`) still references an undefined `varPart_output` object (per its `@note` roxygen comment) and will error at runtime.
 - `computeAverageCollectionProbs()` and `computeConditionalSamplePresenceProbs()` were confirmed working (via live testing against fitted model objects) as long as the fitted model actually populated `results_output$theta_output` / `results_output$w_output` (always true for a fresh `runOccJSDM()` fit with default `summarisedLatentPresences = TRUE`).
@@ -41,13 +41,7 @@ The `threshold` argument to `runOccJSDM()` controls how `OTU` is interpreted: - 
 
 ## MCMC diagnostics
 
-`R/diagnostics.R` now has, in addition to the pre-existing unexported `computeESSparams()`/`computeMinESS()`:
-- `as4d()` (internal) -- pads 2D (`[niter, nchain]`, scalar params like `theta0`/`sigmab`) or 3D (`[dim1, niter, nchain]`, e.g. species-only `B0_output`) posterior arrays up to the common `[dim1, dim2, niter, nchain]` shape, so every downstream function can treat any parameter uniformly regardless of how many index dimensions it has.
-- `computeRhat(param_output)` (exported) -- per-element Gelman-Rubin Rhat via `coda::gelman.diag()`; returns `NA` for elements with a constant (zero-variance) chain or fewer than 2 chains, since `gelman.diag()` errors in those cases.
-- `summarisePosterior(param_output, param_name, dimnames1, dimnames2)` (exported) -- tidy tibble (`param`, `idx1`, `idx2`, `label1`, `label2`, `mean`, `sd`, `q2.5`, `q97.5`, `rhat`, `ess`) for every element of a posterior array, pooling draws across chains for the summary stats.
-- `paramOutputToLong()` (internal) -- long-format tibble of every draw, feeding `plotTraceplot()`.
-- `plotTraceplot(param_output, param_name, dimnames1, dimnames2)` (exported) -- faceted per-chain ggplot trace plots.
-- `returnConvergenceDiagnostics(fitmodel)` (exported) -- assembles one tidy table across `beta0_psi` (`jsdm_output$B0_output`), `beta_psi` (`jsdm_output$B_output`), `beta_theta`, `p`, `q`, `theta0`, labelled with species/covariate/primer names from `fitmodel$infos$speciesNames`/`colnames(fitmodel$X_psi)`/`colnames(fitmodel$X_theta)`/`fitmodel$infos$primerNames`. Components absent from a given fit (e.g. `beta_theta`/`p`/`q` for a JSDM-only model) are silently skipped.
+`R/diagnostics.R` now has, in addition to the pre-existing unexported `computeESSparams()`/`computeMinESS()`: - `as4d()` (internal) -- pads 2D (`[niter, nchain]`, scalar params like `theta0`/`sigmab`) or 3D (`[dim1, niter, nchain]`, e.g. species-only `B0_output`) posterior arrays up to the common `[dim1, dim2, niter, nchain]` shape, so every downstream function can treat any parameter uniformly regardless of how many index dimensions it has. - `computeRhat(param_output)` (exported) -- per-element Gelman-Rubin Rhat via `coda::gelman.diag()`; returns `NA` for elements with a constant (zero-variance) chain or fewer than 2 chains, since `gelman.diag()` errors in those cases. - `summarisePosterior(param_output, param_name, dimnames1, dimnames2)` (exported) -- tidy tibble (`param`, `idx1`, `idx2`, `label1`, `label2`, `mean`, `sd`, `q2.5`, `q97.5`, `rhat`, `ess`) for every element of a posterior array, pooling draws across chains for the summary stats. - `paramOutputToLong()` (internal) -- long-format tibble of every draw, feeding `plotTraceplot()`. - `plotTraceplot(param_output, param_name, dimnames1, dimnames2)` (exported) -- faceted per-chain ggplot trace plots. - `returnConvergenceDiagnostics(fitmodel)` (exported) -- assembles one tidy table across `beta0_psi` (`jsdm_output$B0_output`), `beta_psi` (`jsdm_output$B_output`), `beta_theta`, `p`, `q`, `theta0`, labelled with species/covariate/primer names from `fitmodel$infos$speciesNames`/`colnames(fitmodel$X_psi)`/`colnames(fitmodel$X_theta)`/`fitmodel$infos$primerNames`. Components absent from a given fit (e.g. `beta_theta`/`p`/`q` for a JSDM-only model) are silently skipped.
 
 Not ported: `compare_to_true()`/`plot_estimated_vs_true()` from GLGS-eDNA, since those need `true_params` from a simulation rather than just a fitted model -- left as a possible future item. A "Model diagnostics" vignette section and a testthat test were both deferred (per user decision) rather than done as part of this port.
 
@@ -55,10 +49,7 @@ Not ported: `compare_to_true()`/`plot_estimated_vs_true()` from GLGS-eDNA, since
 
 ## Model inference logic (`inferDataModel()`, `R/runOccJSDM.R:110-155`)
 
-`runOccJSDM()` classifies the fitted model type based on **row-level duplication of `Site`/`Sample` in `data$info`**, not directly on M/K/P:
-- No repeated values in `Site` → JSDM-only (M=K=P=1).
-- `Site` repeats, `Sample` does not → classical occupancy model (M>1, K=P=1).
-- `Sample` repeats (due to K>1 and/or P>1) → two-stage eDNA model, including the case M=1 with K>1 or P>1 (a single site sampled with multiple PCR replicates/primers).
+`runOccJSDM()` classifies the fitted model type based on **row-level duplication of `Site`/`Sample` in `data$info`**, not directly on M/K/P: - No repeated values in `Site` → JSDM-only (M=K=P=1). - `Site` repeats, `Sample` does not → classical occupancy model (M\>1, K=P=1). - `Sample` repeats (due to K\>1 and/or P\>1) → two-stage eDNA model, including the case M=1 with K\>1 or P\>1 (a single site sampled with multiple PCR replicates/primers).
 
 ## Output functions of note
 
@@ -70,7 +61,7 @@ Not ported: `compare_to_true()`/`plot_estimated_vs_true()` from GLGS-eDNA, since
 ## Git and build artifacts
 
 - `src/*.o` and `src/*.so` files are **tracked in git** despite being ignored in `.gitignore` (added in lines 7-8). These are compiled object files and should not be committed. To fix: `git rm --cached src/*.o src/*.so` and commit. They were tracked before `.gitignore` rules were added and remain in git history until explicitly removed.
-- Alex's `a9700ab` commit newly added and committed `src/occJSDM.dll` (a compiled Windows binary, ~8.6 MB) -- same class of problem as the `.o`/`.so` files above (compiled artifact that shouldn't be tracked), just not yet covered by `.gitignore`. Worth raising with Alex and adding `src/*.dll` to `.gitignore`, then `git rm --cached src/occJSDM.dll`.
+- Alex's `a9700ab` commit newly added and committed `src/occJSDM.dll` (a compiled Windows binary, \~8.6 MB) -- same class of problem as the `.o`/`.so` files above (compiled artifact that shouldn't be tracked), just not yet covered by `.gitignore`. Worth raising with Alex and adding `src/*.dll` to `.gitignore`, then `git rm --cached src/occJSDM.dll`.
 - `.gitignore` also changed in `a9700ab`: added a blanket `/deprecated/` rule (replacing the narrower `deprecated/analysis/`).
 
 ## ggtern and plotting

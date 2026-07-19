@@ -52,8 +52,8 @@ editor_options:
         exported (Rhat, tidy posterior summary table, trace plots).
         `compare_to_true()`/`plot_estimated_vs_true()` (simulation-truth
         comparison, requiring `true_params`) were **not** ported -- left
-        as a possible future item. A "Model diagnostics" vignette section
-        and a testthat test were also deferred.
+        as a possible future item. A "Model diagnostics" vignette
+        section and a testthat test were also deferred.
 
 **MEE paper**
 
