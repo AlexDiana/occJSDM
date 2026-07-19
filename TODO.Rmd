@@ -37,7 +37,24 @@ editor_options:
 
     4.  `predictNewSites(fitmodel)` for non-surveyed sites
 
-    5.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
+    5.  fix `Xs` recycling bug in `simulateOccJSDMData()`
+        (`R/simulateData.R`): for the occupancy/two-stage models,
+        `data_info` binds `Xs = Xs` (the raw `n x 2` site-coordinate
+        matrix) directly, without indexing it by `idx_z_k` the way
+        `X_psi` is (`X_psi = X_psi[idx_z_k,]`). Since `Xs` has fewer
+        rows than `data_info` (`n` vs. `sum(K)`), R silently recycles
+        it, so the resulting `info$Xs.1`/`Xs.2` columns do not
+        correspond to the correct site per row. Confirmed live: for a
+        given `Site`, the replicate rows show as many distinct
+        `(Xs.1, Xs.2)` pairs as there are replicates, instead of one
+        coordinate pair repeated. There is also currently no bug-free
+        way to recover per-site coordinates from
+        `simulateOccJSDMData()`'s output for these models (`data_list`
+        only exposes `info`/`OTU`/`traits`; `true_params` doesn't carry
+        `Xs` either). Fix: index `Xs` by `idx_z_k` before binding into
+        `data_info`, as done for `X_psi`.
+
+    6.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
         introduced in `af5ebe3`)~~ -- **fixed**: `computeMinESS()` now
         computes `ESS_beta0psi` from `beta0_psi_output` directly and
         includes it in the final `min()`
