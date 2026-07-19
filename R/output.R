@@ -1078,6 +1078,7 @@ createSpatialPredMatrix <- function(Xs, l_s_grid, X_tilde, list_Xs_mat){
   Xs <- transformCovariatesMatrix(Xs, list_Xs_mat, remove_intercept = T)
   n <- nrow(Xs)
 
+  length_grid_ls <- length(l_s_grid)
   Ks_all <- array(NA, dim = c(n, ps, length_grid_ls))
 
   for (j in 1:length_grid_ls) {
@@ -1111,18 +1112,10 @@ createSpatialPredMatrix <- function(Xs, l_s_grid, X_tilde, list_Xs_mat){
 #' @param summarised Should the output be return in the form of quantiles? Set to TRUE if the number of sites is very large
 #' @param confidence If quantiles are returned, the confidence level of the quantiles.
 #'
-#' @return An array of size (,sites,species) with either the quantiles or the iterations in the first dimension
+#' @return An array of size (,sites,species) with either the quantiles or the
+#' iterations in the first dimension
 #'
-#' @note The function body currently references an object named `X_ord`
-#' rather than the `X_s` argument; as written this will error (or silently
-#' pick up an `X_ord` object from the calling environment) unless an `X_ord`
-#' variable happens to be in scope. This looks like a pre-existing bug worth
-#' fixing separately.
 #'
-#' @examples
-#' \dontrun{
-#' predictNewSites(fitModel)
-#' }
 #'
 #' @export
 #' @import dplyr
@@ -1134,7 +1127,7 @@ predictNewSites <- function(fitModel,
                             useEnvCov = T,
                             useSpatial = T,
                             useBiotic = NULL,
-                            summarised = F,
+                            summarised = T,
                             confidence = .95
 ){
 
@@ -1168,7 +1161,7 @@ predictNewSites <- function(fitModel,
       createSpatialPredMatrix(X_s,
                               fitModel$infos$l_s_grid,
                               fitModel$infos$list_Xs$X_tilde,
-                              fitModel$infos$list_X_s_mat)
+                              fitModel$infos$list_Xs_mat)
   } else {
     Ks <- array(NA, dim = c(0,0,0))
   }
@@ -1190,9 +1183,6 @@ predictNewSites <- function(fitModel,
   sigmah_output <- fitModel$results_output$jsdm_output$sigmah_output
   idx_ls_output <- fitModel$results_output$jsdm_output$idx_ls_output
 
-  nchain <- dim(beta_psi_output)[4]
-  niter <- dim(beta_psi_output)[3]
-
   if(!summarised){
 
     stop("Only summarised version for now")
@@ -1201,22 +1191,22 @@ predictNewSites <- function(fitModel,
 
     conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
 
-    B0_output_vec <- aperm(apply(B0_output, c(1,2), c), c(2,3,1))
-    B_output_vec <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
-    Bs_output_vec <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
-    L_output <- aperm(apply(L_output, c(1,2), c), c(2,3,1))
-    sigmah_output <-
-    idx_ls_output <-
+    B0_output_vec <- aperm(apply(B0_output, 1, c), c(2,1))
+    B_output_vec <- aperm(apply(B_output, c(1,2), c), c(2,3,1))
+    Bs_output_vec <- aperm(apply(Bs_output, c(1,2), c), c(2,3,1))
+    L_output_vec <- aperm(apply(L_output, c(1,2), c), c(2,3,1))
+    sigmah_output_vec <- as.vector(sigmah_output)
+    idx_ls_output_vec <- as.vector(idx_ls_output)
 
-      pred_output <- computeNewOutputs(
+    pred_output <- computeNewOutputs(
       X_psi,
-      B0_output,
-      B_output,
+      B0_output_vec,
+      B_output_vec,
       Ks,
-      Bs_output,
-      L_output,
-      sigmah_output,
-      idx_ls_output,
+      Bs_output_vec,
+      L_output_vec,
+      sigmah_output_vec,
+      idx_ls_output_vec,
       conflevels,
       useEnvCov, useSpatial, useBiotic,
       fitModel$infos$jsdmModel)

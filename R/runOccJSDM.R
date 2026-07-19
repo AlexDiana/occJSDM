@@ -1156,6 +1156,7 @@ runOccJSDM <- function(data,
             L_output_chain[,,currentIter] <- list_jSDMparams$L
             sigmab_output_chain[currentIter] <- list_jSDMparams$sigma_b
             sigmabs_output_chain[currentIter] <- list_jSDMparams$sigma_bs
+            sigmah_output_chain[currentIter] <- list_jSDMparams$sigma_h
             idx_ls_output_chain[currentIter] <- list_jSDMparams$idx_ls
 
             varPart_output_chain[,,currentIter] <-
