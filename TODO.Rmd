@@ -39,6 +39,9 @@ editor_options:
         moving the `inferDataModel(data)` call earlier, before its first
         use.
 
+    6.  gitignore and stop tracking `src/occPlus.dll` (also filename
+        should be changed on Alex's end)
+
 2.  Doug to dos
 
     1.  purge `data/traitdata_caiwang.rdata` from git history (need to
