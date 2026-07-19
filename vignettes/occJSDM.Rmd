@@ -80,11 +80,12 @@ of samples analyzed and columns:
   analyzed. Following usual practice, samples are uniquely numbered
   across the whole dataset;
 - `Primer`: name (or index) of the primer used in this replicate;
-- `X_psi.n` are the occupancy covariates (e.g. elevation, normalised);
+- `X_psi.EnvCov.n` are the occupancy covariates (e.g. elevation,
+  normalised);
+- `Xs.n` are the spatial covariates of each site (e.g. easting and
+  northing in a UTM coordinate system, normalised)
 - `X_theta.n` are the eDNA collection covariates (e.g. water volume per
   sample, normalised).
-- `Xs.n` are the spatial covariates of each sampling site (e.g. easting
-  and northing in a UTM coordinate system, normalised)
 
 In this dataset, there are $n=100$ sites, $S=10$ species, and, in the
 balanced case, $M=3$ sample replicates per site and $P=3$ primers. From
@@ -144,19 +145,11 @@ reads assigned to that species in that replicate, which `occJSDM`
 converts to detection/non-detection (i.e. 1/0).
 
 ```{r}
-head(data$traitsMatrix)
+head(data$traits)
 ```
 
-`data$traitsMatrix` is a matrix of dimensions $S \times T$ , where $S$
-is the number of species and $T$ is the number of traits.
-
-```{r}
-head(data$spatCovariates)
-```
-
-Finally, data\$spatCovariates merely names the columns in `data$info`
-that are the spatial covariates: `c("Xs.1", "Xs.2")`. Spatial covariates
-can be entered either way (see below).
+`data$traits` is a matrix of dimensions $S \times T$ , where $S$ is the
+number of species and $T$ is the number of traits.
 
 ## Model fitting
 
@@ -166,14 +159,13 @@ Next, we can run the model:
 fitmodel <- runOccJSDM(data = data,
                        listParams = list(n_factors = 2, gt = 2),
                        threshold = 1,
-                       occCovariates = c("X_psi.1", "X_psi.2"),
-                       collCovariates = c("X_theta"),
-                       spatCovariates = data$spatCovariates, 
-                                      # or c("Xs.1", "Xs.2")
-                       traitsMatrix = data$traitsMatrix,
+                       occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
+                       collCovariates = c("X_theta.1", "X_theta.2"),
+                       spatCovariates = c("Xs.1", "Xs.2"), 
+                       traitsMatrix = data$traits,
                        MCMCparams = list(nchain = 2,
-                                         nburn = 500,
-                                         niter = 500,
+                                         nburn = 5000,
+                                         niter = 5000,
                                          nthin = 1),
                        summarisedLatentPresences = T
                        )
@@ -181,7 +173,7 @@ fitmodel <- runOccJSDM(data = data,
 
 Fitting the model above takes several minutes, so to keep this vignette
 fast to build, we instead load a precomputed fit (`sampleresults`,
-shipped with the package) generated with `nburn=5000` and `niter=5000`:
+shipped with the package):
 
 ```{r}
 data(sampleresults) # nburn=5000, niter=5000, nthin=1
@@ -224,21 +216,133 @@ The names of the covariates in `occCovariates`, `collCovariates`, and
 has the ability to run if `data$OTU` has missing data (`NA`) due to
 failed samples.
 
-In this run, we have set `nburn`, `niter`, and `nthin` to low values,
-which accounts for the low minimum ESS \~ 40. Default `gt = 2` (number
-of latent traits), which we show explicitly here.
+By default `gt = 2` (number of latent traits), which we show explicitly
+here.
 
 By default (`threshold = 1`), `runOccJSDM()` treats ≥1 read as a
 potential species detection (which might be discounted later as a false
 positive), but we give the user the option to manually set this
-threshold higher. We do not recommend this, however, nor is
-`threshold = 0` allowed.
+threshold higher. However, we do not recommend doing this unless you
+have good reason, nor is `threshold = 0` allowed.
 
 ## Model diagnostics
 
-```{r}
+After model fitting, we check that the MCMC chains have converged and
+mixed well. `occJSDM` provides two functions for this:
+`returnConvergenceDiagnostics()`, which computes summary statistics
+(including `Rhat` and effective sample size) for every parameter, and
+`plotTraceplot()`, which lets us visually inspect mixing for a chosen
+parameter.
 
+```{r}
+convDiag <- returnConvergenceDiagnostics(fitmodel)
+str(convDiag)
 ```
+
+This table summarises the convergence statistics across all model
+parameters. `label1`/`label2` describe what each row is estimating.
+
+- **`beta0_psi`**: species-level occupancy intercepts (baseline log-odds
+  of occupancy when all covariates are at zero). `label1` = species
+  (1–10, `OTU_1`...`OTU_10`). `label2` is a filler column.
+- **`beta_psi`**: occupancy covariate effects (slopes on the logit
+  scale). `label1` = occupancy covariate (1–2, e.g. `X_psi.EnvCov.1`),
+  `label2` = species (1–10, `OTU_1`...).
+- **`beta_theta`**: Stage 1 (field collection) covariate effects.
+  `label1` = collection covariate (1 is the intercept, and 2 and 3 are
+  the two collection covariates), `label2` = species.
+- **`p`, `q`**: Stage 2 (lab/PCR) detection rates per primer and
+  species. `p` is the true detection rate (probability of a positive
+  read given the eDNA was collected), and `q` is the
+  false-positive/contamination rate (probability of a positive read
+  given the eDNA was *not* collected). `label1` = primer and `label2` =
+  species.
+- **`theta0`**: per-species Stage 1 false-positive collection rate
+  (probability of collecting eDNA for a species that is truly absent at
+  the site). `label1` = species, `label2` = dummy variable.
+
+For a large model, it is useful to flag which parameters fall outside
+conventional convergence thresholds (`Rhat > 1.01` and/or `ess < 400`):
+
+```{r}
+convDiagfiltered <- convDiag |>
+  dplyr::filter(rhat > 1.01 | ess < 400) |>
+  dplyr::arrange(dplyr::desc(rhat))
+```
+
+A few coefficients for three species (`OTU_8`, `OTU_9`, `OTU_10`) fall
+just outside these thresholds. None is a cause for concern on its own
+(`Rhat` is still $\le 1.03$ and `ess` is still in the low hundreds), but
+if this list included much larger deviations, it would be worth
+increasing `niter` and/or `nthin` before trusting the affected
+coefficients.
+
+### Traceplots for a single covariate
+
+`plotTraceplot()` expects a 4-dimensional posterior array
+(`[covariate/primer, species, niter, nchain]`), so to visualise mixing
+for a single covariate, e.g. `X_theta.1`, one of the collection
+covariates, we first need to slice that covariate's row out of the
+matching coefficient array while keeping the array 4-dimensional
+(`drop = FALSE`), so that the remaining dimension is still correctly
+interpreted as species.
+
+Which coefficient array and set of column names to use depends on which
+type of covariate/parameter we want:
+
+| Covariate/parameter | Column names | Coefficient array |
+|----|----|----|
+| `X_psi.*` (occupancy covariates) | `colnames(fitmodel$X_psi)` | `fitmodel$results_output$jsdm_output$B_output` (`beta_psi`) |
+| species intercept | -- (species-only) | `fitmodel$results_output$jsdm_output$B0_output` (`beta0_psi`) |
+| `X_theta.*` (collection covariates) | `colnames(fitmodel$X_theta)` | `fitmodel$results_output$beta_theta_output` (`beta_theta`) |
+| primer-level rates | `fitmodel$infos$primerNames` (as character) | `fitmodel$results_output$p_output`, `fitmodel$results_output$q_output` |
+| species-only false-positive rate | -- (species-only) | `fitmodel$results_output$theta0_output` (`theta0`) |
+
+A short helper makes it easy to slice out a single covariate/primer from
+whichever array applies:
+
+```{r}
+extractCovariateSlice <- function(param_output, covNames, covName) {
+  idx <- match(covName, covNames)
+  if (is.na(idx)) {
+    stop(covName, " not found in ", paste(covNames, collapse = ", "))
+  }
+  param_output[idx, , , , drop = FALSE]
+}
+
+X_theta1_output <- extractCovariateSlice(
+  fitmodel$results_output$beta_theta_output,
+  colnames(fitmodel$X_theta),
+  "X_theta.1"
+)
+
+plotTraceplot(X_theta1_output,
+              param_name = "X_theta.1",
+              dimnames2 = fitmodel$infos$speciesNames)
+```
+
+The trace plots show good mixing for `X_theta.1` across all 10 species,
+with the two chains overlapping closely and no visible trend or
+stickiness. The same helper works for any covariate of
+`beta_psi`/`beta_theta` (using `colnames(fitmodel$X_psi)`/
+`colnames(fitmodel$X_theta)`), or any primer of `p`/`q` (using
+`fitmodel$infos$primerNames`, coerced to character since primers are
+numbered). For example, here is the trace plot of the true detection
+rate `p` for primer 1:
+
+```{r}
+p_primer1_output <- extractCovariateSlice(
+  fitmodel$results_output$p_output,
+  as.character(fitmodel$infos$primerNames),
+  "1"
+)
+
+plotTraceplot(p_primer1_output,
+              param_name = "p (primer 1)",
+              dimnames2 = fitmodel$infos$speciesNames)
+```
+
+Again, mixing looks good across all 10 species for primer 1.
 
 ## Outputs
 
@@ -265,15 +369,17 @@ coefficients:
 
 ```{r}
 plotCollectionCovariates(fitmodel, idx_species = 1:10, 
-                         covName = "X_theta")
+                         covName = "X_theta.1")
+plotCollectionCovariates(fitmodel, idx_species = 1:10, 
+                         covName = "X_theta.2")
 ```
 
 ```{r}
 plotOccupancyCovariates(fitmodel, idx_species = 1:10, 
-                        covName = "X_psi.1")
+                        covName = "X_psi.EnvCov.1")
 
 plotOccupancyCovariates(fitmodel, idx_species = 1:10, 
-                        covName = "X_psi.2")
+                        covName = "X_psi.EnvCov.2")
 ```
 
 We note that if a categorical covariate is used, the design matrix will
@@ -320,7 +426,8 @@ change in occupancy probability depending on where a species' baseline
 occupancy sits.
 
 ```{r}
-plotOccupancyGradient(fitmodel, covName = "X_psi.1")
+plotOccupancyGradient(fitmodel, covName = "X_psi.EnvCov.1")
+plotOccupancyGradient(fitmodel, covName = "X_psi.EnvCov.2")
 ```
 
 ### Conditional and Predictive Occupancy Probabilities
@@ -460,8 +567,8 @@ environment.
 We can plot trait X env interaction effects.
 
 ```{r}
-plotTraitsCoefficients(fitmodel, covName = "X_psi.1")
-plotTraitsCoefficients(fitmodel, covName = "X_psi.2")
+plotTraitsCoefficients(fitmodel, covName = "X_psi.EnvCov.1")
+plotTraitsCoefficients(fitmodel, covName = "X_psi.EnvCov.2")
 
 traitValues <- returnTraitsCoeff(fitmodel)
 str(traitValues)
@@ -561,11 +668,10 @@ with/without spatial structure) can be compared.
 fitmodel2 <- runOccJSDM(data = data,
                        listParams = list(n_factors = 3, gt = 2),
                        threshold = 1,
-                       occCovariates = c("X_psi.1", "X_psi.2"),
-                       collCovariates = c("X_theta"),
-                       spatCovariates = data$spatCovariates, 
-                       # or c("Xs.1", "Xs.2")
-                       traitsMatrix = data$traitsMatrix,
+                       occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
+                       collCovariates = c("X_theta.1", "X_theta.2"),
+                       spatCovariates = c("Xs.1", "Xs.2"), 
+                       traitsMatrix = data$traits,
                        MCMCparams = list(nchain = 2,
                                          nburn = 5000,
                                          niter = 5000,
@@ -573,8 +679,8 @@ fitmodel2 <- runOccJSDM(data = data,
                        summarisedLatentPresences = T
                        )
 
-extractWAIC(fitmodel) # n_factors=2, WAIC=31619.24
-extractWAIC(fitmodel2) # n_factors=3, WAIC=31573.5
+extractWAIC(fitmodel)  # n_factors=2, WAIC=31967.49
+extractWAIC(fitmodel2) # n_factors=3, WAIC=31912.9
 # n_factors=3 is better
 ```
 
