@@ -30,6 +30,16 @@ editor_options:
         computes `ESS_beta0psi` from `beta0_psi_output` directly and
         includes it in the final `min()`.
 
+    6.  fix `model`-used-before-assignment bug in `runOccJSDM()`
+        (`R/runOccJSDM.R`): the "read OTU data" block (around line 459)
+        references `model` to decide whether to truncate reads at
+        `threshold`, but `model <- inferDataModel(data)` isn't assigned
+        until later, in the "data structure infer" block (around line
+        522). This throws `object 'model' not found` on every call.
+        Confirmed still present after the `a9700ab` refactor. Fix by
+        moving the `inferDataModel(data)` call earlier, before its
+        first use.
+
 2.  Doug to dos
 
     1.  purge `data/traitdata_caiwang.rdata` from git history (need to
