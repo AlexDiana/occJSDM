@@ -12,10 +12,7 @@ editor_options:
 
 1.  Alex to dos
 
-    2.  `computePredictiveOccupancyProbs(fitmodel)` for non-surveyed
-        sites
-
-    3.  fix trait-reading code in `runOccJSDM()`: it checks
+    1.  fix trait-reading code in `runOccJSDM()`: it checks
         `data$traits`, not `data$traitsMatrix` or the unused
         `traitsMatrix` function argument. This currently works only
         because R's `$` partially matches list names (`traitsMatrix` is
@@ -24,12 +21,7 @@ editor_options:
         explicitly, and either wire up the `traitsMatrix` argument or
         remove it from the signature.
 
-    4.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
-        introduced in `af5ebe3`)~~ -- **fixed**: `computeMinESS()` now
-        computes `ESS_beta0psi` from `beta0_psi_output` directly and
-        includes it in the final `min()`.
-
-    5.  fix `model`-used-before-assignment bug in `runOccJSDM()`
+    2.  fix `model`-used-before-assignment bug in `runOccJSDM()`
         (`R/runOccJSDM.R`): the "read OTU data" block (around line 459)
         references `model` to decide whether to truncate reads at
         `threshold`, but `model <- inferDataModel(data)` isn't assigned
@@ -39,8 +31,15 @@ editor_options:
         moving the `inferDataModel(data)` call earlier, before its first
         use.
 
-    6.  gitignore and stop tracking `src/occPlus.dll` (also filename
+    3.  gitignore and stop tracking `src/occPlus.dll` (also filename
         should be changed on Alex's end)
+
+    4.  `predictNewSites(fitmodel)` for non-surveyed sites
+
+    5.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
+        introduced in `af5ebe3`)~~ -- **fixed**: `computeMinESS()` now
+        computes `ESS_beta0psi` from `beta0_psi_output` directly and
+        includes it in the final `min()`
 
 2.  Doug to dos
 
