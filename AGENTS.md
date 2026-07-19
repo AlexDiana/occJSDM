@@ -37,7 +37,21 @@ The `threshold` argument to `runOccJSDM()` controls how `OTU` is interpreted: - 
 - Trait-reading fragility in `runOccJSDM()`: it checks `data$traits` via partial name-matching against `data$traitsMatrix` (relying on `$`'s partial matching, since `traitsMatrix` is the only element of `data` starting with `"traits"`), not the unused `traitsMatrix` function argument. Still flagged as TODO.Rmd item (Alex to dos).
 - Ordination (TODO.Rmd former item 1.1) has been addressed: `returnOrdination()`/`plotOrdinationScores()` were renamed/cleaned up as `returnOrdinationScores()`/`plotOrdinationScores()`, and new `returnFactorLoadings()`/`plotFactorLoadings()` (plus internal `returnFactorLoadings_jsdm()`/`plotFactorLoadings_jsdm()` in `R/jsdmfun.R`) now cover species loading scores, which were previously missing. Removed from TODO.Rmd accordingly.
 - Counts model (`data_type == "counts"`, auto-detected from `OTU` values) is unsupported downstream: `stop("Counts model not supported yet")`. No explicit user-facing `count=` argument exists (see TODO.Rmd item under MEE paper / Alex to dos, "ability to analyse count data").
-- A short-lived attempt this session to port MCMC diagnostics (Rhat/ESS/trace plots) from `~/src/Cowork/GLGS-eDNA` into `R/diagnostics.R` was made, then **discarded at the user's request** (stashed and dropped) after pulling Alex's `a9700ab` changes, to avoid conflicting with Alex's own (different) fixes to `R/diagnostics.R` in that same commit. If this work is wanted again, it should be redone against the current `R/diagnostics.R`, not reapplied from the dropped stash.
+- MCMC diagnostics (Rhat/ESS/trace plots) ported from `~/src/Cowork/GLGS-eDNA` into `R/diagnostics.R` -- see "MCMC diagnostics" section below. (An earlier same-morning attempt at this was stashed and dropped to avoid conflicting with Alex's `a9700ab` changes; this is the redone version, reconciled against Alex's subsequent `885d602`/`8d4b9f8` push and verified against a live fit.)
+
+## MCMC diagnostics
+
+`R/diagnostics.R` now has, in addition to the pre-existing unexported `computeESSparams()`/`computeMinESS()`:
+- `as4d()` (internal) -- pads 2D (`[niter, nchain]`, scalar params like `theta0`/`sigmab`) or 3D (`[dim1, niter, nchain]`, e.g. species-only `B0_output`) posterior arrays up to the common `[dim1, dim2, niter, nchain]` shape, so every downstream function can treat any parameter uniformly regardless of how many index dimensions it has.
+- `computeRhat(param_output)` (exported) -- per-element Gelman-Rubin Rhat via `coda::gelman.diag()`; returns `NA` for elements with a constant (zero-variance) chain or fewer than 2 chains, since `gelman.diag()` errors in those cases.
+- `summarisePosterior(param_output, param_name, dimnames1, dimnames2)` (exported) -- tidy tibble (`param`, `idx1`, `idx2`, `label1`, `label2`, `mean`, `sd`, `q2.5`, `q97.5`, `rhat`, `ess`) for every element of a posterior array, pooling draws across chains for the summary stats.
+- `paramOutputToLong()` (internal) -- long-format tibble of every draw, feeding `plotTraceplot()`.
+- `plotTraceplot(param_output, param_name, dimnames1, dimnames2)` (exported) -- faceted per-chain ggplot trace plots.
+- `returnConvergenceDiagnostics(fitmodel)` (exported) -- assembles one tidy table across `beta0_psi` (`jsdm_output$B0_output`), `beta_psi` (`jsdm_output$B_output`), `beta_theta`, `p`, `q`, `theta0`, labelled with species/covariate/primer names from `fitmodel$infos$speciesNames`/`colnames(fitmodel$X_psi)`/`colnames(fitmodel$X_theta)`/`fitmodel$infos$primerNames`. Components absent from a given fit (e.g. `beta_theta`/`p`/`q` for a JSDM-only model) are silently skipped.
+
+Not ported: `compare_to_true()`/`plot_estimated_vs_true()` from GLGS-eDNA, since those need `true_params` from a simulation rather than just a fitted model -- left as a possible future item. A "Model diagnostics" vignette section and a testthat test were both deferred (per user decision) rather than done as part of this port.
+
+`DESCRIPTION` gained `coda`, `purrr`, `tibble` in `Imports` (this also fixed a pre-existing gap: `coda::` was already called in the old `computeESSparams()`/`computeMinESS()` but `coda` was never listed as a dependency).
 
 ## Model inference logic (`inferDataModel()`, `R/runOccJSDM.R:110-155`)
 
