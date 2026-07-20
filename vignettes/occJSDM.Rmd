@@ -28,8 +28,7 @@ options(warning = -1)
 ```
 
 ```{r setup, include = FALSE}
-# library(occJSDM)
-devtools::load_all() # change to library(occJSDM) when package finished
+library(occJSDM)
 # devtools::document() # run manually after editing roxygen comments
 # devtools::check() # run manually before commits/releases, builds package, runs examples/tests/vignettes, checks CRAN-style compliance
 ```
@@ -100,7 +99,7 @@ sites) to simulate missing observations, leaving $297$ samples and
 $1{,}782$ total replicates.
 
 ```{r}
-data$info |> count(Site)
+data$info |> dplyr::count(Site)
 
 set.seed(3947)
 
@@ -127,7 +126,7 @@ length(unique(data$info$Sample))
 ```
 
 ```{r}
-data$info |> count(Site)
+data$info |> dplyr::count(Site)
 ```
 
 After checking, sites have $18$ rows ($3$ samples $\times$ $3$ primers
@@ -506,7 +505,7 @@ Stage 1 (in the field)
 
 ```{r}
 library(patchwork)
-p1 <- plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+p1 <- plotStage1FPRates(fitmodel, idx_species = 1:10) + ggplot2::ylim(c(0,1)) # ideally, these are low
 p2 <- plotCollectionRates(fitmodel, idx_species = 1:10) # ideally, these are high
 p1 + p2
 ```
@@ -514,7 +513,7 @@ p1 + p2
 Stage 2 (in the lab)
 
 ```{r}
-p3 <- plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(c(0,1)) # ideally, these are low
+p3 <- plotStage2FPRates(fitmodel, idx_species = 1:10) + ggplot2::ylim(c(0,1)) # ideally, these are low
 p4 <- plotDetectionRates(fitmodel, idx_species = 1:10) # ideally, these are high. 
 p3 + p4
 ```
@@ -748,7 +747,7 @@ Which coefficient array and set of column names to use depends on which
 type of covariate/parameter we want:
 
 | Covariate/parameter | Column names | Coefficient array |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | `X_psi.*` (occupancy covariates) | `colnames(fitmodel$X_psi)` | `fitmodel$results_output$jsdm_output$B_output` (`beta_psi`) |
 | species intercept | -- (species-only) | `fitmodel$results_output$jsdm_output$B0_output` (`beta0_psi`) |
 | `X_theta.*` (collection covariates) | `colnames(fitmodel$X_theta)` | `fitmodel$results_output$beta_theta_output` (`beta_theta`) |

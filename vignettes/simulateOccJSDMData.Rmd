@@ -28,8 +28,7 @@ options(warning = -1)
 ```
 
 ```{r setup, include = FALSE}
-# library(occJSDM)
-devtools::load_all() # change to library(occJSDM) when package finished
+library(occJSDM)
 library(ggplot2)
 library(dplyr)
 library(tibble)
