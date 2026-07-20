@@ -1,4 +1,4 @@
-#' occJSDM: Joint Species Distribution Models for eDNA Metabarcoding Data
+#' occJSDM: Occupancy and Joint Species Distribution Models for eDNA Metabarcoding Data
 #'
 #' Fits occupancy and joint species distribution models (JSDMs) to
 #' environmental DNA (eDNA) metabarcoding read data within a hierarchical

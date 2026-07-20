@@ -4,7 +4,7 @@
 \name{occJSDM-package}
 \alias{occJSDM}
 \alias{occJSDM-package}
-\title{occJSDM: Joint Species Distribution Models for eDNA Metabarcoding Data}
+\title{occJSDM: Occupancy and Joint Species Distribution Models for eDNA Metabarcoding Data}
 \value{
 This man page documents the package as a whole; it has no
   return value of its own. See \code{\link{runOccJSDM}} for the
