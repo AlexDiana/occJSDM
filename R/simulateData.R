@@ -28,7 +28,6 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #' @return A list with simulated data and true parameters.
 #'
 #' @export
-#' @import tidyverse
 #'
 simulateOccJSDMData <- function(list_datasettings,
                                 list_params,
