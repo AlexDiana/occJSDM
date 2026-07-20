@@ -127,9 +127,44 @@ editor_options:
         covariates and space. thus, adding factors (unobserved env
         covariates) doesn't change the effect of observed env covariates
 
-    7.  site variance partitioning to complement the species variation
-        partitioning (see Leibold et al., Cai et al.). Consider calling
-        it **variation** partitioning.
+    7.  **site** variance partitioning to complement the **species**
+        variation partitioning (see Leibold et al., Cai et al.).
+        Consider calling it **variation** partitioning.
+
+**Outreach**
+
+1.  Listserv announcement (beta release), drafted July 20 2026:
+
+    > Subject: New R package (beta) — occJSDM, for eDNA occupancy/JSDM
+    > modeling
+    >
+    > Hi all,
+    >
+    > Announcing **occJSDM**, an R package for jointly modeling eDNA
+    > metabarcoding data across species
+    > (<https://github.com/AlexDiana/occJSDM>). Note this is **beta
+    > software**, under active development.
+    >
+    > occJSDM extends the two-stage eDNA occupancy model of Ji et al.
+    > (2025, *Ecology Letters*, <doi:10.1111/ele.70302>) — which
+    > separates field capture from PCR/lab detection error, per species
+    > — by adding a joint species distribution model (JSDM) layer.
+    > Highlights:
+    >
+    > - Models both false negatives and false positives at each
+    >   detection stage (field capture and PCR/lab), per species.
+    > - Integrates occupancy modeling with a full-featured JSDM: species
+    >   fit jointly, with latent-factor residual correlations rather
+    >   than one at a time.
+    > - Supports species traits shaping occupancy responses, and
+    >   optional spatial autocorrelation (GP kernel) across sites.
+    > - MCMC fitting with diagnostics, variance partitioning,
+    >   ordination, and residual correlation outputs built in.
+    >
+    > Vignettes included for simulation and model
+    > fitting/interpretation. Feedback (and bug reports) very welcome.
+    >
+    > [Your name]
 
 **Future versions**
 
