@@ -38,6 +38,10 @@ A list with three elements:
 \usage{
 sampledata
 }
+\value{
+A list with elements \code{info} (data.frame), \code{OTU}
+  (matrix), and \code{traits} (matrix), as described under Format.
+}
 \description{
 A simulated eDNA metabarcoding dataset, in the \code{info}/\code{OTU}/
 \code{traits} list format expected by \code{\link{runOccJSDM}}. Generated

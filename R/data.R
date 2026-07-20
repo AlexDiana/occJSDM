@@ -35,6 +35,9 @@
 #'     unused).}
 #' }
 #'
+#' @return A list with elements \code{info} (data.frame), \code{OTU}
+#'   (matrix), and \code{traits} (matrix), as described under Format.
+#'
 #' @seealso \code{\link{simulateOccJSDMData}}, \code{\link{runOccJSDM}}
 #'
 #' @examples
@@ -75,6 +78,10 @@
 #'   \item{X_psi}{The (standardised) occupancy covariate design matrix used
 #'     to fit the model.}
 #' }
+#'
+#' @return A list with elements \code{results_output}, \code{infos},
+#'   \code{Tr}, \code{X_theta}, \code{Xs}, and \code{X_psi}, as described
+#'   under Format -- i.e. the object returned by \code{\link{runOccJSDM}}.
 #'
 #' @seealso \code{\link{runOccJSDM}}, \code{\link{sampledata}}
 #'

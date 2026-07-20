@@ -33,6 +33,11 @@ A list with six elements:
 \usage{
 sampleresults
 }
+\value{
+A list with elements \code{results_output}, \code{infos},
+  \code{Tr}, \code{X_theta}, \code{Xs}, and \code{X_psi}, as described
+  under Format -- i.e. the object returned by \code{\link{runOccJSDM}}.
+}
 \description{
 Output of \code{\link{runOccJSDM}} fit to \code{\link{sampledata}} (10
 species, 100 sites, up to 3 primers per sample), with
