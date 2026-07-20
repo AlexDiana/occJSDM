@@ -23,7 +23,6 @@ editor_options:
         (defaults to `NULL`) -- minor leftover, not the fragility bug
         itself.
 
-
     2.  ~~gitignore and stop tracking `src/occPlus.dll` (also filename
         should be changed on Alex's end)~~
 
@@ -60,7 +59,7 @@ editor_options:
         similar) in the `else` branch alongside where `siteNames <- 1:n`
         is already set for this case.
 
-    8.  fix `simulateOccJSDMData(model = "occupancy")`
+    7.  fix `simulateOccJSDMData(model = "occupancy")`
         (`R/simulateData.R`): its `data_info` construction binds
         `Site = idx_z_k`, `X_psi = X_psi[idx_z_k,]`,
         `Xs = Xs[idx_z_k,]`, but `idx_z_k` is only populated by
@@ -139,3 +138,5 @@ editor_options:
 2.  model selection of environmental, spatial covariates via
     regularisation/shrinkage, which would be useful with e.g. geospatial
     foundation model embeddings as env covariates
+
+3.  parallelisation for speedup
