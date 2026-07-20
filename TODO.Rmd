@@ -23,21 +23,11 @@ editor_options:
         (defaults to `NULL`) -- minor leftover, not the fragility bug
         itself.
 
-    2.  ~~fix `model`-used-before-assignment bug in `runOccJSDM()`
-        (`R/runOccJSDM.R`): the "read OTU data" block (around line 459)
-        references `model` to decide whether to truncate reads at
-        `threshold`, but `model <- inferDataModel(data)` isn't assigned
-        until later, in the "data structure infer" block (around line
-        522). This throws `object 'model' not found` on every call.
-        Confirmed still present after the `a9700ab` refactor. Fix by
-        moving the `inferDataModel(data)` call earlier, before its first
-        use.~~ **fixed**: `model <- inferDataModel(data)` moved up to
-        line 451
 
-    3.  ~~gitignore and stop tracking `src/occPlus.dll` (also filename
+    2.  ~~gitignore and stop tracking `src/occPlus.dll` (also filename
         should be changed on Alex's end)~~
 
-    4.  ~~`predictNewSites(fitmodel)` for non-surveyed sites~~ --
+    3.  ~~`predictNewSites(fitmodel)` for non-surveyed sites~~ --
         **done**: added to the vignette's "Prediction at new sites"
         section, deduplicating `data$info` by `Site` to build
         `X_psi_new`/`X_s_new` for the original sites as a worked example
@@ -46,19 +36,19 @@ editor_options:
         as well as the fitted estimate
         (`computePredictiveOccupancyProbs()`) does.
 
-    5.  ~~fix `Xs` recycling bug in `simulateOccJSDMData()`
+    4.  ~~fix `Xs` recycling bug in `simulateOccJSDMData()`
         (`R/simulateData.R`)~~ -- **fixed**: `data_info` now binds
         `Xs = Xs[idx_z_k,]` (indexed the same way as `X_psi`) in both
         the `"occupancy"` and `"two_stage"` branches, so
         `info$Xs.1`/`Xs.2` correctly repeat one coordinate pair per site
         across its replicate rows instead of recycling unrelated pairs.
 
-    6.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
+    5.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
         introduced in `af5ebe3`)~~ -- **fixed**: `computeMinESS()` now
         computes `ESS_beta0psi` from `beta0_psi_output` directly and
         includes it in the final `min()`
 
-    7.  fix `runOccJSDM()` throwing `object 'M' not found` for
+    6.  fix `runOccJSDM()` throwing `object 'M' not found` for
         `model %in% c("binary","continuous")` (JSDM-only) data: `M` (and
         `K`) are only ever assigned inside the
         `model %in% c("occupancy","two_stage")` branch (around line
