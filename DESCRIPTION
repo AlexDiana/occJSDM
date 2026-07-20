@@ -1,6 +1,6 @@
 Package: occJSDM
 Type: Package
-Title: Fitting occupancy models for eDNA reads data
+Title: Simultaneous Fitting of an eDNA-Aware Occupancy and Joint Species Distribution Model
 Version: 0.1.0
 Authors@R: c(
     person(
@@ -14,21 +14,19 @@ Authors@R: c(
       role = "aut"
     )
   )
-Description: Fits joint species distribution models (JSDMs) to
-    environmental DNA (eDNA) metabarcoding reads data within a hierarchical
-    Bayesian occupancy framework. Explicitly models the two-stage
+Description: Fits an occupancy and joint species distribution model (JSDM)
+    to environmental DNA (eDNA) metabarcoding read data within a
+    hierarchical Bayesian framework. Explicitly models the two-stage
     detection process of field sample collection followed by PCR
-    amplification and sequencing, while accounting for species traits,
-    residual between-species correlations, and optional spatial
-    autocorrelation via a Gaussian process. Models are fit by Markov chain
-    Monte Carlo. See Ji et al. (2025) <doi:10.1111/ele.70302> for
-    methodological details.
+    amplification and sequencing, while optionally accounting for species
+    traits and spatial autocorrelation via a Gaussian process. Models are
+    fit by Markov chain Monte Carlo. See Ji et al. (2025)
+    <doi:10.1111/ele.70302> for methodological details.
 License: Apache License (>= 2)
 Encoding: UTF-8
 Imports: 
     ggplot2 (>= 3.4.0),
     dplyr,
-    ggplot2,
     tidyr,
     stringr,
     stats,
@@ -45,8 +43,6 @@ Imports:
 LinkingTo: 
     Rcpp,
     RcppArmadillo
-Remotes:
-    kassambara/ggcorrplot
 LazyData: true
 LazyDataCompression: xz
 Suggests: 
