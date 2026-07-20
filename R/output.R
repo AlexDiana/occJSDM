@@ -1408,6 +1408,18 @@ createSpatialPredMatrix <- function(Xs, l_s_grid, X_tilde, list_Xs_mat){
 #' @param fitModel Output from the function runOccJSDM
 #' @param X_psi Occupancy covariates matrix for the new locations
 #' @param X_s Spatial/ordination covariates matrix for the new locations
+#' @param useEnvCov Logical, default \code{TRUE}. Whether to include the
+#' effect of the occupancy covariates (\code{X_psi}) in the prediction.
+#' Ignored (no covariate effect applied) if no occupancy covariates were
+#' estimated in \code{fitModel}.
+#' @param useSpatial Logical, default \code{TRUE}. Whether to include the
+#' spatially autocorrelated random field (based on \code{X_s}) in the
+#' prediction. Ignored (no spatial effect applied) if no spatial field was
+#' estimated in \code{fitModel}.
+#' @param useBiotic Logical, or \code{NULL} (default). Whether to include
+#' the latent-factor (residual species covariance) term in the prediction.
+#' If \code{NULL}, defaults to \code{TRUE} when latent factors were
+#' estimated in \code{fitModel} and \code{FALSE} otherwise.
 #' @param summarised Should the output be return in the form of quantiles? Set to TRUE if the number of sites is very large
 #' @param confidence If quantiles are returned, the confidence level of the quantiles.
 #'

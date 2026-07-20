@@ -64,6 +64,11 @@ coordinate columns used to fit a spatially autocorrelated random field
 over occupancy. Names should match column names in \code{data$info}. If
 omitted, no spatial field is fit.}
 
+\item{traitsMatrix}{(Optional) species (rows) by trait (columns) matrix
+of species traits, matched to \code{colnames(data$OTU)} by row name.
+Currently unused directly -- if omitted, traits are instead read from
+\code{data$traits} (see \code{data} above).}
+
 \item{MCMCparams}{(Optional) list of MCMC settings: \code{nchain} (number
 of chains), \code{nburn} (number of burn-in iterations to discard),
 \code{niter} (number of post-burn-in iterations to keep), and
