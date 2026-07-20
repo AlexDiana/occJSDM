@@ -115,3 +115,31 @@ Not ported: `compare_to_true()`/`plot_estimated_vs_true()` from GLGS-eDNA, since
 - When editing files that are also open in the RStudio editor, prefer re-reading the file immediately before and after edits -- a prior session saw a file get corrupted/duplicated after an `edit` call, likely from an editor/disk desync; rewriting the whole file with `write` fixed it.
 - This repo's git history shows a pattern of committing by concern (e.g. testthat setup, generated docs, vignette content fixes kept separate from unrelated whitespace-only diffs) rather than one large commit -- worth continuing when making multiple unrelated changes.
 - TODO.Rmd tracks near-term and future development priorities; keep synchronized with actual work being done.
+- `doc/` (vignette build output, already in `.Rbuildignore` via `^doc$`) was deleted from the working tree this session -- it's regenerated automatically by `devtools::build_vignettes()`/`R CMD build`, so deleting it is safe and has no effect on `git` (it was never tracked).
+
+## CRAN submission plan
+
+Goal: get occJSDM accepted on CRAN. Investigated `devtools::check()` output plus DESCRIPTION/data/docs directly (July 20 2026 session) and found the items below. Split into blocking issues (CRAN will very likely reject without these) and should-fix issues (not hard blockers but expected/likely to draw reviewer pushback).
+
+### Blocking
+
+1. **`Description:` field is still template placeholder text** (`"More about what it does (maybe more than one line)."`) -- must be rewritten with a real description of the method (occupancy/JSDM for eDNA metabarcoding reads, two-stage detection, traits, spatial autocorrelation).
+2. **`Title:` not in title case** -- currently `Fitting occupancy models for eDNA reads data`; CRAN requires title case, no terminal period, e.g. "Joint Species Distribution Models for eDNA Metabarcoding Data".
+3. **`Remotes: kassambara/ggcorrplot`** -- CRAN packages cannot depend on a GitHub remote. `ggcorrplot` is itself on CRAN; switch to the CRAN version and remove the `Remotes:` field entirely (double check nothing else in the codebase actually needs GitHub-only `ggcorrplot` features).
+4. **`data/sampleresults.rda` is 62 MB** -- CRAN's practical package-size ceiling is ~5 MB; this one precomputed MCMC fit is the overwhelming majority of package weight and will likely get the submission bounced. Options: regenerate with far fewer iterations/chains/thinning, strip unneeded output components before saving, or don't ship a full fit in the package at all (compute something small at vignette build time instead).
+5. **`rstan` is a dead, extremely heavy dependency** -- the only usage anywhere in `R/` is `R/zzz.R`'s `.onLoad` calling `rstan::rstan_options(auto_write = TRUE)`; the model itself is fit via Rcpp/Armadillo (`src/jsdm.cpp`), not Stan. Remove `rstan` from `Imports` and delete/rewrite that line in `zzz.R`.
+6. **Missing `\value` tags on 3 Rd files** (`occJSDM-package.Rd`, `sampledata.Rd`, `sampleresults.Rd`) -- CRAN's automated incoming checks explicitly reject undocumented return values now; this is a hard requirement, not a suggestion.
+
+### Should fix before submitting
+
+7. **Duplicate `ggplot2` line in `Imports:`** (appears on both line 23 and line 25 of DESCRIPTION) -- cosmetic but sloppy, remove the duplicate.
+8. **17 Rd files with no `\examples`** -- not a hard CRAN rule but routinely requested by reviewers on first submission; given MCMC runtime, wrap slow examples in `\donttest{}` rather than `\dontrun{}`.
+9. **Remaining C++ compiler warning** (bitwise-vs-logical operators in `src/functions.cpp`/`src/jsdm.cpp`) -- CRAN's periodic checks use stricter compiler flags/sanitizers than a local `check()`; fix now rather than risk a later "please fix or be archived" email.
+10. **No `URL`/`BugReports` fields in DESCRIPTION** -- expected practice; add pointing at the GitHub repo (`https://github.com/AlexDiana/occJSDM`).
+11. **LICENSE file mismatch** -- `Apache License (>= 2)` is fully standardized and self-contained; the loose top-level `LICENSE` file isn't referenced by it (adding `+ file LICENSE` previously broke things -- triggered a separate "restrictions not permitted" NOTE). Current DESCRIPTION has an **uncommitted fix already applied** reverting to plain `Apache License (>= 2)` (see `git diff DESCRIPTION`) -- still need to decide: keep the unreferenced `LICENSE` file (cosmetic NOTE, acceptable) or delete it, then commit.
+12. **No `cran-comments.md`** -- customary for first submissions; should explain the compiler warning (if any remains after item 9) and test environments checked (win-builder / R-hub / mac-builder, given compiled code via Rcpp/RcppArmadillo).
+13. **Run `R CMD check --as-cran`**, not just `devtools::check()`, as the final local gate -- `--as-cran` adds a few extra checks (e.g. installed size) that plain `check()` skips.
+14. **Multi-platform pre-check** -- submit a test build to win-builder or R-hub before the real CRAN submission, since compiled-code packages (via `LinkingTo: Rcpp, RcppArmadillo`) fail there more often than pure-R ones.
+
+### Not yet started
+All 14 items above are open as of this session -- none have been implemented yet, only identified/discussed.
