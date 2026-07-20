@@ -2,3 +2,8 @@
 ^\.Rproj\.user$
 ^doc$
 ^Meta$
+^AGENTS\.md$
+^CITATION\.cff$
+^TODO\.Rmd$
+^deprecated$
+^dev$

@@ -16,7 +16,7 @@ Authors@R: c(
   )
 Description: More about what it does (maybe more than one line).
     Continuation lines should be indented.
-License: Apache License (>= 2)
+License: Apache License (>= 2) + file LICENSE
 Encoding: UTF-8
 Imports: 
  rstan (>= 2.26.0),
