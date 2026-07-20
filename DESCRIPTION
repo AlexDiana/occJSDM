@@ -14,12 +14,18 @@ Authors@R: c(
       role = "aut"
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
+Description: Fits joint species distribution models (JSDMs) to
+    environmental DNA (eDNA) metabarcoding reads data within a hierarchical
+    Bayesian occupancy framework. Explicitly models the two-stage
+    detection process of field sample collection followed by PCR
+    amplification and sequencing, while accounting for species traits,
+    residual between-species correlations, and optional spatial
+    autocorrelation via a Gaussian process. Models are fit by Markov chain
+    Monte Carlo. See Ji et al. (2025) <doi:10.1111/ele.70302> for
+    methodological details.
 License: Apache License (>= 2)
 Encoding: UTF-8
 Imports: 
- rstan (>= 2.26.0),
     ggplot2 (>= 3.4.0),
     dplyr,
     ggplot2,
