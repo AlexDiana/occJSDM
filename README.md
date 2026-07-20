@@ -9,8 +9,12 @@ species traits, and optional spatial autocorrelation.
 
 ```r
 # install.packages("remotes")
-remotes::install_github("AlexDiana/occJSDM")
+remotes::install_github("AlexDiana/occJSDM", build_vignettes = TRUE)
 ```
+
+Note the `build_vignettes = TRUE` -- without it, `remotes::install_github()`
+skips building vignettes by default, and `vignette("occJSDM", package =
+"occJSDM")` will report that no vignette was found.
 
 ## Getting started
 
