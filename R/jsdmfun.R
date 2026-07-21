@@ -166,7 +166,7 @@ computeSORmatrix <- function(l_s, X_tilde, X_s, Xs_index, X_s_centers){
 
   if(ps > 0){
 
-    K_uu <- K2(X_tilde, X_tilde, 1, l_s) + diag(0.0001, nrow = nrow(X_tilde))
+    K_uu <- K2(X_tilde, X_tilde, 1, l_s) + diag(10^(-5), nrow = nrow(X_tilde))
     L_Kmm <- FastGP::rcppeigen_get_chol(K_uu)
     invL_Kmm <- FastGP::rcppeigen_invert_matrix(L_Kmm)
     K_staru <- K2(X_s, X_tilde, 1, l_s)
@@ -210,10 +210,12 @@ precomputeSORmatrices <- function(l_s_grid, list_Xs){
   logDetKuu_grid <- rep(NA, length_grid_ls)
   Lm1_grid <- array(NA, c(ns, ns, length_grid_ls))
 
+  print(paste0("Precomputing covariance matrices"))
+
   if(X_centers > 0){
     for (j in 1:length_grid_ls) {
 
-      if(T){
+      if(F){
         print(paste0("Precomputing covariance matrix ",j," out of ",length_grid_ls))
       }
 
@@ -388,10 +390,10 @@ simulateData <- function(
   {
     if(useSpatField){
 
-      K_mat <- K2(Xs, Xs, sigma_s, l_s) + diag(0.001, nrow = ns)
+      K_mat <- K2(Xs, Xs, sigma_s, l_s) + diag(10^(-5), nrow = ns)
 
       Lambda <- matrix(rnorm(ds * S), ds, S)
-      Sigma <- t(Lambda) %*% Lambda + diag(0.001, nrow = S)
+      Sigma <- t(Lambda) %*% Lambda + diag(10^(-5), nrow = S)
 
       LU <- chol(K_mat)
       LV <- chol(Sigma)
@@ -487,7 +489,7 @@ simulateData <- function(
       "sigma_b" = sigma_b,
       "sigma_bs" = sigma_bs,
       "sigma_s" = sigma_s,
-      "ls" = ls,
+      "l_s" = l_s,
       "eta" = eta,
       "tau" = tau,
       "varPart" = varPart

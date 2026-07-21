@@ -409,18 +409,20 @@ runOccJSDM <- function(data,
                        listPriors = list()){
 
   {
-    # listParams = list(n_factors = 3)
+    #
+    # listParams = list(n_factors = 2)
     # threshold = 1
-    # occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2", "X_psi.EnvCov.3")
-    # collCovariates = NULL
-    # spatCovariates <- c("Xs.1","Xs.2")
-    # MCMCparams = list(nchain = 2,
-    #                   nburn = 500,
-    #                   niter = 500)
+    # occCovariates = c("elevation","curvature","dist_to_edge","rainforest_500","bamboo_500","canopy_cover_500","soil_humidity")
+    # collCovariates = c("type","month","elution_volume")
+    # spatCovariates = c("latitude","longitude")
+    # #traitsMatrix = NULL,
+    # MCMCparams = list(nchain = 1,
+    #                   nburn = 200,
+    #                   niter = 200,
+    #                   nthin=1)
     # listPriors <- list()
     # summarisedLatentPresences <- T
   }
-
 
   # data structure infer
   {
@@ -454,7 +456,6 @@ runOccJSDM <- function(data,
     }
 
   }
-
 
   # read OTU data
   {
@@ -1284,7 +1285,6 @@ runOccJSDM <- function(data,
 
   if(summarisedLatentPresences){
     results_output$z_output <- z_output_mean
-
     results_output$psi_output <- psi_output_mean
   } else {
     results_output$z_output <- z_output
