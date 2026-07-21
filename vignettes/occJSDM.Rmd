@@ -161,7 +161,6 @@ fitmodel <- runOccJSDM(data = data,
                        occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
                        collCovariates = c("X_theta.1", "X_theta.2"),
                        spatCovariates = c("Xs.1", "Xs.2"), 
-                       traitsMatrix = data$traits,
                        MCMCparams = list(nchain = 2,
                                          nburn = 5000,
                                          niter = 5000,
@@ -169,6 +168,9 @@ fitmodel <- runOccJSDM(data = data,
                        summarisedLatentPresences = T
                        )
 ```
+
+All covariates, including `data$traits` and `spatCovariates`, are
+optional.
 
 Fitting the model above takes several minutes, so to keep this vignette
 fast to build, we instead load a precomputed fit (`sampleresults`,
@@ -747,7 +749,7 @@ Which coefficient array and set of column names to use depends on which
 type of covariate/parameter we want:
 
 | Covariate/parameter | Column names | Coefficient array |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | `X_psi.*` (occupancy covariates) | `colnames(fitmodel$X_psi)` | `fitmodel$results_output$jsdm_output$B_output` (`beta_psi`) |
 | species intercept | -- (species-only) | `fitmodel$results_output$jsdm_output$B0_output` (`beta0_psi`) |
 | `X_theta.*` (collection covariates) | `colnames(fitmodel$X_theta)` | `fitmodel$results_output$beta_theta_output` (`beta_theta`) |
