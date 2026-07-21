@@ -169,7 +169,8 @@ fitmodel <- runOccJSDM(data = data,
                        )
 ```
 
-`data$traits` and `spatCovariates` are both optional.
+All covariates, including `data$traits` and `spatCovariates`, are
+optional.
 
 Fitting the model above takes several minutes, so to keep this vignette
 fast to build, we instead load a precomputed fit (`sampleresults`,
