@@ -17,4 +17,7 @@
 #' @keywords internal
 #' @useDynLib occJSDM, .registration = TRUE
 #' @importFrom Rcpp evalCpp
+#' @importFrom stats binomial cov cov2cor dbinom dgamma dnorm dpois glm
+#'   kmeans logLik median predict quantile rbeta rbinom reorder rgamma
+#'   rnorm rpois runif sd var
 "_PACKAGE"
