@@ -2201,6 +2201,78 @@ computeSpeciesDetected <- function(ab_p, K, primer, alpha){
 
   P <- length(idx_primer)
 
+  set.seed(1) # to avoid getting different results everytime
+
+  matrixDetectedPCR <- sapply(1:B, function(b){
+
+    detectionMatrix <- sapply(1:S, function(s){
+
+      ps <- rbeta(P, ab_p[1,idx_primer,s], ab_p[2,idx_primer,s])
+      sapply(1:K, function(k){
+
+        detectionsAcrossPrimers <-
+          sapply(1:P, function(p){
+            rbinom(1, 1, ps[p])
+          })
+
+        as.numeric(any(detectionsAcrossPrimers) > 0)
+
+      })
+    })
+
+    detectionsPerPcr <- sapply(1:K, function(k){
+      sum(apply(detectionMatrix[1:k,,drop=F], 2, function(x){ any(x > 0)}))
+    })
+
+    detectionsPerPcr
+  })
+
+  apply(matrixDetectedPCR, 1, function(x){
+    quantile(x, probs = c((1 - alpha)/2, (1 + alpha)/2))
+  })
+
+}
+
+#' computeSpeciesDetected_M
+#'
+#' Simulate the number of species detected as a function of the number of
+#' technical replicates (PCRs), given Beta-distributed detection probabilities.
+#'
+#' @details
+#' Internal helper for `plotCumulativeSpeciesDetections`. For each of `B`
+#' bootstrap replicates, simulates detections for each species across `K`
+#' technical replicates and one or more primers, then summarises the
+#' cumulative number of species detected as a function of the number of
+#' replicates used.
+#'
+#' @param ab_p Array of Beta distribution shape parameters (alpha, beta) of
+#' size (2 x primers x species), as produced in `plotCumulativeSpeciesDetections`
+#' @param K Maximum number of technical replicates (PCRs) to consider
+#' @param primer Index of the primer to use; 0 pools across all primers
+#' @param alpha Confidence level of the credible interval
+#'
+#' @return A matrix of size (2 x K) with the lower and upper bounds of the
+#' credible interval for the number of species detected, for 1 to K replicates
+#'
+#' @noRd
+computeSpeciesDetected_M <- function(ab_p, K, primer, alpha){
+
+  S <- dim(ab_p)[3]
+
+  B <- 100
+
+  P_all <- dim(ab_p)[2]
+
+  if(primer == 0){
+    idx_primer <- 1:P_all
+  } else {
+    idx_primer <- primer
+  }
+
+  P <- length(idx_primer)
+
+  set.seed(1) # to avoid getting different results everytime
+
   matrixDetectedPCR <- sapply(1:B, function(b){
 
     detectionMatrix <- sapply(1:S, function(s){

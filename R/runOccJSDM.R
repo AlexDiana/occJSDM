@@ -564,6 +564,7 @@ runOccJSDM <- function(data,
       } else {
         n <- nrow(data_info)
         siteNames <- 1:n
+        M <- NULL
       }
 
     }
@@ -610,6 +611,8 @@ runOccJSDM <- function(data,
 
         N3 <- sum(K)
 
+      } else {
+        K <- NULL
       }
 
     }

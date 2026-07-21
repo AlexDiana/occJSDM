@@ -10,9 +10,15 @@ editor_options:
 
 **v0.1.0-beta** **Public release**
 
-1.  Alex to dos
+1.  Alex to dos8
 
-    1.  ~~fix trait-reading code in `runOccJSDM()`: it checks
+
+    1.  Report MCMC diagnostics by blocks of parameters
+    
+    1.  Switch to integrated WAIC (instead of the current conditional WAIC, which overfits as 
+    it happens also in HMSC).
+        
+    2.  ~~fix trait-reading code in `runOccJSDM()`: it checks
         `data$traits`, not `data$traitsMatrix` or the unused
         `traitsMatrix` function argument. This currently works only
         because R's `$` partially matches list names (`traitsMatrix` is
@@ -46,18 +52,6 @@ editor_options:
         introduced in `af5ebe3`)~~ -- **fixed**: `computeMinESS()` now
         computes `ESS_beta0psi` from `beta0_psi_output` directly and
         includes it in the final `min()`
-
-    6.  fix `runOccJSDM()` throwing `object 'M' not found` for
-        `model %in% c("binary","continuous")` (JSDM-only) data: `M` (and
-        `K`) are only ever assigned inside the
-        `model %in% c("occupancy","two_stage")` branch (around line
-        536-559 of `R/runOccJSDM.R`), but the final `infos` list (around
-        line 1306/1308) references `M`/`K` unconditionally. Confirmed
-        live: any JSDM-only fit (no `Site` column, or `Site` with no
-        repeats) errors after MCMC completes, right when assembling
-        `infos`. Fix: default `M <- rep(1, n)` / `K <- rep(1, n)` (or
-        similar) in the `else` branch alongside where `siteNames <- 1:n`
-        is already set for this case.
 
     7.  fix `simulateOccJSDMData(model = "occupancy")`
         (`R/simulateData.R`): its `data_info` construction binds
