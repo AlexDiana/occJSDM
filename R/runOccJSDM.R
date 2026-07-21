@@ -285,21 +285,21 @@ create_waic_quantities <- function(n_obs){
 }
 
 #' runOccJSDM
-#'
-#' Fit an occupancy joint species distribution model (JSDM), accounting for
-#' species traits, optional spatial autocorrelation, and (for eDNA-style
-#' data) a two-stage detection process (field collection + PCR
-#' amplification/lab detection).
+#' Fit an occupancy joint species distribution model (occJSDM), optionally
+#' accounting for environmental and detection covariates, species traits,
+#' spatial autocorrelation, and for eDNA-style data, a two-stage observation
+#' process (false-negative and false-positive detection errors in the field
+#' and in the lab).
 #'
 #' @details
-#' Fit the model described in Diana et al.. The model actually fit is
-#' inferred automatically from the shape of \code{data} (via the internal
-#' \code{inferDataModel()}): whether \code{data$info} has repeated
-#' observations per \code{Site} (and, within a \code{Site}, per
-#' \code{Sample}) determines whether the data are treated as single-visit
-#' JSDM data, classical (one-stage) occupancy data, or two-stage (eDNA-style)
-#' occupancy/detection data. A message is printed describing which model was
-#' inferred -- check that it matches expectations for your data.
+#' The model actually fit is inferred automatically from the shape of
+#' \code{data} (via the internal \code{inferDataModel()}): whether
+#' \code{data$info} has repeated observations per \code{Site} (and, within a
+#' \code{Site}, per \code{Sample}) determines whether the data are treated
+#' as single-visit JSDM data, classical (one-stage) occupancy data, or
+#' two-stage (eDNA-style) occupancy/detection data. A message is printed
+#' describing which model was inferred -- check that it matches expectations
+#' for your data.
 #'
 #' @param data A list with two elements:
 #' \describe{

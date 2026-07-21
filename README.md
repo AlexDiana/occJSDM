@@ -1,9 +1,9 @@
 # occJSDM
 
-An R package for fitting occupancy joint species distribution models
-(JSDMs) to eDNA metabarcoding reads data, accounting for a two-stage
-detection process (field collection + PCR amplification/lab detection),
-species traits, and optional spatial autocorrelation.
+An R package for fitting an occupancy joint species distribution model
+(occJSDM), optionally accounting for environmental and detection covariates, 
+species traits, spatial autocorrelation, and for eDNA-style data, a two-stage observation process (false-negative and false-positive detection errors in the 
+field and in the lab).
 
 ## Installation
 
