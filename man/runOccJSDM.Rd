@@ -2,12 +2,7 @@
 % Please edit documentation in R/runOccJSDM.R
 \name{runOccJSDM}
 \alias{runOccJSDM}
-\title{runOccJSDM
-Fit an occupancy joint species distribution model (occJSDM), optionally
-accounting for environmental and detection covariates, species traits,
-spatial autocorrelation, and for eDNA-style data, a two-stage observation
-process (false-negative and false-positive detection errors in the field
-and in the lab).}
+\title{runOccJSDM}
 \usage{
 runOccJSDM(
   data,
@@ -114,7 +109,6 @@ A list with:
 }
 }
 \description{
-runOccJSDM
 Fit an occupancy joint species distribution model (occJSDM), optionally
 accounting for environmental and detection covariates, species traits,
 spatial autocorrelation, and for eDNA-style data, a two-stage observation

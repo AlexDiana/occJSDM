@@ -285,6 +285,7 @@ create_waic_quantities <- function(n_obs){
 }
 
 #' runOccJSDM
+#'
 #' Fit an occupancy joint species distribution model (occJSDM), optionally
 #' accounting for environmental and detection covariates, species traits,
 #' spatial autocorrelation, and for eDNA-style data, a two-stage observation
