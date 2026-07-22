@@ -8,7 +8,7 @@ R package for fitting occupancy models to eDNA metabarcoding reads data (joint s
 - `R/jsdmfun.R` -- core JSDM machinery, including `simulateData()` (the lower-level data simulator) and coefficient/variance-partitioning helpers (`computeBtcoef()`, `computePsiCoef()`, `computeVariancePartitioning()`).
 - `R/simulateData.R` -- exports `simulateOccJSDMData()`, which now takes an explicit `model` argument (`"binary"`, `"occupancy"`, `"continuous"`, or `"two_stage"`) and directly returns `data_list` already in the `runOccJSDM()`-ready `info`/`OTU`/`traits` shape (as of Alex's `a9700ab` refactor, below). This merged the former `simulateOccJSDMDataGeneral()` into `simulateOccJSDMData()` and **removed** the separate `toRunOccJSDMFormat()` conversion step entirely -- neither `simulateOccJSDMDataGeneral()` nor `toRunOccJSDMFormat()` exist in the source anymore (dropped from `NAMESPACE` too), even though `tests/testthat/test-toRunOccJSDMFormat.R` and a `\link{toRunOccJSDMFormat}` in `R/data.R`'s roxygen docs still reference the removed function. **This is a live regression** -- the old two-step simulate-then-convert workflow described in `vignettes/simulateOccJSDMData.Rmd` may now be stale; check/update that vignette and the orphaned test before relying on either.
 - `R/mcmcfun.R`, `R/output.R`, `R/diagnostics.R` -- MCMC sampling and post-processing/output/plotting functions used after `runOccJSDM()` (e.g. `returnOccupancyCovariates()`, `plotVariancePartitioning()`, `returnLatentPresences()`, `plotResidualCorrelationMatrix()`, `returnOrdinationScores()`/`plotOrdinationScores()`/`returnFactorLoadings()`/`plotFactorLoadings()`; see NAMESPACE for the full exported list).
-- `src/jsdm.cpp`, `src/functions.cpp` (via `RcppExports.R`) -- Rcpp/Armadillo backend, including the spatial kernel `K2()` (squared-exponential GP kernel over site coordinates) and `sample_w_cpp()` (samples latent collection state `w` from continuous read intensities when `threshold = 0`).
+- `src/jsdm.cpp`, `src/functions.cpp` (via `RcppExports.R`) -- Rcpp/Armadillo backend, including the spatial kernel `K2()` (squared-exponential GP kernel over site coordinates) and `sample_w_cpp()` (samples latent collection state `w` from continuous read intensities; currently unused in `runOccJSDM()` since `threshold < 1` is unsupported).
 - `vignettes/occJSDM.Rmd` -- walkthrough of fitting a model with `runOccJSDM()` and using the output/plotting functions.
 - `vignettes/simulateOccJSDMData.Rmd` -- walkthrough of `simulateOccJSDMData()`: parameter lists, simulating with/without spatial autocorrelation via `useSpatField`, checking variance partitioning, visualizing occupancy and the linear predictor spatially, and how trait covariates (`Tr`) shape species-specific occupancy coefficients via the `G` matrix. **Likely stale**: as of Alex's `a9700ab` refactor, `simulateOccJSDMData()` takes a `model` argument and returns `runOccJSDM()`-ready data directly, so any vignette content describing a separate `toRunOccJSDMFormat()` conversion step needs updating.
 - `TODO.Rmd` -- structured outstanding feature list, organized as **v0.1.0-beta Public release** (Alex to dos / Doug to dos), **MEE paper** (Doug to dos / Alex to dos), and **Future versions**. See "Current work status" below for the current item list.
@@ -23,7 +23,7 @@ R package for fitting occupancy models to eDNA metabarcoding reads data (joint s
 
 **Model input (`runOccJSDM()`)**: a list with `info` (data.frame, one row per PCR replicate, with `Site`, `Sample`, `Primer`, occupancy covariates `X_psi.*`, and collection covariates `X_theta.*`) and `OTU` (matrix of read counts, rows matching `info`, columns = species).
 
-The `threshold` argument to `runOccJSDM()` controls how `OTU` is interpreted: - `threshold > 0` (default `1`): reads are truncated to binary presence/absence (`OTU >= threshold` -\> detection), and `w` is sampled via `sample_w_cim_cipp()`. - `threshold == 0`: reads are modeled continuously via `logy1 = log(OTU + 1)` and a two-component Normal mixture -- given a true detection, `logy1 ~ Normal(mu1, sigma1)`; given a false-positive/contamination detection, `logy1 ~ Normal(mu0, sigma0)` -- sampled via `sample_w_cpp()`. `mu1_output`/`sigma1_output`/ `mu0_output`/`sigma0_output` in `results_output` are only populated in this mode.
+The `threshold` argument to `runOccJSDM()` controls how `OTU` is interpreted: `threshold >= 1` (default `1`) truncates reads to binary presence/absence (`OTU >= threshold` -> detection) and samples `w` via `sample_w_cim_cipp()`. `threshold < 1` (including `threshold = 0`) is currently unsupported and raises an error (`stop("Threshold has to be greater than 0")`). Note that while `simulateOccJSDMData()` simulates continuous read counts for two-stage models via a log-normal mixture (`mu1`, `sigma1`, `mu0`, `sigma0`), `runOccJSDM()` truncates these to binary observations at fit time.
 
 **Simulated data (`simulateOccJSDMData()`)**, as of Alex's `a9700ab` refactor, now takes an explicit `model` argument (one of `"binary"`, `"occupancy"`, `"continuous"`, `"two_stage"`) and returns `list(true_params, data_list)` where **`data_list` is already in `runOccJSDM()`-ready form**: `list(info, OTU, traits)` (no separate conversion step needed anymore -- see "Package layout" above for what changed and what's now stale as a result). `true_params` still carries the true occupancy/detection states and coefficients (`jsdmParams_true`, `beta_theta_true`, `z_true`, and for `"two_stage"` also `w_true`/`p_true`/`q_true`), and read counts for `"two_stage"` are generated the same way as before: `y = round(exp(logy1) - 1)` where `logy1` is drawn per-replicate from `Normal(mu1, sigma1)` (true detections), `Normal(mu0, sigma0)` (false-positive/contamination), or `0` (no reads) -- `mu1`/`sigma1`/`mu0`/`sigma0` still come from `list_params` (defaulting to `5`, `1`, `1.5`, `1`). **This section needs re-verification against the current source** (`R/simulateData.R`) next time simulated data is used, since the exact argument list (`list_datasettings`, `list_params`, `list_jsdmParams`) may have shifted along with the `model` argument addition -- confirm before relying on details above.
 
@@ -260,13 +260,14 @@ test_that("runOccJSDM JSDM-only (binary) no longer errors on M variable", {
   expect_no_error(runOccJSDM(sim$data_list, MCMCparams = minimal_mcmc))
 })
 
-test_that("runOccJSDM with threshold=0 populates read-intensity output slots", {
-  # Tests the continuous read-count model path (sample_w_cpp, not sample_w_cim_cipp)
+test_that("runOccJSDM rejects threshold < 1", {
+  # runOccJSDM requires threshold >= 1; threshold < 1 raises an error
   args <- minimal_sim_args("two_stage")
   sim  <- do.call(simulateOccJSDMData, args)
-  fit  <- runOccJSDM(sim$data_list, threshold = 0, MCMCparams = minimal_mcmc)
-  expect_false(is.null(fit$results_output$mu1_output))
-  expect_false(is.null(fit$results_output$sigma1_output))
+  expect_error(
+    runOccJSDM(sim$data_list, threshold = 0, MCMCparams = minimal_mcmc),
+    "Threshold has to be greater than 0"
+  )
 })
 
 test_that("runOccJSDM errors informatively on malformed input", {
@@ -383,4 +384,4 @@ Note: Rcpp/RcppArmadillo compilation is handled automatically by `r-lib/actions/
 
 **Predecessor**: `tests/testthat/test-placeholder.R` should remain until at least `test-simulation.R` and `test-model-fit.R` are in place, to keep `testthat::test_check()` from erroring with "No test files found".
 
-**Next steps** (recommended order): 1. Write `helper-sim.R` and verify `minimal_sim_args()` actually runs end-to-end in the console 2. Write and run `make-fixtures.R` to generate `fixtures/fit_twostage.rds` 3. Implement `test-simulation.R` 4. Implement `test-model-fit.R` (including threshold=0 path) 5. Implement `test-outputs.R` using the fixture 6. Implement `test-diagnostics.R` and `test-integration.R` 7. Configure GitHub Actions CI/CD 8. Remove `test-placeholder.R`
+**Next steps** (recommended order): 1. Write `helper-sim.R` and verify `minimal_sim_args()` actually runs end-to-end in the console 2. Write and run `make-fixtures.R` to generate `fixtures/fit_twostage.rds` 3. Implement `test-simulation.R` 4. Implement `test-model-fit.R` (including threshold rejection check) 5. Implement `test-outputs.R` using the fixture 6. Implement `test-diagnostics.R` and `test-integration.R` 7. Configure GitHub Actions CI/CD 8. Remove `test-placeholder.R`
