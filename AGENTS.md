@@ -164,82 +164,197 @@ Of the 6 blocking items, 5 are fixed (1, 2, 3, 5, 6) and committed (`d0f1650`, `
 
 **Organizational structure** (hierarchical, matching package components):
 
-```         
+```
 tests/testthat/
 ├── test-simulation.R    # Data generation (simulateOccJSDMData)
 ├── test-model-fit.R     # Core modeling (runOccJSDM)
-├── test-outputs.R       # Post-processing functions
+├── test-outputs.R       # Post-processing functions (all ~34 exported functions)
 ├── test-diagnostics.R   # MCMC checks (returnConvergenceDiagnostics, plotTraceplot)
 ├── test-integration.R   # Full workflow tests
-└── fixtures/           # Shared test data (minimal cached models)
+├── helper-sim.R         # Shared helper: minimal valid simulate() arguments
+└── fixtures/            # Pre-fitted model objects (.rds), generated once and
+                         # committed; regenerate with tests/testthat/make-fixtures.R
 ```
 
-**Key design decisions**: - Use minimal datasets (N=30-50 sites, S=5-10 species) to keep test runtime under 3 minutes total - Cache pre-fitted models in `fixtures/` to avoid repeated MCMC runs - Test all `simulateOccJSDMData()` model types (`"binary"`, `"occupancy"`, `"continuous"`, `"two_stage"`) - Regression tests specifically for `idx_z_k` bug (occupancy model) and `M` variable (JSDM-only)
+**Key design decisions**:
+- Use minimal datasets (`n=20` sites, `S=5` species, `nchain=1`) to keep total test runtime under 3 minutes
+- Cache pre-fitted models as `.rds` files in `fixtures/` to avoid repeated MCMC runs; load with `readRDS(testthat::test_path("fixtures/fit_twostage.rds"))`; regenerate with a dedicated `make-fixtures.R` script (not run by `testthat`, only run manually when the model interface changes)
+- Test all `simulateOccJSDMData()` model types (`"binary"`, `"occupancy"`, `"continuous"`, `"two_stage"`)
+- Regression tests for known fixed bugs: `M` variable (JSDM-only, fixed `c1f9cec`)
+- The `model = "occupancy"` `idx_z_k` bug (TODO item 1.8) is **still open** -- its test must use `skip()` until fixed, not `expect_equal()` (a passing assertion for a broken function is worse than no test)
+
+### Minimal Working Simulate Call
+
+All four arguments to `simulateOccJSDMData()` are **required** with no defaults. All `list_datasettings` keys are **lowercase**. A minimal valid call for tests (use this as `helper-sim.R`):
+
+```r
+minimal_sim_args <- function(model = "two_stage") {
+  n <- 20; S <- 5; M <- rep(2, n); P <- 1; K <- rep(2, n * P * max(M))
+  list(
+    list_datasettings = list(
+      n = n, S = S, g = 1, M = M, P = P, K = K,
+      ncov_psi = 1, ncov_theta = 1
+    ),
+    list_params = list(
+      p       = matrix(0.7,  P, S),
+      q       = matrix(0.05, P, S),
+      theta0  = rep(0.05, S),
+      theta_baseline = 0.4
+    ),
+    list_jsdmParams = list(
+      gt = 1, d = 2, ds = 0, tau = 1,
+      sigma_b = 1, sigma_bs = 0, sigma_ts = 0,
+      sigma_h = 0, sigma_s = 0, l_s = NULL,
+      useSpatField = FALSE
+    ),
+    model = model
+  )
+}
+
+minimal_mcmc <- list(nchain = 1, nburn = 250, niter = 500, nthin = 1)
+```
 
 ### Core Test Cases
 
-**Data Simulation** (test-simulation.R):
+**Data Simulation** (`test-simulation.R`):
 
-``` r
-test_that("simulateOccJSDMData returns correct structure for all model types", {
-  for (model in c("binary", "occupancy", "continuous", "two_stage")) {
-    sim <- simulateOccJSDMData(model = model, list_datasettings = list(N = 30))
+```r
+test_that("simulateOccJSDMData returns correct top-level structure", {
+  for (model in c("binary", "continuous", "two_stage")) {
+    args <- minimal_sim_args(model)
+    sim  <- do.call(simulateOccJSDMData, args)
     expect_named(sim, c("true_params", "data_list"))
-    expect_true(all(c("info", "OTU") %in% names(sim$data_list)))
+    expect_true(all(c("info", "OTU", "traits") %in% names(sim$data_list)))
+    expect_equal(nrow(sim$data_list$info), nrow(sim$data_list$OTU))
   }
 })
 
-test_that("simulateOccJSDMData(model='occupancy') uses idx_z_w not NULL idx_z_k", {
-  # Regression test for TODO.Rmd item 1.8
-  sim <- simulateOccJSDMData(model = "occupancy", list_datasettings = list(N = 30))
-  expect_equal(nrow(sim$data_list$info), nrow(sim$true_params$X_psi))
+test_that("simulateOccJSDMData(model='occupancy') bug (TODO 1.8) is still present", {
+  # Remove skip() and flip to expect_no_error() once idx_z_k fix is committed
+  skip("TODO item 1.8: idx_z_k is NULL for model='occupancy', fix pending")
+  args <- minimal_sim_args("occupancy")
+  expect_no_error(do.call(simulateOccJSDMData, args))
+})
+
+test_that("binary/continuous models produce correct OTU dimensions", {
+  for (model in c("binary", "continuous")) {
+    args <- minimal_sim_args(model)
+    sim  <- do.call(simulateOccJSDMData, args)
+    n    <- args$list_datasettings$n
+    S    <- args$list_datasettings$S
+    expect_equal(dim(sim$data_list$OTU), c(n, S))
+  }
 })
 ```
 
-**Model Fitting** (test-model-fit.R):
+**Model Fitting** (`test-model-fit.R`):
 
-``` r
-test_that("runOccJSDM accepts properly formatted input", {
-  sim <- simulateOccJSDMData(model = "two_stage")
-  fit <- runOccJSDM(sim$data_list, MCMCparams = list(niter = 100, nburn = 50))
-  expect_s3_class(fit, "list")
+```r
+test_that("runOccJSDM returns expected output structure for two_stage data", {
+  args <- minimal_sim_args("two_stage")
+  sim  <- do.call(simulateOccJSDMData, args)
+  fit  <- runOccJSDM(sim$data_list, MCMCparams = minimal_mcmc)
+  expect_type(fit, "list")
   expect_true(all(c("results_output", "infos", "X_psi") %in% names(fit)))
 })
 
-test_that("runOccJSDM JSDM-only model doesn't error on M variable", {
-  # Regression test for the 'object M not found' bug (now fixed)
-  sim <- simulateOccJSDMData(model = "binary", list_datasettings = list(N = 30))
-  expect_no_error(runOccJSDM(sim$data_list, MCMCparams = list(niter = 100, nburn = 50)))
+test_that("runOccJSDM JSDM-only (binary) no longer errors on M variable", {
+  # Regression test for object 'M' not found bug, fixed in commit c1f9cec
+  args <- minimal_sim_args("binary")
+  sim  <- do.call(simulateOccJSDMData, args)
+  expect_no_error(runOccJSDM(sim$data_list, MCMCparams = minimal_mcmc))
+})
+
+test_that("runOccJSDM with threshold=0 populates read-intensity output slots", {
+  # Tests the continuous read-count model path (sample_w_cpp, not sample_w_cim_cipp)
+  args <- minimal_sim_args("two_stage")
+  sim  <- do.call(simulateOccJSDMData, args)
+  fit  <- runOccJSDM(sim$data_list, threshold = 0, MCMCparams = minimal_mcmc)
+  expect_false(is.null(fit$results_output$mu1_output))
+  expect_false(is.null(fit$results_output$sigma1_output))
+})
+
+test_that("runOccJSDM errors informatively on malformed input", {
+  expect_error(runOccJSDM(list()), "data_info or OTU missing")
+  args <- minimal_sim_args("two_stage")
+  sim  <- do.call(simulateOccJSDMData, args)
+  bad  <- sim$data_list
+  bad$OTU <- bad$OTU[-1, ]   # row mismatch
+  expect_error(runOccJSDM(bad), "cannot have different number of rows")
 })
 ```
 
-**Integration Tests** (test-integration.R):
+**Output Functions** (`test-outputs.R`):
 
-``` r
-test_that("full workflow produces valid posteriors", {
-  sim <- simulateOccJSDMData(model = "two_stage", list_datasettings = list(N = 30))
-  fit <- runOccJSDM(sim$data_list, MCMCparams = list(niter = 200, nburn = 100))
-  
-  # All post-processing functions should work
-  vp <- returnVariancePartitioning(fit)
-  expect_true(nrow(vp) == length(fit$infos$speciesNames))
-  
-  diag <- returnConvergenceDiagnostics(fit)
-  expect_true(all(c("rhat", "ess") %in% colnames(diag)))
+Tests in this file load a pre-fitted fixture to avoid re-running MCMC. The fixture covers all output function code paths (two-stage model, traits, no spatial field). The ~34 exported functions in `output.R` are grouped below by what they need from the fixture:
+
+| Group | Functions | Key assertions |
+|-------|-----------|---------------|
+| Occupancy covariates | `returnOccupancyCovariates`, `plotOccupancyCovariates`, `returnOccupancyGradient`, `plotOccupancyGradient` | Returns data.frame/ggplot; nrow == n_species |
+| Detection/collection | `returnCollectionCovariates`, `plotCollectionCovariates`, `returnOccupancyRates`, `plotOccupancyRates`, `plotCollectionRates` | Returns data.frame; nrow matches species count |
+| Stage 2 rates | `plotFPTPStage2Rates`, `plotDetectionRates`, `plotStage1FPRates`, `plotStage2FPRates` | Returns ggplot; `primerName` arg actually subsets (regression for known bug) |
+| Traits | `returnTraitsCoeff`, `plotTraitsCoefficients` | Returns data.frame; only run when traits present |
+| Residual correlation | `returnResidualCorrelationMatrix`, `plotResidualCorrelationMatrix` | Returns 3×S×S array; median slice is symmetric |
+| Ordination | `returnOrdinationScores`, `plotOrdinationScores`, `returnFactorLoadings`, `plotFactorLoadings` | Returns data.frame/ggplot; nrow == n_sites / n_species |
+| Variance partitioning | `returnVariancePartitioning`, `plotVariancePartitioning` | Row fractions sum to ~1 per species |
+| Prediction | `predictNewSites`, `computePredictiveOccupancyProbs` | Returns matrix with nrow == n_sites; values in [0,1] |
+| Latent state | `returnLatentPresences`, `plotLatentPresences`, `computeAverageCollectionProbs`, `computeConditionalSamplePresenceProbs` | Dimensions match n_species / n_sites |
+| Diagnostics | `returnConvergenceDiagnostics`, `plotTraceplot` | Columns rhat/ess present; no NA rows for well-behaved chains |
+| Utilities | `thinOutput`, `extractWAIC` | Thinned object smaller; WAIC is a scalar |
+| Cumulative detections | `plotCumulativeSpeciesDetections` | Returns ggplot |
+
+```r
+# Load fixture once for all output tests
+fit_ts <- readRDS(testthat::test_path("fixtures/fit_twostage.rds"))
+
+test_that("returnVariancePartitioning fractions sum to approximately 1", {
+  vp <- returnVariancePartitioning(fit_ts)
+  frac_cols <- c("Env", "Spatial", "Biotic")
+  row_sums <- rowSums(vp[, frac_cols])
+  expect_true(all(abs(row_sums - 1) < 0.01))
+})
+
+test_that("returnResidualCorrelationMatrix returns 3 x S x S array", {
+  S   <- length(fit_ts$infos$speciesNames)
+  rcm <- returnResidualCorrelationMatrix(fit_ts)
+  expect_equal(dim(rcm), c(3, S, S))
+  # Median slice should be symmetric
+  expect_equal(rcm[2,,], t(rcm[2,,]))
+})
+
+test_that("returnConvergenceDiagnostics has expected columns", {
+  diag <- returnConvergenceDiagnostics(fit_ts)
+  expect_true(all(c("param", "rhat", "ess") %in% colnames(diag)))
+})
+```
+
+**Integration Test** (`test-integration.R`):
+
+```r
+test_that("simulate -> fit -> output pipeline completes without error", {
+  set.seed(42)
+  args <- minimal_sim_args("two_stage")
+  sim  <- do.call(simulateOccJSDMData, args)
+  fit  <- runOccJSDM(sim$data_list, MCMCparams = minimal_mcmc)
+
+  expect_no_error(returnVariancePartitioning(fit))
+  expect_no_error(returnConvergenceDiagnostics(fit))
+  expect_no_error(returnResidualCorrelationMatrix(fit))
+  expect_no_error(returnLatentPresences(fit, idx_species = 1))
 })
 ```
 
 ### CRAN Compliance
 
-**Rd examples** (test-cran.R): - Verify all exported functions have `\examples` sections in roxygen docs - Run all examples with timeout (e.g., `\donttest{}` for slow operations) - Document expected outputs and side effects
-
-**Performance gates**: - Individual test: \< 10 seconds - Full test suite: \< 3 minutes - `devtools::check()`: passes with no errors/warnings
+- 17 Rd files currently have no `\examples` -- add `\donttest{}` wrappers using the `minimal_sim_args()` helper to keep example runtime acceptable.
+- `devtools::check()` must pass with 0 errors and 0 new warnings before any PR merge.
+- Individual test: < 30 seconds; full suite (excluding fixture generation): < 3 minutes.
 
 ### CI/CD Integration
 
-**GitHub Actions configuration** (`.github/workflows/R-CMD-check.yaml`):
+**GitHub Actions** (`.github/workflows/R-CMD-check.yaml`):
 
-``` yaml
+```yaml
 name: R-CMD-check
 on: [push, pull_request]
 jobs:
@@ -250,21 +365,40 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         r-version: ['4.5.0']
     steps:
+      - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r-version }}
       - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck, any::covr
       - uses: r-lib/actions/check-r-package@v2
         with:
-          args: '--no-manual --no-build-vignettes'
-      - name: Test coverage
+          args: 'c("--no-manual", "--no-build-vignettes")'
+      - name: Test coverage (ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
         run: Rscript -e 'covr::codecov()'
 ```
 
-**Code coverage targets**: - Core simulation/fitting: 90% - Output functions: 80% - Edge cases: 70% - Overall: 85% minimum
+Note: Rcpp/RcppArmadillo compilation is handled automatically by `r-lib/actions/setup-r-dependencies@v2` on all three platforms; no manual `apt-get` step is needed with the current action versions.
 
 ### Current Status
 
-**Not yet started**: - All test files (test-simulation.R, test-model-fit.R, test-outputs.R, test-diagnostics.R, test-integration.R, test-cran.R) - Fixture data caching - CI/CD pipeline configuration - Code coverage reporting
+**Not yet started**:
+- All test files listed above
+- `helper-sim.R` (minimal arg constructor)
+- `make-fixtures.R` (fixture generation script)
+- `fixtures/` directory and `.rds` files
+- CI/CD pipeline configuration
 
-**Predecessor**: Orphaned placeholder test (`tests/testthat/test-placeholder.R`) to be replaced by actual tests as they're implemented.
+**Predecessor**: `tests/testthat/test-placeholder.R` should remain until at least `test-simulation.R` and `test-model-fit.R` are in place, to keep `testthat::test_check()` from erroring with "No test files found".
 
-**Next steps** (recommended order): 1. Implement test-simulation.R (validates core data generation, includes regression tests) 2. Implement test-model-fit.R (validates `runOccJSDM()` entry point) 3. Implement test-outputs.R (validates post-processing functions) 4. Configure GitHub Actions CI/CD 5. Set up code coverage tracking
+**Next steps** (recommended order):
+1. Write `helper-sim.R` and verify `minimal_sim_args()` actually runs end-to-end in the console
+2. Write and run `make-fixtures.R` to generate `fixtures/fit_twostage.rds`
+3. Implement `test-simulation.R`
+4. Implement `test-model-fit.R` (including threshold=0 path)
+5. Implement `test-outputs.R` using the fixture
+6. Implement `test-diagnostics.R` and `test-integration.R`
+7. Configure GitHub Actions CI/CD
+8. Remove `test-placeholder.R`
