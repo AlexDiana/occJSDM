@@ -164,7 +164,7 @@ Of the 6 blocking items, 5 are fixed (1, 2, 3, 5, 6) and committed (`d0f1650`, `
 
 **Organizational structure** (hierarchical, matching package components):
 
-```
+```         
 tests/testthat/
 ├── test-simulation.R    # Data generation (simulateOccJSDMData)
 ├── test-model-fit.R     # Core modeling (runOccJSDM)
@@ -176,18 +176,13 @@ tests/testthat/
                          # committed; regenerate with tests/testthat/make-fixtures.R
 ```
 
-**Key design decisions**:
-- Use minimal datasets (`n=20` sites, `S=5` species, `nchain=1`) to keep total test runtime under 3 minutes
-- Cache pre-fitted models as `.rds` files in `fixtures/` to avoid repeated MCMC runs; load with `readRDS(testthat::test_path("fixtures/fit_twostage.rds"))`; regenerate with a dedicated `make-fixtures.R` script (not run by `testthat`, only run manually when the model interface changes)
-- Test all `simulateOccJSDMData()` model types (`"binary"`, `"occupancy"`, `"continuous"`, `"two_stage"`)
-- Regression tests for known fixed bugs: `M` variable (JSDM-only, fixed `c1f9cec`)
-- The `model = "occupancy"` `idx_z_k` bug (TODO item 1.8) is **still open** -- its test must use `skip()` until fixed, not `expect_equal()` (a passing assertion for a broken function is worse than no test)
+**Key design decisions**: - Use minimal datasets (`n=20` sites, `S=5` species, `nchain=1`) to keep total test runtime under 3 minutes - Cache pre-fitted models as `.rds` files in `fixtures/` to avoid repeated MCMC runs; load with `readRDS(testthat::test_path("fixtures/fit_twostage.rds"))`; regenerate with a dedicated `make-fixtures.R` script (not run by `testthat`, only run manually when the model interface changes) - Test all `simulateOccJSDMData()` model types (`"binary"`, `"occupancy"`, `"continuous"`, `"two_stage"`) - Regression tests for known fixed bugs: `M` variable (JSDM-only, fixed `c1f9cec`) - The `model = "occupancy"` `idx_z_k` bug (TODO item 1.8) is **still open** -- its test must use `skip()` until fixed, not `expect_equal()` (a passing assertion for a broken function is worse than no test)
 
 ### Minimal Working Simulate Call
 
 All four arguments to `simulateOccJSDMData()` are **required** with no defaults. All `list_datasettings` keys are **lowercase**. A minimal valid call for tests (use this as `helper-sim.R`):
 
-```r
+``` r
 minimal_sim_args <- function(model = "two_stage") {
   n <- 20; S <- 5; M <- rep(2, n); P <- 1; K <- rep(2, n * P * max(M))
   list(
@@ -218,7 +213,7 @@ minimal_mcmc <- list(nchain = 1, nburn = 250, niter = 500, nthin = 1)
 
 **Data Simulation** (`test-simulation.R`):
 
-```r
+``` r
 test_that("simulateOccJSDMData returns correct top-level structure", {
   for (model in c("binary", "continuous", "two_stage")) {
     args <- minimal_sim_args(model)
@@ -249,7 +244,7 @@ test_that("binary/continuous models produce correct OTU dimensions", {
 
 **Model Fitting** (`test-model-fit.R`):
 
-```r
+``` r
 test_that("runOccJSDM returns expected output structure for two_stage data", {
   args <- minimal_sim_args("two_stage")
   sim  <- do.call(simulateOccJSDMData, args)
@@ -286,24 +281,24 @@ test_that("runOccJSDM errors informatively on malformed input", {
 
 **Output Functions** (`test-outputs.R`):
 
-Tests in this file load a pre-fitted fixture to avoid re-running MCMC. The fixture covers all output function code paths (two-stage model, traits, no spatial field). The ~34 exported functions in `output.R` are grouped below by what they need from the fixture:
+Tests in this file load a pre-fitted fixture to avoid re-running MCMC. The fixture covers all output function code paths (two-stage model, traits, no spatial field). The \~34 exported functions in `output.R` are grouped below by what they need from the fixture:
 
 | Group | Functions | Key assertions |
-|-------|-----------|---------------|
+|----|----|----|
 | Occupancy covariates | `returnOccupancyCovariates`, `plotOccupancyCovariates`, `returnOccupancyGradient`, `plotOccupancyGradient` | Returns data.frame/ggplot; nrow == n_species |
 | Detection/collection | `returnCollectionCovariates`, `plotCollectionCovariates`, `returnOccupancyRates`, `plotOccupancyRates`, `plotCollectionRates` | Returns data.frame; nrow matches species count |
 | Stage 2 rates | `plotFPTPStage2Rates`, `plotDetectionRates`, `plotStage1FPRates`, `plotStage2FPRates` | Returns ggplot; `primerName` arg actually subsets (regression for known bug) |
 | Traits | `returnTraitsCoeff`, `plotTraitsCoefficients` | Returns data.frame; only run when traits present |
 | Residual correlation | `returnResidualCorrelationMatrix`, `plotResidualCorrelationMatrix` | Returns 3×S×S array; median slice is symmetric |
 | Ordination | `returnOrdinationScores`, `plotOrdinationScores`, `returnFactorLoadings`, `plotFactorLoadings` | Returns data.frame/ggplot; nrow == n_sites / n_species |
-| Variance partitioning | `returnVariancePartitioning`, `plotVariancePartitioning` | Row fractions sum to ~1 per species |
+| Variance partitioning | `returnVariancePartitioning`, `plotVariancePartitioning` | Row fractions sum to \~1 per species |
 | Prediction | `predictNewSites`, `computePredictiveOccupancyProbs` | Returns matrix with nrow == n_sites; values in [0,1] |
 | Latent state | `returnLatentPresences`, `plotLatentPresences`, `computeAverageCollectionProbs`, `computeConditionalSamplePresenceProbs` | Dimensions match n_species / n_sites |
 | Diagnostics | `returnConvergenceDiagnostics`, `plotTraceplot` | Columns rhat/ess present; no NA rows for well-behaved chains |
 | Utilities | `thinOutput`, `extractWAIC` | Thinned object smaller; WAIC is a scalar |
 | Cumulative detections | `plotCumulativeSpeciesDetections` | Returns ggplot |
 
-```r
+``` r
 # Load fixture once for all output tests
 fit_ts <- readRDS(testthat::test_path("fixtures/fit_twostage.rds"))
 
@@ -330,7 +325,7 @@ test_that("returnConvergenceDiagnostics has expected columns", {
 
 **Integration Test** (`test-integration.R`):
 
-```r
+``` r
 test_that("simulate -> fit -> output pipeline completes without error", {
   set.seed(42)
   args <- minimal_sim_args("two_stage")
@@ -348,13 +343,13 @@ test_that("simulate -> fit -> output pipeline completes without error", {
 
 - 17 Rd files currently have no `\examples` -- add `\donttest{}` wrappers using the `minimal_sim_args()` helper to keep example runtime acceptable.
 - `devtools::check()` must pass with 0 errors and 0 new warnings before any PR merge.
-- Individual test: < 30 seconds; full suite (excluding fixture generation): < 3 minutes.
+- Individual test: \< 30 seconds; full suite (excluding fixture generation): \< 3 minutes.
 
 ### CI/CD Integration
 
 **GitHub Actions** (`.github/workflows/R-CMD-check.yaml`):
 
-```yaml
+``` yaml
 name: R-CMD-check
 on: [push, pull_request]
 jobs:
@@ -384,21 +379,8 @@ Note: Rcpp/RcppArmadillo compilation is handled automatically by `r-lib/actions/
 
 ### Current Status
 
-**Not yet started**:
-- All test files listed above
-- `helper-sim.R` (minimal arg constructor)
-- `make-fixtures.R` (fixture generation script)
-- `fixtures/` directory and `.rds` files
-- CI/CD pipeline configuration
+**Not yet started**: - All test files listed above - `helper-sim.R` (minimal arg constructor) - `make-fixtures.R` (fixture generation script) - `fixtures/` directory and `.rds` files - CI/CD pipeline configuration
 
 **Predecessor**: `tests/testthat/test-placeholder.R` should remain until at least `test-simulation.R` and `test-model-fit.R` are in place, to keep `testthat::test_check()` from erroring with "No test files found".
 
-**Next steps** (recommended order):
-1. Write `helper-sim.R` and verify `minimal_sim_args()` actually runs end-to-end in the console
-2. Write and run `make-fixtures.R` to generate `fixtures/fit_twostage.rds`
-3. Implement `test-simulation.R`
-4. Implement `test-model-fit.R` (including threshold=0 path)
-5. Implement `test-outputs.R` using the fixture
-6. Implement `test-diagnostics.R` and `test-integration.R`
-7. Configure GitHub Actions CI/CD
-8. Remove `test-placeholder.R`
+**Next steps** (recommended order): 1. Write `helper-sim.R` and verify `minimal_sim_args()` actually runs end-to-end in the console 2. Write and run `make-fixtures.R` to generate `fixtures/fit_twostage.rds` 3. Implement `test-simulation.R` 4. Implement `test-model-fit.R` (including threshold=0 path) 5. Implement `test-outputs.R` using the fixture 6. Implement `test-diagnostics.R` and `test-integration.R` 7. Configure GitHub Actions CI/CD 8. Remove `test-placeholder.R`
