@@ -155,3 +155,116 @@ Goal: get occJSDM accepted on CRAN. Investigated `devtools::check()` output plus
 ### Status summary
 
 Of the 6 blocking items, 5 are fixed (1, 2, 3, 5, 6) and committed (`d0f1650`, `083df56`, `6a7313f`, `8b99219`) -- confirmed `git rev-parse main origin/main` identical, all pushed to `origin/main`. **Item 4 (`sampleresults.rda` size) is the sole remaining blocker** and needs the thin+prune work described above before it's resolved. Of the should-fix items, 7 and 15 are fixed; 11 is closed by deliberate decision (keep `LICENSE`, accept the cosmetic NOTE); 9 is pinpointed (exact 7 warning lines identified) but not yet fixed; 8, 10, 12-14 are all still open. Separately (outside this numbered list, from `devtools::check()`'s general note/warning triage, not CRAN-blocking): the `stats`-import portion of the "no visible binding" NOTE is fixed (`ef77c4c`); the NSE-column portion is deliberately left unfixed by the user's decision; the `tidyr`-unused-import NOTE remains open. Recommended next steps, in order: (i) finish item 4 (the actual CRAN blocker), (ii) fix item 9's 7 pinpointed C++ bitwise-operator warnings, (iii) rerun `devtools::check()`/`R CMD check --as-cran` to get a fresh baseline, (iv) work through remaining should-fix items 8, 10, 12-14.
+
+## Testing Strategy Implementation (July 22, 2026)
+
+**Rationale**: The package currently has only a placeholder test file (`tests/testthat/test-placeholder.R`). A comprehensive test suite is needed to (1) validate core functionality, (2) prevent regression of fixed bugs, (3) ensure CRAN compliance, and (4) support ongoing development.
+
+### Test Architecture
+
+**Organizational structure** (hierarchical, matching package components):
+
+```         
+tests/testthat/
+├── test-simulation.R    # Data generation (simulateOccJSDMData)
+├── test-model-fit.R     # Core modeling (runOccJSDM)
+├── test-outputs.R       # Post-processing functions
+├── test-diagnostics.R   # MCMC checks (returnConvergenceDiagnostics, plotTraceplot)
+├── test-integration.R   # Full workflow tests
+└── fixtures/           # Shared test data (minimal cached models)
+```
+
+**Key design decisions**: - Use minimal datasets (N=30-50 sites, S=5-10 species) to keep test runtime under 3 minutes total - Cache pre-fitted models in `fixtures/` to avoid repeated MCMC runs - Test all `simulateOccJSDMData()` model types (`"binary"`, `"occupancy"`, `"continuous"`, `"two_stage"`) - Regression tests specifically for `idx_z_k` bug (occupancy model) and `M` variable (JSDM-only)
+
+### Core Test Cases
+
+**Data Simulation** (test-simulation.R):
+
+``` r
+test_that("simulateOccJSDMData returns correct structure for all model types", {
+  for (model in c("binary", "occupancy", "continuous", "two_stage")) {
+    sim <- simulateOccJSDMData(model = model, list_datasettings = list(N = 30))
+    expect_named(sim, c("true_params", "data_list"))
+    expect_true(all(c("info", "OTU") %in% names(sim$data_list)))
+  }
+})
+
+test_that("simulateOccJSDMData(model='occupancy') uses idx_z_w not NULL idx_z_k", {
+  # Regression test for TODO.Rmd item 1.8
+  sim <- simulateOccJSDMData(model = "occupancy", list_datasettings = list(N = 30))
+  expect_equal(nrow(sim$data_list$info), nrow(sim$true_params$X_psi))
+})
+```
+
+**Model Fitting** (test-model-fit.R):
+
+``` r
+test_that("runOccJSDM accepts properly formatted input", {
+  sim <- simulateOccJSDMData(model = "two_stage")
+  fit <- runOccJSDM(sim$data_list, MCMCparams = list(niter = 100, nburn = 50))
+  expect_s3_class(fit, "list")
+  expect_true(all(c("results_output", "infos", "X_psi") %in% names(fit)))
+})
+
+test_that("runOccJSDM JSDM-only model doesn't error on M variable", {
+  # Regression test for the 'object M not found' bug (now fixed)
+  sim <- simulateOccJSDMData(model = "binary", list_datasettings = list(N = 30))
+  expect_no_error(runOccJSDM(sim$data_list, MCMCparams = list(niter = 100, nburn = 50)))
+})
+```
+
+**Integration Tests** (test-integration.R):
+
+``` r
+test_that("full workflow produces valid posteriors", {
+  sim <- simulateOccJSDMData(model = "two_stage", list_datasettings = list(N = 30))
+  fit <- runOccJSDM(sim$data_list, MCMCparams = list(niter = 200, nburn = 100))
+  
+  # All post-processing functions should work
+  vp <- returnVariancePartitioning(fit)
+  expect_true(nrow(vp) == length(fit$infos$speciesNames))
+  
+  diag <- returnConvergenceDiagnostics(fit)
+  expect_true(all(c("rhat", "ess") %in% colnames(diag)))
+})
+```
+
+### CRAN Compliance
+
+**Rd examples** (test-cran.R): - Verify all exported functions have `\examples` sections in roxygen docs - Run all examples with timeout (e.g., `\donttest{}` for slow operations) - Document expected outputs and side effects
+
+**Performance gates**: - Individual test: \< 10 seconds - Full test suite: \< 3 minutes - `devtools::check()`: passes with no errors/warnings
+
+### CI/CD Integration
+
+**GitHub Actions configuration** (`.github/workflows/R-CMD-check.yaml`):
+
+``` yaml
+name: R-CMD-check
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        r-version: ['4.5.0']
+    steps:
+      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-r-dependencies@v2
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          args: '--no-manual --no-build-vignettes'
+      - name: Test coverage
+        run: Rscript -e 'covr::codecov()'
+```
+
+**Code coverage targets**: - Core simulation/fitting: 90% - Output functions: 80% - Edge cases: 70% - Overall: 85% minimum
+
+### Current Status
+
+**Not yet started**: - All test files (test-simulation.R, test-model-fit.R, test-outputs.R, test-diagnostics.R, test-integration.R, test-cran.R) - Fixture data caching - CI/CD pipeline configuration - Code coverage reporting
+
+**Predecessor**: Orphaned placeholder test (`tests/testthat/test-placeholder.R`) to be replaced by actual tests as they're implemented.
+
+**Next steps** (recommended order): 1. Implement test-simulation.R (validates core data generation, includes regression tests) 2. Implement test-model-fit.R (validates `runOccJSDM()` entry point) 3. Implement test-outputs.R (validates post-processing functions) 4. Configure GitHub Actions CI/CD 5. Set up code coverage tracking
