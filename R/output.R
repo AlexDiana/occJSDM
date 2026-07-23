@@ -1986,7 +1986,6 @@ plotVariancePartitioning <- function(fitModel){
 #' plotReadIntensity(fitModel)
 #' }
 #'
-#' @export
 #' @import dplyr
 #' @import ggplot2
 #'
@@ -2112,6 +2111,7 @@ plotReadIntensity <- function(fitModel){
 
 }
 
+
 #' plotCumulativeSpeciesDetections
 #'
 #' Cumulative species detection plot
@@ -2121,45 +2121,60 @@ plotReadIntensity <- function(fitModel){
 #' number of PCR, conditional on species presence in the sample
 #'
 #' @param fitModel Output from the function runOccJSDM
+#' @param M Maximum number of environmental samples to consider
 #' @param K Maximum number of technical replicates (PCRs) to consider
 #' @param primer Index of the primer to use; 0 (default) pools across all primers
 #' @param alpha Confidence level of the credible interval, default to .95
+#' @param byK Should K (technical replicates) be on the x-axis (instead of M)?
 #'
 #' @return A plot with the credible interval of cumulative detections
 #'
 #' @examples
 #' \dontrun{
-#' plotCumulativeSpeciesDetections(fitModel, K = 5)
+#' plotCumulativeSpeciesDetections(fitModel, M = 3, K = 5)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-plotCumulativeSpeciesDetections <- function(fitModel, K, primer = 0, alpha = .95){
+plotCumulativeSpeciesDetections <- function(fitModel, M, K, primer = 0, alpha = .95,
+                                            byK = T){
 
+  if(fitModel$infos$model != "two_stage") stop("Only allowed for a two-stage model")
+
+  beta_theta_output <- fitModel$results_output$beta_theta_output
   p_output <- fitModel$results_output$p_output
 
-  ab_p <- apply(p_output, c(1,2), function(x){
-    x <- as.vector(x)
-    mean_x <- mean(x)
-    var_x <- var(x)
+  speciesDetected <- computeSpeciesDetected_MK(beta_theta_output, p_output,
+                                               M, K, primer, alpha)
 
-    alpha <- mean_x * ((mean_x * (1 - mean_x) / var_x) - 1)
-    beta <- (1 - mean_x) * ((mean_x * (1 - mean_x) / var_x) - 1)
-    c(alpha, beta)
-  })
+  df <- expand.grid(M = 1:M, K = 1:K)
+  df$lower <- as.vector(speciesDetected[1, , ])
+  df$upper <- as.vector(speciesDetected[2, , ])
 
-  speciesDetected <- computeSpeciesDetected(ab_p, K, primer, alpha)
+  if(byK){
+    p <- ggplot(df, aes(x = K)) +
+      geom_errorbar(aes(ymin = lower, ymax = upper)) +
+      facet_grid(rows =  vars(M), labeller = as_labeller(function(x) paste("M = ", x))) +
+      labs(
+        x = "K",
+        y = "Value"
+      ) +
+      scale_x_continuous(breaks = 1:K, name = "Number of technical replicates")
 
-  ggplot(data = NULL, aes(x = 1:K,
-                          ymin = speciesDetected[1,],
-                          ymax = speciesDetected[2,])) +
-    geom_errorbar() + theme_bw() +
-    theme(axis.text = element_text(size = 12, face = "bold"),
-          axis.title = element_text(size = 15, face = "bold")) +
-    scale_x_continuous(breaks = 1:K, name = "Number of technical replicates") +
-    scale_y_continuous(name = "Species Detected")
+  } else {
+    p <- ggplot(df, aes(x = M)) +
+      geom_errorbar(aes(ymin = lower, ymax = upper)) +
+      facet_grid(rows =  vars(K), labeller = as_labeller(function(x) paste("K = ", x))) +
+      labs(
+        x = "M",
+        y = "Value"
+      ) +
+      scale_x_continuous(breaks = 1:M, name = "Number of environmental samples")
+  }
+
+  p + scale_y_continuous(name = "Species Detected") + theme_minimal()
 
 }
 
@@ -2185,16 +2200,19 @@ plotCumulativeSpeciesDetections <- function(fitModel, K, primer = 0, alpha = .95
 #' credible interval for the number of species detected, for 1 to K replicates
 #'
 #' @noRd
-computeSpeciesDetected <- function(ab_p, K, primer, alpha){
+computeSpeciesDetected <- function(beta_theta_output, p_output, M, K, primer, alpha){
 
-  S <- dim(ab_p)[3]
 
-  B <- 100
+  beta_theta_output <- apply(beta_theta_output[1,,,,drop=F], 2, c)
+  p_output <- apply(p_output, c(1,2), c)
 
-  P_all <- dim(ab_p)[2]
+  S <- dim(beta_theta_output)[2]
+  numPrimers <- dim(p_output)[2]
+
+  B <- 200
 
   if(primer == 0){
-    idx_primer <- 1:P_all
+    idx_primer <- 1:numPrimers
   } else {
     idx_primer <- primer
   }
@@ -2203,103 +2221,66 @@ computeSpeciesDetected <- function(ab_p, K, primer, alpha){
 
   set.seed(1) # to avoid getting different results everytime
 
-  matrixDetectedPCR <- sapply(1:B, function(b){
+  detectionsPerSamplePCR <- array(NA, dim = c(B, M, K))
 
-    detectionMatrix <- sapply(1:S, function(s){
+  for (b in 1:B) {
 
-      ps <- rbeta(P, ab_p[1,idx_primer,s], ab_p[2,idx_primer,s])
-      sapply(1:K, function(k){
+    # detections for each species, sample and PCR
+    detectionsPerSamplePCRSpecies <- array(0, dim = c(S, M, K))
 
-        detectionsAcrossPrimers <-
-          sapply(1:P, function(p){
-            rbinom(1, 1, ps[p])
-          })
 
-        as.numeric(any(detectionsAcrossPrimers) > 0)
-
+    w <- sapply(1:M, function(m){
+      sapply(1:S, function(s){
+        rbinom(1, 1, logistic(beta_theta_output[b,s]))
       })
     })
 
-    detectionsPerPcr <- sapply(1:K, function(k){
-      sum(apply(detectionMatrix[1:k,,drop=F], 2, function(x){ any(x > 0)}))
-    })
+    # simulate detections
+    for (s in 1:S) {
 
-    detectionsPerPcr
-  })
+      for (m in 1:M) {
 
-  apply(matrixDetectedPCR, 1, function(x){
-    quantile(x, probs = c((1 - alpha)/2, (1 + alpha)/2))
-  })
 
-}
+        if(w[s,m] == 1){
 
-#' computeSpeciesDetected_M
-#'
-#' Simulate the number of species detected as a function of the number of
-#' technical replicates (PCRs), given Beta-distributed detection probabilities.
-#'
-#' @details
-#' Internal helper for `plotCumulativeSpeciesDetections`. For each of `B`
-#' bootstrap replicates, simulates detections for each species across `K`
-#' technical replicates and one or more primers, then summarises the
-#' cumulative number of species detected as a function of the number of
-#' replicates used.
-#'
-#' @param ab_p Array of Beta distribution shape parameters (alpha, beta) of
-#' size (2 x primers x species), as produced in `plotCumulativeSpeciesDetections`
-#' @param K Maximum number of technical replicates (PCRs) to consider
-#' @param primer Index of the primer to use; 0 pools across all primers
-#' @param alpha Confidence level of the credible interval
-#'
-#' @return A matrix of size (2 x K) with the lower and upper bounds of the
-#' credible interval for the number of species detected, for 1 to K replicates
-#'
-#' @noRd
-computeSpeciesDetected_M <- function(ab_p, K, primer, alpha){
+          for (k in 1:K) {
 
-  S <- dim(ab_p)[3]
+            detectionsPerSamplePCRSpecies[s,m,k] <-
+              sum(sapply(1:P, function(p){
+                rbinom(1, 1, p_output[b,p,s])
+              }) > 0)
 
-  B <- 100
+          }
 
-  P_all <- dim(ab_p)[2]
+        }
 
-  if(primer == 0){
-    idx_primer <- 1:P_all
-  } else {
-    idx_primer <- primer
+      }
+
+    }
+
+    # cumulative detections for each species, sample and PCR
+    detectionsPerSamplePCRSpeciesSummarised <- array(0, dim = c(S, M, K))
+
+    # summarise across the different samples and PCR
+    for (s in 1:S) {
+      for (m in 1:M) {
+        for (k in 1:K) {
+          detectionsPerSamplePCRSpeciesSummarised[s,m,k] <-
+            any(detectionsPerSamplePCRSpecies[s,1:m,1:k] > 0)
+        }
+      }
+    }
+
+
+    detectionsPerSamplePCR[b,,] <-
+      apply(detectionsPerSamplePCRSpeciesSummarised, c(2,3), sum)
   }
 
-  P <- length(idx_primer)
-
-  set.seed(1) # to avoid getting different results everytime
-
-  matrixDetectedPCR <- sapply(1:B, function(b){
-
-    detectionMatrix <- sapply(1:S, function(s){
-
-      ps <- rbeta(P, ab_p[1,idx_primer,s], ab_p[2,idx_primer,s])
-      sapply(1:K, function(k){
-
-        detectionsAcrossPrimers <-
-          sapply(1:P, function(p){
-            rbinom(1, 1, ps[p])
-          })
-
-        as.numeric(any(detectionsAcrossPrimers) > 0)
-
-      })
-    })
-
-    detectionsPerPcr <- sapply(1:K, function(k){
-      sum(apply(detectionMatrix[1:k,,drop=F], 2, function(x){ any(x > 0)}))
-    })
-
-    detectionsPerPcr
-  })
-
-  apply(matrixDetectedPCR, 1, function(x){
+  output <- apply(detectionsPerSamplePCR, c(2,3), function(x){
     quantile(x, probs = c((1 - alpha)/2, (1 + alpha)/2))
   })
+
+  output
 
 }
 
@@ -2367,28 +2348,3 @@ plotOccupancyStates <- function(fitModel){
     )
 
 }
-
-# DEPRECATED
-
-
-# plotCorrelationMatrix <- function(fitModel,
-#                                   idx_species = NULL){
-#
-#   Lambda_output <- generateCorrelationMatrixOutput(fitModel, idx_species)
-#
-#   Lambda_quantiles <- apply(Lambda_output, c(2,3),
-#                             function(x){quantile(x, probs = c(0.025, 0.5, 0.975))})
-#
-#   ggcorrplot::ggcorrplot(Lambda_quantiles[2,,],
-#                          method = "square",
-#                          lab = F, lab_size = 3,
-#                          colors = c("blue", "white", "red"),
-#                          title = "Covariance Matrix (as Correlation)") +
-#     theme(plot.title = element_text(hjust = 0.5,
-#                                     size = 16,
-#                                     face = "bold"))
-#
-#
-# }
-
-

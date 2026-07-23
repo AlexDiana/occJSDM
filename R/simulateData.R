@@ -62,6 +62,7 @@ simulateOccJSDMData <- function(list_datasettings,
     sigma_s <- list_jsdmParams$sigma_s
     l_s <- list_jsdmParams$l_s
     tau <- list_jsdmParams$tau
+    rnb <- list_jsdmParams$rnb
     useSpatField <- list_jsdmParams$useSpatField
   }
 
@@ -81,7 +82,7 @@ simulateOccJSDMData <- function(list_datasettings,
 
   list_simjSDMData <- simulateData(
     n, S, ncov_psi,
-    g, gt, d, tau, ds, n,
+    g, gt, d, tau, rnb, ds, n,
     sigma_b, sigma_bs, sigma_ts, sigma_h, sigma_s, l_s,
     useSpatField = useSpatField, usingSplines = F, model = jSDMsimModel)
 
@@ -185,27 +186,6 @@ simulateOccJSDMData <- function(list_datasettings,
   colnames(y) <- speciesNames
   rownames(Tr) <- speciesNames
   colnames(Tr) <- paste0("Trait_", seq_len(ncol(Tr)))
-
-  # data_list <- list(
-  #   "X_psi" = X_psi,
-  #   "X_theta" = X_theta,
-  #   "Xs" = Xs,
-  #   "Tr" = Tr,
-  #   "y" = y
-  # )
-  #
-  # data_list <- list_simulatedData$data_list
-  # X_psi <- data_list$X_psi
-  # X_theta <- data_list$X_theta
-  # Tr <- data_list$Tr
-  # y <- data_list$y
-
-  if(model %in% c("occupancy","two_stage")){
-    list_idx <- createDataIdx(n, M, P, K, model == "two_stage")
-    idx_z_k <- list_idx$idx_z_k
-    idx_w_k <- list_idx$idx_w_k
-    idx_p_k <- list_idx$idx_p_k
-  }
 
   if(model %in% c("binary","continuous")){
     data_info <- data.frame(

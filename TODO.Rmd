@@ -10,49 +10,12 @@ editor_options:
 
 **v0.1.0-beta** **Public release**
 
-1.  Alex to dos8
+1.  Alex to dos
 
-    1.  Report MCMC diagnostics by blocks of parameters
+        
+    1.  Allow for different primers per sample
 
-    2.  Switch to integrated WAIC (instead of the current conditional
-        WAIC, which overfits as it happens also in HMSC).
-
-    3.  ~~fix trait-reading code in `runOccJSDM()`: it checks
-        `data$traits`, not `data$traitsMatrix` or the unused
-        `traitsMatrix` function argument. This currently works only
-        because R's `$` partially matches list names (`traitsMatrix` is
-        the only element of `data` starting with `"traits"`), which is
-        fragile.~~ **fixed**: the source now references `data$traits`
-        explicitly (no more reliance on partial matching). The
-        `traitsMatrix` function argument is still unused/unwired
-        (defaults to `NULL`) -- minor leftover, not the fragility bug
-        itself.
-
-    4.  ~~gitignore and stop tracking `src/occPlus.dll` (also filename
-        should be changed on Alex's end)~~
-
-    5.  ~~`predictNewSites(fitmodel)` for non-surveyed sites~~ --
-        **done**: added to the vignette's "Prediction at new sites"
-        section, deduplicating `data$info` by `Site` to build
-        `X_psi_new`/`X_s_new` for the original sites as a worked example
-        (see `44c0b03`); a simulation with known true occupancy
-        probabilities confirmed `predictNewSites()` recovers truth about
-        as well as the fitted estimate
-        (`computePredictiveOccupancyProbs()`) does.
-
-    6.  ~~fix `Xs` recycling bug in `simulateOccJSDMData()`
-        (`R/simulateData.R`)~~ -- **fixed**: `data_info` now binds
-        `Xs = Xs[idx_z_k,]` (indexed the same way as `X_psi`) in both
-        the `"occupancy"` and `"two_stage"` branches, so
-        `info$Xs.1`/`Xs.2` correctly repeat one coordinate pair per site
-        across its replicate rows instead of recycling unrelated pairs.
-
-    7.  ~~fix copy-paste bug in `computeMinESS()` (`R/diagnostics.R`,
-        introduced in `af5ebe3`)~~ -- **fixed**: `computeMinESS()` now
-        computes `ESS_beta0psi` from `beta0_psi_output` directly and
-        includes it in the final `min()`
-
-    8.  fix `simulateOccJSDMData(model = "occupancy")`
+    2.  fix `simulateOccJSDMData(model = "occupancy")`
         (`R/simulateData.R`): its `data_info` construction binds
         `Site = idx_z_k`, `X_psi = X_psi[idx_z_k,]`,
         `Xs = Xs[idx_z_k,]`, but `idx_z_k` is only populated by
@@ -104,12 +67,13 @@ editor_options:
 
     1.  Overleaf document for the occJSDM math, which we will add as a
         markdown vignette
+        
+    2.  Switch to integrated WAIC (instead of the current conditional
+        WAIC, which overfits as it happens also in HMSC).    
 
-    2.  GAMs for JSDM
+    3.  GAMs for JSDM
 
-    3.  ability to analyse count data
-
-    4.  `plotCumulativeSpeciesDetections()` for different values of M.
+    4.  ability to analyse count data
 
     5.  scenario for source-sink inference (sites where env covariate
         coeffcients are negative but spatial covariate coefficients are

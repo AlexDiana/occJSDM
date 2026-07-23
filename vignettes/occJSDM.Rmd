@@ -612,13 +612,23 @@ varpart <- returnVariancePartitioning(fitmodel)
 
 To help allocate effort, we can plot the expected number of species
 detected as a function of the number of PCR replicates per sample $K$,
-given all species are truly present in the sample. We plan to add a
-second function to plot species detections as a function of sample
-replicates $M$.
+given all species are truly present in the sample.
+
+
+For Doug: We have now just one function for both M and K. You can switch 
+between M and K on the x-axis
 
 ```{r}
-plotCumulativeSpeciesDetections(fitmodel, K = 6, primer = 0, alpha = .95) 
+plotCumulativeSpeciesDetections(fitmodel, M = 1, K = 6, primer = 0, alpha = .95) 
 ```
+```{r}
+plotCumulativeSpeciesDetections(fitmodel, M = 3, K = 6, primer = 0, alpha = .95, byK = T) 
+```
+
+```{r}
+plotCumulativeSpeciesDetections(fitmodel, M = 3, K = 6, primer = 0, alpha = .95, byK = F) 
+```
+
 
 ### Model selection
 

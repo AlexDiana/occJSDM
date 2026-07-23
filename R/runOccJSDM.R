@@ -63,12 +63,21 @@ process_covariates <- function(data_info, covariates, group_by_col, n_obs,
     dplyr::select(-dplyr::all_of(group_by_col)) %>%
     dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor))
 
+  if (any(is.infinite(as.matrix(df)))) stop("Infinite values (Inf or -Inf) detected in covariates.")
+  if (any(is.nan(as.matrix(df)))) stop("NaN values detected in covariates.")
+
   is_numeric <- sapply(df, is.numeric)
 
   names_df <- colnames(df)
 
   means_df <- sapply(df, function(x) if(is.numeric(x)) mean(x, na.rm = TRUE) else NA)
   sd_df   <- sapply(df, function(x) if(is.numeric(x)) sd(x, na.rm = TRUE) else NA)
+
+  if (any(sd_df == 0, na.rm = TRUE)) {
+    zero_var_cols <- names_df[which(sd_df == 0)]
+    stop(paste("The following covariates have constant values:",
+               paste(zero_var_cols, collapse = ", ")))
+  }
 
   cat_levels <- list()
   for (col in 1:ncol(df)) {
@@ -192,13 +201,13 @@ inferDataModel <- function(data){
     if(all(!duplicated(data_info$Site))){ # no repeated observation at each site
 
       stages_type <- "no_stage"
-      print("No repeated observation for any site")
+      message("No repeated observation for any site")
 
     } else { # repeated observation at each site
 
       if(!sample_present){ # sample column missing
 
-        print("Sample column missing, but detected repeated observations for some sites")
+        message("Sample column missing, but detected repeated observations for some sites")
         stages_type <- "one_stage"
 
       } else { # sample column present
@@ -206,12 +215,12 @@ inferDataModel <- function(data){
         if(all(!duplicated(data_info$Sample))){ # no repeated observation in each sample
 
           stages_type <- "one_stage"
-          print("No repeated observation for any sample")
+          message("No repeated observation for any sample")
 
         } else {
 
           stages_type <- "two_stage"
-          print("Detected repeated observation for some sample")
+          message("Detected repeated observation for some sample")
 
         }
 
@@ -220,7 +229,7 @@ inferDataModel <- function(data){
     }
   } else { # site column missing
     stages_type <- "no_stage"
-    print("Site column missing")
+    message("Site column missing")
   }
 
   # infer the data type
@@ -230,14 +239,14 @@ inferDataModel <- function(data){
       stop("Data in OTU need to be numeric")
     } else if(all(round(OTU) == OTU, na.rm = T)) { ## TODO: write that the data are integer
       if(all(unique(OTU) %in% c(0,1,NA), na.rm = T)){
-        print("Only 0 and 1 detected")
+        message("Only 0 and 1 detected")
         data_type <- "binary"
       } else {
-        print("Count data detected")
+        message("Count data detected")
         data_type <- "counts"
       }
     } else {
-      print("Continuous observations detected")
+      message("Continuous observations detected")
       data_type <- "continuous"
     }
   }
@@ -258,14 +267,14 @@ inferDataModel <- function(data){
     stop("No model recognised")
   }
 
-  if(model == "binary") print(paste("occJSDM has inferred one-stage binary data"))
-  if(model == "continuous") print(paste("occJSDM has inferred one-stage continuous data"))
-  if(model == "counts") print(paste("occJSDM has inferred one-stage counts data"))
-  if(model == "occupancy") print(paste("occJSDM has inferred occupancy data"))
-  if(model == "two_stage") print(paste("occJSDM has inferred two stage (eDNA style) data"))
+  if(model == "binary") message(paste("occJSDM has inferred one-stage binary data"))
+  if(model == "continuous") message(paste("occJSDM has inferred one-stage continuous data"))
+  if(model == "counts") message(paste("occJSDM has inferred one-stage counts data"))
+  if(model == "occupancy") message(paste("occJSDM has inferred occupancy data"))
+  if(model == "two_stage") message(paste("occJSDM has inferred two stage (eDNA style) data"))
 
 
-  print("Check your data if this is not what you were expecting!")
+  message("Check your data if this is not what you were expecting!")
 
   if(model == "counts") stop("Counts model not supported yet :(")
 
@@ -410,19 +419,23 @@ runOccJSDM <- function(data,
                        listPriors = list()){
 
   {
-    #
-    # listParams = list(n_factors = 2)
+    # data = occ_data_effort
+    # listParams = list(n_factors = 3)
     # threshold = 1
-    # occCovariates = c("elevation","curvature","dist_to_edge","rainforest_500","bamboo_500","canopy_cover_500","soil_humidity")
-    # collCovariates = c("type","month","elution_volume")
-    # spatCovariates = c("latitude","longitude")
-    # #traitsMatrix = NULL,
-    # MCMCparams = list(nchain = 1,
-    #                   nburn = 200,
-    #                   niter = 200,
-    #                   nthin=1)
-    # listPriors <- list()
-    # summarisedLatentPresences <- T
+    # occCovariates = c("season_year")
+    # ordCovariates = c("z_prop_closed")
+    # spatCovariates <- NULL
+    # collCovariates = c("predator_season_year", "z_log_effort_m_total")
+    # MCMCparams = list(
+    #   nchain = 3,
+    #   nburn = 20000,
+    #   niter = 20000,
+    #   nthin = 1 )
+    # listPriors = list(
+    #   a_theta0 = 1,
+    #   b_theta0 = 100)
+    # listPriors = list()
+    # summarisedLatentPresences = T
   }
 
   # data structure infer
@@ -470,16 +483,17 @@ runOccJSDM <- function(data,
     if(model %in% c("occupancy","two_stage")){
 
       # truncate data
-      if(threshold >= 1){
 
-        y[y >= threshold] <- 1
-        y[y < threshold] <- 0
-
-      } else {
-
-        stop("Threshold has to be greater than 0")
-
+      if (!is.numeric(threshold) || length(threshold) != 1) {
+        stop("'threshold' must be a single numeric value.")
       }
+      if (threshold <= 0) { # You already note threshold > 0 in your code, enforce it cleanly!
+        stop("'threshold' must be strictly greater than 0.")
+      }
+
+      y[y >= threshold] <- 1
+      y[y < threshold] <- 0
+
     }
 
     if(model %in% c("binary","continuous","counts")){
@@ -503,6 +517,7 @@ runOccJSDM <- function(data,
       speciesNames <- 1:S
     }
 
+    if (any(duplicated(speciesNames))) stop("Duplicated species names found in OTU matrix.")
 
     n_obs <- nrow(y)
 
@@ -590,6 +605,8 @@ runOccJSDM <- function(data,
 
         N2 <- maxP * N
 
+        if(!(all(P == P[1]))) stop("Cannot have different number of primers for each sample")
+
       } else {
         primerNames <- NULL
       }
@@ -665,6 +682,10 @@ runOccJSDM <- function(data,
 
     # For the traits
     {
+      if (!is.null(data$traits) && any(duplicated(rownames(data$traits)))) {
+        stop("Duplicated species names found in traits matrix rownames.")
+      }
+
       if(!is.null(data$traits)){
         speciesNamesInTraitsMatrix <- rownames(data$traits)
         if(!all(speciesNames %in% speciesNamesInTraitsMatrix)){
@@ -693,7 +714,7 @@ runOccJSDM <- function(data,
     d <- get_param(listParams, "n_factors")
 
     if(d > ncol(OTU)){
-      print("More species than factors. The number of factors will be capped to the
+      message("More species than factors. The number of factors will be capped to the
             number of species")
       d <- ncol(OTU)
     }
@@ -737,19 +758,18 @@ runOccJSDM <- function(data,
       B_betatheta[1,1] <- prior_beta_theta_sd
     }
 
-
   }
 
   # run MCMC
 
-  print("Running MCMC")
+  message("Running MCMC")
 
   # chain parameters
   {
-    nchain <- MCMCparams$nchain
-    nburn <- MCMCparams$nburn
-    niter <- MCMCparams$niter
-    nthin <- ifelse(is.null(MCMCparams$nthin),1,MCMCparams$nthin)
+    nchain <- get_param(MCMCparams, "nchain", 2)
+    nburn <- get_param(MCMCparams, "nburn", 1000)
+    niter <- get_param(MCMCparams, "niter", 1000)
+    nthin <- get_param(MCMCparams, "nthin", 1)
   }
 
   # precompute spatial quantities
@@ -1033,11 +1053,11 @@ runOccJSDM <- function(data,
       if(iter > nburn){
         currentIter <- (iter - nburn) / nthin
         if(currentIter %% 100 == 0){
-          print(paste0("Chain ", chain, " - Iteration ",currentIter))
+          message(paste0("Chain ", chain, " - Iteration ",currentIter))
         }
       } else {
         if(iter %% 100 == 0){
-          print(paste0("Chain ", chain, " - Burn in Iteration ",iter))
+          message(paste0("Chain ", chain, " - Burn in Iteration ",iter))
         }
       }
 
@@ -1088,7 +1108,7 @@ runOccJSDM <- function(data,
 
       # sample theta
       if(model %in% c("occupancy","two_stage")){
-        beta_theta <- sample_betatheta_cpp(w, z, beta_theta, idx_z_w, X_theta,
+        beta_theta <- sample_betatheta_cpp_parallel(w, z, beta_theta, idx_z_w, X_theta,
                                            b_betatheta, B_betatheta)
         theta <- computeTheta(X_theta, beta_theta)
       }
@@ -1297,11 +1317,8 @@ runOccJSDM <- function(data,
   results_output$w_output <- w_output_mean
   results_output$theta_output <- theta_output_mean
 
-  minESS <- computeMinESS(results_output)
-
-  if(minESS < 50) {
-    print(paste0("Minimum effective sample size equal to ", round(minESS),", please rerun with more iterations"))
-  }
+  # print diagnostics
+  computeDiagnostics(results_output)
 
   infos <- list(
     "S" = S,

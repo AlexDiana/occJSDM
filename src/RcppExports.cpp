@@ -93,6 +93,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_betatheta_cpp_parallel
+arma::mat sample_betatheta_cpp_parallel(const arma::mat& w, const arma::mat& z, arma::mat beta_theta, const arma::uvec& idx_z, const arma::mat& X_theta, const arma::vec& b_betatheta, const arma::mat& B_betatheta);
+RcppExport SEXP _occJSDM_sample_betatheta_cpp_parallel(SEXP wSEXP, SEXP zSEXP, SEXP beta_thetaSEXP, SEXP idx_zSEXP, SEXP X_thetaSEXP, SEXP b_betathetaSEXP, SEXP B_betathetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type z(zSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type beta_theta(beta_thetaSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type idx_z(idx_zSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X_theta(X_thetaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type b_betatheta(b_betathetaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type B_betatheta(B_betathetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_betatheta_cpp_parallel(w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_pq_cpp
 List sample_pq_cpp(NumericMatrix& c_imk, IntegerMatrix& y_NA, NumericMatrix w, IntegerVector idx_p_k, IntegerVector idx_w_k, int maxP, double a_p, double b_p, double a_q, double b_q);
 RcppExport SEXP _occJSDM_sample_pq_cpp(SEXP c_imkSEXP, SEXP y_NASEXP, SEXP wSEXP, SEXP idx_p_kSEXP, SEXP idx_w_kSEXP, SEXP maxPSEXP, SEXP a_pSEXP, SEXP b_pSEXP, SEXP a_qSEXP, SEXP b_qSEXP) {
@@ -466,6 +483,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_occJSDM_sample_w_cpp", (DL_FUNC) &_occJSDM_sample_w_cpp, 16},
     {"_occJSDM_sample_w_cim_cipp", (DL_FUNC) &_occJSDM_sample_w_cim_cipp, 13},
     {"_occJSDM_sample_betatheta_cpp", (DL_FUNC) &_occJSDM_sample_betatheta_cpp, 7},
+    {"_occJSDM_sample_betatheta_cpp_parallel", (DL_FUNC) &_occJSDM_sample_betatheta_cpp_parallel, 7},
     {"_occJSDM_sample_pq_cpp", (DL_FUNC) &_occJSDM_sample_pq_cpp, 10},
     {"_occJSDM_computeModelLoglikJSDM_cpp", (DL_FUNC) &_occJSDM_computeModelLoglikJSDM_cpp, 4},
     {"_occJSDM_computeModelLoglikFirstStage_cpp", (DL_FUNC) &_occJSDM_computeModelLoglikFirstStage_cpp, 5},

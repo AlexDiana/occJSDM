@@ -208,6 +208,23 @@ static arma::vec mvrnormArmaQuick(arma::vec mu, arma::mat cholsigma) {
   return mu + cholsigma * Y;
 }
 
+static arma::vec mvrnormArmaQuick_TS(const arma::vec& mu, const arma::mat& cholsigma) {
+  int ncols = cholsigma.n_cols;
+  arma::vec Y(ncols);
+
+  // Create a thread-local random engine and distribution
+  // thread_local ensures each thread has its own independent instance
+  thread_local std::mt19937 engine(std::random_device{}());
+  std::normal_distribution<double> dist(0.0, 1.0);
+
+  // Fill Y manually using the thread-safe C++ engine
+  for(int i = 0; i < ncols; ++i) {
+    Y[i] = dist(engine);
+  }
+
+  return mu + cholsigma * Y;
+}
+
 static arma::mat diagMatrixProd(arma::mat& X, arma::vec& D){
 
   arma::mat result(X.n_rows, D.size());
@@ -238,6 +255,24 @@ static arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b,
   return(result);
 }
 
+static arma::vec sample_beta_cpp_TS(arma::mat& X, arma::mat& B, arma::vec& b,
+                          arma::vec& Omega, arma::vec& k){
+
+  // arma::mat cov_matrix = arma::inv(arma::trans(X) * Omega * X + arma::inv(B));
+  arma::mat tX = arma::trans(X);
+  arma::mat tXOmega = diagMatrixProd(tX, Omega);
+  // arma::mat cov_matrix = arma::inv(tXOmega * X + arma::inv(B));
+  // arma::vec result = mvrnormArma(cov_matrix * (arma::trans(X) * k + arma::inv(B) * b), cov_matrix);
+
+  arma::mat L = arma::trans(arma::chol(tXOmega * X + arma::inv(B)));
+  arma::vec tmp = arma::solve(arma::trimatl(L), tX * k + arma::inv(B) * b);
+  arma::vec alpha = arma::solve(arma::trimatu(arma::trans(L)),tmp);
+
+  arma::vec result = mvrnormArmaQuick_TS(alpha, arma::trans(arma::inv(arma::trimatl(L))));
+
+  return(result);
+}
+
 static arma::vec sample_Omega_cpp(arma::mat& X, arma::vec& beta, arma::vec& n){
 
   int nsize = n.size();
@@ -254,6 +289,16 @@ static arma::vec sample_Omega_cpp(arma::mat& X, arma::vec& beta, arma::vec& n){
 }
 
 static arma::vec sample_beta_nocov_cpp(arma::vec beta, arma::mat& X, arma::vec b,
+                                arma::mat B, arma::vec n, arma::vec k){
+
+  arma::vec Omega = sample_Omega_cpp(X, beta, n);
+
+  beta = sample_beta_cpp(X, B, b, Omega, k);
+
+  return(beta);
+}
+
+static arma::vec sample_beta_nocov_cpp_TS(arma::vec beta, arma::mat& X, arma::vec b,
                                 arma::mat B, arma::vec n, arma::vec k){
 
   arma::vec Omega = sample_Omega_cpp(X, beta, n);
@@ -530,6 +575,50 @@ arma::mat sample_betatheta_cpp(const arma::mat& w,
     arma::vec beta_sub = beta_theta.col(s);
 
     beta_theta.col(s) = sample_beta_nocov_cpp(beta_sub, X_thetasubset, b_betatheta, B_betatheta, n, k);
+
+  }
+
+  return beta_theta;
+}
+
+// [[Rcpp::export]]
+arma::mat sample_betatheta_cpp_parallel(const arma::mat& w,
+                                        const arma::mat& z,
+                                        arma::mat beta_theta, // Passed by value from R, safe to modify locally
+                                        const arma::uvec& idx_z,
+                                        const arma::mat& X_theta,
+                                        const arma::vec& b_betatheta,
+                                        const arma::mat& B_betatheta) {
+
+  int S = beta_theta.n_cols;
+
+  arma::uvec idx_z_cpp = idx_z - 1;
+  arma::mat z_all = z.rows(idx_z_cpp);
+
+  // Tell OpenMP to parallelize this loop.
+  // All variables declared inside the loop become private to each thread.
+  #pragma omp parallel for
+  for (int s = 0; s < S; ++s) {
+
+    // Get the s-th column of z_all
+    arma::vec z_col = z_all.col(s);
+
+    // Find indices where z_all[, s] == 1
+    arma::uvec find_ones = arma::find(z_col == 1);
+
+    if (find_ones.is_empty()) continue;
+
+    // Extract the column subset
+    arma::vec w_sub = w.elem(find_ones + s * w.n_rows);
+    arma::vec k = w_sub - 0.5;
+
+    arma::vec n = arma::ones<arma::vec>(k.n_elem);
+    arma::mat X_thetasubset = X_theta.rows(find_ones);
+
+    // Extract current column of beta_theta
+    arma::vec beta_sub = beta_theta.col(s);
+
+    beta_theta.col(s) = sample_beta_nocov_cpp_TS(beta_sub, X_thetasubset, b_betatheta, B_betatheta, n, k);
 
   }
 

@@ -210,14 +210,14 @@ precomputeSORmatrices <- function(l_s_grid, list_Xs){
   logDetKuu_grid <- rep(NA, length_grid_ls)
   Lm1_grid <- array(NA, c(ns, ns, length_grid_ls))
 
-  print(paste0("Precomputing covariance matrices"))
+  message("Precomputing covariance matrices")
 
   if(X_centers > 0){
     for (j in 1:length_grid_ls) {
 
-      if(F){
-        print(paste0("Precomputing covariance matrix ",j," out of ",length_grid_ls))
-      }
+      # if(F){
+      #   print(paste0("Precomputing covariance matrix ",j," out of ",length_grid_ls))
+      # }
 
       l_s_current <- l_s_grid[j]
 
@@ -305,7 +305,7 @@ sampleEffects <- function(n){
 }
 
 simulateData <- function(
-    n, S, p, g, gt, d, tau, ds, ns,
+    n, S, p, g, gt, d, tau, rnb, ds, ns,
     sigma_b, sigma_bs, sigma_ts, sigma_h, sigma_s, l_s,
     useSpatField, usingSplines, model){
 
@@ -448,12 +448,11 @@ simulateData <- function(
 
     z <- t(sapply(1:n, function(i){
       sapply(1:S, function(j){
-        rpois(1, lambda = mu[i,j])
+        rnbinom(1, size = rnb[j], mu = mu[i,j])
       })
     }))
 
   }
-
 
   varPart <- computeVariancePartitioning_stdevs(XB, SE, UL, model)
   if(useSpatField) {
@@ -1363,6 +1362,8 @@ SD <- function(eta, model) {
     apply(eta, 2, sd)
   } else if (model == "binary"){
     apply(logistic(eta), 2, sd)
+  } else if (model == "count"){
+    apply(exp(eta), 2, sd)
   } else {
     stop("Using unavailable model")
   }
