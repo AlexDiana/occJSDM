@@ -76,7 +76,7 @@ Every code change Claude made, newest first. None has had human review beyond Do
 
     Four candidate causes were investigated and ruled out (missing amplitude, wrong amplitude passed, `logDetKuu`, weak data). Detail in AGENTS.
 
-    ALEX: I run a simple test in the file test_sample_l.R in the folder dev/jSDM Sampler. It always go to the true value (or very close by)
+    ALEX: I run a simple test in the file test_sample_l.R in the folder R. It always go to the true value (or very close by)
 
 2.  **`reparamFactorModel()` breaks residual covariance = `t(L) %*% L`, inflating reported species correlations.** `R/jsdmfun.R:48`. The rotation preserves `U %*% L` (verified to 4e-16) so the linear predictor is untouched, but it moves scale out of `U` into `L`, and `returnResidualCorrelationMatrix()` computes `cov2cor(t(L) %*% L)` from the reparameterised `L`. Measured `Var(U)` afterwards is `diag(0.23, 2.01)`, not the identity.
 
