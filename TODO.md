@@ -66,28 +66,6 @@ Every code change Claude made, newest first. None has had human review beyond Do
 
 ## **B. Inference-affecting bugs (wrong numbers, silently) (Alex)**
 
-1.  **`sample_ls()` scores the wrong density, so the GP length-scale is never recovered.** `R/jsdmfun.R:1054`. Under the SoR approximation the fitted field `SE = Ks(l_s) %*% Bs` is a deterministic function of `Bs` and `l_s`, but `sample_ls()` treats `SE` as a GP draw and scores it under `N(0, sigma_s^2 K(l_s))` with `SE` held fixed. That is not the conditional posterior, and it is self-defeating: `SE` was already smoothed at the current `l_s`, so it scores better under ever-smoother covariances.
-
-    **Measured:** `idx_ls` rails at the top of `l_s_grid` for every true `l_s` tried (0.074, 0.171, 0.300), with real spatial signal present. The profiled log-likelihood rises monotonically from -376 at `l_s = 0.01` to -154 at `l_s = 0.30`.
-
-    **Impact:** biases the spatial term of every `useSpatField = TRUE` fit and makes `l_s` uninterpretable. Widening the grid would only move the rail.
-
-    **Needs a derivation, not a code tweak.** Either recompute `eta` with `Ks(l_s*)` and score the observation likelihood under the proposal, or integrate out `Bs` and use the SoR marginal likelihood. **Do not attempt blind:** a subtly wrong conditional would be worse than the present state, which at least fails visibly. A cheap interim option is to revert to a documented, user-settable fixed `l_s`.
-
-    Four candidate causes were investigated and ruled out (missing amplitude, wrong amplitude passed, `logDetKuu`, weak data). Detail in AGENTS.
-
-    ALEX: I run a simple test in the file `R/test_sample_l.R`. It always go to the true value (or very close by)
-
- *Posit Assistant* (6 Sep 2026): the file `R/test_sample_l.R` as written is **not runnable**: `simulateData(...)` errors with `invalid 'size' argument` before any data is produced, so the loop never reaches `sample_ls()`. Ran the equivalent by hand (built `l_s_grid`, `Lm1_grid`, `logDetKuu_grid` directly from `K2()` + `chol()`; drew `SE = t(LU) %*% Z` at `l_s_true = 0.12`, truth-at-grid-idx 6): starting `idx_ls` at 1, 20, and 6, all three chains settle on idx 6 within \~100 iterations and stay there (mode share \~1.0 post-burn). So **the per-iteration MH update is sound**, given a `SE` drawn from a GP with the specified kernel.
-
- **What Alex's test does not establish: what `SEupdate_jSDMcoef()` actually passes to `sample_ls()` after many iterations, when `Bs` itself has been moving.** MCMC-level "rails at top" is consistent with that `SE` not matching any of the grid kernels at the moment the score is taken -- i.e. an upstream conditioning / `Bs` issue rather than a `sample_ls()` arithmetic issue.
-
- Proposed next step: print `mean(SE)^2`, `sd(SE)`, and the value of `idx_ls` first-vs-last across the chain for one tier-1 replica, and decide from there whether `sample_ls()` needs a fix or `Bs`/`SE` construction does.
-
- ALEX TO CLARIFY: **which `SE` does `update_jSDMcoef()` end up passing to `sample_ls()`, and is the rails-at-top observation re-checked against the corrected item-description above?**
-  
-  ALEX: The code has been fixed. The code only checks that sample_ls works, which it does in the sense that it converges to the true value. If there is a problem, it is somewhere else.
-
 2.  **`reparamFactorModel()` breaks residual covariance = `t(L) %*% L`, inflating reported species correlations.** `R/jsdmfun.R:48`. The rotation preserves `U %*% L` (verified to 4e-16) so the linear predictor is untouched, but it moves scale out of `U` into `L`, and `returnResidualCorrelationMatrix()` computes `cov2cor(t(L) %*% L)` from the reparameterised `L`. Measured `Var(U)` afterwards is `diag(0.23, 2.01)`, not the identity.
 
     **Measured:** correlations move by up to 0.612, consistently toward the extremes.
@@ -186,7 +164,9 @@ Every code change Claude made, newest first. None has had human review beyond Do
 
     ALEX: REVERT `sample_beta_nocov_cpp_TS()` TO CALL `sample_beta_cpp_TS()`, NOT `sample_beta_cpp()`
 
-## **C. Crashes, unreachable code paths, and API bugs (Alex)**
+10. **The rails-at-top symptom (the MCMC chain selects the largest `l_s` on the grid regardless of the true generating value, converging to the boundary rather than the truth) is upstream of `sample_ls()`.** `Fixed bugs` 48 closes out the `sample_ls()` half: the per-iteration MH step is sound when `SE` is drawn from a GP with the grid's kernel, and Alex's reply on the joint TODO exchange confirmed that whatever the symptom reflects is "somewhere else". Two candidates from the original investigation have not been re-tested against the new framing: whether `computeEtaSE()` (or whatever `update_jSDMcoef()` reads `SE` from after `Bs` has moved) actually delivers a GP-shaped draw at the moment `sample_ls()` is called, and whether the `Ks_all`/`Lm1_grid`/`logDetKuu_grid` arrays precomputed by `precomputeSORmatrices()` are the ones the proposal should be scored against once `Bs` has been redrawn. **Diagnostic to run, not path to pick:** print `mean(SE)^2`, `sd(SE)`, and `idx_ls` first-vs-last across the chain for one tier-1 replica with a non-zero `ds`, and read off which candidate matches. The four previously-ruled-out causes (`sigma_s` missing, wrong amplitude, `logDetKuu`, weak data) were all inside `sample_ls()` itself and remain ruled out; this item is about the inputs to that function. Original measurement that opened this: `idx_ls` sweeping the rail for every true `l_s` tried (0.074, 0.171, 0.300), with real spatial signal present, profiled log-likelihood rising monotonically with `l_s`. Detail in AGENTS and `dev/simstudy/PLAN.md` §10.3.
+
+    ## **C. Crashes, unreachable code paths, and API bugs (Alex)**
 
 No open items. `thinOutput()` has been fixed by Claude and moved to group A, where it awaits Alex's review; it gets a *Fixed bugs* entry once reviewed. The assorted smaller items this section also held were fixed by Alex and closed as *Fixed bugs* 44 and 47.
 
@@ -350,7 +330,7 @@ H.  **Reduce the repeated `arma::inv()` calls in the samplers. NOT DONE, but a m
 
 2.  **extensive testing on simulated datasets** -- **suite built and the R = 100 study run; three things remain.** What exists is summarised under *Completed* below; the authoritative specification and the results table are in `dev/simstudy/PLAN.md`.
 
-    (a) **Re-run once the `sample_ls()`, `reparamFactorModel()` and `beta_theta` slope items in group B are fixed.** This is the evidence the fixes worked. Without it they rest on the same code-reading that this exercise showed to be unreliable. Still outstanding: none of the three is fixed.
+    (a) **Re-run once the rails-at-top (`sample_ls()` upstream), `reparamFactorModel()` and `beta_theta` slope items in group B are fixed.** The `sample_ls()` arithmetic half closed as *Fixed bugs* 48; the rails-at-top finding now lives as item 10 by subject. Re-run is the evidence the fixes worked; without it they rest on the same code-reading this exercise showed to be unreliable. Still outstanding: none of the three.
 
     **A re-run did happen on 10 August 2026, but not this one.** Its purpose was different: six commits had touched `R/` and `src/` since the 2 August study, including `522b89e`'s new parallel sampler, so the published numbers described code that no longer existed. Result: **nothing moved.** Zero of 83 scenario-by-block cells shifted beyond 2 SE, and every per-block mean coverage change was under 0.003 against a measurement SE of 0.022. The old numbers were stale in provenance, not in fact. Scope: every fit runs at one thread, where the new parallel worker reduces to serial, so this says nothing about the multi-threaded path where group B items 8 and 9 bite.
 
@@ -367,7 +347,7 @@ H.  **Reduce the repeated `arma::inv()` calls in the samplers. NOT DONE, but a m
 
     (c) ~~**Decide how the results are presented**~~ **SETTLED 10 August 2026.** The write-up is the pkgdown article at `vignettes/articles/validation.Rmd`, and it is now *generated*: every table, figure and number renders from `dev/simstudy/validation-data.rds` rather than being typed in. So presentation is no longer a standing decision -- a re-run plus `export_validation_data.R` refreshes the whole document, and the article cannot silently disagree with the data it describes. Not published yet; see item 3.
 
-    **One constraint carried from the bug list:** `l_s` is excluded from coverage checks because it is not recoverable while the `sample_ls()` item in group B is open, so no cell of the study speaks to spatial range. Two earlier constraints have since lapsed -- `sigma_h` is now sampled (Fixed bugs 24) and the OpenMP RNG race is closed (Fixed bugs 26), so tier 1's "structural assertions only" rule can be revisited once reproducibility is confirmed on a multi-threaded platform.
+    **One constraint carried from the bug list:** `l_s` is excluded from coverage checks because it is not recoverable while the rails-at-top upstream finding (group B item 10) is open, so no cell of the study speaks to spatial range. Two earlier constraints have since lapsed -- `sigma_h` is now sampled (Fixed bugs 24) and the OpenMP RNG race is closed (Fixed bugs 26), so tier 1's "structural assertions only" rule can be revisited once reproducibility is confirmed on a multi-threaded platform.
 
 3.  ~~**Stand up a pkgdown site.**~~ **BUILT 2 August 2026** (`b34b36a`), but deliberately **not published**. `_pkgdown.yml`, the validation article at `vignettes/articles/validation.Rmd`, and `URL`/`BugReports` in `DESCRIPTION` are on `main`. That closes CRAN plan item 10.
 
@@ -377,7 +357,7 @@ H.  **Reduce the repeated `arma::inv()` calls in the samplers. NOT DONE, but a m
 
     **One thing to settle before publishing, not two. Corrected 10 August 2026.** This item used to say the first build would fail on functions that error unconditionally, `predictNewSites()` among them. That is wrong twice over: `predictNewSites()` was fixed as *Fixed bugs* 34, and pkgdown does not evaluate `\dontrun{}` blocks, which is 22 of the 24 example blocks in `man/`. The two live ones are `str()`, `head()` and one `plotDetectionRates()` call on shipped data. **There is no example-driven build blocker.**
 
-    **What is still open is the judgement call.** Publishing while the `sample_ls()`, `reparamFactorModel()` and `beta_theta` slope items stand means the site documents functions whose output is currently biased or whose intervals are overconfident. The beta's disclosure now lives in the listserv announcement (group E), which the site does not carry, so publishing puts the documentation somewhere the caveats are not. Either say so on the site or accept the gap knowingly.
+    **What is still open is the judgement call.** Publishing while the rails-at-top (`l_s` ranges), `reparamFactorModel()` and `beta_theta` slope items stand means the site documents functions whose output is currently biased or whose intervals are overconfident. The beta's disclosure now lives in the listserv announcement (group E), which the site does not carry, so publishing puts the documentation somewhere the caveats are not. Either say so on the site or accept the gap knowingly.
 
 # **Future versions**
 
@@ -636,6 +616,7 @@ Items 16 and 18 are marked **partially fixed**: the crash in each is gone, but p
 
 47. ~~**Three assorted smaller items (C2b, C2c, C2d), all verified fixed (Alex).**~~
 
+48. ~~**Item 1 in group B (`sample_ls()` "scores the wrong density").**~~ **CLOSED BY EVIDENCE 6 September 2026** (Alex + Doug; `R/jsdmfun.R`). Three rounds of evidence converged on `sample_ls()` not being the defect. (1) Four candidate causes inside `sample_ls()` itself were ruled out in July (missing amplitude, wrong amplitude passed, `logDetKuu` factor, weak data; full detail in `AGENTS.md` under "*Evidence behind the group B items*" `/ sample_ls(): four candidate causes ruled out`). (2) Alex's reply on the joint TODO exchange: "I run a simple test in the file `R/test_sample_l.R`. It always go to the true value (or very close by)", and later "The code has been fixed. The code only checks that sample_ls works, which it does in the sense that it converges to the true value. If there is a problem, it is somewhere else." (3) Doug's hand-built-equivalent run: `l_s_grid`, `Lm1_grid`, `logDetKuu_grid` derived directly from `K2()` + `chol()`; `SE = t(LU) %*% Z` at `l_s_true = 0.12` (truth at grid idx 6). Starting `idx_ls` at 1, 20, and 6, all three chains settle on idx 6 within \~100 iterations and stay there (mode share \~1.0 post-burn). What the test does not establish is what `SE` `update_jSDMcoef()` actually constructs once `Bs` has been redrawn -- that and the `precomputeSORmatrices()`-vs-current-`Bs` alignment are now item 10 in group B (rails-at-top upstream of `sample_ls()`). Items fully removed from group B is 1; the finding lives on as item 10. Note that `simulateData()` errors with `invalid 'sizeargument` on the *current* `R/test_sample_l.R`, so Alex's run depends on a session-internal snapshot of the helpers and is not reproducible against `main` head without manual setup.
     **(b) `d > NULL` errors on single-species input.** `get_param(listParams, "n_factors")` returns 0 by default; the old cap `if (d > ncol(OTU))` errored when `OTU` was a single-species vector because `ncol()` returns `NULL`. Fixed by branching first on `ncol(OTU) > 1`; the `else` branch sets `d <- 0` with a message. `R/runOccJSDM.R:759-770`.
 
     **(c) `reparamFactorModel(A_output, C_output)` fails when `gt > ncov_psi`.** `C_output` is `[gt x ncov_psi]`; when `gt > ncov_psi`, `qr.Q()` returns a non-square `[gt x ncov_psi]` matrix and `Q %*% diag(diag(R), nrow = gt)` fails on conformability. Fixed by `gt_default <- floor(sqrt(min(S, ncov_psi)))`, which ensures the default `gt <= ncov_psi`. A caller who manually sets `listParams$n_lattrait > ncov_psi` could still trigger it, but that is a usage error. `R/runOccJSDM.R:773`.
@@ -664,4 +645,4 @@ Finished work, kept for context rather than as tasks. Bug fixes live under *Fixe
 
     - **It is a paired comparison, and that is worth protecting.** `draw_truth()` seeds on (scenario, replicate), so the simulated data and true values are bit-identical between the pre- and post-fix runs -- verified, `max|truth difference| = 0`. Every difference is therefore attributable to the code rather than to sampling variation, which is what makes statements like "only 104 of 49,978 `resid_cor` decisions flipped" possible. **Do not change `simstudy_seed()`**, or future runs lose comparability with these two.
 
-    It found six defects -- three while the tests were being written, three from the run -- none of which the static audit had caught. Four of the six are now fixed (Fixed bugs 24-27 and group B); the rest are the `sample_ls()`, `reparamFactorModel()` and `beta_theta` slope items in group B.
+    It found six defects -- three while the tests were being written, three from the run -- none of which the static audit had caught. Four of the six are now fixed (Fixed bugs 24-27 and group B); the rest are the rails-at-top (`l_s` ranges, item 10), `reparamFactorModel()` and `beta_theta` slope items in group B.
