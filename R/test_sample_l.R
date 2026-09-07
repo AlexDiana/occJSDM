@@ -1,12 +1,58 @@
 n <- 500
 S <- 10
-ns <- n
+p <- 10 # environmental covariates
+g <- 6 # observed traits
+gt <- 2 # unobserved traits
+d <- 0 # number of factors
+ds <- 2 # latent spatial factors
+
+model <- "continuous" # "binary" #  "count"
+usingSplines <- T
+
+# variances
+{
+  if(model == "continuous"){
+    tau <- rep(0.01, S)# rgamma(S, 5, 5)
+    rnb <- NULL
+  } else if(model == "count"){
+    rnb <- rpois(S, lambda = 50)
+    tau <- NULL
+  } else {
+    tau <- NULL
+    rnb <- NULL
+  }
+
+  # variation of residual environmental covariates
+  sigma_b <- .01
+
+  # variation of spatial traits
+  sigma_ts <- .0001
+
+  # variation of residual spatial field
+  sigma_bs <- .0001
+
+  # variation of factor scores
+  sigma_h <- 1
+
+  # variation of spatial field
+  sigma_s <- .5
+
+  # spatial field scale
+  length_grid_ls <- 10
+  l_s_grid <- seq(0.01, 0.4, length.out = length_grid_ls)
+  idx_ls <- 10
+  l_s <- l_s_grid[idx_ls]
+
+}
 
 length_grid_ls <- 20
 l_s_grid <- seq(0.01, 0.4, length.out = length_grid_ls)
-idx_ls <- 20
+idx_ls <- 3
 l_s <- l_s_grid[idx_ls]
 l_s_true <- l_s
+
+a_l_s <- 1
+b_l_s <- 1
 
 list_simData <- simulateData(
   n, S, p,
@@ -39,6 +85,8 @@ K_mat <- K2(Xs, Xs, sigma_s, l_s) + diag(10^(-5), nrow = ns)
 LU <- chol(K_mat)
 Z <- rnorm(n)
 SE <- matrix(t(LU) %*% Z, n, S, byrow = F)
+
+niter <- 1000
 
 for (iter in 1:niter) {
   print(idx_ls)
