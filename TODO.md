@@ -120,7 +120,7 @@ Every code change Claude made, newest first. None has had human review beyond Do
 
     CLAUDE OR ALEX TO CONFIRM AT A SECOND CLEAN CONFIGURATION. Alex response: since there is no bias and the coverage is close to 0.95, we wonder if there is any actual bug or this might be due to noise in the simulation or the effect of the prior.
 
-    DOUG (7 September 2026): agreed that the current evidence is insufficient to call this a defect. The zero bias makes an estimator problem less likely, while the single continuous-arm result could reflect Monte Carlo variation or prior-driven interval width. Please run one additional clean configuration in which the other parameter blocks have approximately nominal coverage and the prior situation is not the low-information confounding case. If `B0` coverage is again materially below nominal with negligible bias, retain this as an inference issue and investigate the posterior-variance calculation; if coverage is near nominal, close this item as noise or an uninformative one-cell result. Until that check is done, leave B5 open rather than treating the current result as either a confirmed bug or a resolved concern.
+    CLAUDE (7 September 2026): agreed that the current evidence is insufficient to call this a defect. The zero bias makes an estimator problem less likely, while the single continuous-arm result could reflect Monte Carlo variation or prior-driven interval width. Please run one additional clean configuration in which the other parameter blocks have approximately nominal coverage and the prior situation is not the low-information confounding case. If `B0` coverage is again materially below nominal with negligible bias, retain this as an inference issue and investigate the posterior-variance calculation; if coverage is near nominal, close this item as noise or an uninformative one-cell result. Until that check is done, leave B5 open rather than treating the current result as either a confirmed bug or a resolved concern.
 
 6.  **`theta0`'s intervals are \~25% wider than they need to be, and that is the price of its bias being fixed.** Coverage 0.978-0.985 post-fix against 0.938-0.959 pre-fix (`PLAN.md` 12.3). The all-cell average of 0.944 hides it, because `low_information` pulls it down at 0.602.
 
@@ -257,19 +257,46 @@ Ten dead functions were moved to `deprecated/` on 30 July (*Fixed bugs* 37). Wha
 
 1.  Trait matrix currently not allowing for categorical variables
 
-2.  Design better model selection criterion (the one currently implemented, which is the same as HMSC, tend to overfit).
+## B. Doug to dos
 
-3.  ability to analyse count data
+1.  **reproduce all Ecoletts results as a test of the package and decide whether to include in repo**
 
-4.  scenario for source-sink inference (sites where env covariate coeffcients are negative but spatial covariate coefficients are positive), using an explicit source-sink simulation
+2.  **extensive testing on simulated datasets** -- **suite built and the R = 100 study run; three things remain.** What exists is summarised under *Completed* below; the authoritative specification and the results table are in `dev/simstudy/PLAN.md`.
 
-5.  remove effect of space on environmental covariates. remove the effect of unobserved environmental on observed environmental covariates and space. thus, adding factors (unobserved env covariates) doesn't change the effect of observed env covariates
+    (a) **Re-run once the rails-at-top (`sample_ls()` upstream), `reparamFactorModel()` and `beta_theta` slope items in group B are fixed.** The `sample_ls()` arithmetic half closed as *Fixed bugs* 48; the rails-at-top finding now lives as item 10 by subject. Re-run is the evidence the fixes worked; without it they rest on the same code-reading this exercise showed to be unreliable. Still outstanding: none of the three.
 
-6.  **site** variance partitioning to complement the **species** variation partitioning (see Leibold et al., Cai et al.). Consider calling it **variation** partitioning.
+    **A re-run did happen on 10 August 2026, but not this one.** Its purpose was different: six commits had touched `R/` and `src/` since the 2 August study, including `522b89e`'s new parallel sampler, so the published numbers described code that no longer existed. Result: **nothing moved.** Zero of 83 scenario-by-block cells shifted beyond 2 SE, and every per-block mean coverage change was under 0.003 against a measurement SE of 0.022. The old numbers were stale in provenance, not in fact. Scope: every fit runs at one thread, where the new parallel worker reduces to serial, so this says nothing about the multi-threaded path where group B items 8 and 9 bite.
 
-7.  **Performance of `runOccJSDM()`**
+    **That makes the fix-verification re-run cheaper to read, not redundant.** There is now a clean baseline measured on current code, so the next comparison isolates the fixes instead of confounding them with six commits of drift. Name the production grid explicitly -- a bare invocation takes every cell defined in `helper-simstudy.R`, not the ten production ones, which is hours of wasted compute and has happened once already:
 
-ALEX NOTE: Most of the MCMC steps have now been parallelised, with the only exception of sample_U_cpp. The rest is mostly stuff. It would also worth investigating a faster to compute the variancePartitioning or the WAIC.
+    ````         
+    ```
+    Rscript dev/simstudy/run_study.R --R=100 --cores=5 --caffeinate \
+      --scenarios=base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated
+    ```
+    ````
+
+    (b) **Decide the replicate count for the paper.** R = 100 was chosen to *detect* defects and did so decisively. Asserting *nominal* coverage in print is a claim about the absence of a small deviation and wants R = 200-500 (`PLAN.md` §9). The runner takes `R` as an argument.
+
+    (c) ~~**Decide how the results are presented**~~ **SETTLED 10 August 2026.** The write-up is the pkgdown article at `vignettes/articles/validation.Rmd`, and it is now *generated*: every table, figure and number renders from `dev/simstudy/validation-data.rds` rather than being typed in. So presentation is no longer a standing decision -- a re-run plus `export_validation_data.R` refreshes the whole document, and the article cannot silently disagree with the data it describes. Not published yet; see item 3.
+
+    **One constraint carried from the bug list:** `l_s` is excluded from coverage checks because it is not recoverable while the rails-at-top upstream finding (group B item 10) is open, so no cell of the study speaks to spatial range. Two earlier constraints have since lapsed -- `sigma_h` is now sampled (Fixed bugs 24) and the OpenMP RNG race is closed (Fixed bugs 26), so tier 1's "structural assertions only" rule can be revisited once reproducibility is confirmed on a multi-threaded platform.
+
+3.  ~~**Stand up a pkgdown site.**~~ **BUILT 2 August 2026** (`b34b36a`), but deliberately **not published**. `_pkgdown.yml`, the validation article at `vignettes/articles/validation.Rmd`, and `URL`/`BugReports` in `DESCRIPTION` are on `main`. That closes CRAN plan item 10.
+
+    `.github/workflows/pkgdown.yaml` carries only a `workflow_dispatch` trigger, so nothing builds or deploys on push. **How to rebuild locally and how to publish for real are both in `AGENTS.md`, "The documentation site".** Short version: `pkgdown::build_site()` writes to a gitignored `docs/`; publishing needs the workflow run by hand *and* Pages repointed from `main` to `gh-pages`, and neither alone is enough.
+
+    **ALEX: the Pages repoint needs admin**, which Doug does not have. Until then `alexdiana.github.io/occJSDM` serves the README via Jekyll rather than the pkgdown site.
+
+    **One thing to settle before publishing, not two. Corrected 10 August 2026.** This item used to say the first build would fail on functions that error unconditionally, `predictNewSites()` among them. That is wrong twice over: `predictNewSites()` was fixed as *Fixed bugs* 34, and pkgdown does not evaluate `\dontrun{}` blocks, which is 22 of the 24 example blocks in `man/`. The two live ones are `str()`, `head()` and one `plotDetectionRates()` call on shipped data. **There is no example-driven build blocker.**
+
+    **What is still open is the judgement call.** Publishing while the rails-at-top (`l_s` ranges), `reparamFactorModel()` and `beta_theta` slope items stand means the site documents functions whose output is currently biased or whose intervals are overconfident. The beta's disclosure now lives in the listserv announcement (group E), which the site does not carry, so publishing puts the documentation somewhere the caveats are not. Either say so on the site or accept the gap knowingly.
+
+# **Parallelisation**
+
+ALEX NOTE: Most of the MCMC steps have now been parallelised, with the only exception of sample_U_cpp. The rest is mostly minor stuff. It would also worth investigating a faster way to compute the variancePartitioning or the WAIC.
+
+DOUG NOTE: The rest of the text under Parallelisation needs to be reviewed and parsed to Fixed bugs, Future versions, or v0.1.0-beta A.
 
 **Verified against the code 4 August 2026, item by item, not from the note or the commit messages.** Live (called from the default `runOccJSDM()` path, uncommented): `sample_z_cpp_parallel()`, `sample_w_cim_cipp_parallel()`, `sample_betatheta_cpp_parallel()`, `sample_pq_cpp_parallel()`, `samplePGvariables_parallel()`. **`sample_U_cpp()` is correctly the one exception**, exactly as the note says. **One correction to the note: `sample_BBsL` is not currently parallelised.** `43f2342` (3 August) switched the live call in `update_jSDMcoef()` from `sample_BBsL_parallel()` back to the serial `sample_BBsL_cpp()`, with the parallel version left commented out beside it -- an apparent revert, cause not recorded. That switch is also what reintroduced group B item 9's RNG race, in the function `sample_BBsL_cpp()`'s neighbour calls into.
 
@@ -312,9 +339,7 @@ G.  **Do not allocate posterior arrays that are never filled. NOT DONE, verified
 
 H.  **Reduce the repeated `arma::inv()` calls in the samplers. NOT DONE, but a matching implementation already exists unused.** `sampleB()` and `sampleBuniv()` (`src/jsdm.cpp`) are unchanged and still call `arma::inv(B)` twice plus `arma::inv(arma::trimatl(L))` per species/site, on a matrix that is diagonal in every caller. **`sample_beta_cpp_TS_opt()`** (`src/functions.cpp`) already implements exactly the fix this item asks for -- takes the precision `invB` directly as an argument and draws via `mvrnorm_from_chol_prec()`, a triangular solve against a standard normal, matching `sampleB_SoR()`'s pattern -- but it has **no callers anywhere**. Either wire it in (and apply the same pattern to `sampleB()`/`sampleBuniv()`), or delete it if it was abandoned for a reason not recorded here.
 
-<!-- -->
-
-8.  **Make the parallel sampler reproducible at any thread count, by keying the draws on species rather than on thread.** This is a design change in your sampler, which is why it is here rather than being applied.
+I.  **Make the parallel sampler reproducible at any thread count, by keying the draws on species rather than on thread.** This is a design change in your sampler, which is why it is here rather than being applied.
 
     **Where it stands now, and this got worse on 2 August.** `sampleB_SoR()` draws from `rnorm()` in `src/rng.h`, whose per-thread `mt19937` is meant to derive from `(base_seed, tid)`. `tid` comes from `omp_get_thread_num()`, which returns 0 for every `RcppParallel`/TBB thread regardless of platform, since none of them ever enters a real OpenMP parallel region. So every thread seeds identically, and their streams are not merely uncoordinated but literally the same sequence. Verified directly: 3000 draws across 6 threads produced only 872 distinct values. This is the item at the bottom of group B; it is a correctness gap at the package's default thread count, not only a reproducibility one, and it applies to every sampler that calls into `rng.h` from more than one thread, not only `sampleB_SoR()`.
 
@@ -326,50 +351,25 @@ H.  **Reduce the repeated `arma::inv()` calls in the samplers. NOT DONE, but a m
 
     ALEX TO DECIDE AND CLAUDE TO IMPLEMENT (touches `src/jsdm.cpp` and `src/rng.h`)
 
-## B. Doug to dos
-
-1.  **reproduce all Ecoletts results as a test of the package and decide whether to include in repo**
-
-2.  **extensive testing on simulated datasets** -- **suite built and the R = 100 study run; three things remain.** What exists is summarised under *Completed* below; the authoritative specification and the results table are in `dev/simstudy/PLAN.md`.
-
-    (a) **Re-run once the rails-at-top (`sample_ls()` upstream), `reparamFactorModel()` and `beta_theta` slope items in group B are fixed.** The `sample_ls()` arithmetic half closed as *Fixed bugs* 48; the rails-at-top finding now lives as item 10 by subject. Re-run is the evidence the fixes worked; without it they rest on the same code-reading this exercise showed to be unreliable. Still outstanding: none of the three.
-
-    **A re-run did happen on 10 August 2026, but not this one.** Its purpose was different: six commits had touched `R/` and `src/` since the 2 August study, including `522b89e`'s new parallel sampler, so the published numbers described code that no longer existed. Result: **nothing moved.** Zero of 83 scenario-by-block cells shifted beyond 2 SE, and every per-block mean coverage change was under 0.003 against a measurement SE of 0.022. The old numbers were stale in provenance, not in fact. Scope: every fit runs at one thread, where the new parallel worker reduces to serial, so this says nothing about the multi-threaded path where group B items 8 and 9 bite.
-
-    **That makes the fix-verification re-run cheaper to read, not redundant.** There is now a clean baseline measured on current code, so the next comparison isolates the fixes instead of confounding them with six commits of drift. Name the production grid explicitly -- a bare invocation takes every cell defined in `helper-simstudy.R`, not the ten production ones, which is hours of wasted compute and has happened once already:
-
-    ````         
-    ```
-    Rscript dev/simstudy/run_study.R --R=100 --cores=5 --caffeinate \
-      --scenarios=base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated
-    ```
-    ````
-
-    (b) **Decide the replicate count for the paper.** R = 100 was chosen to *detect* defects and did so decisively. Asserting *nominal* coverage in print is a claim about the absence of a small deviation and wants R = 200-500 (`PLAN.md` §9). The runner takes `R` as an argument.
-
-    (c) ~~**Decide how the results are presented**~~ **SETTLED 10 August 2026.** The write-up is the pkgdown article at `vignettes/articles/validation.Rmd`, and it is now *generated*: every table, figure and number renders from `dev/simstudy/validation-data.rds` rather than being typed in. So presentation is no longer a standing decision -- a re-run plus `export_validation_data.R` refreshes the whole document, and the article cannot silently disagree with the data it describes. Not published yet; see item 3.
-
-    **One constraint carried from the bug list:** `l_s` is excluded from coverage checks because it is not recoverable while the rails-at-top upstream finding (group B item 10) is open, so no cell of the study speaks to spatial range. Two earlier constraints have since lapsed -- `sigma_h` is now sampled (Fixed bugs 24) and the OpenMP RNG race is closed (Fixed bugs 26), so tier 1's "structural assertions only" rule can be revisited once reproducibility is confirmed on a multi-threaded platform.
-
-3.  ~~**Stand up a pkgdown site.**~~ **BUILT 2 August 2026** (`b34b36a`), but deliberately **not published**. `_pkgdown.yml`, the validation article at `vignettes/articles/validation.Rmd`, and `URL`/`BugReports` in `DESCRIPTION` are on `main`. That closes CRAN plan item 10.
-
-    `.github/workflows/pkgdown.yaml` carries only a `workflow_dispatch` trigger, so nothing builds or deploys on push. **How to rebuild locally and how to publish for real are both in `AGENTS.md`, "The documentation site".** Short version: `pkgdown::build_site()` writes to a gitignored `docs/`; publishing needs the workflow run by hand *and* Pages repointed from `main` to `gh-pages`, and neither alone is enough.
-
-    **ALEX: the Pages repoint needs admin**, which Doug does not have. Until then `alexdiana.github.io/occJSDM` serves the README via Jekyll rather than the pkgdown site.
-
-    **One thing to settle before publishing, not two. Corrected 10 August 2026.** This item used to say the first build would fail on functions that error unconditionally, `predictNewSites()` among them. That is wrong twice over: `predictNewSites()` was fixed as *Fixed bugs* 34, and pkgdown does not evaluate `\dontrun{}` blocks, which is 22 of the 24 example blocks in `man/`. The two live ones are `str()`, `head()` and one `plotDetectionRates()` call on shipped data. **There is no example-driven build blocker.**
-
-    **What is still open is the judgement call.** Publishing while the rails-at-top (`l_s` ranges), `reparamFactorModel()` and `beta_theta` slope items stand means the site documents functions whose output is currently biased or whose intervals are overconfident. The beta's disclosure now lives in the listserv announcement (group E), which the site does not carry, so publishing puts the documentation somewhere the caveats are not. Either say so on the site or accept the gap knowingly.
-
 # **Future versions**
 
-1.  use spike-in to estimate abundance change (i.e. eDNAPlus)
+1.  Design better model selection criterion (the one currently implemented, which is the same as HMSC, tend to overfit).
 
-2.  model selection of environmental, spatial covariates via regularisation/shrinkage, which would be useful with e.g. geospatial foundation model embeddings as env covariates
+2.  ability to analyse count data
 
-3.  Let `simulateOccJSDMData()` generate nonlinear responses to environmental covariates, so the GAM/spline fitting path can be checked against a known truth as well as compared against a linear fit. The capability already exists and is simply unreachable: `simulateData()` takes a `usingSplines` argument and spline-expands the covariate matrix when it is true, but `R/simulateData.R:86` hard-codes `usingSplines = F` and no element of the three parameter lists reaches it. By analogy with `useSpatField`, the switch belongs in `list_jsdmParams`. Demonstrate it afterwards in `vignettes/simulateOccJSDMData.Rmd`. Two things to know before scoping this: `listParams$splineVars` is live on the fitting side (`R/runOccJSDM.R:683`) but appears nowhere in the roxygen or `man/runOccJSDM.Rd`, so the feature currently ships undiscoverable as well as unvalidated; and "known truth" for a spline is the fitted response *curve*, not the basis coefficients, so this cannot join the coverage study element-wise the way `B0` and `B` do until a statistic is defined for it.
+3.  scenario for source-sink inference (sites where env covariate coeffcients are negative but spatial covariate coefficients are positive), using an explicit source-sink simulation
 
-4.  parallelisation for speedup
+4.  remove effect of space on environmental covariates. remove the effect of unobserved environmental on observed environmental covariates and space. thus, adding factors (unobserved env covariates) doesn't change the effect of observed env covariates
+
+5.  **site** variance partitioning to complement the **species** variation partitioning (see Leibold et al., Cai et al.). Consider calling it **variation** partitioning.
+
+6.  use spike-in to estimate abundance change (i.e. eDNAPlus)
+
+7.  model selection of environmental, spatial covariates via regularisation/shrinkage, which would be useful with e.g. geospatial foundation model embeddings as env covariates
+
+8.  Let `simulateOccJSDMData()` generate nonlinear responses to environmental covariates, so the GAM/spline fitting path can be checked against a known truth as well as compared against a linear fit. The capability already exists and is simply unreachable: `simulateData()` takes a `usingSplines` argument and spline-expands the covariate matrix when it is true, but `R/simulateData.R:86` hard-codes `usingSplines = F` and no element of the three parameter lists reaches it. By analogy with `useSpatField`, the switch belongs in `list_jsdmParams`. Demonstrate it afterwards in `vignettes/simulateOccJSDMData.Rmd`. Two things to know before scoping this: `listParams$splineVars` is live on the fitting side (`R/runOccJSDM.R:683`) but appears nowhere in the roxygen or `man/runOccJSDM.Rd`, so the feature currently ships undiscoverable as well as unvalidated; and "known truth" for a spline is the fitted response *curve*, not the basis coefficients, so this cannot join the coverage study element-wise the way `B0` and `B` do until a statistic is defined for it.
+
+9.  parallelisation for speedup
 
 # **Fixed bugs**
 
