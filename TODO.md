@@ -46,330 +46,122 @@ output: html_document
      a struck-through stub. -->
 ```
 
-# **v0.1.0-beta** **Public release**
+# **v0.1.0-beta Public release**
 
-## A. Review Claude's changes (Alex)
+**Release criterion agreed 10 September 2026:** retain all advertised modelling features, fix incorrect or materially biased point estimates, and allow undercoverage or overcoverage to wait. This triage assumes a GitHub beta. The CRAN submission and paper work can follow later.
 
-Every code change Claude made, newest first. None has had human review beyond Doug asking for it. All are recoverable from git; revert or rework freely. Each says what to check. Full detail for each is in *Fixed bugs*, which is the record; this section is the queue.
+**Minimum: four code workstreams, followed by one targeted bias recheck and release check.** The collection-covariate item cannot be deferred as coverage-only: the old pooled signed bias conceals large errors of opposite signs. The `B0` and high-`q` findings remain conditional release gates: reassess them after the code fixes before deciding whether any prior change is needed. No code fix is claimed by this rewrite.
 
-1.  **`thinOutput()` rewritten.** 4 August 2026 (Claude; `R/output.R`, `man/thinOutput.Rd` deleted, `tests/testthat/test-regression-bugs.R`). Was group C item 1. No *Fixed bugs* entry yet, deliberately: it gets one when you have reviewed it.
+## Required code work (Alex, with Doug validating)
 
-    **Three defects, two of them worse than the item recorded.** `jsdm_output` is a *list* of 17 parameter arrays, so `length(dim(x))` was 0, it matched none of the five branches, and fell through to `print("Dimension not recognised")` -- which returns its argument, so the whole list was replaced by that character string. The scalar `WAIC` was destroyed identically, becoming a character string rather than the `NULL` the item predicted. Only the third, 2-D matrices thinned by row and so losing sites, was as described.
+1. **Align collection covariates with the samples used by the sampler.** `R/runOccJSDM.R`: sample indexing follows sorted `(Site, Sample)` pairs, but `process_covariates()` sorts the pasted character key `SiteSample`. Numeric sites therefore order as `1, 10, 11, ..., 2` in `X_theta`, while `w` and `idx_z_w` retain numeric site order. A direct check of the current functions with 12 sites and two samples per site misaligns 22 of 24 covariate rows. This is a current data-pairing defect, beyond the historical fix recorded in *Fixed bugs* 11.
 
-    **The fix rests on one rule, and that is the thing worth your eye.** Every array is thinned on its **second-to-last axis**, on the assumption that `runOccJSDM()` always stores iterations there with `nchain` last. True of all 27 arrays today, checked individually, so the five branches collapse to none. Iteration arrays are told apart from posterior means by requiring the last two extents to equal `(niter, nchain)` as a pair; matching only the last would misfire whenever `S == nchain`. If you add an output whose axes are ordered differently, it will be silently left unthinned rather than mangled -- safe, but wrong, and nothing will complain.
+    **Do:** construct one canonical sample table from the same ordered `(Site, Sample)` pairs used for `M`, `P`, `K` and the latent-state indices. Build or explicitly match `X_theta` to that table. Preserve sample keys until alignment is checked; sorting a pasted string is insufficient. Start here before changing the Polya-Gamma sampler or tightening priors.
 
-    **Verified** on real fits with `niter`, `n`, `N`, `S` and `nchain` all deliberately distinct: an earlier ad-hoc check used `niter == n == 40`, which makes a `[sites x species]` mean shape-indistinguishable from an iteration array and hides the whole bug. All 17 `jsdm_output` elements thin on the correct axis with other extents intact; `WAIC` stays numeric; the mean matrices keep every site; retained draws are the right iterations (max difference 0, not merely the right count); `thin = 1` is exactly the identity. Both `summarisedLatentPresences` settings, since `z_output`/`psi_output` are 2-D means under one and 4-D arrays under the other. Tier-1 regression test added; suite 297 passing.
+    **Done when:** deterministic tests check that each sample's covariates match that sample's observations and latent-state index, including site IDs `1`, `2`, `10`, globally unique and within-site sample IDs, and shuffled input. Comparing two shuffled fits with each other is insufficient: both can contain the same wrong pairing. Then rerun a focused slope-recovery check on the fitted covariate scale, separating negative, zero and positive true slopes. In the saved 10 August baseline, true slopes of -1 and +1 have mean estimates -0.125 and +0.139 respectively, despite a pooled `beta_theta` bias of only +0.025. This establishes a recovery concern, not proof that row alignment explains all of it. Any material attenuation remaining after alignment stays a beta blocker; interval coverage alone does not.
 
-    **Two decisions left open, both yours.** It is still unexported, per your "disable it for now, but let's keep it there" on the original item, so using it means `occJSDM:::thinOutput()`. And it now has no caller anywhere: the CRAN plan step that wanted it (option (a), thinning `sampleresults.rda`) is superseded by refitting small instead, which fixes the correctness problem thinning cannot. Keeping it is defensible, deleting it is defensible; it should not just drift.
+2. **Ensure random draws on the public fitting path are safe and independent.** `src/rng.h`, `src/functions.cpp`, `src/jsdm.cpp`, and `runOccJSDM()`. Combine the two existing RNG items: TBB workers obtain the same thread ID through `omp_get_thread_num()`, duplicating random streams; `sample_beta_nocov_cpp_TS()` also calls the R-RNG-based `sample_beta_cpp()` inside a worker, creating a race. The shared-stream problem also reaches the live JSDM `PG_Worker`, so changing the collection sampler alone is insufficient.
 
-    ALEX TO REVIEW
+    **Minimum beta change:** run all RNG-bearing sampling steps serially on the main thread, using the existing serial implementations where available. This retains every modelling feature; full parallel sampling can follow later. Deterministic worker calculations can remain parallel. Enforce this in the package's execution path, including when the user requests multiple TBB threads. `options(mc.cores = 1)` does not control these workers, and a README instruction alone is insufficient.
 
-## **B. Inference-affecting bugs (wrong numbers, silently) (Alex)**
+    **Alternative:** implement independent streams keyed to the sampling step, chain, iteration and species/element, and remove all R RNG calls from worker threads. Do not simply reseed a generator from `(base_seed, species)` on every call, which would repeat its draws each iteration. Restoring the `_TS` leaf alone fixes only the race, not the duplicated streams.
 
-2.  **`reparamFactorModel()` breaks residual covariance = `t(L) %*% L`, inflating reported species correlations.** `R/jsdmfun.R:48`. The rotation preserves `U %*% L` (verified to 4e-16) so the linear predictor is untouched, but it moves scale out of `U` into `L`, and `returnResidualCorrelationMatrix()` computes `cov2cor(t(L) %*% L)` from the reparameterised `L`. Measured `Var(U)` afterwards is `diag(0.23, 2.01)`, not the identity.
+    **Done when:** audit every live RNG call path; same-seed repeated fits reproduce, consecutive fits consume different draws, and the package cannot enter the unsafe path under a multi-thread environment setting. If retaining parallel random draws, also verify stream independence and equivalence of the sampled distributions. Reproducibility alone does not establish independence.
 
-    **Measured:** correlations move by up to 0.612, consistently toward the extremes.
+3. **Preserve residual species correlations during factor reparameterisation.** `reparamFactorModel()` in `R/jsdmfun.R`, its calls in `runOccJSDM()`, and the correlation outputs in `R/output.R`. The current transform preserves `U %*% L` but rescales factors unequally, so `cov2cor(crossprod(L))` changes. A direct check of current code changes one species pair from +0.316 to -0.316 without changing the linear predictor. This is an algebraic output defect; the withdrawn coverage argument is unnecessary, and even the signs are not a safe workaround.
 
-    **Impact:** `returnResidualCorrelationMatrix()` and `plotResidualCorrelationMatrix()` overstate co-occurrence. This is the headline JSDM output.
+    **Do:** use an orthogonal QR rotation with any needed sign convention, without the diagonal magnitude rescaling. Handle the one-factor case with a sign change rather than division by a loading's magnitude. Review both the `U`/`L` and `A`/`C` call sites. If retaining a non-orthogonal transform instead, carry its transformed latent covariance into every affected output and prediction; do not substitute an empirical covariance of fitted site scores without deriving the target.
 
-    **Fix, two options.** (a) Rotate by `Q` alone, dropping the `diag(diag(R))` scaling, so both the identifiability constraint and the covariance identity hold. (b) Keep the scaling and compute the correlation as `t(L) %*% Var(U) %*% L`. (a) is simpler and preserves the output contract.
+    **Done when:** deterministic checks preserve both the linear predictor and the residual correlation matrix before/after transformation for one and several factors, including unequal factor scales and mixed-sign correlations. Ordination, trait products and prediction still work. Add a focused recovery check with non-degenerate true correlations; the old nearly full-width intervals cannot validate correlation magnitudes.
 
-    **REOPENED 2 August 2026: the simulation evidence for this item has been withdrawn.** It previously cited `resid_cor` covering at 0.74-0.77 across the grid, and a paired re-run in which only 104 of 49,978 coverage decisions flipped. The 2 August re-run shows that statistic is degenerate: coverage equals one minus the share of true correlations sitting at exactly ±1, the credible intervals span almost the whole of [-1, 1] (median width 1.999 on a scale bounded by 2), and a truth-determined statistic cannot move when the sampler changes, so the paired result never discriminated. `PLAN.md` §17 has the measurements and §17.6 what would make the statistic informative.
+4. **Resolve the spatial length-scale boundary behavior on the full fitting path.** `update_jSDMcoef()`, `computePsiCoef()` and `precomputeSORmatrices()` in `R/jsdmfun.R`, together with the spatial coefficient update in `src/jsdm.cpp`. The recorded failure is that different generating ranges lead to the largest grid value. *Fixed bugs* 48 closed the isolated `sample_ls()` investigation; a successful test using a supplied GP draw does not validate the inputs produced during an actual fit.
 
-    **This does not refute the item.** The code-level argument above is about a per-factor rescaling surviving `cov2cor()` and is untouched. What has gone is the independent evidence for it, so it now rests on reading the transform alone. Your note was that this is a non-issue for logistic models since only the correlation is recoverable; the premise is right, and the reply had been that the measured numbers were already correlations. That reply is no longer available. Full exchange in AGENTS.
+    **Do:** reproduce the full-fit symptom with the current simulator and a nonzero spatial field. Trace the `SE` passed to `sample_ls()` after the coefficient updates, and verify that its coordinates, scale and covariance representation match `Ks_all`, `Lm1_grid` and `logDetKuu_grid`. Fix the demonstrated mismatch in field construction or scoring. Do not repeat the already ruled-out amplitude and log-determinant experiments without new evidence.
 
-    **Confirmed on a second independent run, 10 August 2026, and on every cell rather than two.** Predicted coverage (one minus the share of true correlations at exactly ±1) equals measured coverage to three decimal places in **nine of the ten** production cells, spanning 0.752 to 0.980. The statistic is degenerate everywhere, not just where it was first noticed.
+    **Done when:** several sufficiently informative simulated datasets with distinct interior grid ranges no longer all select the same upper boundary, and spatial-field and occupancy point estimates recover their generating pattern and level. Use the coordinate scale actually fitted and a fixed knot count. A moving chain alone is insufficient; exact range recovery in every replicate and nominal interval coverage are not beta requirements. Keep spatial fitting available.
 
-    **The tenth cell is the one worth knowing about.** `d_overfit` predicts 0.760 and measures 0.756, and it is the only cell whose intervals are not effectively the whole range: median width 1.79 against 2.00 in the other nine. So it is the single cell where `resid_cor` coverage carries any signal at all, and even there it is marginal. Anyone acting on `PLAN.md` §17.6 should start from why that cell differs.
+## Required bias recheck and release preparation (Doug and Alex)
 
-    ALEX TO MAKE A DECISION, now on the code argument alone
+- **Recheck `B0` and the collection-prior trade after fixing sample alignment.** The existing variance comparison gives `B0` bias -0.160, -0.106 and -0.044 at slope-prior variances 2, 0.5 and 0.1. However, the saved nonzero collection slopes are more attenuated at the tighter priors, which pooled signed bias hid. Do not change the default to 0.1 merely to improve `B0`. Keep Alex's existing choice of 2 while diagnosing the data-pairing defect, then compare `B0`, sign-stratified collection slopes and occupancy probabilities on paired data. If material bias remains, resolve its cause or validate a prior specification that improves the affected estimates without transferring the bias elsewhere. *Fixed bugs* 46 remains the historical decision; it is not evidence of zero bias under today's release criterion.
 
-3.  **`beta_theta` intervals are overconfident, and it gets worse with more data.** Coverage 0.77 at the production `M = 2`, falling monotonically to 0.58 at `M = 20`, while bias stays small and flat. Shrinking intervals around a bias that is not shrinking is the signature of a real defect being exposed by more information, not fixed by it.
+- **Recheck the biased half of the high-`q` item; defer its coverage-only half.** Saved results with true `q` in 0.15-0.30 give mean bias -0.0365 at K = 3 and -0.0314 at K = 30. That is point-estimate bias, not just undercoverage. After the alignment/RNG fixes, rerun the existing paired `qnear_K3`, `qnear_K30`, `qfar_K3` and `qfar_K30` cells. If the offset persists, distinguish prior sensitivity from a remaining likelihood/latent-state defect and validate the remedy using `q`, `p` and occupancy estimates. Keep an identifiable true-/false-detection model; do not flatten the priors indiscriminately. Correct the old causal claim: the current `sample_pq_cpp_parallel()` computes Beta parameters and draws `p`/`q` via `R::rbeta()` on the main thread. They are not directly Polya-Gamma updates, so similar coverage patterns do not establish a common PG bug. The near-prior arm's undercoverage can wait if point estimates are acceptable.
 
-    **Replicated on a third data axis, 10 August 2026, and this is the strongest evidence the item has.** Until now everything rested on the M and K ladders, both of which add data to the *detection* stage. The `sites_300` cell triples the number of sites, which feeds the *occupancy* stage instead, and `beta_theta` coverage falls **0.761 to 0.646** (`PLAN.md` §20). Same direction, comparable magnitude, different pathway.
+- **Use a focused bias gate, not a new nominal-coverage study.** First validate row alignment, coefficient/truth scale and element mapping. Reuse paired seeds and existing scenarios for the changes above; preserve `simstudy_seed()`. Check mean errors separately by true slope sign and by probability/prevalence range, alongside absolute error and RMSE. Inspect occupancy probability levels as well as correlations, which cannot detect a level shift. Choose practically acceptable errors on the probability scales before evaluating the rerun, with Monte Carlo uncertainty assessed across replicate datasets. A pooled signed mean near zero is insufficient. If the targeted checks expose further material bias, it remains a beta blocker; broad paper-quality coverage experiments can wait.
 
-    **It is not a general degradation, which is what makes it diagnostic.** In the same run, accuracy improves sharply everywhere -- `p` nRMSE 0.822 to 0.418, `q` 0.833 to 0.554, `B` 0.511 to 0.384 -- and coverage of `p` and `G` improves slightly. Only `beta_theta` moves materially the wrong way. More information is making every estimate better while making this one parameter's intervals more confidently wrong, which is the signature the item has claimed from the start.
+- **Validate and refresh the version actually released.** Run the normal tests and an installed-package check after the code changes, fixing installation failures, crashes and new functional regressions. Refresh shipped `sampleresults` and any dependent vignette numbers/plots against the corrected code and matching data. Record the code revision, seeds, priors and thread setting used for the bias checks. Review the numerical changes before tagging the beta. Existing cosmetic check NOTEs and a larger coverage study are outside this beta gate.
 
-    **Narrowed 31 July: the defect is in the *slopes*, not in `beta_theta` as a block.** Refitting `base` with `ncov_theta = 0`, so only the intercept row remains, gives `beta_theta` coverage of **0.968** (SE 0.013, R = 200), i.e. nominal, against 0.763 with the slopes present (`PLAN.md` 15.5, 15.6). Whatever is wrong is specific to the covariate columns.
+- **Update public limitations and the announcement before release.** Put the retained coverage limitations and prior-sensitivity guidance in the README and fitting documentation as well as the announcement; internal TODO notes are excluded from the public documentation. Describe the actual tested beta behavior. Remove the old claims that correlation signs are trustworthy, that near-prior `q` intervals are calibrated, and that moderate K removes the high-`q` bias. `useSpatField` is a simulator setting; the fitting API selects the spatial field through `spatCovariates`. Retain all advertised modelling features once their gates above clear. No `NEWS.md` is required for this beta, per the existing decision.
 
-    **Four candidate causes now ruled out**, each by measurement: Stage 1 under-identification (more data makes it worse, not better); the slope prior's width (tightening it 20-fold at `M = 2` moves coverage the wrong way); pseudo-replication in `X_theta` (it is drawn per sample, not per site); and the intercept path (nominal once the slopes are gone).
+## Announcement draft (Doug; finalise after the release checks)
 
-    **So the cause is in whatever handles the covariate columns in the Polya-Gamma update**, in `sample_beta_cpp_TS`/`sample_betatheta_cpp_parallel`. Note this is the same step Alex's `microbenchmark()` profiling identified as the slowest in the sampler, so the calibration problem and the performance bottleneck sit in the same code. This needs someone who knows it; it is not another prior experiment. Evidence in `PLAN.md` 13, 14 and 15.5.
+> Subject: occJSDM beta: joint species distribution modelling with two-stage eDNA detection
+>
+> We are releasing the beta of occJSDM, an R package combining joint species distribution modelling with the two-stage eDNA occupancy model of Ji et al. (2025). It estimates false-negative and false-positive detection at field and lab stages, with primer-specific lab rates.
+>
+> Features include environmental and collection covariates, species traits, nonlinear environmental responses, spatial effects, ordination, residual species correlations, variance partitioning, and prediction at new sites. Simpler study designs support classical occupancy and JSDM-only models.
+>
+> This is beta software. Credible intervals can under- or overcover; nominal interval coverage has not been established across all supported designs. False-positive models require informative assumptions, and users should examine prior sensitivity, especially with weak detection or higher contamination rates. The README and vignettes describe the tested settings and remaining limitations.
+>
+> Installation and examples: <https://github.com/AlexDiana/occJSDM>. Feedback and bug reports are welcome.
 
-    **Joined by the open half of the `q` K-ladder finding, folded in 22 August 2026.** The discriminating arm for `q` (`PLAN.md` 21) predicted that truths hugging the `Beta(1, 20)` prior mean would stay near nominal as K rises. They did not: coverage fell **0.948 -\> 0.605** from K = 3 to K = 30, matching the original M-ladder result almost exactly, with bias flat and tiny (-0.0001 to -0.004) while width contracts four-fold. Flat bias plus shrinking intervals under more detection-stage data is the same signature this item tracks for `beta_theta`, and both blocks are updated through Polya-Gamma machinery. The two findings are now one investigation: interval calibration under sharpening across the Polya-Gamma blocks. Alex's reading that `sample_pq_cpp()` is correctly implemented is not contradicted by folding it in here -- the question was never correctness of that function in isolation.
+# **Future work after beta**
 
-    ALEX TO INVESTIGATE THE SAMPLER, for both the `beta_theta` slope and `q` blocks
+Every outstanding item from the previous TODO is accounted for below or in the required work above. Deferred means still open; it does not mean fixed. The previous crashes/API section had no open items.
 
-4.  **Decide `b_betatheta`'s slope prior variance. It trades `B0` bias against `beta_theta` coverage.** Measured at `M = 2`, paired on identical truths, varying only that variance:
+## Interval calibration
 
-    - variance 2, your current default: `B0` bias -0.160, `beta_theta` coverage 0.747
-    - variance 0.5: `B0` bias -0.106, `beta_theta` coverage 0.707
-    - variance 0.1: `B0` bias -0.044, `beta_theta` coverage 0.653
+- **Collection-slope and near-prior `q` undercoverage:** defer the remaining interval-width investigation once the point-estimate checks above clear. Keep the two mechanisms separate until evidence connects them. The collection row-alignment defect itself stays in the beta list.
+- **`B0` undercoverage in the continuous model:** defer the second clean-configuration experiment. Its recorded concern is interval width with negligible bias. This is separate from `B0` bias in occupancy/two-stage fits, which is rechecked above.
+- **`theta0` overcoverage:** defer. The recorded point-estimate bias fell substantially; excess interval width is allowed for beta. If revisited, investigate the previously untested collection-prior mean change rather than tightening `theta0`'s own prior to force a coverage target.
 
-    **This identified the cause of `B0`'s doubled bias, closed by decision as *Fixed bugs* 46.** `42198d9` widened `B_betatheta` from `diag(1)` to `diag(2)`, which is exactly when the bias doubled; turning it back down moves it back, monotonically. Alex's decision closed the bias question rather than this variance trade, which stands on its own regardless.
+## Review and maintenance
 
-    **But it is a trade, not a fix:** tightening helps `B0` and hurts `beta_theta` coverage. This item and the `beta_theta` slope item above pull opposite ways on one knob. Not known: whether an intermediate value beats both endpoints, whether the trade holds at `M > 2`, and whether fixing the `beta_theta` slope defect at its source would dissolve it entirely.
+- **Review `thinOutput()`:** defer Alex's review and the keep/delete decision while it remains internal and unused by the public workflow. Its rewrite is still pending review, not newly added to *Fixed bugs*. It thins the second-to-last array axis and preserves posterior means, nested JSDM arrays and scalar WAIC; tests distinguish iteration counts from site/species dimensions. Refit the shipped example rather than relying on this helper for release preparation.
+- **Move remaining dead functions to `deprecated/`:** defer. Recheck current callers before removal; the old list incorrectly includes the now-live `sample_BBsL_cpp()`. Keep the four previously retained functions unless Alex revisits that decision. Change C++ export annotations and regenerate wrappers rather than editing `RcppExports.R` manually. `.onLoad()` is called by R and is not dead code.
+- **`globalVariables()` for data-masked columns:** defer until dead-code cleanup is done. Only declare genuine NSE column names; do not hide undefined variables in executable code.
+- **Repair `sample_rnb()`:** defer with count-data support. Supply the current size vector explicitly, implement the intended prior and choose a usable proposal scale before wiring it into fitting. Count models are currently rejected.
+- **Inert simulator `sigma_ts` and `sigma_bs` inputs:** defer API removal or implementation. Keep their limitations explicit in simulation documentation and do not treat the supplied `sigma_bs` as a generated truth for validating the fitted spatial variance. `sigma_ts` is unused; the simulated residual spatial coefficients are zero, although `sigma_bs` is live in fitting. This is not evidence that the fitting-side parameter is biased.
 
-    ALEX TO DECIDE THE VALUE (or that fixing the slope defect supersedes this). Alex has decided to fix the value at 2.
+## Paper and broader validation
 
-5.  **`B0` coverage undercovers by 4.7 SE in the `continuous` arm, and has not been chased.** 0.879 against nominal 0.95 (`PLAN.md` 16.5), bias zero so the interval is too narrow rather than the estimate wrong. Split out of the `B0` bias item below when that one closed, since Alex's decision addressed the bias, not this. One arm, one configuration, found while looking for something else -- wants confirming at a second configuration before it is called a defect.
+- **Categorical species traits:** defer implementation. State the currently supported trait encoding; retaining species-trait modelling does not require introducing a new encoding in this beta.
+- **Reproduce the Ecology Letters analyses:** defer the full reproduction and decision about including it in the repository. The beta needs the targeted checks above.
+- **Repeat the complete simulation grid after fixes:** defer the comprehensive paper run. For a deliberate production-grid run, specify `base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated`; a bare runner invocation also selects additional experimental cells.
+- **Choose the paper's replicate count:** defer the R = 200-500 calibration study and any claim of nominal coverage. The existing R = 100 study remains a historical baseline.
+- **Simulation-study presentation:** already decided: regenerate the pkgdown validation article from `validation-data.rds`. No new presentation decision is required; update its data before quoting new results.
+- **Publish the pkgdown site:** defer as a beta dependency; the README and vignettes can serve beta users. The site scaffolding is built, but publication requires the manual workflow and Alex's Pages configuration change. Include current limitations wherever documentation is published.
 
-    **Correction, 10 August 2026: this item claimed 0.879 was "the lowest `B0` coverage of any cell measured". It was not, and was not when written.** `low_information` sat at 0.865 in the same 2 August run the claim was drawn from, and measures 0.871 in the 10 August re-run. Two independent runs, so the low reading there is real rather than noise.
+## Performance and parallelisation
 
-    **That does not discharge the request above.** `low_information` is degraded across the board -- `p` covers at 0.113 in that cell -- so `B0` sagging there is unsurprising and probably a different phenomenon from `continuous`, where every other block was healthy. What is wanted is still a second *clean* configuration. The correction is to the superlative, not to the item.
+All speed work can wait once the unsafe RNG path is removed from beta. Preserve the live serial `sample_BBsL_cpp()` call unless a separately validated change replaces it.
 
-    CLAUDE OR ALEX TO CONFIRM AT A SECOND CLEAN CONFIGURATION. Alex response: since there is no bias and the coverage is close to 0.95, we wonder if there is any actual bug or this might be due to noise in the simulation or the effect of the prior.
+- **Alternative Polya-Gamma sampler:** defer the performance experiment. Profile again after the correctness fixes; the historical hotspot was the collection-covariate update.
+- **Parallel chains:** defer. When implemented, use portable PSOCK workers, independent process streams, one safe sampler per process, and correctly merge per-chain WAIC accumulators and posterior means.
+- **Remove `.onLoad()`'s global `mc.cores` setting:** defer the session-state/CRAN cleanup. This setting provides no protection for the current TBB RNG problem; that protection must be implemented in the beta work above.
+- **Repeated `computePsiCoef()` calls:** defer optimisation. The three current calls use changed coefficients or factors; there is no demonstrated redundant-call saving.
+- **Precompute/fuse the `c_imk` update:** defer moving invariant work out of the chain loop and avoiding the repeated `w_all` gather.
+- **Optional, cheaper WAIC:** defer the new option and likelihood optimisation; preserve the current estimator's semantics.
+- **Vectorised initial values:** defer replacing nested `w`/`z` initialisation loops with grouped reductions.
+- **Selective posterior storage:** defer a `keep` argument and allocation/thinning improvements. Some large arrays are genuinely filled and used; classify them before suppressing storage.
+- **Avoid repeated matrix inversions:** defer wiring in and validating the precision/Cholesky implementation. The unused `_TS_opt` name does not make it worker-safe: its normal draw still uses `arma::randn()`.
+- **Fully reproducible parallel random draws:** defer the full stream redesign if beta uses main-thread serial draws. Key streams or persistent state by all relevant sampling identifiers so iterations, chains and parameter blocks cannot repeat one another's stream. Re-enable parallel sampling only after resolving both the race and the identical-stream defect, including the JSDM PG path.
 
-    CLAUDE (7 September 2026): agreed that the current evidence is insufficient to call this a defect. The zero bias makes an estimator problem less likely, while the single continuous-arm result could reflect Monte Carlo variation or prior-driven interval width. Please run one additional clean configuration in which the other parameter blocks have approximately nominal coverage and the prior situation is not the low-information confounding case. If `B0` coverage is again materially below nominal with negligible bias, retain this as an inference issue and investigate the posterior-variance calculation; if coverage is near nominal, close this item as noise or an uninformative one-cell result. Until that check is done, leave B5 open rather than treating the current result as either a confirmed bug or a resolved concern.
+## Future modelling features
 
-6.  **`theta0`'s intervals are \~25% wider than they need to be, and that is the price of its bias being fixed.** Coverage 0.978-0.985 post-fix against 0.938-0.959 pre-fix (`PLAN.md` 12.3). The all-cell average of 0.944 hides it, because `low_information` pulls it down at 0.602.
+- **Improved model-selection criterion:** defer replacing the current criterion's tendency to overfit; avoid implying that a selected model is necessarily the true model.
+- **Count-data models:** defer, including the `sample_rnb()` work above.
+- **Source-sink inference scenario:** defer a dedicated simulation with opposing environmental and spatial effects.
+- **Separate environmental, spatial and latent-factor contributions:** defer restricted/orthogonalised alternatives intended to keep environmental effects stable when additional components are added. This is a modelling extension, separate from the correlation correction required for beta.
+- **Site-level variance partitioning:** defer the new output and the naming decision between variance and variation partitioning.
+- **Spike-in-based abundance changes:** defer the eDNAPlus extension.
+- **Regularised covariate selection:** defer shrinkage/selection for environmental and spatial covariates, including high-dimensional embeddings.
+- **Nonlinear-response simulation:** defer exposing the simulator's spline switch and defining response-curve recovery statistics. The existing fitting option `listParams$splineVars` should be described accurately in the beta fitting documentation; a new simulation interface is not needed to retain that fitting feature.
+- **Further speedups:** covered by the performance list above; no separate beta task.
 
-    **Re-read 2 August from the two saved runs, and the framing above was wrong.** Comparing `simstudy-20260728-175534.rds` (pre-fix) with `simstudy-20260729-143756.rds` (post-fix) on identical data, over all cells except `low_information`:
+## Historical record
 
-    - coverage 0.938-0.959 -\> 0.978-0.985
-    - mean interval width 0.113 -\> 0.143, i.e. **+25%**
-    - mean absolute bias **0.0175 -\> 0.0020**, a factor of nine
+The *Fixed bugs* and *Completed work* sections below are retained unchanged. Their old group letters, item numbers and status wording refer to the pre-triage document. Use the subject-based decisions above for current release status; deferred review items have not been promoted into the fixed record.
 
-    **`theta0`'s point estimate went from clearly biased to essentially unbiased.** That was not recorded anywhere, and it inverts the item. Pre-fix coverage near nominal was a *coincidence*, not health: the `Beta(1, 20)` prior mean of 0.0476 sits below the truth mean of 0.06, so estimates were pulled down, and intervals that were too narrow offset that bias almost exactly. Two errors cancelling. The fixes removed the bias and left the width, so what looks like a regression in the coverage column is a genuine improvement in the bias column with an unaddressed remainder.
-
-    **So this is not "`theta0` was fine and broke".** It is "`theta0` was quietly biased, is no longer, and its intervals have not caught up".
-
-    **One of the two "ruled out" causes is only half ruled out.** The M ladder reading (overcoverage falling toward nominal as M rises, 0.986 at `M2` to 0.944 at `M10`, while the matched `K30` control worsens to 0.996) still has the hole it always had: pre-fix, `theta0` was fine at the *same* M = 2. The coupling hypothesis is the one to reopen. *Fixed bugs* 25 changed `b_betatheta`'s prior **mean** (1 to 0) *and* widened its **variance** (`diag(1)` to `diag(2)`). `PLAN.md` 14.7 tested only the variance -- a 20-fold reduction moved coverage by 0.006 -- and that was read as disproving the coupling. **The mean was never tested**, and it is the half that plausibly matters, since it is also the change that would remove a downward bias.
-
-    **The `theta0`-prior arm is the wrong test and should not be run.** `theta0`'s own prior never changed, so it cannot explain a change in behaviour; and the posterior is not prior-dominated in either run -- width is 0.68 of the prior's 95% width pre-fix and 0.86 post-fix, informative in both. Tightening it would narrow the interval and mechanically improve coverage while explaining nothing.
-
-    **Priority: still the lowest of the open findings.** Overcoverage costs power, not correctness, and the parameter is now unbiased, which is the half that matters for a paper.
-
-    IF THIS IS EVER REVISITED, CLAUDE TO RUN A `b_betatheta` PRIOR **MEAN** ARM, NOT A `theta0` PRIOR ARM. It tests the untested half and would account for the bias improvement and the width increase together.
-
-7.  **`q` (Stage 2 false positives) degrades hard as `K` rises -- the prior-distance half is a closed trade of the informative prior; the open remainder now lives with the `beta_theta` sampler investigation above.** Found 29 July 2026 as a side effect of the M-ladder run (`PLAN.md` 13.7). Coverage falls from 0.945 at `M2` (K = 3) to **0.614 at `K30`**, and 0.742 at `M20`. Tested directly on 21 August 2026 (`PLAN.md` 21): four paired cells varying true `q`'s distance from its `Beta(1, 20)` prior mean (0.0476) crossed with K.
-
-    **Closed as a trade: prior-distance sensitivity.** With true `q ~ runif(0.15, 0.30)`, coverage is 0.683 at K = 3 and collapses to **0.003** at K = 30, intervals drawn tightly around estimates shrunk toward the prior mean. Designs whose true false-positive rates sit well above 0.05 with many PCR replicates get confidently wrong `q` values. This part belongs with the Stage-2 prior-choice decision: document it or revisit the `Beta(1, 20)` default.
-
-    **The other half -- K-linked overconfidence even when the prior is well placed (0.948 -\> 0.605, flat bias, four-fold width contraction) -- was folded into the `beta_theta` sampler investigation on 22 August 2026** and is tracked there now, since it shares that item's overconfidence-under-sharpening signature and Polya-Gamma machinery. Nothing further is owned by this item.
-
-8.  **Every `rng.h`-based parallel sampler draws an identical stream on every thread, not merely a non-reproducible one.** Found 2 August 2026 while reviewing `522b89e`'s new `BetaThetaWorker`, which calls into this same scheme. `get_rng()` seeds each thread from `seed_seq{base_seed, tid}`, and `tid` comes from `omp_get_thread_num()` -- which returns 0 for every `RcppParallel`/TBB worker thread, on any platform, because none of them ever enters an actual `#pragma omp parallel` region (every such pragma in this codebase is commented out). On this machine specifically it is worse again: `_OPENMP` is not even defined when the package is compiled via its own `Makevars`, confirmed independently three ways. So every thread seeds identically, and their random streams are not merely correlated but literally the same sequence, consumed at different offsets. Verified directly through the package's real build: of 3000 draws across 6 threads, only 872 were distinct.
-
-    **This does not reopen the race *Fixed bugs* 41 closed.** There is no concurrent read-modify-write on shared state; that fix still holds. What it undermines is the claim built on top of it, that per-species draws are then independent. They are not, whenever more than one thread actually runs. Everything reported in `PLAN.md` and the validation article is unaffected, because every run there was pinned to one thread already, for the separate reason of bit-reproducibility. What is affected is any fit run by a user at the package's default (multi-core) thread count, on any sampler that calls into `rng.h` from more than one `RcppParallel` thread.
-
-    **Live scope re-checked 4 August: `sampleB_SoR()` is not currently on the call path.** `43f2342` reverted the live `update_jSDMcoef()` call from `sample_BBsL_parallel()` (the `BBSL_Worker`/`sampleB_SoR()` machinery) back to the serial `sample_BBsL_cpp()`, so this defect does not currently bite there -- it would if that call were switched back. What is live and affected today is `sample_betatheta_cpp_parallel()`'s `BetaThetaWorker`, whose leaf samplers route through `rng.h`.
-
-    **This is the same defect *MEE paper* Alex to-do 8 already proposes fixing**, seeding on the species index rather than the thread. That was filed as a reproducibility improvement; this finding makes it a correctness fix, since keying on `s` sidesteps the broken `tid` computation entirely rather than only making non-reproducibility deterministic. Full verification: `AGENTS.md`.
-
-    ALEX TO DECIDE: fix now, or treat `RCPP_PARALLEL_NUM_THREADS=1` as the interim safety net until *MEE paper* item 8 lands
-
-9.  **`sample_beta_nocov_cpp_TS()` was switched back to the non-thread-safe `sample_beta_cpp()`, reintroducing the exact race `Fixed bugs` 10 closed a week ago.** Introduced `43f2342`, 3 August 2026. `sample_beta_cpp()` draws via `mvrnormArmaQuick()`, which calls `arma::randn()` -- routed to R's single, unsynchronised global RNG, exactly the call *Fixed bugs* 10 replaced with the thread-safe `sample_beta_cpp_TS()`/`mvrnormArmaQuick_TS()` when it closed the identical defect in the same function. This function is the leaf `BetaThetaWorker` calls from every TBB thread, and `sample_betatheta_cpp_parallel()` is on the live default call path, not an unused alternative.
-
-    **Verified directly, not inferred from the diff.** Two fits under the same seed at `RCPP_PARALLEL_NUM_THREADS=6`: `beta_theta_output` differed by up to 3.6. At `RCPP_PARALLEL_NUM_THREADS=1` the same two fits were bit-identical. That is the same diagnostic signature *Fixed bugs* 41 used to confirm its race, and it isolates the defect to concurrency rather than to anything else that changed in `43f2342`.
-
-    **Distinct from item 8 above.** Item 8 is every thread drawing the *same* stream, which is wrong but at least deterministic and does not corrupt shared state. This is a genuine unsynchronised concurrent read-modify-write on R's global RNG -- undefined behaviour, not merely a bad but repeatable answer -- and it is the more urgent of the two.
-
-    ALEX: REVERT `sample_beta_nocov_cpp_TS()` TO CALL `sample_beta_cpp_TS()`, NOT `sample_beta_cpp()`
-
-10. **The rails-at-top symptom (the MCMC chain selects the largest `l_s` on the grid regardless of the true generating value, converging to the boundary rather than the truth) is upstream of `sample_ls()`.** `Fixed bugs` 48 closes out the `sample_ls()` half: the per-iteration MH step is sound when `SE` is drawn from a GP with the grid's kernel, and Alex's reply on the joint TODO exchange confirmed that whatever the symptom reflects is "somewhere else". Two candidates from the original investigation have not been re-tested against the new framing: whether `computeEtaSE()` (or whatever `update_jSDMcoef()` reads `SE` from after `Bs` has moved) actually delivers a GP-shaped draw at the moment `sample_ls()` is called, and whether the `Ks_all`/`Lm1_grid`/`logDetKuu_grid` arrays precomputed by `precomputeSORmatrices()` are the ones the proposal should be scored against once `Bs` has been redrawn. **Diagnostic to run, not path to pick:** print `mean(SE)^2`, `sd(SE)`, and `idx_ls` first-vs-last across the chain for one tier-1 replica with a non-zero `ds`, and read off which candidate matches. The four previously-ruled-out causes (`sigma_s` missing, wrong amplitude, `logDetKuu`, weak data) were all inside `sample_ls()` itself and remain ruled out; this item is about the inputs to that function. Original measurement that opened this: `idx_ls` sweeping the rail for every true `l_s` tried (0.074, 0.171, 0.300), with real spatial signal present, profiled log-likelihood rising monotonically with `l_s`. Detail in AGENTS and `dev/simstudy/PLAN.md` §10.3.
-
-## **C. Crashes, unreachable code paths, and API bugs (Alex)**
-
-No open items. `thinOutput()` has been fixed by Claude and moved to group A, where it awaits Alex's review; it gets a *Fixed bugs* entry once reviewed. The assorted smaller items this section also held were fixed by Alex and closed as *Fixed bugs* 44 and 47.
-
-## **D. Dead and broken internal code (Alex)**
-
-Ten dead functions were moved to `deprecated/` on 30 July (*Fixed bugs* 37). What remains is below.
-
-**Re-scanned 31 July: 40 dead R functions, up from 38.** `mcmcfun.R` 14, `jsdmfun.R` 12, `RcppExports.R` 11, plus `computeMinESS()` in `R/diagnostics.R`, `thinOutput()` in `R/output.R`, and `.onLoad()` in `R/zzz.R`. The set **grew** because `8f9f315` added three more unused `RcppExports` wrappers, so this cleanup is chasing a moving target while the samplers are being rewritten.
-
-**The `RcppExports` count re-measured 2 August: 11 of 35 wrappers have no caller in `R/`.** It went 11 to 13 as `41abe69` and `46d8804` landed, then to 12 when `sample_z_cpp()` was de-exported (*Fixed bugs* 40), then to 11 when `sampleB_SoR_TS()` was (*Fixed bugs* 42). The moving-target point above is therefore not hypothetical: two commits in one night added two more than this whole item has ever removed. The current 11 are `sample_w_cpp`, `sample_w_cim_cipp`, `sample_betatheta_cpp`, `findClosestPoint`, `dist_matrix`, `gpCovMatrix`, `samplePGvariables`, `convert_to_correlation`, `XsBs`, `XtOmegaX_SoR` and `sample_BBsL_cpp`. One is worth noting rather than batch-deleting: `samplePGvariables` went dead only because `46d8804` replaced it with the parallel version, so it is the serial reference for it.
-
-**Four functions are excluded from all of the below, by decision.** `computePredictiveProbs()`, `partition_r2()`, `returnSpatialEffectMean()` and `plotSpatialEffect()` are dead by the same test as the rest, and were previously listed as a question for Alex. He removed that question in `6722e22` without changing the code, in a commit where he did act on other items, which reads as a decision to keep them. Two have independent reasons to stay: `partition_r2()` relates to the live *MEE paper* item on site variance partitioning, and the `returnSpatialEffectMean()`/`plotSpatialEffect()` pair is the only spatial-field plotting anywhere in the package. `computePredictiveProbs()` looks straightforwardly superseded by `predictNewSites()` and could go whenever Alex says so. **If that reading is wrong, say so and they go with the rest.**
-
-**Timing: this is not urgent and is best done after the sampler rewrite lands.** The payoff is a `R CMD check` NOTE, not a WARNING, and CRAN accepts NOTEs with explanation. Meanwhile the `RcppExports` half needs `src/` edits and the `jsdmfun.R` half needs edits to a file being actively rewritten, so doing either now invites merge conflicts for a cosmetic gain. Alex's profiling note points at replacing the Polya-Gamma sampler, which will change this set again.
-
-1.  **Move the remaining dead functions to `deprecated/`.** About 26 across `R/jsdmfun.R` and `R/mcmcfun.R`, plus `computeMinESS()` in `R/diagnostics.R`, plus 11 unused wrappers in `RcppExports.R`. Excludes the four named above.
-
-    The wrappers need different handling: **do not edit `RcppExports.R`**, it is generated. Remove the `// [[Rcpp::export]]` tag in the C++ and re-run `Rcpp::compileAttributes()`.
-
-    One thing the scan flags that must **not** be deleted: `.onLoad()`, which has zero callers because R itself calls it; removing it would drop the `mc.cores` cap set for CRAN compliance. `thinOutput()` also shows up as dead and is a genuine judgement call rather than an oversight: it is correct and tested as of the `thinOutput()` item in group A, but unexported and with no caller, since the CRAN plan step that wanted it has been superseded by refitting small instead. Delete it or keep it deliberately; do not let it fall out with the batch.
-
-    CLAUDE TO DO AFTER THE SAMPLER REWRITE LANDS
-
-2.  **`globalVariables()` for the data-masked column names.** The `R CMD check` undefined-globals NOTE is down from 84 symbols to 65 as dead code has been removed. What will remain is `dplyr`/`ggplot2` NSE references (`x`, `y`, `Species`, `Min`, `2.5%` and so on), which are false positives and want one `utils::globalVariables()` call in `R/occJSDM-package.R`.
-
-    **Do this last.** Every dead function removed shrinks the list, so enumerating it earlier means writing entries for code about to be deleted. There is no `globalVariables()` anywhere yet, so this sets the convention.
-
-    **Done when** `devtools::check()` reports no NOTE under "checking R code for possible problems", not merely a shorter one.
-
-    CLAUDE TO DO AFTER ITEM 1
-
-3.  **`sample_rnb()` cannot run as written** (`R/jsdmfun.R`). Groundwork for the count-data item, not yet called from anywhere, but it has a scoping bug that will bite when wired up: `r_current <- rnb[s]` reads `rnb` inside the `sapply()` whose result is being assigned to `rnb`, so lookup falls through to the namespace and fails. The current size vector needs to come in as an argument.
-
-    Two more to settle while there: `tune_sd = 5` is a random-walk SD on the *log* scale, so proposals land a factor of `exp(+/-10)` away and acceptance will be near zero (0.1 to 1 is the usual starting range); and the prior terms are stubbed to `0` with the intended `dgamma()` commented out, referencing `prior_shape`/`prior_rate`, which are not defined anywhere. The Metropolis step itself looks right: the `log(r_star) - log(r_current)` Jacobian is the correct correction for a log-scale random walk under a flat prior on `r`.
-
-    ALEX's WORK IN PROGRESS FOR THE COUNTS
-
-4.  **Two `list_jsdmParams` entries do not affect the simulated data, and one of them affects nothing anywhere.** Found 2 August 2026 while commenting that list in `vignettes/simulateOccJSDMData.Rmd`. Both are user-facing: `simulateOccJSDMData()` asks callers to supply them, and the vignette does.
-
-    **`sigma_ts` is wholly inert.** Four occurrences in the whole package, every one of them plumbing: documented in the `@param` at `R/simulateData.R:20`, read into a local at `:59`, passed on at `:85`, received in the signature at `R/jsdmfun.R:909`. No function body references it. It is read, passed, received and discarded.
-
-    **`sigma_bs` generates nothing, but is not simply dead.** In the simulator it appears only in the signature and in the returned `trueParams`; the residual spatial term it would scale is set to an exact zero matrix (`Bst <- matrix(0, S, ps)`), so no draw ever uses it. It *is* live on the fitting side, where `sigma_bs^2` sets a prior variance block. So a caller supplies it as a true value, it generates none of the data, and the sampler then estimates a quantity by that name -- which is exactly why the simulation study excludes `sigma_bs` from its coverage checks (`PLAN.md` 5.3, measured true 0.5 against a posterior mean of \~1.6, 0/8 coverage).
-
-    **Why this is worth a decision rather than a deletion.** These are arguments in an exported function's interface, so removing them is a breaking change, and `sigma_bs` at least has a real meaning on the fitting side that a future simulator could honour by drawing `Bst` properly. The options are: drop `sigma_ts` outright, since nothing anywhere reads it; and for `sigma_bs` either make the simulator use it, or keep it and document in `@param` that it is a fitting-side prior rather than a generating parameter.
-
-    Also stale as a result: `R/simulateData.R:20`'s `@param` lists `sigma_ts` as though it were live, and the vignette prose above the code chunk groups both with the real variance components. The vignette's code comments now say what each one actually does; the roxygen does not.
-
-    ALEX TO REVIEW
-
-## **E. Draft of beta version listserv announcement (Doug)**
-
-**No `NEWS.md` for the beta, decided 10 August 2026.** occJSDM gets one when it is released as 0.2.0. That makes this announcement the only place a user is told what is currently broken, since `TODO.md` and `AGENTS.md` are both excluded from the build and from the site, and the validation article is pkgdown-only and unpublished. The "current limitations" block below is therefore load-bearing rather than throat-clearing, and it has to stay in step with group B. Rationale in `AGENTS.md`, CRAN plan item 22.
-
-1.  Listserv announcement (beta release), drafted July 20 2026; limitations block added 10 August 2026:
-
-    > Subject: New R package (beta) - occJSDM, a combined occupancy and joint species distribution model
-    >
-    > Hi all,
-    >
-    > Announcing **occJSDM**, an R package for combining occupancy and joint species distribution modelling (<https://github.com/AlexDiana/occJSDM>).
-    >
-    > occJSDM extends the occPlus two-stage eDNA occupancy model of Ji et al. (2025, *Ecology Letters*, <doi:10.1111/ele.70302>) by adding a JSDM layer. Unusually for an occupancy model, false positives are estimated explicitly at both the field and lab stages and separately for each species and each primer.
-    >
-    > Note this is still **beta software**. Feedback, feature requests, and bug reports are very welcome.
-    >
-    > Highlights:
-    >
-    > - Occupancy modelling: Accounts for both false-negative and false-positive error at two stages (field and lab), per species. Stage 1: estimates species eDNA collection probability in the field, given true eDNA presence at the site, and contamination probability, given true eDNA absence at the site. Stage 2: estimates species eDNA detection probability in the lab (i.e. successful DNA extraction, PCR, and sequencing), given successful eDNA collection in Stage 1, and contamination probability, given eDNA non-collection in Stage 1. In datasets where multiple primers have been used, each species' detection probability is estimated per primer (allowing one to compare each primer's efficiency for each species), while species occupancies are estimated using information across all primers. Both environmental and detection covariates are supported.
-    > - JSDM: Integrates the occupancy model with a JSDM: species fit jointly with nonlinear response curves and latent-factor residual correlations. The JSDM optionally supports species traits shaping occupancy responses (trait x env interactions, aka 'fourth-corner analyses') and spatial autocorrelation (GP kernel) across sites. Occupancies predicted at unsampled sites.
-    > - occJSDM not only fits a two-stage occupancy model (both field and PCR replicates required), but if given simpler study designs, can collapse to a classical occupancy model (field replicates only) or to a pure JSDM (no replicates).
-    > - MCMC fitting with diagnostics, variance partitioning, ordination, and pairwise residual correlation outputs built in.
-    > - occJSDM leverages the taxonomic breadth of eDNA datasets by using ordination (each site's position on the latent axes, and each species' loadings on those axes) to predict species occupancies. Thus, each species' predicted occupancy at a site is informed by the estimated occupancies of the other species at that site, thereby using co-occurrence structure. We also allow species to borrow strength from other species sharing similar traits, including inferred traits, in contrast to the classical approach of having rare species borrow strength from abundant species, as is used in multi-species occupancy models.
-    >
-    > Current limitations, all four being worked on:
-    >
-    > - **Spatial field.** The Gaussian-process range parameter is not currently recovered, which biases the spatial term of any fit that uses it. We suggest leaving the spatial field off (`useSpatField = FALSE`) in this release.
-    > - **Residual species correlations.** These are currently biased toward the extremes, by up to 0.6 in our simulations. Read `returnResidualCorrelationMatrix()` and `plotResidualCorrelationMatrix()` for the sign and structure of co-occurrence rather than for calibrated magnitudes.
-    > - **Collection-covariate slopes.** Credible intervals on the Stage 1 collection covariates (`returnCollectionCovariates()`, `plotCollectionCovariates()`) are narrower than they should be: about 77% coverage against a nominal 95% in simulation, and it worsens as replication increases.
-    > - **False-positive rate `q` with many PCR replicates.** Intervals on the Stage 2 false-positive rates (`plotFPTPStage2Rates()`) are calibrated only if the true rates sit near the prior's centre (about 0.05). With true rates well above that and many PCR replicates (K of order 30), coverage collapses almost to zero as the posterior sharpens around estimates pulled toward the prior. Keep K moderate, or check your design against this before trusting `q`.
-    >
-    > Vignettes and articles included on data simulation, model fitting/interpretation, and model performance.
-
-# **MEE paper**
-
-## A. Alex to dos
-
-1.  Trait matrix currently not allowing for categorical variables
-
-## B. Doug to dos
-
-1.  **reproduce all Ecoletts results as a test of the package and decide whether to include in repo**
-
-2.  **extensive testing on simulated datasets** -- **suite built and the R = 100 study run; three things remain.** What exists is summarised under *Completed* below; the authoritative specification and the results table are in `dev/simstudy/PLAN.md`.
-
-    (a) **Re-run once the rails-at-top (`sample_ls()` upstream), `reparamFactorModel()` and `beta_theta` slope items in group B are fixed.** The `sample_ls()` arithmetic half closed as *Fixed bugs* 48; the rails-at-top finding now lives as item 10 by subject. Re-run is the evidence the fixes worked; without it they rest on the same code-reading this exercise showed to be unreliable. Still outstanding: none of the three.
-
-    **A re-run did happen on 10 August 2026, but not this one.** Its purpose was different: six commits had touched `R/` and `src/` since the 2 August study, including `522b89e`'s new parallel sampler, so the published numbers described code that no longer existed. Result: **nothing moved.** Zero of 83 scenario-by-block cells shifted beyond 2 SE, and every per-block mean coverage change was under 0.003 against a measurement SE of 0.022. The old numbers were stale in provenance, not in fact. Scope: every fit runs at one thread, where the new parallel worker reduces to serial, so this says nothing about the multi-threaded path where group B items 8 and 9 bite.
-
-    **That makes the fix-verification re-run cheaper to read, not redundant.** There is now a clean baseline measured on current code, so the next comparison isolates the fixes instead of confounding them with six commits of drift. Name the production grid explicitly -- a bare invocation takes every cell defined in `helper-simstudy.R`, not the ten production ones, which is hours of wasted compute and has happened once already:
-
-    ````         
-    ```
-    Rscript dev/simstudy/run_study.R --R=100 --cores=5 --caffeinate \
-      --scenarios=base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated
-    ```
-    ````
-
-    (b) **Decide the replicate count for the paper.** R = 100 was chosen to *detect* defects and did so decisively. Asserting *nominal* coverage in print is a claim about the absence of a small deviation and wants R = 200-500 (`PLAN.md` §9). The runner takes `R` as an argument.
-
-    (c) ~~**Decide how the results are presented**~~ **SETTLED 10 August 2026.** The write-up is the pkgdown article at `vignettes/articles/validation.Rmd`, and it is now *generated*: every table, figure and number renders from `dev/simstudy/validation-data.rds` rather than being typed in. So presentation is no longer a standing decision -- a re-run plus `export_validation_data.R` refreshes the whole document, and the article cannot silently disagree with the data it describes. Not published yet; see item 3.
-
-    **One constraint carried from the bug list:** `l_s` is excluded from coverage checks because it is not recoverable while the rails-at-top upstream finding (group B item 10) is open, so no cell of the study speaks to spatial range. Two earlier constraints have since lapsed -- `sigma_h` is now sampled (Fixed bugs 24) and the OpenMP RNG race is closed (Fixed bugs 26), so tier 1's "structural assertions only" rule can be revisited once reproducibility is confirmed on a multi-threaded platform.
-
-3.  ~~**Stand up a pkgdown site.**~~ **BUILT 2 August 2026** (`b34b36a`), but deliberately **not published**. `_pkgdown.yml`, the validation article at `vignettes/articles/validation.Rmd`, and `URL`/`BugReports` in `DESCRIPTION` are on `main`. That closes CRAN plan item 10.
-
-    `.github/workflows/pkgdown.yaml` carries only a `workflow_dispatch` trigger, so nothing builds or deploys on push. **How to rebuild locally and how to publish for real are both in `AGENTS.md`, "The documentation site".** Short version: `pkgdown::build_site()` writes to a gitignored `docs/`; publishing needs the workflow run by hand *and* Pages repointed from `main` to `gh-pages`, and neither alone is enough.
-
-    **ALEX: the Pages repoint needs admin**, which Doug does not have. Until then `alexdiana.github.io/occJSDM` serves the README via Jekyll rather than the pkgdown site.
-
-    **One thing to settle before publishing, not two. Corrected 10 August 2026.** This item used to say the first build would fail on functions that error unconditionally, `predictNewSites()` among them. That is wrong twice over: `predictNewSites()` was fixed as *Fixed bugs* 34, and pkgdown does not evaluate `\dontrun{}` blocks, which is 22 of the 24 example blocks in `man/`. The two live ones are `str()`, `head()` and one `plotDetectionRates()` call on shipped data. **There is no example-driven build blocker.**
-
-    **What is still open is the judgement call.** Publishing while the rails-at-top (`l_s` ranges), `reparamFactorModel()` and `beta_theta` slope items stand means the site documents functions whose output is currently biased or whose intervals are overconfident. The beta's disclosure now lives in the listserv announcement (group E), which the site does not carry, so publishing puts the documentation somewhere the caveats are not. Either say so on the site or accept the gap knowingly.
-
-# **Parallelisation**
-
-ALEX NOTE: Most of the MCMC steps have now been parallelised, with the only exception of sample_U_cpp. The rest is mostly minor stuff. It would also worth investigating a faster way to compute the variancePartitioning or the WAIC.
-
-DOUG NOTE: The rest of the text under Parallelisation needs to be reviewed and parsed to Fixed bugs, Future versions, or v0.1.0-beta A.
-
-**Verified against the code 4 August 2026, item by item, not from the note or the commit messages.** Live (called from the default `runOccJSDM()` path, uncommented): `sample_z_cpp_parallel()`, `sample_w_cim_cipp_parallel()`, `sample_betatheta_cpp_parallel()`, `sample_pq_cpp_parallel()`, `samplePGvariables_parallel()`. **`sample_U_cpp()` is correctly the one exception**, exactly as the note says. **One correction to the note: `sample_BBsL` is not currently parallelised.** `43f2342` (3 August) switched the live call in `update_jSDMcoef()` from `sample_BBsL_parallel()` back to the serial `sample_BBsL_cpp()`, with the parallel version left commented out beside it -- an apparent revert, cause not recorded. That switch is also what reintroduced group B item 9's RNG race, in the function `sample_BBsL_cpp()`'s neighbour calls into.
-
-**Below, each item A-H is marked against the current code, not against what has generically "been parallelised".** None of them describe MCMC-step threading; they are chain-level parallelism (A) and serial R/C++ inefficiencies (B-H), a different axis of work from the RcppParallel conversions above. **None are done.** Two are worth a closer look regardless: C's specific claim no longer matches the code, and H has an unused, half-built attempt at the fix already sitting in `src/functions.cpp`.
-
-**Profiled by Alex, 31 July 2026, which answers the "nothing here has been profiled" caveat this list used to carry.** Comparing each MCMC step with `microbenchmark()`:
-
-- **`sample_betatheta_cpp_parallel()` is the slowest step**, decisively.
-- **At the time this was measured, the parallelisation achieved little speedup and was inert on macOS**, because it used OpenMP rather than RcppParallel. **No longer true of the current code**: `sample_betatheta_cpp_parallel()` now runs via `BetaThetaWorker`+`RcppParallel::parallelFor`, which is genuinely parallel on this machine regardless of the OpenMP question below -- confirmed by the \~5x `cpu/wall` speedups measured throughout the simulation study, all of which go through this exact code path. The `#pragma omp` sections this bullet originally described are all commented out now; nothing in the live sampler still depends on OpenMP compiling.
-- **Within that step, `sample_Omega_cpp()` dominates**: it draws `N x S` Polya-Gamma variables per iteration.
-- **Alex's suggestion: consider an alternative Polya-Gamma sampler.** That is the lever with the best expected return, and it is a different kind of work from the parallelisation items below, which redistribute the same cost rather than reducing it.
-
-**This reorders the list.** Items A and B parallelise around a step whose cost is dominated by PG sampling; making the PG draw cheaper would benefit every configuration, including single-core, where the parallelisation currently does nothing (macOS is no longer such a case, per above). Worth settling the PG question before investing in either.
-
-The items below are ordered by expected speedup per unit of effort as originally written.
-
-**"OpenMP is inert on this machine" is still true, and still worth knowing, but it no longer means "nothing runs in parallel here."** Measured 29 July 2026: `R CMD config SHLIB_OPENMP_CXXFLAGS` is *empty*, so the `$(SHLIB_OPENMP_CXXFLAGS)` in `src/Makevars` expands to nothing and every literal `#pragma omp` compiles to a no-op. But every sampler actually in use now runs through `RcppParallel`/TBB instead, which does not depend on that flag at all and is genuinely multi-threaded here -- see the `BetaThetaWorker` note above. Do not use this fact to conclude the parallelisation items below are moot; check the specific mechanism a given step uses.
-
-Consequences that still hold: the thread-safety bug of Fixed bugs 26 could never have manifested locally via the literal OpenMP pragmas, and any timing measured here for a step that genuinely still uses `#pragma omp` says nothing about a Linux build where that compiles. Worth confirming what Alex's machine and CRAN's check farm do before investing in items A and B below -- the payoff differs completely between the two cases.
-
-A.  **Parallelise over chains -- but use a PSOCK cluster, not `mclapply()`. NOT DONE, verified 4 August 2026.** `R/runOccJSDM.R`'s `for (chain in 1:nchain)` loop is still plain and serial; no `makeCluster()`, `parLapply()`, `mclapply()` or `cores` argument exists anywhere in the file. This is the simplest available speedup and remains fully open. The `for (chain in 1:nchain)` loop is serial and embarrassingly parallel; each chain touches only its own `*_output_chain` arrays, so running the chains in separate *processes* gives close to an `nchain`-fold speedup and sidesteps every RNG thread-safety problem above entirely (each process has its own RNG state). Portability constraints, though:
-
-    - **`parallel::mclapply()` is not an option.** It is fork-based, and R ships a Windows stub whose body is `if (cores > 1L) stop("'mc.cores' > 1 is not supported on Windows")` -- a hard error, not a fallback. That would break the package on Alex's machine and on CRAN's Windows check. Even on Linux/macOS, forking a session with a live threaded-BLAS pool (OpenBLAS on most Linux distros, Accelerate on macOS) is a well-known deadlock source.
-    - **`parallel::makeCluster()` (PSOCK) + `parLapply()` works on all three platforms**, and `parallel::clusterSetRNGStream()` gives reproducible, independent L'Ecuyer streams per chain, which is strictly better than the current situation. The cost is that workers are fresh R sessions (`clusterEvalQ(cl, library(occJSDM))`, plus serialising the data out and the per-chain arrays back) -- negligible against a multi-minute MCMC, though the return trip is not free given how large `Bs_output`/`U_output` are (see group D.7 on that size).
-    - **Make it opt-in**: a `cores = 1L` argument, serial by default, so existing behaviour is unchanged and CRAN's two-core limit for examples/tests/vignettes is respected.
-
-    Structurally this needs the chain body extracted into a function returning its own `*_output_chain` arrays -- mechanical, since the loop already writes only to per-chain objects. The one piece of genuinely shared state is the WAIC accumulator, which currently streams across chains sequentially via the single `currentWAICiter` counter introduced by the fix in Fixed bugs 9; parallelising forces one accumulator per chain plus a merge (`mean_lik` is a plain mean; `M2` merges with the standard parallel-variance formula), and the `if (numIters != (currentWAICiter - 1)) stop(...)` guard will need to be restated in terms of the summed per-chain counts. The `z_output_mean` / `psi_output_mean` / `w_output_mean` / `theta_output_mean` running means merge by simple addition of the per-chain partials.
-
-B.  **Drop the `options(mc.cores = ...)` call in `.onLoad()`. NOT DONE, verified 4 August 2026.** `R/zzz.R` still sets a global option at load time, which changes the user's session state and affects every other package that reads `mc.cores` -- CRAN policy is explicitly against this. It should be replaced by the `cores` argument in A. (Also `parallel::detectCores()` can return `NA`, which `min(2L, NA)` happily propagates.)
-
-C.  **`computePsiCoef()` is called three times per iteration. Re-checked 4 August 2026: the described redundancy does not match the current code.** The three calls (now `R/jsdmfun.R` around lines 1530, 1604 and 1627) genuinely need different inputs: `B0`/`G`/`A`/`C`/`Bt` are resampled between call 1 and call 2 (via `sample_BBsL_cpp()`, `sample_GC()`, `sample_A()`), and `U` is resampled between call 2 and call 3. Whether that was always true and the original item's premise was wrong, or the sampling order changed since it was written, is not established -- but as the code stands today there is no free two-thirds saving here to take. Leave open pending someone re-deriving whether any of the three inputs really are unchanged from the previous call.
-
-D.  **Precompute the constant parts of the `c_imk` update. NOT DONE, verified 4 August 2026.** `y_pos <- (y > 0)` still sits inside the chain loop rather than above it, and `w_all <- w[idx_w_k, , drop = FALSE]` is still a separate gather. Hoist `y_pos` above the loop, and consider folding the `w_all` gather into `sample_pq_cpp_parallel()` so the copy never reaches R.
-
-E.  **Make the WAIC accumulation optional, and cheaper.** Not verified changed: `computeModelLoglikJSDM_cpp()`/`FirstStage_cpp()`/`SecondStage_cpp()` still appear to call `R::dbinom` generically rather than the closed-form binary case. A fast C++ alternative to `R::dbinom` exists elsewhere in `src/functions.cpp` (used for a different sampler), so the pattern is available in the codebase if not yet applied here. Also add a `computeWAIC = TRUE/FALSE` argument for users who are not doing model comparison.
-
-F.  **Vectorise the starting-value loops. NOT DONE, verified 4 August 2026.** The triple-nested `for` loops initialising `w` and `z` are unchanged. Both reduce to grouped "any positive" reductions: `w` from `rowsum(y > 0, idx_w_k) > 0`, `z` from `rowsum(w, idx_z_w) > 0`.
-
-G.  **Do not allocate posterior arrays that are never filled. NOT DONE, verified 4 August 2026.** No `keep =` argument or equivalent exists. `Bs_output` (`ps x S x niter x nchain`) and `U_output` (`n x d x niter x nchain`) are still the two largest components of the 62 MB `sampleresults.rda`; a `keep =` argument selecting which blocks to retain, or storing the latent-factor blocks pre-thinned, would address both the runtime allocation and the CRAN size blocker.
-
-H.  **Reduce the repeated `arma::inv()` calls in the samplers. NOT DONE, but a matching implementation already exists unused.** `sampleB()` and `sampleBuniv()` (`src/jsdm.cpp`) are unchanged and still call `arma::inv(B)` twice plus `arma::inv(arma::trimatl(L))` per species/site, on a matrix that is diagonal in every caller. **`sample_beta_cpp_TS_opt()`** (`src/functions.cpp`) already implements exactly the fix this item asks for -- takes the precision `invB` directly as an argument and draws via `mvrnorm_from_chol_prec()`, a triangular solve against a standard normal, matching `sampleB_SoR()`'s pattern -- but it has **no callers anywhere**. Either wire it in (and apply the same pattern to `sampleB()`/`sampleBuniv()`), or delete it if it was abandoned for a reason not recorded here.
-
-I.  **Make the parallel sampler reproducible at any thread count, by keying the draws on species rather than on thread.** This is a design change in your sampler, which is why it is here rather than being applied.
-
-    **Where it stands now, and this got worse on 2 August.** `sampleB_SoR()` draws from `rnorm()` in `src/rng.h`, whose per-thread `mt19937` is meant to derive from `(base_seed, tid)`. `tid` comes from `omp_get_thread_num()`, which returns 0 for every `RcppParallel`/TBB thread regardless of platform, since none of them ever enters a real OpenMP parallel region. So every thread seeds identically, and their streams are not merely uncoordinated but literally the same sequence. Verified directly: 3000 draws across 6 threads produced only 872 distinct values. This is the item at the bottom of group B; it is a correctness gap at the package's default thread count, not only a reproducibility one, and it applies to every sampler that calls into `rng.h` from more than one thread, not only `sampleB_SoR()`.
-
-    **The change.** Build a generator inside each worker's `operator()` seeded from `(base_seed, s)` for species `s`, and thread it into the sampler as an argument instead of having the sampler reach for a thread-local engine keyed on the broken `tid`. Species `s` then gets the same draws whichever thread runs it, which fixes both problems at once: the stream is no longer shared across threads, and it no longer depends on work-stealing assignment. `src/rng.h` already has the pieces -- the base seed and the `seed_seq` construction -- and the generation-counter and `dist.reset()` traps documented at the top of that file apply unchanged.
-
-    **Why it is worth doing rather than living with.** It is no longer only about bit-reproducibility between runs. At the package's default thread count, species handled by different threads can draw from the same random-number stream, at whatever offset each thread happens to have reached -- a correctness problem for any user who has not manually set `RCPP_PARALLEL_NUM_THREADS=1`. The simulation study itself is unaffected, since every run has been pinned to one thread throughout, for the separate reason of exact reproducibility; but that was never documented as a requirement for statistical validity until now, only for comparing runs against each other.
-
-    **Two things it also unblocks.** `test-regression-bugs.R` currently pins its reproducibility test to one thread and carries a skipping test naming this gap; both can go when this lands. And tier 1's "structural assertions only" rule can finally be revisited, which the testing item under *Doug to dos* already flags as waiting on reproducibility being confirmed on a multi-threaded platform.
-
-    ALEX TO DECIDE AND CLAUDE TO IMPLEMENT (touches `src/jsdm.cpp` and `src/rng.h`)
-
-# **Future versions**
-
-1.  Design better model selection criterion (the one currently implemented, which is the same as HMSC, tend to overfit).
-
-2.  ability to analyse count data
-
-3.  scenario for source-sink inference (sites where env covariate coeffcients are negative but spatial covariate coefficients are positive), using an explicit source-sink simulation
-
-4.  remove effect of space on environmental covariates. remove the effect of unobserved environmental on observed environmental covariates and space. thus, adding factors (unobserved env covariates) doesn't change the effect of observed env covariates
-
-5.  **site** variance partitioning to complement the **species** variation partitioning (see Leibold et al., Cai et al.). Consider calling it **variation** partitioning.
-
-6.  use spike-in to estimate abundance change (i.e. eDNAPlus)
-
-7.  model selection of environmental, spatial covariates via regularisation/shrinkage, which would be useful with e.g. geospatial foundation model embeddings as env covariates
-
-8.  Let `simulateOccJSDMData()` generate nonlinear responses to environmental covariates, so the GAM/spline fitting path can be checked against a known truth as well as compared against a linear fit. The capability already exists and is simply unreachable: `simulateData()` takes a `usingSplines` argument and spline-expands the covariate matrix when it is true, but `R/simulateData.R:86` hard-codes `usingSplines = F` and no element of the three parameter lists reaches it. By analogy with `useSpatField`, the switch belongs in `list_jsdmParams`. Demonstrate it afterwards in `vignettes/simulateOccJSDMData.Rmd`. Two things to know before scoping this: `listParams$splineVars` is live on the fitting side (`R/runOccJSDM.R:683`) but appears nowhere in the roxygen or `man/runOccJSDM.Rd`, so the feature currently ships undiscoverable as well as unvalidated; and "known truth" for a spline is the fitted response *curve*, not the basis coefficients, so this cannot join the coverage study element-wise the way `B0` and `B` do until a statistic is defined for it.
-
-9.  parallelisation for speedup
 
 # **Fixed bugs**
 
