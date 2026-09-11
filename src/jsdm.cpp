@@ -842,10 +842,33 @@ arma::mat XsBs(arma::mat &A,
 
 }
 
+// Full whitened spatial bases use every coefficient column in the same order
+// at every site. Older fitted objects can still supply sparse or permuted
+// index layouts, which must retain the generic indexed arithmetic below.
+static bool hasFullSpatialBasis(const arma::mat& centers,
+                                const arma::mat& basis,
+                                arma::uword n_centers) {
+  if (n_centers == 0 || centers.n_rows != basis.n_rows ||
+      centers.n_cols != n_centers || basis.n_cols != n_centers) {
+    return false;
+  }
+  for (arma::uword j = 0; j < n_centers; ++j) {
+    const double* indices = centers.colptr(j);
+    for (arma::uword i = 0; i < centers.n_rows; ++i) {
+      if (indices[i] != static_cast<double>(j + 1)) return false;
+    }
+  }
+  return true;
+}
+
 // [[Rcpp::export]]
 arma::mat KsBproduct(arma::mat &Ks,
                      arma::mat &B,
                      arma::mat &X_s_centers){
+
+  if (hasFullSpatialBasis(X_s_centers, Ks, B.n_rows)) {
+    return Ks * B;
+  }
 
   int n = Ks.n_rows;
   int S = B.n_cols;
@@ -870,6 +893,14 @@ arma::mat XtOmegaX_SoR(arma::mat X,
                        arma::vec Omega,
                        arma::mat X_s_index,
                        arma::mat &X_s_sor){
+
+  if (hasFullSpatialBasis(X_s_index, X_s_sor, X_centers)) {
+    const arma::mat design = arma::join_rows(X, X_s_sor);
+    arma::mat weighted = design;
+    weighted.each_col() %= Omega;
+    // Explicit symmetry avoids round-off asymmetry from the weighted product.
+    return arma::symmatu(design.t() * weighted);
+  }
 
   int p = X.n_cols;
 
@@ -939,6 +970,10 @@ arma::mat XtOmegaX_SoR(arma::mat X,
 
 arma::vec XtK_SoR(arma::mat X, arma::mat &X_s_index, arma::mat &X_s_sor,
                   arma::vec &k, int centers){
+
+  if (hasFullSpatialBasis(X_s_index, X_s_sor, centers)) {
+    return arma::join_cols(X.t() * k, X_s_sor.t() * k);
+  }
 
   int p = X.n_cols;
 
@@ -1102,6 +1137,10 @@ List sample_BBsL_cpp(arma::mat k,
         b_current.subvec(1, p) = M_B.col(s);
       }
 
+      if (ps > 0) {
+        b_current.subvec(1 + p + d, p + d + ps) = M_Bs.col(s);
+      }
+
       arma::vec omega_s = Omega.col(s);
 
       arma::vec BBsL = sampleB_SoR(
@@ -1153,6 +1192,7 @@ struct BBSL_Worker : public RcppParallel::Worker {
   const arma::mat& k;
   const arma::mat& Omega;
   const arma::mat& M_B;
+  const arma::mat& M_Bs;
   const arma::mat& XU;
 
   // Shared references passed into sampleB_SoR
@@ -1169,11 +1209,11 @@ struct BBSL_Worker : public RcppParallel::Worker {
 
   // Constructor to initialize the worker with references to the data
   BBSL_Worker(const std::string model, int p, int ps, int d, int total_dim,
-              const arma::mat& k, const arma::mat& Omega, const arma::mat& M_B, const arma::mat& XU,
+              const arma::mat& k, const arma::mat& Omega, const arma::mat& M_B, const arma::mat& M_Bs, const arma::mat& XU,
               arma::mat& invB_current, arma::mat& Xs_centers, arma::mat& Ks,
               arma::vec& B0, arma::mat& B, arma::mat& Bs, arma::mat& L)
     : model(model), p(p), ps(ps), d(d), total_dim(total_dim),
-      k(k), Omega(Omega), M_B(M_B), XU(XU),
+      k(k), Omega(Omega), M_B(M_B), M_Bs(M_Bs), XU(XU),
       invB_current(invB_current), Xs_centers(Xs_centers), Ks(Ks),
       B0(B0), B(B), Bs(Bs), L(L) {}
 
@@ -1192,6 +1232,10 @@ struct BBSL_Worker : public RcppParallel::Worker {
       arma::vec b_current(total_dim, arma::fill::zeros);
       if (p > 0) {
         b_current.subvec(1, p) = M_B.col(s);
+      }
+
+      if (ps > 0) {
+        b_current.subvec(1 + p + d, p + d + ps) = M_Bs.col(s);
       }
 
       arma::vec omega_s = Omega.col(s);
@@ -1289,7 +1333,7 @@ List sample_BBsL_parallel(arma::mat k,
 
     // Initialize the RcppParallel Worker
     BBSL_Worker worker(model, p, ps, d, total_dim,
-                       k, Omega, M_B, XU,
+                       k, Omega, M_B, M_Bs, XU,
                        invB_current, Xs_centers, Ks,
                        B0, B, Bs, L);
 

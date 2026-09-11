@@ -719,7 +719,7 @@ buildGrid <- function(XY_sp, gridStep){
   allPoints
 }
 
-computeSpatialSummaries <- function(Xs, ps, maxPoints){
+computeSpatialSummaries <- function(Xs, ps, maxPoints = ps){
 
   n <- nrow(Xs)
 
@@ -749,8 +749,6 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
       ps <- nrow(X_s) - 1
     }
 
-    maxPoints <- min(maxPoints, ps)
-
     list_kmeans <- kmeans(X_s, centers = ps)
     X_tilde <- list_kmeans$centers
 
@@ -763,20 +761,11 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
 
     }
 
-    # distance from support points
-    X_s_Xtilde_dist <- t(apply(X_s, 1, function(x){
-      apply(X_tilde, 1, function(y){
-        (x[1] - y[1])^2 + (x[2] - y[2])^2
-      })
-    }))
-
-    # indexes of closest support points to the unique points
-    X_s_centers <- t(apply(X_s_Xtilde_dist, 1, function(x){
-      order(x)[1:maxPoints]
-    }))
-
-    # closest support points to the original locations
-    Xs_centers <- X_s_centers[Xs_index,]
+    # Whitened columns are global basis functions, not local knot effects.
+    # Retain all of them to represent K_nm K_mm^-1 K_mn independently of knot
+    # ordering. maxPoints is retained for compatibility with internal callers.
+    X_s_centers <- matrix(rep(seq_len(ps), each=nrow(X_s)),nrow(X_s),ps)
+    Xs_centers <- X_s_centers[Xs_index,,drop=FALSE]
 
   } else {
 
@@ -800,7 +789,7 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
 
 }
 
-precomputeSORmatrices <- function(l_s_grid, list_Xs){
+precomputeSORmatrices <- function(l_s_grid, list_Xs, full_gp = FALSE){
 
   length_grid_ls <- length(l_s_grid)
 
@@ -815,8 +804,10 @@ precomputeSORmatrices <- function(l_s_grid, list_Xs){
   ns <- nrow(X_s)
 
   Ks_all <- array(NA, dim = c(n, maxPoints, length_grid_ls))
-  logDetKuu_grid <- rep(NA, length_grid_ls)
-  Lm1_grid <- array(NA, c(ns, ns, length_grid_ls))
+  # Full-GP matrices belong to the standalone fixed-field diagnostic only.
+  # The fitted SoR range conditional needs no n-by-n covariance or inverse.
+  logDetKuu_grid <- if (full_gp) rep(NA, length_grid_ls) else NULL
+  Lm1_grid <- if (full_gp) array(NA, c(ns, ns, length_grid_ls)) else NULL
 
 
   if(X_centers > 0){
@@ -831,11 +822,14 @@ precomputeSORmatrices <- function(l_s_grid, list_Xs){
 
       l_s_current <- l_s_grid[j]
 
-      list_SoRelem <- computeSORmatrix(l_s_current, X_tilde, X_s, Xs_index, X_s_centers)
+      list_SoRelem <- computeSORmatrix(l_s_current, X_tilde, X_s, Xs_index,
+                                       X_s_centers, full_gp=full_gp)
 
       Ks_all[,,j] <- list_SoRelem$Ks
-      logDetKuu_grid[j] <- list_SoRelem$logDetKuu
-      Lm1_grid[,,j] <- list_SoRelem$sq_term
+      if (full_gp) {
+        logDetKuu_grid[j] <- list_SoRelem$logDetKuu
+        Lm1_grid[,,j] <- list_SoRelem$sq_term
+      }
 
     }
   }
@@ -847,23 +841,31 @@ precomputeSORmatrices <- function(l_s_grid, list_Xs){
 
 }
 
-computeSORmatrix <- function(l_s, X_tilde, X_s, Xs_index, X_s_centers){
+spatialBasis <- function(Xs, X_tilde, l_s) {
+  K_uu <- K2(X_tilde,X_tilde,1,l_s) + diag(1e-5,nrow(X_tilde))
+  L <- FastGP::rcppeigen_get_chol(K_uu)
+  K2(Xs,X_tilde,1,l_s) %*% t(FastGP::rcppeigen_invert_matrix(L))
+}
+
+computeSORmatrix <- function(l_s, X_tilde, X_s, Xs_index, X_s_centers,
+                             full_gp = FALSE){
 
   ps <- nrow(X_tilde)
+  logDetKuu <- NULL
+  sq_term <- NULL
 
   if(ps > 0){
 
-    K_uu <- K2(X_tilde, X_tilde, 1, l_s) + diag(10^(-5), nrow = nrow(X_tilde))
-    L_Kmm <- FastGP::rcppeigen_get_chol(K_uu)
-    invL_Kmm <- FastGP::rcppeigen_invert_matrix(L_Kmm)
-    K_staru <- K2(X_s, X_tilde, 1, l_s)
-    KnmLmt <- K_staru %*% t(invL_Kmm)
-    Ks <- t(sapply(1:nrow(KnmLmt), function(i){ KnmLmt[i,X_s_centers[i,]]}))
-    Ks <- Ks[Xs_index,]
+    KnmLmt <- spatialBasis(X_s,X_tilde,l_s)
+    Ks <- matrix(KnmLmt[cbind(rep(seq_len(nrow(X_s)),ncol(X_s_centers)),
+                              as.vector(X_s_centers))],nrow(X_s),ncol(X_s_centers))
+    Ks <- Ks[Xs_index,,drop=FALSE]
 
-    K_xx <- K2(X_s, X_s, 1, l_s) + diag(exp(-10), nrow = nrow(X_s))
-    logDetKuu <- sum(log(FastGP::rcppeigen_get_diag(K_xx))) * 2
-    sq_term <- FastGP::rcppeigen_get_chol(FastGP::rcppeigen_invert_matrix(K_xx))
+    if (full_gp) {
+      K_xx <- K2(X_s, X_s, 1, l_s) + diag(exp(-10), nrow = nrow(X_s))
+      logDetKuu <- sum(log(FastGP::rcppeigen_get_diag(K_xx))) * 2
+      sq_term <- FastGP::rcppeigen_get_chol(FastGP::rcppeigen_invert_matrix(K_xx))
+    }
 
   } else {
 
@@ -1284,7 +1286,7 @@ sample_BBsL <- function(k, X, Tr, U,
 
       XU <- cbind(1, X, U)
 
-      b_current <- c(0, M_B[,s], rep(0, d), rep(0, ps))
+      b_current <- c(0, M_B[,s], rep(0, d), M_Bs[,s])
 
       BBsL <- sampleB_SoR(XU, invB_current, b_current, k_current,
                           Omega[,s], Xs_centers, Ks, ps)
@@ -1404,58 +1406,46 @@ loglik_spatialEffect <- function(KsBs_s, Lm1, logdet, sigma_s){
   loglikelihood
 }
 
-# sample scale parameter of spatial field
-sample_ls <- function(idx_ls, SE, list_SoRSummaries,
-                      a_l_s, b_l_s, sigma_s){
+# Integrate the jointly Gaussian B0/B/L/Bs block before choosing a range.
+# The prior is range-independent, while the observation design depends on it.
+# Its Gaussian normalizer avoids holding whitened Bs fixed during a range move.
+spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
+                                      kappa, Omega, Xs_centers,
+                                      list_SoRSummaries, a_l_s, b_l_s) {
+  n <- nrow(X)
+  p <- ncol(X)
+  d <- ncol(U)
+  ps <- nrow(M_Bs)
+  S <- ncol(Omega)
+  prior_precision <- c(1, rep(1/sigma_b^2,p), rep(1,d), rep(1/sigma_bs^2,ps))
+  prior_means <- rbind(rep(0,S), M_B, matrix(0,d,S), M_Bs)
+  prior_linear <- prior_precision * prior_means
+  constant_omega <- vapply(seq_len(S),function(s) all(Omega[,s]==Omega[1,s]),logical(1))
+  grid <- list_SoRSummaries$l_s_grid
+  vapply(seq_along(grid), function(j) {
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,j], nrow=n)
+    H <- matrix(0,n,ps)
+    H[cbind(rep(seq_len(n),ncol(Xs_centers)),as.vector(Xs_centers))] <- as.vector(Ks)
+    Z <- cbind(1,X,U,H)
+    # Continuous outcomes share an unweighted Gram matrix across species.
+    # Binary augmentation retains the heterogeneous weighted calculation.
+    gram <- if (any(constant_omega)) crossprod(Z) else NULL
+    linear <- crossprod(Z,kappa) + prior_linear
+    score <- vapply(seq_len(S), function(s) {
+      Q <- if (constant_omega[s]) Omega[1,s]*gram else crossprod(Z,Omega[,s]*Z)
+      Q <- Q + diag(prior_precision)
+      h <- linear[,s]
+      C <- chol(Q)
+      v <- forwardsolve(t(C),h)
+      .5*sum(v^2) - sum(log(diag(C)))
+    },numeric(1))
+    sum(score) + dgamma(grid[j],a_l_s,b_l_s,log=TRUE)
+  },numeric(1))
+}
 
-  if(!is.null(list_SoRSummaries)){
-
-    S <- ncol(SE)
-
-    l_s_grid <- list_SoRSummaries$l_s_grid
-    ldet_grid <- list_SoRSummaries$logDetKuu_grid
-    Lm1_grid <- list_SoRSummaries$Lm1_grid
-
-    if(idx_ls == 1){
-      idx_ls_star <- 2
-    } else if(idx_ls == length(l_s_grid)){
-      idx_ls_star <- length(l_s_grid) - 1
-    } else {
-      idx_ls_star <- ifelse(runif(1) < .5, idx_ls - 1, idx_ls + 1)
-    }
-
-    # current point
-    l_s_current <- l_s_grid[idx_ls]
-
-    loglikelihood_current <- sum(
-      sapply(1:S, function(s){
-        loglik_spatialEffect(SE[,s], Lm1_grid[,,idx_ls], ldet_grid[idx_ls], sigma_s)
-      })
-    )
-
-    logPrior_current <- dgamma(l_s_current, a_l_s, b_l_s, log = T)
-
-    logposterior_current <- logPrior_current + loglikelihood_current
-
-    # proposed point
-    l_s_star <- l_s_grid[idx_ls_star]
-
-    loglikelihood_star <- sum(
-      sapply(1:S, function(s){
-        loglik_spatialEffect(SE[,s], Lm1_grid[,,idx_ls_star], ldet_grid[idx_ls_star], sigma_s)
-      })
-    )
-
-    logPrior_star <- dgamma(l_s_star, a_l_s, b_l_s, log = T)
-
-    logposterior_star <- logPrior_star + loglikelihood_star
-
-    if(runif(1) < exp(logposterior_star - logposterior_current)){
-      idx_ls <- idx_ls_star
-    }
-  }
-
-  idx_ls
+# Exact categorical update, including the endpoints without proposal weights.
+sample_ls <- function(logweights) {
+  sample.int(length(logweights),1L,prob=exp(logweights-max(logweights)))
 }
 
 update_jSDMcoef <- function(list_data,
@@ -1495,7 +1485,7 @@ update_jSDMcoef <- function(list_data,
     tau <- list_params$tau
 
     l_s <- list_SoRSummaries$l_s_grid[idx_ls]
-    Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
   }
 
   # read priors
@@ -1548,6 +1538,21 @@ update_jSDMcoef <- function(list_data,
   } else if(model == "binary"){
     Omega <- samplePGvariables_parallel(psiCoef)
     # Omega <- samplePGvariables(psiCoef)
+  }
+
+  # Choose range after integrating the coefficient block, then immediately
+  # draw that entire block at the selected range. No intervening update may
+  # condition on the old coefficients after this collapsed step.
+  if (ps > 0) {
+    M_B <- t(computeBtcoef(G,Tr,A,C,matrix(0,ncol(z),ncol(X))))
+    M_Bs <- t(computeBtcoef(Gs,Tr,As,Cs,matrix(0,ncol(z),ps)))
+    kappa <- if (model == "continuous") k*Omega else k
+    logweights <- spatial_range_logweights(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+                                            kappa,Omega,list_Xs$Xs_centers,
+                                            list_SoRSummaries,a_l_s,b_l_s)
+    idx_ls <- sample_ls(logweights)
+    l_s <- list_SoRSummaries$l_s_grid[idx_ls]
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
   }
 
   # sample fixed effects, spatial trait loadings and factor loadings
@@ -1612,15 +1617,6 @@ update_jSDMcoef <- function(list_data,
 
   # update variance of factor scores
   sigma_h <- sample_sigmah(U, a_sigmah, b_sigmah)
-
-  # sample spatial field scale
-  if(ps > 0){
-      idx_ls <- sample_ls(idx_ls, SE,
-                          list_SoRSummaries,
-                          a_l_s, b_l_s, sigma_s = 1)
-      l_s <- list_SoRSummaries$l_s_grid[idx_ls]
-      Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
-  }
 
   # output variables
   {
@@ -2473,7 +2469,3 @@ sampleB_m <- function(k, X, eta, Omega, B, b){
 
   B_output
 }
-
-
-
-

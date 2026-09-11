@@ -1553,13 +1553,7 @@ createSpatialPredMatrix <- function(Xs, l_s_grid, X_tilde, list_Xs_mat){
 
     l_s <- l_s_grid[j]
 
-    K_uu <- K2(X_tilde, X_tilde, 1, l_s) + diag(0.0001, nrow = nrow(X_tilde))
-    L_Kmm <- FastGP::rcppeigen_get_chol(K_uu)
-    invL_Kmm <- FastGP::rcppeigen_invert_matrix(L_Kmm)
-    K_staru <- K2(Xs, X_tilde, 1, l_s)
-    KnmLmt <- K_staru %*% t(invL_Kmm)
-
-    Ks_all[,,j] <- KnmLmt
+    Ks_all[,,j] <- spatialBasis(Xs,X_tilde,l_s)
 
   }
 
@@ -1699,7 +1693,9 @@ predictNewSites <- function(fitModel,
 
     B0_output_vec <- aperm(apply(B0_output, 1, c), c(2,1))
     B_output_vec <- aperm(apply(B_output, c(1,2), c), c(2,3,1))
-    L_output_vec <- aperm(apply(L_output, c(1,2), c), c(2,3,1))
+    # Collapse iteration/chain dimensions without dropping a zero-factor axis.
+    L_output_vec <- array(L_output,
+                          c(dim(L_output)[1:2],prod(dim(L_output)[3:4])))
 
     # A fit with no spatial field still returns Bs_output, but with a
     # zero-length first dimension (0 x S x niter x nchain). apply() over
@@ -2341,5 +2337,3 @@ computeSpeciesDetected <- function(beta_theta_output, p_output, M, K, primer, al
   output
 
 }
-
-
