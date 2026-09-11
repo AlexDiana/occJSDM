@@ -55,6 +55,16 @@ The sampler now explores the intended posterior substantially better: retained r
 The hardcoded continuous-noise prior is inverse-Gamma(5,5) on variance. At 100 sites it puts substantial pressure against generating variance 0.01, even with negligible residual error. Mean posterior noise SDs are 0.787, 0.619 and 0.552 in these three cells. An independent known-mean likelihood/prior diagnostic also shifts its preferred range upward. This evidence implicates prior sensitivity in the residual point bias; it does not establish that weakening this prior alone would solve every spatial case without transferring bias elsewhere. No prior was changed to force a recovery result.
 
 
+## Informative continuous range check
+
+A final controlled comparison uses 100 unique locations with ten distinct sites at each, 12 independent GP species fields, unit spatial and observation SDs, 99 fixed support points and the same nonzero environmental coefficients/intercepts. Locations, GP innovations, observation-noise draws and knot seeds are shared across three generating ranges on the fitted scale. Each final fit uses two chains, 200 burn-in and 200 retained iterations per chain, the unchanged priors and the cached blocked implementation. Full fits, truth and provenance were successfully saved using the validated portable runner.
+
+- At true range 0.1067, both chains retain that range throughout. Field RMSE is 0.316, correlation 0.949 and field recovery slope 0.902; eta RMSE is 0.296. Mean spatial/noise SDs are 1.0045/1.0079.
+- At true range 0.1711, both chains retain that range throughout. Field RMSE is 0.307, correlation 0.951 and field recovery slope 0.909; eta RMSE is 0.284. Mean spatial/noise SDs are 0.9980/1.0073.
+- At true range 0.2356, both chains retain that range throughout. Field RMSE is 0.299, correlation 0.953 and field recovery slope 0.915; eta RMSE is 0.266. Mean spatial/noise SDs are 0.9972/1.0066.
+
+An independent Gaussian calculation uses location means and an observation-space covariance to integrate the coefficients at saved variance draws. It assigns more than 99.9% probability to the true grid point in every cell/chain. The constant traces therefore reflect strong posterior concentration, unlike the earlier conditional-sampler bottleneck. Field mean errors are -0.0184, -0.0033 and +0.0050, while eta mean errors are about -0.011. These checks show distinct-range recovery and useful field pattern/level recovery when the data and support-point resolution are informative. They do not erase the low-noise, sparse-support or binary attenuation examples above and below, nor establish nominal coverage or absence of every finite-sample bias. The three cells share random inputs and are not independent simulation replicates.
+
 ## Binary range and probability check
 
 A binary dataset uses 80 unique locations, six distinct sites at each location, eight independent GP species fields with SD 1, 79 support points, range 0.1711, modest nonzero intercepts/slopes, one environmental covariate and no traits or residual factors. The GP is generated on the exact coordinate scale subsequently fitted. The final blocked implementation uses the same complete dataset and seed as the intermediate conditional-on-coefficients run, with two chains and 100 burn-in plus 100 retained iterations per chain.
