@@ -1693,7 +1693,9 @@ predictNewSites <- function(fitModel,
 
     B0_output_vec <- aperm(apply(B0_output, 1, c), c(2,1))
     B_output_vec <- aperm(apply(B_output, c(1,2), c), c(2,3,1))
-    L_output_vec <- aperm(apply(L_output, c(1,2), c), c(2,3,1))
+    # Collapse iteration/chain dimensions without dropping a zero-factor axis.
+    L_output_vec <- array(L_output,
+                          c(dim(L_output)[1:2],prod(dim(L_output)[3:4])))
 
     # A fit with no spatial field still returns Bs_output, but with a
     # zero-length first dimension (0 x S x niter x nchain). apply() over
@@ -2335,4 +2337,3 @@ computeSpeciesDetected <- function(beta_theta_output, p_output, M, K, primer, al
   output
 
 }
-
