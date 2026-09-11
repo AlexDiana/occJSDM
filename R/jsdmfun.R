@@ -1406,30 +1406,40 @@ loglik_spatialEffect <- function(KsBs_s, Lm1, logdet, sigma_s){
   loglikelihood
 }
 
-# The fitted spatial coefficients have a range-independent Gaussian prior.
-# Range enters through the basis in eta = offset + H(range) %*% Bs.
-# Conditional on the coefficients and PG/normal precisions, its target is
-# the observation likelihood plus the grid prior, not a full-GP density of
-# the field reconstructed under the previous range.
-spatial_range_logweights <- function(Bs, offset, kappa, Omega, Xs_centers,
+# Integrate the jointly Gaussian B0/B/L/Bs block before choosing a range.
+# The prior is range-independent, while the observation design depends on it.
+# Its Gaussian normalizer avoids holding whitened Bs fixed during a range move.
+spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
+                                      kappa, Omega, Xs_centers,
                                       list_SoRSummaries, a_l_s, b_l_s) {
+  n <- nrow(X)
+  p <- ncol(X)
+  d <- ncol(U)
+  ps <- nrow(M_Bs)
+  S <- ncol(Omega)
+  prior_precision <- c(1, rep(1/sigma_b^2,p), rep(1,d), rep(1/sigma_bs^2,ps))
+  prior_means <- rbind(rep(0,S), M_B, matrix(0,d,S), M_Bs)
+  prior_linear <- prior_precision * prior_means
   grid <- list_SoRSummaries$l_s_grid
   vapply(seq_along(grid), function(j) {
-    Ks <- matrix(list_SoRSummaries$Ks_all[,,j], nrow=nrow(offset))
-    field <- KsBproduct(Ks, Bs, Xs_centers)
-    sum((kappa - Omega * offset) * field - .5 * Omega * field^2) +
-      dgamma(grid[j], a_l_s, b_l_s, log=TRUE)
-  }, numeric(1))
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,j], nrow=n)
+    H <- matrix(0,n,ps)
+    H[cbind(rep(seq_len(n),ncol(Xs_centers)),as.vector(Xs_centers))] <- as.vector(Ks)
+    Z <- cbind(1,X,U,H)
+    score <- vapply(seq_len(S), function(s) {
+      Q <- crossprod(Z,Omega[,s]*Z) + diag(prior_precision)
+      h <- crossprod(Z,kappa[,s]) + prior_linear[,s]
+      C <- chol(Q)
+      v <- forwardsolve(t(C),h)
+      .5*sum(v^2) - sum(log(diag(C)))
+    },numeric(1))
+    sum(score) + dgamma(grid[j],a_l_s,b_l_s,log=TRUE)
+  },numeric(1))
 }
 
-# Exact categorical update avoids the asymmetric endpoint proposals of the
-# old neighbouring-grid Metropolis step.
-sample_ls <- function(idx_ls, Bs, offset, kappa, Omega, Xs_centers,
-                       list_SoRSummaries, a_l_s, b_l_s) {
-  if (is.null(list_SoRSummaries)) return(idx_ls)
-  logweights <- spatial_range_logweights(Bs, offset, kappa, Omega, Xs_centers,
-                                          list_SoRSummaries, a_l_s, b_l_s)
-  sample.int(length(logweights), 1L, prob=exp(logweights-max(logweights)))
+# Exact categorical update, including the endpoints without proposal weights.
+sample_ls <- function(logweights) {
+  sample.int(length(logweights),1L,prob=exp(logweights-max(logweights)))
 }
 
 update_jSDMcoef <- function(list_data,
@@ -1524,6 +1534,21 @@ update_jSDMcoef <- function(list_data,
     # Omega <- samplePGvariables(psiCoef)
   }
 
+  # Choose range after integrating the coefficient block, then immediately
+  # draw that entire block at the selected range. No intervening update may
+  # condition on the old coefficients after this collapsed step.
+  if (ps > 0) {
+    M_B <- t(computeBtcoef(G,Tr,A,C,matrix(0,ncol(z),ncol(X))))
+    M_Bs <- t(computeBtcoef(Gs,Tr,As,Cs,matrix(0,ncol(z),ps)))
+    kappa <- if (model == "continuous") k*Omega else k
+    logweights <- spatial_range_logweights(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+                                            kappa,Omega,list_Xs$Xs_centers,
+                                            list_SoRSummaries,a_l_s,b_l_s)
+    idx_ls <- sample_ls(logweights)
+    l_s <- list_SoRSummaries$l_s_grid[idx_ls]
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
+  }
+
   # sample fixed effects, spatial trait loadings and factor loadings
   list_BBsL <- sample_BBsL_cpp(k, X, Tr, U,
                            G, A, C, sigma_b,
@@ -1586,15 +1611,6 @@ update_jSDMcoef <- function(list_data,
 
   # update variance of factor scores
   sigma_h <- sample_sigmah(U, a_sigmah, b_sigmah)
-
-  # Update range using the current coefficients, including the newly drawn U.
-  if(ps > 0){
-      kappa <- if (model == "continuous") k * Omega else k
-      idx_ls <- sample_ls(idx_ls, Bs, XB + U %*% L, kappa, Omega,
-                          list_Xs$Xs_centers, list_SoRSummaries, a_l_s, b_l_s)
-      l_s <- list_SoRSummaries$l_s_grid[idx_ls]
-      Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
-  }
 
   # output variables
   {
