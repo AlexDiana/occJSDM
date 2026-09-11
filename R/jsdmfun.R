@@ -1420,15 +1420,21 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
   prior_precision <- c(1, rep(1/sigma_b^2,p), rep(1,d), rep(1/sigma_bs^2,ps))
   prior_means <- rbind(rep(0,S), M_B, matrix(0,d,S), M_Bs)
   prior_linear <- prior_precision * prior_means
+  constant_omega <- vapply(seq_len(S),function(s) all(Omega[,s]==Omega[1,s]),logical(1))
   grid <- list_SoRSummaries$l_s_grid
   vapply(seq_along(grid), function(j) {
     Ks <- matrix(list_SoRSummaries$Ks_all[,,j], nrow=n)
     H <- matrix(0,n,ps)
     H[cbind(rep(seq_len(n),ncol(Xs_centers)),as.vector(Xs_centers))] <- as.vector(Ks)
     Z <- cbind(1,X,U,H)
+    # Continuous outcomes share an unweighted Gram matrix across species.
+    # Binary augmentation retains the heterogeneous weighted calculation.
+    gram <- if (any(constant_omega)) crossprod(Z) else NULL
+    linear <- crossprod(Z,kappa) + prior_linear
     score <- vapply(seq_len(S), function(s) {
-      Q <- crossprod(Z,Omega[,s]*Z) + diag(prior_precision)
-      h <- crossprod(Z,kappa[,s]) + prior_linear[,s]
+      Q <- if (constant_omega[s]) Omega[1,s]*gram else crossprod(Z,Omega[,s]*Z)
+      Q <- Q + diag(prior_precision)
+      h <- linear[,s]
       C <- chol(Q)
       v <- forwardsolve(t(C),h)
       .5*sum(v^2) - sum(log(diag(C)))
@@ -2463,4 +2469,3 @@ sampleB_m <- function(k, X, eta, Omega, B, b){
 
   B_output
 }
-

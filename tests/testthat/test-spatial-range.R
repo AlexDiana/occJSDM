@@ -33,6 +33,10 @@ test_that("blocked range weights match an independently integrated Gaussian mode
   expected <- range_marginal_reference(x,y)
   actual <- do.call(spatial_range_logweights,c(x,list(kappa=y*x$Omega)))
   expect_equal(actual-actual[1],expected-expected[1],tolerance=1e-12)
+  x$Omega <- matrix(rep(c(.7,1.2),each=3),3,2)
+  expected <- range_marginal_reference(x,y)
+  actual <- do.call(spatial_range_logweights,c(x,list(kappa=y*x$Omega)))
+  expect_equal(actual-actual[1],expected-expected[1],tolerance=1e-12)
 })
 
 test_that("blocked range weights integrate the augmented binary likelihood", {
