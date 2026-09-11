@@ -12,11 +12,17 @@ process_covariates <- function(data_info, covariates, group_by_col, n_obs,
 
   if (length(covariates) > 0) {
 
-    # Process the covariates
-    df <- data_info %>%
-      dplyr::group_by(!!rlang::sym(group_by_col)) %>%
-      dplyr::summarise(dplyr::across(dplyr::all_of(covariates), ~ dplyr::first(.x))) %>%
-      dplyr::select(-dplyr::all_of(group_by_col)) %>%
+    # NULL means the caller has already supplied one ordered row per unit.
+    # Keep identifier columns available when requested as covariates.
+    df <- data_info
+    if (!is.null(group_by_col)) {
+      df <- df %>%
+        dplyr::group_by(!!rlang::sym(group_by_col)) %>%
+        dplyr::summarise(dplyr::across(dplyr::all_of(covariates), ~ dplyr::first(.x)),
+                         .groups = "drop")
+    }
+    df <- df %>%
+      dplyr::select(dplyr::all_of(covariates)) %>%
       dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor))
 
     if (any(is.infinite(as.matrix(df)))) stop("Infinite values (Inf or -Inf) detected in covariates.")
@@ -583,9 +589,14 @@ runOccJSDM <- function(data,
     # samples per site
     {
       if(model %in% c("occupancy","two_stage")){
-        M_df <- data_info %>%
+        # Canonical sample rows use the same typed (Site, Sample) ordering
+        # as the primer/PCR tables below and the latent-state indices.
+        data_samples <- data_info %>%
           dplyr::group_by(Site, Sample) %>%
-          slice(1) %>%
+          dplyr::slice(1) %>%
+          dplyr::ungroup()
+
+        M_df <- data_samples %>%
           dplyr::group_by(Site) %>%
           dplyr::summarise(M = n(),
                            .groups = "keep")
@@ -599,6 +610,8 @@ runOccJSDM <- function(data,
 
         sumM <- c(0, cumsum(M)[-n])
 
+        # Retain the display label, but never use pasted keys for grouping:
+        # numeric IDs sort lexically and distinct pairs can share a label.
         data_info$SiteSample <- paste(data_info$Site,data_info$Sample, sep = "-")
 
       } else {
@@ -709,10 +722,10 @@ runOccJSDM <- function(data,
       list_Xs_mat <- list_Xs$list_matrix
     }
 
-    # For collection covariates (group by Sample, includes intercept)
+    # For collection covariates (canonical sample rows, includes intercept)
     {
       if(model %in% c("occupancy","two_stage")){
-        list_X_theta <- process_covariates(data_info, collCovariates, "SiteSample",
+        list_X_theta <- process_covariates(data_samples, collCovariates, NULL,
                                            N, remove_intercept = FALSE,
                                            spline_vars = F)
         X_theta <- list_X_theta$df
