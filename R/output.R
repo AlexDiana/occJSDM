@@ -1553,13 +1553,7 @@ createSpatialPredMatrix <- function(Xs, l_s_grid, X_tilde, list_Xs_mat){
 
     l_s <- l_s_grid[j]
 
-    K_uu <- K2(X_tilde, X_tilde, 1, l_s) + diag(0.0001, nrow = nrow(X_tilde))
-    L_Kmm <- FastGP::rcppeigen_get_chol(K_uu)
-    invL_Kmm <- FastGP::rcppeigen_invert_matrix(L_Kmm)
-    K_staru <- K2(Xs, X_tilde, 1, l_s)
-    KnmLmt <- K_staru %*% t(invL_Kmm)
-
-    Ks_all[,,j] <- KnmLmt
+    Ks_all[,,j] <- spatialBasis(Xs,X_tilde,l_s)
 
   }
 
@@ -2341,5 +2335,4 @@ computeSpeciesDetected <- function(beta_theta_output, p_output, M, K, primer, al
   output
 
 }
-
 

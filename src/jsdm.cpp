@@ -1102,6 +1102,10 @@ List sample_BBsL_cpp(arma::mat k,
         b_current.subvec(1, p) = M_B.col(s);
       }
 
+      if (ps > 0) {
+        b_current.subvec(1 + p + d, p + d + ps) = M_Bs.col(s);
+      }
+
       arma::vec omega_s = Omega.col(s);
 
       arma::vec BBsL = sampleB_SoR(
@@ -1153,6 +1157,7 @@ struct BBSL_Worker : public RcppParallel::Worker {
   const arma::mat& k;
   const arma::mat& Omega;
   const arma::mat& M_B;
+  const arma::mat& M_Bs;
   const arma::mat& XU;
 
   // Shared references passed into sampleB_SoR
@@ -1169,11 +1174,11 @@ struct BBSL_Worker : public RcppParallel::Worker {
 
   // Constructor to initialize the worker with references to the data
   BBSL_Worker(const std::string model, int p, int ps, int d, int total_dim,
-              const arma::mat& k, const arma::mat& Omega, const arma::mat& M_B, const arma::mat& XU,
+              const arma::mat& k, const arma::mat& Omega, const arma::mat& M_B, const arma::mat& M_Bs, const arma::mat& XU,
               arma::mat& invB_current, arma::mat& Xs_centers, arma::mat& Ks,
               arma::vec& B0, arma::mat& B, arma::mat& Bs, arma::mat& L)
     : model(model), p(p), ps(ps), d(d), total_dim(total_dim),
-      k(k), Omega(Omega), M_B(M_B), XU(XU),
+      k(k), Omega(Omega), M_B(M_B), M_Bs(M_Bs), XU(XU),
       invB_current(invB_current), Xs_centers(Xs_centers), Ks(Ks),
       B0(B0), B(B), Bs(Bs), L(L) {}
 
@@ -1192,6 +1197,10 @@ struct BBSL_Worker : public RcppParallel::Worker {
       arma::vec b_current(total_dim, arma::fill::zeros);
       if (p > 0) {
         b_current.subvec(1, p) = M_B.col(s);
+      }
+
+      if (ps > 0) {
+        b_current.subvec(1 + p + d, p + d + ps) = M_Bs.col(s);
       }
 
       arma::vec omega_s = Omega.col(s);
@@ -1289,7 +1298,7 @@ List sample_BBsL_parallel(arma::mat k,
 
     // Initialize the RcppParallel Worker
     BBSL_Worker worker(model, p, ps, d, total_dim,
-                       k, Omega, M_B, XU,
+                       k, Omega, M_B, M_Bs, XU,
                        invB_current, Xs_centers, Ks,
                        B0, B, Bs, L);
 

@@ -841,7 +841,7 @@ runOccJSDM <- function(data,
   # precompute spatial quantities
   {
     # Spatial covariates matrix
-    list_Xs <- computeSpatialSummaries(Xs, ps, maxPoints = 5)
+    list_Xs <- computeSpatialSummaries(Xs, ps)
     Xs_centers <- list_Xs$Xs_centers
     Xs_index <- list_Xs$Xs_index
     X_s_centers <- list_Xs$X_s_centers
@@ -1092,7 +1092,7 @@ runOccJSDM <- function(data,
         Bt <- t(B) - computeBtcoef(G, Tr, A, C, matrix(0, S, ncov_psi))
         Bst <- t(Bs) - computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps))
 
-        Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
+        Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=n)
 
         list_jSDMparams <- list(
           "B0" = B0,
