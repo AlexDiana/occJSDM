@@ -14,49 +14,15 @@ process_covariates <- function(data_info, covariates, group_by_col, n_obs,
 
     # Process the covariates
     df <- data_info %>%
-      dplyr::group_by(!!rlang::sym(group_by_col)) %>%
-      dplyr::summarise(dplyr::across(dplyr::all_of(covariates), ~ dplyr::first(.x))) %>%
-      dplyr::select(-dplyr::all_of(group_by_col)) %>%
+      # Get the first row for each unique value in group_by_col (no sorting applied)
+      dplyr::distinct(!!rlang::sym(group_by_col), .keep_all = TRUE) %>%
+      # Keep only the covariates (this automatically drops group_by_col if it isn't in covariates)
+      dplyr::select(dplyr::all_of(covariates)) %>%
+      # Apply factor conversion
       dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor))
 
     if (any(is.infinite(as.matrix(df)))) stop("Infinite values (Inf or -Inf) detected in covariates.")
     if (any(is.nan(as.matrix(df)))) stop("NaN values detected in covariates.")
-
-    # old code
-    {
-
-      #     is_numeric <- sapply(df, is.numeric)
-      #
-      #     names_df <- colnames(df)
-      #
-      #     means_df <- sapply(df, function(x) if(is.numeric(x)) mean(x, na.rm = TRUE) else NA)
-      #     sd_df   <- sapply(df, function(x) if(is.numeric(x)) sd(x, na.rm = TRUE) else NA)
-      #
-      #     if (any(sd_df == 0, na.rm = TRUE)) {
-      #       zero_var_cols <- names_df[which(sd_df == 0)]
-      #       stop(paste("The following covariates have constant values:",
-      #                  paste(zero_var_cols, collapse = ", ")))
-      #     }
-      #
-      #     cat_levels <- list()
-      #     for (col in 1:ncol(df)) {
-      #       if(is_numeric[col]){
-      #         cat_levels[[col]] <- NA
-      #       }else{
-      #         cat_levels[[col]] <- levels(as.factor(df[[col]]))
-      #     }
-      #   }
-      #
-      #   list_matrix <- list(
-      #     "names_df" = names_df,
-      #     "mean_df" = means_df,
-      #     "sd_df" = sd_df,
-      #     "cat_levels" = cat_levels,
-      #     "is_numeric" = is_numeric
-      #   )
-      #
-      # out_matrix <- transformCovariatesMatrix(df, list_matrix, remove_intercept)
-    }
 
     list_X <- create_covariates_matrix(
       df,
