@@ -727,7 +727,7 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints = ps){
 
     # isolate unique locations and assign indexes to sites
     uniqueXs <- which(!duplicated(Xs))
-    X_s <- Xs[uniqueXs,]
+    X_s <- Xs[uniqueXs,,drop=FALSE]
 
     # indexes assigning original locations (Xs) to new locations (X_s)
     Xs_index <- match(
@@ -744,13 +744,15 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints = ps){
     # location of support points
     # X_tilde <- as.matrix(buildGrid(X_s, gridStep = .4))
 
-    # assign ps again based on new locations
-    if(ps > (nrow(X_s)-1)){
-      ps <- nrow(X_s) - 1
+    # All observed locations can serve as support points. In that case no
+    # clustering is needed, and no location is lost to an n-1 cap.
+    ps <- min(ps,nrow(X_s))
+    if (ps == nrow(X_s)) {
+      X_tilde <- X_s
+    } else {
+      list_kmeans <- kmeans(X_s, centers = ps)
+      X_tilde <- list_kmeans$centers
     }
-
-    list_kmeans <- kmeans(X_s, centers = ps)
-    X_tilde <- list_kmeans$centers
 
     {
       # ggplot() +
@@ -1211,6 +1213,18 @@ sample_tau <- function(z, eta, a_tau, b_tau){
   tau
 }
 
+# Half-Cauchy(scale) prior on each response SD. With v = tau^2,
+# v | auxiliary ~ IG(1/2, 1/auxiliary), auxiliary ~ IG(1/2, 1/scale^2).
+# Refresh the auxiliary conditional on the current SD before drawing the new
+# variance. This Gibbs step has no rejection loop or lower bound on the SD.
+sample_tau_half_cauchy <- function(z,eta,tau,scale) {
+  sumsqs <- colSums((z-eta)^2)
+  vapply(seq_len(ncol(z)),function(s) {
+    auxiliary <- rinvgamma_cpp(1,1/tau[s]^2+1/scale^2)
+    sqrt(rinvgamma_cpp((nrow(z)+1)/2,sumsqs[s]/2+1/auxiliary))
+  },numeric(1))
+}
+
 # sample size parameter of responses
 sample_rnb <- function(z, eta, tune_sd = 5){
 
@@ -1411,7 +1425,8 @@ loglik_spatialEffect <- function(KsBs_s, Lm1, logdet, sigma_s){
 # Its Gaussian normalizer avoids holding whitened Bs fixed during a range move.
 spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
                                       kappa, Omega, Xs_centers,
-                                      list_SoRSummaries, a_l_s, b_l_s) {
+                                      list_SoRSummaries, a_l_s, b_l_s,
+                                      location = NULL) {
   n <- nrow(X)
   p <- ncol(X)
   d <- ncol(U)
@@ -1421,6 +1436,17 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
   prior_means <- rbind(rep(0,S), M_B, matrix(0,d,S), M_Bs)
   prior_linear <- prior_precision * prior_means
   constant_omega <- vapply(seq_len(S),function(s) all(Omega[,s]==Omega[1,s]),logical(1))
+  if (!is.null(location)) {
+    if (length(location)!=n || anyNA(location))
+      stop("location must contain one non-missing group label per site row")
+    # Repeated binary observations share spatial basis rows, but retain their
+    # own covariates, factors and PG precisions. Continuous fits keep their
+    # existing constant-precision Gram-matrix shortcut.
+    if (anyDuplicated(location) && !all(constant_omega)) {
+      return(spatial_range_logweights_grouped(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+        kappa,Omega,Xs_centers,list_SoRSummaries,a_l_s,b_l_s,location))
+    }
+  }
   grid <- list_SoRSummaries$l_s_grid
   vapply(seq_along(grid), function(j) {
     Ks <- matrix(list_SoRSummaries$Ks_all[,,j], nrow=n)
@@ -1440,6 +1466,57 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
       .5*sum(v^2) - sum(log(diag(C)))
     },numeric(1))
     sum(score) + dgamma(grid[j],a_l_s,b_l_s,log=TRUE)
+  },numeric(1))
+}
+
+# Exact sufficient crossproducts for observations sharing a spatial row.
+spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+                                           kappa,Omega,Xs_centers,
+                                           list_SoRSummaries,a_l_s,b_l_s,
+                                           location) {
+  n <- nrow(X);p <- ncol(X);d <- ncol(U);ps <- nrow(M_Bs);S <- ncol(Omega)
+  if(length(location)!=n || anyNA(location))
+    stop("location must contain one non-missing group label per site row")
+  stopifnot(n>0L,nrow(U)==n,nrow(Omega)==n,nrow(kappa)==n,ncol(kappa)==S,
+            nrow(M_B)==p,ncol(M_B)==S,ncol(M_Bs)==S,nrow(Xs_centers)==n)
+  group <- match(location,unique(location))
+  first <- which(!duplicated(group))
+  A <- cbind(1,X,U)
+  pa <- ncol(A)
+  precision <- c(1,rep(1/sigma_b^2,p),rep(1,d),rep(1/sigma_bs^2,ps))
+  prior_mean <- rbind(rep(0,S),M_B,matrix(0,d,S),M_Bs)
+  prior_linear <- precision*prior_mean
+  diagonal_precision <- diag(precision,length(precision))
+
+  # Sufficient weighted crossproducts independent of the candidate range.
+  group_weight <- rowsum(Omega,group,reorder=FALSE)
+  group_kappa <- rowsum(kappa,group,reorder=FALSE)
+  linear_A <- crossprod(A,kappa)
+  weighted_A <- lapply(seq_len(S),function(s) Omega[,s]*A)
+  AA <- lapply(weighted_A,function(wA) crossprod(A,wA))
+  group_weighted_A <- lapply(weighted_A,function(wA) rowsum(wA,group,reorder=FALSE))
+
+  grid <- list_SoRSummaries$l_s_grid
+  vapply(seq_along(grid),function(j) {
+    # Decode the existing full, sparse or permuted coefficient layout before
+    # grouping. This guard prevents silently grouping different design rows.
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,j],nrow=n)
+    H <- matrix(0,n,ps)
+    H[cbind(rep(seq_len(n),ncol(Xs_centers)),as.vector(Xs_centers))] <- as.vector(Ks)
+    Hu <- H[first,,drop=FALSE]
+    if(any(H!=Hu[group,,drop=FALSE]))
+      stop("spatial design rows differ within a supplied location group")
+    linear_H <- crossprod(Hu,group_kappa)
+    score <- vapply(seq_len(S),function(s) {
+      AH <- crossprod(group_weighted_A[[s]],Hu)
+      HH <- crossprod(Hu,group_weight[,s]*Hu)
+      Q <- rbind(cbind(AA[[s]],AH),cbind(t(AH),HH))+diagonal_precision
+      h <- c(linear_A[,s],linear_H[,s])+prior_linear[,s]
+      C <- chol(Q)
+      v <- forwardsolve(t(C),h)
+      .5*sum(v^2)-sum(log(diag(C)))
+    },numeric(1))
+    sum(score)+dgamma(grid[j],a_l_s,b_l_s,log=TRUE)
   },numeric(1))
 }
 
@@ -1529,7 +1606,11 @@ update_jSDMcoef <- function(list_data,
 
   # sample variance of continuous output
   if(model == "continuous"){
-    tau <- sample_tau(z, psiCoef, a_tau, b_tau)
+    if (identical(list_priors$noise_prior$type,"half_cauchy")) {
+      tau <- sample_tau_half_cauchy(z,psiCoef,tau,list_priors$noise_prior$scale)
+    } else {
+      tau <- sample_tau(z, psiCoef, a_tau, b_tau)
+    }
   }
 
   # sample Omega
@@ -1549,7 +1630,8 @@ update_jSDMcoef <- function(list_data,
     kappa <- if (model == "continuous") k*Omega else k
     logweights <- spatial_range_logweights(X,U,M_B,M_Bs,sigma_b,sigma_bs,
                                             kappa,Omega,list_Xs$Xs_centers,
-                                            list_SoRSummaries,a_l_s,b_l_s)
+                                            list_SoRSummaries,a_l_s,b_l_s,
+                                            location=list_Xs$Xs_index)
     idx_ls <- sample_ls(logweights)
     l_s <- list_SoRSummaries$l_s_grid[idx_ls]
     Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
