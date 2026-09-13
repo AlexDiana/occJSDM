@@ -1,6 +1,6 @@
 # Spatial fitting corrections and validation
 
-**Status: DRAFT, ALEX TO REVIEW. The spatial point-bias gate remains open.** The comparison baseline is the RNG-safe branch, which also includes collection covariate alignment. No prior, feature switch, coordinate transformation or range grid is changed by this work.
+**Original validation record, ALEX TO REVIEW.** The [13 September follow-up](spatial-beta-recheck.md) records the current draft status, agreed probability-error target, additional support-point and arithmetic changes, and configurable continuous noise prior. The checks below used the RNG-safe branch as their comparison baseline, including collection covariate alignment. No prior, feature switch, coordinate transformation or range grid was changed for these original checks.
 
 ## Demonstrated inconsistencies
 
@@ -95,4 +95,4 @@ Repeat continuous cells 1 to 3 for the distinct ranges. The original continuous 
 
 Local detailed evidence is in the task's `work/spatial-probe`, `work/spatial-review-validation`, `work/spatial-binary-validation`, `work/spatial-dense-validation` and `work/spatial-runner-validation` directories. Only the compact report and reproduction scripts are tracked; generated fits and datasets stay outside the repository. The code baseline for the final blocked checks is `e9fd2d3`; `cba8a39` reuses Gaussian crossproducts without changing the model or priors. Snapshots record which variant each fit used.
 
-The PR remains a draft because fixing the representation and sampler does not by itself clear the requested point-bias gate. Alex should review the algebra and update order, then resolve support-point adequacy and the demonstrated low-noise prior sensitivity before beta. Previously fitted spatial objects should be refitted. Full-basis and blocked updates can cost more for large spatial datasets despite the arithmetic improvements. These focused checks do not establish nominal interval coverage, overall convergence for every parameter, cross-platform reproducibility, or the separate collection/high-false-positive-rate release gates.
+At the end of these original checks, the PR remained a draft because fixing the representation and sampler did not by itself clear the requested point-bias gate. See the [follow-up report](spatial-beta-recheck.md) for the subsequent support-point and noise-prior investigation. Previously fitted spatial objects should be refitted. Full-basis and blocked updates can cost more for large spatial datasets despite the arithmetic improvements. These focused checks do not establish nominal interval coverage, overall convergence for every parameter, cross-platform reproducibility, or the separate collection/high-false-positive-rate release gates.
