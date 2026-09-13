@@ -22,7 +22,7 @@ using namespace RcppParallel;
 
 //' Seed the package's C++ random number generators
 //'
-//' Sets the base seed from which every worker thread derives its own stream.
+//' Sets the seed for the package's serial C++ sampling stream.
 //' Called by \code{runOccJSDM()} with a draw from R's RNG, which is what makes
 //' \code{set.seed()} control the sampler. Not intended to be called directly.
 //'
@@ -31,8 +31,7 @@ using namespace RcppParallel;
 // [[Rcpp::export]]
 void setOccJSDMSeed(unsigned int seed) {
   occjsdm_rng_base_seed() = seed;
-  // Bump the generation so that threads whose engine was already constructed
-  // re-seed on their next draw instead of continuing their old stream.
+  // Re-seed the engine and reset cached distribution state on the next draw.
   occjsdm_rng_generation() += 1u;
 }
 
@@ -309,11 +308,8 @@ static arma::vec mvrnormArmaQuick_TS(const arma::vec& mu, const arma::mat& chols
   int ncols = cholsigma.n_cols;
   arma::vec Y(ncols);
 
-  // rnorm() is the shared per-thread engine from rng.h: thread-safe like the
-  // std::random_device engine it replaces, but seeded from R, so this draw is
-  // now reproducible under set.seed(). This is the draw inside
-  // sample_beta_cpp_TS(), which sample_betatheta_cpp_parallel() calls from
-  // inside `#pragma omp parallel for`.
+  // The historical _TS suffix does not permit parallel sampling. All callers
+  // now use the serial, R-seeded stream in rng.h on the main thread.
   for(int i = 0; i < ncols; ++i) {
     Y[i] = rnorm();
   }
@@ -449,7 +445,7 @@ struct SampleOmegaWorker : public RcppParallel::Worker {
         b += X(i, j) * beta[j];
       }
 
-      // Safe thread_local sampling
+      // Sampling body is invoked directly on the main thread.
       Omega_vec[i] = rpg(n[i], b);
     }
   }
@@ -460,7 +456,7 @@ arma::vec sample_Omega_parallel(arma::mat& X, arma::vec& beta, arma::vec& n) {
   arma::vec Omega_vec(nsize);
 
   SampleOmegaWorker worker(X, beta, n, Omega_vec);
-  RcppParallel::parallelFor(0, nsize, worker);
+  worker(0, nsize);
 
   return Omega_vec;
 }
@@ -1064,7 +1060,7 @@ struct BetaThetaWorker : public Worker {
     : w(w), z_all(z_all), X_theta(X_theta), b_betatheta(b_betatheta),
       B_betatheta(B_betatheta), beta_theta(beta_theta) {}
 
-  // Work function executed by multiple threads
+  // Sampling body executed on the main thread.
   void operator()(std::size_t begin, std::size_t end) {
 
     for (std::size_t s = begin; s < end; ++s) {
@@ -1111,8 +1107,9 @@ arma::mat sample_betatheta_cpp_parallel(const arma::mat& w,
   // Instantiate the worker
   BetaThetaWorker worker(w, z_all, X_theta, b_betatheta, B_betatheta, beta_theta);
 
-  // Run the parallel loop
-  parallelFor(0, S, worker);
+  // Both the PG engine and sample_beta_cpp()'s R/Armadillo normal draw must
+  // stay on the main thread. A TBB thread limit is not a sampling contract.
+  worker(0, S);
 
   return beta_theta;
 }
