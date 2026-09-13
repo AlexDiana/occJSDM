@@ -5,17 +5,11 @@
 #   1. Speed. The whole tier is budgeted under 30 s because it ships to CRAN
 #      and runs on every check.
 #
-#   2. No numeric reproducibility. While TODO.md group A item 2 is open,
-#      randinvg() draws from R's global RNG inside an OpenMP loop, so a fixed
-#      seed does NOT reproduce across platforms -- deterministic on stock
-#      macOS clang (no OpenMP), racy on Linux/Windows. A test asserting
-#      expect_equal() on fitted values would pass locally and fail
-#      intermittently on CRAN, which is the worst available failure mode.
-#      Tier-1 assertions are therefore structural: does it run, are the
-#      dimensions right, is a block populated, does a value vary.
-#
-#      Simulated *data* is reproducible (simulateOccJSDMData() uses only R's
-#      RNG, no OpenMP), so tests on design matrices are safe.
+#   2. Most tier-1 assertions are structural: does it run, are the
+#      dimensions right, is a block populated, does a value vary. Exact
+#      fitted values are not a model contract. RNG regressions deliberately
+#      assert equality across seeds/thread settings to detect stream replay
+#      or accidental worker-thread draws; see test-rng-safety.R.
 
 # Small by design. n = 40 clears the 31-site spatial floor (TODO.md group B
 # item 3) with room to spare.
