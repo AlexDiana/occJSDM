@@ -54,11 +54,11 @@ p <- ggplot(x, aes(bias_pp, band, colour = observations)) +
   scale_colour_manual(values = c("Exact occupancy states" = "#3b7b73", "Imperfect detection" = "#c2612e")) +
   labs(title = "Small overall occupancy errors hide errors at low and high probabilities",
        subtitle = "100 sites, 10 species, two field samples per site; current priors; no spatial effects",
-       x = "Average estimated probability minus true probability (percentage points)",
+       x = "Average error in probability (percentage points)\nNegative: too low                 0: correct on average                 Positive: too high",
        y = NULL, colour = NULL,
-       caption = "Bars: 95% t intervals for average error across 10 simulated datasets. These are not model credible intervals.\nThe exact-state control removes detection uncertainty; each site still supplies only one occupancy state per species.") +
+       caption = "The x-axis shows error, not the probability itself. Each point averages errors across 10 simulated datasets.\nExample: true probability 70%, estimated 73% = +3 percentage points; estimated 68% = -2 points.\nBars: 95% t intervals for average error across 10 simulated datasets. These are not model credible intervals.\nThe exact-state control removes detection uncertainty; each site still supplies only one occupancy state per species.") +
   base_theme
-ggsave(file.path(out, "occupancy-bias.png"), p, width = 11, height = 5.8, dpi = 170, bg = "white")
+ggsave(file.path(out, "occupancy-bias.png"), p, width = 11, height = 6.5, dpi = 170, bg = "white")
 
 c <- read.csv(file.path(out, "collection-contrast-summary.csv"))
 c <- c[c$scenario %in% names(model_names) & c$metric == "theta_change_mean_to_plus1SD" &
@@ -81,9 +81,9 @@ p <- ggplot(c, aes(bias_pp, sign, colour = prior_label)) +
   labs(title = "Tighter collection priors weaken real collection effects",
        subtitle = "Effect on collection probability when the covariate increases from its mean by one standard deviation",
        x = "Estimated change minus true change (percentage points)", y = NULL, colour = NULL,
-       caption = "Bars: 95% t intervals for average error across 10 paired datasets.\nFor positive effects, a negative error means an effect that is too small; for negative effects, a positive error means too small a decrease.") +
+       caption = "The x-axis shows error in the collection effect, averaged across 10 datasets, not the collection probability.\nExample: a true increase of 10 percentage points estimated as 13 gives an error of +3 points.\nZero means the change is correct on average; positive means the estimated change is higher, negative means lower.\nBars: 95% t intervals for average error across 10 paired datasets.\nFor positive effects, a negative error means an effect that is too small; for negative effects, a positive error means too small a decrease.") +
   base_theme
-ggsave(file.path(out, "collection-prior-bias.png"), p, width = 11, height = 5.3, dpi = 170, bg = "white")
+ggsave(file.path(out, "collection-prior-bias.png"), p, width = 11, height = 6.1, dpi = 170, bg = "white")
 
 if (collection_only) {
   cat("Saved the two complete collection figures; PCR comparisons were not rendered.\n")
@@ -112,9 +112,9 @@ p <- ggplot(q, aes(bias_pp, scenario_label, colour = comparison)) +
        subtitle = "PCR counts are per primer; two primers. Operational maximum: 6 per primer; K30 is diagnostic only.",
        x = "Average false-positive estimate minus comparison truth (percentage points)",
        y = NULL, colour = NULL,
-       caption = "Bars: 95% t intervals for average error across 10 datasets, using current priors.\nSome contamination events generate zero reads. The fitted binary model estimates the chance of a positive read result.") +
+       caption = "The x-axis shows the estimated probability minus the comparison value, averaged across 10 datasets.\nFor the correct (green) comparison: true 20%, estimated 23% = +3 percentage points; estimated 18% = -2 points.\nFor green points, zero means correct on average; positive means too high and negative means too low.\nBars: 95% t intervals for average error across 10 datasets, using current priors.\nSome contamination events generate zero reads. The fitted binary model estimates the chance of a positive read result.") +
   base_theme
-ggsave(file.path(out, "false-positive-truth.png"), p, width = 12, height = 6.8, dpi = 170, bg = "white")
+ggsave(file.path(out, "false-positive-truth.png"), p, width = 12, height = 7.6, dpi = 170, bg = "white")
 
 # Operational comparison: each panel shows both feasible PCR allocations
 # and all three prior choices. All truth probabilities are post-threshold.
@@ -148,10 +148,10 @@ p <- ggplot(practical, aes(bias_pp, replicates, colour = prior_label, shape = pr
   guides(colour = guide_legend(ncol = 1), shape = guide_legend(ncol = 1)) +
   labs(title = "Three or six PCR replicates per primer: detection and occupancy errors",
        subtitle = "Two primers; no spatial effects. Six PCR replicates per primer is the operational maximum.",
-       x = "Average estimated probability minus true probability (percentage points)",
+       x = "Average error in probability (percentage points)\nNegative: too low                 0: correct on average                 Positive: too high",
        y = NULL, colour = NULL, shape = NULL,
-       caption = "Bars: 95% t intervals for average error across 10 datasets. Horizontal scales differ across panels.\np: positive PCR result when species DNA is present in the field sample; q: positive result when it is absent.\nAll other priors are unchanged. Beta(a,b) describes a prior distribution, not a fixed detection rate.\nLow/high occupancy panels group by the true site probability, not by species prevalence. K30 is excluded from this operational comparison.") +
+       caption = "The x-axis shows error, not the probability itself. Each point averages errors across 10 simulated datasets.\nExample: true detection probability 70%, estimated 73% = +3 percentage points; estimated 68% = -2 points.\nAn x-value of 3 means three percentage points too high, not a detection probability of 3%.\nBars: 95% t intervals for average error across 10 datasets. Each panel uses an axis range suited to its errors.\np: positive PCR result when species DNA is present in the field sample; q: positive result when it is absent.\nAll other priors are unchanged. Beta(a,b) describes a prior distribution, not a fixed detection rate.\nLow/high occupancy panels group by the true site probability, not by species prevalence. K30 is excluded from this operational comparison.") +
   base_theme + theme(panel.spacing = grid::unit(1.2, "lines"), strip.text = element_text(size = 10),
                      legend.text = element_text(size = 10), plot.caption = element_text(size = 10))
-ggsave(file.path(out, "operational-pcr-bias.png"), p, width = 12, height = 12, dpi = 170, bg = "white")
+ggsave(file.path(out, "operational-pcr-bias.png"), p, width = 12, height = 13, dpi = 170, bg = "white")
 cat("Saved four figures, including the K3/K6 operational comparison and the separately labeled K30 diagnostic.\n")
