@@ -50,7 +50,7 @@ output: html_document
 
 **Release criterion agreed 10 September 2026:** retain all advertised modelling features, fix incorrect or materially biased point estimates, and allow undercoverage or overcoverage to wait. This triage assumes a GitHub beta. The CRAN submission and paper work can follow later.
 
-**Beta gates: review the collection-covariate fix, complete the other three code workstreams, then run the targeted bias and release checks.** The `B0` and high-`q` findings remain conditional release gates: reassess them after the code fixes before deciding whether any prior change is needed.
+**Beta gates: workstreams 1 to 3 are approved; complete the spatial fitting and read-threshold items, then run the targeted bias and release checks.** The `B0` and high-`q` findings remain conditional release gates: reassess them after the code fixes before deciding whether any prior change is needed.
 
 ## Required code work (Alex, with Doug validating)
 
@@ -85,6 +85,14 @@ output: html_document
     **Do:** reproduce the full-fit symptom with the current simulator and a nonzero spatial field. Trace the `SE` passed to `sample_ls()` after the coefficient updates, and verify that its coordinates, scale and covariance representation match `Ks_all`, `Lm1_grid` and `logDetKuu_grid`. Fix the demonstrated mismatch in field construction or scoring. Do not repeat the already ruled-out amplitude and log-determinant experiments without new evidence.
 
     **Done when:** several sufficiently informative simulated datasets with distinct interior grid ranges no longer all select the same upper boundary, and spatial-field and occupancy point estimates recover their generating pattern and level. Use the coordinate scale actually fitted and a fixed knot count. A moving chain alone is insufficient; exact range recovery in every replicate and nominal interval coverage are not beta requirements. Keep spatial fitting available.
+
+5. **Correct read thresholds greater than one, which currently erase every detection.** `R/runOccJSDM.R:502-503`, in the `occupancy` and `two_stage` branch. Truncation is two in-place statements: `y[y >= threshold] <- 1` sets every qualifying count to 1, and `y[y < threshold] <- 0` then zeroes those same entries, because 1 is below any threshold above one. So `threshold = 2` and `threshold = 3` hand the sampler an all-zero detection matrix, and the fit proceeds on data containing no detections at all. The default `threshold = 1` is unaffected, which is why this survived. Found by the PR #11 investigation and confirmed here on 14 September 2026 by running the two statements on `c(0, 1, 3, 7, 25, NA)`: four detections at threshold 1, none at 2 or 3, with `NA` preserved throughout.
+
+    **This is a documented argument, not an unsupported one.** The roxygen at `R/runOccJSDM.R:290` states that reads at or above the threshold count as a detection and that the value must be at least 1, and the validation at `:495` rejects only values of zero or below. Thresholds of 2 and 3 therefore pass every check the function makes and then destroy the data silently. Nothing in `tests/testthat/` passes a `threshold` argument at all, so no existing test could have caught it.
+
+    **Do:** build the binary matrix from the original counts in a single comparison rather than two sequential in-place assignments, preserving missing values. Cover both models in that branch, not only `two_stage`.
+
+    **Done when:** regression tests cover thresholds 1, 2 and 3 and assert the resulting detections against a binary matrix computed directly from the counts, including missing values. A fit at a threshold above one agrees with fitting the equivalent data thresholded outside the package. A reproducer through the installed entry point already exists on the PR #11 branch at `dev/simstudy/nonspatial-bias-recheck/q-audit/reproduce_threshold_preprocessing.R`.
 
 ## Required bias recheck and release preparation (Doug and Alex)
 
