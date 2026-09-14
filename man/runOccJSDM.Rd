@@ -133,6 +133,14 @@ as single-visit JSDM data, classical (one-stage) occupancy data, or
 two-stage (eDNA-style) occupancy/detection data. A message is printed
 describing which model was inferred -- check that it matches expectations
 for your data.
+
+Random sampling runs serially on R's main thread, including when multiple
+RcppParallel threads are requested. Deterministic probability calculations
+may still run in parallel. Use \code{set.seed()} before fitting to reproduce
+results on the same software/platform; changing the requested thread count
+does not change the sampling stream. Consecutive fits without resetting the
+seed consume new draws. The calling session's RcppParallel thread setting
+is preserved.
 }
 \examples{
 \dontrun{

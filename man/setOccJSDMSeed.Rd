@@ -10,7 +10,7 @@ setOccJSDMSeed(seed)
 \item{seed}{a non-negative integer.}
 }
 \description{
-Sets the base seed from which every worker thread derives its own stream.
+Sets the seed for the package's serial C++ sampling stream.
 Called by \code{runOccJSDM()} with a draw from R's RNG, which is what makes
 \code{set.seed()} control the sampler. Not intended to be called directly.
 }
