@@ -50,7 +50,7 @@ output: html_document
 
 **Release criterion agreed 10 September 2026:** retain all advertised modelling features, fix incorrect or materially biased point estimates, and allow undercoverage or overcoverage to wait. This triage assumes a GitHub beta. The CRAN submission and paper work can follow later.
 
-**Beta gates: complete the spatial work in PR #8, then finish the targeted bias and release checks.** Alex has approved the collection-alignment, RNG and residual-correlation fixes, now on `main`; their records are in *Fixed bugs* 49-51. The `B0` and high-`q` findings remain conditional release gates: reassess them after the code fixes before deciding whether any prior change is needed.
+**Status, 14 September 2026:** Alex has approved and merged the collection-alignment, RNG and residual-correlation fixes; their records are in *Fixed bugs* 49-51. [PR #8](https://github.com/AlexDiana/occJSDM/pull/8), covering spatial fitting, is the only original code-fix PR still open. It includes all three approved fixes and remains a draft. Complete its review and the targeted bias and release checks below before beta. The `B0` and high-`q` findings remain conditional release gates: reassess them after the code fixes before deciding whether any prior change is needed.
 
 ## Required code work (Alex, with Doug validating)
 
@@ -64,7 +64,7 @@ output: html_document
 
 ## Required bias recheck and release preparation (Doug and Alex)
 
-After the code fixes, check whether the estimates are still systematically wrong, then prepare the package and documentation for release. The first two items are specific investigations; the third explains how to judge the results. Undercoverage and overcoverage alone can wait until after beta.
+The collection-alignment and RNG fixes are now on `main`, so the first two investigations can begin there for models without spatial effects. Checks that use spatial effects need the corrected code in PR #8. The third item explains how to judge the results; the last two prepare the package and documentation for release. Undercoverage and overcoverage alone can wait until after beta.
 
 - **Check whether occupancy and collection effects are now estimated correctly.** `B0` controls a species' baseline tendency to occupy a site. Earlier simulations estimated it too low. Tightening the collection-effect prior helped `B0`, but also pulled genuine collection effects too strongly towards zero.
 
@@ -76,13 +76,19 @@ After the code fixes, check whether the estimates are still systematically wrong
 
 - **Use a small, targeted simulation study to judge the fixes.** First check that each estimate is compared with the correct simulated species, sample and coefficient, on the same scale. Reuse the relevant scenarios and compare versions on the same datasets, keeping the existing `simstudy_seed()` scheme.
 
-    **What to do:** agree beforehand what probability errors would matter scientifically. Examine positive and negative effects separately, and check errors across low and high probabilities and species prevalence. Report average error, absolute error and root mean squared error (RMSE), so errors cannot disappear by cancelling each other. Check actual occupancy probability levels: correctly ranking sites is insufficient if occupancy is underestimated everywhere. Use several independently simulated datasets and report uncertainty in the average errors to distinguish persistent bias from chance. Any important bias exposed by these checks must be resolved before beta; the larger study of interval coverage can wait.
+    **Agreed spatial target:** in sufficiently informative simulations, average estimated occupancy should be within five percentage points of the truth, assessed separately below 20%, from 20% to 80%, and above 80% true occupancy probability. Doug chose this provisionally. This is a target for the average error in each group, not for every individual prediction. Assess rare species separately; low-probability sites within otherwise common species do not test rare-species performance.
+
+    **What to do:** agree appropriate targets for the remaining bias checks before interpreting their new results. Examine positive and negative effects separately, and check errors across probabilities and species prevalence. Report average error, absolute error and root mean squared error (RMSE), so errors cannot disappear by cancelling each other. Check actual occupancy probability levels: correctly ranking sites is insufficient if occupancy is underestimated everywhere. Use several independently simulated datasets and report uncertainty in the average errors to distinguish persistent bias from chance. Any important bias exposed by these checks must be resolved before beta; the larger study of interval coverage can wait.
 
 - **Test and refresh the package that users will actually receive.** Check the final combined version after the code changes have landed.
+
+    **Already checked:** on 14 September, the PR #8 branch including all three approved fixes passed 735 source-test assertions, with no test failures and one skipped opt-in coverage study. The [validation report](dev/simstudy/spatial-beta-recheck.md#reproduction-and-review) distinguishes this from the earlier installed-package check and records the environment warning. This does not complete the final release check or refresh the bundled example fit.
 
     **What to do:** run the normal tests and an installed-package check. Fix installation failures, crashes and new failures in existing functionality. Regenerate the bundled `sampleresults` fit and affected vignette numbers and plots using the corrected code and matching data. Record the code revision, seeds, priors and thread setting used for the bias checks. Review the changed results before tagging the beta. Existing cosmetic check NOTEs can wait.
 
 - **Make the public documentation match the evidence.** Users need to see the remaining limitations in the README, fitting documentation and announcement; this internal TODO is not enough.
+
+    **Already written on PR #8:** the [fitting vignette](vignettes/occJSDM.Rmd#spatial-effects-inference-and-sampling-design) now explains spatial prediction, limits on ecological inference, sampling grain and extent, replication, and checks on the number of support points. The README links to it. Review this advice alongside the spatial results.
 
     **What to do:** explain the remaining interval-coverage limitations and when users should check sensitivity to their priors. Remove or replace the earlier unsupported assurances about correlation signs, reliable intervals for low `q`, and extra PCR replicates eliminating high-`q` bias. Describe what the corrected beta has actually demonstrated. Use `spatCovariates` when explaining how to fit spatial effects; `useSpatField` controls simulation. Keep all advertised features available, with the required bias checks completed before beta. A new `NEWS.md` is not required.
 
