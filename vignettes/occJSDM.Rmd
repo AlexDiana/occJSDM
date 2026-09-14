@@ -285,6 +285,14 @@ Withholding isolated sites among nearby sampled sites assesses interpolation wit
 
 Spatial blocking can reveal overoptimistic assessments from random validation, but large blocks can also turn an interpolation test into an extrapolation test. Match the design to the scientific question rather than assuming that the largest possible blocks are always best ([Roberts et al., 2017](https://doi.org/10.1111/ecog.02881)). For eDNA surveys, held-out detections still contain observation error: evaluate their predictions through the detection model, and use known simulated occupancy or suitable independent reference information when directly assessing occupancy-probability accuracy. A held-out non-detection is not automatically a true absence.
 
+## Current bias checks and prior sensitivity
+
+The [non-spatial bias recheck](https://github.com/AlexDiana/occJSDM/blob/codex/spatial-range-update/dev/simstudy/nonspatial-bias-recheck.md) tests ten independently simulated datasets per scenario, with 100 sites, ten species and two field samples per site. In its two-stage collection scenario, low true occupancy probabilities average about 8% but are estimated as 27%; high probabilities average about 92% but are estimated as 69%. The overall average error is only about one percentage point because these opposing errors partly cancel. These results describe the tested design and current priors; they are not estimates of error for every application or a test of predictions at new sites.
+
+Check the probability levels that matter for your ecological question, as well as the overall average. Tightening the collection-slope prior improved some quantities in the investigation but weakened real collection effects. Changing the true-detection prior improved detection-rate estimates in those simulations without fixing occupancy at the extremes. No default prior was changed. Compare plausible priors using calibration information from your study, and examine occupancy, collection and laboratory rates together. A good fit to one of those quantities alone is insufficient. Rare-species performance and interval coverage remain incompletely assessed.
+
+A separate preprocessing defect currently affects read thresholds greater than one: it turns qualifying detections into zeros. Use the default `threshold = 1` until the correction recorded in TODO is reviewed and released. The non-spatial recheck uses threshold one and is unaffected. For simulated read-count data, remember that a simulated contamination event can produce zero reads; compare fitted false-positive rates with the chance of a positive read result, accounting for that step in the generator.
+
 ## Model diagnostics
 
 After model fitting, we check that the MCMC chains have converged and

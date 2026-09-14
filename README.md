@@ -24,6 +24,8 @@ vignette("simulateOccJSDMData", package = "occJSDM")
 
 For a plain-language explanation of spatial prediction, ecological inference and survey design, see [Spatial effects, inference and sampling design](vignettes/occJSDM.Rmd#spatial-effects-inference-and-sampling-design) in the main vignette. It covers the area represented by a sample, spacing and geographical extent, field and PCR replication, and how to check predictions at unsampled locations.
 
+Validation is still in progress. In the tested non-spatial designs with limited replication, estimates pull low occupancy probabilities upwards and high probabilities downwards, even when the overall average is close to the truth. Stronger collection priors can hide real collection effects. See the [bias recheck and prior comparisons](dev/simstudy/nonspatial-bias-recheck.md) and the [vignette limitations](vignettes/occJSDM.Rmd#current-bias-checks-and-prior-sensitivity). Nominal interval coverage has not been established across supported designs.
+
 ## How to cite
 
 If you use `occJSDM`, please cite the methods paper describing the underlying two-stage occupancy model, and cite this repository for the specific software implementation/version used.
