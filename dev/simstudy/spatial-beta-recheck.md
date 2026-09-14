@@ -1,6 +1,16 @@
-# Spatial beta recheck, 13 September 2026
+# Spatial fitting: review guide and beta checks
 
-**DRAFT, ALEX TO REVIEW. The three informative binary checks meet Doug's provisional five-point target.** The continuous-noise default still needs a decision, and these checks do not establish accuracy for rare species or every dataset. This follows the [original spatial validation](spatial-range-validation.md). The RNG fix is now on `main` through PR #9, so PR #8 can be reviewed against `main`. Alex approved PR #7, which merged into `main` on 14 September 2026. PR #8 now includes that correction as well.
+**PR #8 now contains the spatial correction only.** The optional continuous-noise prior is reviewed separately on branch `codex/continuous-noise-prior`, after PR #8. The non-spatial investigation and consolidated TODO are on branch `codex/nonspatial-bias-recheck` and can be reviewed independently. No simulations were rerun to make this split; the saved results and original source fingerprints are unchanged.
+
+## Start the code review here
+
+1. Read the [derivation and original validation](spatial-range-validation.md), including the earlier examples that still had large errors.
+2. In `R/jsdmfun.R`, follow `spatialBasis()`, `computeSpatialSummaries()`, `spatial_range_logweights()` and `update_jSDMcoef()`. The range is selected after integrating over the coefficient block, and that entire block is immediately redrawn. The shared basis and this update order belong together.
+3. Check the spatial prior means and equivalent matrix arithmetic in `src/jsdm.cpp`, and the same basis in `R/output.R`. `R/runOccJSDM.R` wires in the complete basis and preserves matrix dimensions.
+4. Read `test-spatial-range.R`, `test-spatial-support.R`, `test-spatial-dense-algebra.R` and `test-spatial-grouped.R`. They check the mathematics and wiring, including zero residual factors and one support point.
+5. Use the results below to assess the tested designs. The CSVs are supporting records, not files that need line-by-line code review.
+
+All current default priors are unchanged. Binary, continuous, occupancy and two-stage models remain available. Previously saved spatial fits should be refitted with the corrected model.
 
 ## The agreed target
 
@@ -12,29 +22,6 @@ The threshold was chosen before the stronger-data results below. Increasing the 
 
 - A user can now request one support point at every unique observed location. Previously the fitter silently capped the request at one fewer location and used clustering to select the points. Full support now uses the observed coordinates directly. This avoids losing a spatial direction solely because of the cap. The existing numerical jitter remains. The default count, 20% of unique locations rounded down, is unchanged; users must check whether increasing it materially changes their results. A small support set can still miss short-range spatial variation.
 - Repeated binary observations at the same location now share the spatial part of the range calculation. Their individual environmental covariates, latent factors, outcomes and Polya-Gamma precisions are all retained. The calculation rearranges exactly the same sums. It is about 25 times faster for the range-weight calculation in the 4,800-observation benchmark, with a maximum range-probability difference of 1.5e-13. This is not a 25-fold speed claim for complete fits. Continuous fits retain the existing constant-precision shortcut.
-- Continuous-response fits now accept an explicit noise prior through `listPriors`, and save the applied choice in `infos$noise_prior`. `tau_prior = "half_cauchy"` places a half-Cauchy prior on each species' noise standard deviation; `tau_scale` defaults to 1 in response units. `tau_prior = "inverse_gamma"` retains the existing family on noise variance, with configurable `a_tau` and `b_tau`, both defaulting to 5. The current default remains inverse-gamma while the default choice is being decided. These settings do not alter the binary or detection models.
-
-The flexible noise option allows small noise values that the previous prior strongly discouraged. It does not force the noise towards the simulated truth. Tests cover residual scales 0.1, 1 and 3, and changing measurement units together with the prior scale.
-
-## Why the noise prior matters
-
-In the original continuous checks, each of 100 locations had only one observation per species, with true noise SD 0.1 and spatial SD 1. The existing inverse-gamma prior produced mean noise estimates 0.787, 0.619 and 0.552 across the three spatial ranges. The estimated spatial fields were much too weak: their slopes against the true fields were 0.415, 0.654 and 0.725, where a slope of 1 would represent the correct magnitude.
-
-An experimental half-Cauchy noise prior, keeping the same 99 support points, changed those field slopes to 0.842, 0.894 and 0.943. Noise estimates fell to 0.357, 0.278 and 0.116. Allowing all 100 locations as support points then gave field slopes 0.918, 0.950 and 0.945, field RMSE 0.169, 0.173 and 0.224, and noise estimates 0.222, 0.150 and 0.110. These are paired mechanism checks, not proof of unbiased estimation. Several individual coefficient and noise traces still had convergence warnings; one observation per location supplies limited information for distinguishing noise from a short-range field.
-
-An independent calculation for the middle range fixes the regression means at their true values and integrates the range, spatial SD and noise SD in observation space. With 99 support points, its mean noise SD is 0.611 under the original prior and 0.277 under the half-Cauchy prior. Using the full generating GP covariance with the half-Cauchy prior reduces this to 0.159. Thus both the prior and the spatial approximation contribute; the remaining noise inflation is present in the specified posterior, rather than demonstrating a faulty noise sampler. Changing the spatial-variance prior alone has a much smaller effect in this comparison.
-
-The original half-Cauchy experiments used an exact rejection sampler for the conditional noise distribution. The public option uses an auxiliary-variable Gibbs update with the same stationary distribution and no rejection loop. It has been checked by direct numerical integration and independent mathematical review. Let `v = tau^2` and `A = tau_scale`. The [half-Cauchy mixture identity](https://arxiv.org/abs/1508.03884) gives
-
-```text
-v | auxiliary ~ inverse-Gamma(1/2, 1/auxiliary)
-auxiliary ~ inverse-Gamma(1/2, 1/A^2)
-auxiliary | v ~ inverse-Gamma(1, 1/v + 1/A^2)
-v | auxiliary, residuals ~ inverse-Gamma((n+1)/2, RSS/2 + 1/auxiliary).
-```
-
-Here `inverse-Gamma(a,b)` means that the reciprocal has a Gamma distribution with shape `a` and rate `b`. Each update draws the auxiliary variable from the current noise SD, then draws the new variance. The auxiliary is refreshed before every noise update. No detection prior is relaxed by this change.
-
 ## What the independent binary calculation establishes
 
 The original binary example had six observations at each of 80 locations. occJSDM overestimated low occupancy probabilities by 14.13 percentage points and underestimated high probabilities by 12.60 points. An independent reference calculation, supplied with the true regression coefficients, range, spatial SD and full generating covariance, still had errors of +12.84 and -11.51 points. Most of the attenuation therefore remains even when these parameters are known. This is evidence of limited information, not permission to accept arbitrary package bias.
@@ -65,42 +52,20 @@ Individual predictions can still be more than five points wrong. The probability
 
 Spatial range means are 0.1063, 0.1676 and 0.2356 against truths 0.1067, 0.1711 and 0.2356. Spatial SD estimates are 0.997, 0.940 and 0.985 against a true value of 1. The posterior mean fields remain attenuated: their estimated-on-true slopes are 0.907, 0.883 and 0.887. This attenuation must remain visible even though the probability target is met. The known-parameter reference also attenuates individual field estimates; agreement with the probability target does not imply perfect recovery of every latent spatial effect.
 
-The public half-Cauchy option was checked in three independent continuous datasets with 100 locations, ten measurements per location, 12 species, true noise SD 0.1 and 100 support points. These use two chains with 300 burn-in and 500 retained iterations. All three generating ranges were recovered. Noise estimates are 0.1006, 0.0993 and 0.1011, and spatial SD estimates are 0.997, 0.992 and 0.972. Total predicted-response RMSE is 0.0314 to 0.0319, with mean error between -0.0012 and +0.0022 in response units. No fitting warnings were recorded.
+## Reproduction and remaining review
 
-After centering each species' field around its own average, spatial recovery slopes are 0.994, 0.999 and 1.000. A slope of 1 means that the estimated spatial variation has the correct strength. Uncentered field RMSE is larger, 0.113 to 0.205, because the intercept and the field's average can offset one another; the total predicted level is estimated much more accurately. An [independent observation-space Gaussian integration](spatial-beta-continuous-range-reference.csv) at six dispersed variance states per dataset confirms the strongly concentrated range posteriors. The constant range traces are therefore supported by the posterior calculation, rather than taken as evidence of convergence on their own. [Compact continuous results](spatial-beta-continuous-results.csv) retain all three datasets' metrics.
+The original continuous checks with unchanged priors remain in the [original validation](spatial-range-validation.md). The separate [noise-prior report](https://github.com/AlexDiana/occJSDM/blob/codex/continuous-noise-prior/dev/simstudy/continuous-noise-prior-validation.md) contains the small-noise experiments and their reproduction commands. Their improved results rely on the optional noise-prior change and must not be attributed to PR #8 alone.
 
-## Reproduction and review
-
-The portable fitting scripts save input data, truth, seeds, requested settings, applied continuous noise prior, source and loaded-library hashes, fits, warnings and metrics. An explicit new noise-prior request is rejected if an older selected source silently ignores it. The existing source-default mode remains available for reproducing older fits.
+The binary runner and reference save input data, truth, seeds, settings, source/library fingerprints and complete fits. These commands reproduce the existing work; reorganising the PR did not execute them again.
 
 ```sh
 Rscript dev/simstudy/validate_spatial_binary.R --source=/path/to/compiled-source --out=/path/to/binary-results/package60-range6-full --grid-index=6 --repeats=60 --knots=80 --burn=300 --iter=600 --chains=2
-Rscript dev/simstudy/validate_spatial_continuous.R --source=/path/to/compiled-source --out=/path/to/new-continuous-results --cell=2 --repeats=10 --tau=.1 --knots=100 --tau-prior=half_cauchy --tau-scale=1 --burn=300 --iter=500 --chains=2
-```
-
-Use binary grid indices 4, 6 and 8, saving them in sibling directories named `package60-range4-full`, `package60-range6-full` and `package60-range8-full`. Use continuous cells 1, 2 and 3, each in a fresh output directory. The original weak-information continuous comparison can be rerun with one repeat and 99 or 100 knots, choosing either noise prior explicitly. The existing inverse-gamma settings are `--tau-prior=inverse_gamma --a-tau=5 --b-tau=5`.
-
-The following commands analyze saved package fits and independently check the continuous range probabilities. They do not launch another package fit. The figure script reads the compact results committed with this report.
-
-```sh
 Rscript dev/simstudy/summarise_spatial_binary.R --base=/path/to/binary-results --out=/path/to/new-binary-analysis
-Rscript dev/simstudy/verify_spatial_continuous_range.R --input=/path/to/new-continuous-results --out=/path/to/new-range-reference
 Rscript dev/simstudy/plot_spatial_beta_bias.R
-```
-
-The binary reference is also portable. Its numerical-integration check requires no saved data. The reference fit below uses a saved binary dataset and samples the spatial field with the other parameters fixed at their true values; it is an independent diagnostic, not another full occJSDM fit. The 60-observation pilot used four chains, 2,000 burn-in iterations and 4,000 retained draws with thinning by three.
-
-```sh
 Rscript dev/simstudy/verify_binary_oracle.R --out=/path/to/new-oracle-check
 Rscript dev/simstudy/validate_binary_oracle.R --input=/path/to/binary-pilot/data-truth.rds --out=/path/to/new-oracle --burn=2000 --iter=4000 --thin=3
 ```
 
-The long runs used immutable source snapshots. The binary snapshot contains the complete-support and grouped-arithmetic changes, with unchanged binary priors. The continuous snapshot additionally contains the public half-Cauchy option, which the saved metadata confirms was applied. Subsequent changes normalize named prior selectors and reject ignored validation options; they do not alter the sampling path used by these runs. The 13 September merge from `main` only removed inactive commented code. The 14 September merge additionally incorporates the approved residual-correlation correction from PR #7. That correction changes factor post-processing; the spatial datasets reported here have no latent factors or traits, so their sampling calculations are unchanged. Full saved fits, datasets and provenance remain in the task's local `work/spatial-binary-resume-20260913` and `work/spatial-noise-resume-20260913` directories. The compact report is not a substitute for those raw files.
+Use binary grid indices 4, 6 and 8 in separate sibling output directories named `package60-range4-full`, `package60-range6-full` and `package60-range8-full`. The 60-observation reference pilot used four chains, 2,000 burn-in iterations and 4,000 retained draws with thinning by three. The saved binary source has unchanged binary priors, complete spatial support and grouped arithmetic. The later approved residual-correlation correction does not change these no-factor, no-trait fits. Raw files remain in the task's `work/spatial-binary-resume-20260913` directory; compact CSVs do not replace them.
 
-The new full-support, grouped-arithmetic and noise-prior tests fail before their respective changes and pass afterward. Independent review checked the mathematics, public wiring and update order. It identified two cases in which a requested prior could be silently ignored; named prior selectors are now normalized, and the validation runner checks the applied prior. The source suite passed 498 assertions before the two added named-selector regressions, which subsequently passed with all 16 noise-prior assertions. After incorporating `main` on 13 September, 174 focused alignment, spatial and noise assertions passed. The 13 September freshly built installed-package check passed 464 assertions with zero test failures or test warnings; its eight skips cover opt-in coverage, CRAN-excluded recovery and source-only checks.
-
-That 13 September package check reports zero errors, three existing warnings and three existing notes. The warnings concern the compiler's R-header warning option, the undocumented `verbose` argument in `predictNewSites.Rd`, and GNU Makevars syntax. The notes concern the worktree's hidden Git file, LICENSE metadata and existing undefined globals. No new package warning was introduced. This verification used arm64 macOS and R 4.5.0; it does not replace cross-platform checking.
-
-On 14 September, after incorporating `main` at `80d449d` and the approved PR #7, the combined source suite passed 735 assertions with zero failures, errors or test warnings. The one skip is the opt-in coverage study. R also printed an environment warning that the installed `testthat` was built under R 4.5.2; the test run used R 4.5.0 and completed successfully. This was a fresh source-suite integration check, not a repeat of the installed-package check or long spatial simulations. The updated TODO removes accidentally committed merge-conflict text and records the three approved code fixes under *Fixed bugs* 49-51; the spatial review and separate beta checks remain open.
-
-**Decision still needed:** choose whether the half-Cauchy noise prior becomes the continuous-model default or remains an explicit option. The code currently preserves the inverse-gamma default. The evidence supports the flexible alternative for small noise, but it is a modelling change for Alex to review. Keep PR #8 in draft until that choice and Alex's review are settled. Before beta, retain the separate checks of rare species, support-point adequacy and the other bias gates in TODO; these three informative datasets do not replace them.
+Alex still needs to review the spatial code, the support-point advice and these results. Rare species and other sampling designs need separate assessment. The small-noise prior/default decision belongs to the separate noise PR. The consolidated [release TODO](https://github.com/AlexDiana/occJSDM/blob/codex/nonspatial-bias-recheck/TODO.md) records all remaining work. Passing these three informative binary cases does not clear every beta gate.

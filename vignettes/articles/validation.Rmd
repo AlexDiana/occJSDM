@@ -6,8 +6,6 @@ description: >
   across ten scenarios, plus a per-species occupancy check.
 ---
 
-**Historical validation results.** This article displays the previously saved simulation-study bundle and has not been regenerated for the corrected beta code. Its detection-rate comparisons used nominal read-event probabilities rather than positive-read probabilities, and its collection coefficients were not compared on the fitter's standardised scale. Those comparisons cannot support current bias or interval-coverage claims. See the [non-spatial recheck and prior comparisons](https://github.com/AlexDiana/occJSDM/blob/codex/spatial-range-update/dev/simstudy/nonspatial-bias-recheck.md) for the corrected targeted assessment. A full coverage rerun remains future work.
-
 ```{r setup, include = FALSE}
 # Every number in this article is rendered from dev/simstudy/validation-data.rds,
 # written by dev/simstudy/export_validation_data.R from a run of

@@ -94,19 +94,7 @@ slopes, default \code{2}). The last of these is provisional: it exists so
 the slope prior can be varied without editing the source, and the default
 reproduces the previous hard-coded behaviour exactly. Its value is still
 under review, so treat a non-default setting as a diagnostic rather than a
-recommended configuration.
-
-For continuous responses, \code{tau_prior} selects the noise prior:
-\code{"inverse_gamma"} (current default) places an inverse-gamma prior on
-each species' noise variance, with \code{a_tau} (shape, default \code{5})
-and \code{b_tau} (rate for the reciprocal variance, default \code{5}).
-\code{"half_cauchy"} places a half-Cauchy prior on the noise standard
-deviation, with \code{tau_scale} (default \code{1}) in response units.
-The half-Cauchy option allows noise close to zero; the inverse-gamma
-default strongly discourages it. Each scale, shape and rate must be a
-finite positive number. These settings do not change the binary,
-occupancy or two-stage detection models. The chosen continuous noise
-prior is saved in \code{infos$noise_prior}.}
+recommended configuration.}
 }
 \value{
 A list with:

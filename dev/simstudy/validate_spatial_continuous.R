@@ -21,7 +21,6 @@ if ("--help" %in% args) {
   cat("Required: --source=PATH --out=PATH --cell=1..3 --burn=N --iter=N\n",
       "Optional: --label=NAME --family=NAME --repeats=1 --tau=0.1\n",
       "          --shared-seed=false --chains=2 --knots=99 --generate-only=false\n",
-      "          --tau-prior=default|half_cauchy|inverse_gamma --tau-scale=1 --a-tau=5 --b-tau=5\n",
       "The source must be precompiled. The output directory must be empty.\n", sep = "")
   quit(status = 0)
 }
@@ -35,8 +34,7 @@ option <- function(name, default = NULL) {
   substring(hit, nchar(name) + 4L)
 }
 known <- c("source", "out", "label", "family", "cell", "burn", "iter", "chains",
-           "knots", "repeats", "tau", "shared-seed", "generate-only",
-           "tau-prior", "tau-scale", "a-tau", "b-tau")
+           "knots", "repeats", "tau", "shared-seed", "generate-only")
 if (any(!sub("^--([^=]+)=.*$", "\\1", args) %in% known)) stop("Unknown option; use --help")
 integer_option <- function(name, default = NULL, minimum = 1L) {
   value <- suppressWarnings(as.numeric(option(name, default)))
@@ -57,18 +55,7 @@ repeats <- integer_option("repeats", "1")
 noise_sd <- suppressWarnings(as.numeric(option("tau", ".1")))
 shared_seed <- option("shared-seed", "false")
 generate_only <- option("generate-only", "false")
-tau_prior <- option("tau-prior","default")
-if (!tau_prior %in% c("default","half_cauchy","inverse_gamma")) stop("Invalid --tau-prior")
-positive_option <- function(name,default) {
-  x <- suppressWarnings(as.numeric(option(name,default)))
-  if (length(x)!=1L || !is.finite(x) || x<=0) stop("Invalid --",name)
-  x
-}
-priors <- switch(tau_prior,default=list(),
-  half_cauchy=list(tau_prior=tau_prior,tau_scale=positive_option("tau-scale","1")),
-  inverse_gamma=list(tau_prior=tau_prior,a_tau=positive_option("a-tau","5"),
-                    b_tau=positive_option("b-tau","5")))
-stopifnot(cell <= 3L, knots <= 100L, length(noise_sd) == 1L,
+stopifnot(cell <= 3L, knots < 100L, length(noise_sd) == 1L,
           is.finite(noise_sd), noise_sd > 0,
           shared_seed %in% c("true", "false"), generate_only %in% c("true", "false"))
 shared_seed <- shared_seed == "true"
@@ -106,7 +93,7 @@ provenance <- list(label = label, source = source_dir, loaded_dll = dll,
   command = commandArgs(), started = Sys.time(), session = sessionInfo(),
   settings = list(cell = cell, family = family, repeats = repeats, tau = noise_sd,
     shared_seed = shared_seed, parameters = parameters, mcmc = mcmc,
-    priors = if (length(priors)) priors else "Unmodified defaults of the selected source"))
+    priors = "Unmodified defaults of the selected source"))
 write.csv(manifest, file.path(out_dir, "source-hashes.csv"), row.names = FALSE)
 saveRDS(provenance, file.path(out_dir, "provenance.rds"))
 capture.output(sessionInfo(), file = file.path(out_dir, "session-info.txt"))
@@ -148,22 +135,11 @@ set.seed(fit_seed)
 fit_warnings <- character()
 elapsed <- system.time(fit <- withCallingHandlers(suppressMessages(runOccJSDM(
   input$data, listParams = parameters, occCovariates = "env", spatCovariates = c("x", "y"),
-  MCMCparams = mcmc, listPriors = priors)), warning = function(w) {
+  MCMCparams = mcmc)), warning = function(w) {
     fit_warnings <<- c(fit_warnings, conditionMessage(w)); invokeRestart("muffleWarning")
   }))
 saveRDS(fit, file.path(out_dir, "fit.rds"))
 writeLines(fit_warnings, file.path(out_dir, "fit-warnings.txt"))
-provenance$applied_noise_prior <- list(value=fit$infos$noise_prior)
-saveRDS(provenance, file.path(out_dir, "provenance.rds"))
-if (length(priors)) {
-  expected_prior <- if (tau_prior == "half_cauchy")
-    list(type=tau_prior,scale=priors$tau_scale) else
-    list(type=tau_prior,shape=priors$a_tau,rate=priors$b_tau)
-  # Older source snapshots accept listPriors but ignore unknown names.
-  # Refuse to label such a fit as a check of the requested new prior.
-  if (!isTRUE(all.equal(fit$infos$noise_prior,expected_prior)))
-    stop("Selected source did not apply the requested noise prior")
-}
 stopifnot(max(abs(fit$Xs - truth$coordinates)) < 1e-12,
           fit$infos$ps == knots, fit$infos$n_factors == 0L)
 ro <- fit$results_output$jsdm_output
