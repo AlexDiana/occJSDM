@@ -133,7 +133,9 @@ metric_labels <- c(q = "False positives (q)", p = "True detections (p)",
 metric_key <- ifelse(practical$metric == "occupancy", paste0("occupancy_", practical$group), practical$metric)
 practical$quantity <- factor(metric_labels[metric_key], levels = metric_labels)
 practical$prior_label <- factor(practical$prior, levels = c("q20", "q9", "p32"),
-                                labels = c("Current priors", "q prior: Beta(1,9)", "p prior: Beta(3,2)"))
+                                labels = c("Default priors: p Beta(5,1); q Beta(1,20)",
+                                           "Change q only (false positives): p Beta(5,1); q Beta(1,9)",
+                                           "Change p only (true detections): p Beta(3,2); q Beta(1,20)"))
 practical <- with_error_units(practical)
 p <- ggplot(practical, aes(bias_pp, replicates, colour = prior_label, shape = prior_label)) +
   geom_vline(xintercept = 0, colour = "grey55", linetype = 2) +
@@ -143,12 +145,13 @@ p <- ggplot(practical, aes(bias_pp, replicates, colour = prior_label, shape = pr
   facet_wrap(vars(quantity, contamination), ncol = 2, scales = "free_x") +
   scale_colour_manual(values = c("#336c91", "#3b7b73", "#a44556")) +
   scale_shape_manual(values = c(16, 15, 17)) +
+  guides(colour = guide_legend(ncol = 1), shape = guide_legend(ncol = 1)) +
   labs(title = "Three or six PCR replicates per primer: detection and occupancy errors",
        subtitle = "Two primers; no spatial effects. Six PCR replicates per primer is the operational maximum.",
        x = "Average estimated probability minus true probability (percentage points)",
        y = NULL, colour = NULL, shape = NULL,
-       caption = "Bars: 95% t intervals for average error across 10 datasets. Horizontal scales differ across panels.\nCurrent priors: p Beta(5,1), q Beta(1,20). Alternatives change only the named prior.\nLow/high occupancy panels group by the true site probability, not by species prevalence. K30 is excluded from this operational comparison.") +
+       caption = "Bars: 95% t intervals for average error across 10 datasets. Horizontal scales differ across panels.\np: positive PCR result when species DNA is present in the field sample; q: positive result when it is absent.\nAll other priors are unchanged. Beta(a,b) describes a prior distribution, not a fixed detection rate.\nLow/high occupancy panels group by the true site probability, not by species prevalence. K30 is excluded from this operational comparison.") +
   base_theme + theme(panel.spacing = grid::unit(1.2, "lines"), strip.text = element_text(size = 10),
                      legend.text = element_text(size = 10), plot.caption = element_text(size = 10))
-ggsave(file.path(out, "operational-pcr-bias.png"), p, width = 12, height = 11, dpi = 170, bg = "white")
+ggsave(file.path(out, "operational-pcr-bias.png"), p, width = 12, height = 12, dpi = 170, bg = "white")
 cat("Saved four figures, including the K3/K6 operational comparison and the separately labeled K30 diagnostic.\n")

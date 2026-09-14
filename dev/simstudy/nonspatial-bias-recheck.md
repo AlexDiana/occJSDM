@@ -60,6 +60,14 @@ Occupancy improves less. At six replicates, low/high probability errors remain +
 
 At six replicates under high contamination, q Beta(1,9) gives q error +0.17 points but increases p error to +3.38 points. Alternatively, p Beta(3,2) reduces p error to -0.43 points but increases the q underestimate to -0.64 points. Its low/high occupancy errors are +21.15/-22.73 points. These remain trade-offs, not grounds for automatically replacing the defaults.
 
+**How to read the three legend entries.** Here, **p** is the probability of a positive PCR result when the species' DNA is present in the field sample, and **q** is the probability of a positive result when it is absent. Each colour and symbol represents a different pair of prior assumptions used to fit the same datasets:
+
+- **Default priors:** p uses Beta(5,1), and q uses Beta(1,20). Their prior means are about 83% for true detection and 4.8% for false positives.
+- **Change q only (false positives):** keep p at Beta(5,1), but change q to Beta(1,9). The false-positive prior mean becomes 10%.
+- **Change p only (true detections):** keep q at Beta(1,20), but change p to Beta(3,2). The true-detection prior mean becomes 60%.
+
+These percentages describe the means of the assumed distributions before fitting, not fixed rates imposed on the results. The distributions also differ in shape and concentration. All other priors are held unchanged. Thus the figure compares the defaults with changing one detection prior at a time; it does not compare using a p prior versus using a q prior. Every fit uses both.
+
 ![Operational comparison at three and six PCR replicates per primer](nonspatial-bias-recheck/results/operational-pcr-bias.png)
 
 ### The alternative priors do not improve everything together
