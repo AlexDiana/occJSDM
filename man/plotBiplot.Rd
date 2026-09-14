@@ -37,9 +37,7 @@ their extent matches \code{arrow_scale} times the site score radius,
 purely for visual balance -- this does not affect relative arrow
 lengths or directions.
 
-Under the model's identifiability constraint, species \code{i} anchors
-factor \code{i} (its loading is fixed to 1 rather than estimated; see
-\code{\link{returnFactorLoadings}}). When one of the fixed
-species/factor pairs falls within \code{idx_factors}, a caption flags
-this so the fixed arrow(s) are not mistaken for an estimated pattern.
+Factor scores and loadings use an orthogonal rotation and sign convention
+after fitting. Loading magnitudes remain estimated, preserving the
+residual species correlations (see \code{\link{returnFactorLoadings}}).
 }
