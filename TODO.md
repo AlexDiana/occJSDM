@@ -78,6 +78,8 @@ output: html_document
 
     **Review evidence and limits:** [mathematical audit, results and reproduction instructions](dev/simstudy/factor-correlation-validation.md), with the tracked runner `dev/simstudy/validate_factor_correlations.R`. This removes an output distortion without changing the sampler; it does not establish nominal interval coverage or close other recovery gates. Old saved fits require refitting or retained raw draws because the discarded scales cannot be recovered from their normalized loadings. Retain this item until Alex reviews it.
 
+    APPROVED
+
 4. **Resolve the spatial length-scale boundary behavior on the full fitting path.** `update_jSDMcoef()`, `computePsiCoef()` and `precomputeSORmatrices()` in `R/jsdmfun.R`, together with the spatial coefficient update in `src/jsdm.cpp`. The recorded failure is that different generating ranges lead to the largest grid value. *Fixed bugs* 48 closed the isolated `sample_ls()` investigation; a successful test using a supplied GP draw does not validate the inputs produced during an actual fit.
 
     **Do:** reproduce the full-fit symptom with the current simulator and a nonzero spatial field. Trace the `SE` passed to `sample_ls()` after the coefficient updates, and verify that its coordinates, scale and covariance representation match `Ks_all`, `Lm1_grid` and `logDetKuu_grid`. Fix the demonstrated mismatch in field construction or scoring. Do not repeat the already ruled-out amplitude and log-determinant experiments without new evidence.
