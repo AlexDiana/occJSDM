@@ -65,6 +65,10 @@ switch:
   exact zero matrix instead, so `Xs` is simulated and returned but has
   no influence on occupancy.
 
+**Comparing simulated and fitted detection rates.** For the two-stage read-count simulator, supplied `p` and `q` describe the probabilities of read-generating events. Some events then produce zero reads after the simulated intensity is converted to a count. The binary fitter estimates the probability that the observed read count reaches its threshold. With the default intensities and threshold one, about 86.3% of simulated contamination events produce positive reads: a supplied `q` of 20% corresponds to a fitted-model truth of about 17.26%. Almost all true-detection events survive this threshold under the defaults. Account for this distinction when checking recovery; the fitted `q` should not automatically be compared directly with `true_params$q_true`. The [bias recheck](https://github.com/AlexDiana/occJSDM/blob/codex/spatial-range-update/dev/simstudy/nonspatial-bias-recheck.md) gives the calculation and its checks.
+
+The fitter also centres and scales numeric collection covariates. Convert simulated collection coefficients to that same scale before comparing coefficients, or compare the collection probabilities that they produce. This changes the comparison scale without changing which sample each covariate belongs to.
+
 ## Setting up shared simulation parameters
 
 We use the same dimension, trait, and detection-process settings for

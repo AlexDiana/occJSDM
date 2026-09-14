@@ -286,7 +286,13 @@ simstudy_scenarios <- function() {
     # "B0 with nothing confounded against it", not a controlled contrast.
     mk("continuous", model = "continuous"),
 
-    # --- q cost-of-identifiability arms (TODO group B item 7, PLAN.md 21)
+    # --- q prior-distance arms (PLAN.md 21)
+    #
+    # Historical hypothesis below, superseded 14 September 2026: the old
+    # scoring compared recorded detections with nominal read events. The
+    # threshold correction explains the persistent high-K offset. Keep
+    # these scenarios and seed labels for paired comparisons; see
+    # dev/simstudy/nonspatial-bias-recheck.md. No q PG update is involved.
     #
     # The M ladder found q coverage falling 0.945 -> 0.614 as K rises 3 ->
     # 30. Alex sees no implementation defect in sample_pq_cpp(); the live
@@ -505,6 +511,46 @@ simstudy_param_blocks <- function(fit, sim, truth) {
   jo <- ro$jsdm_output
   jp <- sim$true_params$jsdmParams_true
 
+  # The simulator uses raw collection covariates; the fit centres/scales
+  # them. Transform the truth so both sides describe the same predictor.
+  beta_theta <- sim$true_params$beta_theta_true
+  if (!is.null(beta_theta) && nrow(beta_theta) > 1L) {
+    scaling <- fit$infos$list_X_theta_mat
+    covariates <- scaling$names_df
+    if (length(covariates) != nrow(beta_theta) - 1L ||
+        anyDuplicated(covariates) ||
+        !identical(colnames(fit$X_theta)[-1L], covariates) ||
+        (!is.null(rownames(beta_theta)) &&
+         !identical(rownames(beta_theta)[-1L], covariates))) {
+      stop("simstudy: collection coefficient/covariate mapping is ambiguous.")
+    }
+    centres <- scaling$mean_df[covariates]
+    scales <- scaling$sd_df[covariates]
+    if (length(centres) != length(covariates) ||
+        length(scales) != length(covariates) ||
+        anyDuplicated(names(scaling$mean_df)) ||
+        anyDuplicated(names(scaling$sd_df)) ||
+        any(!is.finite(centres)) || any(!is.finite(scales)) ||
+        any(scales <= 0)) {
+      stop("simstudy: collection covariate scales are missing or invalid.")
+    }
+    slopes <- beta_theta[-1L, , drop = FALSE]
+    beta_theta[1L, ] <- beta_theta[1L, ] + as.vector(crossprod(centres, slopes))
+    beta_theta[-1L, ] <- sweep(slopes, 1L, scales, "*")
+  }
+
+  # simstudy_fit() uses threshold one. A latent read event only becomes an
+  # observed detection if round(exp(log_intensity) - 1) is at least one.
+  # The boundary is log(1.5), not zero; the defaults match the simulator.
+  detection_truth <- function(nominal, mu, sigma) {
+    if (is.null(nominal)) return(NULL)
+    nominal * stats::pnorm(log(1.5), mu, sigma, lower.tail = FALSE)
+  }
+  p_true <- detection_truth(sim$true_params$p_true,
+                            truth$params$mu1 %||% 5, truth$params$sigma1 %||% 1)
+  q_true <- detection_truth(sim$true_params$q_true,
+                            truth$params$mu0 %||% 1.5, truth$params$sigma0 %||% 1)
+
   list(
     B0         = list(post = jo$B0_output,         truth = jp$B0),
     B          = list(post = jo$B_output,          truth = jp$B),
@@ -512,10 +558,10 @@ simstudy_param_blocks <- function(fit, sim, truth) {
     sigma_b    = list(post = jo$sigmab_output,     truth = jp$sigma_b),
     tau        = list(post = jo$tau_output,        truth = jp$tau),
     beta_theta = list(post = ro$beta_theta_output,
-                      truth = sim$true_params$beta_theta_true),
+                      truth = beta_theta),
     theta0     = list(post = ro$theta0_output,     truth = truth$params$theta0),
-    p          = list(post = ro$p_output,          truth = sim$true_params$p_true),
-    q          = list(post = ro$q_output,          truth = sim$true_params$q_true)
+    p          = list(post = ro$p_output,          truth = p_true),
+    q          = list(post = ro$q_output,          truth = q_true)
   )
 }
 
