@@ -14,7 +14,7 @@ stopifnot(all(manifest$nchain==2),all(manifest$nburn==3000),all(manifest$niter==
 counts<-table(manifest$scenario,manifest$prior);stopifnot(all(counts[counts>0]==10L))
 dir.create(dest,recursive=TRUE,showWarnings=FALSE)
 copy<-function(from,to=file.path(dest,basename(from))){stopifnot(file.copy(from,to,overwrite=TRUE))}
-scripts<-c('run_nonspatial_recheck.R','run_nonspatial_recheck_balanced.R','run_nonspatial_recheck_k6.R','run_known_z_control.R','run_long_convergence_checks.R','summarise_nonspatial_recheck.R','summarise_known_z.R','summarise_collection_contrasts.R','summarise_pcr_comparisons.R','summarise_long_convergence_checks.R','review_detection_ordering_case.R','plot_nonspatial_recheck.R','review_nonspatial_diagnostics.R','package_nonspatial_recheck.R')
+scripts<-c('run_nonspatial_recheck.R','run_nonspatial_recheck_balanced.R','run_nonspatial_recheck_k6.R','run_known_z_control.R','run_long_convergence_checks.R','summarise_nonspatial_recheck.R','summarise_known_z.R','summarise_collection_contrasts.R','summarise_pcr_comparisons.R','summarise_long_convergence_checks.R','review_detection_ordering_case.R','plot_nonspatial_recheck.R','plot_occupancy_error_explainer.R','review_nonspatial_diagnostics.R','package_nonspatial_recheck.R')
 for(p in scripts)copy(file.path(root,p))
 dir.create(file.path(dest,'q-audit'),showWarnings=FALSE)
 for(p in c('audit_q.R','reproduce_threshold_preprocessing.R','audit_completed_fits.R'))copy(file.path(root,'q-audit',p),file.path(dest,'q-audit',p))

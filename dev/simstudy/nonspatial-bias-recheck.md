@@ -2,11 +2,32 @@
 
 This investigation uses the approved code on main, including the collection-alignment, random-number and residual-correlation fixes. Both the generating model and the fitted model have spatial effects turned off. Doug asked to see the errors before deciding release targets, so these results do not automatically clear either beta check.
 
-The main findings are that the old high false-positive bias was largely a comparison error, tighter collection priors suppress real effects, and substantial errors at low and high occupancy probabilities remain in these designs. The practical laboratory comparison respects Doug's limit of six PCR replicates per primer. The report keeps the prior trade-offs, probability errors and numerical uncertainty separate; it does not select new defaults or declare a beta pass.
+The main findings are that the old high false-positive bias was largely a comparison error, tighter collection priors suppress real effects, and substantial occupancy errors remain in these designs. Low and high probabilities are pulled towards the middle. Middle probabilities have a small signed average error, but individual estimates still miss by about 17 percentage points on average at six PCR replicates per primer. That last number is a measured simulation result, not the teaching example below. The practical laboratory comparison respects Doug's limit of six PCR replicates per primer. The report keeps the prior trade-offs, probability errors and numerical uncertainty separate; it does not select new defaults or declare a beta pass.
 
 ## How to review this PR
 
 [PR #11](https://github.com/AlexDiana/occJSDM/pull/11) can be reviewed and merged independently of PR #8. Start with this report and its Still needed list, then review `tests/testthat/helper-simstudy.R` alongside `test-simstudy-truth.R`. Those two files correct the truth used to judge simulations; they do not change fitted values. Review the consolidated [TODO](../../TODO.md) and public limitations next. The CSVs and figures preserve the completed evidence and do not need line-by-line code review; the supplied scripts allow targeted checks of a result.
+
+## How to read the results
+
+An occupied/unoccupied state tells us whether a species is present at a particular site. An **occupancy probability** describes how likely that state is. We know the true probabilities here because we generated the simulated datasets; in a field survey they are unknown. The model estimates those probabilities from the available observations.
+
+Keep three stages separate. **Occupancy** concerns presence at the site. **Collection** concerns obtaining the species' DNA in a field sample when it is present at the site. **p** is the probability of a positive PCR result when the DNA is in the sample, and **q** is the probability of a positive result when it is absent from the sample. A small error in a laboratory rate does not establish an accurate occupancy probability.
+
+There are two questions to ask about each set of estimates:
+
+- **Average signed error: does the model tend to estimate too high or too low?** Subtract truth from each estimate, keeping the plus or minus sign, then average. Positive means too high; negative means too low. This is also called average bias. Opposite errors can cancel.
+- **Average absolute error: how far do the individual estimates miss?** Take the size of each error without its sign, then average. This is the mean absolute error, or MAE. Every miss counts, so overestimates and underestimates cannot cancel. It is not an uncertainty interval, and it does not mean every estimate misses by the same amount.
+
+Both measures use **percentage points** for probabilities. A true probability of 70% estimated as 73% gives a signed error of +3 points and an absolute error of 3 points. An estimate of 68% gives -2 points and an absolute error of 2 points. An error of 3 points is not a predicted probability of 3%.
+
+**Made-up example, not simulation results:** suppose one species has true occupancy probabilities of 30% and 70% at two sites, estimated as 40% and 60%. One error is +10 points and the other is -10 points. Their average signed error is zero, although both estimates are wrong. Their average absolute error is 10 points. These deliberately illustrative 10-point errors are separate from the real 17.1-point result reported below.
+
+![Made-up two-site example: opposite 10-point errors cancel in the signed average but have a mean absolute error of 10 points](nonspatial-bias-recheck/results/how-errors-cancel.png)
+
+For the actual study, we calculate these summaries within each simulated dataset and then give the ten datasets equal weight. Occupancy errors concern individual species-at-site probability estimates; p/q errors concern species-by-primer rate estimates. Unless a section explicitly says otherwise, the previously reported “average error” is the **signed** measure. RMSE is another measure of error size that gives extra weight to the largest misses; it also prevents opposite errors from cancelling.
+
+The bars in the original error plots show uncertainty in the estimated **average signed error across datasets**. They do not show the spread of individual mistakes, and they are not the model's credible intervals for occupancy. A short bar near zero can therefore coexist with substantial individual errors. The tables below make those errors visible through MAE.
 
 ## The previous false-positive comparison used the wrong truth
 
@@ -56,6 +77,17 @@ With thirty PCR replicates per primer, the low-contamination error is +0.0107 po
 
 At six PCR replicates per primer, current priors give average q errors of +0.071 percentage points under low contamination and -0.313 points under high contamination. Their between-dataset standard errors are 0.032 and 0.113 points. Average p errors are +1.03 and +2.52 points, compared with +2.89 and +6.58 at three replicates per primer.
 
+**Detection-rate errors at six replicates, using the default priors.** The following values all come from the completed simulations. “Absolute error” counts the size of each species-by-primer rate error before averaging.
+
+| Contamination | Rate being estimated | Average signed error | Average absolute error |
+|---|---|---:|---:|
+| Low | False-positive probability q | +0.07 points | 0.38 points |
+| Low | True-detection probability p | +1.03 points | 2.86 points |
+| High | False-positive probability q | -0.31 points | 1.34 points |
+| High | True-detection probability p | +2.52 points | 4.27 points |
+
+For example, under low contamination, q is only 0.07 points too high on average, while individual q estimates miss by 0.38 points on average. The first number describes the net direction of error; the second describes its size. Occupancy is a separate quantity and has much larger absolute errors, as shown next.
+
 Occupancy improves less. At six replicates, low/high probability errors remain +16.53/-19.49 points under low contamination and +19.41/-24.66 under high contamination. In the high-contamination comparison, moving from three to six replicates reduces the low-probability overestimate by 3.09 points and the high-probability underestimate by 4.92 points, with paired standard errors of 1.28 and 1.59 points. Mean absolute occupancy error falls from 22.89 to 20.33 points. More PCR information helps, but it does not resolve the large occupancy errors in this design.
 
 At six replicates under high contamination, q Beta(1,9) gives q error +0.17 points but increases p error to +3.38 points. Alternatively, p Beta(3,2) reduces p error to -0.43 points but increases the q underestimate to -0.64 points. Its low/high occupancy errors are +21.15/-22.73 points. These remain trade-offs, not grounds for automatically replacing the defaults.
@@ -70,6 +102,46 @@ These percentages describe the means of the assumed distributions before fitting
 
 ![Operational comparison at three and six PCR replicates per primer](nonspatial-bias-recheck/results/operational-pcr-bias.png)
 
+### Occupancy: average bias and average size of error at six PCR replicates
+
+**All values in this section come from the simulations.** These are non-spatial fits using six PCR replicates per primer and the default priors, averaged across ten datasets per contamination scenario. The low, middle and high groups are defined by the true occupancy probability, not by the model's estimate. They are groups of species-at-site probabilities, not groups of species classified as rare or common.
+
+The arrows show the change from each group's average true probability to its average estimate. This figure uses a probability axis from 0% to 100%; the earlier error figures use percentage-point differences.
+
+![Simulation results: group-average true and estimated occupancy probabilities at six PCR replicates per primer](nonspatial-bias-recheck/results/true-and-estimated-probabilities.png)
+
+**Low contamination:**
+
+| True-probability group | Average true probability | Average estimate | Average signed error | Average absolute error |
+|---|---:|---:|---:|---:|
+| Below 20% | 7.1% | 23.7% | +16.5 points | 17.1 points |
+| 20-80% | 50.1% | 48.4% | -1.7 points | 17.1 points |
+| Above 80% | 92.8% | 73.3% | -19.5 points | 19.8 points |
+| All probabilities | 50.2% | 48.5% | -1.8 points | 17.9 points |
+
+**High contamination:**
+
+| True-probability group | Average true probability | Average estimate | Average signed error | Average absolute error |
+|---|---:|---:|---:|---:|
+| Below 20% | 7.1% | 26.5% | +19.4 points | 19.9 points |
+| 20-80% | 50.1% | 47.6% | -2.5 points | 17.2 points |
+| Above 80% | 92.8% | 68.2% | -24.7 points | 24.9 points |
+| All probabilities | 50.2% | 47.5% | -2.7 points | 20.3 points |
+
+These tables report estimated averages across ten simulated datasets, not a guaranteed error for every future study. The [full-precision summaries](nonspatial-bias-recheck/results/summary.csv) and [per-dataset results](nonspatial-bias-recheck/results/dataset-groups.csv) retain the underlying values. Table values are rounded independently, so subtracting two displayed probabilities may differ slightly from the displayed signed error. The “All probabilities” row includes every species-at-site estimate, with each dataset given equal weight; it is not an equally weighted average of the three bands, which contain different numbers of estimates.
+
+Read the low-contamination results as follows. Where the species should be unlikely to occur, true probabilities average 7.1%, but estimates average 23.7%. Where it should be very likely, true probabilities average 92.8%, but estimates average 73.3%. The estimates therefore show less contrast between low and high occupancy. These arrows describe group averages; they do not mean every individual estimate moves in that direction by the same amount.
+
+**The middle-group result needs particular care.** Its average true probability is 50.1%, and the average estimate is 48.4%. That leaves a signed error of only -1.7 points. But taking the absolute value of each individual error before averaging gives **17.1 points**. The high-contamination figures are **-2.5 points signed error and 17.2 points absolute error**. These four numbers were calculated from the actual saved fits. The 10-point two-site example above only explains how cancellation works.
+
+![Actual middle-group results: small average signed errors alongside much larger mean absolute errors](nonspatial-bias-recheck/results/middle-group-bias-and-error-size.png)
+
+The left-hand bars answer “what error remains after overestimates and underestimates cancel?” The right-hand bars answer “how far did the individual estimates miss?” A small value on the left does not establish good individual estimates. Nor does it rule out systematic errors within narrower parts of the broad 20-80% group. The mean absolute error of 17.1 points is neither an error bar nor a claim that every estimate is exactly 17.1 points wrong.
+
+For a distribution map, this means that getting a group's average probability approximately right does not guarantee accurate probabilities at individual places. These particular simulations assess recovery at the sampled sites; they do not yet measure accuracy at new, unsampled sites. We also cannot use these results as a correction table for real maps: the groups rely on true probabilities that are unknown in a real survey.
+
+**What did the extra PCR replicates achieve?** Across all occupancy probabilities, the default-prior MAE falls from 18.35 to 17.87 points under low contamination and from 22.89 to 20.33 points under high contamination when moving from three to six replicates per primer. More PCR information helps, but the remaining errors are still substantial. Improved p/q estimates should not be described as having solved occupancy recovery.
+
 ### The alternative priors do not improve everything together
 
 At three replicates per primer, replacing q Beta(1,20) with Beta(1,9) changes the high-contamination q error from -0.64 to +0.50 points and slightly lowers q's mean absolute error from 2.01 to 1.93 points. But true-detection error increases from +6.58 to +8.97 points, and overall occupancy error shifts from -4.10 to -6.63 points. High-probability occupancy error worsens from -29.58 to -31.90 points, while low-probability overestimation decreases from +22.50 to +20.21 points. Judging q alone would conceal these consequences.
@@ -80,6 +152,16 @@ In the low-contamination three-replicate scenario, p Beta(3,2) reduces p error f
 
 At thirty replicates per primer, the q prior makes very little difference to the high-contamination rates: q errors are -0.026 points under Beta(1,20) and +0.026 points under Beta(1,9), while p errors are +0.322 and +0.344 points. The complete paired comparisons, including their standard errors and occupancy trade-offs, are supplied in the CSV files. No prior is selected as a new default.
 
+**Check error size as well as direction when comparing priors.** For example, under high contamination at six PCR replicates per primer, the MAEs are:
+
+| Prior choice | False-positive q MAE | True-detection p MAE | Occupancy MAE, all probabilities |
+|---|---:|---:|---:|
+| Defaults | 1.34 points | 4.27 points | 20.33 points |
+| Change q only to Beta(1,9) | 1.29 points | 4.62 points | 20.47 points |
+| Change p only to Beta(3,2) | 1.43 points | 3.72 points | 20.22 points |
+
+Changing q improves its own MAE slightly but worsens p and occupancy. Changing p improves its own MAE and slightly lowers overall occupancy MAE, but worsens q. All three leave occupancy MAE near 20 points. These point comparisons support assessing the quantities together; small differences here do not establish a generally superior prior. The paired-comparison CSVs report uncertainty in the changes.
+
 ### Detection-rate ordering and numerical uncertainty
 
 Three fits with alternative priors contain a species-primer pair for which more than half the saved posterior draws have p below q: one each under q9 and p32 at K3, and one under p32 at K6. In the K3 example, the current priors already leave the ordering nearly evenly split: Pr(p <= q) is 48.36%, rising to 57.90% under q9 and 67.66% under p32. Both chains cross the ordering boundary repeatedly and give similar answers. This supports uncertainty about those rates, rather than establishing that a chain is trapped or that the entire collection model has switched labels. Six replicates resolve the ordering for that particular pair, but a different K6 p32 pair still has Pr(p <= q) = 66.50%. All cases remain in the summaries. Neither alternative is established as a generally safe new default.
@@ -89,6 +171,8 @@ The complete grid produced 112 component warnings in 79 of 230 fits, mostly conc
 Two high-contamination K3 fits have individual scored-parameter Rhat above 1.1: `qfar_K3-q20-08` and `qfar_K3-q9-09`, with a maximum of 1.133. Longer checks using four chains, 6,000 burn-in and 12,000 retained iterations were started, then stopped at Doug's request to conserve credits. No completed results from those checks are included. Their original estimates remain in the primary summaries; the longer-run sensitivity check is outstanding.
 
 ## Occupancy and collection effects: completed paired results
+
+This section concerns the separate collection-prior experiment: the classical occupancy design and a two-stage design with **three** PCR replicates per primer. Its numbers should not be read as the six-replicate results above. A collection effect describes how changing a field-sampling covariate changes the probability of collecting DNA, conditional on the species being present at the site. It is not the same as changing the species' occupancy probability.
 
 The current collection-slope prior, variance 2, performs better at preserving real collection effects than the two tighter alternatives. For species with positive effects, increasing the covariate from its mean by one standard deviation truly raises collection probability by about 23 percentage points in both designs. The classical occupancy model estimates increases of 20.67 points with variance 2, 17.55 with variance 0.5 and 11.30 with variance 0.1. The two-stage model estimates 22.43, 17.29 and 9.82 points, respectively. These are probabilities of collecting the species conditional on its presence at the site, not changes in occupancy.
 
@@ -106,6 +190,19 @@ With current priors, average occupancy error over all sites and species is -0.93
 - Two-stage eDNA: low probabilities average 7.65% but are estimated as 27.40%; middle probabilities average 49.63% and are estimated as 46.94%; high probabilities average 91.99% but are estimated as 68.63%.
 
 The average low/middle/high errors are therefore +17.84/-1.20/-19.06 points for classical occupancy and +19.74/-2.69/-23.36 points for two-stage eDNA. Their between-dataset standard errors are 1.44/0.79/1.46 and 1.16/1.08/1.68 points. These estimates are pulled towards intermediate probabilities. This comparison groups sites by their simulated true probabilities; it describes recovery of low and high probabilities, rather than a calibration check grouping sites by their predicted probabilities. Positive and negative errors nearly cancel in the overall average, but mean absolute occupancy error remains 17.98 and 19.03 points, respectively. Overall RMSE is 23.44 and 23.66 points.
+
+The same distinction between signed and absolute errors applies here. With the current collection prior, the probability-band results are:
+
+| Design | True-probability group | Average signed error | Average absolute error |
+|---|---|---:|---:|
+| Classical occupancy | Below 20% | +17.84 points | 18.62 points |
+| Classical occupancy | 20-80% | -1.20 points | 16.51 points |
+| Classical occupancy | Above 80% | -19.06 points | 20.01 points |
+| Two-stage, three PCRs per primer | Below 20% | +19.74 points | 19.99 points |
+| Two-stage, three PCRs per primer | 20-80% | -2.69 points | 16.25 points |
+| Two-stage, three PCRs per primer | Above 80% | -23.36 points | 23.64 points |
+
+The middle groups again illustrate cancellation: average signed errors of -1.20 and -2.69 points coexist with absolute errors of 16.51 and 16.25 points. Small average bias in the middle therefore does not mean that most estimates are close to their true probabilities. These are actual simulation results from this separate experiment.
 
 Tightening collection priors moves occupancy estimates upward. That reduces the underestimation of high probabilities while increasing the overestimation of low probabilities. It leaves overall absolute error essentially unchanged or slightly worse in these designs. It does not solve the compression of the estimated probability range.
 
@@ -128,6 +225,8 @@ Beta(3,2) is centred nearer these simulated true-detection rates than Beta(5,1).
 ## How to interpret this evidence
 
 These checks measure recovery of underlying occupancy and detection probabilities at the sampled sites. They do not test predictions at new sites, all possible priors, spatial models, or every sampling design. Ten datasets are enough to reveal the large prior trade-offs and probability compression seen here, but not to rule out small biases. Rare-species groups occur in only one or two independent datasets in this grid; their rows are retained in the results, but they do not constitute a sufficient rare-species assessment.
+
+Both measures matter for interpretation: signed errors reveal whether a group is shifted systematically, while absolute errors reveal individual mistakes that can cancel in the signed average. Neither alone proves that a particular code defect or prior causes the errors. A requirement to fix material bias does not mean demanding zero absolute error, which is generally unattainable with finite data; the intended ecological use determines which errors matter.
 
 The results do not support changing the collection prior to variance 0.1 to repair the occupancy baseline. The alternative detection priors are sensitivity examples. Their usefulness depends on the detection rates and information in these simulations, and they should not become defaults solely because they improve this grid. No default has been changed.
 
@@ -166,7 +265,16 @@ Rscript summarise_pcr_comparisons.R .
 Rscript review_nonspatial_diagnostics.R .
 Rscript review_detection_ordering_case.R .
 Rscript plot_nonspatial_recheck.R .
+Rscript plot_occupancy_error_explainer.R main-results/summary/summary.csv main-results/summary
 ```
+
+The three teaching figures can also be regenerated directly from the already committed summary, without running or loading any model fit:
+
+```sh
+Rscript dev/simstudy/nonspatial-bias-recheck/plot_occupancy_error_explainer.R
+```
+
+The script reads `results/summary.csv`, writes the three figures beside it and exports their selected source values as `occupancy-error-explainer-values.csv`. The toy example is explicitly separate from those source values. Adding the MAE tables and teaching figures did not change the simulations, fitted values, original summary CSVs or priors. The report now contains the four original figures and three additional explanatory figures.
 
 The run first used the original `run_nonspatial_recheck.R`. After 117 completed fits, the queue was restarted with `run_nonspatial_recheck_balanced.R`, whose only difference is `chunk.size=1L` in the worker scheduling call. This spreads the longer 30-PCR fits evenly among four processes. Completed results were reused. The original settings were preserved, and source/library fingerprints, MCMC settings and dataset-specific fitting RNG states were checked unchanged. A fresh reproduction can use the balanced runner from the start, followed by the separate K=6 extension. The extension overlapped the finishing original batch locally; both used four workers with one sampler thread each. Its source/library and MCMC fingerprints were verified identical to the original batch.
 
@@ -179,4 +287,4 @@ The run first used the original `run_nonspatial_recheck.R`. After 117 completed 
 5. **Fix the read-threshold defect.** Thresholds greater than one currently erase detections. Correct the comparison against original counts, preserve missing values and add regression checks. This remains an open production-code issue in TODO.
 6. **Complete the separate spatial and release work.** PR #8 still needs Alex's spatial review and the remaining spatial checks. The optional continuous-noise prior is reviewed separately in [PR #10](https://github.com/AlexDiana/occJSDM/pull/10), which follows PR #8; the default decision remains open. Then check the final installed package, refit bundled example results and refresh affected vignette outputs. The non-spatial report does not clear these items.
 
-No default prior has changed, no beta release gate has been declared passed, and the unfinished longer fits have been stopped. The completed 230 comparison fits, 20 exact-occupancy controls, compact summaries, scripts and four figures are preserved.
+No default prior has changed, no beta release gate has been declared passed, and the unfinished longer fits have been stopped. The completed 230 comparison fits, 20 exact-occupancy controls, compact summaries, scripts and original figures are preserved; two new figures show those same results and one is a clearly labelled made-up teaching example.
