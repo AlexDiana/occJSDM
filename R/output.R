@@ -1435,11 +1435,9 @@ plotFactorLoadings <- function(fitModel,
 #' purely for visual balance -- this does not affect relative arrow
 #' lengths or directions.
 #'
-#' Under the model's identifiability constraint, species \code{i} anchors
-#' factor \code{i} (its loading is fixed to 1 rather than estimated; see
-#' \code{\link{returnFactorLoadings}}). When one of the fixed
-#' species/factor pairs falls within \code{idx_factors}, a caption flags
-#' this so the fixed arrow(s) are not mistaken for an estimated pattern.
+#' Factor scores and loadings use an orthogonal rotation and sign convention
+#' after fitting. Loading magnitudes remain estimated, preserving the
+#' residual species correlations (see \code{\link{returnFactorLoadings}}).
 #'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_factors Which factors to plot (2 should be selected)
@@ -1496,24 +1494,6 @@ plotBiplot <- function(fitModel,
   species_df$x <- species_df$x * scale_factor
   species_df$y <- species_df$y * scale_factor
 
-  # Species i anchors factor i under the model's identifiability
-  # constraint (reparamFactorModel()); only flag anchors whose factor is
-  # actually being plotted
-  fixed_factors <- idx_factors[idx_factors <= n_factors & idx_factors <= length(speciesNames)]
-  fixed_species <- speciesNames[fixed_factors]
-
-  caption_text <- NULL
-  if(length(fixed_species) > 0){
-    pairs_txt <- paste0(fixed_species, " (Factor ", fixed_factors, ")")
-    verb <- if(length(pairs_txt) > 1) "loadings are" else "loading is"
-    caption_text <- paste0(
-      paste(pairs_txt, collapse = " and "), " ", verb,
-      "\nfixed to 1 for identifiability and ",
-      if(length(pairs_txt) > 1) "are" else "is",
-      " not estimated."
-    )
-  }
-
   ggplot() +
     geom_point(data = site_df, aes(x, y), color = "grey50", alpha = 0.6) +
     geom_segment(
@@ -1530,8 +1510,7 @@ plotBiplot <- function(fitModel,
     ) +
     labs(
       x = paste0("Factor ", idx_factors[1]),
-      y = paste0("Factor ", idx_factors[2]),
-      caption = caption_text
+      y = paste0("Factor ", idx_factors[2])
     ) +
     theme_minimal() +
     theme(plot.caption = element_text(hjust = 0, face = "italic", size = 8))

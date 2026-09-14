@@ -12,30 +12,43 @@ reparamFactorModel <- function(U_output, L_output){
   nchain <- dim(L_output)[4]
   niter <- dim(L_output)[3]
 
-  for (chain in 1:nchain) {
+  for (chain in seq_len(nchain)) {
 
-    for (iter in 1:niter) {
+    for (iter in seq_len(niter)) {
+
+      if(d == 0) next
 
       if(d == 1){
 
-        L1 <- L_output[1,1,iter,chain]
-        L_output_reparam[1,,iter,chain] <- L_output[1,,iter,chain] / L1
-        U_output_reparam[,1,iter,chain] <- U_output[,1,iter,chain] * L1
+        # Orient the first nonzero loading positively without changing scale.
+        # A zero anchor (or an all-zero draw) must not cause division by zero.
+        loadings <- L_output[1,,iter,chain]
+        nonzero <- which(loadings != 0)
+        direction <- if(length(nonzero) && loadings[nonzero[1]] < 0) -1 else 1
+        L_output_reparam[1,,iter,chain] <- loadings * direction
+        U_output_reparam[,1,iter,chain] <- U_output[,1,iter,chain] * direction
 
       } else {
 
-        L_current <- L_output[,,iter,chain]
-        U_current <- U_output[,,iter,chain]
+        L_current <- matrix(L_output[,,iter,chain], d, dim(L_output)[2])
+        U_current <- matrix(U_output[,,iter,chain], dim(U_output)[1], d)
 
         qr_decomp <- qr(L_current)
-        Q_current <- qr.Q(qr_decomp)
+        Q_current <- qr.Q(qr_decomp, complete = TRUE)
         R_current <- qr.R(qr_decomp)
 
-        Q2 <- Q_current %*% diag(diag(R_current), nrow = d)
-        invQ2 <- diag(1 / diag(R_current), nrow = d) %*% t(Q_current)
+        # Only rotate/reflect: U Q Q' L = U L and (Q' L)' (Q' L) = L' L.
+        # Unequal diagonal rescaling would change the species correlations
+        # and the isotropic score prior used for new-site predictions.
+        # Complete Q also handles more factors than loading columns; missing
+        # or zero diagonal entries require no reflection or division.
+        direction <- rep(1, d)
+        direction[seq_along(diag(R_current))] <- ifelse(diag(R_current) < 0, -1, 1)
+        Q_current <- sweep(Q_current, 2, direction, "*")
 
-        L_new <- invQ2 %*% L_current
-        U_new <- U_current %*% Q2
+        # Multiply the original L so QR pivoting never permutes species.
+        L_new <- crossprod(Q_current, L_current)
+        U_new <- U_current %*% Q_current
 
         L_output_reparam[,,iter,chain] <- L_new
         U_output_reparam[,,iter,chain] <- U_new
