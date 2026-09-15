@@ -1,0 +1,4 @@
+case,true_range,repeats,n_supportpoints,n_factors,n_lattrait,nchain,nburn,niter,nthin,data_seed,fit_seed,environment_seed,outcome_seed,priors,source,runner_md5,saved_warnings
+package60-range4-full,0.106666666666667,60,80,0,0,2,300,600,1,817004,918004,827004,837004,Unmodified defaults of the selected source,grouped-full-support-snapshot,49ae11fb3f6fc837b2f7239f188dded6,0
+package60-range6-full,0.171111111111111,60,80,0,0,2,300,600,1,817006,918006,827006,837006,Unmodified defaults of the selected source,grouped-full-support-snapshot,49ae11fb3f6fc837b2f7239f188dded6,0
+package60-range8-full,0.235555555555556,60,80,0,0,2,300,600,1,817008,918008,827008,837008,Unmodified defaults of the selected source,grouped-full-support-snapshot,49ae11fb3f6fc837b2f7239f188dded6,0

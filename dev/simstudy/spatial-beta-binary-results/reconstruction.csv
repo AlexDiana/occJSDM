@@ -1,0 +1,13 @@
+case,quantity,maximum_absolute_difference
+package60-range4-full,probability_mean,4.44089209850063e-16
+package60-range4-full,probability_chains,6.66133814775094e-16
+package60-range4-full,field_mean,1.0096090630185e-15
+package60-range4-full,field_chains,1.33226762955019e-15
+package60-range6-full,probability_mean,9.99200722162641e-16
+package60-range6-full,probability_chains,1.27675647831893e-15
+package60-range6-full,field_mean,2.88657986402541e-15
+package60-range6-full,field_chains,3.33066907387547e-15
+package60-range8-full,probability_mean,3.77475828372553e-15
+package60-range8-full,probability_chains,3.99680288865056e-15
+package60-range8-full,field_mean,1.23234755733392e-14
+package60-range8-full,field_chains,1.28230759344206e-14

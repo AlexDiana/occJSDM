@@ -22,6 +22,8 @@ vignette("occJSDM", package = "occJSDM")
 vignette("simulateOccJSDMData", package = "occJSDM")
 ```
 
+For a plain-language explanation of spatial prediction, ecological inference and survey design, see [Spatial effects, inference and sampling design](vignettes/occJSDM.Rmd#spatial-effects-inference-and-sampling-design) in the main vignette. It covers the area represented by a sample, spacing and geographical extent, field and PCR replication, and how to check predictions at unsampled locations.
+
 ## How to cite
 
 If you use `occJSDM`, please cite the methods paper describing the underlying two-stage occupancy model, and cite this repository for the specific software implementation/version used.
