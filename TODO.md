@@ -153,6 +153,9 @@ Every outstanding item from the previous TODO is accounted for below or in the r
 ## Paper and broader validation
 
 - **Categorical species traits:** defer implementation. State the currently supported trait encoding; retaining species-trait modelling does not require introducing a new encoding in this beta.
+
+ALEX: THIS IS NOW IMPLEMENTED
+
 - **Reproduce the Ecology Letters analyses:** defer the full reproduction and decision about including it in the repository. The beta needs the targeted checks above.
 - **Repeat the complete simulation grid after fixes:** defer the comprehensive paper run. For a deliberate production-grid run, specify `base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated`; a bare runner invocation also selects additional experimental cells.
 - **Choose the paper's replicate count:** defer the R = 200-500 calibration study and any claim of nominal coverage. The existing R = 100 study remains a historical baseline.
