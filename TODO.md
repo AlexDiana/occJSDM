@@ -70,17 +70,14 @@ output: html_document
 
     **Before closing:** Alex should review the change and evidence, then record the decision before moving this item to *Fixed bugs*. Serial sampling is the beta safety contract; parallel RNG stream design remains deferred. These checks do not close the separate spatial, correlation, `B0` or high-`q` point-estimate gates, or establish nominal interval coverage.
 
-<<<<<<< HEAD
-    APPROVED
 
 3. **Preserve residual species correlations during factor reparameterisation.** `reparamFactorModel()` in `R/jsdmfun.R`, its calls in `runOccJSDM()`, and the correlation outputs in `R/output.R`. The current transform preserves `U %*% L` but rescales factors unequally, so `cov2cor(crossprod(L))` changes. A direct check of current code changes one species pair from +0.316 to -0.316 without changing the linear predictor. This is an algebraic output defect; the withdrawn coverage argument is unnecessary, and even the signs are not a safe workaround.
-=======
-3. **ALEX TO REVIEW: preserve residual species correlations during factor reparameterisation.** Implemented on branch `codex/preserve-residual-correlations`. `reparamFactorModel()` in `R/jsdmfun.R` now applies an orthogonal QR rotation with signs only, and a sign reflection for one factor. It preserves both the factor contribution and the loading covariance, including zero anchors, deficient rank and rectangular matrices. Both final `U`/`L` and `A`/`C` call sites in `runOccJSDM()` use the correction. `plotBiplot()` and its help no longer claim loadings are fixed to one.
->>>>>>> 78560296a21ab82f6a4dd997cabe029e7060cc22
 
     **Validation:** 235 focused expectations cover the per-draw invariants, actual stored factor and trait products, correlation outputs, ordination and prediction scale; the full suite passes. Three continuous and three binary datasets with non-degenerate correlations use paired old/corrected transformations of identical posterior draws. Mean absolute correlation error falls from 0.247 to 0.021 for continuous data and from 0.179 to 0.054 for binary data; corrected correlations match the raw draws within `6.7e-16`. The package check has zero errors; its three warnings are from unchanged source/toolchain issues.
 
     **Review evidence and limits:** [mathematical audit, results and reproduction instructions](dev/simstudy/factor-correlation-validation.md), with the tracked runner `dev/simstudy/validate_factor_correlations.R`. This removes an output distortion without changing the sampler; it does not establish nominal interval coverage or close other recovery gates. Old saved fits require refitting or retained raw draws because the discarded scales cannot be recovered from their normalized loadings. Retain this item until Alex reviews it.
+
+    APPROVED
 
 4. **Resolve the spatial length-scale boundary behavior on the full fitting path.** `update_jSDMcoef()`, `computePsiCoef()` and `precomputeSORmatrices()` in `R/jsdmfun.R`, together with the spatial coefficient update in `src/jsdm.cpp`. The recorded failure is that different generating ranges lead to the largest grid value. *Fixed bugs* 48 closed the isolated `sample_ls()` investigation; a successful test using a supplied GP draw does not validate the inputs produced during an actual fit.
 
