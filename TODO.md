@@ -79,7 +79,6 @@ output: html_document
 
     APPROVED
 
-    APPROVED
 
 4. **Resolve the spatial length-scale boundary behavior on the full fitting path.** `update_jSDMcoef()`, `computePsiCoef()` and `precomputeSORmatrices()` in `R/jsdmfun.R`, together with the spatial coefficient update in `src/jsdm.cpp`. The recorded failure is that different generating ranges lead to the largest grid value. *Fixed bugs* 48 closed the isolated `sample_ls()` investigation; a successful test using a supplied GP draw does not validate the inputs produced during an actual fit.
 
@@ -94,6 +93,8 @@ output: html_document
     **Do:** build the binary matrix from the original counts in a single comparison rather than two sequential in-place assignments, preserving missing values. Cover both models in that branch, not only `two_stage`.
 
     **Done when:** regression tests cover thresholds 1, 2 and 3 and assert the resulting detections against a binary matrix computed directly from the counts, including missing values. A fit at a threshold above one agrees with fitting the equivalent data thresholded outside the package. A reproducer through the installed entry point already exists on the PR #11 branch at `dev/simstudy/nonspatial-bias-recheck/q-audit/reproduce_threshold_preprocessing.R`.
+    
+    FIXED
 
 ## Required bias recheck and release preparation (Doug and Alex)
 

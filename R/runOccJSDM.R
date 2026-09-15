@@ -499,8 +499,10 @@ runOccJSDM <- function(data,
         stop("'threshold' must be strictly greater than 0.")
       }
 
-      y[y >= threshold] <- 1
-      y[y < threshold] <- 0
+      readsAboveThreshold <- y >= threshold
+      readsBelowThreshold <- y < threshold
+      y[readsAboveThreshold] <- 1
+      y[readsBelowThreshold] <- 0
 
     }
 
