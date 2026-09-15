@@ -50,11 +50,11 @@ output: html_document
 
 **Release criterion agreed 10 September 2026:** retain all advertised modelling features, fix incorrect or materially biased point estimates, and allow undercoverage or overcoverage to wait. This triage assumes a GitHub beta. The CRAN submission and paper work can follow later.
 
-**Beta gates: review the collection-covariate fix, complete the other three code workstreams, then run the targeted bias and release checks.** The `B0` and high-`q` findings remain conditional release gates: reassess them after the code fixes before deciding whether any prior change is needed.
+**Beta gates: workstreams 1 to 3 are approved; complete the spatial fitting and read-threshold items, then run the targeted bias and release checks.** The `B0` and high-`q` findings remain conditional release gates: reassess them after the code fixes before deciding whether any prior change is needed.
 
 ## Required code work (Alex, with Doug validating)
 
-1. **ALEX TO REVIEW: align collection covariates with the samples used by the sampler.** Implemented on branch `codex/align-collection-covariates`. In `R/runOccJSDM.R`, one canonical table of typed `(Site, Sample)` pairs now supplies `M` and `X_theta`, in the same order as `P`, `K` and the latent-state indices. Collection covariates are read directly from those rows, preserving identifier columns when requested as covariates. The pasted `SiteSample` label no longer controls covariate grouping or ordering.
+1. **Align collection covariates with the samples used by the sampler.** Implemented on branch `codex/align-collection-covariates`. In `R/runOccJSDM.R`, one canonical table of typed `(Site, Sample)` pairs now supplies `M` and `X_theta`, in the same order as `P`, `K` and the latent-state indices. Collection covariates are read directly from those rows, preserving identifier columns when requested as covariates. The pasted `SiteSample` label no longer controls covariate grouping or ordering.
 
     **Review:** check the source change and `test-collection-alignment.R`. Its 70 assertions verify actual covariate/observation/index pairing for numeric sites `1`, `2`, `10`, global and within-site sample IDs, shuffled rows, unequal primer/PCR replication, colliding character labels, categorical covariates, identifier covariates and intercept-only models. The original implementation fails the pairing checks; the revised implementation passes.
 
@@ -62,7 +62,7 @@ output: html_document
 
     APPROVED
     
-2. **ALEX TO REVIEW: ensure random draws on the public fitting path are safe and independent.** Implemented on branch `codex/serial-sampling-rng`. The collection and JSDM Polya-Gamma sampling bodies now execute directly on the main thread, including when several TBB threads are requested. The two dormant RNG-bearing worker helpers also run serially. `src/rng.h` uses one advancing R-seeded C++ stream; it no longer derives supposedly independent TBB streams from OpenMP thread IDs. All modelling features remain available, and deterministic probability/sufficient-statistic workers remain parallel.
+2. **Ensure random draws on the public fitting path are safe and independent.** Implemented on branch `codex/serial-sampling-rng`. The collection and JSDM Polya-Gamma sampling bodies now execute directly on the main thread, including when several TBB threads are requested. The two dormant RNG-bearing worker helpers also run serially. `src/rng.h` uses one advancing R-seeded C++ stream; it no longer derives supposedly independent TBB streams from OpenMP thread IDs. All modelling features remain available, and deterministic probability/sufficient-statistic workers remain parallel.
 
     **Review:** inspect `src/rng.h`, the four changed worker invocation sites in `src/functions.cpp` and `src/jsdm.cpp`, and `test-rng-safety.R`. Before the fix, the new tests found only 2,447 distinct values among 8,192 PG draws and failed nine assertions. After the fix, all 29 assertions pass: same-seed full fits reproduce across requested one/four threads and repeated four-thread fits for binary, continuous, occupancy and two-stage models, including spatial fields, traits, factors, multiple primers and collection covariates. Consecutive fits and repeated sampler calls consume new draws; the requested thread setting is preserved.
 
@@ -70,12 +70,14 @@ output: html_document
 
     **Before closing:** Alex should review the change and evidence, then record the decision before moving this item to *Fixed bugs*. Serial sampling is the beta safety contract; parallel RNG stream design remains deferred. These checks do not close the separate spatial, correlation, `B0` or high-`q` point-estimate gates, or establish nominal interval coverage.
 
+3. **Preserve residual species correlations during factor reparameterisation.** Implemented on branch `codex/preserve-residual-correlations`. `reparamFactorModel()` in `R/jsdmfun.R` now applies an orthogonal QR rotation with signs only, and a sign reflection for one factor. It preserves both the factor contribution and the loading covariance, including zero anchors, deficient rank and rectangular matrices. Both final `U`/`L` and `A`/`C` call sites in `runOccJSDM()` use the correction. `plotBiplot()` and its help no longer claim loadings are fixed to one.
 
-3. **Preserve residual species correlations during factor reparameterisation.** `reparamFactorModel()` in `R/jsdmfun.R`, its calls in `runOccJSDM()`, and the correlation outputs in `R/output.R`. The current transform preserves `U %*% L` but rescales factors unequally, so `cov2cor(crossprod(L))` changes. A direct check of current code changes one species pair from +0.316 to -0.316 without changing the linear predictor. This is an algebraic output defect; the withdrawn coverage argument is unnecessary, and even the signs are not a safe workaround.
 
     **Validation:** 235 focused expectations cover the per-draw invariants, actual stored factor and trait products, correlation outputs, ordination and prediction scale; the full suite passes. Three continuous and three binary datasets with non-degenerate correlations use paired old/corrected transformations of identical posterior draws. Mean absolute correlation error falls from 0.247 to 0.021 for continuous data and from 0.179 to 0.054 for binary data; corrected correlations match the raw draws within `6.7e-16`. The package check has zero errors; its three warnings are from unchanged source/toolchain issues.
 
-    **Review evidence and limits:** [mathematical audit, results and reproduction instructions](dev/simstudy/factor-correlation-validation.md), with the tracked runner `dev/simstudy/validate_factor_correlations.R`. This removes an output distortion without changing the sampler; it does not establish nominal interval coverage or close other recovery gates. Old saved fits require refitting or retained raw draws because the discarded scales cannot be recovered from their normalized loadings. Retain this item until Alex reviews it.
+    **Review evidence and limits:** [mathematical audit, results and reproduction instructions](dev/simstudy/factor-correlation-validation.md), with the tracked runner `dev/simstudy/validate_factor_correlations.R`. This removes an output distortion without changing the sampler; it does not establish nominal interval coverage or close other recovery gates. Old saved fits require refitting or retained raw draws because the discarded scales cannot be recovered from their normalized loadings.
+
+    APPROVED
 
     APPROVED
 
@@ -84,6 +86,14 @@ output: html_document
     **Do:** reproduce the full-fit symptom with the current simulator and a nonzero spatial field. Trace the `SE` passed to `sample_ls()` after the coefficient updates, and verify that its coordinates, scale and covariance representation match `Ks_all`, `Lm1_grid` and `logDetKuu_grid`. Fix the demonstrated mismatch in field construction or scoring. Do not repeat the already ruled-out amplitude and log-determinant experiments without new evidence.
 
     **Done when:** several sufficiently informative simulated datasets with distinct interior grid ranges no longer all select the same upper boundary, and spatial-field and occupancy point estimates recover their generating pattern and level. Use the coordinate scale actually fitted and a fixed knot count. A moving chain alone is insufficient; exact range recovery in every replicate and nominal interval coverage are not beta requirements. Keep spatial fitting available.
+
+5. **Correct read thresholds greater than one, which currently erase every detection.** `R/runOccJSDM.R:502-503`, in the `occupancy` and `two_stage` branch. Truncation is two in-place statements: `y[y >= threshold] <- 1` sets every qualifying count to 1, and `y[y < threshold] <- 0` then zeroes those same entries, because 1 is below any threshold above one. So `threshold = 2` and `threshold = 3` hand the sampler an all-zero detection matrix, and the fit proceeds on data containing no detections at all. The default `threshold = 1` is unaffected, which is why this survived. Found by the PR #11 investigation and confirmed here on 14 September 2026 by running the two statements on `c(0, 1, 3, 7, 25, NA)`: four detections at threshold 1, none at 2 or 3, with `NA` preserved throughout.
+
+    **This is a documented argument, not an unsupported one.** The roxygen at `R/runOccJSDM.R:290` states that reads at or above the threshold count as a detection and that the value must be at least 1, and the validation at `:495` rejects only values of zero or below. Thresholds of 2 and 3 therefore pass every check the function makes and then destroy the data silently. Nothing in `tests/testthat/` passes a `threshold` argument at all, so no existing test could have caught it.
+
+    **Do:** build the binary matrix from the original counts in a single comparison rather than two sequential in-place assignments, preserving missing values. Cover both models in that branch, not only `two_stage`.
+
+    **Done when:** regression tests cover thresholds 1, 2 and 3 and assert the resulting detections against a binary matrix computed directly from the counts, including missing values. A fit at a threshold above one agrees with fitting the equivalent data thresholded outside the package. A reproducer through the installed entry point already exists on the PR #11 branch at `dev/simstudy/nonspatial-bias-recheck/q-audit/reproduce_threshold_preprocessing.R`.
 
 ## Required bias recheck and release preparation (Doug and Alex)
 
