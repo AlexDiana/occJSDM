@@ -61,7 +61,7 @@ output: html_document
     **Before closing:** review the paired recovery results in `dev/simstudy/collection-alignment-validation.md`, then record Alex's decision before moving this item to *Fixed bugs*. The reproducible runner is `dev/simstudy/validate_collection_alignment.R`. It compares negative, zero and positive slopes on the fitted covariate scale using unchanged priors and backend code. This alignment fix does not close the separate `B0`, high-`q`, RNG, correlation or spatial gates. Any material slope bias exposed by subsequent checks remains a beta blocker; interval coverage alone does not.
 
     APPROVED
-    
+
 2. **Ensure random draws on the public fitting path are safe and independent.** Implemented on branch `codex/serial-sampling-rng`. The collection and JSDM Polya-Gamma sampling bodies now execute directly on the main thread, including when several TBB threads are requested. The two dormant RNG-bearing worker helpers also run serially. `src/rng.h` uses one advancing R-seeded C++ stream; it no longer derives supposedly independent TBB streams from OpenMP thread IDs. All modelling features remain available, and deterministic probability/sufficient-statistic workers remain parallel.
 
     **Review:** inspect `src/rng.h`, the four changed worker invocation sites in `src/functions.cpp` and `src/jsdm.cpp`, and `test-rng-safety.R`. Before the fix, the new tests found only 2,447 distinct values among 8,192 PG draws and failed nine assertions. After the fix, all 29 assertions pass: same-seed full fits reproduce across requested one/four threads and repeated four-thread fits for binary, continuous, occupancy and two-stage models, including spatial fields, traits, factors, multiple primers and collection covariates. Consecutive fits and repeated sampler calls consume new draws; the requested thread setting is preserved.
@@ -70,15 +70,15 @@ output: html_document
 
     **Before closing:** Alex should review the change and evidence, then record the decision before moving this item to *Fixed bugs*. Serial sampling is the beta safety contract; parallel RNG stream design remains deferred. These checks do not close the separate spatial, correlation, `B0` or high-`q` point-estimate gates, or establish nominal interval coverage.
 
-3. **Preserve residual species correlations during factor reparameterisation.** Implemented on branch `codex/preserve-residual-correlations`. `reparamFactorModel()` in `R/jsdmfun.R` now applies an orthogonal QR rotation with signs only, and a sign reflection for one factor. It preserves both the factor contribution and the loading covariance, including zero anchors, deficient rank and rectangular matrices. Both final `U`/`L` and `A`/`C` call sites in `runOccJSDM()` use the correction. `plotBiplot()` and its help no longer claim loadings are fixed to one.
+    APPROVED
 
+3. **Preserve residual species correlations during factor reparameterisation.** Implemented on branch `codex/preserve-residual-correlations`. `reparamFactorModel()` in `R/jsdmfun.R` now applies an orthogonal QR rotation with signs only, and a sign reflection for one factor. It preserves both the factor contribution and the loading covariance, including zero anchors, deficient rank and rectangular matrices. Both final `U`/`L` and `A`/`C` call sites in `runOccJSDM()` use the correction. `plotBiplot()` and its help no longer claim loadings are fixed to one.
 
     **Validation:** 235 focused expectations cover the per-draw invariants, actual stored factor and trait products, correlation outputs, ordination and prediction scale; the full suite passes. Three continuous and three binary datasets with non-degenerate correlations use paired old/corrected transformations of identical posterior draws. Mean absolute correlation error falls from 0.247 to 0.021 for continuous data and from 0.179 to 0.054 for binary data; corrected correlations match the raw draws within `6.7e-16`. The package check has zero errors; its three warnings are from unchanged source/toolchain issues.
 
     **Review evidence and limits:** [mathematical audit, results and reproduction instructions](dev/simstudy/factor-correlation-validation.md), with the tracked runner `dev/simstudy/validate_factor_correlations.R`. This removes an output distortion without changing the sampler; it does not establish nominal interval coverage or close other recovery gates. Old saved fits require refitting or retained raw draws because the discarded scales cannot be recovered from their normalized loadings.
 
     APPROVED
-
 
 4. **Resolve the spatial length-scale boundary behavior on the full fitting path.** `update_jSDMcoef()`, `computePsiCoef()` and `precomputeSORmatrices()` in `R/jsdmfun.R`, together with the spatial coefficient update in `src/jsdm.cpp`. The recorded failure is that different generating ranges lead to the largest grid value. *Fixed bugs* 48 closed the isolated `sample_ls()` investigation; a successful test using a supplied GP draw does not validate the inputs produced during an actual fit.
 
@@ -93,7 +93,7 @@ output: html_document
     **Do:** build the binary matrix from the original counts in a single comparison rather than two sequential in-place assignments, preserving missing values. Cover both models in that branch, not only `two_stage`.
 
     **Done when:** regression tests cover thresholds 1, 2 and 3 and assert the resulting detections against a binary matrix computed directly from the counts, including missing values. A fit at a threshold above one agrees with fitting the equivalent data thresholded outside the package. A reproducer through the installed entry point already exists on the PR #11 branch at `dev/simstudy/nonspatial-bias-recheck/q-audit/reproduce_threshold_preprocessing.R`.
-    
+
     FIXED
 
 ## Required bias recheck and release preparation (Doug and Alex)
