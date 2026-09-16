@@ -152,10 +152,7 @@ Every outstanding item from the previous TODO is accounted for below or in the r
 
 ## Paper and broader validation
 
-- **Categorical species traits:** defer implementation. State the currently supported trait encoding; retaining species-trait modelling does not require introducing a new encoding in this beta.
-
-ALEX: THIS IS NOW IMPLEMENTED
-
+- ~~**Categorical species traits:** defer implementation.~~ **IMPLEMENTED by Alex, 16 September 2026** (`9a784a9`, `bf76faa`). `data$traits` now accepts a data.frame with factor columns. `R/runOccJSDM.R:732` routes it through `create_covariates_matrix()` with `remove_intercept = TRUE`, so categorical traits are dummy-coded the way occupancy covariates already were, and `fit$infos$list_Tr_mat` records the encoding. Covered by the "model fits with categorical species traits" test in `test-smoke-configs.R`; suite 641 passing on 16 September. The `traits` roxygen now documents a matrix or data.frame of numeric and/or categorical traits. Nothing further is deferred here.
 - **Reproduce the Ecology Letters analyses:** defer the full reproduction and decision about including it in the repository. The beta needs the targeted checks above.
 - **Repeat the complete simulation grid after fixes:** defer the comprehensive paper run. For a deliberate production-grid run, specify `base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated`; a bare runner invocation also selects additional experimental cells.
 - **Choose the paper's replicate count:** defer the R = 200-500 calibration study and any claim of nominal coverage. The existing R = 100 study remains a historical baseline.
@@ -284,7 +281,7 @@ Items 16 and 18 are marked **partially fixed**: the crash in each is gone, but p
 
     **Only the wiring is closed.** What the default *should be* remains open and is a design decision, not a defect. It was tracked as a group B item until Alex removed it in `093f2bb`; if that removal meant the decision is made, the chosen values should be recorded here, and if not the item needs restoring.
 
-28. **`set.seed()` did not control any of the C++ samplers, so `runOccJSDM()` was not reproducible.** Found 29 July 2026 while writing the regression test for Fixed bugs 26; fixed the same day.
+28. ~~**`set.seed()` did not control any of the C++ samplers, so `runOccJSDM()` was not reproducible.**~~ Found 29 July 2026 while writing the regression test for Fixed bugs 26; fixed the same day.
 
     Fixed bugs 26 replaced `randinvg()`'s use of R's global RNG inside an OpenMP loop with `thread_local` engines, which correctly closed the data race. But neither replacement engine ever read R's RNG state: `get_rng()` was seeded from the literal `12345 + omp_get_thread_num()`, and `mvrnormArmaQuick_TS()` from `std::random_device{}()`. Measured before the fix: two fits of the same fixture under the same `set.seed(4242)` differed by 5.09 on `B0_output`.
 
@@ -304,13 +301,13 @@ Items 16 and 18 are marked **partially fixed**: the crash in each is gone, but p
 
     **Reviewed by Alex, 31 July 2026: "We don't care about reproducibility."** Taken as a decision not to invest further, not a request to revert, and the fix stays. Worth recording why: reproducibility here is **load-bearing internally even though it is not a user-facing priority**. The simulation study's paired design depends on it, and that pairing is what produced the strongest evidence in the whole study, that only 104 of 49,978 `resid_cor` coverage decisions flipped between the pre- and post-fix runs on identical truths. Remove the R-derived seeding and every future before/after comparison loses that power. The tier-1 test at `test-regression-bugs.R:243` guards it and should stay.
 
-29. **The sparse-GP knot default no longer floors at 30 or crashes below 31 sites.** Filed 27 July 2026 (then group B item 3) after the simulation study hit it; fixed by Alex in `42198d9`, unlogged. Verified 29 July: `getDefaultSupportPoints()` (`R/jsdmfun.R:875`) is now `min(floor(n * 0.2), n - 1)`. The old `max(30, floor(n * 0.2))` fed `kmeans(X_s, centers = ps)` and so was a constant 30 for any dataset below 150 sites -- roughly one knot per site at n = 31, defeating the point of a sparse GP -- and errored outright below 31. The `n - 1` cap is what removes the crash.
+29. ~~**The sparse-GP knot default floors at 30 and crashes below 31 sites.**~~ Filed 27 July 2026 (then group B item 3) after the simulation study hit it; fixed by Alex in `42198d9`, unlogged. Verified 29 July: `getDefaultSupportPoints()` (`R/jsdmfun.R:875`) is now `min(floor(n * 0.2), n - 1)`. The old `max(30, floor(n * 0.2))` fed `kmeans(X_s, centers = ps)` and so was a constant 30 for any dataset below 150 sites -- roughly one knot per site at n = 31, defeating the point of a sparse GP -- and errored outright below 31. The `n - 1` cap is what removes the crash.
 
-30. **`ds = 0` no longer produces a null spatial field.** Filed 27 July 2026 (then group B item 4); fixed by Alex in `42198d9`, unlogged. The simulator's cross-species spatial covariance used to collapse to jitter at `ds = 0` -- measured `sd(spatField)` of 0.0019 against \~1.0 at `ds = 2` -- so any scenario built at `ds = 0` was silently a null-field test. Verified 29 July at seed 42: `sd(spatField)` is 0.598 at `ds = 0`, 0.467 at `ds = 1`, 0.678 at `ds = 2`. The study grid still uses `ds = 2`, now by choice rather than necessity.
+30. ~~**`ds = 0` produces a null spatial field.**~~ Filed 27 July 2026 (then group B item 4); fixed by Alex in `42198d9`, unlogged. The simulator's cross-species spatial covariance used to collapse to jitter at `ds = 0` -- measured `sd(spatField)` of 0.0019 against \~1.0 at `ds = 2` -- so any scenario built at `ds = 0` was silently a null-field test. Verified 29 July at seed 42: `sd(spatField)` is 0.598 at `ds = 0`, 0.467 at `ds = 1`, 0.678 at `ds = 2`. The study grid still uses `ds = 2`, now by choice rather than necessity.
 
     *Both of these were removed from group B by `42198d9` without a Fixed-bugs entry, which is why they are recorded here late. The check that caught it: `TODO.md`'s group B numbering had a gap at 5 and 6.*
 
-31. **`plotCollectionRates()` errored on every input.** Reported by Doug 29 July 2026, fixed the same day. Failed with `object 'Min' not found` for any `fitModel`, with or without `idx_species`.
+31. ~~**`plotCollectionRates()` errored on every input.**~~ Reported by Doug 29 July 2026, fixed the same day. Failed with `object 'Min' not found` for any `fitModel`, with or without `idx_species`.
 
     `plotSpeciesRates()` (`R/output.R:819`) had been extracted as a shared helper and never wired up to its only caller. Three independent breakages in the same call path, which is why nothing had ever run it successfully:
 
@@ -324,13 +321,13 @@ Items 16 and 18 are marked **partially fixed**: the crash in each is gone, but p
 
     **Note, since resolved:** this fixed the species-ordering defect for this function only. `plotOccupancyRates()`, `plotFPTPStage2Rates()` and `plotStage1FPRates()` still ordered on the full species set while indexing a filtered one (this was filed as group C at the time, not group B as originally written here). The test added here asserted label-to-value pairing rather than mere absence of error, and served as the template for fixing those three -- see Fixed bugs 32.
 
-32. **`plotOccupancyRates()`, `plotFPTPStage2Rates()` and `plotStage1FPRates()` shared the species-ordering defect `plotCollectionRates()` had (Fixed bugs 31).** Filed as group C at the time; fixed by Claude 29 July 2026. Each computed `order()` on the *filtered* `idx_species` subset and then used the result to index the *unfiltered* `speciesNames`, so for any `idx_species` other than a prefix `1:k` the factor levels named the wrong species and bars silently vanished.
+32. ~~**`plotOccupancyRates()`, `plotFPTPStage2Rates()` and `plotStage1FPRates()` shared the species-ordering defect `plotCollectionRates()` had (Fixed bugs 31).**~~ Filed as group C at the time; fixed by Claude 29 July 2026. Each computed `order()` on the *filtered* `idx_species` subset and then used the result to index the *unfiltered* `speciesNames`, so for any `idx_species` other than a prefix `1:k` the factor levels named the wrong species and bars silently vanished.
 
     `plotOccupancyRates()` and `plotStage1FPRates()` now delegate to the `plotSpeciesRates()` helper fixed in Fixed bugs 31, which subsets first and derives labels from the subset. `plotFPTPStage2Rates()` has a two-interval (`p`/`q`) layout that doesn't fit that helper, so it was fixed inline: order and labels are both now derived from the filtered `data_plot`. `plotStage2FPRates()` was already correct and untouched.
 
     Verified against a live fit with `idx_species = c(3, 1, 10)`: all four functions now plot exactly that subset with matching labels. Full test suite passes (119/119). `R/output.R`.
 
-33. **`returnCovariateEffect()`/`plotCovariateEffect()` had no `idx_species` default, and fixing that exposed two further bugs in the code they call.** Filed as group C at the time; fixed by Claude 29 July 2026.
+33. ~~**`returnCovariateEffect()`/`plotCovariateEffect()` had no `idx_species` default, and fixing that exposed two further bugs in the code they call.**~~ Filed as group C at the time; fixed by Claude 29 July 2026.
 
     Both functions declared `idx_species` with no default, so `returnCovariateEffect(fit, covName)` errored instead of defaulting to all species -- the same gap as `predictNewSites()` (Fixed bugs 34). Gave both a `NULL` default resolving to all species, matching every other return/plot function in `R/output.R`.
 
@@ -360,7 +357,7 @@ Items 16 and 18 are marked **partially fixed**: the crash in each is gone, but p
 
     **Noticed, not fixed:** `computeNewOutputs()` prints `Computing species i out of S` to stdout via `Rcout` on every call, unconditionally, and it cannot be silenced. Filed separately in group C.
 
-35. **The vignette could not be built, so `R CMD check` never reached code inspection.** **FIXED 30 July 2026** by Doug regenerating `data/sampleresults.rda`.
+35. ~~**The vignette could not be built, so `R CMD check` never reached code inspection.**~~ **FIXED 30 July 2026** by Doug regenerating `data/sampleresults.rda`.
 
     Two failures in sequence, each hidden behind the previous one. First `plotCollectionRates()` errored on every input (Fixed bugs 31). With that fixed, the build failed in `plotCovariateEffect()`, apparently for want of a `covNames` default; naming the covariate in the chunk did not fix it either, and it then failed with `'from' must be a finite number`.
 
