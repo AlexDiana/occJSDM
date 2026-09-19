@@ -1,5 +1,7 @@
 # More field samples, more sites, and known site conditions
 
+**JSDM-only follow-up completed 19 September:** the [100, 300 and 1,000-site comparison](jsdm-sample-size-recheck.md) supplies exact presence/absence, removing collection and PCR error. At the same original 100 sites, average absolute occupancy-probability error falls from 11.8 to 9.7 to 8.9 percentage points. All ten communities improve at each increase in site count; two longer checks barely change the results. The report includes three figures and explains why perfect observations do not reveal exact probabilities.
+
 This follow-up asks whether the large occupancy errors in the [non-spatial investigation](nonspatial-bias-recheck.md) improve when we collect more field samples, visit more sites, or supply information about the hidden differences between sites. It uses six PCR replicates per primer throughout. **More field samples and more sites both help, but substantial occupancy errors remain.** Four field samples at 100 sites give almost the same overall improvement as two samples at 300 sites in these simulations, with a smaller increase in sampling and PCR effort. Supplying the true hidden site conditions also helps, but does not remove the difficulty.
 
 ## What changes in each comparison?

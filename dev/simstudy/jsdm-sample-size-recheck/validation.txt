@@ -1,0 +1,7 @@
+Input construction: PASS for all ten nested communities; exact z, raw relationships, traits, site identity and probabilities preserved.
+PASS: signed versus absolute errors, all pilot posterior means and every group trace independently reconstructed.
+PASS: all 30 raw fits, 240 group scores, 30,000 original-site estimates, summary means and paired intervals independently verified. Maximum posterior-mean discrepancy: 1.3655743e-14
+PASS: all 30 raw fits, 240 group scores, 30,000 original-site estimates, summary means and paired intervals independently verified. Maximum posterior-mean discrepancy: 2.4980018e-14
+Largest change in ten-community average bias: 0.007675968 points; MAE: 0.003699184 points.
+Both targeted longer fits completed without warnings. All three initial figures were visually checked; final figures use the same layout and the substituted results.
+All three final figures visually checked. Independent final reviewer found no critical, important or minor issues; no declined-to-judge items.
