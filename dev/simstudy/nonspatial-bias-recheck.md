@@ -168,7 +168,35 @@ Three fits with alternative priors contain a species-primer pair for which more 
 
 The complete grid produced 112 component warnings in 79 of 230 fits, mostly concerning environmental coefficients. For the group averages reported here, rank-normalized Rhat is at most 1.082. The largest combined Monte Carlo standard errors across the main occupancy bands, p and q comparisons are approximately 0.258, 0.078 and 0.022 percentage points. These numerical errors are much smaller than the large occupancy errors, but they do not establish that every individual parameter has converged adequately. Rare-species summaries have greater numerical uncertainty and too few independent datasets.
 
-Two high-contamination K3 fits have individual scored-parameter Rhat above 1.1: `qfar_K3-q20-08` and `qfar_K3-q9-09`, with a maximum of 1.133. Longer checks using four chains, 6,000 burn-in and 12,000 retained iterations were started, then stopped at Doug's request to conserve credits. No completed results from those checks are included. Their original estimates remain in the primary summaries; the longer-run sensitivity check is outstanding.
+Two high-contamination K3 fits originally had individual scored-parameter Rhat above 1.1: `qfar_K3-q20-08` and `qfar_K3-q9-09`, with a maximum of 1.133. Their longer checks were initially stopped at Doug's request, then restarted and completed on 19 September 2026. The comparison below is additional evidence; the original 230-fit summaries and figures remain unchanged.
+
+### Longer convergence checks: completed 19 September 2026
+
+**Giving these two fits more computing time improved agreement between chains but barely changed the study's average errors.** Each fit used four chains, discarded 6,000 initial iterations per chain and retained 12,000 per chain. Both completed without warnings. We used the same simulated observations, saved starting RNG state, priors and frozen package build as before. These were fresh, longer fits of the same datasets, not new simulated datasets or continuations of partially completed chains.
+
+A chain is a sequence of sampled parameter values. Rhat compares how the chains behave: values close to 1 support agreement, while larger values flag possible problems. Here, the worst Rhat among the scored individual parameters improved as follows:
+
+| Fit | Original worst Rhat | Longer-fit worst Rhat |
+|---|---:|---:|
+| Default priors, dataset 8 | 1.133 | 1.011 |
+| Alternative q prior Beta(1,9), dataset 9 | 1.101 | 1.016 |
+
+The three particular parameters that originally exceeded 1.1 now all have Rhat below 1.01. Some other parameters remain slightly above 1.01, and the largest Rhat for a scored group average is 1.017. These are encouraging improvements, not proof that every parameter in every model has converged perfectly. Both fits have high contamination and **three PCR replicates per primer**; they do not directly recheck the six-replicate results.
+
+**Did the ecological conclusions change?** To answer this, we calculated what each ten-dataset average would become if its one selected original fit were replaced with its longer fit. For the default priors, the changes are:
+
+| Quantity, high contamination and three replicates per primer | Original ten-dataset result | With longer fit substituted |
+|---|---:|---:|
+| Signed occupancy error below 20% true probability | +22.50 points | +22.47 points |
+| Signed occupancy error from 20% to 80% | -4.23 points | -4.31 points |
+| Signed occupancy error above 80% | -29.58 points | -29.63 points |
+| Mean absolute occupancy error, all probabilities | 22.89 points | 22.91 points |
+
+The low probabilities are still substantially overestimated and the high probabilities substantially underestimated. The overall absolute error is essentially the same. Under the alternative q prior, overall occupancy MAE stays at 23.20 points when rounded to two decimal places. Across both comparisons, the largest change in a ten-dataset signed occupancy error is **0.084 percentage points**, and the largest change in an occupancy-band MAE is **0.058 points**. The ten-dataset p and q signed errors change by at most 0.013 and 0.0031 points, respectively.
+
+The effect on a ten-dataset average is smaller than the effect on the particular fit because only one of its ten datasets is replaced. Within these two individual fits, the largest shift in an occupancy-band mean is 0.84 points; this does not bound changes in individual species-at-site probabilities or coefficients. Thus the longer runs reduce the numerical concern in these selected fits, but do not explain away the large occupancy errors or identify their cause. The six-replicate **17.1-point** middle-group MAE is unchanged and was not directly tested here. No prior or release target has been changed, and this check alone does not clear a beta release gate.
+
+The [group comparison](nonspatial-bias-recheck/results/long-run-group-comparison.csv) retains signed errors, MAEs, RMSEs and the calculated replacement averages. The [individual-parameter comparison](nonspatial-bias-recheck/results/long-run-parameter-comparison.csv), [fit manifest](nonspatial-bias-recheck/results/long-run-fit-manifest.csv) and [warning record](nonspatial-bias-recheck/results/long-run-warnings.csv) preserve the diagnostics and provenance. Probability errors in these files are proportions; multiply by 100 for percentage points. Coefficient errors remain on their original scales. Original fits and summary files were verified unchanged, and the saved group means, Rhat values and Monte Carlo standard errors were independently recalculated from the retained traces.
 
 ## Occupancy and collection effects: completed paired results
 
@@ -276,15 +304,23 @@ Rscript dev/simstudy/nonspatial-bias-recheck/plot_occupancy_error_explainer.R
 
 The script reads `results/summary.csv`, writes the three figures beside it and exports their selected source values as `occupancy-error-explainer-values.csv`. The toy example is explicitly separate from those source values. Adding the MAE tables and teaching figures did not change the simulations, fitted values, original summary CSVs or priors. The report now contains the four original figures and three additional explanatory figures.
 
+The two longer checks were completed separately on 19 September using the same frozen build. After the main summaries exist, reproduce their comparison with:
+
+```sh
+Rscript run_long_convergence_checks.R .
+Rscript summarise_long_convergence_checks.R .
+```
+
+The first command saves full fits and scored results in `convergence-checks/`. The second writes four `long-run-*.csv` files into `main-results/summary/`. It checks that the two fits completed and that their inputs and priors match the originals. For signed error and MAE, the replacement average equals the original ten-dataset average plus `(longer-fit error - original-fit error) / 10`. For RMSE, the script substitutes the squared error first, then takes the square root, matching the original summary method. Existing primary summaries and figures are preserved; the longer fits are not counted as extra independent datasets.
+
 The run first used the original `run_nonspatial_recheck.R`. After 117 completed fits, the queue was restarted with `run_nonspatial_recheck_balanced.R`, whose only difference is `chunk.size=1L` in the worker scheduling call. This spreads the longer 30-PCR fits evenly among four processes. Completed results were reused. The original settings were preserved, and source/library fingerprints, MCMC settings and dataset-specific fitting RNG states were checked unchanged. A fresh reproduction can use the balanced runner from the start, followed by the separate K=6 extension. The extension overlapped the finishing original batch locally; both used four workers with one sampler thread each. Its source/library and MCMC fingerprints were verified identical to the original batch.
 
 ## Still needed
 
-1. **Finish the two targeted convergence checks.** Resume `run_long_convergence_checks.R`, then run `summarise_long_convergence_checks.R`. Check whether replacing the two original estimates materially changes the ten-dataset average errors. Preserve both versions and record any remaining warnings. The scripts and exact selected fits are saved; this work was stopped before completed diagnostic results were available.
-2. **Alex should review the scoring correction and the evidence.** It changes simulated p/q truth to the probability of positive reads and collection coefficients to the fitter's scale. It does not change fitted values. The old coverage claims cannot be retained without recalculating them against the correct truth.
-3. **Decide which remaining probability errors are acceptable for the intended beta applications.** No non-spatial release target has been chosen. If the reported occupancy errors are unacceptable, test a more informative design or a justified model change. Respect the maximum of six PCR replicates per primer; consider site information, field replication, calibration data and residual-factor complexity instead of assuming unlimited PCR replication. The exact-state controls do not isolate which of these remedies would work best.
-4. **Complete a separate rare-species assessment.** This grid has only one or two independent datasets contributing rare-species cases. Low-probability sites within common species do not replace that assessment.
-5. **Fix the read-threshold defect.** Thresholds greater than one currently erase detections. Correct the comparison against original counts, preserve missing values and add regression checks. This remains an open production-code issue in TODO.
-6. **Complete the separate spatial and release work.** PR #8 still needs Alex's spatial review and the remaining spatial checks. The optional continuous-noise prior is reviewed separately in [PR #10](https://github.com/AlexDiana/occJSDM/pull/10), which follows PR #8; the default decision remains open. Then check the final installed package, refit bundled example results and refresh affected vignette outputs. The non-spatial report does not clear these items.
+1. **Alex should review the scoring correction and the evidence.** It changes simulated p/q truth to the probability of positive reads and collection coefficients to the fitter's scale. It does not change fitted values. The old coverage claims cannot be retained without recalculating them against the correct truth.
+2. **Decide which remaining probability errors are acceptable for the intended beta applications.** No non-spatial release target has been chosen. If the reported occupancy errors are unacceptable, test a more informative design or a justified model change. Respect the maximum of six PCR replicates per primer; consider site information, field replication, calibration data and residual-factor complexity instead of assuming unlimited PCR replication. The exact-state controls do not isolate which of these remedies would work best.
+3. **Complete a separate rare-species assessment.** This grid has only one or two independent datasets contributing rare-species cases. Low-probability sites within common species do not replace that assessment.
+4. **Fix the read-threshold defect.** Thresholds greater than one currently erase detections. Correct the comparison against original counts, preserve missing values and add regression checks. This remains an open production-code issue in TODO.
+5. **Complete the separate spatial and release work.** PR #8 still needs Alex's spatial review and the remaining spatial checks. The optional continuous-noise prior is reviewed separately in [PR #10](https://github.com/AlexDiana/occJSDM/pull/10), which follows PR #8; the default decision remains open. Then check the final installed package, refit bundled example results and refresh affected vignette outputs. The non-spatial report does not clear these items.
 
-No default prior has changed, no beta release gate has been declared passed, and the unfinished longer fits have been stopped. The completed 230 comparison fits, 20 exact-occupancy controls, compact summaries, scripts and original figures are preserved; two new figures show those same results and one is a clearly labelled made-up teaching example.
+No default prior has changed and no beta release gate has been declared passed. The completed 230 comparison fits, 20 exact-occupancy controls and two additional longer convergence fits are preserved. The main summaries and figures retain the original runs, with the longer-fit sensitivity results reported separately. The three teaching figures comprise two views of the existing simulation results and one clearly labelled made-up example.

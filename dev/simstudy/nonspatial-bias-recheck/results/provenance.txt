@@ -9,7 +9,7 @@ Original and resumed runners differ only in scheduling; the fitted package, inpu
 Pilots: 6 initial collection fits and 28 short grid fits; excluded from final numerical summaries.
 Doug specified a maximum of six PCR replicates per primer; sixty K6 fits were added using the original qtest seed scheme. K30 is diagnostic only.
 No default prior changed. Doug requested errors first and release targets later.
-Two selected K3 fits with scored-parameter Rhat above 1.1 were scheduled for 4 chains, 6000 burn-in and 12000 retained iterations per chain, then stopped at user request before completed diagnostic results. Primary-grid summaries remain intact; this sensitivity check is outstanding.
+Two selected K3 fits completed on 19 September 2026 with 4 chains, 6000 burn-in and 12000 retained iterations per chain, without warnings. The frozen package build, inputs and priors match the original fits. Original primary-grid summaries remain intact; four separate long-run comparison and manifest files record sensitivity to replacing these fits. These two refits are not additional independently simulated datasets.
 Full raw fits, inputs and settings remain in the local investigation folder; compact derived data and executed scripts are committed.
 
 R version 4.5.0 (2025-04-11)
