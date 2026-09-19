@@ -1,0 +1,12 @@
+Input-construction check:
+PASS: nested inputs, deterministic streams, cross-contamination pairing, independent coefficient transformation, corrupt-input rejection, private control leaves installed functions unchanged.
+
+Initial comparison:
+PASS: 80 saved-fit probability means, all occupancy bands, original-sample collection errors, 800 species rows, aggregate and paired errors, and unchanged baseline/input hashes.
+
+Final comparison:
+PASS: 80 saved-fit probability means, all occupancy bands, original-sample collection errors, 800 species rows, aggregate and paired errors, and unchanged baseline/input hashes.
+
+Separate read-only review: no consequential defects found in nesting, raw-scale predictors, private known-U conditioning, revised scoring, equal-community weighting, paired comparisons, direct alternatives or figure units. Final numerical comparisons were verified by verify_design_results.R.
+Three final figures visually checked after substitution.
+No new package release check; this update contains research scripts, results and documentation.
