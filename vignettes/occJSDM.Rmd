@@ -35,6 +35,10 @@ library(occJSDM)
 # devtools::check() # run manually before commits/releases, builds package, runs examples/tests/vignettes, checks CRAN-style compliance
 ```
 
+**New to occJSDM? Start with [Learning occJSDM with a community whose truth we know](occJSDM-first-lesson.html).** That lesson fits one matching simulated dataset, compares estimates with the known truth, and works through weak true detections, laboratory false positives, strong true detections and field-stage contamination. It also explains how the priors express expectations about good field and laboratory practice.
+
+The walkthrough below remains a reference tour of the output functions. Its older saved examples do not contain their generating truth and are separate from the new lesson's verified simulation and fits.
+
 The model can be run using the `runOccJSDM` function.
 
 The arguments of the function are:
@@ -417,11 +421,9 @@ probabilities can be useful for identifying sites where the model deems
 a species to be present despite weakly positive detection data (due to
 the site's favourable covariate values) and to be absent despite weakly
 positive detection data (due to the site's unfavourable covariate
-values) (see Supplementary Information 12 in Ji et al. 2025). Note that
-the model will never judge a species to be absent when there are
-strongly positive detection data, because the model assumes that field
-and lab practice were carried out well, so that false positive
-detections are assumed to always be weak.
+values) (see Supplementary Information 12 in Ji et al. 2025).
+
+Good field and laboratory practice motivates priors that favour uncommon false positives, but these are starting expectations, not guarantees. The model does not require all false positives to be weak or prohibit an absence inference after repeated positives. In the current thresholded model, evidence comes from positive/negative patterns across PCRs and field samples, rather than the size of a read count above the threshold. A contaminated field sample can produce many positive PCRs even when the species is absent from the site. The [worked truth-based lesson](occJSDM-first-lesson.html#reveal-the-truth-and-compare-it-with-the-fit) shows an actual simulated example, including a mistaken site-presence inference.
 
 ### Prediction at new sites
 
@@ -598,7 +600,7 @@ plotResidualCorrelationMatrix(fitmodel, idx_species = 1:10)
 residCorr <- returnResidualCorrelationMatrix(fitmodel, confidence = 0.95)
 ```
 
-### Variance partitioning
+### Variation partitioning
 
 Following theoretical work by Leibold et al. (2021) and empirical work
 by Cai et al. (2025), and Pichler et al. (2025), we provide functions to
