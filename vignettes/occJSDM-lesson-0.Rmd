@@ -194,11 +194,16 @@ species_traits <- survey_data$traits |>
   rownames_to_column("species") |>
   as_tibble()
 
-observation_info |> slice_head(n = 6)
+observation_info |>
+  slice_head(n = 6) |>
+  knitr::kable(digits = 2)
 
-read_counts |> slice_head(n = 6)
+read_counts |>
+  slice_head(n = 6) |>
+  knitr::kable()
 
-species_traits
+species_traits |>
+  knitr::kable(digits = 3)
 ```
 
 | Object | One row represents | Important columns |
@@ -285,7 +290,9 @@ site_covariates <- observation_info |>
   ) |>
   distinct()
 
-site_covariates |> slice_head(n = 6)
+site_covariates |>
+  slice_head(n = 6) |>
+  knitr::kable(digits = 3)
 ```
 
 ```{r sampling-locations, fig.height=4.5, fig.cap="The 100 simulated sampling sites. The highlighted sites are the four detection examples used in Lesson 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities."}
