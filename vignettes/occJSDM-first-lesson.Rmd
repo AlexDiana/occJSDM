@@ -31,9 +31,9 @@ lesson_link <- function(name) {
 
 ## Before you start
 
-This is **Lesson 1**. [Lesson 0 (optional)](`r lesson_link("occJSDM-lesson-0")`) explains how we created the survey and maps its environmental values, true occurrences and detections. You can start here with the supplied data. [Lesson 2](`r lesson_link("occJSDM-lesson-2")`) will introduce smooth environmental gradients, spatial modelling and a separate simulation of species with different dispersal abilities after PR #8 is reviewed. The current lesson is non-spatial.
+This is **Lesson 1**. [Lesson 0 (optional)](%60r%20lesson_link(%22occJSDM-lesson-0%22)%60) explains how we created the survey and maps its environmental values, true occurrences and detections. You can start here with the supplied data. [Lesson 2](%60r%20lesson_link(%22occJSDM-lesson-2%22)%60) will introduce smooth environmental gradients, spatial modelling and a separate simulation of species with different dispersal abilities after PR #8 is reviewed. The current lesson is non-spatial.
 
-All teaching code is shown. Run the chunks in order with the repository's `vignettes` directory as the working directory; knitting handles this automatically. In RStudio, use **Session > Set Working Directory > To Source File Location** with this file open. `|>` passes a result into the next function. We explain the table operations as they appear.
+All teaching code is shown. Run the chunks in order with the repository's `vignettes` directory as the working directory; knitting handles this automatically. In RStudio, use **Session \> Set Working Directory \> To Source File Location** with this file open. `|>` passes a result into the next function. We explain the table operations as they appear.
 
 We use saved results so that reading or knitting the lesson does not start a long model fit. The three optional fitting chunks and the optional extraction example at the end are clearly labelled and not executed during knitting. The remaining displayed chunks execute and generate the figures and tables you see. The saved file contains the complete simulation and posterior summaries, not the full MCMC draws.
 
@@ -105,7 +105,7 @@ That is 200 field samples and 2,400 PCR observations for each species. Environme
 ## Three questions, three different truths
 
 | Question | Model quantity | What we know from the simulation |
-|---|---|---|
+|----|----|----|
 | How likely is this species to occur at this site? | Underlying occupancy probability, `psi` | A probability between 0 and 1. |
 | Did it actually occur there? | Site state, `z` | Either absent (0) or present (1), drawn using that probability. |
 | Was its DNA in this particular field sample? | Sample state, `w` | Either absent (0) or present (1), allowing collection failure and field-stage contamination. |
@@ -390,7 +390,7 @@ The current environmental values and hidden site factors were generated independ
 Good field and laboratory practice gives us a reason to expect contamination to be uncommon. occJSDM expresses that expectation through **priors**, starting beliefs about plausible rates that are updated using the observations. It does not inspect the protocol or prove that the work was carried out carefully.
 
 | Rate | What it means | Default starting expectation |
-|---|---|---|
+|----|----|----|
 | `p` | Positive PCR when DNA is in the sample, separately for each species and primer. | Beta(5, 1): favours reasonably effective detection; prior mean 83.3%. |
 | `q` | Positive PCR when DNA is absent from the sample, separately for each species and primer. | Beta(1, 20): favours uncommon laboratory false positives; prior mean 4.8%. |
 | `theta0` | DNA enters a sample even though the species is absent from the site, separately for each species. | Beta(1, 20): favours uncommon field-stage false positives; prior mean 4.8%. |
@@ -789,4 +789,4 @@ The figures are rendered from a compact saved bundle, not refitted while knittin
 
 The fitted code is revision **`r substr(lesson$input$source_commit,1,7)`**. The simulation seed is **`r lesson$input$seed`**. The recorded R version is **`r lesson$manifests$default$session$R.version$version.string`**; the complete package versions for each fit are retained in `lesson$manifests[["default"]]$session` (and likewise for the other fits). Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](../dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above and is also available in this vignette's `.Rmd` source.
 
-This first lesson concerns non-spatial recovery at sampled sites and the interpretation of detections. It does not validate predictions at new sites, establish a beta-release error target, or implement a Paper2Agent interface. The [Lesson 2 outline](`r lesson_link("occJSDM-lesson-2")`) introduces smooth environmental gradients, spatial effects, a separate experiment with species that differ in dispersal, **variation partitioning**, and held-out prediction. Its spatial fits await review of PR #8; the current lesson does not claim to test them. Further lessons will expand environmental and trait interpretation, each with matching truth comparisons. The [reference walkthrough](`r lesson_link("occJSDM")`) provides the existing function tour while those lessons are developed.
+This first lesson concerns non-spatial recovery at sampled sites and the interpretation of detections. It does not validate predictions at new sites, establish a beta-release error target, or implement a Paper2Agent interface. The [Lesson 2 outline](%60r%20lesson_link(%22occJSDM-lesson-2%22)%60) introduces smooth environmental gradients, spatial effects, a separate experiment with species that differ in dispersal, **variation partitioning**, and held-out prediction. Its spatial fits await review of PR #8; the current lesson does not claim to test them. Further lessons will expand environmental and trait interpretation, each with matching truth comparisons. The [reference walkthrough](%60r%20lesson_link(%22occJSDM%22)%60) provides the existing function tour while those lessons are developed.

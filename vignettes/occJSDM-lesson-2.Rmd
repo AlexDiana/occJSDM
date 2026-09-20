@@ -21,7 +21,7 @@ lesson_link <- function(name) {
 
 ## What this lesson will add
 
-**This is an outline, not a completed spatial analysis.** We will add simulations and matching model results after the spatial correction in PR #8 has completed review. [Lesson 0](`r lesson_link("occJSDM-lesson-0")`) and [Lesson 1](`r lesson_link("occJSDM-first-lesson")`) already use a verified non-spatial example and do not depend on that pending work.
+**This is an outline, not a completed spatial analysis.** We will add simulations and matching model results after the spatial correction in PR #8 has completed review. [Lesson 0](%60r%20lesson_link(%22occJSDM-lesson-0%22)%60) and [Lesson 1](%60r%20lesson_link(%22occJSDM-first-lesson%22)%60) already use a verified non-spatial example and do not depend on that pending work.
 
 The central ecological question will be: **if a site offers suitable conditions, why might a species still be absent, and what can spatial information tell us?** We will use smooth environmental gradients and species with contrasting dispersal abilities. These ingredients will be introduced in separate sublessons so their effects are visible.
 
