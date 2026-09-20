@@ -1,0 +1,43 @@
+/* More room for readable code and side-by-side scientific figures. */
+body {
+  max-width: 960px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+pre {
+  font-size: 14px;
+  line-height: 1.55;
+  padding: 16px;
+  margin: 18px 0;
+  overflow-x: auto;
+}
+
+pre code,
+pre > code.sourceCode > span {
+  font-size: inherit;
+  line-height: 1.55;
+}
+
+pre > code.sourceCode > span:empty {
+  height: 1.55em;
+}
+
+code span.co {
+  color: #476273;
+}
+
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+#TOC {
+  width: auto;
+  max-width: 100%;
+}
+
+#TOC li {
+  line-height: 1.5;
+}

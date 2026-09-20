@@ -1,4 +1,8 @@
-# Build the first truth-based lesson
+# Build the truth-based teaching lessons
+
+The teaching sequence now starts with `vignettes/occJSDM-lesson-0.Rmd` (optional simulation and data orientation), followed by `vignettes/occJSDM-first-lesson.Rmd` (fitting, truth comparisons and detection examples). Both show their teaching code and use the same original simulation and fitted results. Their new maps display the existing sampled coordinates; the environmental values and hidden site factors are independent of geography in this dataset. No interpolation or spatial fit is implied.
+
+`vignettes/occJSDM-lesson-2.Rmd` is explicitly a future outline. After PR #8 is reviewed, it will introduce smooth environmental gradients, residual spatial structure, a separate dispersal simulation with contrasting species, and held-out prediction. The currently reviewed spatial model has a shared range, not mechanistic or species-specific dispersal parameters. That distinction constrains the later simulation and interpretation.
 
 The readable lesson is `vignettes/occJSDM-first-lesson.Rmd`. Its figures and tables come from `vignettes/teaching-data/nonspatial-lesson.rds`, a compact bundle containing the complete simulation, generating settings, identity mappings, selected cases, posterior summaries, diagnostics and full-fit hashes. Full MCMC objects remain in the build directory; they are not shipped with the package. The existing `sampledata` and `sampleresults` objects are unchanged.
 
@@ -39,6 +43,8 @@ Rscript -e 'rmarkdown::render("vignettes/occJSDM-first-lesson.Rmd", output_forma
 Rscript -e 'rmarkdown::render("vignettes/occJSDM-first-lesson.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE))'
 ```
 
+Use the same commands with `occJSDM-lesson-0.Rmd` and `occJSDM-lesson-2.Rmd` to render the optional introduction and planned spatial outline. Render each in a fresh R environment when checking standalone execution. Teaching chunks are visible by default; only document-formatting setup is hidden. Simulation and MCMC examples marked `eval=FALSE` are displayed but do not run while knitting. The Lesson 0 simulator call reproduces the existing settings without calling the build helper; the helper remains unchanged to preserve its recorded provenance.
+
 The GitHub Markdown and its PNGs are tracked as readable review artifacts. The HTML is generated locally. The R Markdown source remains canonical. Neither render loads full MCMC fits or starts fitting. To reproduce the original numerical results exactly, use the recorded source revision and R/package versions; different platforms can still introduce small numerical differences.
 
 ## What is checked
@@ -50,5 +56,13 @@ The GitHub Markdown and its PNGs are tracked as readable review artifacts. The H
 - Numerical diagnostics are exported for reported probabilities and named parameter blocks. Neither converged sampling nor passing these checks proves unbiased ecological inference.
 
 ## Remaining tutorial work
+
+### Teaching-code revision checked on 20 September 2026
+
+Both completed lessons and the Lesson 2 outline render independently to HTML and GitHub Markdown. The HTML embeds `vignettes/teaching.css` for larger, more widely spaced code; format-specific links connect the corresponding HTML or Markdown lessons. Only formatting/link setup is hidden.
+
+The visible Lesson 0 simulation reproduces the saved observations and truth. Its clearer variable names change the incidental row labels of the input `p` matrix, not the values or primer order. The visible tidyverse transformations reproduce all 24,000 observation/source rows, every signed/absolute error summary and the existing perfect-observation input. The optional public extraction example matches all 1,000 default-fit occupancy means. Map joins, both-sample case counts, the 24 helper assertions and the independent full-fit evidence checks pass. The selected cases, model source, simulation bundle, full fits and build-helper hashes are unchanged; no new MCMC was run.
+
+Independent review identified missing truth-matrix labels in the optional fresh simulation call. Explicit site, sample and species labels were added and verified. The new maps and revised figures were visually inspected. Lesson 2 remains an outline: its smooth environmental and explicit dispersal simulations still need to be implemented and validated after spatial review.
 
 Extend the agreed design to environmental and trait effects, residual correlations, variation partitioning, spatial examples and genuine held-out prediction. Replace the older reference walkthrough's unmatched saved examples as those lessons are finished. Paper2Agent remains a feasibility proposal and has not been installed or run.

@@ -35,7 +35,7 @@ library(occJSDM)
 # devtools::check() # run manually before commits/releases, builds package, runs examples/tests/vignettes, checks CRAN-style compliance
 ```
 
-**New to occJSDM? Start with [Learning occJSDM with a community whose truth we know](occJSDM-first-lesson.html).** That lesson fits one matching simulated dataset, compares estimates with the known truth, and works through weak true detections, laboratory false positives, strong true detections and field-stage contamination. It also explains how the priors express expectations about good field and laboratory practice.
+**New to occJSDM? Start with [Lesson 1: Fit the model and compare its answers with truth](occJSDM-first-lesson.html), or first read [Lesson 0: Create and explore a simulated survey](occJSDM-lesson-0.html).** Both show the R code. Lesson 1 compares estimates with known truth and works through weak true detections, laboratory false positives, strong true detections and field-stage contamination. It also explains how priors express expectations about good field and laboratory practice. [Lesson 2: Spatial landscapes and dispersal](occJSDM-lesson-2.html) is a planned extension pending review of PR #8, with smooth environmental gradients and a separate experiment for species with different dispersal abilities.
 
 The walkthrough below remains a reference tour of the output functions. Its older saved examples do not contain their generating truth and are separate from the new lesson's verified simulation and fits.
 

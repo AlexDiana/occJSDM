@@ -15,7 +15,20 @@ Note the `build_vignettes = TRUE` -- without it, `remotes::install_github()` ski
 
 ## Getting started
 
-See the package vignettes for a walkthrough of fitting a model with `runOccJSDM()` and simulating data with `simulateOccJSDMData()`:
+Start with the teaching lessons. They show readable R code alongside the simulated truth and matching results:
+
+- [Lesson 0 (optional): Create and explore a simulated survey](vignettes/occJSDM-lesson-0.md).
+- [Lesson 1: Fit the model and compare its answers with truth](vignettes/occJSDM-first-lesson.md).
+- [Lesson 2: Spatial landscapes and dispersal](vignettes/occJSDM-lesson-2.md), an outline pending review of the spatial submodel in PR #8.
+
+After installing with vignettes, open the completed lessons in R:
+
+``` r
+vignette("occJSDM-lesson-0", package = "occJSDM")
+vignette("occJSDM-first-lesson", package = "occJSDM")
+```
+
+The original function walkthrough and simulator reference remain available:
 
 ``` r
 vignette("occJSDM", package = "occJSDM")

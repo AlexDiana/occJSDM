@@ -1,0 +1,399 @@
+---
+title: "Lesson 0 (optional): Create and explore a simulated survey"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    css: teaching.css
+    fig_width: 8
+    fig_height: 5
+vignette: >
+  %\VignetteIndexEntry{Lesson 0 (optional): Create and explore a simulated survey}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r document-settings, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, collapse = FALSE, comment = "#>",
+  fig.width = 8, fig.height = 5, dpi = 150, dev = "png"
+)
+lesson_link <- function(name) {
+  is_html <- knitr::pandoc_to() %in% c("html", "html4", "html5")
+  if (name == "occJSDM" && !is_html) return("occJSDM.Rmd")
+  extension <- if (is_html) ".html" else ".md"
+  paste0(name, extension)
+}
+
+```
+
+## Where this lesson fits
+
+We will learn occJSDM using a community whose true distribution is known. **Lesson 0 creates and explores the survey. [Lesson 1 fits the model and checks its answers](`r lesson_link("occJSDM-first-lesson")`). [Lesson 2 will introduce spatial landscapes and species that differ in dispersal](`r lesson_link("occJSDM-lesson-2")`).** Lesson 2 is a plan, pending review of the spatial submodel in PR #8; it does not yet contain fitted results.
+
+You can skip Lesson 0 and start Lesson 1 with the supplied dataset. Read this lesson if you want to understand where that dataset came from, change the simulation settings, or learn how to prepare the tables and figures yourself.
+
+We keep the existing non-spatial simulation as a starting point. Its coordinates give us a way to draw maps, but location does not generate its environmental values or enter its fitted model. The later spatial lesson will deliberately change that. Mapping data and fitting a spatial model are different things.
+
+## Load the teaching data and the R tools
+
+Run the code with the repository's `vignettes` directory as your working directory. Knitting this document uses that directory automatically. In RStudio, opening the `.Rmd` file and choosing **Session > Set Working Directory > To Source File Location** gives the same starting point for running chunks interactively.
+
+```{r load-data, message=FALSE}
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ggplot2)
+
+lesson <- readRDS("teaching-data/nonspatial-lesson.rds")
+
+simulation <- lesson$input$sim
+survey_data <- simulation$data_list
+known_truth <- simulation$true_params
+```
+
+`readRDS()` loads one saved R object. Here that object is a list: a named collection of other objects. The `$` operator selects one component. `survey_data` is what the two-stage model receives; `known_truth` contains the answers we use to assess it. The saved file also includes results from matching model fits, used in Lesson 1.
+
+Throughout these lessons, `|>` means “take the result so far and pass it to the next function”. We use tidyverse tools for tables and `ggplot2` for figures. Matrices remain useful where occJSDM expects a rectangular block of numbers.
+
+## Specify the survey, one decision at a time
+
+First give the sampling decisions meaningful names. These are the actual settings of the saved teaching dataset.
+
+```{r survey-design}
+n_sites <- 100
+n_species <- 10
+samples_per_site <- 2
+n_primers <- 2
+pcrs_per_primer <- 6
+
+n_field_samples <- n_sites * samples_per_site
+n_pcr_observations <- n_field_samples * n_primers * pcrs_per_primer
+
+tibble(
+  quantity = c("Sites", "Species", "Field samples", "PCR rows per species"),
+  number = c(n_sites, n_species, n_field_samples, n_pcr_observations)
+)
+```
+
+There are 200 field samples and 2,400 PCR observations per species. Six PCR replicates means **six per primer per field sample**, not six divided between the two primers.
+
+The simulator uses shorter argument names. This list translates our decisions into its interface. `rep(value, times)` repeats a value, so `M` specifies the number of samples at each site and `K` the PCR count for each sample–primer combination.
+
+```{r simulator-settings}
+survey_settings <- list(
+  n = n_sites,
+  S = n_species,
+  g = 2,                         # Two measured traits per species.
+  M = rep(samples_per_site, n_sites),
+  P = n_primers,
+  K = rep(pcrs_per_primer, n_field_samples * n_primers),
+  ncov_psi = 2,                   # Two environmental covariates per site.
+  ncov_theta = 1                  # One collection covariate per field sample.
+)
+```
+
+## Decide how collection and PCR can fail
+
+We deliberately let species differ in how reliably they are collected and detected. `seq()` constructs evenly spaced values. For example, primer 1's true-detection event probabilities increase from 0.35 to 0.85 across the ten species. The second primer has somewhat higher probabilities. These are assigned simulation settings, not findings about real primers.
+
+```{r observation-settings}
+primer_1_detection <- seq(0.35, 0.85, length.out = n_species)
+primer_2_detection <- pmin(0.95, primer_1_detection + 0.10)
+
+observation_settings <- list(
+  p = rbind(primer_1_detection, primer_2_detection),
+  q = rbind(
+    seq(0.025, 0.065, length.out = n_species),
+    seq(0.065, 0.025, length.out = n_species)
+  ),
+  theta0 = seq(0.02, 0.08, length.out = n_species),
+  theta_baseline = seq(0.35, 0.75, length.out = n_species),
+  mu1 = 5,
+  sigma1 = 1,
+  mu0 = 1.5,
+  sigma0 = 1
+)
+```
+
+`rbind()` stacks the two primer vectors as rows of a matrix; its columns are species. The parameters have these meanings:
+
+| Setting | What we are choosing |
+|---|---|
+| `p` | Probability of a laboratory detection event when DNA is in the sample. |
+| `q` | Probability of a laboratory false-positive event when DNA is absent from the sample. |
+| `theta0` | Probability that DNA enters a sample despite the species being absent from the site. |
+| `theta_baseline` | Collection probability at a collection-covariate value of zero, given site presence. Actual collection probability also varies with that covariate. |
+| `mu1`, `sigma1` | Mean and standard deviation on the log-read scale for true laboratory detection events. |
+| `mu0`, `sigma0` | Corresponding log-read settings for laboratory false-positive events. |
+
+The simulator converts a log-read draw to a count with `round(exp(log_read) - 1)` and sets negative counts to zero. An event can therefore produce zero reads. The fitted model uses positive/negative counts at a threshold, so its `p` and `q` must be compared with the probability of a **threshold-positive result**, not simply with these event probabilities. Lesson 1 shows the conversion and the resulting truth comparisons.
+
+## Specify the ecological model
+
+The ecological model combines environmental responses with additional site conditions shared among species. A hidden community factor is a simulated site characteristic that affects several species but is not supplied as a measured environmental column. It need not represent a particular biological mechanism.
+
+```{r ecological-settings}
+ecological_settings <- list(
+  gt = 1,                        # One unmeasured trait dimension.
+  d = 2,                         # Two hidden community factors.
+  ds = 0,                        # Spatial-factor setting, unused here.
+  sigma_b = 0.5,                  # Species variation in environmental responses.
+  sigma_bs = 0.5,                 # Spatial settings, unused in this example.
+  sigma_ts = 0.5,
+  sigma_h = 1,                    # Scale of the hidden site factors.
+  sigma_s = 0.5,
+  l_s = 0.3,
+  tau = rep(1, n_species),         # Required setting, unused for binary occupancy.
+  useSpatField = FALSE
+)
+```
+
+The most important choice for this lesson is `useSpatField = FALSE`. There is no simulated spatial field and no dispersal process. We include the unused spatial settings because the simulator accepts this common parameter list; those values do not create a spatial effect while the switch is off.
+
+The simulator draws the environmental values, traits, coefficients and hidden factors using these settings. It then calculates occupancy probabilities and draws actual presence or absence from those probabilities. We do not choose the seed to obtain an especially successful fit.
+
+## Recreate the dataset if you want to
+
+The following optional chunk shows the actual public simulator call. It is **displayed but not run when knitting**, because the figures use the already saved, verified simulation. To recreate the data yourself, run the chunk with occJSDM installed. It does not fit a model.
+
+```{r simulate-survey, eval=FALSE}
+library(occJSDM)
+
+set.seed(20260919)
+
+new_simulation <- simulateOccJSDMData(
+  list_datasettings = survey_settings,
+  list_params = observation_settings,
+  list_jsdmParams = ecological_settings,
+  model = "two_stage"
+)
+
+new_survey_data <- new_simulation$data_list
+new_known_truth <- new_simulation$true_params
+
+# Label the truth matrices explicitly, as in the saved teaching dataset.
+site_ids <- as.character(seq_len(n_sites))
+sample_ids <- as.character(seq_len(n_field_samples))
+species_ids <- colnames(new_survey_data$OTU)
+
+dimnames(new_known_truth$z_true) <- list(site_ids, species_ids)
+dimnames(new_known_truth$w_true) <- list(sample_ids, species_ids)
+dimnames(new_known_truth$jsdmParams_true$eta) <- list(site_ids, species_ids)
+```
+
+The original simulation used package revision `r substr(lesson$input$source_commit, 1, 7)`. Exact reproduction requires the recorded code and software environment as well as the seed. If you change a setting, the old fitted results no longer belong to your new dataset: fit it again before comparing estimates with truth. Simply replacing a covariate column after simulation would also break the match between observations and their generating model.
+
+## Understand the three input objects
+
+```{r inspect-inputs}
+observation_info <- as_tibble(survey_data$info)
+read_counts <- as_tibble(survey_data$OTU)
+
+species_traits <- survey_data$traits |>
+  as.data.frame() |>
+  rownames_to_column("species") |>
+  as_tibble()
+
+observation_info |> slice_head(n = 6)
+
+read_counts |> slice_head(n = 6)
+
+species_traits
+```
+
+| Object | One row represents | Important columns |
+|---|---|---|
+| `info` | One PCR observation | `Site`, `Sample`, `Primer`, environmental covariates, coordinates and a collection covariate. |
+| `OTU` | The same PCR observation in the same row order | One read-count column per species. OTU_1, for example, is a simulated species label. |
+| `traits` | One species | Two simulated trait measurements. |
+
+The first six rows are six PCRs from the same sample and primer. Site conditions repeat because several samples and PCRs belong to the same site. Collection conditions repeat across PCRs from the same field sample. `slice_head()` displays a few rows without changing the original data.
+
+Rows of `info` and `OTU` must stay paired. Sorting either one on its own would associate read counts with the wrong sample. When we join other tables below, we use explicit site or species identifiers.
+
+## Follow the observations back to their known source
+
+To explore individual detections, make a table with one row per **species and PCR observation**. `bind_cols()` puts the already aligned information and read-count tables side by side. We number the PCR replicates within each sample and primer, then use `pivot_longer()` to put species names and their read counts into two columns.
+
+```{r make-observation-table}
+observed_pcrs <- bind_cols(observation_info, read_counts) |>
+  group_by(Site, Sample, Primer) |>
+  mutate(PCR = row_number()) |>
+  ungroup() |>
+  pivot_longer(
+    cols = all_of(colnames(survey_data$OTU)),
+    names_to = "species",
+    values_to = "reads"
+  ) |>
+  mutate(
+    Site = as.character(Site),
+    Sample = as.character(Sample),
+    positive = as.integer(reads >= 1)
+  )
+```
+
+The new table has 24,000 rows: 2,400 PCR observations for each of ten species. `positive` is one for at least one read and zero for no reads. A missing read count remains missing. Species are columns in the matrix used by the fitter and rows in this table used for exploration; these are two representations of the same observations.
+
+Now turn the true site and sample states into tables. The saved matrices have site or sample IDs as row names and species IDs as column names. `rownames_to_column()` makes the row identifier an explicit column.
+
+```{r join-observations-to-truth}
+presence_truth <- known_truth$z_true |>
+  as.data.frame() |>
+  rownames_to_column("Site") |>
+  pivot_longer(cols = -Site, names_to = "species", values_to = "presence")
+
+sample_truth <- known_truth$w_true |>
+  as.data.frame() |>
+  rownames_to_column("Sample") |>
+  pivot_longer(cols = -Sample, names_to = "species", values_to = "dna_in_sample")
+
+observations_with_truth <- observed_pcrs |>
+  left_join(presence_truth, by = c("Site", "species")) |>
+  left_join(sample_truth, by = c("Sample", "species")) |>
+  mutate(
+    source = case_when(
+      is.na(positive) ~ "Missing",
+      positive == 0 ~ "No detection",
+      dna_in_sample == 0 ~ "Laboratory false positive",
+      presence == 0 ~ "Field-stage false positive",
+      TRUE ~ "True detection"
+    )
+  )
+
+observations_with_truth |>
+  filter(species == "OTU_1", Site == "3", Sample == "6") |>
+  select(Site, Sample, Primer, PCR, reads, positive, presence, dna_in_sample, source) |>
+  knitr::kable()
+```
+
+`left_join()` attaches matching values using the named identifiers. Sample IDs are unique across the whole survey in this dataset, so sample plus species identifies a sample state. The order of `case_when()` matters: a negative PCR has no positive source to classify; a positive in a sample without DNA is a laboratory false positive, even if the species happened to occupy the site. A positive from DNA in an unoccupied site's sample is a field-stage false positive.
+
+These are **known source labels supplied by the simulation**, not classifications produced by the model. We do not pass `observations_with_truth` to the fitter. Lesson 1 uses this displayed sample as its weak true-detection example and compares the fitted probabilities with these states.
+
+## Put the sites and environmental conditions on a map
+
+`distinct()` keeps one copy of each site's information. `transmute()` selects columns while giving them clearer names. For plotting, `east` and `north` are arbitrary coordinates between zero and one, not longitude, latitude or kilometres.
+
+```{r prepare-site-table}
+site_covariates <- observation_info |>
+  transmute(
+    Site = as.character(Site),
+    east = Xs.1,
+    north = Xs.2,
+    environment_1 = X_psi.EnvCov.1,
+    environment_2 = X_psi.EnvCov.2
+  ) |>
+  distinct()
+
+site_covariates |> slice_head(n = 6)
+```
+
+```{r sampling-locations, fig.height=4.5, fig.cap="The 100 simulated sampling sites. The highlighted sites are the four detection examples used in Lesson 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities."}
+example_sites <- lesson$cases |>
+  distinct(Site) |>
+  mutate(Site = as.character(Site)) |>
+  left_join(site_covariates, by = "Site")
+
+ggplot(site_covariates, aes(x = east, y = north)) +
+  geom_point(colour = "grey45", size = 2) +
+  geom_point(data = example_sites, colour = "#D55E00", size = 3) +
+  geom_text(data = example_sites, aes(label = Site), nudge_y = 0.035) +
+  coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = "East coordinate (arbitrary units)", y = "North coordinate (arbitrary units)") +
+  theme_minimal(base_size = 12)
+```
+
+Next, `pivot_longer()` converts the two environmental columns into one value column and a label saying which covariate it belongs to. `facet_wrap()` then draws a separate panel for each label.
+
+```{r environmental-maps, fig.height=4.5, fig.cap="Environmental values at the actual sampled sites. In this first dataset, neighbouring sites do not systematically share similar conditions. Both panels use the same arbitrary measurement scale; neither represents a real temperature or moisture measurement."}
+environment_long <- site_covariates |>
+  pivot_longer(
+    cols = starts_with("environment_"),
+    names_to = "covariate",
+    values_to = "value"
+  )
+
+ggplot(environment_long, aes(x = east, y = north, colour = value)) +
+  geom_point(size = 2.5) +
+  facet_wrap(~ covariate) +
+  scale_colour_viridis_c(name = "Covariate value") +
+  scale_x_continuous(breaks = c(0, 0.5, 1)) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  coord_equal() +
+  labs(x = "East coordinate", y = "North coordinate") +
+  theme_minimal(base_size = 12)
+```
+
+The patchiness is intentional in this existing dataset: the simulator drew environmental values independently of coordinates. We show points instead of interpolating a smooth surface that was never simulated. Lesson 2 will introduce smooth environmental gradients, so that geography becomes informative about habitat conditions.
+
+## Map probability, actual occurrence and detection separately
+
+Consider OTU_1 and OTU_10, the species used in Lesson 1's detection examples. The species are chosen to connect the lessons, not because their fitted maps look especially good. First calculate whether there was any positive PCR for each species at each site. This deliberately simple detection rule is an observation summary, not an occupancy model.
+
+```{r prepare-species-maps}
+site_detections <- observations_with_truth |>
+  group_by(Site, species) |>
+  summarise(
+    any_positive = if (all(is.na(positive))) {
+      NA_real_
+    } else {
+      as.numeric(any(positive == 1, na.rm = TRUE))
+    },
+    .groups = "drop"
+  ) |>
+  mutate(Site = as.character(Site))
+
+# Convert the generating model's scores to probabilities, then to a long table.
+occupancy_truth <- known_truth$jsdmParams_true$eta |>
+  plogis() |>
+  as.data.frame() |>
+  rownames_to_column("Site") |>
+  pivot_longer(cols = -Site, names_to = "species", values_to = "probability")
+
+species_truth <- occupancy_truth |>
+  filter(species %in% c("OTU_1", "OTU_10")) |>
+  left_join(presence_truth, by = c("Site", "species")) |>
+  left_join(site_detections, by = c("Site", "species")) |>
+  left_join(site_covariates, by = "Site")
+
+truth_map_data <- species_truth |>
+  pivot_longer(
+    cols = c(probability, presence, any_positive),
+    names_to = "quantity",
+    values_to = "value"
+  ) |>
+  mutate(
+    quantity = factor(
+      quantity,
+      levels = c("probability", "presence", "any_positive"),
+      labels = c(
+        "True occupancy probability", "Actual presence (0 or 1)",
+        "Any positive PCR (0 or 1)"
+      )
+    )
+  )
+```
+
+`group_by()` tells `summarise()` to calculate one result for each site and species. The explicit missing-data check prevents an unobserved site from being treated as a negative. `plogis()` converts the generating model's score, `eta`, to an occupancy probability. The saved matrices have site IDs as row names and species IDs as column names; `rownames_to_column()` and `pivot_longer()` make both explicit columns. `left_join()` attaches matching information using the named keys; it does not assume the tables have the same row order. `factor()` sets the order of panels.
+
+```{r truth-and-observation-maps, fig.width=9, fig.height=6, fig.cap="Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the 24 PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here."}
+ggplot(truth_map_data, aes(x = east, y = north, colour = value)) +
+  geom_point(size = 2) +
+  facet_grid(species ~ quantity) +
+  scale_colour_viridis_c(limits = c(0, 1), name = "Probability / state") +
+  scale_x_continuous(breaks = c(0, 0.5, 1)) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  coord_equal() +
+  labs(x = "East coordinate", y = "North coordinate") +
+  theme_minimal(base_size = 11)
+```
+
+Read one row of maps from left to right. A high-probability site need not be occupied in this particular realization. An occupied site can have no positive PCRs. An unoccupied site can have a positive PCR because of contamination. Lesson 1 asks how much of this uncertainty the fitted model can resolve.
+
+## Take the right objects into Lesson 1
+
+The two-stage fit receives **`survey_data` only**. It does not receive the true occupancy probabilities, presence states, sample states or source labels. Lesson 1 also includes a deliberately labelled perfect-observation control that receives the true presence/absence matrix. That control still has to estimate the probabilities that generated those binary states.
+
+Our later spatial lesson will keep the observation process recognisable while changing the ecological simulation. Smooth environmental gradients will be one ingredient. Species' different dispersal abilities will be another, introduced separately so that students can see what each changes. A spatial pattern alone is not a measurement of dispersal. See the [Lesson 2 outline](`r lesson_link("occJSDM-lesson-2")`) for that distinction and the planned comparisons.
+
+Continue to [Lesson 1: Fit the model and compare its answers with truth](`r lesson_link("occJSDM-first-lesson")`).

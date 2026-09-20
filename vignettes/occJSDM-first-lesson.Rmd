@@ -1,12 +1,13 @@
 ---
-title: "Learning occJSDM with a community whose truth we know"
+title: "Lesson 1: Fit the model and compare its answers with truth"
 output:
   rmarkdown::html_vignette:
     toc: true
+    css: teaching.css
     fig_width: 8
     fig_height: 5
 vignette: >
-  %\VignetteIndexEntry{Learning occJSDM with a community whose truth we know}
+  %\VignetteIndexEntry{Lesson 1: Fit the model and compare its answers with truth}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options:
@@ -15,61 +16,72 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, collapse = FALSE, comment = "#>",
+  fig.width = 8, fig.height = 5, dpi = 150, dev = "png"
+)
+lesson_link <- function(name) {
+  is_html <- knitr::pandoc_to() %in% c("html", "html4", "html5")
+  if (name == "occJSDM" && !is_html) return("occJSDM.Rmd")
+  extension <- if (is_html) ".html" else ".md"
+  paste0(name, extension)
+}
+
+```
+
+## Before you start
+
+This is **Lesson 1**. [Lesson 0 (optional)](`r lesson_link("occJSDM-lesson-0")`) explains how we created the survey and maps its environmental values, true occurrences and detections. You can start here with the supplied data. [Lesson 2](`r lesson_link("occJSDM-lesson-2")`) will introduce smooth environmental gradients, spatial modelling and a separate simulation of species with different dispersal abilities after PR #8 is reviewed. The current lesson is non-spatial.
+
+All teaching code is shown. Run the chunks in order with the repository's `vignettes` directory as the working directory; knitting handles this automatically. In RStudio, use **Session > Set Working Directory > To Source File Location** with this file open. `|>` passes a result into the next function. We explain the table operations as they appear.
+
+We use saved results so that reading or knitting the lesson does not start a long model fit. The three optional fitting chunks and the optional extraction example at the end are clearly labelled and not executed during knitting. The remaining displayed chunks execute and generate the figures and tables you see. The saved file contains the complete simulation and posterior summaries, not the full MCMC draws.
+
+```{r load-teaching-data, message=FALSE}
+library(dplyr)
+library(tidyr)
+library(tibble)
 library(ggplot2)
+
 lesson <- readRDS("teaching-data/nonspatial-lesson.rds")
-stopifnot(lesson$schema == 1L)
-knitr::opts_chunk$set(collapse=TRUE,comment="#>",fig.width=8,fig.height=5,
-                     dpi=150,dev="png")
-theme_set(theme_minimal(base_size=12))
-arm_names <- c(perfect="Perfect observation",default="PCR observations: default priors",
-               alternative="PCR observations: more permissive FP priors")
-colours <- c(perfect="#0072B2",default="#D55E00",alternative="#7B3294")
-pct <- function(x,digits=1) paste0(formatC(100*x,format="f",digits=digits),"%")
-pp <- function(x) formatC(100*x,format="f",digits=1)
-case_levels <- lesson$cases$case
-case_values <- merge(lesson$cases,lesson$samples,
-                     by=c("species","Site","Sample","z","w"),sort=FALSE)
-case_values$case <- factor(case_values$case,levels=case_levels)
-case_values <- case_values[order(case_values$case,case_values$arm),]
-case_value <- function(case,field,arm="default") {
-  case_values[case_values$case==case & case_values$arm==arm,field][[1]]
+
+survey_data <- lesson$input$sim$data_list
+known_truth <- lesson$input$sim$true_params
+occupancy_results <- as_tibble(lesson$cells)
+```
+
+`survey_data` contains the covariates, traits and PCR observations supplied to the model. `known_truth` is kept separate for checking its answers. `occupancy_results` has one row per species, site and fit. Here `arm` identifies which fit produced a result; `truth` is the generating occupancy probability, `estimate` is its posterior mean, and `lower` and `upper` bound its 95% credible interval. `z` is the actual simulated presence/absence, which is a different quantity from the generating probability.
+
+```{r inspect-occupancy-results}
+occupancy_results |>
+  select(arm, Site, species, truth, z, estimate, lower, upper) |>
+  slice_head(n = 6)
+```
+
+`select()` chooses columns and `slice_head()` displays a few rows. The following labels and two small formatting functions will keep our figures and tables consistent. They only control presentation; all calculations retain the unrounded values.
+
+```{r labels-and-formatting}
+fit_labels <- c(
+  perfect = "Perfect observation",
+  default = "PCR observations: default priors",
+  alternative = "PCR observations: more permissive FP priors"
+)
+
+fit_colours <- c(
+  perfect = "#0072B2",
+  default = "#D55E00",
+  alternative = "#7B3294"
+)
+
+format_percent <- function(probability, digits = 1) {
+  paste0(formatC(100 * probability, format = "f", digits = digits), "%")
 }
-group_value <- function(arm,field,band="All") {
-  lesson$groups[lesson$groups$arm==arm & lesson$groups$band==band,field][[1]]
+
+format_points <- function(error) {
+  formatC(100 * error, format = "f", digits = 1)
 }
-site_keys <- paste(lesson$cases$species,lesson$cases$Site)
-grids <- lesson$observations[paste(lesson$observations$species,lesson$observations$Site) %in% site_keys,]
-grids$case <- lesson$cases$case[match(paste(grids$species,grids$Site),site_keys)]
-short_cases <- c("Weak true detection"="Weak true", "Laboratory false positive"="Laboratory FP",
-                 "Strong true detection"="Strong true", "Field-stage false positive"="Field-stage FP")
-grids$panel <- factor(paste0(short_cases[grids$case],"\n",grids$species,", site ",grids$Site),
-                      levels=paste0(short_cases[lesson$cases$case],"\n",lesson$cases$species,", site ",lesson$cases$Site))
-grids$sample_label <- paste("Sample",grids$Sample)
-grids$primer_label <- paste("Primer",grids$Primer)
-grid_plot <- function(reveal=FALSE) {
-  x <- grids
-  x$fill <- if(reveal) x$source else ifelse(is.na(x$positive),"Missing",
-                                           ifelse(x$positive==1,"Positive","No detection"))
-  if(reveal) {
-    x$sample_label <- paste0(x$sample_label,"\nDNA ",ifelse(x$w==1,"present","absent"))
-    x$panel <- factor(paste0(x$panel,"\nSite ",ifelse(x$z==1,"occupied","unoccupied")),
-                      levels=paste0(levels(grids$panel),"\nSite ",ifelse(lesson$cases$z==1,"occupied","unoccupied")))
-  }
-  palette <- if(reveal) c("True detection"="#009E73","Laboratory false positive"="#CC79A7",
-                          "Field-stage false positive"="#E69F00","No detection"="#F0F0F0","Missing"="white") else
-                         c("Positive"="#56B4E9","No detection"="#F0F0F0","Missing"="white")
-  ggplot(x,aes(PCR,sample_label,fill=fill)) +
-    geom_tile(colour="white",linewidth=1,height=.9) +
-    geom_text(aes(label=ifelse(is.na(reads),"NA",reads)),size=3) +
-    facet_grid(panel~primer_label,scales="free_y",space="free_y",switch="y") +
-    scale_fill_manual(values=palette,name=NULL) + scale_x_continuous(breaks=1:6) +
-    labs(x="PCR replicate within a primer",y=NULL,
-         title=if(reveal) "Reveal what produced each positive" else "What the model sees: PCR results",
-         subtitle="Numbers are read counts. Fitting uses only whether each count is at least one.") +
-    theme(panel.grid=element_blank(),strip.text.y.left=element_text(angle=0,size=9),
-          plot.title.position="plot",legend.position="bottom",legend.text=element_text(size=9)) +
-    guides(fill=guide_legend(nrow=2,byrow=TRUE))
-}
+
+theme_set(theme_minimal(base_size = 12))
 ```
 
 ## What are we trying to learn?
@@ -102,33 +114,67 @@ PCR results are a further observation of the sample state. They are not the site
 
 A true occupancy probability of 20% does not mean a species is “20% present”. It means presence occurs in 20% of hypothetical repetitions under those conditions. In the one realization we simulate, the species is either present or absent. Even if someone tells us every true presence and absence, we still have to estimate the probabilities that produced them.
 
-```{r probability-and-state, echo=FALSE, fig.height=4.7, fig.cap="Both panels show known truth for OTU_1 at the first 20 sites. The lower panel is one binary realization of the probabilities above. Neither panel shows a fitted estimate."}
-x <- subset(lesson$cells,arm=="perfect" & species=="OTU_1" & as.integer(Site)<=20)
-truth_plot <- rbind(data.frame(Site=as.integer(x$Site),value=x$truth,
-                               quantity="Underlying probability",label=pct(x$truth,0)),
-                    data.frame(Site=as.integer(x$Site),value=x$z,
-                               quantity="Actual presence or absence",label=ifelse(x$z==1,"Present","Absent")))
-truth_plot$quantity <- factor(truth_plot$quantity,levels=c("Underlying probability","Actual presence or absence"))
-ggplot(truth_plot,aes(Site,value)) + geom_point(size=2,colour="black") +
-  geom_text(data=subset(truth_plot,quantity=="Underlying probability"),aes(label=label),vjust=-.8,size=2.5) + facet_wrap(~quantity,ncol=1) +
-  scale_y_continuous(breaks=c(0,.5,1),labels=c("0% / absent","50%","100% / present"),limits=c(0,1.16)) +
-  scale_x_continuous(breaks=seq(2,20,2)) + labs(x="Site",y=NULL)
+```{r probability-and-state, fig.height=4.7, fig.cap="Both panels show known truth for OTU_1 at the first 20 sites. The lower panel is one binary realization of the probabilities above. Neither panel shows a fitted estimate."}
+probability_and_state <- occupancy_results |>
+  filter(arm == "perfect", species == "OTU_1", as.integer(Site) <= 20) |>
+  transmute(Site = as.integer(Site), probability = truth, presence = z) |>
+  pivot_longer(
+    cols = c(probability, presence),
+    names_to = "quantity",
+    values_to = "value"
+  ) |>
+  mutate(
+    quantity = factor(
+      quantity,
+      levels = c("probability", "presence"),
+      labels = c("Underlying probability", "Actual presence or absence")
+    )
+  )
+
+ggplot(probability_and_state, aes(x = Site, y = value)) +
+  geom_point(size = 2, colour = "black") +
+  facet_wrap(~ quantity, ncol = 1) +
+  scale_y_continuous(
+    breaks = c(0, 0.5, 1),
+    labels = c("0% / absent", "50%", "100% / present"),
+    limits = c(0, 1)
+  ) +
+  scale_x_continuous(breaks = seq(2, 20, 2)) +
+  labs(x = "Site", y = NULL)
 ```
 
 ## First give the JSDM perfect observations
 
 We fit the JSDM to the actual simulated presence/absence matrix. This control removes uncertainty about field collection and PCR, but retains the need to estimate environmental relationships and hidden community structure from binary data.
 
-The following code is run from the repository root. The helper contains the complete fixed simulation settings and seed; it does not search for an easy dataset.
+First build the perfect-observation input explicitly. `distinct()` keeps one copy of each site's environmental covariates. The presence matrix must follow that same site order. The row names in the saved truth matrix are site IDs, so we select by those IDs, not by an assumed row position. Omitting `Sample` and `Primer` makes this a direct presence/absence input.
+
+```{r prepare-perfect-input}
+perfect_site_info <- survey_data$info |>
+  as_tibble() |>
+  select(Site, starts_with("X_psi")) |>
+  distinct() |>
+  arrange(Site)
+
+site_ids <- as.character(perfect_site_info$Site)
+species_ids <- colnames(survey_data$OTU)
+
+perfect_data <- list(
+  info = as.data.frame(perfect_site_info),
+  OTU = known_truth$z_true[site_ids, species_ids, drop = FALSE],
+  traits = survey_data$traits
+)
+```
+
+`drop = FALSE` preserves the matrix structure even if we later select just one species. **The following fitting chunk is optional and is not run when knitting.** The simulator settings and seed are shown in Lesson 0; the code here uses that same saved dataset.
 
 ```{r reproduce-perfect-fit, eval=FALSE}
 library(occJSDM)
-source("dev/simstudy/vignette-lesson/helpers.R")
-example <- make_lesson()
-perfect_data <- lesson_binary_data(example)  # uses actual simulated z
+
 set.seed(20260920)
+
 perfect_fit <- runOccJSDM(
-  perfect_data,
+  data = perfect_data,
   occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
   listParams = list(n_factors = 2, n_lattrait = 1),
   spatCovariates = NULL,
@@ -138,12 +184,17 @@ perfect_fit <- runOccJSDM(
 
 ## Now give occJSDM only the PCR observations
 
-For the second fit, we supply the environmental and collection covariates, traits and read counts. The model must infer which sites and samples were actually occupied as well as estimate the underlying probabilities. It receives exactly the same simulated community as the perfect-observation fit.
+For the second fit, we supply the environmental and collection covariates, traits and read counts. The model must infer which sites and samples were actually occupied as well as estimate the underlying probabilities. It receives exactly the same simulated community as the perfect-observation fit. This fitting chunk is also optional. `threshold = 1` counts one or more reads as a positive result. `spatCovariates = NULL` excludes coordinates from the fit. The environmental columns still affect occupancy.
+
+`nchain = 4` runs four chains, `nburn = 3000` discards their initial iterations, and `niter = 6000` keeps 6,000 subsequent iterations per chain. `nthin = 1` retains every one of those iterations. The two community factors and one unmeasured trait dimension match the simulation.
 
 ```{r reproduce-two-stage-fit, eval=FALSE}
+library(occJSDM)
+
 set.seed(20260921)
+
 fit <- runOccJSDM(
-  example$sim$data_list,
+  data = survey_data,
   occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
   collCovariates = "X_theta",
   listParams = list(n_factors = 2, n_lattrait = 1),
@@ -153,48 +204,186 @@ fit <- runOccJSDM(
 )
 ```
 
-```{r occupancy-recovery, echo=FALSE, fig.height=4.7, fig.cap="Each point represents one species at one fitted site. The black diagonal is perfect recovery of the generating occupancy probability. Points above it are overestimates; points below it are underestimates. The sites are the same in both panels."}
-x <- subset(lesson$cells,arm %in% c("perfect","default"))
-x$fit <- factor(arm_names[x$arm],levels=arm_names[c("perfect","default")])
-ggplot(x,aes(truth,estimate,colour=arm)) +
-  geom_abline(slope=1,intercept=0,colour="black",linewidth=.6) +
-  geom_point(alpha=.4,size=.9) + facet_wrap(~fit) +
-  scale_colour_manual(values=colours,guide="none") +
-  scale_x_continuous(limits=c(0,1),breaks=seq(0,1,.25),labels=function(x)pct(x,0)) +
-  scale_y_continuous(limits=c(0,1),breaks=seq(0,1,.25),labels=function(x)pct(x,0)) +
-  coord_equal() + labs(x="True occupancy probability",y="Estimated occupancy probability")
+```{r occupancy-recovery, fig.height=4.7, fig.cap="Each point represents one species at one fitted site. The black diagonal is perfect recovery of the generating occupancy probability. Points above it are overestimates; points below it are underestimates. The sites are the same in both panels."}
+comparison_results <- occupancy_results |>
+  filter(arm %in% c("perfect", "default")) |>
+  mutate(
+    fit_label = factor(arm, levels = c("perfect", "default"),
+                       labels = fit_labels[c("perfect", "default")])
+  )
+
+ggplot(comparison_results, aes(x = truth, y = estimate, colour = arm)) +
+  geom_abline(slope = 1, intercept = 0, colour = "black") +
+  geom_point(alpha = 0.4, size = 0.9) +
+  facet_wrap(~ fit_label) +
+  scale_colour_manual(values = fit_colours, guide = "none") +
+  scale_x_continuous(limits = c(0, 1), labels = format_percent) +
+  scale_y_continuous(limits = c(0, 1), labels = format_percent) +
+  coord_equal() +
+  labs(x = "True occupancy probability", y = "Estimated occupancy probability")
 ```
 
-With perfect observations, the **mean absolute error is `r pp(group_value("perfect","mae"))` percentage points**. With PCR observations and default priors, it is **`r pp(group_value("default","mae"))` points**. Thus observation uncertainty adds error in this example, but does not explain all of it.
+`filter()` selects the two fits we want to compare, and `mutate()` adds a readable panel label. `geom_abline()` draws the line where truth and estimate are equal. The plotted estimates come from the saved fits; the true probabilities were not supplied to either fit.
+
+## Calculate the errors ourselves
+
+```{r calculate-errors}
+occupancy_errors <- occupancy_results |>
+  mutate(
+    signed_error = estimate - truth,
+    absolute_error = abs(signed_error),
+    band = case_when(
+      truth < 0.2 ~ "Low",
+      truth > 0.8 ~ "High",
+      TRUE ~ "Middle"
+    )
+  )
+
+# One summary for each fit and true-probability group.
+errors_by_band <- occupancy_errors |>
+  group_by(arm, band) |>
+  summarise(
+    cells = n(),
+    truth = mean(truth),
+    estimate = mean(estimate),
+    signed_error = mean(signed_error),
+    mae = mean(absolute_error),
+    .groups = "drop"
+  )
+
+# Also summarise all species-site pairs together.
+overall_errors <- occupancy_errors |>
+  group_by(arm) |>
+  summarise(
+    band = "All",
+    cells = n(),
+    truth = mean(truth),
+    estimate = mean(estimate),
+    signed_error = mean(signed_error),
+    mae = mean(absolute_error),
+    .groups = "drop"
+  )
+
+error_summary <- bind_rows(overall_errors, errors_by_band) |>
+  mutate(band = factor(band, levels = c("All", "Low", "Middle", "High"))) |>
+  arrange(arm, band)
+```
+
+`abs()` removes the sign of an error. `case_when()` assigns each probability to a group, including exactly 20% and 80% in the middle group. `group_by()` makes `summarise()` calculate separate averages; `n()` counts the rows contributing to each average. Each row here is a species-site pair, so every pair receives equal weight. `bind_rows()` stacks the group and overall summaries. Missing fitted values should be investigated, not silently removed from these error calculations.
+
+With perfect observations, the **mean absolute error is `r format_points((error_summary |> filter(arm == "perfect", band == "All") |> pull(mae)))` percentage points**. With PCR observations and default priors, it is **`r format_points((error_summary |> filter(arm == "default", band == "All") |> pull(mae)))` points**. Thus observation uncertainty adds error in this example, but does not explain all of it.
 
 To calculate absolute error, subtract truth from the estimate and ignore the sign. An estimate of 35% for a true probability of 20% has an absolute error of 15 percentage points. This is an arithmetic illustration; the reported averages come from the simulation. Signed error retains the sign, so positive and negative mistakes can cancel.
 
-```{r occupancy-errors, echo=FALSE}
-t <- subset(lesson$groups,arm %in% c("perfect","default"))
-knitr::kable(data.frame(Fit=arm_names[t$arm],
-                       `True probability group`=c(All="All",Low="Below 20%",Middle="20% to 80%",High="Above 80%")[t$band],
-                       `Species-site pairs`=t$cells,`Mean truth`=pct(t$truth),
-                       `Mean estimate`=pct(t$estimate),
-                       `Signed error (points)`=pp(t$signed_error),
-                       `Absolute error (points)`=pp(t$mae),check.names=FALSE),row.names=FALSE)
+```{r occupancy-errors}
+error_summary |>
+  filter(arm %in% c("perfect", "default")) |>
+  transmute(
+    Fit = fit_labels[arm],
+    `True probability group` = recode(
+      as.character(band),
+      All = "All", Low = "Below 20%", Middle = "20% to 80%", High = "Above 80%"
+    ),
+    `Species-site pairs` = cells,
+    `Mean truth` = format_percent(truth),
+    `Mean estimate` = format_percent(estimate),
+    `Signed error (points)` = format_points(signed_error),
+    `Absolute error (points)` = format_points(mae)
+  ) |>
+  knitr::kable()
 ```
 
-For example, among low-probability cases, the true probabilities average `r pct(group_value("default","truth","Low"))`, whereas the default two-stage estimates average `r pct(group_value("default","estimate","Low"))`. Among high-probability cases, the corresponding averages are `r pct(group_value("default","truth","High"))` and `r pct(group_value("default","estimate","High"))`. Averaging all errors together hides much of this pattern.
+For example, among low-probability cases, the true probabilities average `r format_percent((error_summary |> filter(arm == "default", band == "Low") |> pull(truth)))`, whereas the default two-stage estimates average `r format_percent((error_summary |> filter(arm == "default", band == "Low") |> pull(estimate)))`. Among high-probability cases, the corresponding averages are `r format_percent((error_summary |> filter(arm == "default", band == "High") |> pull(truth)))` and `r format_percent((error_summary |> filter(arm == "default", band == "High") |> pull(estimate)))`. Averaging all errors together hides much of this pattern.
 
 The scatterplot omits intervals to remain readable. Here are intervals for the first 20 sites of OTU_1, selected by site number rather than fit quality:
 
-```{r occupancy-intervals, echo=FALSE, fig.height=4.8, fig.cap="Black points are generating probabilities. Coloured points are posterior means and bars are 95% credible intervals. Intervals describe uncertainty; they do not ensure that the true value is recovered."}
-x <- subset(lesson$cells,arm %in% c("perfect","default") & species=="OTU_1" & as.integer(Site)<=20)
-x$fit <- factor(arm_names[x$arm],levels=arm_names[c("perfect","default")])
-ggplot(x,aes(as.integer(Site),estimate,colour=arm)) +
-  geom_linerange(aes(ymin=lower,ymax=upper),alpha=.6) + geom_point(size=1.7) +
-  geom_point(aes(y=truth),colour="black",shape=4,size=2) +
-  facet_wrap(~fit,ncol=1) + scale_colour_manual(values=colours,guide="none") +
-  scale_y_continuous(limits=c(0,1),labels=function(x)pct(x,0)) +
-  scale_x_continuous(breaks=seq(2,20,2)) + labs(x="Site",y="Occupancy probability")
+```{r occupancy-intervals, fig.height=4.8, fig.cap="Black points are generating probabilities. Coloured points are posterior means and bars are 95% credible intervals. Intervals describe uncertainty; they do not ensure that the true value is recovered."}
+interval_results <- comparison_results |>
+  filter(species == "OTU_1", as.integer(Site) <= 20) |>
+  mutate(site_number = as.integer(Site))
+
+ggplot(interval_results, aes(x = site_number, y = estimate, colour = arm)) +
+  geom_linerange(aes(ymin = lower, ymax = upper), alpha = 0.6) +
+  geom_point(size = 1.7) +
+  geom_point(aes(y = truth), colour = "black", shape = 4, size = 2) +
+  facet_wrap(~ fit_label, ncol = 1) +
+  scale_colour_manual(values = fit_colours, guide = "none") +
+  scale_y_continuous(limits = c(0, 1), labels = format_percent) +
+  scale_x_continuous(breaks = seq(2, 20, 2)) +
+  labs(x = "Site", y = "Occupancy probability")
 ```
 
 These are fitted-site estimates. The hidden site factors have been inferred using the observations at these sites. This is not a test of prediction at new sites, and the generating probabilities are not supplied to either fit.
+
+## Where do the errors occur on the map?
+
+Lesson 0 mapped the environmental values, actual occurrences and detections. Now put the estimates next to their true probabilities. We use OTU_1 and OTU_10 because they are the species in the detection examples below, not because their fitted maps look especially good.
+
+First attach coordinates by site ID. Site IDs are stored as text in `occupancy_results`, so we use the same type in `site_coordinates`. `left_join()` looks up the matching site; row order is irrelevant.
+
+```{r prepare-occupancy-maps}
+site_coordinates <- survey_data$info |>
+  as_tibble() |>
+  transmute(Site = as.character(Site), east = Xs.1, north = Xs.2) |>
+  distinct()
+
+mapped_results <- occupancy_errors |>
+  filter(arm == "default", species %in% c("OTU_1", "OTU_10")) |>
+  left_join(site_coordinates, by = "Site")
+
+probability_maps <- mapped_results |>
+  pivot_longer(
+    cols = c(truth, estimate),
+    names_to = "quantity",
+    values_to = "probability"
+  ) |>
+  mutate(
+    quantity = factor(
+      quantity,
+      levels = c("truth", "estimate"),
+      labels = c("True occupancy probability", "Estimated occupancy probability")
+    )
+  )
+```
+
+`pivot_longer()` stacks truth and estimates into the same column while retaining a label for each. This lets both map panels use exactly the same colour scale.
+
+```{r occupancy-probability-maps, fig.height=6, fig.cap="The default two-stage fit at the sampled sites, compared with its matching simulated truth. Both species and both quantities share the 0–100% colour scale. These are point maps of a non-spatial fit, not predictions for the unsampled space between points."}
+ggplot(probability_maps, aes(x = east, y = north, colour = probability)) +
+  geom_point(size = 2.5) +
+  facet_grid(species ~ quantity) +
+  scale_colour_viridis_c(
+    limits = c(0, 1), labels = format_percent, name = "Occupancy"
+  ) +
+  scale_x_continuous(breaks = c(0, 0.5, 1)) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  coord_equal() +
+  labs(x = "East coordinate", y = "North coordinate")
+```
+
+To see the direction and size of individual mistakes, map estimate minus truth. Multiplying by 100 converts this difference to percentage points. The error scale uses the same limits for both species and is centred at zero.
+
+```{r occupancy-error-maps, fig.height=4.5, fig.cap="Orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state."}
+map_errors <- mapped_results |>
+  mutate(error_pp = 100 * signed_error)
+
+largest_error <- max(abs(map_errors$error_pp))
+
+ggplot(map_errors, aes(x = east, y = north, colour = error_pp)) +
+  geom_point(size = 2.5) +
+  facet_wrap(~ species) +
+  scale_colour_gradient2(
+    low = "#0072B2", mid = "#F0F0F0", high = "#D55E00",
+    midpoint = 0, limits = c(-largest_error, largest_error),
+    name = "Error (points)"
+  ) +
+  scale_x_continuous(breaks = c(0, 0.5, 1)) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  coord_equal() +
+  labs(x = "East coordinate", y = "North coordinate")
+```
+
+The current environmental values and hidden site factors were generated independently of coordinates. We should therefore expect patchy maps rather than smooth geographical gradients. Smoothing these points would invent a surface that this simulation never generated. Lesson 2 will deliberately introduce smooth habitat gradients, then additional spatial structure and contrasting dispersal processes.
 
 ## How does good practice enter the model?
 
@@ -212,21 +401,47 @@ An occasional stray positive is plausible without DNA in the sample. Repeated po
 
 Here are the rates the model actually estimated, next to their known generating values:
 
-```{r detection-rate-recovery, echo=FALSE, fig.height=6.5, fig.cap="Black crosses are the true rates for positive read results. Orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species."}
-x <- subset(lesson$rates,arm=="default")
-x$panel <- ifelse(x$param=="theta0","Field contamination",paste(ifelse(x$param=="p","True PCR detection","Laboratory false positive"),"\nPrimer",x$Primer))
-x$species <- factor(x$species,levels=paste0("OTU_",10:1))
-ggplot(x,aes(estimate,species)) +
-  geom_linerange(aes(xmin=lower,xmax=upper),colour=colours[["default"]]) +
-  geom_point(colour=colours[["default"]],size=1.7) +
-  geom_point(aes(x=truth),shape=4,colour="black",size=2) +
-  facet_wrap(~panel,ncol=3,scales="free_x") +
-  scale_x_continuous(limits=function(x)c(0,min(1,max(x)*1.05)),
-                     breaks=function(x)pretty(x,n=3),labels=function(x)pct(x,0)) +
-  labs(x="Probability",y=NULL)
+The saved `rates` table already contains posterior summaries and the threshold-adjusted generating rates. We select the default-prior fit and label each parameter before plotting it. Unlike the occupancy maps, these panels have different horizontal scales so small false-positive rates remain readable; compare the axis labels as well as the points.
+
+```{r detection-rate-recovery, fig.height=6.5, fig.cap="Black crosses are the true rates for positive read results. Orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species."}
+detection_rates <- lesson$rates |>
+  as_tibble() |>
+  filter(arm == "default") |>
+  mutate(
+    rate_label = case_when(
+      param == "theta0" ~ "Field contamination",
+      param == "p" ~ paste("True PCR detection\nPrimer", Primer),
+      param == "q" ~ paste("Laboratory false positive\nPrimer", Primer)
+    ),
+    species = factor(species, levels = paste0("OTU_", 10:1))
+  )
+
+ggplot(detection_rates, aes(x = estimate, y = species)) +
+  geom_linerange(aes(xmin = lower, xmax = upper), colour = fit_colours[["default"]]) +
+  geom_point(colour = fit_colours[["default"]], size = 1.7) +
+  geom_point(aes(x = truth), shape = 4, colour = "black", size = 2) +
+  facet_wrap(~ rate_label, ncol = 3, scales = "free_x") +
+  scale_x_continuous(
+    limits = function(values) c(0, min(1, max(values) * 1.05)),
+    breaks = function(limits) pretty(limits, n = 3),
+    labels = format_percent
+  ) +
+  labs(x = "Probability", y = NULL)
 ```
 
-There is a small but important detail in this truth comparison. The simulator first draws a laboratory detection event, then draws its read count. Some events yield zero reads. The fitted `p` and `q` describe **positive read results**, so the black crosses account for that extra step. With this simulation's false-positive read distribution, a nominal event probability of 5% would produce positive reads about `r pct(.05 * pnorm(log(1.5),1.5,1,lower.tail=FALSE),2)` of the time. That 5% example explains the conversion; the plotted values use each species' actual simulated rate.
+There is a small but important detail in this truth comparison. The simulator first draws a laboratory detection event, then draws its read count. Some events yield zero reads. The fitted `p` and `q` describe **positive read results**, so the black crosses account for that extra step. With this simulation's false-positive read distribution, a nominal event probability of 5% would produce positive reads about `r format_percent(.05 * pnorm(log(1.5),1.5,1,lower.tail=FALSE),2)` of the time. That 5% example explains the conversion; the plotted values use each species' actual simulated rate.
+
+Here is the calculation for that illustration. `pnorm(..., lower.tail = FALSE)` calculates the chance of a log-read value exceeding the cutoff. Rounding a count to at least one requires `exp(log_read) - 1` to reach 0.5, hence `log(1.5)`.
+
+```{r threshold-conversion}
+chance_event_gives_positive_reads <- pnorm(
+  q = log(1.5), mean = 1.5, sd = 1, lower.tail = FALSE
+)
+
+illustrative_positive_rate <- 0.05 * chance_event_gives_positive_reads
+
+format_percent(illustrative_positive_rate, digits = 2)
+```
 
 ## Four examples: inspect the observations first
 
@@ -234,119 +449,277 @@ Each row below is one field sample. There are six PCR columns for each of two pr
 
 These four cases were selected from known truth and observed patterns **before looking at fitted probabilities**. Weak true cases have one or two positive PCRs in the focal sample; strong true cases have at least six in the focal sample and at least three genuine positives in each of two samples. For each category, the first case in species-name, numeric-site and numeric-sample order was selected. The headings name the teaching categories; the colours initially show only observed results.
 
-```{r observed-detection-cases, echo=FALSE, fig.height=6.8, fig.width=9, fig.cap="These are actual rows from the simulated dataset. Both field samples at each selected site are shown, including the sample used to select the case. A positive PCR by itself does not reveal its source."}
-grid_plot(FALSE)
+We now join the observation rows to the selected case IDs. `semi_join()` would keep matching rows without adding columns; here `inner_join()` both keeps the matching sites and adds the case label. The key is **species plus site** so that we keep both field samples, including the non-focal sample.
+
+```{r prepare-detection-examples}
+case_order <- lesson$cases$case
+
+case_sites <- lesson$cases |>
+  as_tibble() |>
+  select(case, species, Site)
+
+case_observations <- lesson$observations |>
+  as_tibble() |>
+  inner_join(case_sites, by = c("species", "Site")) |>
+  mutate(
+    case = factor(case, levels = case_order),
+    sample_label = paste("Sample", Sample),
+    primer_label = paste("Primer", Primer),
+    observed_result = case_when(
+      is.na(positive) ~ "Missing",
+      positive == 1 ~ "Positive",
+      TRUE ~ "No detection"
+    )
+  )
 ```
 
-```{r case-identities, echo=FALSE}
-knitr::kable(lesson$cases[,c("case","species","Site","Sample","positives","observed","eligible")],
-             col.names=c("Case","Species","Site","Focal sample","Positive PCRs","PCRs observed","Eligible samples"),row.names=FALSE)
+The colour in the first figure uses **only observed PCR results**. The category names identify examples selected using simulation truth; they are not model classifications. Missing observations have their own colour instead of being treated as negatives.
+
+```{r observed-detection-cases, fig.height=6.8, fig.width=9, fig.cap="These are actual rows from the simulated dataset. Both field samples at each selected site are shown, including the sample used to select the case. A positive PCR by itself does not reveal its source."}
+ggplot(case_observations, aes(x = PCR, y = sample_label, fill = observed_result)) +
+  geom_tile(colour = "white", linewidth = 1, height = 0.9) +
+  geom_text(aes(label = if_else(is.na(reads), "NA", as.character(reads))), size = 3) +
+  facet_grid(case ~ primer_label, scales = "free_y", space = "free_y", switch = "y") +
+  scale_fill_manual(
+    values = c(Positive = "#56B4E9", `No detection` = "#F0F0F0", Missing = "white"),
+    name = NULL
+  ) +
+  scale_x_continuous(breaks = 1:6) +
+  labs(x = "PCR replicate within a primer", y = NULL) +
+  theme(
+    panel.grid = element_blank(),
+    strip.placement = "outside",
+    strip.text.y.left = element_text(angle = 0, size = 9),
+    axis.text.y = element_text(margin = margin(r = 8)),
+    legend.position = "bottom"
+  )
+```
+
+```{r case-identities}
+lesson$cases |>
+  select(case, species, Site, Sample, positives, observed, eligible) |>
+  knitr::kable(
+    col.names = c("Case", "Species", "Site", "Focal sample", "Positive PCRs",
+                  "PCRs observed", "Eligible samples")
+  )
 ```
 
 ## Reveal the truth and compare it with the fit
 
-```{r revealed-detection-cases, echo=FALSE, fig.height=6.8, fig.width=9, fig.cap="Green positives come from DNA collected at an occupied site. Pink positives arise in a sample without the species' DNA. Orange positives amplify DNA in a field sample despite the species being absent from the site. These labels come from the simulation, not the fitted model."}
-grid_plot(TRUE)
+```{r revealed-detection-cases, fig.height=6.8, fig.width=9, fig.cap="Green positives come from DNA collected at an occupied site. Pink positives arise in a sample without the species' DNA. Orange positives amplify DNA in a field sample despite the species being absent from the site. These labels come from the simulation, not the fitted model."}
+revealed_observations <- case_observations |>
+  mutate(
+    sample_label = paste0("Sample ", Sample, "\nDNA ", if_else(w == 1, "present", "absent")),
+    site_label = paste0(case, "\n", species, ", site ", Site, "\n",
+                        if_else(z == 1, "Occupied", "Unoccupied"))
+  ) |>
+  arrange(case) |>
+  mutate(site_label = factor(site_label, levels = unique(site_label)))
+
+ggplot(revealed_observations, aes(x = PCR, y = sample_label, fill = source)) +
+  geom_tile(colour = "white", linewidth = 1, height = 0.9) +
+  geom_text(aes(label = if_else(is.na(reads), "NA", as.character(reads))), size = 3) +
+  facet_grid(site_label ~ primer_label, scales = "free_y", space = "free_y", switch = "y") +
+  scale_fill_manual(
+    values = c(
+      `True detection` = "#009E73",
+      `Laboratory false positive` = "#CC79A7",
+      `Field-stage false positive` = "#E69F00",
+      `No detection` = "#F0F0F0",
+      Missing = "white"
+    ),
+    name = NULL
+  ) +
+  scale_x_continuous(breaks = 1:6) +
+  labs(x = "PCR replicate within a primer", y = NULL) +
+  theme(
+    panel.grid = element_blank(),
+    strip.placement = "outside",
+    strip.text.y.left = element_text(angle = 0, size = 9),
+    axis.text.y = element_text(margin = margin(r = 8)),
+    legend.position = "bottom",
+    legend.text = element_text(size = 9)
+  ) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE))
 ```
 
-```{r default-case-probabilities, echo=FALSE}
-x <- subset(case_values,arm=="default")
-knitr::kable(data.frame(Case=x$case,`True site state`=ifelse(x$z==1,"Present","Absent"),
-                       `Estimated chance site was occupied`=pct(x$site_probability),
-                       `True focal sample state`=ifelse(x$w==1,"DNA present","DNA absent"),
-                       `Estimated chance DNA was in focal sample`=pct(x$sample_probability),
-                       check.names=FALSE),row.names=FALSE)
+```{r default-case-probabilities}
+case_results <- lesson$cases |>
+  select(case, species, Site, Sample) |>
+  inner_join(lesson$samples, by = c("species", "Site", "Sample")) |>
+  mutate(case = factor(case, levels = case_order)) |>
+  arrange(case, arm)
+
+case_results |>
+  filter(arm == "default") |>
+  transmute(
+    Case = case,
+    `True site state` = if_else(z == 1, "Present", "Absent"),
+    `Estimated chance site was occupied` = format_percent(site_probability),
+    `True focal sample state` = if_else(w == 1, "DNA present", "DNA absent"),
+    `Estimated chance DNA was in focal sample` = format_percent(sample_probability)
+  ) |>
+  knitr::kable()
 ```
 
-**Weak true detection:** OTU_1 really occupied site 3 and its DNA was in sample 6, but only two of the twelve PCRs from that sample were positive. The model gives site presence `r pct(case_value("Weak true detection","site_probability"))` probability, but sample presence only `r pct(case_value("Weak true detection","sample_probability"))`. It therefore retains the genuine site occurrence while tending to miss the DNA in this particular sample. This is a useful example of the two questions receiving different answers, not a wholly successful classification.
+**Weak true detection:** OTU_1 really occupied site 3 and its DNA was in sample 6, but only two of the twelve PCRs from that sample were positive. The model gives site presence `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(site_probability)))` probability, but sample presence only `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(sample_probability)))`. It therefore retains the genuine site occurrence while tending to miss the DNA in this particular sample. This is a useful example of the two questions receiving different answers, not a wholly successful classification.
 
-**Laboratory false positive:** sample 3 at site 2 did not contain OTU_1 DNA, yet one PCR was positive. The model assigns sample presence only `r pct(case_value("Laboratory false positive","sample_probability"))` probability. However, OTU_1 really was present at the site, and the model assigns site presence `r pct(case_value("Laboratory false positive","site_probability"))` probability. A false-positive PCR does not require the species to be absent from the entire site. Collection failure and a laboratory false positive can occur together.
+**Laboratory false positive:** sample 3 at site 2 did not contain OTU_1 DNA, yet one PCR was positive. The model assigns sample presence only `r format_percent((case_results |> filter(case == "Laboratory false positive", arm == "default") |> pull(sample_probability)))` probability. However, OTU_1 really was present at the site, and the model assigns site presence `r format_percent((case_results |> filter(case == "Laboratory false positive", arm == "default") |> pull(site_probability)))` probability. A false-positive PCR does not require the species to be absent from the entire site. Collection failure and a laboratory false positive can occur together.
 
-**Strong true detection:** OTU_1 really occupied site 25. Both field samples contain its DNA and repeated PCRs detect it. The fitted probability of site presence is `r pct(case_value("Strong true detection","site_probability"))`, and the probability of DNA in the focal sample is `r pct(case_value("Strong true detection","sample_probability"))`. Here the strong evidence leads to the correct interpretation.
+**Strong true detection:** OTU_1 really occupied site 25. Both field samples contain its DNA and repeated PCRs detect it. The fitted probability of site presence is `r format_percent((case_results |> filter(case == "Strong true detection", arm == "default") |> pull(site_probability)))`, and the probability of DNA in the focal sample is `r format_percent((case_results |> filter(case == "Strong true detection", arm == "default") |> pull(sample_probability)))`. Here the strong evidence leads to the correct interpretation.
 
-**Field-stage false positive:** OTU_10 was absent from site 9, but the simulation contaminated both field samples with its DNA. Sample 17 has ten positive PCRs and sample 18 has twelve. The model correctly concludes that the samples contain DNA, but incorrectly assigns site presence `r pct(case_value("Field-stage false positive","site_probability"))` probability. Even independent low-probability contamination events can occasionally coincide. This case was selected by the stated rule, not because of the model's mistake.
+**Field-stage false positive:** OTU_10 was absent from site 9, but the simulation contaminated both field samples with its DNA. Sample 17 has ten positive PCRs and sample 18 has twelve. The model correctly concludes that the samples contain DNA, but incorrectly assigns site presence `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(site_probability)))` probability. Even independent low-probability contamination events can occasionally coincide. This case was selected by the stated rule, not because of the model's mistake.
 
 Thus, more PCRs can establish DNA presence in a tube, while independent field samples provide additional evidence about occurrence at a site. Neither type of replication guarantees a correct answer. Contamination shared across field samples or laboratory batches could be harder still if that dependence is not represented by the model.
 
-Do not confuse these conditional site-presence probabilities with the underlying occupancy probabilities. For OTU_10 at site 9, the generating occupancy probability was `r pct(case_value("Field-stage false positive","occupancy_truth"))`, and the fitted underlying probability is `r pct(case_value("Field-stage false positive","occupancy_estimate"))`. The much higher conditional probability above answers a different question: after seeing this site's PCR results, how likely is it that this particular site was occupied?
+Do not confuse these conditional site-presence probabilities with the underlying occupancy probabilities. For OTU_10 at site 9, the generating occupancy probability was `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(occupancy_truth)))`, and the fitted underlying probability is `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(occupancy_estimate)))`. The much higher conditional probability above answers a different question: after seeing this site's PCR results, how likely is it that this particular site was occupied?
 
 The model also considers **collection conditions**. Here is the sample-level evidence for both field samples in each case. The collection covariate is a simulated measurement in arbitrary units. The true collection probability is calculated from that sample's covariate and the generating species coefficients, rather than substituted with an average rate.
 
-```{r both-samples-and-collection, echo=FALSE}
-sample_context <- subset(lesson$samples,arm=="default")
-sample_context <- sample_context[paste(sample_context$species,sample_context$Site) %in% site_keys,]
-sample_context$case <- factor(lesson$cases$case[match(paste(sample_context$species,sample_context$Site),site_keys)],levels=case_levels)
-sample_context <- sample_context[order(sample_context$case,sample_context$Sample),]
-info <- lesson$input$sim$data_list$info
-sample_context$covariate <- info$X_theta[match(sample_context$Sample,info$Sample)]
-beta <- lesson$input$sim$true_params$beta_theta_true
-sp_index <- match(sample_context$species,colnames(lesson$input$sim$data_list$OTU))
-sample_context$true_collection <- plogis(beta[1,sp_index]+sample_context$covariate*beta[2,sp_index])
-knitr::kable(data.frame(Case=sample_context$case,Sample=sample_context$Sample,
-                       `True DNA state`=ifelse(sample_context$w==1,"Present","Absent"),
-                       `Fitted DNA probability`=pct(sample_context$sample_probability),
-                       `Collection covariate`=round(sample_context$covariate,2),
-                       `True collection probability`=pct(sample_context$true_collection),
-                       `Fitted collection probability`=pct(sample_context$collection_probability),
-                       check.names=FALSE),row.names=FALSE)
+```{r both-samples-and-collection}
+collection_covariates <- survey_data$info |>
+  as_tibble() |>
+  select(Sample, covariate = X_theta) |>
+  distinct()
+
+# Rows of beta_theta_true are the intercept and collection-covariate slope.
+collection_coefficients <- tibble(
+  species = colnames(survey_data$OTU),
+  intercept = known_truth$beta_theta_true[1, ],
+  slope = known_truth$beta_theta_true[2, ]
+)
+
+sample_context <- lesson$samples |>
+  as_tibble() |>
+  filter(arm == "default") |>
+  inner_join(case_sites, by = c("species", "Site")) |>
+  left_join(collection_covariates, by = "Sample") |>
+  left_join(collection_coefficients, by = "species") |>
+  mutate(
+    case = factor(case, levels = case_order),
+    true_collection = plogis(intercept + slope * covariate)
+  ) |>
+  arrange(case, Sample)
+
+sample_context |>
+  transmute(
+    Case = case,
+    Sample,
+    `True DNA state` = if_else(w == 1, "Present", "Absent"),
+    `Fitted DNA probability` = format_percent(sample_probability),
+    `Collection covariate` = round(covariate, 2),
+    `True collection probability` = format_percent(true_collection),
+    `Fitted collection probability` = format_percent(collection_probability)
+  ) |>
+  knitr::kable()
 ```
 
-The last two columns answer: **if the species occupies the site, how likely is DNA to enter this sample?** They are different from the fitted probability that DNA actually entered the sample after considering its PCR results. For the field-contamination case, the site was absent, so the generating probability of DNA entering each sample was instead `r pct(lesson$input$params$theta0[10])`, the field false-positive rate for OTU_10.
+The last two columns answer: **if the species occupies the site, how likely is DNA to enter this sample?** They are different from the fitted probability that DNA actually entered the sample after considering its PCR results. For the field-contamination case, the site was absent, so the generating probability of DNA entering each sample was instead `r format_percent(lesson$input$params$theta0[10])`, the field false-positive rate for OTU_10.
 
-For the weak true case, sample 5 has five positive PCRs and fitted DNA-presence probability `r pct(sample_context$sample_probability[sample_context$species=="OTU_1" & sample_context$Sample==5])`; sample 6 has only two positives and fitted DNA-presence probability `r pct(case_value("Weak true detection","sample_probability"))`. The model can therefore remain confident about the site while discounting sample 6. This interpretation uses the other sample and the ecological model as well as the focal sample's PCRs; the simulation reveals that discounting sample 6 was a mistake.
+In the code, `intercept + slope * covariate` is the generating collection score for a particular species and sample. `plogis()` converts that score to a probability between zero and one. The fitted collection probabilities in the final column come from the posterior summaries; they are not calculated using the true coefficients.
+
+For the weak true case, sample 5 has five positive PCRs and fitted DNA-presence probability `r format_percent(sample_context$sample_probability[sample_context$species=="OTU_1" & sample_context$Sample==5])`; sample 6 has only two positives and fitted DNA-presence probability `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(sample_probability)))`. The model can therefore remain confident about the site while discounting sample 6. This interpretation uses the other sample and the ecological model as well as the focal sample's PCRs; the simulation reveals that discounting sample 6 was a mistake.
 
 ## What changes if we are less confident about low contamination?
 
 We refit the **same observations**, changing only the priors on laboratory and field-stage false-positive rates from Beta(1, 20), mean 4.8%, to Beta(1, 4), mean 20%. The true-detection prior is unchanged. This is a stress test of the low-contamination assumption, not a recommended replacement prior.
 
+The optional fitting code below reproduces the longer alternative fit used in the saved results. Changing two priors together tests the combined assumption; it does not identify which change caused a difference.
+
 ```{r alternative-priors, eval=FALSE}
+library(occJSDM)
+
 set.seed(20260922)
+
 alternative_fit <- runOccJSDM(
-  example$sim$data_list,
+  data = survey_data,
   occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
   collCovariates = "X_theta",
   listParams = list(n_factors = 2, n_lattrait = 1),
-  spatCovariates = NULL, threshold = 1,
+  spatCovariates = NULL,
+  threshold = 1,
   listPriors = list(a_q = 1, b_q = 4, a_theta0 = 1, b_theta0 = 4),
   MCMCparams = list(nchain = 4, nburn = 6000, niter = 12000, nthin = 1)
 )
 ```
 
-```{r prior-sensitivity-cases, echo=FALSE, fig.height=5.4, fig.cap="Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The two coloured points use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the generating occupancy probability."}
-x <- rbind(data.frame(case=case_values$case,arm=case_values$arm,
-                       quantity="Site was occupied",estimate=case_values$site_probability,truth=case_values$z),
-            data.frame(case=case_values$case,arm=case_values$arm,
-                       quantity="DNA in focal sample",estimate=case_values$sample_probability,truth=case_values$w))
-x$case <- factor(x$case,levels=rev(case_levels))
-ggplot(x,aes(estimate,case,colour=arm)) +
-  geom_point(position=position_dodge(width=.35),size=2.5) +
-  geom_point(data=unique(x[,c("case","quantity","truth")]),aes(x=truth,y=case),
-             inherit.aes=FALSE,shape=4,size=3,colour="black") +
-  facet_wrap(~quantity,ncol=1) +
-  scale_colour_manual(values=colours,breaks=c("default","alternative"),
-                      labels=c("Default priors","More permissive FP priors"),name=NULL) +
-  scale_x_continuous(limits=c(-.02,1.02),breaks=seq(0,1,.25),labels=function(x)pct(x,0)) +
-  labs(x="Estimated probability; black cross = actual state",y=NULL) + theme(legend.position="bottom")
+```{r prior-sensitivity-cases, fig.height=5.4, fig.cap="Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The two coloured points use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the generating occupancy probability."}
+case_comparison <- bind_rows(
+  case_results |>
+    transmute(case, arm, quantity = "Site was occupied",
+              estimate = site_probability, truth = z),
+  case_results |>
+    transmute(case, arm, quantity = "DNA in focal sample",
+              estimate = sample_probability, truth = w)
+) |>
+  mutate(case = factor(case, levels = rev(case_order)))
+
+case_truth <- case_comparison |>
+  distinct(case, quantity, truth)
+
+ggplot(case_comparison, aes(x = estimate, y = case, colour = arm)) +
+  geom_point(position = position_dodge(width = 0.35), size = 2.5) +
+  geom_point(
+    data = case_truth, aes(x = truth, y = case),
+    inherit.aes = FALSE, shape = 4, size = 3, colour = "black"
+  ) +
+  facet_wrap(~ quantity, ncol = 1) +
+  scale_colour_manual(
+    values = fit_colours,
+    breaks = c("default", "alternative"),
+    labels = c("Default priors", "More permissive FP priors"),
+    name = NULL
+  ) +
+  scale_x_continuous(limits = c(-0.02, 1.02), breaks = seq(0, 1, 0.25), labels = format_percent) +
+  labs(x = "Estimated probability; black cross = actual state", y = NULL) +
+  theme(legend.position = "bottom")
 ```
 
-The field-stage false-positive case still receives `r pct(case_value("Field-stage false positive","site_probability","alternative"))` probability of site presence under the alternative priors. Allowing more contamination does not make this case unambiguous. Across all 1,000 species-site pairs, mean absolute occupancy error changes from `r pp(group_value("default","mae"))` to `r pp(group_value("alternative","mae"))` percentage points. The alternative priors therefore worsen overall recovery in this dataset. They were not tuned to get the desired answers.
+The field-stage false-positive case still receives `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "alternative") |> pull(site_probability)))` probability of site presence under the alternative priors. Allowing more contamination does not make this case unambiguous. Across all 1,000 species-site pairs, mean absolute occupancy error changes from `r format_points((error_summary |> filter(arm == "default", band == "All") |> pull(mae)))` to `r format_points((error_summary |> filter(arm == "alternative", band == "All") |> pull(mae)))` percentage points. The alternative priors therefore worsen overall recovery in this dataset. They were not tuned to get the desired answers.
 
 To put the four examples in perspective, the next table uses **every field sample with at least one positive PCR**, including both primers. Cases are grouped by their known source category. The estimated sample and site probabilities answer different questions, so their corresponding true frequencies are shown separately. Averages can still conceal errors in individual cases.
 
-```{r all-positive-samples, echo=FALSE}
-obs <- lesson$observations
-sample_counts <- aggregate(positive~species+Site+Sample,data=obs,FUN=sum)
-x <- merge(subset(lesson$samples,arm=="default"),sample_counts,by=c("species","Site","Sample"))
-x <- subset(x,positive>0)
-x$category <- ifelse(x$w==0,"Laboratory false positive",ifelse(x$z==0,"Field-stage false positive","True detection"))
-rows <- lapply(split(x,x$category),function(y) {
-  data.frame(Category=y$category[1],Samples=nrow(y),
-             `Actually contained DNA`=pct(mean(y$w)),
-             `Mean fitted DNA probability`=pct(mean(y$sample_probability)),
-             `Actually occupied sites`=pct(mean(y$z)),
-             `Mean fitted site probability`=pct(mean(y$site_probability)),check.names=FALSE)
-})
-knitr::kable(do.call(rbind,rows),row.names=FALSE)
+```{r all-positive-samples}
+sample_counts <- lesson$observations |>
+  group_by(species, Site, Sample) |>
+  summarise(
+    positives = sum(positive, na.rm = TRUE),
+    observed = sum(!is.na(positive)),
+    .groups = "drop"
+  )
+
+positive_sample_summary <- lesson$samples |>
+  as_tibble() |>
+  filter(arm == "default") |>
+  inner_join(sample_counts, by = c("species", "Site", "Sample")) |>
+  filter(observed > 0, positives > 0) |>
+  mutate(
+    category = case_when(
+      w == 0 ~ "Laboratory false positive",
+      z == 0 ~ "Field-stage false positive",
+      TRUE ~ "True detection"
+    )
+  ) |>
+  group_by(category) |>
+  summarise(
+    samples = n(),
+    true_dna_frequency = mean(w),
+    fitted_dna_probability = mean(sample_probability),
+    true_site_frequency = mean(z),
+    fitted_site_probability = mean(site_probability),
+    .groups = "drop"
+  )
+
+positive_sample_summary |>
+  transmute(
+    Category = category,
+    Samples = samples,
+    `Actually contained DNA` = format_percent(true_dna_frequency),
+    `Mean fitted DNA probability` = format_percent(fitted_dna_probability),
+    `Actually occupied sites` = format_percent(true_site_frequency),
+    `Mean fitted site probability` = format_percent(fitted_site_probability)
+  ) |>
+  knitr::kable()
 ```
 
 This table counts species-sample pairs, so the same species-site can occur twice. It describes these simulated positive samples, not a universal false-positive rate for occJSDM. The simulation's source labels also do not exhaust every contamination mechanism possible in a real survey.
@@ -357,15 +730,30 @@ The perfect-observation and default-prior fits each use four chains, 3,000 burn-
 
 Rhat compares the chains; values close to one are desirable. Effective sample size estimates how much independent information their correlated draws contain. These are checks on numerical sampling, not checks that the model's biological conclusions are correct.
 
-```{r diagnostics, echo=FALSE}
-diag_table <- do.call(rbind,lapply(names(lesson$manifests),function(a) {
-  d <- lesson$diagnostics[[a]]; p <- subset(lesson$cells,arm==a)
-  data.frame(Fit=arm_names[[a]],`Largest parameter Rhat`=max(d$rhat,na.rm=TRUE),
-             `Smallest parameter ESS`=min(d$ess,na.rm=TRUE),
-             `Largest occupancy-probability Rhat`=max(p$rhat,na.rm=TRUE),
-             `Parameters above Rhat 1.01`=sum(d$rhat>1.01,na.rm=TRUE),check.names=FALSE)
-}))
-knitr::kable(diag_table,digits=3,row.names=FALSE)
+```{r diagnostics}
+parameter_diagnostics <- bind_rows(lesson$diagnostics, .id = "arm") |>
+  group_by(arm) |>
+  summarise(
+    max_parameter_rhat = max(rhat, na.rm = TRUE),
+    min_parameter_ess = min(ess, na.rm = TRUE),
+    above_rhat_screen = sum(rhat > 1.01, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+occupancy_diagnostics <- occupancy_results |>
+  group_by(arm) |>
+  summarise(max_occupancy_rhat = max(rhat, na.rm = TRUE), .groups = "drop")
+
+parameter_diagnostics |>
+  left_join(occupancy_diagnostics, by = "arm") |>
+  transmute(
+    Fit = fit_labels[arm],
+    `Largest parameter Rhat` = max_parameter_rhat,
+    `Smallest parameter ESS` = min_parameter_ess,
+    `Largest occupancy-probability Rhat` = max_occupancy_rhat,
+    `Parameters above Rhat 1.01` = above_rhat_screen
+  ) |>
+  knitr::kable(digits = 3)
 ```
 
 The parameter checks cover occupancy intercepts and slopes, collection coefficients and detection/error rates. The occupancy-probability checks also examine the combined contribution of the hidden factors. They do not establish convergence of every latent-factor coordinate or every possible derived quantity. Any remaining warnings must be considered alongside the results. The large recovery errors and the field-contamination mistake remain substantive lessons even when chains agree well.
@@ -374,8 +762,31 @@ After the extension, `r sum(lesson$diagnostics$alternative$rhat > 1.01,na.rm=TRU
 
 ## Reproduce the lesson and inspect its evidence
 
+If you run the optional two-stage fit, the following optional chunk shows how to turn its saved occupancy means into a tidy table. `computePredictiveOccupancyProbs()` returns a matrix with the **fit's own species and site IDs** attached. Despite “predictive” in its name, these are probabilities at the fitted sites, not a held-out prediction test. Make the row names into a site column before joining to any truth table.
+
+```{r extract-your-fit, eval=FALSE}
+your_occupancy_estimates <- computePredictiveOccupancyProbs(fit) |>
+  as.data.frame() |>
+  rownames_to_column("Site") |>
+  pivot_longer(
+    cols = -Site,
+    names_to = "species",
+    values_to = "estimate"
+  )
+
+matching_truth <- occupancy_results |>
+  filter(arm == "default") |>
+  select(Site, species, truth)
+
+your_comparison <- your_occupancy_estimates |>
+  left_join(matching_truth, by = c("Site", "species")) |>
+  mutate(absolute_error_pp = 100 * abs(estimate - truth))
+```
+
+This truth join is valid for the unchanged teaching dataset. If you simulate new data, construct the truth table from that new simulation instead. This chunk extracts posterior **means** for the two-stage fit. The lesson's intervals and convergence summaries require draws, which are processed by the documented build scripts. In particular, intervals for occupancy probabilities are computed after reconstructing probabilities on every draw, not by applying a probability conversion to an average coefficient.
+
 The figures are rendered from a compact saved bundle, not refitted while knitting the vignette. The bundle retains the complete simulation, generating inputs, case-selection rules, posterior summaries, source hashes, seeds, diagnostics and the hashes of the full fits. The original package examples `sampledata` and `sampleresults` are separate and are not used here.
 
-The fitted code is revision **`r substr(lesson$input$source_commit,1,7)`**. The simulation seed is **`r lesson$input$seed`**. The recorded R version is **`r lesson$manifests$default$session$R.version$version.string`**; the complete package versions for each fit are retained in `lesson$manifests[["default"]]$session` (and likewise for the other fits). Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](../dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). Figure code is in this vignette's `.Rmd` source.
+The fitted code is revision **`r substr(lesson$input$source_commit,1,7)`**. The simulation seed is **`r lesson$input$seed`**. The recorded R version is **`r lesson$manifests$default$session$R.version$version.string`**; the complete package versions for each fit are retained in `lesson$manifests[["default"]]$session` (and likewise for the other fits). Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](../dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above and is also available in this vignette's `.Rmd` source.
 
-This first lesson concerns non-spatial recovery at sampled sites and the interpretation of detections. It does not validate predictions at new sites, establish a beta-release error target, or implement a Paper2Agent interface. The broader tutorial design will add environmental and trait interpretation, **variation partitioning**, spatial examples and held-out prediction, each with its own matching truth comparison. The [reference walkthrough](occJSDM.html) provides the existing function tour while those lessons are developed.
+This first lesson concerns non-spatial recovery at sampled sites and the interpretation of detections. It does not validate predictions at new sites, establish a beta-release error target, or implement a Paper2Agent interface. The [Lesson 2 outline](`r lesson_link("occJSDM-lesson-2")`) introduces smooth environmental gradients, spatial effects, a separate experiment with species that differ in dispersal, **variation partitioning**, and held-out prediction. Its spatial fits await review of PR #8; the current lesson does not claim to test them. Further lessons will expand environmental and trait interpretation, each with matching truth comparisons. The [reference walkthrough](`r lesson_link("occJSDM")`) provides the existing function tour while those lessons are developed.
