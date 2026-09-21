@@ -1196,8 +1196,7 @@ interface. The [Lesson 2 outline](occJSDM-lesson-2.md) introduces smooth
 environmental gradients, spatial effects, a separate experiment with
 species that differ in dispersal, **variation partitioning**, and
 held-out prediction. Its spatial fits await review of PR \#8; the
-current lesson does not claim to test them. Continue to [Lesson
-3](occJSDM-lesson-3.md) for environmental and trait effects, species
-associations, ordination, variation partitioning and detection effort,
-each with matching truth comparisons. The [Quickstart and lesson
-guide](occJSDM.md) provides an overview of the teaching sequence.
+current lesson does not claim to test them. Further lessons will expand
+environmental and trait interpretation, each with matching truth
+comparisons. The [reference walkthrough](occJSDM.Rmd) provides the
+existing function tour while those lessons are developed.

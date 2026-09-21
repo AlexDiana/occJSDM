@@ -17,5 +17,4 @@
 ^pkgdown$
 ^\.github$
 ^vignettes/articles$
-^vignettes/LESSON-PLAN\.md$
 ^\.posit/assistant$

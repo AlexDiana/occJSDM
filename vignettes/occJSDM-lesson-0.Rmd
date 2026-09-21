@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
 )
 lesson_link <- function(name) {
   is_html <- knitr::pandoc_to() %in% c("html", "html4", "html5")
+  if (name == "occJSDM" && !is_html) return("occJSDM.Rmd")
   extension <- if (is_html) ".html" else ".md"
   paste0(name, extension)
 }
@@ -27,7 +28,7 @@ lesson_link <- function(name) {
 
 ## Where this lesson fits
 
-We will learn occJSDM using a community whose true distribution is known. **Lesson 0 creates and explores the survey. [Lesson 1 fits the model and checks its answers](`r lesson_link("occJSDM-first-lesson")`). [Lesson 2 will introduce spatial landscapes and species that differ in dispersal](`r lesson_link("occJSDM-lesson-2")`).** Lesson 2 is a plan, pending review of the spatial submodel in PR #8; it does not yet contain fitted results.
+We will learn occJSDM using a community whose true distribution is known. **Lesson 0 creates and explores the survey. [Lesson 1 fits the model and checks its answers](%60r%20lesson_link(%22occJSDM-first-lesson%22)%60). [Lesson 2 will introduce spatial landscapes and species that differ in dispersal](%60r%20lesson_link(%22occJSDM-lesson-2%22)%60).** Lesson 2 is a plan, pending review of the spatial submodel in PR #8; it does not yet contain fitted results.
 
 You can skip Lesson 0 and start Lesson 1 with the supplied dataset. Read this lesson if you want to understand where that dataset came from, change the simulation settings, or learn how to prepare the tables and figures yourself.
 
@@ -400,6 +401,6 @@ Read one row of maps from left to right. A high-probability site need not be occ
 
 The two-stage fit receives **`survey_data` only**. It does not receive the true occupancy probabilities, presence states, sample states or source labels. Lesson 1 also includes a deliberately labelled perfect-observation control that receives the true presence/absence matrix. That control still has to estimate the probabilities that generated those binary states.
 
-Our later spatial lesson will keep the observation process recognisable while changing the ecological simulation. Smooth environmental gradients will be one ingredient. Species' different dispersal abilities will be another, introduced separately so that students can see what each changes. A spatial pattern alone is not a measurement of dispersal. See the [Lesson 2 outline](`r lesson_link("occJSDM-lesson-2")`) for that distinction and the planned comparisons.
+Our later spatial lesson will keep the observation process recognisable while changing the ecological simulation. Smooth environmental gradients will be one ingredient. Species' different dispersal abilities will be another, introduced separately so that students can see what each changes. A spatial pattern alone is not a measurement of dispersal. See the [Lesson 2 outline](%60r%20lesson_link(%22occJSDM-lesson-2%22)%60) for that distinction and the planned comparisons.
 
-Continue to [Lesson 1: Fit the model and compare its answers with truth](`r lesson_link("occJSDM-first-lesson")`).
+Continue to [Lesson 1: Fit the model and compare its answers with truth](%60r%20lesson_link(%22occJSDM-first-lesson%22)%60).
