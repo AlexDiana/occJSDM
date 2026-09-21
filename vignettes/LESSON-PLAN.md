@@ -86,6 +86,8 @@ Assess faithful computation, whether changed inputs really produce new calculati
 
 The audit compares `vignettes/occJSDM.Rmd` at revision `8654ff1` with the teaching lessons. Lesson 3 is a rewrite and redistribution, not a complete transfer of every worked example. Listing a function in its index is not the same as teaching its use. Preserve useful workflows while replacing stale argument names, unmatched examples and unsupported claims.
 
+The original walkthrough is preserved unchanged from that revision as [ORIG_occJSDM.Rmd](ORIG_occJSDM.Rmd). It is an archival reference, excluded from package builds. The current `occJSDM.Rmd` remains the Quickstart and lesson guide.
+
 | Original content | Current home and status | Remaining work |
 |---|---|---|
 | Input structure and fitting arguments | Lessons 0 and 1 plus the Quickstart explain the new dataset and show current fitting code. | Add a concise argument reference if needed, using the current API rather than the old `gt` and `traitsMatrix` descriptions. |
