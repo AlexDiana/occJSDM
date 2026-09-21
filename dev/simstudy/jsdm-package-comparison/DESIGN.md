@@ -26,7 +26,7 @@ The v0.1.0 to v0.2.1 source diff shows integer conversion added to random-draw d
 
 Use the existing working Python environment initially: Python 3.12.13 and PyTorch 2.5.1, reached through the repository's reticulate venv. Record its resolved executable and dependency versions at execution. Keep the R package snapshot and experiment outputs separate from the user's sjSDM checkout, which has an uncommitted tutorial edit.
 
-Mojo **1.1.0 was released on 17 September 2026**, according to the [official releases page](https://mojolang.org/releases/). The inspected local environment still contains Mojo 1.0.0 and MAX 26.5.0. The manifest allows version ranges; it does not itself guarantee those exact installed versions. Do not update that working environment as part of this pilot. A later 1.1.0 evaluation should use a separate environment, rebuild the worker, and run the repository's numerical, memory and end-to-end parity checks before drawing conclusions about speed or accuracy. A new compiler release by itself is not evidence of compatibility or improved ecological predictions.
+Mojo **1.1.0 was released on 17 September 2026**, according to the [official releases page](https://mojolang.org/releases/). **Doug decided on 21 September not to upgrade.** Preserve the inspected local environment's Mojo 1.0.0 and MAX 26.5.0. The manifest allows version ranges; it does not itself guarantee those exact installed versions, so record the resolved versions and avoid an environment update. Any optional Mojo backend comparison will use this existing toolchain and the repository's numerical, memory and end-to-end parity checks. No compiler upgrade is planned.
 
 ## Pilot data and model scope
 
@@ -97,6 +97,6 @@ Before publishing results, verify: identical inputs across adapters; correct ide
 
 After the pilot and its target checks work, expand to replicated communities and nested sets of 100, 300 and 1,000 training sites. Keep generating ecological relationships fixed within each community, retain the original fitting sites for a paired recovery comparison, and keep an independent test set. Include both logit and probit generating scenarios before making broad comparative claims. Fix the replicate count and computing budget before launching that expansion.
 
-An optional sjSDM backend check can then compare PyTorch and Mojo on identical inputs, with more than one fitting seed and the actual backend recorded. Test compiler upgrades separately. Differences between optimisation runs must not automatically be attributed to the compiler.
+An optional sjSDM backend check can then compare PyTorch and Mojo 1.0.0 on identical inputs, with more than one fitting seed and the actual backend recorded. Differences between optimisation runs must not automatically be attributed to the backend.
 
 Spatial models, dispersal examples, observation-error comparisons, species-trait models and a comprehensive benchmark remain later work. No accuracy target or beta-release decision is being set by this pilot.
