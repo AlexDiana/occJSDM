@@ -1,10 +1,10 @@
 # Build the truth-based teaching lessons
 
-The teaching sequence now starts with `vignettes/occJSDM-lesson-0.Rmd` (optional simulation and data orientation), followed by `vignettes/occJSDM-first-lesson.Rmd` (fitting, truth comparisons and detection examples). Both show their teaching code and use the same original simulation and fitted results. Their new maps display the existing sampled coordinates; the environmental values and hidden site factors are independent of geography in this dataset. No interpolation or spatial fit is implied.
+The teaching sequence now starts with `vignettes/occJSDM-lesson-0.Rmd` (optional simulation and data orientation), followed by `vignettes/occJSDM-lesson-1.Rmd` (fitting, truth comparisons and detection examples). Both show their teaching code and use the same original simulation and fitted results. Their new maps display the existing sampled coordinates; the environmental values and hidden site factors are independent of geography in this dataset. No interpolation or spatial fit is implied.
 
 `vignettes/occJSDM-lesson-2.Rmd` is explicitly a future outline. After PR #8 is reviewed, it will introduce smooth environmental gradients, residual spatial structure, a separate dispersal simulation with contrasting species, and held-out prediction. The currently reviewed spatial model has a shared range, not mechanistic or species-specific dispersal parameters. That distinction constrains the later simulation and interpretation.
 
-The readable lesson is `vignettes/occJSDM-first-lesson.Rmd`. Its figures and tables come from `vignettes/teaching-data/nonspatial-lesson.rds`, a compact bundle containing the complete simulation, generating settings, identity mappings, selected cases, posterior summaries, diagnostics and full-fit hashes. Full MCMC objects remain in the build directory; they are not shipped with the package. The existing `sampledata` and `sampleresults` objects are unchanged.
+The readable lesson is `vignettes/occJSDM-lesson-1.Rmd`. Its figures and tables come from `vignettes/teaching-data/nonspatial-lesson.rds`, a compact bundle containing the complete simulation, generating settings, identity mappings, selected cases, posterior summaries, diagnostics and full-fit hashes. Full MCMC objects remain in the build directory; they are not shipped with the package. The existing `sampledata` and `sampleresults` objects are unchanged.
 
 The experiment uses main revision b53048a's non-spatial model, including the reviewed collection alignment, RNG and factor-reparameterisation fixes and the read-threshold correction. It does not test the spatial changes in PR #8. The documentation branch changes no code in `R/` or `src/`.
 
@@ -39,8 +39,8 @@ The prior stress test changes both `q` and `theta0` from Beta(1,20) to Beta(1,4)
 The small RDS is tracked so a fresh checkout can render immediately. These commands run from the repository root:
 
 ```sh
-Rscript -e 'rmarkdown::render("vignettes/occJSDM-first-lesson.Rmd", output_format="rmarkdown::html_vignette")'
-Rscript -e 'rmarkdown::render("vignettes/occJSDM-first-lesson.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE))'
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-1.Rmd", output_format="rmarkdown::html_vignette")'
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-1.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE))'
 ```
 
 Use the same commands with `occJSDM-lesson-0.Rmd` and `occJSDM-lesson-2.Rmd` to render the optional introduction and planned spatial outline. Render each in a fresh R environment when checking standalone execution. Teaching chunks are visible by default; only document-formatting setup is hidden. Simulation and MCMC examples marked `eval=FALSE` are displayed but do not run while knitting. The Lesson 0 simulator call reproduces the existing settings without calling the build helper; the helper remains unchanged to preserve its recorded provenance.
@@ -49,7 +49,7 @@ The GitHub Markdown and its PNGs are tracked as readable review artifacts. The H
 
 ### Editing links in RStudio
 
-Write links between lessons as ordinary Markdown, for example `[Lesson 1](occJSDM-first-lesson.md)` or `[Diagnostics](occJSDM-lesson-3.md#check-computation-as-well-as-ecological-recovery)`. Do not put inline R expressions inside a link destination: RStudio's Visual editor can encode those expressions as URL text, preventing knitr from evaluating them.
+Write links between lessons as ordinary Markdown, for example `[Lesson 1](occJSDM-lesson-1.md)` or `[Diagnostics](occJSDM-lesson-3.md#check-computation-as-well-as-ecological-recovery)`. Do not put inline R expressions inside a link destination: RStudio's Visual editor can encode those expressions as URL text, preventing knitr from evaluating them.
 
 Each of the five teaching documents sources `vignettes/lesson-links.R` in its hidden setup chunk. This shared document hook changes recognised lesson destinations from `.md` to `.html` only in HTML output. It preserves section anchors, external links, other documents and code examples. It does not edit the `.Rmd` source. When adding a lesson, add its filename stem to the helper's explicit list and source the helper in that lesson's setup. The helper is tracked and included in the source package; `ORIG_occJSDM.Rmd` remains unchanged and excluded.
 

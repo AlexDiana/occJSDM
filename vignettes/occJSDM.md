@@ -13,9 +13,9 @@ code and compare the results with the truth used to simulate their data.
   samples, primers, PCR replicates, environmental covariates, traits and
   maps of the known truth.
 - [Lesson 1: Fit the model and compare its answers with
-  truth](occJSDM-first-lesson.md). The main starting point: fit the
-  model, understand occupancy error, and inspect actual examples of weak
-  true detections, strong true detections and false positives.
+  truth](occJSDM-lesson-1.md). The main starting point: fit the model,
+  understand occupancy error, and inspect actual examples of weak true
+  detections, strong true detections and false positives.
 - [Lesson 2: Spatial landscapes and dispersal](occJSDM-lesson-2.md). A
   planned lesson on smooth environmental gradients, residual spatial
   structure and a separate dispersal simulation. It is not yet a worked

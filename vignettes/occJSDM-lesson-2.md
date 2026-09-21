@@ -6,8 +6,8 @@ Lesson 2: Spatial landscapes and dispersal (planned)
 **This is an outline, not a completed spatial analysis.** We will add
 simulations and matching model results after the spatial correction in
 PR \#8 has completed review. [Lesson 0](occJSDM-lesson-0.md) and [Lesson
-1](occJSDM-first-lesson.md) already use a verified non-spatial example
-and do not depend on that pending work.
+1](occJSDM-lesson-1.md) already use a verified non-spatial example and
+do not depend on that pending work.
 
 The central ecological question will be: **if a site offers suitable
 conditions, why might a species still be absent, and what can spatial

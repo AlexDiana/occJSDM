@@ -1,7 +1,7 @@
 # Keep ordinary .md lesson links editable in RStudio's Visual mode. Only the
 # generated HTML needs different destinations; never rewrite the source files.
 local({
-  lessons <- c("occJSDM", "occJSDM-lesson-0", "occJSDM-first-lesson",
+  lessons <- c("occJSDM", "occJSDM-lesson-0", "occJSDM-lesson-1",
                "occJSDM-lesson-2", "occJSDM-lesson-3")
 
   # The document hook sees code as well as prose. Skip fenced blocks and inline

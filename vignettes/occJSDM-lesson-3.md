@@ -8,7 +8,7 @@ estimated imprecisely. A fitted curve can look convincing and still miss
 the truth. This lesson shows how to distinguish those situations.
 
 It replaces the output tour in the original occJSDM vignette. Start with
-[Lesson 1](occJSDM-first-lesson.md) for fitting and false-positive
+[Lesson 1](occJSDM-lesson-1.md) for fitting and false-positive
 interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation.
 You do not need the planned spatial Lesson 2 first. Here we use the same
 **non-spatial** community: 100 sites, 10 species, two measured
@@ -575,7 +575,7 @@ outputs$collection |>
 ![](occJSDM-lesson-3_files/figure-gfm/collection-effects-1.png)<!-- -->
 
 Use `returnCollectionCovariates()` to extract these draws. [Lesson
-1](occJSDM-first-lesson.md) compares true and estimated PCR detection,
+1](occJSDM-lesson-1.md) compares true and estimated PCR detection,
 laboratory false-positive and field-contamination probabilities, and
 shows why their values alone cannot classify every positive detection
 correctly. Its truth accounts for whether simulated reads actually pass
@@ -650,7 +650,7 @@ on measured environmental covariates is incomplete.
 the species actually occupied the surveyed site, accounting for the
 observation process. Its appropriate simulation check is the realized
 0/1 state, not the generating probability. [Lesson
-1](occJSDM-first-lesson.md) puts these quantities alongside the actual
+1](occJSDM-lesson-1.md) puts these quantities alongside the actual
 simulated detection cases, with maps in Lesson 0.
 
 `returnLatentPresences()` and `plotLatentPresences()` collect those

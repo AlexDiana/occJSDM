@@ -18,7 +18,7 @@ Note the `build_vignettes = TRUE` -- without it, `remotes::install_github()` ski
 Start with the teaching lessons. They show readable R code alongside the simulated truth and matching results:
 
 - [Lesson 0 (optional): Create and explore a simulated survey](vignettes/occJSDM-lesson-0.md).
-- [Lesson 1: Fit the model and compare its answers with truth](vignettes/occJSDM-first-lesson.md).
+- [Lesson 1: Fit the model and compare its answers with truth](vignettes/occJSDM-lesson-1.md).
 - [Lesson 2: Spatial landscapes and dispersal](vignettes/occJSDM-lesson-2.md), an outline pending review of the spatial submodel in PR #8.
 - [Lesson 3: Understand the model outputs](vignettes/occJSDM-lesson-3.md), with true and fitted environmental effects, trait effects, species associations, variation partitioning and detection-effort curves.
 
@@ -26,7 +26,7 @@ After installing with vignettes, open the completed lessons in R:
 
 ``` r
 vignette("occJSDM-lesson-0", package = "occJSDM")
-vignette("occJSDM-first-lesson", package = "occJSDM")
+vignette("occJSDM-lesson-1", package = "occJSDM")
 vignette("occJSDM-lesson-3", package = "occJSDM")
 ```
 

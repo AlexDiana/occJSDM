@@ -52,7 +52,7 @@ Interfaces: the build writes the unchanged simulation, binary input made from it
 
 ## Task 3: Pedagogical lesson and rendered results
 
-Files: `vignettes/occJSDM-first-lesson.Rmd`, its rendered `.md` and figures; targeted edits to `vignettes/occJSDM.Rmd`; a build README beside these scripts.
+Files: `vignettes/occJSDM-lesson-1.Rmd`, its rendered `.md` and figures; targeted edits to `vignettes/occJSDM.Rmd`; a build README beside these scripts.
 
 - [x] Explain the three stages and show actual site presence separately from its generating probability.
 - [x] Plot true versus estimated occupancy for the perfect-observation and two-stage fits, with signed/absolute errors explained in percentage points.

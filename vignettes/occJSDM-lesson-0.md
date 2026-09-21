@@ -5,7 +5,7 @@ Lesson 0 (optional): Create and explore a simulated survey
 
 We will learn occJSDM using a community whose true distribution is
 known. **Lesson 0 creates and explores the survey. [Lesson 1 fits the
-model and checks its answers](occJSDM-first-lesson.md). [Lesson 2 will
+model and checks its answers](occJSDM-lesson-1.md). [Lesson 2 will
 introduce spatial landscapes and species that differ in
 dispersal](occJSDM-lesson-2.md).** Lesson 2 is a plan, pending review of
 the spatial submodel in PR \#8; it does not yet contain fitted results.
@@ -600,4 +600,4 @@ the [Lesson 2 outline](occJSDM-lesson-2.md) for that distinction and the
 planned comparisons.
 
 Continue to [Lesson 1: Fit the model and compare its answers with
-truth](occJSDM-first-lesson.md).
+truth](occJSDM-lesson-1.md).
