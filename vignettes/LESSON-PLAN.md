@@ -10,12 +10,12 @@ The aim is to help an empirical ecologist understand what occJSDM does, read and
 
 | Lesson | Status | What it teaches | Source |
 |---|---|---|---|
-| Unnumbered Quickstart | Built; on the Lesson 3 branch | Short fitting example, lesson navigation and where to start. Replaces the old standalone output tour. | [occJSDM.Rmd](occJSDM.Rmd) |
+| Unnumbered Quickstart | Built; merged into main | Short fitting example, lesson navigation and where to start. Replaces the old standalone output tour. | [occJSDM.Rmd](occJSDM.Rmd) |
 | Lesson 0: Create and explore a simulated survey | Built; already on main | Optional introduction to sites, samples, primers, PCR replicates, environmental covariates, traits and maps of the simulated world. | [occJSDM-lesson-0.Rmd](occJSDM-lesson-0.Rmd) |
 | Lesson 1: Fit the model and compare its answers with truth | Built; already on main | Perfect-observation and PCR fits, occupancy errors, false positives, the good-practice assumptions and sensitivity to contamination priors. | [occJSDM-first-lesson.Rmd](occJSDM-first-lesson.Rmd) |
-| Lesson 2: Spatial landscapes and dispersal | Outline only; no worked spatial results | Smooth environmental gradients, additional spatial structure, contrasting dispersal and prediction away from sampled sites. | [occJSDM-lesson-2.Rmd](occJSDM-lesson-2.Rmd) |
-| Lesson 3: Understand the model's outputs | Built; on branch `codex/lesson-3-outputs`, commit `001f23d`, not yet pushed or merged when this plan was written | Environmental and trait effects, response curves, species associations, ordination, variation partitioning, collection effects and detection effort, all with matching truth. | [occJSDM-lesson-3.Rmd](occJSDM-lesson-3.Rmd) |
-| Lesson N: Compare four JSDMs | Design only; no comparison fits or lesson yet | Compare the pure JSDM in occJSDM with gllvm, sjSDM and Hmsc using perfectly observed presence/absence. | Design location recorded below |
+| Lesson 2: Spatial landscapes and dispersal | Outline already on main; no worked spatial results | Smooth environmental gradients, additional spatial structure, contrasting dispersal and prediction away from sampled sites. | [occJSDM-lesson-2.Rmd](occJSDM-lesson-2.Rmd) |
+| Lesson 3: Understand the model's outputs | Built; merged into main | Environmental and trait effects, response curves, species associations, ordination, variation partitioning, collection effects and detection effort, all with matching truth. | [occJSDM-lesson-3.Rmd](occJSDM-lesson-3.Rmd) |
+| Lesson N: Compare four JSDMs | Design merged into main; no comparison fits or lesson yet | Compare the pure JSDM in occJSDM with gllvm, sjSDM and Hmsc using perfectly observed presence/absence. | [Pilot design](../dev/simstudy/jsdm-package-comparison/DESIGN.md) |
 
 Read Lesson 0 if the data structure is unfamiliar, then Lesson 1 and Lesson 3. The unfinished spatial lesson is not a prerequisite for Lesson 3. Lesson numbering remains provisional.
 
@@ -46,7 +46,7 @@ The detailed questions and constraints are already in the [Lesson 2 outline](occ
 
 ### Lesson N: occJSDM, gllvm, sjSDM and Hmsc
 
-The accepted approach is to begin with a small non-spatial comparison, then decide whether to expand it. The detailed pilot design is `dev/simstudy/jsdm-package-comparison/DESIGN.md` on branch `codex/jsdm-package-comparison` (latest planning commit `d1e3016`). That document is not yet part of the Lesson 3 branch. Bring the reviewed design across when implementation starts.
+The accepted approach is to begin with a small non-spatial comparison, then decide whether to expand it. The [detailed pilot design](../dev/simstudy/jsdm-package-comparison/DESIGN.md) is now merged into main, including the decision to retain the existing Mojo toolchain. Implementation and comparison fits remain to be done.
 
 The pilot will give all four packages the same perfectly observed presence/absence data: 100 training sites, 300 independent test sites and 10 species. Use an independent simulator with two environmental covariates and two hidden site factors. Exclude traits, phylogeny, space and observation error from this first comparison so that the packages receive the same information.
 
@@ -96,4 +96,4 @@ _Add notes here._
 
 <!-- Record the date, decision and affected lesson here, then update its status above. -->
 
-_No later decisions recorded yet._
+- **21 September 2026:** Doug requested merging Lessons 3, N and 2. The completed Lesson 3, Quickstart and planning document were merged into main, along with the Lesson N design. The Lesson 2 outline was already on main. This integration does not mark the planned spatial or four-package experiments as completed.

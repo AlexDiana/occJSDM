@@ -84,6 +84,8 @@ Checks independently reconstruct raw coefficient summaries, response-profile end
 
 Validation on 21 September 2026: the independent numerical checks passed for both fits, including direct chain diagnostics for the environmental and trait coefficients. Lesson 3 and the quickstart rendered to HTML and GitHub Markdown. All ten figures were visually inspected; local links, embedded teaching CSS and visible code blocks were checked. Scientific review found no significant issues. The existing lessons, simulation bundle and model source are unchanged; this documentation change did not rerun the package-wide test suite or MCMC.
 
+Later merge validation on 21 September 2026: Lesson 3 and the Lesson N design were integrated into main; the Lesson 2 outline was already present. The package test suite passed 641 expectations with zero test failures or warnings; the long coverage study remained explicitly skipped. All five teaching documents rendered to HTML and Markdown, and their local links were checked. Encoded inline-R lesson links introduced by RStudio formatting were repaired, and Lesson 1 now directs readers to Lesson 3. A source-package archive retained the lesson sources while excluding `vignettes/LESSON-PLAN.md` and the development plans. Production model code and existing simulation results were unchanged.
+
 Interpretation choices are deliberate:
 
 - Response curves use hidden site factors set to zero, matching the public gradient function. They are not new-site probabilities marginalized over unmeasured conditions.
