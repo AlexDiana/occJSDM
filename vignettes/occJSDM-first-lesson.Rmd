@@ -20,17 +20,13 @@ knitr::opts_chunk$set(
   echo = TRUE, collapse = FALSE, comment = "#>",
   fig.width = 8, fig.height = 5, dpi = 150, dev = "png"
 )
-lesson_link <- function(name) {
-  is_html <- knitr::pandoc_to() %in% c("html", "html4", "html5")
-  extension <- if (is_html) ".html" else ".md"
-  paste0(name, extension)
-}
+source("lesson-links.R")
 
 ```
 
 ## Before you start
 
-This is **Lesson 1**. [Lesson 0 (optional)](`r lesson_link("occJSDM-lesson-0")`) explains how we created the survey and maps its environmental values, true occurrences and detections. You can start here with the supplied data. [Lesson 2](`r lesson_link("occJSDM-lesson-2")`) will introduce smooth environmental gradients, spatial modelling and a separate simulation of species with different dispersal abilities after PR #8 is reviewed. The current lesson is non-spatial.
+This is **Lesson 1**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we created the survey and maps its environmental values, true occurrences and detections. You can start here with the supplied data. [Lesson 2](occJSDM-lesson-2.md) will introduce smooth environmental gradients, spatial modelling and a separate simulation of species with different dispersal abilities after PR #8 is reviewed. The current lesson is non-spatial.
 
 All teaching code is shown. Run the chunks in order with the repository's `vignettes` directory as the working directory; knitting handles this automatically. In RStudio, use **Session \> Set Working Directory \> To Source File Location** with this file open. `|>` passes a result into the next function. We explain the table operations as they appear.
 
@@ -788,4 +784,4 @@ The figures are rendered from a compact saved bundle, not refitted while knittin
 
 The fitted code is revision **`r substr(lesson$input$source_commit,1,7)`**. The simulation seed is **`r lesson$input$seed`**. The recorded R version is **`r lesson$manifests$default$session$R.version$version.string`**; the complete package versions for each fit are retained in `lesson$manifests[["default"]]$session` (and likewise for the other fits). Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](../dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above and is also available in this vignette's `.Rmd` source.
 
-This first lesson concerns non-spatial recovery at sampled sites and the interpretation of detections. It does not validate predictions at new sites, establish a beta-release error target, or implement a Paper2Agent interface. The [Lesson 2 outline](`r lesson_link("occJSDM-lesson-2")`) introduces smooth environmental gradients, spatial effects, a separate experiment with species that differ in dispersal, **variation partitioning**, and held-out prediction. Its spatial fits await review of PR #8; the current lesson does not claim to test them. Continue to [Lesson 3](`r lesson_link("occJSDM-lesson-3")`) for environmental and trait effects, species associations, ordination, variation partitioning and detection effort, each with matching truth comparisons. The [Quickstart and lesson guide](`r lesson_link("occJSDM")`) provides an overview of the teaching sequence.
+This first lesson concerns non-spatial recovery at sampled sites and the interpretation of detections. It does not validate predictions at new sites, establish a beta-release error target, or implement a Paper2Agent interface. The [Lesson 2 outline](occJSDM-lesson-2.md) introduces smooth environmental gradients, spatial effects, a separate experiment with species that differ in dispersal, **variation partitioning**, and held-out prediction. Its spatial fits await review of PR #8; the current lesson does not claim to test them. Continue to [Lesson 3](occJSDM-lesson-3.md) for environmental and trait effects, species associations, ordination, variation partitioning and detection effort, each with matching truth comparisons. The [Quickstart and lesson guide](occJSDM.md) provides an overview of the teaching sequence.
