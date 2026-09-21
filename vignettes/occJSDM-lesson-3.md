@@ -17,7 +17,8 @@ site, two primers and six PCR replicates per primer.
 
 We compare two existing fits of that community: one given the actual
 presence/absence matrix (**perfect observation**) and one given the PCR
-observations. This is not a before/after comparison of software
+observations. The diagnostics section also revisits Lesson 1’s longer
+alternative-prior fit. This is not a before/after comparison of software
 versions. The fits use the verified model source recorded in Lesson 1;
 that source matches the code on main when this lesson was prepared. No
 new MCMC was needed to make these figures.
@@ -36,6 +37,7 @@ library(ggplot2)
 
 lesson <- readRDS("teaching-data/nonspatial-lesson.rds")
 outputs <- readRDS("teaching-data/output-lesson.rds")
+diagnostic_examples <- readRDS("teaching-data/diagnostics-lesson.rds")
 known_truth <- lesson$input$sim$true_params
 
 fit_labels <- c(
@@ -50,7 +52,8 @@ environment_labels <- c(
 
 species_order <- colnames(lesson$input$sim$data_list$OTU)
 
-theme_set(theme_bw(base_size = 12))
+# This theme also works after occJSDM loads its ternary-plot dependency.
+theme_set(ggtern::theme_bw(base_size = 12))
 ```
 
 In the figures, **black crosses or lines show truth**. Blue points or
@@ -670,6 +673,346 @@ has not adequately explored its posterior. The figures alone do not
 distinguish those causes. Check the numerical diagnostics before
 interpreting uncertainty.
 
+Think of each MCMC chain as a separate exploration of the parameter
+values that could explain the observations. After discarding the initial
+settling-in period, the chains should explore similar distributions.
+They need not take the same path or return the true value on every
+iteration. Our practical sequence is: obtain the diagnostics, identify
+individual parameters needing attention, inspect their traces, and
+decide whether further computation or investigation is needed.
+
+### Get the diagnostics for your own fit
+
+Use the `fitmodel` returned by `runOccJSDM()`. If you are reproducing
+our saved example instead, load its complete fit first:
+
+``` r
+saved_fit <- readRDS("/path/to/full-fits/default-fit.rds")
+fitmodel <- saved_fit$fit
+
+parameter_diagnostics <- occJSDM::returnConvergenceDiagnostics(fitmodel)
+
+parameter_diagnostics |>
+  select(param, label1, label2, rhat, ess)
+```
+
+There is one row per parameter, such as the collection effect for one
+species or the detection rate for one species and primer. `idx1` and
+`idx2` are positions in the saved arrays; `label1` and `label2` identify
+what those positions mean. A placeholder `"1"` in `label2` for a
+species-only parameter is not another species or primer.
+
+| `param` | Ecological meaning | `label1` | `label2` |
+|----|----|----|----|
+| `beta0_psi` | Baseline occupancy on the log-odds scale | Species | Placeholder |
+| `beta_psi` | Environmental effect on occupancy | Environmental covariate | Species |
+| `beta_theta` | Collection intercept or covariate effect | `(Intercept)` or collection covariate | Species |
+| `p` | Positive PCR probability when DNA is in the sample | Primer | Species |
+| `q` | Positive PCR probability when DNA is absent from the sample | Primer | Species |
+| `theta0` | Field-contamination probability when the species is absent from the site | Species | Placeholder |
+
+The table also contains `mean`, `sd`, `q2.5` and `q97.5`: posterior
+summaries of the corresponding parameter. They are distinct from the
+numerical checks `rhat` and `ess`. The public function covers these six
+parameter blocks, **not every quantity in the model**. In particular, it
+omits the trait coefficients and the individual latent-factor arrays.
+
+### Find the parameters that need attention
+
+The following code uses the same public diagnostic table saved with each
+teaching fit. When working with your own model, replace the first
+assignment with the call above.
+
+``` r
+parameter_diagnostics <- as_tibble(lesson$diagnostics$default)
+
+flag_parameters <- function(diagnostics) {
+  diagnostics |>
+    mutate(
+      unavailable = !is.finite(rhat) | !is.finite(ess),
+      high_rhat = rhat > 1.01,
+      low_ess = ess < 400
+    ) |>
+    filter(unavailable | high_rhat | low_ess) |>
+    arrange(desc(unavailable), desc(rhat), ess)
+}
+
+flagged_default <- flag_parameters(parameter_diagnostics)
+
+nrow(flagged_default)
+```
+
+    #> [1] 0
+
+For this default-prior fit, 0 rows need attention under this screen. An
+empty list means that the listed parameters pass these checks; it is not
+a certificate that all quantities have converged or that the ecological
+estimates are accurate. Missing diagnostics are flagged too. A missing
+Rhat can arise from having only one chain or a chain that never moved,
+so silently dropping missing values would hide a possible problem.
+
+Now apply exactly the same screen to the **longer alternative-prior
+fit** from Lesson 1. That fit uses weaker low-contamination assumptions
+and has already been extended to four chains with 12,000 retained
+iterations each:
+
+``` r
+flagged_alternative <- as_tibble(lesson$diagnostics$alternative) |>
+  flag_parameters()
+
+flagged_alternative |>
+  select(param, label1, label2, rhat, ess, unavailable, high_rhat, low_ess) |>
+  knitr::kable(digits = c(0, 0, 0, 4, 0, 0, 0, 0))
+```
+
+| param      | label1         | label2 |   rhat |  ess | unavailable | high_rhat | low_ess |
+|:-----------|:---------------|:-------|-------:|-----:|:------------|:----------|:--------|
+| beta_theta | (Intercept)    | OTU_6  | 1.0143 |  482 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.1 | OTU_1  | 1.0103 | 1206 | FALSE       | TRUE      | FALSE   |
+| theta0     | OTU_6          | 1      | 1.0097 |  361 | FALSE       | FALSE     | TRUE    |
+
+Here the rows identify the actual parameter to investigate. For example,
+`theta0` for OTU_6 has a low effective sample size even though its Rhat
+is just below 1.01. Looking at Rhat alone would miss that warning. The
+collection intercept for OTU_6 and the first environmental slope for
+OTU_1 are flagged for Rhat instead.
+
+These are screening rules, not sharp boundaries between trustworthy and
+untrustworthy results. In this package revision,
+`returnConvergenceDiagnostics()` uses the classical `coda` Rhat and
+effective sample size calculations. The newer `posterior` calculations
+below use rank-normalized split-chain Rhat and distinguish bulk from
+tail ESS. Their numbers can differ; do not relabel the public `ess`
+column as bulk or tail ESS. The [Stan diagnostics
+guide](https://mc-stan.org/learn-stan/diagnostics-warnings.html)
+explains the newer diagnostics and the commonly used 1.01 Rhat screen.
+Our legacy ESS screen of 400 is a prompt to inspect precision, not a
+guarantee about every posterior summary.
+
+### Read a traceplot for a collection covariate
+
+A traceplot shows the sampled value against iteration, with a colour for
+each chain. First locate the collection covariate by name. The array has
+dimensions `[covariate, species, iteration, chain]`; `drop = FALSE`
+retains those four dimensions after selecting one covariate.
+
+``` r
+collection_name <- "X_theta"
+collection_index <- match(collection_name, colnames(fitmodel$X_theta))
+
+stopifnot(!is.na(collection_index))
+
+collection_draws <- fitmodel$results_output$beta_theta_output[
+  collection_index, , , , drop = FALSE
+]
+
+occJSDM::plotTraceplot(
+  collection_draws,
+  param_name = "Collection effect (log-odds)",
+  dimnames1 = collection_name,
+  dimnames2 = fitmodel$infos$speciesNames
+)
+```
+
+That call plots every species. For this page, the small saved bundle
+retains all draws and all four chains for OTU_1 and OTU_6 so the panels
+remain readable. These are excerpts of the full fit, not newly fitted
+models. We add the known collection effects on the **fitted
+standardized-covariate scale**, using the same scale conversion as the
+coefficient figure above.
+
+``` r
+collection_trace <- diagnostic_examples$traces$collection
+
+occJSDM::plotTraceplot(
+  collection_trace$draws,
+  param_name = "Collection effect (log-odds)",
+  dimnames1 = collection_trace$label1,
+  dimnames2 = collection_trace$label2
+) +
+  geom_hline(
+    data = collection_trace$truth,
+    aes(yintercept = truth), colour = "black", linetype = "dashed"
+  ) +
+  facet_grid(label2 ~ chain, scales = "free_y") +
+  labs(
+    x = "Saved draw after burn-in", colour = "Chain",
+    caption = "Columns: chains 1 to 4. Rows: species. Dashed line: generating effect. All 6,000 saved draws per chain are shown."
+  ) +
+  theme(legend.position = "none")
+```
+
+![](occJSDM-lesson-3_files/figure-gfm/collection-trace-1.png)<!-- -->
+
+Compare the height and spread of the traces between columns for the same
+species. Persistent separation between chains, a continuing upward or
+downward drift, or long periods stuck in a narrow region would warrant
+investigation. Jagged movement and a wide vertical spread are not by
+themselves failures: they may reflect a broad posterior distribution.
+
+The black line asks a different question: **where is the generating
+effect relative to the sampled values?** Agreement between chains checks
+whether the calculation is stable; proximity to the line checks recovery
+in this simulation. Chains can agree while being centred away from
+truth, or agree on a wide interval containing truth. Do not change the
+sampler merely to force its traces onto the black line.
+
+### Extract a primer and inspect its detection rate
+
+The same method applies to `p` and `q`, but their first dimension is
+primer rather than covariate. Primer identifiers may be stored as
+numbers, so convert their labels to character before matching.
+
+``` r
+primer_name <- "1"
+primer_index <- match(primer_name, as.character(fitmodel$infos$primerNames))
+
+stopifnot(!is.na(primer_index))
+
+primer_draws <- fitmodel$results_output$p_output[
+  primer_index, , , , drop = FALSE
+]
+
+occJSDM::plotTraceplot(
+  primer_draws,
+  param_name = "PCR detection probability",
+  dimnames1 = primer_name,
+  dimnames2 = fitmodel$infos$speciesNames
+)
+```
+
+``` r
+primer_trace <- diagnostic_examples$traces$detection
+
+occJSDM::plotTraceplot(
+  primer_trace$draws,
+  param_name = "PCR detection probability",
+  dimnames1 = primer_trace$label1,
+  dimnames2 = primer_trace$label2
+) +
+  geom_hline(
+    data = primer_trace$truth,
+    aes(yintercept = truth), colour = "black", linetype = "dashed"
+  ) +
+  facet_grid(label2 ~ chain, scales = "free_y") +
+  scale_y_continuous(labels = scales::label_percent()) +
+  labs(
+    x = "Saved draw after burn-in",
+    caption = "Primer 1, default-prior fit. Columns: chains. Rows: species. Truth accounts for the fitted read threshold."
+  ) +
+  theme(legend.position = "none")
+```
+
+![](occJSDM-lesson-3_files/figure-gfm/primer-trace-1.png)<!-- -->
+
+These true probabilities include the chance that a simulated detection
+event produces enough reads to count as positive. Using just the
+simulator’s event probability would put the reference line at the wrong
+target. The collection and PCR trace examples use the same two species,
+so neither panel was selected for especially good recovery.
+
+### Follow up an actual diagnostic warning
+
+For a species-only parameter such as `theta0`, the saved array has three
+dimensions: `[species, iteration, chain]`. Do not apply the four-index
+expression above to it. This example selects the field-contamination
+parameter with the lowest public ESS in the longer alternative-prior
+fit, which is OTU_6. Selection uses diagnostics, not distance from
+truth.
+
+``` r
+alternative_fit <- readRDS("/path/to/full-fits/alternative-long-fit.rds")$fit
+species_index <- match("OTU_6", alternative_fit$infos$speciesNames)
+
+stopifnot(!is.na(species_index))
+
+field_draws <- alternative_fit$results_output$theta0_output[
+  species_index, , , drop = FALSE
+]
+
+occJSDM::plotTraceplot(
+  field_draws,
+  param_name = "Field-contamination probability",
+  dimnames1 = "OTU_6"
+)
+```
+
+``` r
+field_trace <- diagnostic_examples$traces$field_contamination
+
+occJSDM::plotTraceplot(
+  field_trace$draws,
+  param_name = "Field-contamination probability",
+  dimnames1 = field_trace$label1
+) +
+  geom_hline(
+    data = field_trace$truth,
+    aes(yintercept = truth), colour = "black", linetype = "dashed"
+  ) +
+  facet_wrap(~ chain, ncol = 1) +
+  scale_x_continuous(breaks = seq(0, 12000, by = 3000)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  labs(
+    x = "Saved draw after burn-in",
+    caption = "OTU_6, longer alternative-prior fit. Panels: chains. Dashed line: true field-contamination probability."
+  ) +
+  theme(legend.position = "none")
+```
+
+![](occJSDM-lesson-3_files/figure-gfm/flagged-field-trace-1.png)<!-- -->
+
+There are 48,000 retained draws here, but their dependence means they
+carry much less independent information. The public ESS for this
+parameter is about 361. That is a numerical limitation on posterior
+summaries, not a count of field samples and not a claim that only that
+many iterations were run. This fit should not be described as having
+cleared every diagnostic simply because it was run for longer.
+
+The traces make this slow movement visible: each chain spends stretches
+at relatively high or low contamination rates. The true rate is 5.3%,
+near the bottom of the panels, but the fit also gives substantial weight
+to much higher rates. The example therefore raises two separate
+concerns: how precisely the sampler has estimated its posterior
+summaries, and how well that posterior recovers the ecological truth.
+
+### Where to find other parameter draws
+
+Start from `fitmodel$results_output`. Keep the iteration and chain
+dimensions separate when calculating diagnostics; pooling chains into
+one vector destroys the information Rhat needs.
+
+| Parameter | Array within `results_output` | Dimensions before selecting a parameter |
+|----|----|----|
+| Occupancy intercept | `jsdm_output$B0_output` | Species, iteration, chain |
+| Environmental effect | `jsdm_output$B_output` | Covariate, species, iteration, chain |
+| Measured trait effect | `jsdm_output$G_output` | Trait, environmental covariate, iteration, chain |
+| Collection intercept/effect | `beta_theta_output` | Covariate, species, iteration, chain |
+| PCR detection/false-positive rate | `p_output`, `q_output` | Primer, species, iteration, chain |
+| Field-contamination rate | `theta0_output` | Species, iteration, chain |
+
+For example, direct newer diagnostics for one environmental coefficient
+use an **iteration-by-chain matrix**. This optional code requires the
+`posterior` package, also used by our offline verification scripts:
+
+``` r
+environment_index <- match("X_psi.EnvCov.1", colnames(fitmodel$X_psi))
+species_index <- match("OTU_1", fitmodel$infos$speciesNames)
+
+stopifnot(!anyNA(c(environment_index, species_index)))
+
+coefficient_draws <- fitmodel$results_output$jsdm_output$B_output[
+  environment_index, species_index, ,
+]
+
+tibble(
+  Rhat = posterior::rhat(coefficient_draws),
+  bulk_ESS = posterior::ess_bulk(coefficient_draws),
+  tail_ESS = posterior::ess_tail(coefficient_draws)
+)
+```
+
+### Summaries and what to do next
+
 ``` r
 diagnostic_summary <- bind_rows(
   as_tibble(lesson$diagnostics$perfect) |> mutate(arm = "perfect"),
@@ -734,7 +1077,25 @@ Rhat close to one indicates agreement among chains. Effective sample
 size describes how much independent information remains in the
 correlated MCMC draws; the tail calculation is relevant to interval
 endpoints. These diagnostics check computation, not whether the
-available ecological data can identify the generating trait effect.
+available ecological data can identify the generating trait effect. See
+the [`posterior` diagnostics
+documentation](https://mc-stan.org/posterior/reference/diagnostics.html)
+for the definitions used in this coefficient table.
+
+When a parameter is flagged, inspect its trace and consider which
+ecological conclusions depend on it. If the chains explore similar
+distributions but move slowly, more iterations may improve precision. If
+they remain separated or drift, investigate the model, priors, data
+information and starting values rather than assuming a longer run will
+necessarily solve the problem. Recheck both diagnostics and the
+stability of the reported estimates after any change.
+
+Keep `nthin = 1` unless storage is the limiting concern. Discarding
+additional draws does not make the sampler explore better or repair
+chains trapped in different regions. Never discard selected chains or
+tune priors just to make the examples pass a diagnostic threshold. In a
+real dataset the black truth lines are unavailable, so convergence
+checks, model checks and ecological judgment each have a separate role.
 
 WAIC is another diagnostic quantity with no generating parameter to
 overlay. `extractWAIC()` can support comparison of models fitted to the
@@ -754,6 +1115,8 @@ lesson’s additional summaries:
 ``` bash
 Rscript dev/simstudy/vignette-lesson/summarise_outputs.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/verify_outputs.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/summarise_diagnostics.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/verify_diagnostics.R /path/to/full-fits
 ```
 
 In an R session with those full fits available:

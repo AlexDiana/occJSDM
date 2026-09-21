@@ -96,3 +96,22 @@ Interpretation choices are deliberate:
 - Detection-effort curves describe expected true detections conditional on all ten species occupying the site, mean collection conditions, independent field samples and two primers. They exclude false positives and respect six PCRs per primer. Their intervals describe uncertainty in the expectation, unlike the public cumulative-detection plot's simulated survey-outcome intervals. They do not show the benefit of refitting with more data.
 
 Remaining teaching work: spatial examples after the reviewed correction, genuine held-out prediction, a matched model-selection experiment and the separate package-comparison lesson. Paper2Agent remains a feasibility proposal and has not been installed or run.
+
+### Lesson 3: practical fitting diagnostics restored, 21 September 2026
+
+The diagnostics section now demonstrates public diagnostic extraction, parameter labels, filtering individual warnings (including missing diagnostics), array indexing and traceplots. It distinguishes the public function's classical `coda` Rhat/ESS from the newer coefficient diagnostics calculated with `posterior`, and distinguishes numerical convergence from recovery of ecological truth. `vignettes/LESSON-PLAN.md` records the remaining migration gaps against the original walkthrough at revision `8654ff1`; that planning document remains excluded from package builds.
+
+Run these additional commands from the repository root with the matching occJSDM library before rendering the updated Lesson 3:
+
+```sh
+Rscript dev/simstudy/vignette-lesson/summarise_diagnostics.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/verify_diagnostics.R /path/to/full-fits
+```
+
+The exporter writes `vignettes/teaching-data/diagnostics-lesson.rds` (about 1 MB). It contains every retained draw in all four chains for the collection slope and primer-1 detection rate of OTU_1 and OTU_6 from `default-fit.rds`, plus OTU_6's field-contamination rate from `alternative-long-fit.rds`. The last example is selected by the lowest public ESS among field-contamination parameters, not by its error against truth. No additional thinning or model fitting occurs. The original simulation and output-summary bundles are unchanged.
+
+The exporter checks the archived fits' source, input and file hashes and reproduces their saved public diagnostic tables. Its independent verifier compares every exported draw and chain with the original arrays, checks every native traceplot's iteration and chain identities, independently recalculates the standardized collection truth and threshold-adjusted PCR truth, and verifies the selection of the flagged field-contamination example. The new bundle records the exporter hash, original teaching-bundle hash and fit manifests; re-export and re-verify it if the exporter changes.
+
+Lesson 3 uses `ggtern::theme_bw()` so both ordinary plots and native occJSDM traceplots continue to render after loading ggtern, including successive renders in one R process. With ggplot2 4.0.3 and ggtern 4.0.0, resetting the ordinary ggplot2 theme after ggtern has registered its theme elements otherwise produces a theme-validation error. This is a lesson-level compatibility choice, with no changes to the plotting package or model code.
+
+Validation on 21 September 2026: every exported draw, chain, iteration and truth line passed the independent archive check. All five optional extraction/diagnostic examples ran against the full saved fits, and all three native traceplots built successfully. Lesson 3 rendered to HTML and Markdown; the three new figures were visually inspected and the original ten figures were unchanged. Scientific review found no significant issues. R reported that dplyr, tibble and ggplot2 were built under R 4.5.2; these startup warnings did not prevent the examples or renders from completing. No new MCMC or package-wide test run was needed for this documentation-only change.
