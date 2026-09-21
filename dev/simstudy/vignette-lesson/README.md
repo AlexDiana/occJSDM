@@ -65,4 +65,32 @@ The visible Lesson 0 simulation reproduces the saved observations and truth. Its
 
 Independent review identified missing truth-matrix labels in the optional fresh simulation call. Explicit site, sample and species labels were added and verified. The new maps and revised figures were visually inspected. Lesson 2 remains an outline: its smooth environmental and explicit dispersal simulations still need to be implemented and validated after spatial review.
 
-Extend the agreed design to environmental and trait effects, residual correlations, variation partitioning, spatial examples and genuine held-out prediction. Replace the older reference walkthrough's unmatched saved examples as those lessons are finished. Paper2Agent remains a feasibility proposal and has not been installed or run.
+### Lesson 3: output interpretation, added 21 September 2026
+
+`vignettes/occJSDM-lesson-3.Rmd` extends the agreed design to environmental and trait effects, response profiles, baseline probabilities, residual correlations, combined ordination contributions, variation partitioning, collection effects and expected detection with additional sampling. `vignettes/occJSDM.Rmd` is now the short quickstart/lesson guide; the old unmatched output tour is replaced by Lesson 3 and the existing Lesson 1. The original example data and fits remain unchanged.
+
+The new lesson reuses the complete `perfect-fit.rds` and `default-fit.rds` from the same archive. Their model source hashes match current main revision 8654ff1: the changes since the recorded b53048a source are documentation changes. No new MCMC or model changes are needed. Run the following from the repository root, with a matching occJSDM library:
+
+```sh
+Rscript dev/simstudy/vignette-lesson/summarise_outputs.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/verify_outputs.R /path/to/full-fits
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-3.Rmd", output_format="rmarkdown::html_vignette")'
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-3.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE))'
+```
+
+The exporter writes `vignettes/teaching-data/output-lesson.rds`, including the original fit manifests and hashes of its source, the original compact bundle and the legacy saved example used for the historical interval-count check. It checks actual training observations and reconstructs the full true predictor to establish the environmental scale. True trait effects are converted using trait standard deviations; the simulator standardizes its environmental predictors but not its traits. Changing exporter code requires re-exporting and re-verifying the compact bundle.
+
+Checks independently reconstruct raw coefficient summaries, response-profile endpoints, selected posterior products of scores and loadings, correlation intervals and the non-spatial partition truth. They also verify the trait-decomposition algebra, collection standardization and detection-effort expectations. The effort check uses an independent sum over the possible number of collected field samples. Fits remain in the external archive, not in the package.
+
+Validation on 21 September 2026: the independent numerical checks passed for both fits, including direct chain diagnostics for the environmental and trait coefficients. Lesson 3 and the quickstart rendered to HTML and GitHub Markdown. All ten figures were visually inspected; local links, embedded teaching CSS and visible code blocks were checked. Scientific review found no significant issues. The existing lessons, simulation bundle and model source are unchanged; this documentation change did not rerun the package-wide test suite or MCMC.
+
+Interpretation choices are deliberate:
+
+- Response curves use hidden site factors set to zero, matching the public gradient function. They are not new-site probabilities marginalized over unmeasured conditions.
+- Trait effects are distinguished from the realized regression of true species slopes on traits. In this ten-species community, the measured Trait_1 and an unmeasured species trait correlate by chance, partially cancelling their contributions to the first environmental response. This illustrates a difficulty, not a general diagnosis of older fits without saved truth.
+- True correlations involving OTU_4's zero-variance factor contribution remain undefined, not zero. They appear grey.
+- Ordination is checked using the posterior mean of the draw-wise score/loading product, not products of posterior means or unaligned axes.
+- Variation partitioning uses the same probability-standard-deviation allocation as the simulator and fitter, including the environmental intercept. Its residual component does not establish biotic interactions.
+- Detection-effort curves describe expected true detections conditional on all ten species occupying the site, mean collection conditions, independent field samples and two primers. They exclude false positives and respect six PCRs per primer. Their intervals describe uncertainty in the expectation, unlike the public cumulative-detection plot's simulated survey-outcome intervals. They do not show the benefit of refitting with more data.
+
+Remaining teaching work: spatial examples after the reviewed correction, genuine held-out prediction, a matched model-selection experiment and the separate package-comparison lesson. Paper2Agent remains a feasibility proposal and has not been installed or run.
