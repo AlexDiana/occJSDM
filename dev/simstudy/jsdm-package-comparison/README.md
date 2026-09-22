@@ -2,7 +2,7 @@
 
 Start with [FITTING-REPORT.md](FITTING-REPORT.md) for the ecological explanation, actual fitted results, diagnostics and figures. [DESIGN.md](DESIGN.md) contains the agreed design; [RUN-PLAN.md](RUN-PLAN.md) records the budgets set before fitting and every subsequent diagnostic decision.
 
-The first pilot has been run. occJSDM and Hmsc passed the declared MCMC checks; gllvm's usable VA solution was reproduced from separate starts after rejecting unstable EVA fits. sjSDM is still provisional because its longer repeated starts differ by more than the declared likelihood-stability criterion. The saved numerical calculations passed independent review. The [student-facing Lesson N](../../../vignettes/occJSDM-lesson-N.md) now uses these results. It is not a replicated benchmark. Further sjSDM optimisation is parked; the [follow-up record](SJSDM-STABILITY-REPORT.md) preserves its unresolved assessment.
+The first pilot has been run. occJSDM and Hmsc passed the declared MCMC checks; gllvm's usable VA solution was reproduced from separate starts after rejecting unstable EVA fits. sjSDM was provisional in the first version because its longer unpenalised starts differed by more than the declared likelihood-stability criterion; the [follow-up record](SJSDM-STABILITY-REPORT.md) then showed that the weak-penalty objective has two genuine local maxima, reproduced the better one from independent starts, and recorded a revised selection before reading truth. The saved numerical calculations passed independent review. The [student-facing Lesson N](../../../vignettes/occJSDM-lesson-N.md) now uses the revised sjSDM selection and keeps the original in its record. It is not a replicated benchmark.
 
 ## Files and commands
 
@@ -77,4 +77,24 @@ From the repository root, using the same `environment`, `code` and `run` variabl
 
 The numerical verifier executes the exact displayed simulator and matches the saved community and scaled inputs, independently recomputes every overall/band/species error summary, checks all 1,020 true curve values against the raw generating parameters, and checks the fitted curves with direct normal integration or a finer quadrature. It also executes the displayed one-species marginal-prediction example. Change the exporter or mathematical helper only with a new export and verification; the bundle records their hashes. The hash manifest preserves the original absolute archive paths. If the archive moves, re-export from its new location before running the numerical verifier; ordinary lesson rendering is unaffected. The source lesson remains canonical. Generated Markdown and seven figures are review artifacts; HTML is local and ignored by Git.
 
-The optimisation follow-up is preserved in `SJSDM-STABILITY-REPORT.md`. It is parked at Doug's request and is not a prerequisite for reading Lesson N. Its regularised fits and rejected numerical reference fits do not replace any lesson predictions.
+## Revised sjSDM selection
+
+The stability follow-up is in `SJSDM-STABILITY-REPORT.md` and its predeclared budgets in `SJSDM-STABILITY-PLAN.md`. Its rejected unpenalised reference fits never entered any lesson prediction. The revised native weak-penalty selection did, through a separately versioned results root that leaves the original `results/` untouched. From the repository root, with `run` pointing at the existing archive and `code` at this directory:
+
+```sh
+Rscript "$code/sjsdm-curvature.R" "$run" "$code"
+for start in 4 5 6 7 8 9 10 11 12; do
+  "$environment/run-r" "$run/stability-resolution/scripts/sjsdm-multistart.R" "$run" "$code" "$start"
+done
+Rscript "$code/check-sjsdm-multistart.R" "$run" "$code"
+Rscript "$code/select-sjsdm-revised.R" "$run"
+
+# Only now read generating truth.
+Rscript "$code/export-revised-sjsdm.R" "$run" "$code"
+Rscript "$code/sjsdm-weak-penalty-attempts.R" "$run" "$code"
+Rscript "$code/export-teaching.R" "$run/revised" "$code" "$code/stability-resolution-results/sjsdm-weak-penalty-attempts.csv"
+Rscript "$code/verify-teaching.R" "$run/revised" "$code"
+Rscript "$code/make-revised-artifacts.R" "$run" "$code"
+```
+
+The multistart driver must run with the frozen `run-r` launcher because it fits native sjSDM; the other steps use only base R, dplyr, tidyr and ggplot2. Every script refuses to overwrite completed outputs. `revised/` links the original inputs, truth and parameter files and holds its own `results/` and the revised sjSDM parameter file. Compact records of the whole follow-up are in `stability-resolution-results/`.

@@ -1,5 +1,7 @@
 # sjSDM optimisation stability: handover
 
+**Historical record.** The four remaining steps below were completed on 23 September 2026 on branch `codex/sjsdm-stability-resolution`; the outcome is in the final sections of [SJSDM-STABILITY-REPORT.md](SJSDM-STABILITY-REPORT.md). The text below is unchanged from the pause.
+
 Paused at Doug's request on 22 September 2026 because of token limits. **The stability issue is not yet settled.** No further computation is scheduled. All three deterministic references and the native gradient-noise experiment completed; their outputs are saved. The final native worker returned exit code zero and its summary contains all six endpoint/integration-budget combinations.
 
 ## Main finding from the resumed work

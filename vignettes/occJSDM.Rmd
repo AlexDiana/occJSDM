@@ -28,7 +28,7 @@ occJSDM estimates species occurrence while allowing for imperfect field collecti
 - [Lesson 2: Spatial landscapes and dispersal](occJSDM-lesson-2.md). A planned lesson on smooth environmental gradients, residual spatial structure and a separate dispersal simulation. It is not yet a worked spatial validation.
 - [Lesson 3: Understand the model's outputs by comparing them with truth](occJSDM-lesson-3.md). Environmental responses, trait effects, species associations, ordination, variation partitioning and detection effort. It includes a function index and explains why a real simulated effect can remain uncertain.
 
-- [Lesson N: Compare four JSDMs](occJSDM-lesson-N.md). A worked non-spatial pilot comparing occJSDM, gllvm, sjSDM and Hmsc on the same perfectly observed community, with matching truth and explicit fitting limitations.
+- [Lesson N: Compare four JSDMs](occJSDM-lesson-N.md). A worked non-spatial pilot comparing occJSDM, gllvm, sjSDM and Hmsc on the same perfectly observed community, with matching truth, explicit fitting checks, and an example of a fit with two local optima.
 
 You can read Lesson 3 after Lesson 1; the spatial lesson is not a prerequisite. The earlier output tour has been replaced by Lesson 3. The old `sampledata` and `sampleresults` objects remain available, but their generating truth is not stored with them, so the lessons use a complete matching simulation and fit instead.
 

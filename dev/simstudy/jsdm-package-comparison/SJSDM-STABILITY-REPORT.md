@@ -1,6 +1,6 @@
-# Why the first sjSDM fits were not fully stable
+# Why the first sjSDM fits were not fully stable, and how it was resolved
 
-Latest resumed-study status and remaining work: [SJSDM-STABILITY-HANDOVER.md](SJSDM-STABILITY-HANDOVER.md).
+Resolved on 23 September 2026; see the final section. The [handover](SJSDM-STABILITY-HANDOVER.md) records the state at which the investigation was paused the day before.
 
 This continues the [four-package pilot](FITTING-REPORT.md). The investigation uses the same training data and the same two-factor logit model. Test outcomes and simulated truth are not used to choose fitting settings. Original results are retained.
 
@@ -44,10 +44,24 @@ The initial pilot deliberately set optimiser weight decay to zero. sjSDM's expos
 
 The sensitivity arm uses exactly the same seeds and fitting settings as the original three longer fits, except for this default weight decay. Selection and checks use the penalised training objective, not unpenalised likelihood or closeness to simulated truth. The three fits completed, but their penalised-objective spread was 0.1261, still above 0.1. A final continuation of 1,000 smaller steps reduced the largest fixed-grid prediction difference to 0.706 percentage points; its penalised-objective spread remained 0.1264. All three final integration checks agreed within 0.000000001 log-likelihood units. These results do not pass both declared stability checks.
 
-Doug then redirected work to building Lesson N. Further optimisation is parked. The original selected fit and its reported ecological errors remain unchanged, and the lesson labels sjSDM provisional. Stable predictions on the checking grid do not establish stable parameter estimates or eliminate uncertainty elsewhere.
+Doug then redirected work to building Lesson N, and the first version of the lesson labelled sjSDM provisional with the original unpenalised fit. Stable predictions on the checking grid do not establish stable parameter estimates or eliminate uncertainty elsewhere. The investigation resumed afterwards; its outcome is below.
 
 Independent review found no blocking mathematical or data-leakage issue. One minor robustness improvement remains: the unpenalised continuation checker reports its fine-grid disagreement but does not include that guard in its `passed` flag. The observed disagreement is at most 5.2e-9, so this does not change the current failed stability assessment; both penalty checkers already enforce the guard.
 
+## Two genuine local maxima
+
+Deterministic refinement of the three weak-penalty endpoints, with the analytic gradient and 81-node quadrature checked at 161 and 241 nodes, reached two stationary solutions: one with penalised score about -484.30, reached from start 1, and one with score about -484.43, reached from starts 2 and 3, which agree to 1e-5 in every coefficient after a factor rotation. A native random-integration check at the three endpoints showed that Monte Carlo noise in the package's objective does not explain the gap.
+
+The Hessian of the penalised negative log likelihood was then computed at each solution by central differences of the analytic gradient, at 121 and again at 161 nodes. Each has exactly one eigenvalue within 1e-6 of zero, whose eigenvector coincides with the factor-rotation direction to machine precision, and 49 positive eigenvalues between about 0.04 and 20.6. Both solutions are genuine local maxima; neither is a saddle. Along the straight path between them, after aligning their factors, the penalised score falls to 0.25 below the lower solution about 45% of the way across. The solutions are about 4.3 parameter units apart and differ almost entirely in species 2 and 9: the better solution gives species 2 a residual SD of 3.3 and species 9 of 1.0, the other gives 1.1 and 3.1. Compact records are in `stability-resolution-results/`: `curvature-summary.csv`, `path-profile.csv` and `species-differences.csv`.
+
+## Twelve independent starts and the recorded selection
+
+Because the repeated-fit spread criterion assumed one optimum, the assessment was restated before running anything further: report how often independent native starts reach each maximum; require native endpoints within the best maximum to agree within 0.1 in penalised score and within 1 percentage point on the fixed grid; require that maximum to be reached by at least two independent starts; and select the native fit with the highest precise penalised training objective if those conditions hold. Nine fresh native starts (seeds 26092804 to 26092812), each with the same 3,000-epoch fit and 1,000-epoch low-step continuation, joined the original three. Every one of the twelve endpoints was classified by deterministic refinement to within 2e-4 of one of the two known solutions. Four reached the better maximum (starts 1, 9, 10, 11) and eight the other. Within the better maximum the native penalised scores span 0.0064 and grid predictions 0.078 points; within the other, 0.0025 and 0.096 points. Start 11, with penalised score -484.3043, was selected. The selection was saved before truth was read; see `multistart-summary.csv`, `multistart-basins.csv` and `multistart-assessment.csv`.
+
+## What the revision changed
+
+The revised sjSDM export scores 7.14 points average absolute error at new sites and 13.3 at sampled sites, against 7.14 and 13.6 for the original provisional fit. New-site predictions moved by at most 0.38 points. The two maxima differ by at most 1.9 points at new sites and by up to 39 points for some sampled-site reconstructions, mostly species 2 and 9, while their average errors are almost identical. The Lesson N bundle was re-exported from the separately versioned `revised/` results root and re-verified; the original selection and exports are unchanged in the archive. Lesson N now reports the revised fit and teaches the two-maxima finding in its computation-check section.
+
 ## Reproducibility
 
-The detailed predeclared steps and subsequent diagnostic decisions are in [SJSDM-STABILITY-PLAN.md](SJSDM-STABILITY-PLAN.md). Full continuations, rejected references, profiles, gradients, logs and scripts are under the original run directory's `stability/` folder. Each long worker executes an immutable script snapshot parsed with `source()`. No package source or global Python/R environment is changed. Mojo remains unused.
+The detailed predeclared steps and subsequent diagnostic decisions are in [SJSDM-STABILITY-PLAN.md](SJSDM-STABILITY-PLAN.md). Full continuations, rejected references, profiles, gradients, logs and scripts are under the original run directory's `stability/` folder; the resumed work, curvature check, multistart fits, revised selection and revised export are under `stability-resolution/` and `revised/`. Each long worker executes an immutable script snapshot parsed with `source()`. No package source or global Python/R environment is changed. Mojo remains unused.
