@@ -60,11 +60,11 @@ test_that("numeric responses use original units, all predictors and the full lin
     rows <- result[result$Species == fit$infos$speciesNames[s], ]
     expected <- response_interval_direct(response_draws_direct(fit, design, s), .8)
     expect_equal(rows$x, x)
-    expect_equal(as.matrix(rows[, c("mean", "lower", "upper")]),
+    expect_equal(as.matrix(rows[, c("median", "lower", "upper")]),
                  expected, ignore_attr = TRUE)
   }
-  expect_true(all(unlist(result[, c("mean", "lower", "upper")]) >= 0))
-  expect_true(all(unlist(result[, c("mean", "lower", "upper")]) <= 1))
+  expect_true(all(unlist(result[, c("median", "lower", "upper")]) >= 0))
+  expect_true(all(unlist(result[, c("median", "lower", "upper")]) <= 1))
   expect_equal(returnCovariateEffect(fit, "temperature")$Species,
                rep(fit$infos$speciesNames, each = 200))
 })
@@ -122,7 +122,7 @@ test_that("one species, one predictor and one retained draw retain dimensions", 
   result <- returnCovariateEffect(fit, "x")
   design <- matrix((seq(10,80,length.out=200) - mean(raw$x))/sd(raw$x), ncol=1)
   truth <- response_draws_direct(fit, design, 1)[,1]
-  expect_equal(result$mean, truth)
+  expect_equal(result$median, truth)
   expect_equal(result$lower, truth)
   expect_equal(result$upper, truth)
   expect_no_error(plotCovariateEffect(fit, "x"))
@@ -134,10 +134,10 @@ test_that("continuous response curves stay on the identity scale", {
   x <- c(10,20,30,40,100,130); x2 <- c(2,4,8,16,32,64)
   design <- cbind((seq(10,130,length.out=200)-mean(x))/sd(x),
                   (median(x2)-mean(x2))/sd(x2), 0, 0)
-  expect_equal(as.matrix(result[, c("mean","lower","upper")]),
+  expect_equal(as.matrix(result[, c("median","lower","upper")]),
                response_interval_direct(response_draws_direct(fit,design,1),.8),
                ignore_attr=TRUE)
-  expect_true(any(result$mean < 0))
+  expect_true(any(result$median < 0))
   expect_equal(plotCovariateEffect(fit,"temperature",1)[[1]]$labels$y,"Expected response")
 })
 
@@ -154,7 +154,7 @@ test_that("response splines use training knots and coherent reference covariates
                   predict(moist_basis,rep((median(raw$moisture)-mean(raw$moisture))/sd(raw$moisture),200)))
   result <- returnCovariateEffect(fit,"temperature",3,confidence=.8)
   expect_equal(result$x,x)
-  expect_equal(as.matrix(result[,c("mean","lower","upper")]),
+  expect_equal(as.matrix(result[,c("median","lower","upper")]),
                response_interval_direct(response_draws_direct(fit,design,3),.8),
                ignore_attr=TRUE)
   expect_no_warning(ggplot2::ggplot_build(plotCovariateEffect(fit,"temperature",3)[[1]]))
@@ -179,7 +179,7 @@ test_that("similarly named covariates are matched exactly", {
   x <- seq(1,8,length.out=200)
   design <- cbind((x-mean(c(1,2,4,8)))/sd(c(1,2,4,8)), 0)
   result <- returnCovariateEffect(fit,"x",3)
-  expect_equal(as.matrix(result[,c("mean","lower","upper")]),
+  expect_equal(as.matrix(result[,c("median","lower","upper")]),
                response_interval_direct(response_draws_direct(fit,design,3),.95),
                ignore_attr=TRUE)
 })
@@ -204,7 +204,7 @@ test_that("categorical curves retain fitted contrasts, even if options change", 
     design <- fit$X_psi[rep(1, 200), , drop = FALSE]
     design[, 3] <- (seq(10,130,length.out=200) - mean(raw$temperature))/sd(raw$temperature)
     result <- returnCovariateEffect(fit, "temperature", 2)
-    expect_equal(result$mean, response_interval_direct(response_draws_direct(fit,design,2),.95)[,1])
+    expect_equal(result$median, response_interval_direct(response_draws_direct(fit,design,2),.95)[,1])
   }
 })
 
@@ -232,5 +232,5 @@ test_that("custom factor encoding can retain one column per level", {
   design <- fit$X_psi[rep(1,200), , drop = FALSE]
   design[, 4] <- (seq(10,130,length.out=200) - mean(raw$temperature))/sd(raw$temperature)
   result <- returnCovariateEffect(fit, "temperature", 2)
-  expect_equal(result$mean, response_interval_direct(response_draws_direct(fit,design,2),.95)[,1])
+  expect_equal(result$median, response_interval_direct(response_draws_direct(fit,design,2),.95)[,1])
 })

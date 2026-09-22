@@ -422,7 +422,7 @@ returnCovariateEffect_base <- function(cov_name, idx_species,
     if (list_matrix$is_numeric[[cov_name]]) {
       interval <- t(apply(response, 1L, stats::quantile, probs = probabilities,
                           names = FALSE))
-      data.frame(x = grid$x, mean = interval[, 1L], lower = interval[, 2L],
+      data.frame(x = grid$x, median = interval[, 1L], lower = interval[, 2L],
                  upper = interval[, 3L], Species = speciesNames[sp])
     } else {
       # Preserve the categorical raw-draw return format, now including level 1.
@@ -436,7 +436,7 @@ returnCovariateEffect_base <- function(cov_name, idx_species,
 
 plot_covariate_response <- function(data, cov_name, is_numeric, link, confidence) {
   if (is_numeric) {
-    plot <- ggplot(data, aes(x = x, y = mean)) +
+    plot <- ggplot(data, aes(x = x, y = median)) +
       geom_ribbon(aes(ymin = lower, ymax = upper), fill = "#3388ff", alpha = .3) +
       geom_line(color = "#0044cc", linewidth = 1) +
       scale_x_continuous(breaks = pretty(data$x, n = 5))

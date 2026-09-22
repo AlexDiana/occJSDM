@@ -18,9 +18,10 @@ original input data, before scaling or spline expansion.}
 contained in the equal-tail Bayesian credible interval (default: 0.95).}
 }
 \value{
-For a numeric covariate, a data frame with \code{x}, \code{mean},
-  \code{lower}, \code{upper} and \code{Species}. For backwards compatibility,
-  \code{mean} names the posterior \emph{median}, not the arithmetic mean.
+For a numeric covariate, a data frame with \code{x}, \code{median},
+  \code{lower}, \code{upper} and \code{Species}. The \code{median} column
+  contains the posterior median. Earlier versions labelled it \code{mean};
+  scripts using that column must now use \code{median}.
   For a categorical covariate, a data frame with \code{x}, \code{Species},
   \code{draw} and \code{value}, containing all posterior draws at every level.
   Here \code{confidence} does not alter the raw draws; it controls the

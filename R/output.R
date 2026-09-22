@@ -536,9 +536,10 @@ stopIfNoRawCovariates <- function(fitModel, what){
 #' @param confidence Numeric scalar strictly between 0 and 1. Probability
 #'   contained in the equal-tail Bayesian credible interval (default: 0.95).
 #'
-#' @return For a numeric covariate, a data frame with \code{x}, \code{mean},
-#'   \code{lower}, \code{upper} and \code{Species}. For backwards compatibility,
-#'   \code{mean} names the posterior \emph{median}, not the arithmetic mean.
+#' @return For a numeric covariate, a data frame with \code{x}, \code{median},
+#'   \code{lower}, \code{upper} and \code{Species}. The \code{median} column
+#'   contains the posterior median. Earlier versions labelled it \code{mean};
+#'   scripts using that column must now use \code{median}.
 #'   For a categorical covariate, a data frame with \code{x}, \code{Species},
 #'   \code{draw} and \code{value}, containing all posterior draws at every level.
 #'   Here \code{confidence} does not alter the raw draws; it controls the

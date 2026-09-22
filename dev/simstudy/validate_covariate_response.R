@@ -43,14 +43,14 @@ for (sp in species) {
   expected <- t(apply(response, 1L, quantile, probs = c(.5, .1, .9), names = FALSE))
   rows <- result[result$Species == fit$infos$speciesNames[sp], ]
   stopifnot(isTRUE(all.equal(rows$x, x, tolerance = 1e-12)),
-            isTRUE(all.equal(unname(as.matrix(rows[probes, c("mean", "lower", "upper")])),
+            isTRUE(all.equal(unname(as.matrix(rows[probes, c("median", "lower", "upper")])),
                              expected, tolerance = 1e-12)))
 }
 plot <- plotCovariateEffect(fit, covariate, species, confidence)[[1]]
 stopifnot(identical(plot$data, result), identical(plot$labels$y, "Occupancy probability"))
 invisible(ggplot2::ggplot_build(plot))
 print(dplyr::summarise(dplyr::group_by(result, Species),
-                       minimum_median = min(mean), maximum_median = max(mean),
-                       invalid_medians = sum(mean < 0 | mean > 1)))
+                       minimum_median = min(median), maximum_median = max(median),
+                       invalid_medians = sum(median < 0 | median > 1)))
 cat("Original predictor range:", range(result$x), "\n")
 cat("All checks passed; saved-fit MD5:", unname(tools::md5sum(args[1])), "\n")
