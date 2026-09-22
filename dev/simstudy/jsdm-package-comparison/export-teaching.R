@@ -1,8 +1,12 @@
 # Export existing fits for the lesson. This script never fits or selects a model.
 args <- commandArgs(trailingOnly = TRUE)
-stopifnot(length(args) == 2L)
+stopifnot(length(args) %in% c(2L, 3L))
 root <- normalizePath(args[1])
 code <- normalizePath(args[2])
+# Optional third argument: a CSV of additional fit attempts in the
+# all-fit-attempts.csv layout, appended to the runtime table. The revised
+# sjSDM export passes its twelve weak-penalty starts here.
+extra_attempts <- if (length(args) == 3L) normalizePath(args[3]) else NULL
 source(file.path(code, "pilot-math.R"))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr))
@@ -58,6 +62,33 @@ for (package in names(selection)) {
 }
 
 attempts <- read.csv(file.path(code, "pilot-results/all-fit-attempts.csv"))
+if (!is.null(extra_attempts)) {
+  extra <- read.csv(extra_attempts)
+  stopifnot(identical(names(extra), names(attempts)), !any(extra$fit %in% attempts$fit))
+  attempts <- rbind(attempts, extra)
+}
+# When the results root carries a revised selection, keep the original
+# selection and the revision's assessment tables in the bundle so the lesson
+# can show them. Absent for the original pilot export.
+selection_record <- readRDS(file.path(root, "results/selection.rds"))
+revision <- if (!is.null(selection_record$original_selected)) {
+  read_if <- function(name) {
+    path <- file.path(root, "results", name)
+    if (file.exists(path)) read.csv(path) else NULL
+  }
+  list(original_selected = selection_record$original_selected,
+       sjSDM_configuration = selection_record$sjSDM_configuration,
+       criteria = selection_record$criteria,
+       basins = selection_record$basins,
+       assessment = selection_record$multistart_assessment,
+       comparison = read_if("sjsdm-revision-comparison.csv"),
+       prediction_differences = read_if("sjsdm-revision-prediction-differences.csv"),
+       species_comparison = read_if("sjsdm-revision-species-comparison.csv"),
+       multistart = read.csv(file.path(code, "stability-resolution-results/multistart-summary.csv")),
+       curvature = read.csv(file.path(code, "stability-resolution-results/curvature-summary.csv")),
+       path_profile = read.csv(file.path(code, "stability-resolution-results/path-profile.csv")),
+       species_differences = read.csv(file.path(code, "stability-resolution-results/species-differences.csv")))
+} else NULL
 diagnostics <- bind_rows(lapply(c("occJSDM", "Hmsc"), function(package) {
   read.csv(file.path(code, "pilot-results", paste0(package, "-diagnostics.csv"))) |>
     mutate(package = package)
@@ -75,7 +106,7 @@ lesson <- list(
   predictions = predictions, curves = bind_rows(curves),
   point_parameters = point_parameters_for_lesson,
   integration_checks = bind_rows(checks), attempts = attempts,
-  diagnostics = diagnostics, selected = selection,
+  diagnostics = diagnostics, selected = selection, sjsdm_revision = revision,
   provenance = list(seed = truth$seed, source_hashes = tools::md5sum(input_paths),
                     occJSDM_commit = "3a9726760f692ffe0ef21ca125d0c7acd02c7532",
                     sjSDM_commit = "d2ca508853a6e39df493f87c21d9c0136cfe652b",
