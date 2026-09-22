@@ -96,6 +96,12 @@ output: html_document
 
     FIXED
 
+6. **Correct the environmental response probabilities returned by `returnCovariateEffect()` and `plotCovariateEffect()`. ALEX TO REVIEW.** Implemented on `codex/fix-covariate-response`. The old numeric calculation added the intercept after converting to a probability, producing values above one or below zero. It also standardized already standardized values again. The categorical calculation omitted the intercept and first level, and both wrappers ignored the requested interval level.
+
+    **What changed:** vary one environmental predictor in its original units, hold other numeric predictors at their medians and other categorical predictors at their first fitted levels, and set latent site and spatial contributions to zero. Add the intercept and all environmental terms before converting to a probability. Use the fitted spline knots and categorical encoding. Both plots now show the requested credible interval; categorical plots use a median point and interval bar. The numeric response column is now correctly named `median`; scripts using its old name, `mean`, need updating. These are corrections to the output functions, so existing fits with the stored covariate metadata need no refit.
+
+    **Review:** check `tests/testthat/test-covariate-response.R` and the saved-fit reproduction in `dev/simstudy/covariate-response-validation.md`. Confirm the response target and reference conditions are suitable and clearly documented. Keep this in the review queue until Alex approves; the correction does not establish recovery of true ecological effects or close the other bias checks.
+
 ## Required bias recheck and release preparation (Doug and Alex)
 
 After the code fixes, check whether the estimates are still systematically wrong, then prepare the package and documentation for release. The first two items are specific investigations; the third explains how to judge the results. Undercoverage and overcoverage alone can wait until after beta.
@@ -126,7 +132,7 @@ After the code fixes, check whether the estimates are still systematically wrong
 >
 > We are releasing the beta of occJSDM, an R package combining joint species distribution modelling with the two-stage eDNA occupancy model of Ji et al. (2025). It estimates false-negative and false-positive detection at field and lab stages, with primer-specific lab rates.
 >
-> Features include environmental and collection covariates, species traits, nonlinear environmental responses, spatial effects, ordination, residual species correlations, variance partitioning, and prediction at new sites. Simpler study designs support classical occupancy and JSDM-only models.
+> Features include environmental and collection covariates, species traits, nonlinear environmental responses, spatial effects, ordination, residual species correlations, variation partitioning, and prediction at new sites. Simpler study designs support classical occupancy and JSDM-only models.
 >
 > This is beta software. Credible intervals can under- or overcover; nominal interval coverage has not been established across all supported designs. False-positive models require informative assumptions, and users should examine prior sensitivity, especially with weak detection or higher contamination rates. The README and vignettes describe the tested settings and remaining limitations.
 >
@@ -176,7 +182,7 @@ All speed work can wait once the unsafe RNG path is removed from beta. Preserve 
 
 ## Future modelling features
 
-- **Improved model-selection criterion:** defer replacing the current criterion's tendency to overfit; avoid implying that a selected model is necessarily the true model.
+- **Improved model-selection criterion:** defer a validated observed-data WAIC or site-level cross-validation workflow. The current scalar combines likelihood terms for sampled latent occupancy/collection states with observed PCR terms; it does not integrate those states for new-site prediction. Lesson 3 documents the limitation, extracts actual values without ranking models by them, and compares matched fits on 300 independent sites instead. Preserve this distinction in the public help; avoid implying that a selected model is necessarily the generating model.
 - **Count-data models:** defer, including the `sample_rnb()` work above.
 - **Source-sink inference scenario:** defer a dedicated simulation with opposing environmental and spatial effects.
 - **Separate environmental, spatial and latent-factor contributions:** defer restricted/orthogonalised alternatives intended to keep environmental effects stable when additional components are added. This is a modelling extension, separate from the correlation correction required for beta.

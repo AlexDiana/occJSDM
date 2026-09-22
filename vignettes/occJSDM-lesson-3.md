@@ -20,8 +20,10 @@ presence/absence matrix (**perfect observation**) and one given the PCR
 observations. The diagnostics section also revisits Lesson 1’s longer
 alternative-prior fit. This is not a before/after comparison of software
 versions. The fits use the verified model source recorded in Lesson 1;
-that source matches the code on main when this lesson was prepared. No
-new MCMC was needed to make these figures.
+that source matches the code on main when this lesson was prepared. Most
+examples reuse these fits. The new-site comparison below adds one fit to
+the same PCR observations, changing only the number of hidden site
+factors from two to one.
 
 All teaching code is visible. Run chunks with `vignettes` as the working
 directory, or knit this file. Figures and tables use compact saved
@@ -314,6 +316,78 @@ of recovery in this example. It is not evidence that the simulation
 omitted trait effects, and removing observation error does not make it
 disappear.
 
+### Use the native trait-coefficient plots
+
+`plotTraitsCoefficients()` displays one environmental response at a
+time, with a 95% posterior interval for each measured trait. It does not
+draw a posterior mean. Here are both environmental responses from the
+PCR-observation fit, with the same generating coefficients used above.
+The black crosses include the trait-standardization adjustment: each raw
+generating coefficient is multiplied by that trait’s standard deviation
+among the ten species. Red lines mark zero effect.
+
+These calls use the full `fitmodel`. Knitting displays the exported
+figures from that unchanged fit, including all 24,000 retained draws.
+
+``` r
+native_trait_truth <- outputs$coefficients |>
+  filter(arm == "default", block == "Trait") |>
+  select(covariate, trait = term, truth)
+
+native_trait_theme <- ggtern::theme_bw(base_size = 12) +
+  theme(axis.text = element_text(angle = 0))
+```
+
+``` r
+native_traits_1 <- occJSDM::plotTraitsCoefficients(
+  fitmodel, covName = "X_psi.EnvCov.1"
+) +
+  native_trait_theme +
+  geom_point(
+    data = filter(native_trait_truth, covariate == "X_psi.EnvCov.1"),
+    aes(x = trait, y = truth), inherit.aes = FALSE,
+    shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Trait effects on the response to environmental gradient 1",
+    x = "Measured trait",
+    y = "Change in environmental coefficient\nper trait standard deviation",
+    caption = "Black cross: generating effect on the fitted scale. Bar: native 95% interval."
+  )
+
+native_traits_1
+```
+
+<img src="teaching-data/native-traits-gradient-1.png" alt="" width="100%" />
+
+``` r
+native_traits_2 <- occJSDM::plotTraitsCoefficients(
+  fitmodel, covName = "X_psi.EnvCov.2"
+) +
+  native_trait_theme +
+  geom_point(
+    data = filter(native_trait_truth, covariate == "X_psi.EnvCov.2"),
+    aes(x = trait, y = truth), inherit.aes = FALSE,
+    shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Trait effects on the response to environmental gradient 2",
+    x = "Measured trait",
+    y = "Change in environmental coefficient\nper trait standard deviation",
+    caption = "Black cross: generating effect on the fitted scale. Bar: native 95% interval."
+  )
+
+native_traits_2
+```
+
+<img src="teaching-data/native-traits-gradient-2.png" alt="" width="100%" />
+
+Read each bar against both references. Crossing the red line means the
+fitted interval includes zero; enclosing the black cross means it
+includes the generating effect. Those are separate questions. The native
+function orders traits by their lower interval endpoints, so match by
+the trait labels when comparing the two figures.
+
 ### A real cancellation inside this simulated community
 
 The model allows a species’ environmental response to combine three
@@ -496,6 +570,268 @@ values show underestimation of the hidden contribution’s magnitude.
 These are fitted-site results: the observations at a site helped
 estimate its hidden scores.
 
+### Read native ordination plots after aligning their axes
+
+The combined contribution above avoids an ambiguity: a rotation or
+reflection of both the site scores and species loadings leaves every
+fitted occurrence probability unchanged. Axis 1 in two fits need not
+represent the same direction. The package already chooses a
+loading-based orientation at fitting, but that convention alone does not
+make an axis a biological quantity.
+
+For this simulation we can use the **known species loadings** to orient
+every posterior draw. The orthogonal Procrustes calculation below finds
+the rotation or reflection that brings the fitted loadings closest to
+the generating loadings, without changing their lengths. We apply that
+same transformation to the site scores. This is a simulation-only aid:
+the true loadings would be unavailable for real observations. It removes
+orientation differences, not estimation error, and uses no true site
+scores to choose the rotation.
+
+These plots use the PCR-observation fit, including all 6,000 retained
+iterations from each of four chains. We make a separate plotting copy.
+For a rotation matrix `rotation`, the transformed scores and loadings
+are `scores %*% rotation` and `t(rotation) %*% loadings`; their product
+is still `scores %*% loadings`. The exporter also verifies this for
+every draw.
+
+``` r
+ordination_examples <- readRDS("teaching-data/ordination-examples.rds")
+```
+
+For an ordinary analysis, the same five native functions work directly
+on `fitmodel`, using the package’s stored orientation:
+
+``` r
+ordinary_site_quantiles <- occJSDM::returnOrdinationScores(fitmodel)
+ordinary_loading_quantiles <- occJSDM::returnFactorLoadings(fitmodel)
+ordinary_sites <- occJSDM::plotOrdinationScores(fitmodel)
+ordinary_loadings <- occJSDM::plotFactorLoadings(fitmodel)
+ordinary_biplot <- occJSDM::plotBiplot(fitmodel)
+```
+
+With the full `fitmodel` from Lesson 1, run this simulation comparison
+preparation once. `known_truth` is the generating parameter list loaded
+at the start of this lesson.
+
+``` r
+true_factors <- known_truth$jsdmParams_true
+score_draws <- fitmodel$results_output$jsdm_output$U_output
+loading_draws <- fitmodel$results_output$jsdm_output$L_output
+aligned_scores <- score_draws
+aligned_loadings <- loading_draws
+
+for (chain in seq_len(dim(loading_draws)[4])) {
+  for (iteration in seq_len(dim(loading_draws)[3])) {
+    current_loadings <- loading_draws[, , iteration, chain]
+    decomposition <- svd(current_loadings %*% t(true_factors$L))
+    rotation <- decomposition$u %*% t(decomposition$v)
+
+    aligned_scores[, , iteration, chain] <-
+      score_draws[, , iteration, chain] %*% rotation
+    aligned_loadings[, , iteration, chain] <-
+      crossprod(rotation, current_loadings)
+  }
+}
+
+fit_for_ordination <- fitmodel
+fit_for_ordination$results_output$jsdm_output$U_output <- aligned_scores
+fit_for_ordination$results_output$jsdm_output$L_output <- aligned_loadings
+
+# Match truth by the identities attached to the original simulation.
+site_names <- as.character(fitmodel$infos$siteNames)
+species_names <- fitmodel$infos$speciesNames
+true_sites <- true_factors$U[
+  match(site_names, rownames(known_truth$z_true)), , drop = FALSE
+]
+true_species <- true_factors$L[
+  , match(species_names, colnames(known_truth$z_true)), drop = FALSE
+]
+site_truth <- tibble(site = site_names, x = true_sites[, 1], y = true_sites[, 2])
+loading_truth <- tibble(
+  species = species_names, x = true_species[1, ], y = true_species[2, ]
+)
+
+# Quantiles are 2.5%, 50% and 97.5%, pooled across all retained draws.
+site_quantiles <- occJSDM::returnOrdinationScores(fit_for_ordination)
+loading_quantiles <- occJSDM::returnFactorLoadings(fit_for_ordination)
+
+# Choose sites by their original order, before inspecting their estimates.
+shown_sites <- site_names[seq(1, length(site_names), by = 10)]
+score_comparison <- site_truth |>
+  mutate(
+    estimate = site_quantiles["50%", site, 1],
+    lower = site_quantiles["2.5%", site, 1],
+    upper = site_quantiles["97.5%", site, 1]
+  ) |>
+  filter(site %in% shown_sites) |>
+  select(site, truth = x, estimate, lower, upper)
+```
+
+The native return functions provide arrays, with quantile first, then
+site and factor for scores, or factor and species for loadings. Here is
+the first aligned coordinate for the ten displayed sites. These are
+summaries **after truth-assisted orientation**, not estimates of an
+intrinsically labelled ecological axis.
+
+``` r
+ordination_examples$score_comparison |>
+  knitr::kable(digits = 2, caption = "First aligned site coordinate: truth and posterior quantiles.")
+```
+
+| site | truth | estimate | lower | upper |
+|:-----|------:|---------:|------:|------:|
+| 1    |  0.12 |     0.03 | -0.64 |  0.69 |
+| 11   |  1.53 |     0.01 | -0.63 |  0.66 |
+| 21   |  0.99 |    -0.05 | -0.71 |  0.61 |
+| 31   | -0.50 |     0.00 | -0.67 |  0.65 |
+| 41   | -0.88 |    -0.07 | -0.76 |  0.59 |
+| 51   | -1.69 |    -0.04 | -0.70 |  0.59 |
+| 61   |  0.16 |     0.03 | -0.63 |  0.70 |
+| 71   |  1.47 |    -0.01 | -0.67 |  0.65 |
+| 81   | -1.05 |    -0.01 | -0.67 |  0.64 |
+| 91   |  0.66 |     0.02 | -0.62 |  0.69 |
+
+First aligned site coordinate: truth and posterior quantiles.
+
+#### Site scores: what differs among locations?
+
+The native plot places each site label at its posterior median. We show
+the same ten sites in separate panels with common axes to keep the
+figure readable. A black cross marks the generating score; a dotted
+connector identifies the corresponding estimate. Sites close together
+have similar fitted residual scores, after the measured environmental
+effects have been accounted for. This is a factor-space comparison, not
+a geographical map.
+
+``` r
+native_sites <- occJSDM::plotOrdinationScores(fit_for_ordination)
+site_plot_data <- native_sites$data |>
+  mutate(name = as.character(name), site = name) |>
+  filter(site %in% shown_sites) |>
+  left_join(site_truth, by = "site", suffix = c("", "_truth"))
+
+native_sites$data <- site_plot_data
+native_sites <- native_sites +
+  geom_segment(
+    data = site_plot_data,
+    aes(x = x, y = y, xend = x_truth, yend = y_truth),
+    inherit.aes = FALSE, linetype = "dotted", colour = "grey35"
+  ) +
+  geom_point(
+    data = site_truth |>
+      filter(site %in% shown_sites) |>
+      mutate(name = site),
+    aes(x = x, y = y), inherit.aes = FALSE, shape = 4, size = 3
+  ) +
+  facet_wrap(~ name, ncol = 5) +
+  coord_equal() +
+  labs(
+    title = "Ten sites in aligned factor space",
+    caption = "Black crosses: truth. Labels: fitted medians. Circles summarize marginal interval widths."
+  )
+
+native_sites
+```
+
+<img src="teaching-data/ordination-sites.png" alt="" width="100%" />
+
+Here the site medians cluster near zero despite quite different
+generating scores. Alignment has not recovered those site differences
+precisely. The circles are a visual summary of uncertainty, **not 95%
+joint credible regions**. The native function gives each circle the area
+of the rectangle formed by the two marginal 95% intervals: its radius is
+`sqrt(width_1 * width_2 / pi)`. It does not use the joint shape of the
+posterior cloud. Consult the returned marginal quantiles for interval
+values; a truth cross inside a circle is not a formal coverage test.
+
+#### Species loadings: how does each species respond to the factors?
+
+A loading is a species’ response to a unit change in a hidden site
+score, on the occurrence log-odds scale. Opposite loading directions
+indicate opposite residual responses. They do not establish competition,
+facilitation or another causal interaction.
+
+``` r
+native_loadings <- occJSDM::plotFactorLoadings(fit_for_ordination)
+loading_plot_data <- native_loadings$data |>
+  mutate(species = as.character(name)) |>
+  left_join(loading_truth, by = "species", suffix = c("", "_truth"))
+
+native_loadings$data <- loading_plot_data
+native_loadings <- native_loadings +
+  geom_segment(
+    data = loading_plot_data,
+    aes(x = x, y = y, xend = x_truth, yend = y_truth),
+    inherit.aes = FALSE, linetype = "dotted", colour = "grey35"
+  ) +
+  geom_point(
+    data = mutate(loading_truth, name = species), aes(x = x, y = y),
+    inherit.aes = FALSE, shape = 4, size = 3
+  ) +
+  facet_wrap(~ name, ncol = 5) +
+  coord_equal() +
+  labs(
+    title = "Species responses to the aligned factors",
+    caption = "Black crosses: true loadings. Labels: fitted medians. Circles are not joint credible regions."
+  )
+
+native_loadings
+```
+
+<img src="teaching-data/ordination-loadings.png" alt="" width="100%" />
+
+Each species has its own panel with common axes. Several species have
+identical generating loadings, so their truth crosses coincide. OTU_4
+has zero generating loadings and sits at the origin. The fitted loadings
+need not be exactly zero or identical even after alignment.
+
+#### Biplot: put sites and species together
+
+The biplot uses all 100 sites and the ten species. Grey points are
+fitted site medians; blue arrows are fitted loading medians. The dashed
+black arrows are the generating loadings, multiplied by **the same
+display multiplier** as the blue arrows. Arrow lengths are rescaled for
+readability, so they are not on the site-score scale and are not direct
+effect-size readings from this figure.
+
+``` r
+site_medians <- site_quantiles["50%", , ]
+loading_medians <- loading_quantiles["50%", , ]
+arrow_multiplier <- 0.8 *
+  max(sqrt(rowSums(site_medians^2))) /
+  max(sqrt(colSums(loading_medians^2)))
+
+native_biplot <- occJSDM::plotBiplot(fit_for_ordination, arrow_scale = 0.8) +
+  geom_segment(
+    data = loading_truth,
+    aes(x = 0, y = 0, xend = x * arrow_multiplier, yend = y * arrow_multiplier),
+    inherit.aes = FALSE, linetype = "dashed", colour = "black",
+    arrow = grid::arrow(length = grid::unit(0.15, "cm"))
+  ) +
+  coord_equal() +
+  labs(
+    title = "Sites and species in one aligned biplot",
+    caption = "Grey: fitted sites. Blue: fitted species. Dashed black: true species, at the same display scale."
+  )
+
+native_biplot
+```
+
+<img src="teaching-data/ordination-biplot.png" alt="" width="100%" />
+
+A site lying farther in a species-arrow direction tends to receive a
+larger contribution from these factors to that species’ occurrence
+log-odds. The complete probability also includes the intercept and
+measured environmental effects. Because truth helped choose the
+orientation, agreement in arrow direction is not an independent accuracy
+check. This median biplot has no uncertainty display, and multiplying
+separate posterior medians does not reproduce the median of the
+draw-by-draw contribution. Use the invariant contribution comparison
+above to assess recovery of that contribution, and variation
+partitioning below to ask how large it is relative to the other model
+components.
+
 ## Variation partitioning: an allocation within the model
 
 The package divides variation among environmental, spatial and
@@ -661,9 +997,494 @@ estimates and truth all refer to the same records.
 Genuine prediction at an unsurveyed site requires keeping its
 observations out of fitting and averaging appropriately over its unknown
 conditions. Reusing the fitting sites’ covariates is not an independent
-prediction test. A dedicated new-site example and the spatial outputs
-belong with the planned prediction and spatial lessons; this lesson
-makes no held-out or spatial-accuracy claim.
+prediction test. The new-site example below supplies 300 independently
+generated sites that neither model has seen. Spatial prediction remains
+part of the planned Lesson 2.
+
+## Predict occupancy at genuinely new sites
+
+Imagine receiving habitat measurements from a second survey area before
+collecting any eDNA there. Can the fitted model predict which species
+are likely to occur? To answer this, we generated **300 new sites** from
+the same environmental distribution and the same ten-species community.
+Neither the new presence/absence observations nor the hidden site
+conditions were supplied to either fit.
+
+The original training survey is unchanged: 100 sites, two field samples
+per site, two primers and six PCR replicates per primer per sample. We
+compare its existing two-factor PCR fit with a new one-factor fit. Both
+use the same observations, environmental covariates, traits, priors and
+MCMC settings. The only model-setting change is the number of hidden
+site factors. The generating community has two factors, but that does
+not guarantee that two fitted factors will predict more accurately from
+this amount of data.
+
+``` r
+prediction_examples <- readRDS("teaching-data/prediction-lesson.rds")
+
+prediction_labels <- c(
+  one_factor = "One hidden site factor",
+  two_factors = "Two hidden site factors"
+)
+
+new_habitat <- as.data.frame(prediction_examples$input$raw_covariates)
+
+head(new_habitat) |>
+  knitr::kable(digits = 2, caption = "Raw environmental values at the first six new sites.")
+```
+
+|     | X_psi.EnvCov.1 | X_psi.EnvCov.2 |
+|:----|---------------:|---------------:|
+| 101 |          -3.96 |           0.77 |
+| 102 |           6.20 |          -8.71 |
+| 103 |          -0.85 |           7.01 |
+| 104 |           0.26 |          -8.63 |
+| 105 |         -13.28 |          -2.89 |
+| 106 |         -14.79 |          -5.58 |
+
+Raw environmental values at the first six new sites.
+
+Site identifiers run from 101 to 400, so they cannot be mistaken for the
+training sites numbered 1 to 100. Their two environmental variables were
+drawn independently from the original Normal distribution with mean zero
+and standard deviation 10. The fitted model standardizes them using the
+**training** means and standard deviations. Recalculating those
+constants from the new sites would change the meaning of the fitted
+coefficients.
+
+There are 13 new sites with at least one environmental value outside the
+observed training range. We retain and flag them rather than remove
+difficult cases. These are new draws from the same distribution, not a
+test of prediction in a different climate, a different species community
+or a spatially separated region.
+
+### Which true probability should a new-site prediction recover?
+
+Two probabilities are useful here. They answer different questions.
+
+1.  **Probability given this site’s actual local conditions.** The
+    simulator knows the measured environment and the hidden site
+    factors. Together they determine the site’s generating occupancy
+    probability. The actual presence or absence is then a random draw
+    using that probability.
+2.  **Probability given only the measured environment.** An ecologist
+    visiting a new site does not yet know its hidden conditions. We
+    average occupancy probabilities over the range of possible hidden
+    conditions. This is the relevant probability for predicting presence
+    or absence using the available habitat measurements.
+
+The second is often called a **marginal probability**, because the
+unmeasured conditions have been averaged out. The first is a
+**conditional probability**, because it assumes those conditions are
+known. Neither is the actual presence/absence observation, which is only
+zero or one.
+
+Here is a concrete example from the simulation. The code uses the true
+parameters to show the distinction for OTU_6 at site 101. `plogis()`
+converts log-odds into a probability. `dnorm()` gives more weight to
+common hidden conditions and less weight to unusual ones; `integrate()`
+adds up their weighted probabilities.
+
+``` r
+true_parameters <- known_truth$jsdmParams_true
+example_species <- match("OTU_6", species_order)
+example_site <- match("101", rownames(new_habitat))
+
+environmental_log_odds <-
+  prediction_examples$input$environmental_eta[example_site, example_species]
+
+hidden_sd <- lesson$input$jsdm$sigma_h *
+  sqrt(sum(true_parameters$L[, example_species]^2))
+
+average_over_hidden_conditions <- integrate(
+  function(hidden) {
+    plogis(environmental_log_odds + hidden_sd * hidden) * dnorm(hidden)
+  },
+  lower = -Inf,
+  upper = Inf
+)$value
+
+site_example <- prediction_examples$truth |>
+  filter(Site == "101", species == "OTU_6")
+
+tibble(
+  quantity = c(
+    "True probability with actual hidden conditions",
+    "True probability averaged over unknown conditions",
+    "Probability with hidden contribution set to zero",
+    "Actual presence (1) or absence (0)"
+  ),
+  value = c(
+    site_example$conditional_truth,
+    average_over_hidden_conditions,
+    plogis(environmental_log_odds),
+    site_example$z
+  )
+) |>
+  knitr::kable(digits = 3)
+```
+
+| quantity                                          | value |
+|:--------------------------------------------------|------:|
+| True probability with actual hidden conditions    | 0.927 |
+| True probability averaged over unknown conditions | 0.822 |
+| Probability with hidden contribution set to zero  | 0.860 |
+| Actual presence (1) or absence (0)                | 1.000 |
+
+For this species and site, the true probability is about **93% with its
+actual hidden conditions**, or **82% when we know only the measured
+habitat**. The species happens to be present. Predicting 82% before
+seeing that observation can be appropriate even though the conditional
+probability is 93%. Presence alone does not tell us which probability
+generated it.
+
+Setting the hidden contribution to zero is a third calculation. It is
+the target of the earlier response profiles, but is generally different
+from averaging probabilities over unknown conditions. The inverse-logit
+curve is nonlinear, so “convert the average log-odds” and “average the
+converted probabilities” need not agree.
+
+### Use the package’s new-site prediction function
+
+With a full saved PCR fit loaded as `fitmodel`, the native call below
+predicts the ten sites selected before fitting or inspecting results.
+Supply raw environmental values with the same column names as in
+training. This is a non-spatial example.
+
+``` r
+shown_habitat <- new_habitat[prediction_examples$input$selected_sites, , drop = FALSE]
+
+set.seed(prediction_examples$input$public_prediction_seed)
+
+new_site_quantiles <- occJSDM::predictNewSites(
+  fitmodel,
+  X_psi = shown_habitat,
+  useSpatial = FALSE,
+  confidence = 0.95,
+  verbose = FALSE
+)
+
+# The returned array is quantile by site by species, without dimension names.
+# Its three slices are the lower limit, median and upper limit.
+tibble(
+  Site = rownames(shown_habitat),
+  lower = new_site_quantiles[1, , 1],
+  median = new_site_quantiles[2, , 1],
+  upper = new_site_quantiles[3, , 1]
+)
+```
+
+For each retained parameter draw, `predictNewSites()` also draws new
+hidden conditions. Its interval therefore includes uncertainty about
+those conditions as well as uncertainty about the fitted parameters.
+Compare that interval with the simulator’s **conditional probability for
+the site’s actual conditions**. It is not a confidence interval for a
+binary presence/absence observation, and its middle slice is a
+**median**, not a posterior mean.
+
+``` r
+native_prediction_examples <- prediction_examples$public |>
+  filter(arm == "two_factors", species %in% c("OTU_1", "OTU_6")) |>
+  mutate(Site = factor(Site, levels = prediction_examples$input$selected_sites))
+
+ggplot(native_prediction_examples, aes(x = Site)) +
+  geom_pointrange(
+    aes(y = median, ymin = lower, ymax = upper),
+    colour = "#0072B2"
+  ) +
+  geom_point(aes(y = conditional_truth), shape = 4, size = 3, stroke = 1) +
+  facet_wrap(~ species) +
+  scale_y_continuous(labels = scales::label_percent(), limits = c(0, 1)) +
+  labs(
+    x = "New site",
+    y = "Occupancy probability",
+    caption = paste(
+      "Blue: native median and 95% interval, including unknown local conditions.",
+      "Black cross: true probability with the site's actual hidden conditions.",
+      sep = "\n"
+    )
+  )
+```
+
+![](occJSDM-lesson-3_files/figure-gfm/prediction-native-intervals-1.png)<!-- -->
+
+The wide intervals are informative: habitat alone leaves considerable
+uncertainty about a particular site’s occupancy probability. Seeing
+truth inside an interval is a useful check, but these twenty examples
+cannot establish an overall coverage rate.
+
+### Check point predictions against the appropriate truth
+
+For a single probability prediction, we use the **posterior mean of
+probabilities averaged over unknown conditions**. The exporter performs
+the same kind of averaging illustrated by `integrate()` above, using
+every retained parameter draw, then averages across all 24,000 draws.
+This removes additional noise from repeatedly drawing hypothetical
+conditions. It does not remove uncertainty or Monte Carlo error in the
+fitted parameters. The development helper is separate from the package’s
+public `predictNewSites()` function.
+
+In the next figure, both axes refer to probability given **only the
+measured environment**. Each point represents one species at one new
+site. The diagonal is exact agreement. Points above it are
+overestimates; points below it are underestimates. The two fits produce
+very similar predictions.
+
+``` r
+prediction_cells <- prediction_examples$cells |>
+  mutate(model = unname(prediction_labels[arm]))
+
+ggplot(prediction_cells, aes(x = truth, y = estimate)) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+  geom_point(
+    aes(shape = outside_training_range),
+    alpha = 0.25, size = 1.1, colour = "#0072B2"
+  ) +
+  facet_wrap(~ model) +
+  scale_shape_manual(
+    values = c(`FALSE` = 16, `TRUE` = 4),
+    labels = c(`FALSE` = "Within training ranges", `TRUE` = "Beyond at least one range")
+  ) +
+  scale_x_continuous(labels = scales::label_percent(), limits = c(0, 1)) +
+  scale_y_continuous(labels = scales::label_percent(), limits = c(0, 1)) +
+  coord_equal() +
+  labs(
+    x = "True probability averaged over hidden conditions",
+    y = "Predicted probability (posterior mean)",
+    shape = "New site's environment",
+    caption = "3,000 species-site probabilities per model. Diagonal: exact recovery."
+  ) +
+  theme(legend.position = "bottom")
+```
+
+![](occJSDM-lesson-3_files/figure-gfm/prediction-marginal-recovery-1.png)<!-- -->
+
+Calculate the average direction and size of the errors separately. A
+negative signed error means underestimation on average. Absolute errors
+count both overestimates and underestimates as positive distances, so
+they cannot cancel.
+
+``` r
+prediction_cells |>
+  group_by(model) |>
+  summarise(
+    `Signed error (percentage points)` = 100 * mean(estimate - truth),
+    `Absolute error (percentage points)` = 100 * mean(abs(estimate - truth)),
+    `RMSE (percentage points)` = 100 * sqrt(mean((estimate - truth)^2)),
+    .groups = "drop"
+  ) |>
+  knitr::kable(digits = 2)
+```
+
+| model | Signed error (percentage points) | Absolute error (percentage points) | RMSE (percentage points) |
+|:---|---:|---:|---:|
+| One hidden site factor | -3.81 | 9.93 | 12.56 |
+| Two hidden site factors | -3.83 | 10.02 | 12.61 |
+
+Both models underestimate these probabilities by about **3.8 percentage
+points on average**, while their **average absolute error is about 10
+percentage points**. Those are results from this simulation, not
+hypothetical examples. The difference between the two error measures
+means that errors in opposite directions partially cancel. An absolute
+error of ten points would be a prediction of 40% or 60% when truth is
+50%; that last sentence is only an illustration of the unit, not a claim
+that all errors equal ten points.
+
+These new-site errors have a different target from Lesson 1’s errors in
+fitted-site probabilities. Here we average over unknown local
+conditions; there we check the probability for each surveyed site’s
+actual conditions. Comparing their magnitudes as if they measured the
+same task would be misleading.
+
+### Compare models using what actually occurred
+
+In a real new survey we would not know the generating probabilities. If
+we could establish the actual presence/absence states accurately, we
+could score the predictions against those states instead. The simulated
+new survey gives us exactly those binary states, without collection or
+PCR error.
+
+The **Brier score** is the squared difference between the predicted
+probability and the zero-or-one outcome. The **negative log score**
+penalizes confidently wrong predictions especially strongly. Smaller is
+better for both. Neither is measured in percentage points, and neither
+is an absolute error in the unknown probability. Even the true
+generating probabilities can have nonzero scores because
+presence/absence is random.
+
+``` r
+observed_scores <- prediction_cells |>
+  mutate(
+    brier = (estimate - z)^2,
+    negative_log_score = -if_else(z == 1, log(estimate), log1p(-estimate))
+  )
+
+observed_scores |>
+  group_by(model) |>
+  summarise(
+    Brier = mean(brier),
+    `Negative log score` = mean(negative_log_score),
+    .groups = "drop"
+  ) |>
+  knitr::kable(digits = 5)
+```
+
+| model                   |   Brier | Negative log score |
+|:------------------------|--------:|-------------------:|
+| One hidden site factor  | 0.18468 |            0.54575 |
+| Two hidden site factors | 0.18482 |            0.54646 |
+
+Both models predict the **same new sites**, so compare their scores in
+pairs. Species at a site share hidden conditions; treating 3,000
+species-site outcomes as independent would exaggerate the amount of
+independent evidence. We first average across the ten species within
+each site, then calculate differences across the 300 sites.
+
+``` r
+paired_sites <- observed_scores |>
+  group_by(Site, arm) |>
+  summarise(Brier = mean(brier), .groups = "drop") |>
+  pivot_wider(names_from = arm, values_from = Brier) |>
+  mutate(difference = one_factor - two_factors)
+
+paired_sites |>
+  summarise(
+    `Mean Brier difference` = mean(difference),
+    `Standard error across sites` = sd(difference) / sqrt(n())
+  ) |>
+  knitr::kable(digits = 7)
+```
+
+| Mean Brier difference | Standard error across sites |
+|----------------------:|----------------------------:|
+|            -0.0001365 |                     6.7e-05 |
+
+The difference is about **-0.00014 Brier units**, slightly favouring the
+one-factor fit in this particular experiment. The site-based standard
+error is about **0.000067**. It describes variation among new sites
+**conditional on these fitted predictions**. It excludes Monte Carlo
+error in the MCMC estimates, variation from repeating the original
+training survey, and changes to the simulated community. A site-only
+interval can therefore exclude zero without establishing a dependable
+model advantage.
+
+An independent calculation from all retained posterior draws estimates
+the Monte Carlo standard error of that Brier-score difference at about
+**0.00025**, larger than the observed difference of 0.00014. This is
+numerical uncertainty from MCMC, a different source of uncertainty from
+the site-based standard error. It directly supports withholding a model
+ranking. The calculation uses a first-order approximation and is
+documented in the prediction verifier.
+
+The broad result is that these two fits have nearly identical predictive
+performance here. We do not select a winning factor count from this tiny
+difference. Predicting each species’ marginal occurrence also does not
+test whether the model has recovered joint community structure or the
+correct number of hidden ecological drivers. A model can give useful
+single-species probabilities while describing species associations
+poorly.
+
+### Check the additional fit and understand the WAIC limitation
+
+To reproduce the additional fit, use the same training data and settings
+as the baseline, changing `n_factors`. This command is displayed but
+does not run when knitting.
+
+``` r
+set.seed(prediction_examples$input$fitting_seed)
+
+fit_one_factor <- occJSDM::runOccJSDM(
+  data = lesson$input$sim$data_list,
+  occCovariates = colnames(new_habitat),
+  collCovariates = "X_theta",
+  spatCovariates = NULL,
+  threshold = 1,
+  listParams = list(n_factors = 1, n_lattrait = 1),
+  MCMCparams = prediction_examples$manifests$two_factors$mcmc,
+  listPriors = prediction_examples$manifests$two_factors$priors,
+  summarisedLatentPresences = TRUE
+)
+```
+
+Each model has four chains, 3,000 burn-in iterations and 6,000 retained
+iterations per chain, with no thinning. The additional fit produced no
+warnings. The following table checks both the public parameter
+diagnostics and diagnostics for each species’ predicted probability
+averaged across the 300 new sites. Rhat and effective sample size check
+MCMC behaviour; they do not have ecological true values to overlay.
+
+``` r
+prediction_examples$diagnostics |>
+  group_by(arm) |>
+  summarise(
+    `Parameter rows` = n(),
+    `Missing or flagged rows` = sum(
+      is.na(rhat) | is.na(ess) | rhat > 1.01 | ess < 400
+    ),
+    .groups = "drop"
+  ) |>
+  left_join(
+    prediction_examples$probability_diagnostics |>
+      group_by(arm) |>
+      summarise(
+        `Largest prediction Rhat` = max(rhat),
+        `Smallest prediction ESS` = min(ess),
+        `Largest prediction MCSE (percentage points)` = 100 * max(mcse),
+        .groups = "drop"
+      ),
+    by = "arm"
+  ) |>
+  mutate(model = unname(prediction_labels[arm])) |>
+  select(model, everything(), -arm) |>
+  knitr::kable(digits = 3)
+```
+
+| model | Parameter rows | Missing or flagged rows | Largest prediction Rhat | Smallest prediction ESS | Largest prediction MCSE (percentage points) |
+|:---|---:|---:|---:|---:|---:|
+| One hidden site factor | 100 | 0 | 1.005 | 745.985 | 0.379 |
+| Two hidden site factors | 100 | 0 | 1.009 | 865.625 | 0.389 |
+
+There are no flagged rows under these checks. Nevertheless, the largest
+Monte Carlo standard error of a species’ average predicted probability
+is about 0.39 percentage points. This measures numerical uncertainty
+remaining in that posterior mean, not ecological prediction error.
+Passing the diagnostic thresholds does not make tiny differences between
+model scores exact.
+
+The old walkthrough extracted WAIC to compare model specifications. Here
+is the current extraction syntax, followed by the values from these
+same-data fits:
+
+``` r
+occJSDM::extractWAIC(fitmodel)
+occJSDM::extractWAIC(fit_one_factor)
+```
+
+``` r
+tibble(
+  model = unname(prediction_labels[names(prediction_examples$manifests)]),
+  `Current extractWAIC value` = vapply(
+    prediction_examples$manifests, function(fit) fit$waic, numeric(1)
+  )
+) |>
+  knitr::kable(digits = 2)
+```
+
+| model                   | Current extractWAIC value |
+|:------------------------|--------------------------:|
+| Two hidden site factors |                  17253.43 |
+| One hidden site factor  |                  17255.98 |
+
+**Do not use this table to choose the better model for unsurveyed
+sites.** The current calculation combines likelihood terms for the
+sampled, unobserved site and collection states with terms for the PCR
+observations. Those hidden states are learned using the training
+observations. It does not average them out to evaluate the probability
+of new observations at a new site. Matching the training dataset is
+necessary for comparison, but does not by itself fix this difference in
+target. The independent-site scores above provide the worked predictive
+comparison. A validated observed-data WAIC or site-level
+cross-validation workflow remains separate work.
 
 ## Put the observations, inferred states and truth in one table
 
@@ -1347,12 +2168,15 @@ tune priors just to make the examples pass a diagnostic threshold. In a
 real dataset the black truth lines are unavailable, so convergence
 checks, model checks and ecological judgment each have a separate role.
 
-WAIC is another diagnostic quantity with no generating parameter to
-overlay. `extractWAIC()` can support comparison of models fitted to the
-same observations, subject to its assumptions. The perfect-observation
-and PCR fits here have different response data, so their WAIC values
-must not be compared as if they were competing models of one dataset. We
-have not fitted a model-selection example in this lesson.
+WAIC is another calculated quantity with no generating parameter to
+overlay. The perfect-observation and PCR fits here have different
+response data, so their WAIC values must not be compared as if they were
+competing models of one dataset. Moreover, the current implementation
+includes likelihood terms for sampled, unobserved occupancy and
+collection states. Its scalar is not an observed-data criterion that
+averages over those states for prediction at new sites. The new-site
+section above demonstrates extraction, explains this limitation, and
+compares two models using actual independent sites instead.
 
 ## Appendix: use the package’s plotting functions
 
@@ -1651,15 +2475,195 @@ native_effort_m
 
 <img src="teaching-data/native-plot-effort-m.png" alt="" width="100%" />
 
-### Ordination: the remaining native plotting gap
+### Occupancy response curves with the package helper
 
-A worked tour of `plotOrdinationScores()`, `plotFactorLoadings()` and
-`plotBiplot()` remains deferred. True and fitted factor axes can rotate
-or change signs, so an unaligned truth overlay would falsely label an
-equivalent configuration as an error. The existing comparison of the
-combined contribution `U %*% L` remains the checked, rotation-invariant
-comparison. A future native ordination example must declare and validate
-a joint score/loading alignment before presenting truth on those axes.
+`plotOccupancyGradient()` shows how occupancy changes along one
+environmental predictor. The blue line is the posterior median and the
+ribbon is a pointwise 95% credible interval. The black dashed line is
+the generating probability for the same target. Other standardized
+environmental predictors are held at their observed medians, and site
+factors are set to zero. These curves do not average over unknown site
+factors and are not the conditional probabilities for the sampled sites.
+
+The native horizontal axis uses standardized predictor values. Zero is
+the observed raw-scale mean and one unit is one observed standard
+deviation. The grid spans the 2nd to 98th percentiles; the rug shows all
+observed site values. The table supplies the original scale:
+`raw_value = mean + sd * standardized_value`.
+
+``` r
+remaining_examples <- readRDS("teaching-data/remaining-plots-data.rds")
+knitr::kable(remaining_examples$scaling, digits = 3)
+```
+
+| covariate      |  mean |     sd |
+|:---------------|------:|-------:|
+| X_psi.EnvCov.1 | 1.602 | 10.422 |
+| X_psi.EnvCov.2 | 0.339 |  8.802 |
+
+``` r
+library(occJSDM)
+library(dplyr)
+library(ggplot2)
+
+remaining_truth <- remaining_examples$truth
+remaining_theme <- ggtern::theme_bw(base_size = 12)
+```
+
+``` r
+gradient_1_truth <- remaining_truth$gradients |>
+  filter(covariate == "X_psi.EnvCov.1")
+
+remaining_gradient_1 <- plotOccupancyGradient(
+  fitmodel, covName = "X_psi.EnvCov.1", idx_species = 1:10
+) +
+  remaining_theme +
+  geom_line(
+    data = gradient_1_truth, aes(x = x, y = truth),
+    inherit.aes = FALSE, colour = "black", linetype = "dashed"
+  ) +
+  labs(
+    title = "Environmental gradient 1: site factors set to zero",
+    x = "Environmental gradient 1 (standard deviations from its mean)",
+    caption = "Blue: posterior median and pointwise 95% interval. Black dashed: true probability."
+  )
+
+remaining_gradient_1
+```
+
+<img src="teaching-data/remaining-plots-gradient-1.png" alt="" width="100%" />
+
+The second predictor has its own slope for every species. Apply the same
+call to its name and compare its true and fitted curves.
+
+``` r
+gradient_2_truth <- remaining_truth$gradients |>
+  filter(covariate == "X_psi.EnvCov.2")
+
+remaining_gradient_2 <- plotOccupancyGradient(
+  fitmodel, covName = "X_psi.EnvCov.2", idx_species = 1:10
+) +
+  remaining_theme +
+  geom_line(
+    data = gradient_2_truth, aes(x = x, y = truth),
+    inherit.aes = FALSE, colour = "black", linetype = "dashed"
+  ) +
+  labs(
+    title = "Environmental gradient 2: site factors set to zero",
+    x = "Environmental gradient 2 (standard deviations from its mean)",
+    caption = "Blue: posterior median and pointwise 95% interval. Black dashed: true probability."
+  )
+
+remaining_gradient_2
+```
+
+<img src="teaching-data/remaining-plots-gradient-2.png" alt="" width="100%" />
+
+The original walkthrough used `plotCovariateEffect()` here. That helper
+cannot currently be restored as a trustworthy occupancy-probability
+example: for numeric predictors it adds a log-odds intercept after the
+inverse-logit transformation, and its purported raw predictor grid is
+already standardized in this fit. For example, its median for `OTU_1`
+along environmental gradient 1 ranges from 1.772 to 1.815, outside the
+probability scale. The developer diagnostic
+`remaining-plots-diagnose-covariate.R` reproduces this from the archived
+fit. The two checked `plotOccupancyGradient()` calls above provide the
+response-curve examples.
+
+A correction to `returnCovariateEffect()` and `plotCovariateEffect()` is
+awaiting review in [PR
+\#13](https://github.com/AlexDiana/occJSDM/pull/13). It also renames the
+numeric posterior-median column from `mean` to `median`. The figures
+above already use the correct probability calculation; their differences
+from the simulated truth are not caused by that output bug.
+
+### Separate false-positive and detection-rate plots
+
+The first plot shows field contamination: the probability of a collected
+presence when the species is absent from the site. Black crosses mark
+the generating `theta0`; bars are native 95% posterior intervals. This
+is a latent collection event, so its truth does not need a
+read-threshold adjustment.
+
+``` r
+remaining_stage1_fp <- plotStage1FPRates(fitmodel, idx_species = 1:10) +
+  remaining_theme +
+  geom_point(
+    data = remaining_truth$stage1_fp, aes(x = Species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  ylim(0, 1) +
+  labs(
+    title = "Field false positives",
+    y = "Collection probability, given site absence",
+    caption = "Black cross: truth. Bar: native 95% interval."
+  )
+
+remaining_stage1_fp
+```
+
+<img src="teaching-data/remaining-plots-stage1-fp.png" alt="" width="100%" />
+
+The two laboratory helpers display each primer separately; they do not
+pool primers and have no `primerName` argument. Each truth cross is
+displaced with its matching primer bar. Use
+`plotFPTPStage2Rates(fitmodel, primerName = "1")` from the preceding
+examples when you want to select one primer instead.
+
+Laboratory false positives condition on no collection. True-positive
+detection conditions on collection. In both cases, the plotted target is
+a positive observation after the one-read threshold. The corresponding
+generating event probability is multiplied by the chance that its
+rounded read count reaches that threshold, using the contamination-read
+distribution for `q` and the true-read distribution for `p`.
+
+``` r
+remaining_stage2_fp <- plotStage2FPRates(fitmodel, idx_species = 1:10) +
+  remaining_theme +
+  geom_point(
+    data = remaining_truth$stage2_fp,
+    aes(x = Species, y = truth, group = Primer),
+    inherit.aes = FALSE, shape = 4, size = 2.5, stroke = 1,
+    position = position_dodge(width = 0.15)
+  ) +
+  ylim(0, 1) +
+  labs(
+    title = "Laboratory false positives by primer",
+    y = "Positive observation probability, given no collection",
+    caption = "Black cross: matching primer truth. Coloured bar: native 95% interval."
+  )
+
+remaining_stage2_fp
+```
+
+<img src="teaching-data/remaining-plots-stage2-fp.png" alt="" width="100%" />
+
+``` r
+remaining_detection <- plotDetectionRates(fitmodel, idx_species = 1:10) +
+  remaining_theme +
+  geom_point(
+    data = remaining_truth$detection,
+    aes(x = Species, y = truth, group = Primer),
+    inherit.aes = FALSE, shape = 4, size = 2.5, stroke = 1,
+    position = position_dodge(width = 0.6)
+  ) +
+  ylim(0, 1) +
+  labs(
+    title = "Laboratory true-positive detection by primer",
+    y = "Positive observation probability, given collection",
+    caption = "Black cross: matching primer truth. Coloured bar: native 95% interval."
+  )
+
+remaining_detection
+```
+
+<img src="teaching-data/remaining-plots-detection.png" alt="" width="100%" />
+
+Species order is chosen separately by each native helper. A truth cross
+outside its bar identifies an interval that misses the generating rate
+in this dataset. These rate intervals summarize parameter uncertainty,
+unlike the random survey-count ranges in the cumulative-detection
+examples.
 
 ## Reproduce the extraction or find a function
 
@@ -1678,6 +2682,21 @@ Rscript dev/simstudy/vignette-lesson/summarise_latent_tables.R /path/to/full-fit
 Rscript dev/simstudy/vignette-lesson/verify_latent_tables.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/export_native_plots.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/verify_native_plots.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/ordination-export.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/ordination-verify.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/remaining-plots-export.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/remaining-plots-verify.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/native-traits-export.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/native-traits-verify.R /path/to/full-fits
+```
+
+The new-site comparison needs the additional one-factor fit once. Follow
+the README to prepare its independent-site data before fitting; then run
+its exporter and verifier:
+
+``` bash
+Rscript dev/simstudy/vignette-lesson/prediction-export.R /path/to/full-fits /path/to/new-site-check
+Rscript dev/simstudy/vignette-lesson/prediction-verify.R /path/to/full-fits /path/to/new-site-check
 ```
 
 In an R session with those full fits available:
@@ -1689,24 +2708,53 @@ fitmodel <- saved_fit$fit
 known_truth <- lesson$input$sim$true_params
 ```
 
-The exporter preserves all posterior draws for its summaries. It does
-not rerun MCMC or choose a different community because an effect was not
-recovered. Student-facing figures use tidy tables so the plotting code
-remains readable; the export and verification scripts document and check
-the array calculations behind them.
+These exporters preserve all posterior draws for their summaries. They
+do not rerun MCMC or choose a different community because an effect was
+not recovered. The separate prediction builder is the command that fits
+the one-factor comparison model. Student-facing figures use tidy tables
+so the plotting code remains readable; the export and verification
+scripts document and check the array calculations behind them.
 
 | Ecological question | Useful functions | Truth check in the lessons |
 |----|----|----|
 | How do I prepare and fit data? | `simulateOccJSDMData()`, `runOccJSDM()` | Lessons 0 and 1 |
-| How does each species respond to the environment? | `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()` | Coefficients and response profiles above |
+| How does each species respond to the environment? | `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()` | Coefficients and native gradients above; the defect in `plotCovariateEffect()` is explicit |
 | What is baseline occupancy? | `returnOccupancyRates()`, `plotOccupancyRates()` | Baseline table and native plot above |
-| Do traits explain species responses? | `returnTraitsCoeff()`, `plotTraitsCoefficients()` | Trait estimates and cancellation diagnostic above |
+| Do traits explain species responses? | `returnTraitsCoeff()`, `plotTraitsCoefficients()` | Custom and native trait plots with standardized truth; cancellation diagnostic above |
 | Which species share unmeasured site responses? | `returnResidualCorrelationMatrix()`, `plotResidualCorrelationMatrix()` | Matched matrices and native uncertainty display above |
-| What do ordination axes represent? | `returnOrdinationScores()`, `returnFactorLoadings()`, `plotOrdinationScores()`, `plotFactorLoadings()`, `plotBiplot()` | Rotation-invariant combined contribution above |
+| What do ordination axes represent? | `returnOrdinationScores()`, `returnFactorLoadings()`, `plotOrdinationScores()`, `plotFactorLoadings()`, `plotBiplot()` | Combined contribution plus truth-aligned native scores, loadings and biplot |
 | How is variation allocated? | `returnVariancePartitioning()`, `plotVariancePartitioning()` | Matching true and fitted fractions above |
 | What affects collection? | `returnCollectionCovariates()`, `plotCollectionCovariates()`, `plotCollectionRates()` | Collection effects above; observation process in Lesson 1 |
-| What about PCR failures and contamination? | `plotDetectionRates()`, `plotStage1FPRates()`, `plotStage2FPRates()` | Rate recovery and actual cases in Lesson 1 |
+| What about PCR failures and contamination? | `plotDetectionRates()`, `plotStage1FPRates()`, `plotStage2FPRates()` | Combined and separate native rate plots above; actual cases in Lesson 1 |
 | How does sampling effort affect detection? | `plotCumulativeSpeciesDetections()` | Analytic expectation and native survey-outcome intervals above |
 | What happened at a particular site/sample? | `computeConditionalOccupancyProbs()`, `computePredictiveOccupancyProbs()`, `returnLatentPresences()`, `plotLatentPresences()` | Native tables above, with matching states and probabilities |
 | Can I trust the computation? | `returnConvergenceDiagnostics()`, `plotTraceplot()`, `extractWAIC()` | Diagnostics above; these have no single simulated true value |
-| What about space or unsurveyed sites? | `predictNewSites()` and spatial model outputs | Dedicated examples still needed; not validated by this lesson |
+| How well does it predict unsurveyed sites? | `predictNewSites()` | 300 independent non-spatial sites above, with clearly distinguished probability targets |
+| What about spatial prediction? | Spatial model outputs | Planned Lesson 2; not validated by this lesson |
+
+## References and further reading
+
+Cai, W., Pichler, M., Biggs, J., Nicolet, P., Ewald, N., Griffiths, R.
+A., Bush, A., Leibold, M. A., Hartig, F., & Yu, D. W. (2025). **Assembly
+processes inferred from eDNA surveys of a pond metacommunity are
+consistent with known species ecologies**. *Ecography*, *2025*(6),
+e07461. <https://doi.org/10.1111/ecog.07461>
+
+Ji, Y., Diana, A., Li, X., Matechou, E., Griffin, J. E., Liu, S., Luo,
+M., Wu, C., Bai, R., Yao, C., Yin, T., Dong, F., Wu, F., Wang, K., Yu,
+Z., Chen, X., Jiang, X., Che, J., Yu, D. W., & Popescu, V. D. (2025).
+**High Quality, Granular, Timely, Trustworthy and Efficient Vertebrate
+Species Distribution Data Across a 30,000 km<sup>2</sup> Protected Area
+Complex**. *Ecology Letters*, *28*(12), e70302.
+<https://doi.org/10.1111/ele.70302>
+
+Leibold, M. A., Rudolph, F. J., Blanchet, F. G., De Meester, L., Gravel,
+D., Hartig, F., Peres‐Neto, P., Shoemaker, L., & Chase, J. M. (2021).
+**The internal structure of metacommunities**. *Oikos*, oik.08618.
+<https://doi.org/10.1111/oik.08618>
+
+Pichler, M., Creer, S., Martínez, A., Fontaneto, D., Renema, W., &
+Macher, J.-N. (2025). **Metacommunity Theory and Metabarcoding Reveal
+the Environmental, Spatial and Biotic Drivers of Meiofaunal Communities
+in Sandy Beaches**. *Molecular Ecology*, *34*(8), e17733.
+<https://doi.org/10.1111/mec.17733>

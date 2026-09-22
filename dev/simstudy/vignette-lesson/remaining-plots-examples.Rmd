@@ -1,0 +1,150 @@
+### Occupancy response curves with the package helper
+
+`plotOccupancyGradient()` shows how occupancy changes along one environmental predictor. The blue line is the posterior median and the ribbon is a pointwise 95% credible interval. The black dashed line is the generating probability for the same target. Other standardized environmental predictors are held at their observed medians, and site factors are set to zero. These curves do not average over unknown site factors and are not the conditional probabilities for the sampled sites.
+
+The native horizontal axis uses standardized predictor values. Zero is the observed raw-scale mean and one unit is one observed standard deviation. The grid spans the 2nd to 98th percentiles; the rug shows all observed site values. The table supplies the original scale: `raw_value = mean + sd * standardized_value`.
+
+```{r remaining-plots-read, purl=FALSE}
+remaining_examples <- readRDS("teaching-data/remaining-plots-data.rds")
+knitr::kable(remaining_examples$scaling, digits = 3)
+```
+
+```{r remaining-plots-setup, eval=FALSE, purl=TRUE}
+library(occJSDM)
+library(dplyr)
+library(ggplot2)
+
+remaining_truth <- remaining_examples$truth
+remaining_theme <- ggtern::theme_bw(base_size = 12)
+```
+
+```{r remaining-plots-gradient-1, eval=FALSE, purl=TRUE}
+gradient_1_truth <- remaining_truth$gradients |>
+  filter(covariate == "X_psi.EnvCov.1")
+
+remaining_gradient_1 <- plotOccupancyGradient(
+  fitmodel, covName = "X_psi.EnvCov.1", idx_species = 1:10
+) +
+  remaining_theme +
+  geom_line(
+    data = gradient_1_truth, aes(x = x, y = truth),
+    inherit.aes = FALSE, colour = "black", linetype = "dashed"
+  ) +
+  labs(
+    title = "Environmental gradient 1: site factors set to zero",
+    x = "Environmental gradient 1 (standard deviations from its mean)",
+    caption = "Blue: posterior median and pointwise 95% interval. Black dashed: true probability."
+  )
+
+remaining_gradient_1
+```
+
+```{r remaining-plots-gradient-1-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/remaining-plots-gradient-1.png")
+```
+
+The second predictor has its own slope for every species. Apply the same call to its name and compare its true and fitted curves.
+
+```{r remaining-plots-gradient-2, eval=FALSE, purl=TRUE}
+gradient_2_truth <- remaining_truth$gradients |>
+  filter(covariate == "X_psi.EnvCov.2")
+
+remaining_gradient_2 <- plotOccupancyGradient(
+  fitmodel, covName = "X_psi.EnvCov.2", idx_species = 1:10
+) +
+  remaining_theme +
+  geom_line(
+    data = gradient_2_truth, aes(x = x, y = truth),
+    inherit.aes = FALSE, colour = "black", linetype = "dashed"
+  ) +
+  labs(
+    title = "Environmental gradient 2: site factors set to zero",
+    x = "Environmental gradient 2 (standard deviations from its mean)",
+    caption = "Blue: posterior median and pointwise 95% interval. Black dashed: true probability."
+  )
+
+remaining_gradient_2
+```
+
+```{r remaining-plots-gradient-2-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/remaining-plots-gradient-2.png")
+```
+
+The original walkthrough used `plotCovariateEffect()` here. That helper cannot currently be restored as a trustworthy occupancy-probability example: for numeric predictors it adds a log-odds intercept after the inverse-logit transformation, and its purported raw predictor grid is already standardized in this fit. For example, its median for `OTU_1` along environmental gradient 1 ranges from 1.772 to 1.815, outside the probability scale. The developer diagnostic `remaining-plots-diagnose-covariate.R` reproduces this from the archived fit. The two checked `plotOccupancyGradient()` calls above provide the response-curve examples.
+
+### Separate false-positive and detection-rate plots
+
+The first plot shows field contamination: the probability of a collected presence when the species is absent from the site. Black crosses mark the generating `theta0`; bars are native 95% posterior intervals. This is a latent collection event, so its truth does not need a read-threshold adjustment.
+
+```{r remaining-plots-stage1-fp, eval=FALSE, purl=TRUE}
+remaining_stage1_fp <- plotStage1FPRates(fitmodel, idx_species = 1:10) +
+  remaining_theme +
+  geom_point(
+    data = remaining_truth$stage1_fp, aes(x = Species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  ylim(0, 1) +
+  labs(
+    title = "Field false positives",
+    y = "Collection probability, given site absence",
+    caption = "Black cross: truth. Bar: native 95% interval."
+  )
+
+remaining_stage1_fp
+```
+
+```{r remaining-plots-stage1-fp-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/remaining-plots-stage1-fp.png")
+```
+
+The two laboratory helpers display each primer separately; they do not pool primers and have no `primerName` argument. Each truth cross is displaced with its matching primer bar. Use `plotFPTPStage2Rates(fitmodel, primerName = "1")` from the preceding examples when you want to select one primer instead.
+
+Laboratory false positives condition on no collection. True-positive detection conditions on collection. In both cases, the plotted target is a positive observation after the one-read threshold. The corresponding generating event probability is multiplied by the chance that its rounded read count reaches that threshold, using the contamination-read distribution for `q` and the true-read distribution for `p`.
+
+```{r remaining-plots-stage2-fp, eval=FALSE, purl=TRUE}
+remaining_stage2_fp <- plotStage2FPRates(fitmodel, idx_species = 1:10) +
+  remaining_theme +
+  geom_point(
+    data = remaining_truth$stage2_fp,
+    aes(x = Species, y = truth, group = Primer),
+    inherit.aes = FALSE, shape = 4, size = 2.5, stroke = 1,
+    position = position_dodge(width = 0.15)
+  ) +
+  ylim(0, 1) +
+  labs(
+    title = "Laboratory false positives by primer",
+    y = "Positive observation probability, given no collection",
+    caption = "Black cross: matching primer truth. Coloured bar: native 95% interval."
+  )
+
+remaining_stage2_fp
+```
+
+```{r remaining-plots-stage2-fp-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/remaining-plots-stage2-fp.png")
+```
+
+```{r remaining-plots-detection, eval=FALSE, purl=TRUE}
+remaining_detection <- plotDetectionRates(fitmodel, idx_species = 1:10) +
+  remaining_theme +
+  geom_point(
+    data = remaining_truth$detection,
+    aes(x = Species, y = truth, group = Primer),
+    inherit.aes = FALSE, shape = 4, size = 2.5, stroke = 1,
+    position = position_dodge(width = 0.6)
+  ) +
+  ylim(0, 1) +
+  labs(
+    title = "Laboratory true-positive detection by primer",
+    y = "Positive observation probability, given collection",
+    caption = "Black cross: matching primer truth. Coloured bar: native 95% interval."
+  )
+
+remaining_detection
+```
+
+```{r remaining-plots-detection-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/remaining-plots-detection.png")
+```
+
+Species order is chosen separately by each native helper. A truth cross outside its bar identifies an interval that misses the generating rate in this dataset. These rate intervals summarize parameter uncertainty, unlike the random survey-count ranges in the cumulative-detection examples.

@@ -1,0 +1,64 @@
+### Use the native trait-coefficient plots
+
+`plotTraitsCoefficients()` displays one environmental response at a time, with a 95% posterior interval for each measured trait. It does not draw a posterior mean. Here are both environmental responses from the PCR-observation fit, with the same generating coefficients used above. The black crosses include the trait-standardization adjustment: each raw generating coefficient is multiplied by that trait's standard deviation among the ten species. Red lines mark zero effect.
+
+These calls use the full `fitmodel`. Knitting displays the exported figures from that unchanged fit, including all 24,000 retained draws.
+
+```{r native-traits-setup, eval=FALSE, purl=TRUE}
+native_trait_truth <- outputs$coefficients |>
+  filter(arm == "default", block == "Trait") |>
+  select(covariate, trait = term, truth)
+
+native_trait_theme <- ggtern::theme_bw(base_size = 12) +
+  theme(axis.text = element_text(angle = 0))
+```
+
+```{r native-traits-gradient-1, eval=FALSE, purl=TRUE}
+native_traits_1 <- occJSDM::plotTraitsCoefficients(
+  fitmodel, covName = "X_psi.EnvCov.1"
+) +
+  native_trait_theme +
+  geom_point(
+    data = filter(native_trait_truth, covariate == "X_psi.EnvCov.1"),
+    aes(x = trait, y = truth), inherit.aes = FALSE,
+    shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Trait effects on the response to environmental gradient 1",
+    x = "Measured trait",
+    y = "Change in environmental coefficient\nper trait standard deviation",
+    caption = "Black cross: generating effect on the fitted scale. Bar: native 95% interval."
+  )
+
+native_traits_1
+```
+
+```{r native-traits-gradient-1-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-traits-gradient-1.png")
+```
+
+```{r native-traits-gradient-2, eval=FALSE, purl=TRUE}
+native_traits_2 <- occJSDM::plotTraitsCoefficients(
+  fitmodel, covName = "X_psi.EnvCov.2"
+) +
+  native_trait_theme +
+  geom_point(
+    data = filter(native_trait_truth, covariate == "X_psi.EnvCov.2"),
+    aes(x = trait, y = truth), inherit.aes = FALSE,
+    shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Trait effects on the response to environmental gradient 2",
+    x = "Measured trait",
+    y = "Change in environmental coefficient\nper trait standard deviation",
+    caption = "Black cross: generating effect on the fitted scale. Bar: native 95% interval."
+  )
+
+native_traits_2
+```
+
+```{r native-traits-gradient-2-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-traits-gradient-2.png")
+```
+
+Read each bar against both references. Crossing the red line means the fitted interval includes zero; enclosing the black cross means it includes the generating effect. Those are separate questions. The native function orders traits by their lower interval endpoints, so match by the trait labels when comparing the two figures.

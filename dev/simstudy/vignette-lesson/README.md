@@ -180,3 +180,69 @@ The fit uses seed 20260924, default priors, two hidden site factors, one latent 
 The package receives only the compact `unbalanced-lesson.rds` and rendered teaching figures. The two `unbalanced-lesson-*.Rmd` files under `dev/` are source snippets mirrored in Lessons 0 and 1, not child documents required for knitting an installed vignette. Keep displayed code and these snippets in step when editing the example.
 
 Validation for this migration batch, 22 September 2026: the independent native-table, native-plot, unbalanced-fit and site-partition algebra checks passed. All five teaching documents rendered to HTML and Markdown; the shared link regression test passed. New static figures were inspected, and the native HTML tables were checked in the generated markup. The source-package build succeeded with vignette building disabled, included all new compact data and images, and excluded the archived original, lesson plan and `dev/`. Lessons 1 and 3 then rendered successfully from the unpacked source package, without the excluded development snippets or external full fits. No package-wide test run was needed for these teaching additions; production R/C++ code is unchanged. The original archived vignette remains byte-identical to revision 8654ff1.
+
+## Remaining non-spatial migration: ordination, native plots and prediction
+
+The follow-up on `codex/lesson-migration-completion` adds the remaining valid non-spatial plotting examples, the original bibliography, and a matched independent-site prediction comparison to Lesson 3. It changes no production R/C++ code. The first migration batch was already merged as e0e813d.
+
+### Ordination and remaining plotting functions
+
+Run from the repository root with the original archive's matching installed library first in `R_LIBS`:
+
+```sh
+Rscript dev/simstudy/vignette-lesson/ordination-export.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/ordination-verify.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/remaining-plots-export.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/remaining-plots-verify.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/native-traits-export.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/native-traits-verify.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/remaining-plots-diagnose-covariate.R /path/to/full-fits
+```
+
+The canonical snippets `ordination-examples.Rmd` and `remaining-plots-examples.Rmd` are copied into Lesson 3, not sourced as child documents. Their verifiers check that the displayed bodies exactly match the exported calculations. Keep them synchronized when editing. The compact RDS files and ten native PNGs are included in the source package. Neither rendering nor these plot exports reruns MCMC.
+
+Ordination uses draw-wise orthogonal Procrustes alignment against the known generating loadings, transforming scores and loadings jointly. It is a simulation-only aid, not a claim that an axis has been identified independently of truth. All 24,000 draws are retained. The verifier uses an independent analytic two-dimensional rotation/reflection calculation and checks unchanged score/loading products and Gram matrices, native marginal quantiles, identities, plotted coordinates, circle widths, arrow scaling and image hashes. The lesson explains that native circles summarize two marginal interval widths, not joint credible regions. All 100 sites appear in the biplot; ten sites chosen by original order have separate common-axis panels, and all ten species have loading panels.
+
+The `native-traits-examples.Rmd` snippet is likewise mirrored in Lesson 3. It restores both `plotTraitsCoefficients()` examples and matches generating coefficients to the fitted trait scale by multiplying each raw generating effect by the corresponding sample trait standard deviation. Its exporter and verifier check all 24,000 G draws, four native intervals and matching plotted truths.
+
+The remaining plots cover both environmental gradients and separate field false-positive, laboratory false-positive and laboratory true-positive rates. Their direct all-draw verification checks 800 gradient summaries and 50 rate intervals, correct species/primer identities and plotted dodge coordinates. Probability curves hold other standardized predictors at their observed medians and site factors at zero. Laboratory truth is adjusted for the observed read threshold. See [the detailed plotting notes](remaining-plots-README.md).
+
+The migration reproduced a separate defect in `returnCovariateEffect()` / `plotCovariateEffect()`: the numeric helper adds a log-odds intercept to an already inverse-logit-transformed partial effect, and its supposed raw grid is already standardized and then standardized again. The diagnostic demonstrates out-of-range median probabilities on the unchanged default fit. TODO now records the correction implemented in the separate [PR #13](https://github.com/AlexDiana/occJSDM/pull/13), awaiting Alex's review; no production fix or replacement fit is included in this lesson branch. The lesson uses the verified `plotOccupancyGradient()` alternative.
+
+### Matched models and genuinely new sites
+
+The original full-fit archive is `work/vignette-lesson-20260919` under the current task's work directory. New inputs, one additional full fit and full prediction exports are in `work/prediction-lesson-20260922`. Both remain outside the package. The tracked compact bundle is `vignettes/teaching-data/prediction-lesson.rds`.
+
+Create a separate output directory, then run these commands using the original archive's library. `prepare` and `fit` refuse to overwrite their saved inputs/fits:
+
+```sh
+mkdir -p /path/to/new-site-check
+Rscript dev/simstudy/vignette-lesson/prediction-build.R /path/to/full-fits /path/to/new-site-check prepare
+Rscript dev/simstudy/vignette-lesson/prediction-build.R /path/to/full-fits /path/to/new-site-check fit
+Rscript dev/simstudy/vignette-lesson/prediction-export.R /path/to/full-fits /path/to/new-site-check
+Rscript dev/simstudy/vignette-lesson/prediction-verify.R /path/to/full-fits /path/to/new-site-check
+# Optional full export reproduction and score Monte Carlo uncertainty:
+Rscript dev/simstudy/vignette-lesson/prediction-verify.R /path/to/full-fits /path/to/new-site-check --score-mcse
+```
+
+Preparation seed 20260925 creates 300 independent sites numbered 101-400 from the original raw environmental distribution, retaining training standardization constants and the original ecological parameters. New hidden conditions and Bernoulli occupancy states are generated without changing the training survey. Thirteen new sites have a covariate beyond the observed training range; none is discarded. Sites 101-110 are selected for the native-call illustration before inspecting predictions. The simulator's new hidden conditions and occupancy states are used only for evaluation, never for fitting either model.
+
+The additional fit uses seed 20260926 and changes `n_factors` from two to one. It retains the original PCR observations, two environmental predictors, collection covariate, traits with one latent trait, all priors, threshold one, four chains, 3,000 burn-in and 6,000 retained iterations per chain with no thinning. Exact training observations and fitted design matrices are checked against the original two-factor fit (seed 20260921). There is one fit per specification, not replicated communities or independent repeated MCMC runs.
+
+The public `predictNewSites()` illustration uses seed 20260927, ten predeclared new sites and all retained draws. Its output slices are lower quantile, median and upper quantile. Because it draws unknown new-site conditions as well as parameters, the lesson compares its intervals with the generating probabilities conditional on the sites' actual simulated hidden conditions. The current implementation draws factors separately within species; its per-species marginal outputs must not be presented as coherent joint community realizations.
+
+For point prediction, `prediction-math.R` deterministically integrates each draw's logistic probability over Gaussian hidden conditions, then averages over all 24,000 posterior draws. It uses the full residual standard deviation `sigma_h * sqrt(sum(L^2))` for that species and draw, with raw environmental inputs transformed by the frozen training constants. This is a development helper, not a new public API. It avoids confusing the native median or the zero-factor response profile with the marginal posterior mean. Quadrature is selected by an explicit error check over locations -30 to 30 and spreads up to the largest stored spread: 61 nodes for the two-factor fit and 31 for the one-factor fit, with grid discrepancies below 2.4e-7. Generating marginal truth is computed separately from known parameters.
+
+The independent-site scores are based on exactly the same 3,000 species-site outcomes for both models. Mean absolute error against marginal truth is 9.9349 percentage points for one factor and 10.0174 for two; signed errors are -3.8053 and -3.8321 points. Brier scores are 0.1846826 and 0.1848191, respectively. The one-minus-two paired Brier difference is -0.0001365, with standard error 0.0000670 computed across 300 site averages. The species within a site are not counted as independent replicates. This site-only uncertainty excludes MCMC error, repeated-training-sample uncertainty and variation among communities. It is not evidence for a generally superior model or a recovered true factor count.
+
+All 200 public parameter diagnostic rows are below Rhat 1.01 and above ESS 400, with no missing values, and the new fit emitted no warnings. Across species' mean predicted probabilities, maximum Rhat is 1.008944, minimum ESS about 746, and largest Monte Carlo standard error 0.003886 (0.389 percentage points). These are computation checks, not proof that the tiny score difference is resolved or that ecological prediction errors are acceptable.
+
+The lesson also extracts actual current WAIC values, without ranking models by them. `runOccJSDM()` combines likelihood terms for sampled occupancy/collection states with observed PCR terms. This is not a new-site observed-data criterion integrating the unobserved states; fitting both models to identical observations does not resolve that target mismatch. A validated observed-data criterion or site-level cross-validation remains separate work. Existing one-factor and two-factor new-site scores teach a valid same-data predictive comparison while leaving that limitation explicit.
+
+The independent prediction verifier also estimates a first-order Monte Carlo standard error for each score by propagating the posterior-draw variation through the score gradient. With independent fits, the two fit-specific numerical variances add for their difference. The Brier difference has estimated MCSE 0.0002539 (its magnitude is only 0.54 MCSE); the negative-log-score difference has MCSE 0.0006905 (about 1.02 MCSE). These numerical uncertainties are distinct from the new-site sampling SE. No longer MCMC run or seed selection was performed to resolve a model ranking.
+
+A preliminary wrapper probe also found that reshaping an empty factor-loading array can fail in `predictNewSites()` before reaching C++, even with `useBiotic = FALSE`. This was tested by replacing the archived fit's loading array with a zero-factor array, not by fitting a complete zero-factor model. Reproduce the wrapper probe with `Rscript dev/simstudy/vignette-lesson/prediction-zero-factor-probe.R /path/to/full-fits`. A genuine zero-factor fit/regression test remains a separate follow-up; the teaching comparison uses one and two factors and does not claim to validate the zero-factor path.
+
+Validation of the completed follow-up, 22 September 2026: ordination, remaining rate/gradient plots, native trait plots and the full prediction verifier passed against the archived matching library. The full prediction pass independently reproduced all 6,000 exported posterior means/intervals and corresponding probability diagnostics using every retained draw, checked native call arguments and seeds without refitting, and reproduced the first-order score MCSE. Independent adaptive integration agreed with selected posterior means within 1.3e-11. The response-curve defect and separate empty-array wrapper probe reproduced as documented.
+
+All five lessons rendered to HTML and GitHub Markdown. Lesson 3 was rendered again after the final trait addition; all twelve new figures were visually inspected. Shared link regression checks passed, new image/data paths exist, and there are no duplicate chunk names. The final source-package build succeeded with vignette building disabled, included all sixteen new lesson data/image assets, excluded `dev/`, `LESSON-PLAN.md` and the archived original, and rendered Lesson 3 successfully after unpacking without external full fits. Production R/C++ files and the archived original remain unchanged. Before merging, the source test suite was run: 641 expectations passed, with no failures, errors or test warnings; the opt-in coverage study was skipped. The ordination, gradient/rate, trait and standard prediction archive verifiers, Lesson 3 HTML/Markdown renders and shared-link checks were rerun successfully. The fresh source-package build included all sixteen new teaching assets, excluded the development scripts, lesson plan and archived original, and rendered Lesson 3 after unpacking. No new model fitting or release-bias study was run during this merge check.
