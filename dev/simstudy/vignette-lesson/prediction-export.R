@@ -54,7 +54,7 @@ for (label in names(fit_paths)) {
     md5 = md5(fit_paths[[label]]), seed = saved$seed, mcmc = saved$mcmc,
     priors = saved$priors, warnings = saved$warnings, session = saved$session,
     seconds = as.numeric(difftime(saved$finished, saved$started, units = "secs")),
-    waic = occJSDM::extractWAIC(fit), factors = fit$infos$n_factors)
+    waic = fit$results_output$WAIC, factors = fit$infos$n_factors)
   # Keep the complete per-fit export outside the package for independent checks.
   saveRDS(results[[label]], file.path(outdir, paste0(label, "-predictions.rds")), compress = "xz")
 }

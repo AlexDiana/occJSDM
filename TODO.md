@@ -150,6 +150,10 @@ Every outstanding item from the previous TODO is accounted for below or in the r
 
 ## Review and maintenance
 
+- **Correct WAIC for comparing the number of hidden site factors. ALEX TO REVIEW.** Proposed on `codex/site-waic`: `computeSiteWAIC()` scores the complete observed survey at each independent site, summing over unobserved occupancy and collection states and jointly averaging over shared Gaussian site factors. `extractWAIC()` now uses that score by default; `type = "legacy"` retrieves the old scalar explicitly. New fits save the read threshold; old replicated-observation fits require it from the caller. `compareSiteWAIC()` checks that the observations match and reports the score difference with its paired standard error. Scope: non-spatial binary, occupancy and two-stage models; no sampler or prior changes.
+
+    **Review:** inspect `R/site-waic.R`, `src/site_waic.cpp`, `test-site-waic.R` and `dev/simstudy/site-waic-validation.md`. The numerical integration must meet its refinement check before a score is returned. The saved teaching fits trigger WAIC reliability warnings at almost every site, so a corrected formula does not establish a defensible factor-count choice. After code review, validate that choice using held-out observed site surveys, check MCMC precision, and finish the Lesson 3 example. Spatial model comparison needs a separate treatment of dependence between sites.
+
 - **Review `thinOutput()`:** defer Alex's review and the keep/delete decision while it remains internal and unused by the public workflow. Its rewrite is still pending review, not newly added to *Fixed bugs*. It thins the second-to-last array axis and preserves posterior means, nested JSDM arrays and scalar WAIC; tests distinguish iteration counts from site/species dimensions. Refit the shipped example rather than relying on this helper for release preparation.
 - **Move remaining dead functions to `deprecated/`:** defer. Recheck current callers before removal; the old list incorrectly includes the now-live `sample_BBsL_cpp()`. Keep the four previously retained functions unless Alex revisits that decision. Change C++ export annotations and regenerate wrappers rather than editing `RcppExports.R` manually. `.onLoad()` is called by R and is not dead code.
 - **`globalVariables()` for data-masked columns:** defer until dead-code cleanup is done. Only declare genuine NSE column names; do not hide undefined variables in executable code.
@@ -182,7 +186,7 @@ All speed work can wait once the unsafe RNG path is removed from beta. Preserve 
 
 ## Future modelling features
 
-- **Improved model-selection criterion:** defer a validated observed-data WAIC or site-level cross-validation workflow. The current scalar combines likelihood terms for sampled latent occupancy/collection states with observed PCR terms; it does not integrate those states for new-site prediction. Lesson 3 documents the limitation, extracts actual values without ranking models by them, and compares matched fits on 300 independent sites instead. Preserve this distinction in the public help; avoid implying that a selected model is necessarily the generating model.
+
 - **Count-data models:** defer, including the `sample_rnb()` work above.
 - **Source-sink inference scenario:** defer a dedicated simulation with opposing environmental and spatial effects.
 - **Separate environmental, spatial and latent-factor contributions:** defer restricted/orthogonalised alternatives intended to keep environmental effects stable when additional components are added. This is a modelling extension, separate from the correlation correction required for beta.

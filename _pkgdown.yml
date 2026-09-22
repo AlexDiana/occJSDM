@@ -19,6 +19,8 @@ reference:
   - returnConvergenceDiagnostics
   - plotTraceplot
   - extractWAIC
+  - computeSiteWAIC
+  - compareSiteWAIC
 
 - title: Occupancy and detection probabilities
   desc: >

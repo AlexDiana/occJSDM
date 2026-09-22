@@ -157,3 +157,7 @@ sample_BBsL_parallel <- function(k, X, Tr, U, G, A, C, sigma_b, Gs, As, Cs, sigm
     .Call(`_occJSDM_sample_BBsL_parallel`, k, X, Tr, U, G, A, C, sigma_b, Gs, As, Cs, sigma_bs, Ks, Xs_centers, Omega, model)
 }
 
+site_loglik_cpp <- function(eta, log_g0, log_g1, loadings, nodes, log_weights) {
+    .Call(`_occJSDM_site_loglik_cpp`, eta, log_g0, log_g1, loadings, nodes, log_weights)
+}
+

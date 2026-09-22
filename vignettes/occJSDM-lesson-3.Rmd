@@ -989,24 +989,40 @@ prediction_examples$diagnostics |>
 
 There are no flagged rows under these checks. Nevertheless, the largest Monte Carlo standard error of a species' average predicted probability is about 0.39 percentage points. This measures numerical uncertainty remaining in that posterior mean, not ecological prediction error. Passing the diagnostic thresholds does not make tiny differences between model scores exact.
 
-The old walkthrough extracted WAIC to compare model specifications. Here is the current extraction syntax, followed by the values from these same-data fits:
+The old walkthrough extracted WAIC to compare model specifications. The following table preserves the **legacy** scores saved with these fits. Request that old score explicitly:
 
 ```{r prediction-extract-waic, eval=FALSE}
-occJSDM::extractWAIC(fitmodel)
-occJSDM::extractWAIC(fit_one_factor)
+occJSDM::extractWAIC(fitmodel, type = "legacy")
+occJSDM::extractWAIC(fit_one_factor, type = "legacy")
 ```
 
 ```{r prediction-waic-values}
 tibble(
   model = unname(prediction_labels[names(prediction_examples$manifests)]),
-  `Current extractWAIC value` = vapply(
+  `Legacy stored score` = vapply(
     prediction_examples$manifests, function(fit) fit$waic, numeric(1)
   )
 ) |>
   knitr::kable(digits = 2)
 ```
 
-**Do not use this table to choose the better model for unsurveyed sites.** The current calculation combines likelihood terms for the sampled, unobserved site and collection states with terms for the PCR observations. Those hidden states are learned using the training observations. It does not average them out to evaluate the probability of new observations at a new site. Matching the training dataset is necessary for comparison, but does not by itself fix this difference in target. The independent-site scores above provide the worked predictive comparison. A validated observed-data WAIC or site-level cross-validation workflow remains separate work.
+**Do not use this table to choose the better model for unsurveyed sites.** The legacy calculation combines likelihood terms for the sampled, unobserved site and collection states with terms for the PCR observations. Those hidden states are learned using the training observations. It does not average them out to evaluate the probability of new observations at a new site. Matching the training dataset is necessary for comparison, but does not by itself fix this difference in target. The independent-site scores above provide the worked predictive comparison. The corrected `computeSiteWAIC()` function instead scores the observed survey at each site, averaging over unobserved occupancy, collection and shared site factors. The default `extractWAIC()` now returns this corrected score; it no longer returns the legacy values in the table. These old fits require `threshold = 1` because they did not save their fitting threshold.
+
+```{r corrected-site-waic, eval=FALSE}
+waic_one_factor <- occJSDM::computeSiteWAIC(
+  fit_one_factor,
+  threshold = 1
+)
+
+waic_two_factors <- occJSDM::computeSiteWAIC(
+  fitmodel,
+  threshold = 1
+)
+
+occJSDM::compareSiteWAIC(waic_one_factor, waic_two_factors)
+```
+
+The comparison reports the first score minus the second: a positive difference favours the second model. Its standard error describes uncertainty across sites. It does not measure uncertainty from finite MCMC runs or numerical integration. Inspect the warnings and the per-site `p_waic` column before interpreting a ranking. Checks of these saved teaching fits trigger reliability warnings at almost every site, even after integrating the hidden states correctly. **We therefore do not select a factor count here.** An actual held-out-site comparison of the observed surveys remains necessary before teaching a confident choice. The existing independent-site exercise evaluates occupancy probabilities against simulated truth and answers an additional question.
 
 
 ## Put the observations, inferred states and truth in one table
@@ -1445,7 +1461,7 @@ When a parameter is flagged, inspect its trace and consider which ecological con
 
 Keep `nthin = 1` unless storage is the limiting concern. Discarding additional draws does not make the sampler explore better or repair chains trapped in different regions. Never discard selected chains or tune priors just to make the examples pass a diagnostic threshold. In a real dataset the black truth lines are unavailable, so convergence checks, model checks and ecological judgment each have a separate role.
 
-WAIC is another calculated quantity with no generating parameter to overlay. The perfect-observation and PCR fits here have different response data, so their WAIC values must not be compared as if they were competing models of one dataset. Moreover, the current implementation includes likelihood terms for sampled, unobserved occupancy and collection states. Its scalar is not an observed-data criterion that averages over those states for prediction at new sites. The new-site section above demonstrates extraction, explains this limitation, and compares two models using actual independent sites instead.
+WAIC is another calculated quantity with no generating parameter to overlay. The perfect-observation and PCR fits here have different response data, so their WAIC values must not be compared as if they were competing models of one dataset. The legacy stored score includes likelihood terms for sampled, unobserved occupancy and collection states. The corrected site-WAIC function averages over those states and the shared site factors, but still needs reliability checks. The new-site section above shows both interfaces and explains why these teaching fits do not yet justify selecting a factor count.
 
 ## Appendix: use the package's plotting functions
 

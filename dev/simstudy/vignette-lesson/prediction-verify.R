@@ -43,7 +43,7 @@ for(arm in names(saved)) {
   stopifnot(identical(r$source_hashes,b$source_hashes),identical(r$input_md5,md5(op)),
     identical(m$md5,md5(paths[[arm]])),identical(m$seed,r$seed),identical(m$mcmc,r$mcmc),
     identical(m$priors,r$priors),identical(m$warnings,r$warnings),identical(m$session,r$session),
-    identical(m$factors,f$infos$n_factors),identical(m$waic,extractWAIC(f)),
+    identical(m$factors,f$infos$n_factors),identical(m$waic,f$results_output$WAIC),
     identical(input$scaling,f$infos$list_X_psi_mat),f$infos$model=="two_stage",
     f$infos$jsdmModel=="binary",f$infos$ps==0,
     identical(dim(f$results_output$jsdm_output$B0_output),c(10L,6000L,4L)))

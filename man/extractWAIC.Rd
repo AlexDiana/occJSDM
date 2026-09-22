@@ -2,25 +2,32 @@
 % Please edit documentation in R/output.R
 \name{extractWAIC}
 \alias{extractWAIC}
-\title{extractWAIC}
+\title{Extract an observed-data site WAIC, or the legacy stored score}
 \usage{
-extractWAIC(fitModel)
+extractWAIC(fitModel, type = c("site", "legacy"), ...)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccJSDM}
+\item{fitModel}{Output from \code{\link[=runOccJSDM]{runOccJSDM()}}.}
+
+\item{type}{\code{"site"} (default) computes observed-data WAIC using
+\code{\link[=computeSiteWAIC]{computeSiteWAIC()}}. \code{"legacy"} retrieves the old stored scalar, which
+includes sampled latent states and is not a new-site prediction criterion.}
+
+\item{...}{Arguments passed to \code{\link[=computeSiteWAIC]{computeSiteWAIC()}}, for example the original
+\code{threshold} for an old saved fit or numerical integration settings.}
 }
 \value{
-The WAIC
+A numeric score. For pointwise contributions, uncertainty and
+integration diagnostics, call \code{\link[=computeSiteWAIC]{computeSiteWAIC()}} directly.
 }
 \description{
-Compute the WAIC for model comparison
+Extract an observed-data site WAIC, or the legacy stored score
 }
 \details{
-Compute the WAIC for model comparison
-}
-\examples{
-\dontrun{
-extractWAIC(fitModel)
-}
-
+The default now performs numerical post-processing rather than
+reading a scalar. It supports non-spatial binary, occupancy and two-stage
+fits. It stops for unsupported targets or failed numerical integration.
+Fitting is unchanged; \code{results_output$WAIC} still stores the legacy score
+for compatibility. Do not use that score to choose a factor count for
+new-site predictions. Legacy scores and site WAIC values are not comparable.
 }
