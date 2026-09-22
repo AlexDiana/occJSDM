@@ -335,359 +335,131 @@ createSplinesMatrix <- function(list_ns, X_new){
 
 }
 
-returnCovariateEffect_base <- function(cov_name,
-                                       idx_species,
-                                       sp_name,
-                                       B0_output_vec,
-                                       B_output_vec,
-                                       list_matrix,
-                                       speciesNames,
-                                       X0, X,
-                                       n_points = 200,
-                                       link = c("identity", "logit"),
-                                       confidence = .95){
+# Build a complete environmental design at reference conditions. X0 stores
+# standardized numeric predictors, despite its historical "raw" name. Keeping
+# calculations on that scale also avoids rounding beyond a spline boundary.
+covariate_response_grid <- function(cov_name, X0, X, list_matrix,
+                                    n_points = 200L) {
+  is_numeric <- list_matrix$is_numeric
+  selected <- X0[[cov_name]]
+  if (is_numeric[[cov_name]]) {
+    values <- seq(min(selected), max(selected), length.out = n_points)
+    x <- values * list_matrix$sd_df[[cov_name]] + list_matrix$mean_df[[cov_name]]
+  } else {
+    values <- list_matrix$cat_levels[[cov_name]]
+    x <- factor(values, levels = values)
+  }
 
-  conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+  design <- matrix(0, length(values), ncol(X), dimnames = list(NULL, colnames(X)))
+  offset <- 0L
+  # create_covariates_matrix() stores main-effect blocks in names_df order.
+  # Use those blocks directly, never prefix/regexp matching (e.g. x versus x2).
+  for (name in list_matrix$names_df) {
+    reference <- if (is_numeric[[name]]) {
+      stats::median(X0[[name]])
+    } else {
+      list_matrix$cat_levels[[name]][1L]
+    }
+    grid_values <- if (name == cov_name) values else rep(reference, length(values))
 
-  # prepare covariates info
-  {
-    is_num    <- list_matrix$is_numeric[[cov_name]]
-    is_spline <- !is.null(list_matrix$bs_info[[cov_name]])
-
-    if (is_num) {
-      # Sequence on raw scale
-      cov_min <- min(X0[[cov_name]], na.rm = TRUE)
-      cov_max <- max(X0[[cov_name]], na.rm = TRUE)
-      cov_seq_raw <- seq(cov_min, cov_max, length.out = n_points)
-      cov_std <- (cov_seq_raw - list_matrix$mean_df[[cov_name]]) / list_matrix$sd_df[[cov_name]]
-
-      if (is_spline) {
-        # Re-apply splines using stored knots on standardized data
-        info <- list_matrix$bs_info[[cov_name]]
-        X_sub <- splines::bs(
-          cov_std,
-          knots          = info$knots,
-          Boundary.knots = info$Boundary.knots,
-          degree         = info$degree,
-          intercept      = info$intercept
-        )
-        colnames(X_sub) <- paste0(cov_name, "_s", seq_len(ncol(X_sub)))
-
+    if (is_numeric[[name]]) {
+      spline <- list_matrix$bs_info[[name]]
+      block <- if (is.null(spline)) {
+        matrix(grid_values, ncol = 1L)
       } else {
-        # Linear numeric term
-        X_sub <- matrix(cov_std, ncol = 1)
-        colnames(X_sub) <- cov_name
+        splines::bs(grid_values, knots = spline$knots,
+                    Boundary.knots = spline$Boundary.knots,
+                    degree = spline$degree, intercept = spline$intercept)
       }
-
+      columns <- offset + seq_len(ncol(block))
     } else {
+      levels <- list_matrix$cat_levels[[name]]
+      columns <- offset + seq_len(ncol(stats::contrasts(X0[[name]])))
+      rows <- match(grid_values, as.character(X0[[name]]))
+      block <- X[rows, columns, drop = FALSE]
 
-      all_levels     <- list_matrix$cat_levels[[cov_name]]
-      baseline_level <- all_levels[1]
-      active_levels  <- all_levels[-1]
-
-      temp_df <- data.frame(val = factor(active_levels, levels = all_levels))
-      colnames(temp_df) <- cov_name
-
-      temp_X <- stats::model.matrix(~ ., data = temp_df)
-      X_sub  <- temp_X[, -1, drop = FALSE]
+      # Copy the actual fitted encoding, including ordered/custom contrasts.
+      # An unused factor level has no training row: reconstruct it only after
+      # checking that the available contrast settings reproduce the fitted rows.
+      if (anyNA(rows)) {
+        factor_grid <- X0[[name]][rep(1L, length(levels))]
+        factor_grid[] <- levels
+        candidates <- stats::model.matrix(~ factor_grid)[, -1L, drop = FALSE]
+        training_rows <- match(as.character(X0[[name]]), levels)
+        if (!isTRUE(all.equal(unname(candidates[training_rows, , drop = FALSE]),
+                              unname(X[, columns, drop = FALSE])))) {
+          stop("Cannot reconstruct unused levels of covariate '", name,
+               "'. Restore the contrast settings used to fit the model.", call. = FALSE)
+        }
+        block[is.na(rows), ] <- candidates[match(grid_values[is.na(rows)], levels), , drop = FALSE]
+      }
     }
-
-    cov_indices <- sapply(colnames(X_sub), function(name){
-      grep(name, colnames(X))
-    })
-
-    if (any(is.na(cov_indices))) {
-      stop(paste("Could not find exact columns in MCMC output for:", cov_name))
-    }
-
+    design[, columns] <- block
+    offset <- offset + length(columns)
   }
-
-  all_species_data <- data.frame()
-
-  for (i in seq_along(idx_species)) {
-
-    sp_idx  <- idx_species[i]
-    # Index by sp_idx, not the loop counter i -- speciesNames[i] mislabels
-    # every species whenever idx_species isn't the prefix 1:k (same defect
-    # as TODO.md Fixed bugs 31/32, found here as part of Fixed bugs 33).
-    sp_name <- speciesNames[sp_idx]
-
-    beta_mcmc_j <- B_output_vec[, , sp_idx]
-    beta_mcmc_sub <- beta_mcmc_j[, cov_indices, drop = FALSE]
-
-    partial_effect <- X_sub %*% t(beta_mcmc_sub)
-
-    if(link == "logit") partial_effect <- logistic(partial_effect)
-
-    # 6. Format data for ggplot depending on variable type
-    if (is_num) {
-
-      intercept_draws <- B0_output_vec[, sp_idx]
-      total_effect    <- sweep(partial_effect, 2, intercept_draws, FUN = "+")
-
-      # Numeric: Summarize to mean and 95% Credible Intervals
-      sp_data <- data.frame(
-        x       = cov_seq_raw,
-        mean    = apply(total_effect, 1, quantile, probs = conflevels[2]),
-        lower   = apply(total_effect, 1, quantile, probs = conflevels[1]),
-        upper   = apply(total_effect, 1, quantile, probs = conflevels[3]),
-        Species = sp_name
-      )
-
-    } else {
-      # Categorical: Keep all draws to generate boxplots
-      # Transpose so rows are grid points, columns are draws, then pivot long
-      sp_data <- as.data.frame(partial_effect) %>%
-        mutate(x = factor(active_levels, levels = active_levels), Species = sp_name) %>%
-        pivot_longer(cols = -c(x, Species), names_to = "draw", values_to = "value")
-    }
-
-
-    all_species_data <- bind_rows(all_species_data, sp_data)
-
+  if (offset != ncol(X)) {
+    stop("Stored covariate metadata does not match the fitted design matrix.", call. = FALSE)
   }
-
-  all_species_data
-
+  list(x = x, X = design)
 }
 
-plotCovariateEffect_base <- function(idx_species,
-                               cov_names,
-                               B0_output_vec,
-                               B_output_vec,
-                               list_matrix,
-                               speciesNames,
-                               X0, X,
-                               n_points = 200,
-                               link = c("identity", "logit"),
-                               confidence = .95) {
+returnCovariateEffect_base <- function(cov_name, idx_species,
+                                      B0_output_vec, B_output_vec,
+                                      list_matrix, speciesNames, X0, X,
+                                      n_points = 200L,
+                                      link = c("logit", "identity"),
+                                      confidence = .95) {
+  link <- match.arg(link)
+  grid <- covariate_response_grid(cov_name, X0, X, list_matrix, n_points)
+  probabilities <- c(.5, (1 - confidence) / 2, (1 + confidence) / 2)
+  n_draws <- nrow(B0_output_vec)
 
-  X0 <- as.data.frame(X0)
-  X <- as.data.frame(X)
+  species_data <- lapply(idx_species, function(sp) {
+    coefficients <- matrix(B_output_vec[, , sp, drop = FALSE], nrow = n_draws)
+    eta <- sweep(grid$X %*% t(coefficients), 2L, B0_output_vec[, sp], FUN = "+")
+    response <- if (link == "logit") stats::plogis(eta) else eta
 
-  # B0_output_vec/B_output_vec arrive already collapsed to (draws x species)
-  # and (draws x covariate x species) by the caller (plotCovariateEffect()).
-  # A previous version re-applied apply(..., c(1,2), c) here, which collapsed
-  # the species margin a second time and left B_output_vec's third dimension
-  # sized by ncov_psi instead of S -- "subscript out of bounds" for any
-  # sp_idx > ncov_psi. Fixed as part of TODO.md Fixed bugs 33.
-
-  plot_list <- list()
-
-  for (cov_name in cov_names) {
-
-    is_num    <- list_matrix$is_numeric[[cov_name]]
-    is_spline <- !is.null(list_matrix$bs_info[[cov_name]])
-
-    # prepare covariates info
-    {
-      is_num    <- list_matrix$is_numeric[[cov_name]]
-      is_spline <- !is.null(list_matrix$bs_info[[cov_name]])
-
-      if (is_num) {
-        # Sequence on raw scale
-        cov_min <- min(X0[[cov_name]], na.rm = TRUE)
-        cov_max <- max(X0[[cov_name]], na.rm = TRUE)
-        cov_seq_raw <- seq(cov_min, cov_max, length.out = n_points)
-        cov_std <- (cov_seq_raw - list_matrix$mean_df[[cov_name]]) / list_matrix$sd_df[[cov_name]]
-
-        if (is_spline) {
-          # Re-apply splines using stored knots on standardized data
-          info <- list_matrix$bs_info[[cov_name]]
-          X_sub <- splines::bs(
-            cov_std,
-            knots          = info$knots,
-            Boundary.knots = info$Boundary.knots,
-            degree         = info$degree,
-            intercept      = info$intercept
-          )
-          colnames(X_sub) <- paste0(cov_name, "_s", seq_len(ncol(X_sub)))
-
-        } else {
-          # Linear numeric term
-          X_sub <- matrix(cov_std, ncol = 1)
-          colnames(X_sub) <- cov_name
-        }
-
-      } else {
-
-        all_levels     <- list_matrix$cat_levels[[cov_name]]
-        baseline_level <- all_levels[1]
-        active_levels  <- all_levels[-1]
-
-        temp_df <- data.frame(val = factor(active_levels, levels = all_levels))
-        colnames(temp_df) <- cov_name
-
-        temp_X <- stats::model.matrix(~ ., data = temp_df)
-        X_sub  <- temp_X[, -1, drop = FALSE]
-      }
-
-      cov_indices <- sapply(colnames(X_sub), function(name){
-        grep(name, colnames(X))
-      })
-
-      if (any(is.na(cov_indices))) {
-        stop(paste("Could not find exact columns in MCMC output for:", cov_name))
-      }
-
-    }
-
-    if(F){
-      all_species_data <- data.frame()
-
-      for (i in seq_along(idx_species)) {
-
-        sp_idx  <- idx_species[i]
-        sp_name <- speciesNames[i]
-
-        # prepare covariates info
-        if(F){
-          is_num    <- list_matrix$is_numeric[[cov_name]]
-          is_spline <- !is.null(list_matrix$bs_info[[cov_name]])
-
-          if (is_num) {
-            # Sequence on raw scale
-            cov_min <- min(X0[[cov_name]], na.rm = TRUE)
-            cov_max <- max(X0[[cov_name]], na.rm = TRUE)
-            cov_seq_raw <- seq(cov_min, cov_max, length.out = n_points)
-            cov_std <- (cov_seq_raw - list_matrix$mean_df[[cov_name]]) / list_matrix$sd_df[[cov_name]]
-
-            if (is_spline) {
-              # Re-apply splines using stored knots on standardized data
-              info <- list_matrix$bs_info[[cov_name]]
-              X_sub <- splines::bs(
-                cov_std,
-                knots          = info$knots,
-                Boundary.knots = info$Boundary.knots,
-                degree         = info$degree,
-                intercept      = info$intercept
-              )
-              colnames(X_sub) <- paste0(cov_name, "_s", seq_len(ncol(X_sub)))
-
-            } else {
-              # Linear numeric term
-              X_sub <- matrix(cov_std, ncol = 1)
-              colnames(X_sub) <- cov_name
-            }
-
-          } else {
-
-            all_levels     <- list_matrix$cat_levels[[cov_name]]
-            baseline_level <- all_levels[1]
-            active_levels  <- all_levels[-1]
-
-            temp_df <- data.frame(val = factor(active_levels, levels = all_levels))
-            colnames(temp_df) <- cov_name
-
-            temp_X <- stats::model.matrix(~ ., data = temp_df)
-            X_sub  <- temp_X[, -1, drop = FALSE]
-          }
-
-          cov_indices <- sapply(colnames(X_sub), function(name){
-            grep(name, colnames(X))
-          })
-
-          if (any(is.na(cov_indices))) {
-            stop(paste("Could not find exact columns in MCMC output for:", cov_name))
-          }
-
-        }
-
-        # species info
-        if(F){
-
-          beta_mcmc_j <- B_output_vec[, , sp_idx]
-          beta_mcmc_sub <- beta_mcmc_j[, cov_indices, drop = FALSE]
-
-          partial_effect <- X_sub %*% t(beta_mcmc_sub)
-
-          if(link == "logit") partial_effect <- logistic(partial_effect)
-
-          # 6. Format data for ggplot depending on variable type
-          if (is_num) {
-
-            intercept_draws <- B0_output_vec[, sp_idx]
-            total_effect    <- sweep(partial_effect, 2, intercept_draws, FUN = "+")
-
-            # Numeric: Summarize to mean and 95% Credible Intervals
-            sp_data <- data.frame(
-              x       = cov_seq_raw,
-              mean    = apply(total_effect, 1, mean),
-              lower   = apply(total_effect, 1, quantile, probs = 0.025),
-              upper   = apply(total_effect, 1, quantile, probs = 0.975),
-              Species = sp_name
-            )
-          } else {
-            # Categorical: Keep all draws to generate boxplots
-            # Transpose so rows are grid points, columns are draws, then pivot long
-            sp_data <- as.data.frame(partial_effect) %>%
-              mutate(x = factor(active_levels, levels = active_levels), Species = sp_name) %>%
-              pivot_longer(cols = -c(x, Species), names_to = "draw", values_to = "value")
-          }
-        }
-
-        sp_data <- returnCovariateEffect_base(
-          cov_name,
-          sp_idx,
-          sp_name,
-          B0_output_vec,
-          B_output_vec,
-          list_matrix,
-          speciesNames,
-          X0, X,
-          n_points = n_points,
-          link = link,
-          confidence
-        )
-
-        all_species_data <- bind_rows(all_species_data, sp_data)
-      }
-
-    }
-
-    all_species_data <- returnCovariateEffect_base(
-      cov_name,
-      idx_species,
-      sp_name,
-      B0_output_vec,
-      B_output_vec,
-      list_matrix,
-      speciesNames,
-      X0, X,
-      n_points,
-      link = link,
-      confidence
-    )
-
-    # 7. Generate the Plot
-    if (is_num) {
-      type_title <- if (is_spline) "Spline" else "Linear"
-
-      # Automatically pick ~5 clean tick values across the raw range
-      raw_ticks <- pretty(cov_seq_raw, n = 5)
-
-      # Plot for continuous (Line + Ribbon)
-      p <- ggplot(all_species_data, aes(x = x, y = mean)) +
-        geom_ribbon(aes(ymin = lower, ymax = upper), fill = "#3388ff", alpha = 0.3) +
-        geom_line(color = "#0044cc", linewidth = 1) +
-        scale_x_continuous(breaks = raw_ticks) +
-        facet_wrap(~ Species, scales = "free_y") +
-        labs(title = paste("Effect of", cov_name), x = cov_name, y = "Linear Predictor") +
-        theme_bw()
+    if (list_matrix$is_numeric[[cov_name]]) {
+      interval <- t(apply(response, 1L, stats::quantile, probs = probabilities,
+                          names = FALSE))
+      data.frame(x = grid$x, mean = interval[, 1L], lower = interval[, 2L],
+                 upper = interval[, 3L], Species = speciesNames[sp])
     } else {
-      # Plot for categorical (Boxplot across MCMC draws)
-      p <- ggplot(all_species_data, aes(x = factor(x), y = value)) +
-        geom_boxplot(fill = "#e6f2ff", color = "#0044cc", outlier.alpha = 0.1) +
-        facet_wrap(~ Species, scales = "free_y") +
-        labs(title = paste("Effect of", cov_name), x = cov_name, y = "Linear Predictor") +
-        theme_bw()
+      # Preserve the categorical raw-draw return format, now including level 1.
+      data.frame(x = rep(grid$x, each = n_draws), Species = speciesNames[sp],
+                 draw = rep(paste0("V", seq_len(n_draws)), times = length(grid$x)),
+                 value = as.vector(t(response)))
     }
+  })
+  dplyr::bind_rows(species_data)
+}
 
-    # Store plot in list using covariate name
-    plot_list[[cov_name]] <- p
+plot_covariate_response <- function(data, cov_name, is_numeric, link, confidence) {
+  if (is_numeric) {
+    plot <- ggplot(data, aes(x = x, y = mean)) +
+      geom_ribbon(aes(ymin = lower, ymax = upper), fill = "#3388ff", alpha = .3) +
+      geom_line(color = "#0044cc", linewidth = 1) +
+      scale_x_continuous(breaks = pretty(data$x, n = 5))
+  } else {
+    summary <- data %>%
+      dplyr::group_by(Species, x) %>%
+      dplyr::summarise(
+        median = stats::median(value),
+        lower = stats::quantile(value, (1 - confidence) / 2),
+        upper = stats::quantile(value, (1 + confidence) / 2),
+        .groups = "drop"
+      )
+    plot <- ggplot(summary, aes(x = x, y = median)) +
+      geom_pointrange(aes(ymin = lower, ymax = upper), color = "#0044cc")
   }
-
-  return(plot_list)
+  plot +
+    facet_wrap(~ Species, scales = "free_y") +
+    labs(title = paste("Response to", cov_name), x = cov_name,
+         y = if (link == "logit") "Occupancy probability" else "Expected response",
+         subtitle = paste("Other numeric covariates at their medians; categorical covariates at their first levels.",
+                          "Latent site and spatial contributions set to zero.", sep = "\n"),
+         caption = paste0("Posterior median and ", 100 * confidence, "% credible interval.")) +
+    theme_bw()
 }
 
 # SPATIAL FUNCTIONS -----------
@@ -2486,7 +2258,6 @@ sampleB_m <- function(k, X, eta, Omega, B, b){
 
   B_output
 }
-
 
 
 

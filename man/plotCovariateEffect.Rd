@@ -2,20 +2,43 @@
 % Please edit documentation in R/output.R
 \name{plotCovariateEffect}
 \alias{plotCovariateEffect}
-\title{plotCovariateEffect}
+\title{Plot environmental response curves}
 \usage{
 plotCovariateEffect(fitModel, covNames, idx_species = NULL, confidence = 0.95)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccJSDM}
+\item{fitModel}{Output from the function runOccJSDM.}
 
-\item{covNames}{Character vector. Name(s) of the covariate(s) to evaluate}
+\item{covNames}{Character vector. Names of occupancy covariates in the
+original input data, before scaling or spline expansion.}
 
-\item{idx_species}{Indexes of the species to include (leave out for all species)}
+\item{idx_species}{Integer indexes of the species to include (default: all).}
 
-\item{confidence}{Numeric scalar between 0 and 1. The width of the Bayesian
-credible interval to compute (default is \code{0.95} for a 95\% interval).}
+\item{confidence}{Numeric scalar strictly between 0 and 1. Probability
+contained in the equal-tail Bayesian credible interval (default: 0.95).}
+}
+\value{
+A named list of ggplot objects, one per requested covariate.
+  Numeric responses use lines and ribbons; categorical responses use
+  points and bars. Both display posterior medians and the requested
+  equal-tail credible intervals.
 }
 \description{
-Plot predicted species response curve
+Show posterior medians and credible intervals as environmental covariates
+change, using the same conditional responses as \code{returnCovariateEffect()}.
+}
+\details{
+Numeric covariates are evaluated at 200 points over their observed range,
+in the original input units. Categorical covariates include every fitted
+level, including the first (reference) level. Other numeric covariates are
+held at their observed medians; other categorical covariates are held at
+their first fitted levels. Splines use the fitted scaling and knots.
+
+For each posterior draw, the intercept and all environmental contributions
+are added before conversion to an occupancy probability with the inverse
+logit. Continuous-response models retain the identity scale. Hidden site
+(latent-factor) and spatial contributions are set to zero. These are
+conditional environmental response curves, not predictions for particular
+sites or averages over unmeasured site conditions. They are not evidence
+of a causal effect of the covariate.
 }

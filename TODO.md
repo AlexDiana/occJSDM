@@ -96,6 +96,12 @@ output: html_document
 
     FIXED
 
+6. **Correct the environmental response probabilities returned by `returnCovariateEffect()` and `plotCovariateEffect()`. ALEX TO REVIEW.** Implemented on `codex/fix-covariate-response`. The old numeric calculation added the intercept after converting to a probability, producing values above one or below zero. It also standardized already standardized values again. The categorical calculation omitted the intercept and first level, and both wrappers ignored the requested interval level.
+
+    **What changed:** vary one environmental predictor in its original units, hold other numeric predictors at their medians and other categorical predictors at their first fitted levels, and set latent site and spatial contributions to zero. Add the intercept and all environmental terms before converting to a probability. Use the fitted spline knots and categorical encoding. Both plots now show the requested credible interval; categorical plots use a median point and interval bar. These are corrections to the output functions, so existing fits with the stored covariate metadata need no refit.
+
+    **Review:** check `tests/testthat/test-covariate-response.R` and the saved-fit reproduction in `dev/simstudy/covariate-response-validation.md`. Confirm the response target and reference conditions are suitable and clearly documented. Keep this in the review queue until Alex approves; the correction does not establish recovery of true ecological effects or close the other bias checks.
+
 ## Required bias recheck and release preparation (Doug and Alex)
 
 After the code fixes, check whether the estimates are still systematically wrong, then prepare the package and documentation for release. The first two items are specific investigations; the third explains how to judge the results. Undercoverage and overcoverage alone can wait until after beta.
