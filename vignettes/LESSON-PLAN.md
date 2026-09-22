@@ -1,6 +1,6 @@
 # Teaching lessons: status, plans and notes
 
-Last updated: 21 September 2026.
+Last updated: 22 September 2026.
 
 This is a working document for Doug and Alex. Edit it as the lessons develop, and add ideas or corrections in the notes section below. It is kept in Git but explicitly excluded from the source package by `.Rbuildignore`. It is not a vignette and does not need knitting.
 
@@ -11,10 +11,10 @@ The aim is to help an empirical ecologist understand what occJSDM does, read and
 | Lesson | Status | What it teaches | Source |
 |---|---|---|---|
 | Unnumbered Quickstart | Built; merged in PR #12 | Short fitting example, lesson navigation and where to start. Replaces the old standalone output tour. | [occJSDM.Rmd](occJSDM.Rmd) |
-| Lesson 0: Create and explore a simulated survey | Built; already on main | Optional introduction to sites, samples, primers, PCR replicates, environmental covariates, traits and maps of the simulated world. | [occJSDM-lesson-0.Rmd](occJSDM-lesson-0.Rmd) |
-| Lesson 1: Fit the model and compare its answers with truth | Built; already on main | Perfect-observation and PCR fits, occupancy errors, false positives, the good-practice assumptions and sensitivity to contamination priors. | [occJSDM-lesson-1.Rmd](occJSDM-lesson-1.Rmd) |
+| Lesson 0: Create and explore a simulated survey | Core on main; unbalanced-data extension on `codex/lesson-migration` | Optional introduction to sites, samples, primers, PCR replicates, covariates, traits and maps; removing whole samples while preserving paired rows. | [occJSDM-lesson-0.Rmd](occJSDM-lesson-0.Rmd) |
+| Lesson 1: Fit the model and compare its answers with truth | Core on main; fitting reference and unbalanced fit on `codex/lesson-migration` | Perfect-observation and PCR fits, occupancy errors, false positives, prior sensitivity and unequal field replication. | [occJSDM-lesson-1.Rmd](occJSDM-lesson-1.Rmd) |
 | Lesson 2: Spatial landscapes and dispersal | Outline already on main; no worked spatial results | Smooth environmental gradients, additional spatial structure, contrasting dispersal and prediction away from sampled sites. | [occJSDM-lesson-2.Rmd](occJSDM-lesson-2.Rmd) |
-| Lesson 3: Understand the model's outputs | Core lesson merged in PR #12; practical diagnostics restored in this follow-up | Environmental and trait effects, response curves, species associations, ordination, variation partitioning, collection effects and detection effort, all with matching truth. | [occJSDM-lesson-3.Rmd](occJSDM-lesson-3.Rmd) |
+| Lesson 3: Understand the model's outputs | Core lesson and diagnostics on main; native tables and plotting appendix added on `codex/lesson-migration` | Environmental and trait effects, response curves, species associations, ordination, variation partitioning, collection effects and detection effort, all with matching truth. | [occJSDM-lesson-3.Rmd](occJSDM-lesson-3.Rmd) |
 | Lesson N: Compare four JSDMs | Design merged in PR #12; no comparison fits or lesson yet | Compare the pure JSDM in occJSDM with gllvm, sjSDM and Hmsc using perfectly observed presence/absence. | [Pilot design](../dev/simstudy/jsdm-package-comparison/DESIGN.md) |
 
 Read Lesson 0 if the data structure is unfamiliar, then Lesson 1 and Lesson 3. The unfinished spatial lesson is not a prerequisite for Lesson 3. Lesson numbering remains provisional.
@@ -25,7 +25,7 @@ The completed lessons use a shared non-spatial community with 100 sites, 10 spec
 
 Lesson 0 shows how the simulation is constructed and what the model receives. Lesson 1 compares fits supplied with actual presence/absence or PCR observations, explains both the direction and the average size of occupancy errors, and walks through identified weak true detections, strong true detections, laboratory false positives and field-stage false positives. Its alternative-prior example changes the field and laboratory contamination priors together; it cannot attribute the difference to just one of them.
 
-Lesson 3 replaces the old output tour with ten figures and supporting tables. Estimates are paired with the correct generating values, including the scale conversions needed for trait and collection coefficients. It retains examples of poor recovery. In particular, it explains how a real measured-trait effect can be obscured by an opposing unmeasured-trait contribution in a community of only ten species. This is an explanation of the current simulation, not a diagnosis of every older fit.
+Lesson 3 replaces the old output tour with comparisons against truth, practical diagnostics and supporting tables. The current migration adds the native latent-presence table and nine native plots with matching truth: environmental and collection coefficients, baseline occupancy and collection rates, both primers' true/false-positive rates, residual correlations with uncertainty, and cumulative survey counts under different sampling effort. Estimates are paired with the correct generating values, including the scale conversions needed for trait and collection coefficients. It retains examples of poor recovery. In particular, it explains how a real measured-trait effect can be obscured by an opposing unmeasured-trait contribution in a community of only ten species. This is an explanation of the current simulation, not a diagnosis of every older fit.
 
 The teaching R code is visible in HTML and Markdown. Long fitting commands are displayed but do not run during knitting. Compact, checked results are stored in `teaching-data/`; complete fits are archived separately. The original `sampledata` and `sampleresults` objects remain unchanged because they do not contain the full matching truth needed for these lessons.
 
@@ -63,6 +63,12 @@ After the pilot works, possible extensions are repeated communities, 100/300/1,0
 - **How much species information helps trait recovery.** Lesson 3 shows a problem in one ten-species community. A repeated experiment varying the number of species is a possible follow-up, not an agreed or completed study.
 - **Simulator reference.** `simulateOccJSDMData.Rmd` remains a separate reference. Decide later whether to retain it as a technical reference or consolidate overlapping material into Lesson 0 and Lesson 2.
 
+### Variation partitioning among sites
+
+Doug requested a source-code assessment of sjSDM's approach. The [implementation assessment](../dev/simstudy/site-variation-partitioning.md) and [reproducible algebra checks](../dev/simstudy/site-variation-partitioning-audit.R) are complete. They do not add a public function or change the existing species-level output.
+
+The proposed new question is how much environment, space and residual associations help explain the whole observed community at each site. Start with perfectly observed presence/absence, then integrate occupancy and collection uncertainty when scoring PCR observations. Retain species intercepts in every model, use a consistent joint site likelihood, and divide shared improvement transparently. The inspected sjSDM implementation has allocation and edge-case problems, so adapt the idea rather than copying its calculation. Decide between a cheap within-fit diagnostic and a refitted-model comparison before implementation; these answer different questions.
+
 ### Paper2Agent companion
 
 A feasibility assessment exists in the [original teaching design](../dev/simstudy/vignette-lesson/DESIGN.md); no occJSDM Paper2Agent integration has been installed or tested. The proposed first pilot would expose a small verified non-spatial workflow through the original R code: inspect a saved fit, check diagnostics and produce comparisons with truth, then demonstrate a small fresh fit within a declared runtime budget.
@@ -90,25 +96,25 @@ The original walkthrough is preserved unchanged from that revision as [ORIG_occJ
 
 | Original content | Current home and status | Remaining work |
 |---|---|---|
-| Input structure and fitting arguments | Lessons 0 and 1 plus the Quickstart explain the new dataset and show current fitting code. | Add a concise argument reference if needed, using the current API rather than the old `gt` and `traitsMatrix` descriptions. |
-| Unbalanced study design created by dropping whole field samples | Not yet migrated. | Add a Lesson 0 example that removes aligned observation rows and keeps the matching truth and identifiers. Fit/check it separately before presenting results. |
+| Input structure and fitting arguments | Lessons 0 and 1 plus the Quickstart show current fitting code. Lesson 1 now includes a concise reference for model inference, identifiers, covariates, traits, priors, threshold, missingness and retained latent output. | Keep it aligned with the current API, including `n_lattrait` for fitting and the limited scope of `summarisedLatentPresences = FALSE`. |
+| Unbalanced study design created by dropping whole field samples | Lesson 0 removes one whole sample at each of three declared sites, retaining 197 samples and 2,364 PCR rows. Lesson 1 presents a separate matching fit and its diagnostics against unchanged truth. | Keep the example limited to handling unequal effort. One removal pattern and fit cannot estimate the general consequences of sample loss. |
 | MCMC settings | Lesson 1 explains chains, burn-in, retained iterations and thinning. | Keep aligned with the actual fitting API; do not recommend thinning as a repair for poor mixing. |
 | Parameter-level fitting diagnostics | Restored in this follow-up to Lesson 3: public extraction, parameter-label guide, flagged rows including missing diagnostics, and comparison with newer coefficient diagnostics. | Verify future changes to diagnostic definitions; do not describe the public table as covering every model quantity. |
 | Collection-covariate and primer traceplots | Restored in this follow-up to Lesson 3, with actual complete chain excerpts, code for a full fit, and correctly scaled truth lines. Also includes a flagged field-contamination example. | Retain these practical examples when reorganising the lesson. |
-| Environmental and collection coefficients | Truth comparisons in Lesson 3. | The native plotting functions are mostly listed rather than individually demonstrated; consider a short output-reference appendix. |
-| Baseline occupancy and environmental response curves | Worked truth comparisons in Lesson 3. | Preserve the distinction between zero-factor profiles and probabilities averaged over unknown site effects. |
+| Environmental and collection coefficients | Lesson 3 includes truth comparisons and worked native `plotOccupancyCovariates()` and `plotCollectionCovariates()` examples. | Retain the standardization explanation and truth crosses. |
+| Baseline occupancy and environmental response curves | Worked truth comparisons in Lesson 3, now including native `plotOccupancyRates()`. Response profiles use readable custom plots. | Native `plotOccupancyGradient()` / `plotCovariateEffect()` examples remain optional additions. Preserve the distinction between zero-factor profiles and probabilities averaged over unknown site effects. |
 | Conditional and fitted ecological occupancy probabilities | Worked cases, tables and maps in Lesson 1; definitions in Lesson 3. | No additional migration needed for the main distinction. |
 | Prediction at new sites | Concepts explained, but no valid worked replacement yet. | Implement genuine held-out examples in Lesson 2 and/or Lesson N; do not reuse training sites as an independent prediction test. |
 | Ordination scores, loadings and biplot | Lesson 3 compares the combined hidden contribution and shows an optional biplot call. | Restore a worked native plotting tour, aligning axes if comparing configurations with truth. An unchanged combined contribution can coexist with rotated axes. |
-| Collection, detection and false-positive rate plots | Truth comparisons and interpretation spread across Lessons 1 and 3. | Include the native rate-plot calls in the proposed output-reference appendix; distinguish baseline collection rates from sample-specific probabilities. |
+| Collection, detection and false-positive rate plots | Lessons 1 and 3 compare rates with truth. The native appendix adds `plotCollectionRates()` and primer-specific `plotFPTPStage2Rates()` for both primers. | Separate native field-FP and individual PCR-rate plot variants remain to demonstrate if every original call is retained. Their quantities already have truth comparisons in Lesson 1. |
 | Trait-by-environment effects | Expanded truth comparisons and cancellation explanation in Lesson 3. | A larger species-count investigation is optional future work, not a missing migration step. |
-| Residual-correlation display | True and fitted matrices in Lesson 3, with undefined true correlations identified. | Add a worked uncertainty/native-plot example if retaining the full original plotting coverage. |
+| Residual-correlation display | Lesson 3 now includes the native heat map, its interval-crossing-zero markers and true values matched to all 45 species pairs. Undefined true correlations remain explicit. | No additional migration needed for the native uncertainty example. |
 | Variation partitioning, including ternary display | Lesson 3 compares environmental and residual shares in a non-spatial fit. | Add all three components and the corresponding display with a validated spatial example in Lesson 2. |
-| Cumulative detections with different PCR and field replication | Lesson 3 shows matched analytic expectations and explains their distinction from simulated survey counts. | Restore a worked native `plotCumulativeSpeciesDetections()` example alongside truth for its survey-outcome target; retain the six-PCR limit. |
+| Cumulative detections with different PCR and field replication | Lesson 3 now shows the native plot in both directions beside exact generating survey-count quantiles, plus the existing analytic-expectation example. | Retain the distinction between uncertainty in an expectation and variation in random survey counts. Both use at most six PCRs per primer. |
 | WAIC comparison between model specifications | Explanation retained, worked comparison deferred. | Fit competing models to the same observations and show known generating structure and independent prediction performance. Replace old hard-coded WAIC values. |
-| `returnLatentPresences()` and its coloured table | Lesson 1 teaches the constituent probabilities using matched cases; the native table demonstration is missing. | Restore `returnLatentPresences()` and `plotLatentPresences()` on the current fit with truth added by species/site/sample/primer identity. Replace the old unmatched screenshot and incorrect covariate-only interpretation. |
+| `returnLatentPresences()` and its coloured table | Restored in Lesson 3 using the current fit. The native table is joined to actual states and generating probabilities by species/site/sample/primer/PCR identity. | Preserve the distinction between actual binary states, conditional state probabilities and generating probabilities. |
 
-The next migration priority after diagnostics is the native latent-presence table, followed by a compact output-reference appendix. Prediction and model-selection examples need additional fits and should remain explicitly planned until their evidence exists. None of these gaps implies that the corresponding package function has been removed.
+The native latent-presence table and a compact plotting appendix are now implemented. Remaining migration priorities are a truth-aligned native ordination tour, genuine held-out prediction, a matched model-selection comparison and the spatial three-component example. Prediction and model-selection examples need additional fits and remain explicitly planned until their evidence exists. None of these gaps implies that the corresponding package function has been removed.
 
 ## Doug and Alex's notes
 
@@ -126,3 +132,5 @@ _Add notes here._
 
 - **21 September 2026:** Doug requested pull request review of Lessons 3, N and 2. The review combines the completed Lesson 3, Quickstart and planning document with the Lesson N design. The Lesson 2 outline was already on main; the proposed changes repair its navigation. The planned spatial and four-package experiments remain unfinished.
 - **21 September 2026, after PR #12 merged:** Doug asked whether the original vignette's content had all been retained. The audit identified missing practical instructions. He approved restoring hands-on fitting diagnostics first and recording every remaining migration gap above.
+
+- **22 September 2026:** Doug approved starting the migration gaps and auditing sjSDM site-level variation partitioning. The first batch adds native tables/plots, fitting guidance and the unbalanced-data workflow. Further prediction, spatial and model-selection experiments remain planned.

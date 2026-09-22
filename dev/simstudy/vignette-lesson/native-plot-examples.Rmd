@@ -1,0 +1,258 @@
+## Appendix: use the package's plotting functions
+
+These are the package's own plots from the same archived PCR fit, with matching simulated truth added. The displayed commands run once you have loaded the full `fitmodel` using the reproduction instructions. Knitting displays the exported figures without fitting a model. The small `native-plots.rds` file contains truth, plotted summaries and provenance, not a replacement fit.
+
+```{r native-read-examples, purl=FALSE}
+native_examples <- readRDS("teaching-data/native-plots.rds")
+```
+
+```{r native-plot-setup, eval=FALSE, purl=TRUE}
+library(occJSDM)
+library(dplyr)
+library(ggplot2)
+
+native_truth <- native_examples$truth
+
+# Compatible with the ternary theme elements registered by occJSDM.
+native_theme <- ggtern::theme_bw(base_size = 12)
+```
+
+### Environmental and collection coefficients
+
+Start with the ordinary call and add the known coefficient as a black cross. Bars are native 95% posterior intervals; these functions do not draw a posterior mean. Both coefficients below are changes in log-odds per standard deviation of their predictor. The generating collection slope has therefore been multiplied by the collection predictor's standard deviation before comparison.
+
+```{r native-environment-example, eval=FALSE, purl=TRUE}
+environment_truth <- native_truth$environment |>
+  filter(covariate == "X_psi.EnvCov.1")
+
+native_environment <- plotOccupancyCovariates(
+  fitmodel, covName = "X_psi.EnvCov.1"
+) +
+  native_theme +
+  geom_point(
+    data = environment_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Environmental gradient 1",
+    y = "Effect on log-odds per standard deviation",
+    caption = "Black cross: truth. Bar: native 95% interval. Red line: zero effect."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_environment
+```
+
+```{r native-environment-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-environment.png")
+```
+
+```{r native-collection-example, eval=FALSE, purl=TRUE}
+collection_truth <- native_truth$collection |>
+  filter(covariate == "X_theta")
+
+native_collection <- plotCollectionCovariates(fitmodel, covName = "X_theta") +
+  native_theme +
+  geom_point(
+    data = collection_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Collection covariate",
+    y = "Effect on log-odds per standard deviation",
+    caption = "Black cross: truth. Bar: native 95% interval. Red line: zero effect."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_collection
+```
+
+```{r native-collection-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-collection.png")
+```
+
+A cross outside its bar shows an interval that misses truth in this dataset. A bar crossing the red line means its direction is unresolved under this interval criterion; it does not establish that the simulated effect is absent. Species order follows the native interval bounds, so positions differ between plots.
+
+### Baseline occupancy and collection probabilities
+
+These plots show inverse-logit intercepts. Baseline occupancy sets the standardized environmental predictors and site factors to zero. It is not average occupancy across sites. Baseline collection is conditional on presence and sets the standardized collection predictor to zero, meaning its observed raw-scale mean. Its truth is `plogis(raw_intercept + raw_slope * predictor_mean)`, not `plogis(raw_intercept)`.
+
+```{r native-baseline-occupancy-example, eval=FALSE, purl=TRUE}
+native_occupancy_rates <- plotOccupancyRates(fitmodel) +
+  native_theme +
+  geom_point(
+    data = native_truth$occupancy_rates, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Baseline occupancy: zero predictors and zero site factors",
+    y = "Occurrence probability",
+    caption = "Black cross: truth. Bar: native 95% interval."
+  )
+
+native_occupancy_rates
+```
+
+```{r native-occupancy-rates-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-occupancy-rates.png")
+```
+
+```{r native-baseline-collection-example, eval=FALSE, purl=TRUE}
+native_collection_rates <- plotCollectionRates(fitmodel) +
+  native_theme +
+  geom_point(
+    data = native_truth$collection_rates, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Baseline collection: collection predictor at its mean",
+    y = "Collection probability, given presence",
+    caption = "Black cross: truth. Bar: native 95% interval."
+  )
+
+native_collection_rates
+```
+
+```{r native-collection-rates-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-collection-rates.png")
+```
+
+### Laboratory true-positive and false-positive rates by primer
+
+Blue intervals describe positive PCR observations given collection; red intervals describe positive PCR observations without collection. Each black cross is the corresponding true probability. With the fitted threshold of one read, truth equals the generating event probability multiplied by the probability that its rounded read count reaches the threshold. The adjustment uses the true-read distribution for true positives and the contamination-read distribution for false positives.
+
+```{r native-primer-1-example, eval=FALSE, purl=TRUE}
+primer_1_truth <- native_truth$laboratory |>
+  filter(Primer == "1")
+
+native_primer_1 <- plotFPTPStage2Rates(fitmodel, primerName = "1") +
+  native_theme +
+  geom_point(
+    data = primer_1_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(caption = "Black crosses: true rates. Coloured bars: native 95% intervals.")
+
+native_primer_1
+```
+
+```{r native-primer-1-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-primer-1.png")
+```
+
+```{r native-primer-2-example, eval=FALSE, purl=TRUE}
+primer_2_truth <- native_truth$laboratory |>
+  filter(Primer == "2")
+
+native_primer_2 <- plotFPTPStage2Rates(fitmodel, primerName = "2") +
+  native_theme +
+  geom_point(
+    data = primer_2_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(caption = "Black crosses: true rates. Coloured bars: native 95% intervals.")
+
+native_primer_2
+```
+
+```{r native-primer-2-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-primer-2.png")
+```
+
+### Residual correlations and their uncertainty
+
+The native heat map colours each pair by its fitted median residual correlation. Its central **X means the model cannot confidently establish whether the association is positive or negative**: the 95% credible interval includes zero. It does not mean the true correlation is zero. The small number above each X is the true correlation from the generating loading matrix. For example, `1.00` above an X means a truly strong positive correlation was estimated too uncertainly to establish its direction. All 45 pairs have Xs in this fit. Unlike the crosses in the coefficient plots, these Xs are uncertainty markers; the numbers supply the truth. `NA` means undefined: `OTU_4` has zero true residual variance. This is not a true correlation of zero. Wide uncertainty here coexists with strong true correlations; a pale tile does not prove absence of an association. Residual associations are not direct evidence of biological interactions.
+
+```{r native-correlation-example, eval=FALSE, purl=TRUE}
+native_correlations <- plotResidualCorrelationMatrix(
+  fitmodel, showSignificance = TRUE, confidence = 0.95
+) +
+  native_theme +
+  geom_text(
+    data = native_truth$correlations,
+    aes(x = species1, y = species2, label = truth_label),
+    inherit.aes = FALSE, nudge_y = 0.27, size = 3
+  ) +
+  labs(
+    title = "Residual correlation: fitted colour and known truth",
+    x = "Species", y = "Species",
+    caption = "Colour: fitted median. X: direction uncertain (95% interval includes zero).\nNumber: true correlation. An X does not mean the true correlation is zero. NA: undefined truth."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_correlations
+```
+
+```{r native-correlations-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-correlations.png")
+```
+
+### Cumulative detections: compare survey outcomes with survey outcomes
+
+This function asks how many species would be detected if **all ten were present at the site**, the collection predictor were at its mean, and false positives were excluded. It pools both primers and varies field samples (`M`) and PCRs per primer per sample (`K`). It does not predict observed richness at an arbitrary site. Field replication up to four is prospective; the fitted data contained two field samples per site. PCR replication stays within the six-PCR design.
+
+Native bars include both fitted-parameter uncertainty and random collection/PCR outcomes. The routine selects 500 posterior draws to simulate surveys, so endpoints can vary with the seed. Orange bars are the exact 2.5% and 97.5% quantiles of the matching survey-count distribution under the generating parameters. Orange crosses mark its median. These truth intervals remain wide even when parameters are known.
+
+Each species' true detection probability is `1 - (1 - theta * (1 - prod((1 - p)^K)))^M`. Here `theta` is baseline collection conditional on presence and the primer-specific `p` values include the read-threshold adjustment. Combining ten independent detection indicators gives the exact count distribution from zero to ten. Its quantiles are stored in the teaching bundle. This is a distribution of random survey outcomes, not an interval around the analytic expectation taught earlier.
+
+```{r native-effort-k-example, eval=FALSE, purl=TRUE}
+set.seed(20260922)
+
+native_effort_k <- plotCumulativeSpeciesDetections(
+  fitmodel, M = 4, K = 6, primer = 0, byK = TRUE
+) +
+  native_theme +
+  geom_linerange(
+    data = native_truth$survey_counts,
+    aes(x = K + 0.12, ymin = lower, ymax = upper),
+    inherit.aes = FALSE, colour = "#C45B00", linewidth = 1.2
+  ) +
+  geom_point(
+    data = native_truth$survey_counts, aes(x = K + 0.12, y = median),
+    inherit.aes = FALSE, colour = "#C45B00", shape = 4, size = 2.5
+  ) +
+  labs(
+    title = "More PCRs per primer and field sample",
+    caption = "Black: native 95% survey interval. Orange: true 95% range and median.\nTruth is offset slightly to the right to keep both intervals visible."
+  )
+
+native_effort_k
+```
+
+```{r native-effort-k-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-effort-k.png")
+```
+
+Changing `byK` puts field replication on the horizontal axis. Resetting the same seed gives the same native intervals rearranged, not a second fit or a different survey target.
+
+```{r native-effort-m-example, eval=FALSE, purl=TRUE}
+set.seed(20260922)
+
+native_effort_m <- plotCumulativeSpeciesDetections(
+  fitmodel, M = 4, K = 6, primer = 0, byK = FALSE
+) +
+  native_theme +
+  geom_linerange(
+    data = native_truth$survey_counts,
+    aes(x = M + 0.12, ymin = lower, ymax = upper),
+    inherit.aes = FALSE, colour = "#C45B00", linewidth = 1.2
+  ) +
+  geom_point(
+    data = native_truth$survey_counts, aes(x = M + 0.12, y = median),
+    inherit.aes = FALSE, colour = "#C45B00", shape = 4, size = 2.5
+  ) +
+  labs(
+    title = "More field samples per site",
+    caption = "Black: native 95% survey interval. Orange: true 95% range and median.\nTruth is offset slightly to the right to keep both intervals visible."
+  )
+
+native_effort_m
+```
+
+```{r native-effort-m-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-effort-m.png")
+```
+
+### Ordination: the remaining native plotting gap
+
+A worked tour of `plotOrdinationScores()`, `plotFactorLoadings()` and `plotBiplot()` remains deferred. True and fitted factor axes can rotate or change signs, so an unaligned truth overlay would falsely label an equivalent configuration as an error. The existing comparison of the combined contribution `U %*% L` remains the checked, rotation-invariant comparison. A future native ordination example must declare and validate a joint score/loading alignment before presenting truth on those axes.

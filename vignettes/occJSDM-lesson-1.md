@@ -262,6 +262,70 @@ fit <- runOccJSDM(
 )
 ```
 
+### A short fitting reference for your own data
+
+`runOccJSDM()` uses the rows and identifiers in `data$info` to recognize
+the observation structure. For binary presence/absence and the
+read-count detection workflows discussed here:
+
+| Data structure | Model selected | What the rows represent |
+|----|----|----|
+| One row per site with a 0/1 species matrix | Pure JSDM | Observed species presences and absences, treated as perfectly observed |
+| Repeated sites, but each field sample contributes only one row | One-stage occupancy model | Repeated field observations with one detection stage |
+| Repeated sites and repeated sample identifiers | Two-stage occupancy model | PCR/primer observations nested within field samples |
+
+These lessons use field-sample IDs that are unique across the survey,
+and reuse a sample’s ID for its PCR/primer rows. The fitting function
+prints the model it recognized; check that this matches the survey you
+intended. Collapsing PCRs or samples into a single row changes the
+information supplied to the model. The one-stage model is an available
+alternative, not an additional worked fit in this lesson. A
+one-row-per-site matrix of integer abundances greater than one is not
+currently a supported count-data JSDM.
+
+The main settings are:
+
+| Setting | What you supply or choose |
+|----|----|
+| `data$info` and `data$OTU` | Observation metadata and the species matrix, with exactly matching rows |
+| `data$traits` | Optional species traits, with row names matching species names in the observation matrix |
+| `occCovariates` | Names of site-level environmental columns in `data$info` |
+| `collCovariates` | Names of sample-level collection columns in `data$info` |
+| `spatCovariates` | Coordinate-column names, or `NULL` for the non-spatial fit used here |
+| `listParams$n_factors` | Number of hidden site factors describing residual species associations |
+| `listParams$n_lattrait` | Number of unmeasured species-trait dimensions; this is the fitting argument, whereas the simulator calls it `gt` |
+| `threshold` | Minimum reads counted as a positive result; we use 1 throughout |
+| `listPriors` | Prior settings; the contamination-prior example below changes named entries explicitly |
+| `MCMCparams` | Chains, burn-in, retained draws and thinning, explained above |
+
+An environmental or collection intercept does not require a named
+covariate. Measured traits and the three covariate groups are optional;
+omit the corresponding information when the study does not supply it.
+After fitting a categorical covariate, inspect the design-matrix column
+names before asking for a coefficient by name: category contrasts can
+create names that differ from the original input column.
+
+``` r
+colnames(fit$X_psi)
+
+colnames(fit$X_theta)
+```
+
+A failed or unavailable PCR result is **not a negative detection**. In
+the current implementation, `NA` observations are supported only for the
+two-stage model. The unbalanced-sampling extension below shows the
+distinct case where an entire field sample is absent: its observation
+rows are removed from both input tables, rather than filled with zeroes.
+
+The default `summarisedLatentPresences = TRUE` saves posterior means for
+the site and sample states and probabilities. Set it to `FALSE` before
+fitting if you need retained site-state (`z_output`) and
+site-probability (`psi_output`) draws. In the current implementation,
+sample-state (`w_output`) and collection-probability (`theta_output`)
+outputs still contain means; the flag does **not** preserve every latent
+quantity’s draws. Keeping draws uses more memory. Lesson 3 shows how to
+inspect output dimensions rather than guess what an array contains.
+
 ``` r
 comparison_results <- occupancy_results |>
   filter(arm %in% c("perfect", "default")) |>
@@ -1127,6 +1191,201 @@ above the Rhat 1.01 screen, with a maximum of 1.014. The smallest
 parameter effective sample size is 361, below the commonly used screen
 of 400. Treat small differences under those alternative priors
 cautiously; we do not claim that every parameter has fully converged.
+
+## Fit a survey with unequal replication
+
+Lesson 0 removes one whole field sample from each of Sites 12, 31 and
+52, using a fixed random choice made before fitting. We keep all 100
+sites and all ten species, with 197 samples and 2,364 PCR rows. The
+following code reconstructs that reduced dataset from the saved removal
+keys, so this section also works if you skipped Lesson 0.
+
+``` r
+unbalanced_lesson <- readRDS("teaching-data/unbalanced-lesson.rds")
+removed_samples <- unbalanced_lesson$removal$removed_samples
+
+retained_rows <- survey_data$info |>
+  mutate(original_row = row_number()) |>
+  anti_join(removed_samples, by = c("Site", "Sample")) |>
+  pull(original_row)
+
+unbalanced_data <- survey_data
+unbalanced_data$info <- survey_data$info[retained_rows, , drop = FALSE]
+unbalanced_data$OTU <- survey_data$OTU[retained_rows, , drop = FALSE]
+
+removed_samples
+```
+
+    #> # A tibble: 3 × 2
+    #>    Site Sample
+    #>   <dbl>  <dbl>
+    #> 1    12     24
+    #> 2    31     61
+    #> 3    52    103
+
+These samples are absent rows, not all-zero or `NA` PCR results. The
+remaining samples retain both primers and all six PCRs per primer.
+Original sample IDs and all simulated truths stay unchanged.
+
+The optional fitting call uses the same priors, model settings and chain
+lengths as the original default-prior fit. The new sampling seed is
+20260924. **This chunk is not run when knitting**; its one matching
+saved fit supplies the results below.
+
+``` r
+set.seed(20260924)
+unbalanced_fit <- occJSDM::runOccJSDM(
+  data = unbalanced_data,
+  listParams = list(n_factors = 2L, n_lattrait = 1L),
+  threshold = 1,
+  occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
+  collCovariates = "X_theta",
+  spatCovariates = NULL,
+  MCMCparams = list(nchain = 4L, nburn = 3000L, niter = 6000L, nthin = 1L),
+  listPriors = list(),
+  summarisedLatentPresences = TRUE
+)
+```
+
+First compare every estimated occupancy probability with its matching
+simulation truth. Highlighting the 30 species-site combinations at the
+three reduced sites helps us locate them within the full set of 1,000
+combinations. The line marks exact agreement.
+
+``` r
+replication_results <- bind_rows(
+  lesson$cells |> filter(arm == "default"),
+  unbalanced_lesson$cells
+) |>
+  mutate(
+    survey = factor(arm, levels = c("default", "unbalanced"),
+                    labels = c("Original: 200 samples", "Reduced: 197 samples")),
+    reduced_site = Site %in% as.character(removed_samples$Site),
+    site_group = if_else(reduced_site, "Three selected sites", "Other 97 sites")
+  )
+```
+
+``` r
+replication_results |>
+  arrange(reduced_site) |>
+  ggplot(aes(x = truth, y = estimate, colour = site_group)) +
+  geom_abline(slope = 1, intercept = 0, colour = "grey55") +
+  geom_point(alpha = 0.55, size = 1.3) +
+  facet_wrap(~ survey) +
+  scale_colour_manual(values = c("Other 97 sites" = "#777777",
+                                "Three selected sites" = "#D55E00")) +
+  coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = "True occupancy probability", y = "Estimated occupancy probability",
+       colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+![](occJSDM-lesson-1_files/figure-gfm/unbalanced-truth-1.png)<!-- -->
+
+For a closer look at the selected sites, diamonds show each unchanged
+true probability. Points and 95% credible intervals show the two fitted
+answers. These are probabilities `psi`, not the binary simulated site
+states `z`.
+
+``` r
+selected_probabilities <- replication_results |>
+  filter(reduced_site) |>
+  mutate(species = factor(species, levels = paste0("OTU_", 1:10)))
+
+selected_probabilities |>
+  ggplot(aes(x = species, y = estimate, colour = survey)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper),
+                  position = position_dodge(width = 0.6), linewidth = 0.3) +
+  geom_point(data = selected_probabilities |> filter(arm == "unbalanced"),
+             aes(y = truth), colour = "black", shape = 18, size = 2.6) +
+  facet_wrap(~ Site, nrow = 1, labeller = label_both) +
+  scale_colour_manual(values = c("#0072B2", "#D55E00")) +
+  scale_y_continuous(limits = c(0, 1)) +
+  labs(x = NULL, y = "Occupancy probability", colour = NULL,
+       caption = "Black diamonds: unchanged simulation truth. Lines: 95% credible intervals.") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+```
+
+![](occJSDM-lesson-1_files/figure-gfm/unbalanced-selected-sites-1.png)<!-- -->
+
+Calculate errors for both the complete community and the selected sites.
+Signed error is estimate minus truth; mean absolute error ignores the
+direction of each error. The `truth` and `estimate` columns remain
+probabilities, and the two error columns are percentage points.
+
+``` r
+replication_errors <- bind_rows(
+  replication_results |> mutate(scope = "All 100 sites"),
+  replication_results |> filter(reduced_site) |>
+    mutate(scope = "Three sites with one sample removed")
+) |>
+  group_by(scope, survey) |>
+  summarise(
+    cells = n(),
+    truth = mean(truth),
+    estimate = mean(estimate),
+    signed_error_pp = 100 * mean(estimate - truth),
+    mean_absolute_error_pp = 100 * mean(abs(estimate - truth)),
+    .groups = "drop"
+  )
+
+knitr::kable(replication_errors, digits = 3)
+```
+
+| scope | survey | cells | truth | estimate | signed_error_pp | mean_absolute_error_pp |
+|:---|:---|---:|---:|---:|---:|---:|
+| All 100 sites | Original: 200 samples | 1000 | 0.512 | 0.475 | -3.771 | 3.771 |
+| All 100 sites | Reduced: 197 samples | 1000 | 0.512 | 0.476 | -3.678 | 3.678 |
+| Three sites with one sample removed | Original: 200 samples | 30 | 0.525 | 0.475 | -4.980 | 4.980 |
+| Three sites with one sample removed | Reduced: 197 samples | 30 | 0.525 | 0.478 | -4.745 | 4.745 |
+
+The full-community mean absolute error is about 17 percentage points in
+both saved fits. **This single deletion and fit do not estimate the
+general effect of losing samples.** The two fits also use different MCMC
+seeds. Comparing their answers demonstrates a working input with unequal
+replication; a study of sample loss would repeat survey generation,
+deletion and fitting and assess Monte Carlo uncertainty.
+
+Check numerical diagnostics before drawing further conclusions. The
+public diagnostic table flags the environmental slope for OTU_3
+(`X_psi.EnvCov.1`), with Rhat about 1.015. We retain that warning rather
+than choosing another seed or silently extending the fit. The saved call
+raised no R warning conditions; the diagnostic flag is a separate issue.
+
+``` r
+unbalanced_lesson$diagnostics |>
+  filter(is.na(rhat) | is.na(ess) | rhat > 1.01 | ess < 400) |>
+  select(param, label1, label2, rhat, ess) |>
+  knitr::kable(digits = 3)
+```
+
+| param    | label1         | label2 |  rhat |      ess |
+|:---------|:---------------|:-------|------:|---------:|
+| beta_psi | X_psi.EnvCov.1 | OTU_3  | 1.015 | 1601.138 |
+
+``` r
+unbalanced_lesson$cells |>
+  summarise(
+    probabilities = n(),
+    max_Rhat = max(rhat),
+    min_ESS = min(ess),
+    flagged = sum(is.na(rhat) | is.na(ess) | rhat > 1.01 | ess < 400)
+  ) |>
+  knitr::kable(digits = 3)
+```
+
+| probabilities | max_Rhat | min_ESS | flagged |
+|--------------:|---------:|--------:|--------:|
+|          1000 |    1.008 | 940.211 |       0 |
+
+The first table uses the public function’s classical `coda` Rhat and
+ESS. The second uses `posterior` diagnostics on the reconstructed
+probability draws: all 1,000 pass these thresholds, with maximum Rhat
+about 1.008 and minimum ESS about 940. These measures ask how well
+chains explored their distributions. They do not establish accuracy
+against ecological truth, which is why the paired truth figures and
+error table remain necessary.
 
 ## Reproduce the lesson and inspect its evidence
 

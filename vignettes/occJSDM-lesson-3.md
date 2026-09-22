@@ -654,9 +654,9 @@ observation process. Its appropriate simulation check is the realized
 simulated detection cases, with maps in Lesson 0.
 
 `returnLatentPresences()` and `plotLatentPresences()` collect those
-fitted quantities by site, sample and primer. They are useful diagnostic
-displays, but the old vignette’s screenshot came from another
-simulation. Use the matched examples in Lesson 1 instead.
+fitted quantities by site, sample and primer. The next section
+demonstrates them on this lesson’s own simulation, so the observations,
+estimates and truth all refer to the same records.
 
 Genuine prediction at an unsurveyed site requires keeping its
 observations out of fitting and averaging appropriately over its unknown
@@ -664,6 +664,256 @@ conditions. Reusing the fitting sites’ covariates is not an independent
 prediction test. A dedicated new-site example and the spatial outputs
 belong with the planned prediction and spatial lessons; this lesson
 makes no held-out or spatial-accuracy claim.
+
+## Put the observations, inferred states and truth in one table
+
+The native latent-presence table answers a practical question: **what
+did we observe, and what does the fitted model think happened at this
+site and in this sample?** A row is one PCR observation for one species.
+The same inferred site probability therefore repeats across that site’s
+samples and PCRs. Repeated entries are not additional independent
+estimates.
+
+For your own full fit, these two calls extract the table and display it.
+Match the species name to the fitted names instead of assuming that a
+particular column is always the species you want.
+
+``` r
+species_index <- match("OTU_1", fitmodel$infos$speciesNames)
+stopifnot(!is.na(species_index))
+
+latent_presences <- occJSDM::returnLatentPresences(
+  fitmodel,
+  idx_species = species_index
+)
+
+occJSDM::plotLatentPresences(
+  latent_presences,
+  species_name = "OTU_1"
+)
+```
+
+To keep knitting quick, the next chunk reads the exact tables exported
+from the saved default-prior fit. No estimates are recalculated or
+replaced with truth. We focus on OTU_1 at sites 2 and 3: the laboratory
+false-positive and weak true-detection cases selected in Lesson 1. Both
+field samples and both primers are retained at each site. The six PCRs
+within each sample/primer combination are numbered in their original
+observation order.
+
+``` r
+native_tables <- readRDS("teaching-data/latent-presence-lesson.rds")
+
+latent_rows <- native_tables$tables |>
+  filter(species == "OTU_1", Site %in% c(2, 3)) |>
+  arrange(Site, Sample, Primer, PCR)
+
+observed_truth <- lesson$observations |>
+  select(
+    species, Site, Sample, Primer, PCR,
+    TrueSite = z, TrueSample = w, Source = source
+  )
+
+state_table <- latent_rows |>
+  left_join(
+    observed_truth,
+    by = c("species", "Site", "Sample", "Primer", "PCR"),
+    relationship = "one-to-one"
+  )
+```
+
+The join uses the species and all observation identifiers. It would be
+unsafe to attach truth by position after sorting or filtering either
+table. `relationship = "one-to-one"` also makes duplicate truth records
+an error instead of silently multiplying rows.
+
+`TrueSite` and `TrueSample` are actual simulated states: 1 means present
+and 0 means absent. Their matching estimates are `CondOccProb` and
+`CondSampleProb`, which are probabilities between zero and one. `OTU` is
+the observed read count. `Source` reveals where a positive came from in
+the simulation; this information was never supplied to the fit.
+
+``` r
+state_columns <- c(
+  "Site", "Sample", "Primer", "PCR", "OTU", "Source",
+  "TrueSite", "CondOccProb", "TrueSample", "CondSampleProb"
+)
+
+native_state_table <- occJSDM::plotLatentPresences(
+  state_table,
+  species_name = "OTU_1",
+  title = "Actual states beside the model's probabilities",
+  columns = state_columns,
+  container_height = 450
+) |>
+  gt::fmt_number(columns = c(PCR, TrueSite, TrueSample), decimals = 0) |>
+  gt::fmt_percent(columns = c(CondOccProb, CondSampleProb), decimals = 1)
+
+if (knitr::pandoc_to() %in% c("html", "html4", "html5")) {
+  native_state_table
+} else {
+  state_table |>
+    select(all_of(state_columns)) |>
+    knitr::kable(digits = 3)
+}
+```
+
+| Site | Sample | Primer | PCR | OTU | Source | TrueSite | CondOccProb | TrueSample | CondSampleProb |
+|---:|---:|---:|---:|---:|:---|---:|---:|---:|---:|
+| 2 | 3 | 1 | 1 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 1 | 2 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 1 | 3 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 1 | 4 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 1 | 5 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 1 | 6 | 1 | Laboratory false positive | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 2 | 1 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 2 | 2 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 2 | 3 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 2 | 4 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 2 | 5 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 3 | 2 | 6 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
+| 2 | 4 | 1 | 1 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 1 | 2 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 1 | 3 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 1 | 4 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 1 | 5 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 1 | 6 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 2 | 1 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 2 | 2 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 2 | 3 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 2 | 4 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 2 | 5 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 2 | 4 | 2 | 6 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
+| 3 | 5 | 1 | 1 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 1 | 2 | 72 | True detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 1 | 3 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 1 | 4 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 1 | 5 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 1 | 6 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 2 | 1 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 2 | 2 | 238 | True detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 2 | 3 | 68 | True detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 2 | 4 | 66 | True detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 2 | 5 | 139 | True detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 5 | 2 | 6 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
+| 3 | 6 | 1 | 1 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 1 | 2 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 1 | 3 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 1 | 4 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 1 | 5 | 466 | True detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 1 | 6 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 2 | 1 | 291 | True detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 2 | 2 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 2 | 3 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 2 | 4 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 2 | 5 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+| 3 | 6 | 2 | 6 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+
+In HTML, colours group the sites and shades group samples and primers.
+They do not indicate confidence or whether the model is correct.
+Markdown shows the same records as an ordinary table; its probabilities
+are decimals rather than percentages.
+
+At site 2, sample 3 has no OTU_1 DNA (`TrueSample = 0`), despite a
+positive PCR. OTU_1 nevertheless occupies the site (`TrueSite = 1`).
+This is a **laboratory false positive about the sample**, not evidence
+that the species must be absent from the entire site. At site 3, sample
+6 genuinely contains DNA but gives only two positives across its twelve
+PCR observations. Read both samples together before judging the site’s
+inferred state.
+
+### Keep generating probabilities separate from actual states
+
+The table’s other three probabilities answer different questions.
+`PredOccProb` estimates the generating occupancy probability at a fitted
+site, including its learned hidden site contribution. `CollectionProb`
+estimates collection success **if the species is present at the site**.
+`DetectionProb` estimates a threshold-positive PCR **if its DNA is in
+the sample**. Neither collection nor detection probability is an
+unconditional prediction that an arbitrary PCR will be positive.
+
+For these columns, compare probabilities with probabilities. The true
+site probabilities are already in the checked occupancy summaries. The
+true collection probability comes from the raw collection covariate and
+the simulator’s collection intercept and slope. The true PCR
+probabilities below include the read-threshold adjustment explained in
+Lesson 1.
+
+``` r
+site_truth <- lesson$cells |>
+  filter(arm == "default", species == "OTU_1") |>
+  transmute(Site = as.numeric(Site), TrueOccupancy = truth)
+
+truth_species_index <- match(
+  "OTU_1",
+  colnames(lesson$input$sim$data_list$OTU)
+)
+
+collection_coefficients <- lesson$input$sim$true_params$beta_theta_true[
+  , truth_species_index
+]
+
+sample_truth <- lesson$input$sim$data_list$info |>
+  distinct(Site, Sample, X_theta) |>
+  mutate(
+    TrueCollection = plogis(
+      collection_coefficients[1] + collection_coefficients[2] * X_theta
+    )
+  ) |>
+  select(Site, Sample, TrueCollection)
+
+primer_truth <- lesson$rates |>
+  filter(arm == "default", species == "OTU_1", param == "p") |>
+  transmute(Primer = as.numeric(Primer), TrueDetection = truth)
+
+probability_table <- latent_rows |>
+  distinct(Site, Sample, Primer, PredOccProb, CollectionProb, DetectionProb) |>
+  left_join(site_truth, by = "Site", relationship = "many-to-one") |>
+  left_join(sample_truth, by = c("Site", "Sample"), relationship = "many-to-one") |>
+  left_join(primer_truth, by = "Primer", relationship = "many-to-one")
+```
+
+``` r
+probability_columns <- c(
+  "Site", "Sample", "Primer", "TrueOccupancy", "PredOccProb",
+  "TrueCollection", "CollectionProb", "TrueDetection", "DetectionProb"
+)
+
+native_probability_table <- occJSDM::plotLatentPresences(
+  probability_table,
+  species_name = "OTU_1",
+  title = "Generating probabilities beside their estimates",
+  columns = probability_columns,
+  container_height = 350
+) |>
+  gt::fmt_percent(columns = all_of(probability_columns[-c(1, 2, 3)]), decimals = 1)
+
+if (knitr::pandoc_to() %in% c("html", "html4", "html5")) {
+  native_probability_table
+} else {
+  probability_table |>
+    select(all_of(probability_columns)) |>
+    knitr::kable(digits = 3)
+}
+```
+
+| Site | Sample | Primer | TrueOccupancy | PredOccProb | TrueCollection | CollectionProb | TrueDetection | DetectionProb |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 2 | 3 | 1 | 0.992 | 0.771 | 0.094 | 0.095 | 0.35 | 0.338 |
+| 2 | 3 | 2 | 0.992 | 0.771 | 0.094 | 0.095 | 0.45 | 0.453 |
+| 2 | 4 | 1 | 0.992 | 0.771 | 0.349 | 0.351 | 0.35 | 0.338 |
+| 2 | 4 | 2 | 0.992 | 0.771 | 0.349 | 0.351 | 0.45 | 0.453 |
+| 3 | 5 | 1 | 0.850 | 0.750 | 0.611 | 0.624 | 0.35 | 0.338 |
+| 3 | 5 | 2 | 0.850 | 0.750 | 0.611 | 0.624 | 0.45 | 0.453 |
+| 3 | 6 | 1 | 0.850 | 0.750 | 0.239 | 0.237 | 0.35 | 0.338 |
+| 3 | 6 | 2 | 0.850 | 0.750 | 0.239 | 0.237 | 0.45 | 0.453 |
+
+There are eight rows because these probabilities do not vary among
+repeated PCRs with the same site, sample and primer. Collection can vary
+between samples because `X_theta` varies. Detection varies by primer in
+this model. Inspecting the actual states in the first table and the
+generating probabilities in the second avoids treating a single success
+or failure as a probability estimate.
 
 ## Check computation as well as ecological recovery
 
@@ -1104,6 +1354,313 @@ and PCR fits here have different response data, so their WAIC values
 must not be compared as if they were competing models of one dataset. We
 have not fitted a model-selection example in this lesson.
 
+## Appendix: use the package’s plotting functions
+
+These are the package’s own plots from the same archived PCR fit, with
+matching simulated truth added. The displayed commands run once you have
+loaded the full `fitmodel` using the reproduction instructions. Knitting
+displays the exported figures without fitting a model. The small
+`native-plots.rds` file contains truth, plotted summaries and
+provenance, not a replacement fit.
+
+``` r
+native_examples <- readRDS("teaching-data/native-plots.rds")
+```
+
+``` r
+library(occJSDM)
+library(dplyr)
+library(ggplot2)
+
+native_truth <- native_examples$truth
+
+# Compatible with the ternary theme elements registered by occJSDM.
+native_theme <- ggtern::theme_bw(base_size = 12)
+```
+
+### Environmental and collection coefficients
+
+Start with the ordinary call and add the known coefficient as a black
+cross. Bars are native 95% posterior intervals; these functions do not
+draw a posterior mean. Both coefficients below are changes in log-odds
+per standard deviation of their predictor. The generating collection
+slope has therefore been multiplied by the collection predictor’s
+standard deviation before comparison.
+
+``` r
+environment_truth <- native_truth$environment |>
+  filter(covariate == "X_psi.EnvCov.1")
+
+native_environment <- plotOccupancyCovariates(
+  fitmodel, covName = "X_psi.EnvCov.1"
+) +
+  native_theme +
+  geom_point(
+    data = environment_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Environmental gradient 1",
+    y = "Effect on log-odds per standard deviation",
+    caption = "Black cross: truth. Bar: native 95% interval. Red line: zero effect."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_environment
+```
+
+<img src="teaching-data/native-plot-environment.png" alt="" width="100%" />
+
+``` r
+collection_truth <- native_truth$collection |>
+  filter(covariate == "X_theta")
+
+native_collection <- plotCollectionCovariates(fitmodel, covName = "X_theta") +
+  native_theme +
+  geom_point(
+    data = collection_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Collection covariate",
+    y = "Effect on log-odds per standard deviation",
+    caption = "Black cross: truth. Bar: native 95% interval. Red line: zero effect."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_collection
+```
+
+<img src="teaching-data/native-plot-collection.png" alt="" width="100%" />
+
+A cross outside its bar shows an interval that misses truth in this
+dataset. A bar crossing the red line means its direction is unresolved
+under this interval criterion; it does not establish that the simulated
+effect is absent. Species order follows the native interval bounds, so
+positions differ between plots.
+
+### Baseline occupancy and collection probabilities
+
+These plots show inverse-logit intercepts. Baseline occupancy sets the
+standardized environmental predictors and site factors to zero. It is
+not average occupancy across sites. Baseline collection is conditional
+on presence and sets the standardized collection predictor to zero,
+meaning its observed raw-scale mean. Its truth is
+`plogis(raw_intercept + raw_slope * predictor_mean)`, not
+`plogis(raw_intercept)`.
+
+``` r
+native_occupancy_rates <- plotOccupancyRates(fitmodel) +
+  native_theme +
+  geom_point(
+    data = native_truth$occupancy_rates, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Baseline occupancy: zero predictors and zero site factors",
+    y = "Occurrence probability",
+    caption = "Black cross: truth. Bar: native 95% interval."
+  )
+
+native_occupancy_rates
+```
+
+<img src="teaching-data/native-plot-occupancy-rates.png" alt="" width="100%" />
+
+``` r
+native_collection_rates <- plotCollectionRates(fitmodel) +
+  native_theme +
+  geom_point(
+    data = native_truth$collection_rates, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Baseline collection: collection predictor at its mean",
+    y = "Collection probability, given presence",
+    caption = "Black cross: truth. Bar: native 95% interval."
+  )
+
+native_collection_rates
+```
+
+<img src="teaching-data/native-plot-collection-rates.png" alt="" width="100%" />
+
+### Laboratory true-positive and false-positive rates by primer
+
+Blue intervals describe positive PCR observations given collection; red
+intervals describe positive PCR observations without collection. Each
+black cross is the corresponding true probability. With the fitted
+threshold of one read, truth equals the generating event probability
+multiplied by the probability that its rounded read count reaches the
+threshold. The adjustment uses the true-read distribution for true
+positives and the contamination-read distribution for false positives.
+
+``` r
+primer_1_truth <- native_truth$laboratory |>
+  filter(Primer == "1")
+
+native_primer_1 <- plotFPTPStage2Rates(fitmodel, primerName = "1") +
+  native_theme +
+  geom_point(
+    data = primer_1_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(caption = "Black crosses: true rates. Coloured bars: native 95% intervals.")
+
+native_primer_1
+```
+
+<img src="teaching-data/native-plot-primer-1.png" alt="" width="100%" />
+
+``` r
+primer_2_truth <- native_truth$laboratory |>
+  filter(Primer == "2")
+
+native_primer_2 <- plotFPTPStage2Rates(fitmodel, primerName = "2") +
+  native_theme +
+  geom_point(
+    data = primer_2_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(caption = "Black crosses: true rates. Coloured bars: native 95% intervals.")
+
+native_primer_2
+```
+
+<img src="teaching-data/native-plot-primer-2.png" alt="" width="100%" />
+
+### Residual correlations and their uncertainty
+
+The native heat map colours each pair by its fitted median residual
+correlation. Its central **X means the model cannot confidently
+establish whether the association is positive or negative**: the 95%
+credible interval includes zero. It does not mean the true correlation
+is zero. The small number above each X is the true correlation from the
+generating loading matrix. For example, `1.00` above an X means a truly
+strong positive correlation was estimated too uncertainly to establish
+its direction. All 45 pairs have Xs in this fit. Unlike the crosses in
+the coefficient plots, these Xs are uncertainty markers; the numbers
+supply the truth. `NA` means undefined: `OTU_4` has zero true residual
+variance. This is not a true correlation of zero. Wide uncertainty here
+coexists with strong true correlations; a pale tile does not prove
+absence of an association. Residual associations are not direct evidence
+of biological interactions.
+
+``` r
+native_correlations <- plotResidualCorrelationMatrix(
+  fitmodel, showSignificance = TRUE, confidence = 0.95
+) +
+  native_theme +
+  geom_text(
+    data = native_truth$correlations,
+    aes(x = species1, y = species2, label = truth_label),
+    inherit.aes = FALSE, nudge_y = 0.27, size = 3
+  ) +
+  labs(
+    title = "Residual correlation: fitted colour and known truth",
+    x = "Species", y = "Species",
+    caption = "Colour: fitted median. X: direction uncertain (95% interval includes zero).\nNumber: true correlation. An X does not mean the true correlation is zero. NA: undefined truth."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_correlations
+```
+
+<img src="teaching-data/native-plot-correlations.png" alt="" width="100%" />
+
+### Cumulative detections: compare survey outcomes with survey outcomes
+
+This function asks how many species would be detected if **all ten were
+present at the site**, the collection predictor were at its mean, and
+false positives were excluded. It pools both primers and varies field
+samples (`M`) and PCRs per primer per sample (`K`). It does not predict
+observed richness at an arbitrary site. Field replication up to four is
+prospective; the fitted data contained two field samples per site. PCR
+replication stays within the six-PCR design.
+
+Native bars include both fitted-parameter uncertainty and random
+collection/PCR outcomes. The routine selects 500 posterior draws to
+simulate surveys, so endpoints can vary with the seed. Orange bars are
+the exact 2.5% and 97.5% quantiles of the matching survey-count
+distribution under the generating parameters. Orange crosses mark its
+median. These truth intervals remain wide even when parameters are
+known.
+
+Each species’ true detection probability is
+`1 - (1 - theta * (1 - prod((1 - p)^K)))^M`. Here `theta` is baseline
+collection conditional on presence and the primer-specific `p` values
+include the read-threshold adjustment. Combining ten independent
+detection indicators gives the exact count distribution from zero to
+ten. Its quantiles are stored in the teaching bundle. This is a
+distribution of random survey outcomes, not an interval around the
+analytic expectation taught earlier.
+
+``` r
+set.seed(20260922)
+
+native_effort_k <- plotCumulativeSpeciesDetections(
+  fitmodel, M = 4, K = 6, primer = 0, byK = TRUE
+) +
+  native_theme +
+  geom_linerange(
+    data = native_truth$survey_counts,
+    aes(x = K + 0.12, ymin = lower, ymax = upper),
+    inherit.aes = FALSE, colour = "#C45B00", linewidth = 1.2
+  ) +
+  geom_point(
+    data = native_truth$survey_counts, aes(x = K + 0.12, y = median),
+    inherit.aes = FALSE, colour = "#C45B00", shape = 4, size = 2.5
+  ) +
+  labs(
+    title = "More PCRs per primer and field sample",
+    caption = "Black: native 95% survey interval. Orange: true 95% range and median.\nTruth is offset slightly to the right to keep both intervals visible."
+  )
+
+native_effort_k
+```
+
+<img src="teaching-data/native-plot-effort-k.png" alt="" width="100%" />
+
+Changing `byK` puts field replication on the horizontal axis. Resetting
+the same seed gives the same native intervals rearranged, not a second
+fit or a different survey target.
+
+``` r
+set.seed(20260922)
+
+native_effort_m <- plotCumulativeSpeciesDetections(
+  fitmodel, M = 4, K = 6, primer = 0, byK = FALSE
+) +
+  native_theme +
+  geom_linerange(
+    data = native_truth$survey_counts,
+    aes(x = M + 0.12, ymin = lower, ymax = upper),
+    inherit.aes = FALSE, colour = "#C45B00", linewidth = 1.2
+  ) +
+  geom_point(
+    data = native_truth$survey_counts, aes(x = M + 0.12, y = median),
+    inherit.aes = FALSE, colour = "#C45B00", shape = 4, size = 2.5
+  ) +
+  labs(
+    title = "More field samples per site",
+    caption = "Black: native 95% survey interval. Orange: true 95% range and median.\nTruth is offset slightly to the right to keep both intervals visible."
+  )
+
+native_effort_m
+```
+
+<img src="teaching-data/native-plot-effort-m.png" alt="" width="100%" />
+
+### Ordination: the remaining native plotting gap
+
+A worked tour of `plotOrdinationScores()`, `plotFactorLoadings()` and
+`plotBiplot()` remains deferred. True and fitted factor axes can rotate
+or change signs, so an unaligned truth overlay would falsely label an
+equivalent configuration as an error. The existing comparison of the
+combined contribution `U %*% L` remains the checked, rotation-invariant
+comparison. A future native ordination example must declare and validate
+a joint score/loading alignment before presenting truth on those axes.
+
 ## Reproduce the extraction or find a function
 
 The compact files retain source and fit hashes. Full MCMC fits are kept
@@ -1117,6 +1674,10 @@ Rscript dev/simstudy/vignette-lesson/summarise_outputs.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/verify_outputs.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/summarise_diagnostics.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/verify_diagnostics.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/summarise_latent_tables.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/verify_latent_tables.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/export_native_plots.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/verify_native_plots.R /path/to/full-fits
 ```
 
 In an R session with those full fits available:
@@ -1138,14 +1699,14 @@ the array calculations behind them.
 |----|----|----|
 | How do I prepare and fit data? | `simulateOccJSDMData()`, `runOccJSDM()` | Lessons 0 and 1 |
 | How does each species respond to the environment? | `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()` | Coefficients and response profiles above |
-| What is baseline occupancy? | `returnOccupancyRates()`, `plotOccupancyRates()` | Baseline table above |
+| What is baseline occupancy? | `returnOccupancyRates()`, `plotOccupancyRates()` | Baseline table and native plot above |
 | Do traits explain species responses? | `returnTraitsCoeff()`, `plotTraitsCoefficients()` | Trait estimates and cancellation diagnostic above |
-| Which species share unmeasured site responses? | `returnResidualCorrelationMatrix()`, `plotResidualCorrelationMatrix()` | Matched correlation matrices above |
+| Which species share unmeasured site responses? | `returnResidualCorrelationMatrix()`, `plotResidualCorrelationMatrix()` | Matched matrices and native uncertainty display above |
 | What do ordination axes represent? | `returnOrdinationScores()`, `returnFactorLoadings()`, `plotOrdinationScores()`, `plotFactorLoadings()`, `plotBiplot()` | Rotation-invariant combined contribution above |
 | How is variation allocated? | `returnVariancePartitioning()`, `plotVariancePartitioning()` | Matching true and fitted fractions above |
 | What affects collection? | `returnCollectionCovariates()`, `plotCollectionCovariates()`, `plotCollectionRates()` | Collection effects above; observation process in Lesson 1 |
 | What about PCR failures and contamination? | `plotDetectionRates()`, `plotStage1FPRates()`, `plotStage2FPRates()` | Rate recovery and actual cases in Lesson 1 |
-| How does sampling effort affect detection? | `plotCumulativeSpeciesDetections()` | Analytic expectation above, with its interval distinction |
-| What happened at a particular site/sample? | `computeConditionalOccupancyProbs()`, `computePredictiveOccupancyProbs()`, `returnLatentPresences()`, `plotLatentPresences()` | Matched probabilities, states and observations in Lesson 1 |
+| How does sampling effort affect detection? | `plotCumulativeSpeciesDetections()` | Analytic expectation and native survey-outcome intervals above |
+| What happened at a particular site/sample? | `computeConditionalOccupancyProbs()`, `computePredictiveOccupancyProbs()`, `returnLatentPresences()`, `plotLatentPresences()` | Native tables above, with matching states and probabilities |
 | Can I trust the computation? | `returnConvergenceDiagnostics()`, `plotTraceplot()`, `extractWAIC()` | Diagnostics above; these have no single simulated true value |
 | What about space or unsurveyed sites? | `predictNewSites()` and spatial model outputs | Dedicated examples still needed; not validated by this lesson |

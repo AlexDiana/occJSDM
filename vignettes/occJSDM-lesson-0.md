@@ -582,11 +582,105 @@ have no positive PCRs. An unoccupied site can have a positive PCR
 because of contamination. Lesson 1 asks how much of this uncertainty the
 fitted model can resolve.
 
+## Unequal numbers of field samples
+
+Real surveys may lose a field sample. Here we remove one **whole field
+sample at each of three distinct sites**, keeping every PCR row of all
+remaining samples. The choice uses seed 3947, declared before fitting.
+It does not use the species’ states, PCR detections or model results.
+
+``` r
+sample_keys <- survey_data$info |>
+  distinct(Site, Sample) |>
+  arrange(Site, Sample)
+
+set.seed(3947)
+removed_sites <- sample(sort(unique(sample_keys$Site)), size = 3)
+removed_samples <- sample_keys |>
+  filter(Site %in% removed_sites) |>
+  group_by(Site) |>
+  slice_sample(n = 1) |>
+  ungroup() |>
+  arrange(Site)
+
+removed_samples
+```
+
+    #> # A tibble: 3 × 2
+    #>    Site Sample
+    #>   <dbl>  <dbl>
+    #> 1    12     24
+    #> 2    31     61
+    #> 3    52    103
+
+This removes Sample 24 from Site 12, Sample 61 from Site 31 and Sample
+103 from Site 52. `group_by(Site)` makes `slice_sample(n = 1)` choose
+exactly one sample within each selected site. We keep the original
+global sample IDs.
+
+The metadata and OTU matrix describe the same PCR rows. `anti_join()`
+drops metadata rows whose `(Site, Sample)` key is in the removal table.
+Keeping their original row numbers lets us apply **the identical
+selection to both tables**.
+
+``` r
+retained_rows <- survey_data$info |>
+  mutate(original_row = row_number()) |>
+  anti_join(removed_samples, by = c("Site", "Sample")) |>
+  pull(original_row)
+
+unbalanced_data <- survey_data
+unbalanced_data$info <- survey_data$info[retained_rows, , drop = FALSE]
+unbalanced_data$OTU <- survey_data$OTU[retained_rows, , drop = FALSE]
+
+samples_per_site <- unbalanced_data$info |>
+  distinct(Site, Sample) |>
+  count(Site, name = "samples")
+
+pcrs_per_primer <- unbalanced_data$info |>
+  count(Site, Sample, Primer, name = "PCRs")
+
+stopifnot(
+  nrow(unbalanced_data$info) == 2364,
+  nrow(unbalanced_data$OTU) == 2364,
+  n_distinct(unbalanced_data$info$Sample) == 197,
+  nrow(samples_per_site) == 100,
+  all(samples_per_site$samples >= 1),
+  nrow(pcrs_per_primer) == 197 * 2,
+  all(pcrs_per_primer$PCRs == 6),
+  identical(colnames(unbalanced_data$OTU), colnames(survey_data$OTU)),
+  identical(unbalanced_data$traits, survey_data$traits)
+)
+
+samples_per_site |>
+  count(samples, name = "sites")
+```
+
+    #>   samples sites
+    #> 1       1     3
+    #> 2       2    97
+
+There are 97 sites with two samples and three sites with one sample. We
+removed three samples and 36 PCR rows: 197 field samples and 2,364 PCR
+rows remain, still covering all 100 sites and ten species. Every
+retained sample has both primers and six PCRs per primer. No retained
+read count or covariate changes.
+
+A lost sample is represented by **absent rows**. It is not an observed
+sample with zero reads, and it is not a collection of `NA` PCR results.
+The original `known_truth` still describes all 100 sites, all ten
+species and all 200 simulated samples, including those we removed from
+the observed survey. Lesson 1 fits this reduced survey and compares the
+resulting probabilities with those same truths. This is an example of
+preparing unequal replication, not a replicated experiment measuring the
+effects of sample loss.
+
 ## Take the right objects into Lesson 1
 
-The two-stage fit receives **`survey_data` only**. It does not receive
-the true occupancy probabilities, presence states, sample states or
-source labels. Lesson 1 also includes a deliberately labelled
+The main two-stage fit receives **`survey_data` only**; the unbalanced
+extension receives **`unbalanced_data` only**. It does not receive the
+true occupancy probabilities, presence states, sample states or source
+labels. Lesson 1 also includes a deliberately labelled
 perfect-observation control that receives the true presence/absence
 matrix. That control still has to estimate the probabilities that
 generated those binary states.

@@ -1,6 +1,6 @@
 # Build the truth-based teaching lessons
 
-The teaching sequence now starts with `vignettes/occJSDM-lesson-0.Rmd` (optional simulation and data orientation), followed by `vignettes/occJSDM-lesson-1.Rmd` (fitting, truth comparisons and detection examples). Both show their teaching code and use the same original simulation and fitted results. Their new maps display the existing sampled coordinates; the environmental values and hidden site factors are independent of geography in this dataset. No interpolation or spatial fit is implied.
+The teaching sequence now starts with `vignettes/occJSDM-lesson-0.Rmd` (optional simulation and data orientation), followed by `vignettes/occJSDM-lesson-1.Rmd` (fitting, truth comparisons and detection examples). Both show their teaching code and use the same original simulation and baseline fits. The unequal-replication extension described below adds one fit to a reduced version of that survey. Their new maps display the existing sampled coordinates; the environmental values and hidden site factors are independent of geography in this dataset. No interpolation or spatial fit is implied.
 
 `vignettes/occJSDM-lesson-2.Rmd` is explicitly a future outline. After PR #8 is reviewed, it will introduce smooth environmental gradients, residual spatial structure, a separate dispersal simulation with contrasting species, and held-out prediction. The currently reviewed spatial model has a shared range, not mechanistic or species-specific dispersal parameters. That distinction constrains the later simulation and interpretation.
 
@@ -131,3 +131,52 @@ The exporter checks the archived fits' source, input and file hashes and reprodu
 Lesson 3 uses `ggtern::theme_bw()` so both ordinary plots and native occJSDM traceplots continue to render after loading ggtern, including successive renders in one R process. With ggplot2 4.0.3 and ggtern 4.0.0, resetting the ordinary ggplot2 theme after ggtern has registered its theme elements otherwise produces a theme-validation error. This is a lesson-level compatibility choice, with no changes to the plotting package or model code.
 
 Validation on 21 September 2026: every exported draw, chain, iteration and truth line passed the independent archive check. All five optional extraction/diagnostic examples ran against the full saved fits, and all three native traceplots built successfully. Lesson 3 rendered to HTML and Markdown; the three new figures were visually inspected and the original ten figures were unchanged. Scientific review found no significant issues. R reported that dplyr, tibble and ggplot2 were built under R 4.5.2; these startup warnings did not prevent the examples or renders from completing. No new MCMC or package-wide test run was needed for this documentation-only change.
+
+### Migration additions: native tables and plots, 22 September 2026
+
+Lesson 3 now shows `returnLatentPresences()` and `plotLatentPresences()` using the same complete default PCR fit. The compact `latent-presence-lesson.rds` retains all 24,000 native records; Lesson 3 selects OTU_1 at two declared sites, joins by species/site/sample/primer/PCR and displays known states beside conditional probabilities. A separate table compares generating probabilities with fitted ecological, collection and PCR probabilities. HTML uses the native coloured `gt` table; GitHub Markdown uses a readable ordinary table. Colours distinguish groups of rows, not confidence or correct classification.
+
+The native plotting appendix uses `native-plots.rds` and nine `native-plot-*.png` files. It demonstrates occupancy and collection coefficients, baseline probabilities, both primers' true/false-positive rates, residual-correlation uncertainty and cumulative detection counts with PCR or field replication on the horizontal axis. Every ecological plot adds matching truth. The cumulative plots compare survey-outcome intervals with exact generating count quantiles, not with intervals around an expected count. Raw ordination axes remain deferred until score/loading alignment is explicitly validated.
+
+From the repository root, with the archive's matching library first in `R_LIBS`:
+
+```sh
+Rscript dev/simstudy/vignette-lesson/summarise_latent_tables.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/verify_latent_tables.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/export_native_plots.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/verify_native_plots.R /path/to/full-fits
+```
+
+No new fitting occurs in these four commands. The latent-table check independently matches exported values to the full fit and original reads, shuffles rows before truth joins and rejects duplicate identity keys. The plotting exporter evaluates the exact displayed plotting bodies in `native-plot-examples.Rmd`; Lesson 3 contains the same bodies, not a runtime child-document dependency on the excluded `dev/` directory. The verifier checks that equivalence, plotted intervals and axes, all 45 correlation uncertainty markers and truth labels, and all 24 survey-count distributions by exhaustive enumeration of the ten binary species outcomes. Exported source, fit and image hashes guard against mixing versions.
+
+To change a native example, edit its canonical snippet in `dev/simstudy/vignette-lesson/native-plot-examples.Rmd`, copy the revised section into Lesson 3, then re-export, verify and render. The source package includes the compact bundles and PNGs; the much larger full fit stays in the external archive. Lesson 1 also has a concise fitting reference, including model inference, missing observations, current latent-trait arguments and the actual scope of retained latent draws.
+
+The separate [site-partitioning audit](../site-variation-partitioning.md) records how sjSDM attributes fit to components for individual sites, where its implementation needs correction, and a proposed occJSDM approach. Its lightweight algebra script runs without fitting models or importing sjSDM's Python backend:
+
+```sh
+Rscript dev/simstudy/site-variation-partitioning-audit.R /path/to/s-jSDM
+```
+
+This is an implementation assessment. No site-partitioning public function or change to occJSDM's current partition calculation is included.
+
+### Unequal field replication, 22 September 2026
+
+Lesson 0 now removes one whole sample at each of three distinct sites, chosen with seed 3947 before fitting: Site 12/Sample 24, Site 31/Sample 61 and Site 52/Sample 103. One `(Site, Sample)` key selects matching rows in both metadata and observations. Exactly 36 PCR rows are removed; 197 samples and 2,364 PCR rows remain at all 100 sites. All ten species, traits, retained values and the complete original latent truth remain unchanged. Each retained sample still has two primers and six PCRs per primer. Missing samples are not zero-filled.
+
+Lesson 1 reconstructs the input from those saved keys, displays the matching fitting call and compares the reduced-survey estimates with truth and the original default fit. It includes all-site and selected-site figures, signed/absolute errors and diagnostics. These are a single preparation/fitting demonstration, not a replicated study of the consequences of sample loss.
+
+The new archive is `work/unbalanced-lesson-20260922` in this task's external workspace; it holds complete `input.rds`, `unbalanced-fit.rds`, the summary and logs. The original archive was not changed. Reproduce from the repository root with a matching occJSDM library and a fresh directory:
+
+```sh
+mkdir -p /path/to/new-unbalanced-archive
+Rscript dev/simstudy/vignette-lesson/unbalanced-build.R /path/to/new-unbalanced-archive prepare
+Rscript dev/simstudy/vignette-lesson/unbalanced-build.R /path/to/new-unbalanced-archive fit
+Rscript dev/simstudy/vignette-lesson/unbalanced-build.R /path/to/new-unbalanced-archive summarise
+Rscript dev/simstudy/vignette-lesson/unbalanced-verify.R /path/to/new-unbalanced-archive
+```
+
+The fit uses seed 20260924, default priors, two hidden site factors, one latent trait dimension and four chains with 3,000 burn-in and 6,000 retained iterations per chain. It ran once in about 67 seconds. The fit raised no R warning conditions, but the public diagnostic table has one flag: OTU_3's first environmental slope has classical Rhat 1.015488 and ESS 1,601. The 1,000 reconstructed occupancy probabilities have maximum rank-normalized Rhat 1.007584 and minimum ESS 940.211. Full-community occupancy MAE is 17.0439 percentage points. These diagnostics and ecological errors answer different questions; neither result was hidden by selecting another seed or rerunning the fit.
+
+The package receives only the compact `unbalanced-lesson.rds` and rendered teaching figures. The two `unbalanced-lesson-*.Rmd` files under `dev/` are source snippets mirrored in Lessons 0 and 1, not child documents required for knitting an installed vignette. Keep displayed code and these snippets in step when editing the example.
+
+Validation for this migration batch, 22 September 2026: the independent native-table, native-plot, unbalanced-fit and site-partition algebra checks passed. All five teaching documents rendered to HTML and Markdown; the shared link regression test passed. New static figures were inspected, and the native HTML tables were checked in the generated markup. The source-package build succeeded with vignette building disabled, included all new compact data and images, and excluded the archived original, lesson plan and `dev/`. Lessons 1 and 3 then rendered successfully from the unpacked source package, without the excluded development snippets or external full fits. No package-wide test run was needed for these teaching additions; production R/C++ code is unchanged. The original archived vignette remains byte-identical to revision 8654ff1.

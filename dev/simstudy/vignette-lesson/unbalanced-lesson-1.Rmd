@@ -1,0 +1,133 @@
+## Fit a survey with unequal replication
+
+Lesson 0 removes one whole field sample from each of Sites 12, 31 and 52, using a fixed random choice made before fitting. We keep all 100 sites and all ten species, with 197 samples and 2,364 PCR rows. The following code reconstructs that reduced dataset from the saved removal keys, so this section also works if you skipped Lesson 0.
+
+```{r unbalanced-load}
+unbalanced_lesson <- readRDS("teaching-data/unbalanced-lesson.rds")
+removed_samples <- unbalanced_lesson$removal$removed_samples
+
+retained_rows <- survey_data$info |>
+  mutate(original_row = row_number()) |>
+  anti_join(removed_samples, by = c("Site", "Sample")) |>
+  pull(original_row)
+
+unbalanced_data <- survey_data
+unbalanced_data$info <- survey_data$info[retained_rows, , drop = FALSE]
+unbalanced_data$OTU <- survey_data$OTU[retained_rows, , drop = FALSE]
+
+removed_samples
+```
+
+These samples are absent rows, not all-zero or `NA` PCR results. The remaining samples retain both primers and all six PCRs per primer. Original sample IDs and all simulated truths stay unchanged.
+
+The optional fitting call uses the same priors, model settings and chain lengths as the original default-prior fit. The new sampling seed is 20260924. **This chunk is not run when knitting**; its one matching saved fit supplies the results below.
+
+```{r unbalanced-fit-optional, eval=FALSE}
+set.seed(20260924)
+unbalanced_fit <- occJSDM::runOccJSDM(
+  data = unbalanced_data,
+  listParams = list(n_factors = 2L, n_lattrait = 1L),
+  threshold = 1,
+  occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
+  collCovariates = "X_theta",
+  spatCovariates = NULL,
+  MCMCparams = list(nchain = 4L, nburn = 3000L, niter = 6000L, nthin = 1L),
+  listPriors = list(),
+  summarisedLatentPresences = TRUE
+)
+```
+
+First compare every estimated occupancy probability with its matching simulation truth. Highlighting the 30 species-site combinations at the three reduced sites helps us locate them within the full set of 1,000 combinations. The line marks exact agreement.
+
+```{r unbalanced-compare-data}
+replication_results <- bind_rows(
+  lesson$cells |> filter(arm == "default"),
+  unbalanced_lesson$cells
+) |>
+  mutate(
+    survey = factor(arm, levels = c("default", "unbalanced"),
+                    labels = c("Original: 200 samples", "Reduced: 197 samples")),
+    reduced_site = Site %in% as.character(removed_samples$Site),
+    site_group = if_else(reduced_site, "Three selected sites", "Other 97 sites")
+  )
+```
+
+```{r unbalanced-truth, fig.width=8, fig.height=4.5}
+replication_results |>
+  arrange(reduced_site) |>
+  ggplot(aes(x = truth, y = estimate, colour = site_group)) +
+  geom_abline(slope = 1, intercept = 0, colour = "grey55") +
+  geom_point(alpha = 0.55, size = 1.3) +
+  facet_wrap(~ survey) +
+  scale_colour_manual(values = c("Other 97 sites" = "#777777",
+                                "Three selected sites" = "#D55E00")) +
+  coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = "True occupancy probability", y = "Estimated occupancy probability",
+       colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+For a closer look at the selected sites, diamonds show each unchanged true probability. Points and 95% credible intervals show the two fitted answers. These are probabilities `psi`, not the binary simulated site states `z`.
+
+```{r unbalanced-selected-sites, fig.width=8, fig.height=5.5}
+selected_probabilities <- replication_results |>
+  filter(reduced_site) |>
+  mutate(species = factor(species, levels = paste0("OTU_", 1:10)))
+
+selected_probabilities |>
+  ggplot(aes(x = species, y = estimate, colour = survey)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper),
+                  position = position_dodge(width = 0.6), linewidth = 0.3) +
+  geom_point(data = selected_probabilities |> filter(arm == "unbalanced"),
+             aes(y = truth), colour = "black", shape = 18, size = 2.6) +
+  facet_wrap(~ Site, nrow = 1, labeller = label_both) +
+  scale_colour_manual(values = c("#0072B2", "#D55E00")) +
+  scale_y_continuous(limits = c(0, 1)) +
+  labs(x = NULL, y = "Occupancy probability", colour = NULL,
+       caption = "Black diamonds: unchanged simulation truth. Lines: 95% credible intervals.") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+```
+
+Calculate errors for both the complete community and the selected sites. Signed error is estimate minus truth; mean absolute error ignores the direction of each error. The `truth` and `estimate` columns remain probabilities, and the two error columns are percentage points.
+
+```{r unbalanced-error-table}
+replication_errors <- bind_rows(
+  replication_results |> mutate(scope = "All 100 sites"),
+  replication_results |> filter(reduced_site) |>
+    mutate(scope = "Three sites with one sample removed")
+) |>
+  group_by(scope, survey) |>
+  summarise(
+    cells = n(),
+    truth = mean(truth),
+    estimate = mean(estimate),
+    signed_error_pp = 100 * mean(estimate - truth),
+    mean_absolute_error_pp = 100 * mean(abs(estimate - truth)),
+    .groups = "drop"
+  )
+
+knitr::kable(replication_errors, digits = 3)
+```
+
+The full-community mean absolute error is about 17 percentage points in both saved fits. **This single deletion and fit do not estimate the general effect of losing samples.** The two fits also use different MCMC seeds. Comparing their answers demonstrates a working input with unequal replication; a study of sample loss would repeat survey generation, deletion and fitting and assess Monte Carlo uncertainty.
+
+Check numerical diagnostics before drawing further conclusions. The public diagnostic table flags the environmental slope for OTU_3 (`X_psi.EnvCov.1`), with Rhat about 1.015. We retain that warning rather than choosing another seed or silently extending the fit. The saved call raised no R warning conditions; the diagnostic flag is a separate issue.
+
+```{r unbalanced-diagnostics}
+unbalanced_lesson$diagnostics |>
+  filter(is.na(rhat) | is.na(ess) | rhat > 1.01 | ess < 400) |>
+  select(param, label1, label2, rhat, ess) |>
+  knitr::kable(digits = 3)
+
+unbalanced_lesson$cells |>
+  summarise(
+    probabilities = n(),
+    max_Rhat = max(rhat),
+    min_ESS = min(ess),
+    flagged = sum(is.na(rhat) | is.na(ess) | rhat > 1.01 | ess < 400)
+  ) |>
+  knitr::kable(digits = 3)
+```
+
+The first table uses the public function's classical `coda` Rhat and ESS. The second uses `posterior` diagnostics on the reconstructed probability draws: all 1,000 pass these thresholds, with maximum Rhat about 1.008 and minimum ESS about 940. These measures ask how well chains explored their distributions. They do not establish accuracy against ecological truth, which is why the paired truth figures and error table remain necessary.
