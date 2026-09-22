@@ -1,0 +1,1083 @@
+Lesson N: Compare four JSDMs with a community whose truth we know
+================
+
+## What are we comparing?
+
+Suppose we know with certainty which species occupy each surveyed site.
+Can a joint species distribution model recover the underlying
+probabilities, and can it predict occurrence at sites we have not
+surveyed?
+
+We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated
+observations**. This lesson uses the pure JSDM portion of occJSDM: there
+is no DNA collection failure, PCR detection error or false positive.
+Those processes matter in [Lesson 1](occJSDM-lesson-1.md), but here we
+remove them to examine the ecological model itself. You do not need the
+spatial lesson first.
+
+This is a **worked pilot using one community**, not a general ranking of
+the packages. All numbers below come from saved fits. sjSDM remains
+provisional because its repeated optimisation runs did not meet our full
+stability check. We keep that result visible rather than presenting an
+unresolved fit as settled. Further optimisation has been parked while
+this teaching lesson is built.
+
+You will learn to:
+
+1.  Distinguish a known presence or absence from a known occurrence
+    probability.
+2.  Ask the same prediction question of different packages.
+3.  Measure both the direction and the size of errors against simulation
+    truth.
+4.  Compare environmental responses on the probability scale.
+5.  Separate reliable computation from accurate ecological estimation.
+
+The code is visible throughout. Knit this file, or run its chunks with
+`vignettes` as the working directory. Rendering reads a compact results
+bundle and does **not** fit any models. The optional simulation and
+fitting chunks are shown with `eval=FALSE`; run them deliberately if you
+want to repeat the experiment.
+
+``` r
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ggplot2)
+
+comparison <- readRDS("teaching-data/jsdm-comparison.rds")
+
+training <- comparison$training
+known_truth <- comparison$truth
+predictions <- as_tibble(comparison$predictions)
+
+package_order <- c("occJSDM", "gllvm", "sjSDM", "Hmsc")
+package_labels <- c("occJSDM", "gllvm", "sjSDM (provisional)", "Hmsc")
+package_colours <- c(
+  occJSDM = "#007A87", gllvm = "#555AA4",
+  sjSDM = "#C16612", Hmsc = "#648747"
+)
+
+target_labels <- c(
+  sampled_site_recovery = "Reconstruct sampled sites",
+  new_site_prediction = "Predict new sites"
+)
+
+predictions <- predictions |>
+  mutate(
+    package = factor(package, levels = package_order),
+    question = factor(target, levels = names(target_labels),
+                      labels = unname(target_labels)),
+    signed_error_pp = 100 * (estimate - truth),
+    absolute_error_pp = abs(signed_error_pp)
+  )
+
+theme_set(theme_bw(base_size = 12))
+```
+
+## 1. What the models receive, and what we keep secret
+
+There are **100 training sites, 300 independent test sites, 10 species,
+two measured environmental gradients and two hidden site factors**. The
+test sites were set aside before fitting. All sites are non-spatial and
+independently generated.
+
+A hidden factor represents a pattern of unmeasured conditions shared by
+several species. For example, several species might respond to an
+unmeasured soil property. The simulation gives us the actual hidden
+conditions; the fitters never receive them. A factor need not represent
+a single identifiable ecological cause, and shared responses do not
+establish species interactions.
+
+The fitter receives an environmental table and a matching
+presence/absence matrix. The rows must refer to the same sites in the
+same order.
+
+``` r
+# Environmental measurements are already standardised from the training sites.
+knitr::kable(head(training$x, 5), digits = 2,
+             caption = "Two measured gradients at the first five training sites")
+```
+
+|           | environment_1 | environment_2 |
+|:----------|--------------:|--------------:|
+| train_001 |          1.00 |          1.34 |
+| train_002 |         -0.69 |          1.09 |
+| train_003 |         -0.32 |          1.60 |
+| train_004 |         -1.25 |          0.36 |
+| train_005 |          0.76 |          0.59 |
+
+Two measured gradients at the first five training sites
+
+``` r
+knitr::kable(training$y[1:5, 1:5],
+             caption = "Perfectly observed presence (1) and absence (0)")
+```
+
+|           | species_01 | species_02 | species_03 | species_04 | species_05 |
+|:----------|-----------:|-----------:|-----------:|-----------:|-----------:|
+| train_001 |          0 |          1 |          0 |          0 |          1 |
+| train_002 |          0 |          0 |          1 |          0 |          0 |
+| train_003 |          0 |          1 |          0 |          0 |          1 |
+| train_004 |          1 |          0 |          1 |          0 |          1 |
+| train_005 |          0 |          0 |          0 |          0 |          1 |
+
+Perfectly observed presence (1) and absence (0)
+
+**Perfect observation does not mean perfect knowledge of probability.**
+If a species has a 20% chance of occurring, a survey still records
+either 0 or 1. It does not record 0.20. The model must learn the
+probability from patterns across sites and species.
+
+The next figure shows both kinds of truth for the first ten sites and
+first five species, chosen by their order, not by how well they were
+fitted. The background colour is the generating probability. The printed
+number is the actual presence or absence, which is what the models
+receive.
+
+``` r
+example_truth <- as_tibble(
+  known_truth$conditional_probability[1:10, 1:5],
+  rownames = "site"
+) |>
+  pivot_longer(-site, names_to = "species", values_to = "probability")
+
+example_observations <- as_tibble(training$y[1:10, 1:5], rownames = "site") |>
+  pivot_longer(-site, names_to = "species", values_to = "observed")
+
+example_cells <- example_truth |>
+  left_join(example_observations, by = c("site", "species"))
+
+ggplot(example_cells, aes(site, species, fill = probability)) +
+  geom_tile(colour = "white") +
+  geom_text(aes(label = observed), colour = "white", size = 4) +
+  scale_fill_gradient(low = "#243C57", high = "#B45516", limits = c(0, 1),
+                      labels = scales::label_percent()) +
+  labs(x = "Training site", y = "Species", fill = "True probability",
+       title = "A probability produces a presence or an absence",
+       subtitle = "Colour: known probability. Number: actual observation.") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+![](teaching-data/lesson-N-observed-versus-probability-1.png)<!-- -->
+
+### Optional: reproduce this community
+
+These coefficients were fixed before fitting. Positive environmental
+slopes favour a species as that gradient increases; negative slopes do
+the opposite. The values are on the **logit scale**, so a slope of 1
+does not mean a one-percentage-point change. We will use probability
+curves to understand their ecological meaning.
+
+``` r
+knitr::kable(known_truth$parameters, digits = 1,
+             caption = "The complete generating parameter table, before environmental standardisation")
+```
+
+| species    | intercept | environment_1 | environment_2 | hidden_1 | hidden_2 |
+|:-----------|----------:|--------------:|--------------:|---------:|---------:|
+| species_01 |      -1.8 |           1.2 |          -0.6 |      0.9 |      0.2 |
+| species_02 |      -1.3 |           0.8 |           0.9 |      0.7 |     -0.3 |
+| species_03 |      -0.9 |          -1.0 |           0.7 |     -0.8 |      0.2 |
+| species_04 |      -0.5 |          -0.7 |          -1.0 |     -0.6 |     -0.4 |
+| species_05 |      -0.2 |           1.0 |           0.4 |      0.1 |      0.9 |
+| species_06 |       0.2 |          -1.1 |           0.8 |      0.2 |     -0.8 |
+| species_07 |       0.5 |           0.6 |          -0.9 |      0.8 |      0.6 |
+| species_08 |       0.9 |          -0.8 |           0.6 |     -0.9 |     -0.5 |
+| species_09 |       1.3 |           1.0 |          -0.7 |      0.5 |     -0.8 |
+| species_10 |       1.8 |          -1.2 |           0.5 |     -0.6 |      0.7 |
+
+The complete generating parameter table, before environmental
+standardisation
+
+The following code reproduces the saved community. Matrix multiplication
+adds each species’ environmental and hidden contributions efficiently.
+The rest of the lesson uses tidy tables for plotting and summarising.
+
+``` r
+parameters <- known_truth$parameters
+
+set.seed(26092201)
+
+site_names <- c(
+  sprintf("train_%03d", 1:100),
+  sprintf("test_%03d", 1:300)
+)
+
+raw_environment <- matrix(
+  rnorm(400 * 2), nrow = 400, ncol = 2,
+  dimnames = list(site_names, c("environment_1", "environment_2"))
+)
+
+hidden_conditions <- matrix(rnorm(400 * 2), nrow = 400, ncol = 2)
+
+# One column per species, one row per intercept or effect.
+environmental_coefficients <- parameters |>
+  select(intercept, environment_1, environment_2) |>
+  as.matrix() |>
+  t()
+
+factor_loadings <- parameters |>
+  select(hidden_1, hidden_2) |>
+  as.matrix() |>
+  t()
+
+linear_score <- cbind(1, raw_environment) %*% environmental_coefficients +
+  hidden_conditions %*% factor_loadings
+
+true_probability <- plogis(linear_score)
+colnames(true_probability) <- parameters$species
+
+presence_absence <- matrix(
+  rbinom(length(true_probability), size = 1, prob = true_probability),
+  nrow = 400, dimnames = dimnames(true_probability)
+)
+
+# Learn the transformation from the 100 training sites only.
+training_centre <- colMeans(raw_environment[1:100, ])
+training_spread <- apply(raw_environment[1:100, ], 2, sd)
+
+standardised_environment <- raw_environment |>
+  sweep(2, training_centre, "-") |>
+  sweep(2, training_spread, "/")
+
+training_data <- list(
+  x = as.data.frame(standardised_environment[1:100, ]),
+  y = presence_absence[1:100, ]
+)
+
+test_environment <- as.data.frame(standardised_environment[101:400, ])
+```
+
+We keep the last 300 observations, all hidden conditions and all
+generating probabilities out of fitting and tuning. Standardisation puts
+zero at the training mean and one unit at one training standard
+deviation. Test sites use the **same** transformation; calculating a new
+test-site mean would change the meaning of a fitted coefficient.
+
+## 2. How similar are the four models?
+
+All four receive the same information, linear environmental predictors
+and two hidden factors. We exclude traits, phylogeny, space and
+observation error from this comparison. The number of factors is fixed
+at the known generating count; **this lesson does not choose the count
+using WAIC**.
+
+| Package | This pilot’s model | How it is fitted |
+|----|----|----|
+| occJSDM 0.1.0 | Binary logit; two site factors; no latent traits | Bayesian sampling, retaining the package’s coefficient and factor priors |
+| gllvm 2.0.15 | Binary logit; two unconstrained factors | Variational approximation (VA), checked from multiple starting points |
+| sjSDM 1.0.7 | Binary logit; linear environment; covariance factor dimension two | PyTorch CPU optimisation; no explicit penalties or optimiser weight decay in the original comparison |
+| Hmsc 3.3-7 | Binary probit; one independent site level with exactly two factors | Bayesian sampling, retaining its community and factor priors |
+
+Hmsc uses **probit**, whereas the other three use **logit**, as does
+this simulator. Both turn an ecological score into a probability, but
+their curves differ. This is why we compare probabilities rather than
+raw coefficient sizes. The priors and fitting approximations also
+differ: this is a comparison of these configurations with equal data,
+not an experiment changing only the package name.
+
+The sjSDM R version is 1.0.7 inside Doug’s fork release **v0.2.1**. The
+release also has an optional Mojo path, but this experiment explicitly
+used PyTorch. Mojo was neither used nor upgraded.
+
+## 3. Two probability questions that must not be mixed
+
+| Question | Information available to the fitted model | Matching simulated truth |
+|----|----|----|
+| Reconstruct a sampled site | Its environment and the observed community used for fitting | Probability including that site’s actual hidden conditions |
+| Predict a new, unsurveyed site | Its environment, with no species observations there | Probability averaged over possible hidden conditions |
+
+At a sampled site, the community helps the model infer whether the
+unmeasured conditions favour a species. We compare its fitted
+probability with the probability that generated that particular site.
+This is **reconstruction**, not a held-out prediction test.
+
+At an unsurveyed site, we do not know its hidden conditions. We average
+over their possible values. This is called a **marginal probability**.
+To evaluate that answer fairly, the simulation truth must average over
+hidden conditions too.
+
+For an explicitly hypothetical example, measured habitat might imply a
+40% average chance of occurrence, while favourable unmeasured conditions
+at a particular site raise its actual probability to 70%. A prediction
+of 40% can correctly describe the average for that habitat without
+discovering that site’s particular 70%. Neither number is the actual 0
+or 1 recorded by a survey.
+
+### Averaging is different from setting hidden conditions to zero
+
+Because the conversion to probability is curved, converting an average
+score need not equal averaging the converted probabilities. Here is a
+reproducible numerical illustration, separate from the fitted results:
+
+``` r
+environmental_score <- -2
+hidden_standard_deviation <- 2
+
+zero_factor_probability <- plogis(environmental_score)
+
+# Average probabilities over a standard normal hidden condition.
+marginal_probability <- integrate(
+  function(hidden) {
+    plogis(environmental_score + hidden_standard_deviation * hidden) *
+      dnorm(hidden)
+  },
+  lower = -Inf, upper = Inf
+)$value
+
+tibble(
+  calculation = c("Set hidden contribution to zero", "Average over hidden conditions"),
+  probability_percent = 100 * c(zero_factor_probability, marginal_probability)
+) |>
+  knitr::kable(digits = 1)
+```
+
+| calculation                     | probability_percent |
+|:--------------------------------|--------------------:|
+| Set hidden contribution to zero |                11.9 |
+| Average over hidden conditions  |                22.5 |
+
+The comparison therefore does not simply call four functions named
+`predict()` and assume their outputs mean the same thing. For example,
+gllvm’s level-zero prediction sets hidden scores to zero. The inspected
+sjSDM environmental prediction does too. Our saved new-site predictions
+integrate over fitted hidden variation.
+
+For the Bayesian models, that integration happens separately for each
+parameter draw, then the probabilities are averaged. For gllvm and
+sjSDM, we hold their estimated global parameters fixed and integrate
+over hidden variation. For sampled sites, we condition on the observed
+community: Bayesian fits already include that information in their joint
+draws; the other two use a checked study calculation. We do not
+condition on the test observations or multiply their likelihood into
+predictions.
+
+The following code shows the marginal calculation for one species with
+fixed logit coefficients. A nonzero residual spread flattens the average
+environmental response because otherwise similar sites have different
+hidden conditions.
+
+``` r
+# Calculate an actual gllvm prediction for species_01 at mean environment.
+marginal_logit_probability <- function(environmental_score, residual_sd) {
+  integrate(
+    function(hidden) {
+      plogis(environmental_score + residual_sd * hidden) * dnorm(hidden)
+    },
+    lower = -Inf, upper = Inf
+  )$value
+}
+
+# These numeric parameters were extracted and checked from the selected fit.
+global_parameters <- comparison$point_parameters$gllvm
+species_number <- match("species_01", colnames(training$y))
+
+environmental_score <- global_parameters$beta[1, species_number]
+residual_sd <- sqrt(sum(global_parameters$loading[, species_number]^2))
+
+fitted_probability <- marginal_logit_probability(environmental_score, residual_sd)
+
+# Match the same species and environmental location to its saved true curve.
+true_probability <- comparison$curves |>
+  filter(package == "gllvm", species == "species_01",
+         gradient == "environment_1", value == 0) |>
+  pull(truth)
+
+tibble(
+  species = "species_01",
+  estimated_percent = 100 * fitted_probability,
+  true_percent = 100 * true_probability
+) |>
+  knitr::kable(digits = 1)
+```
+
+| species    | estimated_percent | true_percent |
+|:-----------|------------------:|-------------:|
+| species_01 |              14.6 |         16.1 |
+
+Here `beta` contains the intercept and two environmental slopes;
+`loading` contains the two hidden-factor effects. Their squared sum is
+the variance of this species’ hidden contribution. For Hmsc’s
+normal-probit model, the corresponding average has the exact expression
+`pnorm(environmental_score / sqrt(1 + residual_sd^2))`. Bayesian
+averaging still applies this within each parameter draw. The full
+checked extraction scripts are recorded in the reproduction notes below.
+
+## 4. Check the computation before interpreting the ecology
+
+For occJSDM and Hmsc we used four chains, each with 2,000 warm-up and
+4,000 retained iterations. Chains should agree, and enough effectively
+independent draws should remain to estimate the quantities we report.
+Rhat near 1 measures agreement; effective sample size (ESS) measures the
+usable information in correlated draws. Neither measures ecological
+accuracy.
+
+``` r
+diagnostic_summary <- comparison$diagnostics |>
+  group_by(package) |>
+  summarise(
+    quantities_checked = n(),
+    largest_Rhat = max(rhat),
+    smallest_bulk_ESS = min(bulk_ess),
+    smallest_tail_ESS = min(tail_ess),
+    .groups = "drop"
+  )
+
+knitr::kable(
+  diagnostic_summary, digits = c(0, 0, 4, 0, 0),
+  col.names = c("Package", "Quantities", "Largest Rhat", "Smallest bulk ESS", "Smallest tail ESS")
+)
+```
+
+| Package | Quantities | Largest Rhat | Smallest bulk ESS | Smallest tail ESS |
+|:--------|-----------:|-------------:|------------------:|------------------:|
+| Hmsc    |       1135 |       1.0048 |              1051 |               516 |
+| occJSDM |       1135 |       1.0015 |              3674 |              4894 |
+
+Both passed our checks of Rhat at most 1.01 and bulk/tail ESS at least
+400 for all 1,135 monitored quantities. These include environmental
+coefficients, residual covariance and reported probabilities. We monitor
+covariance rather than separate factor axes because axes can rotate or
+reverse sign without changing the model.
+
+For optimised fits, we also compare different starting points. gllvm’s
+initial EVA fits reported convergence but gave extreme effects and
+inconsistent objectives. We rejected them. The selected VA solution was
+reproduced from separate starts. A message saying “converged” is not
+enough by itself.
+
+sjSDM’s original longer starts differed by 0.2115 in accurately
+calculated training log likelihood, exceeding our declared 0.1 stability
+check. Their largest prediction difference on the fixed checking grid
+was 0.9585 percentage points, below our separate one-point prediction
+check. Subsequent smaller-step fits and a separate weak-penalty
+sensitivity run still did not pass both checks. **We retain the original
+selected fit below, labelled provisional.** The follow-up does not
+silently replace it with a differently regularised model.
+
+We select starts by the training fitting criterion, never by similarity
+to truth. Fitting criteria from different packages are not directly
+comparable here, so a larger numerical likelihood is not a cross-package
+score.
+
+## 5. Put the estimated probabilities beside truth
+
+In each panel, a point is one species at one site. On the diagonal,
+estimate and truth agree. Above it, the model overestimates; below it,
+it underestimates. Both axes always span 0% to 100%.
+
+``` r
+new_site_predictions <- predictions |>
+  filter(target == "new_site_prediction")
+
+ggplot(new_site_predictions, aes(truth, estimate)) +
+  geom_abline(slope = 1, intercept = 0, colour = "grey35") +
+  geom_point(alpha = 0.18, size = 0.8, colour = "#007A87") +
+  facet_wrap(~ package, ncol = 2,
+             labeller = as_labeller(setNames(package_labels, package_order))) +
+  scale_x_continuous(limits = c(0, 1), labels = scales::label_percent()) +
+  scale_y_continuous(limits = c(0, 1), labels = scales::label_percent()) +
+  coord_equal() +
+  labs(x = "True probability averaged over hidden conditions",
+       y = "Predicted probability",
+       title = "New sites: predict from the measured environment",
+       subtitle = "300 independent test sites x 10 species; no test observations supplied")
+```
+
+![](teaching-data/lesson-N-new-site-probabilities-1.png)<!-- -->
+
+These are genuine predictions at new sites. The target is the average
+over possible hidden conditions, not the unknowable particular condition
+of each test site.
+
+``` r
+sampled_site_predictions <- predictions |>
+  filter(target == "sampled_site_recovery")
+
+ggplot(sampled_site_predictions, aes(truth, estimate)) +
+  geom_abline(slope = 1, intercept = 0, colour = "grey35") +
+  geom_point(alpha = 0.22, size = 0.8, colour = "#007A87") +
+  facet_wrap(~ package, ncol = 2,
+             labeller = as_labeller(setNames(package_labels, package_order))) +
+  scale_x_continuous(limits = c(0, 1), labels = scales::label_percent()) +
+  scale_y_continuous(limits = c(0, 1), labels = scales::label_percent()) +
+  coord_equal() +
+  labs(x = "True probability including this site's hidden conditions",
+       y = "Fitted probability",
+       title = "Sampled sites: reconstruct their particular conditions",
+       subtitle = "100 training sites x 10 species; observations helped fit the model")
+```
+
+![](teaching-data/lesson-N-sampled-site-probabilities-1.png)<!-- -->
+
+The sampled-site plot is more scattered. Even knowing all ten species’
+presences does not tell us the hidden conditions perfectly. Do not
+interpret this contrast as “models predict better when deprived of
+observations”: the two figures have **different targets**. Averaging
+over hidden conditions removes variation that the sampled-site exercise
+asks the model to reconstruct.
+
+## 6. How far wrong, and in which direction?
+
+We calculate an error for every species at every site:
+
+- **Signed error** is estimate minus truth. Positive means too high;
+  negative means too low.
+- **Absolute error** ignores the direction. It measures the distance
+  from truth.
+
+Multiplying a probability difference by 100 expresses it in **percentage
+points**. Estimating 30% when truth is 20% is a +10-point error. It is
+not a 10% relative error.
+
+As an explicitly hypothetical example, errors of +10 and -10 points
+average to zero signed error. Their average absolute error is still 10
+points. Consequently, a small signed average can coexist with
+substantial mistakes.
+
+``` r
+overall_errors <- predictions |>
+  group_by(package, question) |>
+  summarise(
+    species_site_comparisons = n(),
+    average_signed_error_pp = mean(signed_error_pp),
+    average_absolute_error_pp = mean(absolute_error_pp),
+    .groups = "drop"
+  )
+
+knitr::kable(overall_errors, digits = 1,
+             col.names = c("Package", "Question", "Comparisons",
+                           "Signed error (points)", "Absolute error (points)"),
+             caption = "Actual simulation results; sjSDM remains provisional")
+```
+
+| Package | Question | Comparisons | Signed error (points) | Absolute error (points) |
+|:---|:---|---:|---:|---:|
+| occJSDM | Reconstruct sampled sites | 1000 | 1.1 | 12.1 |
+| occJSDM | Predict new sites | 3000 | 1.0 | 6.1 |
+| gllvm | Reconstruct sampled sites | 1000 | 1.1 | 11.9 |
+| gllvm | Predict new sites | 3000 | 1.1 | 7.1 |
+| sjSDM | Reconstruct sampled sites | 1000 | 1.2 | 13.6 |
+| sjSDM | Predict new sites | 3000 | 1.1 | 7.1 |
+| Hmsc | Reconstruct sampled sites | 1000 | 1.1 | 12.2 |
+| Hmsc | Predict new sites | 3000 | 1.1 | 6.3 |
+
+Actual simulation results; sjSDM remains provisional
+
+``` r
+ggplot(overall_errors, aes(package, average_absolute_error_pp, fill = package)) +
+  geom_col(width = 0.65) +
+  geom_text(aes(label = sprintf("%.1f", average_absolute_error_pp)), vjust = -0.4) +
+  facet_wrap(~ question) +
+  scale_fill_manual(values = package_colours, guide = "none") +
+  scale_x_discrete(labels = c("occJSDM", "gllvm", "sjSDM*", "Hmsc")) +
+  scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.15))) +
+  labs(x = NULL, y = "Average absolute error (percentage points)",
+       title = "The typical distance from truth in this community",
+       caption = "* sjSDM is provisional. Panels answer different probability questions.\nThese bars do not show uncertainty across independently simulated communities.")
+```
+
+![](teaching-data/lesson-N-absolute-error-comparison-1.png)<!-- -->
+
+At new sites, the average absolute errors are about **6.1, 7.1, 7.1 and
+6.3 points**, in package order. At sampled sites they are about **12.1,
+11.9, 13.6 and 12.2 points**. These are measured results, not notional
+examples, and they are not the older occJSDM-only sample-size
+experiment.
+
+The signed averages are only about +1 point, because overestimates and
+underestimates largely cancel. An average absolute error of 6.1 points
+means the predictions miss by 6.1 points on average when direction is
+ignored. It does not mean every prediction is 6.1 points wrong, or that
+6.1% of species are incorrectly classified.
+
+### Does performance differ for rare and common occurrences?
+
+The bands below refer to each **species-by-site probability**, not a
+permanent classification of the species. The same species can have low
+probability at one site and high probability at another. The middle band
+includes 20% and excludes 80%; the upper band starts at 80%.
+
+``` r
+band_errors <- predictions |>
+  group_by(package, question, band, .drop = FALSE) |>
+  summarise(
+    comparisons = n(),
+    signed_error_pp = mean(signed_error_pp),
+    absolute_error_pp = mean(absolute_error_pp),
+    .groups = "drop"
+  )
+
+knitr::kable(
+  filter(band_errors, question == "Predict new sites") |> select(-question),
+  digits = 1,
+  col.names = c("Package", "True probability", "Comparisons",
+                "Signed error (points)", "Absolute error (points)"),
+  caption = "New sites: direction and size of errors within each probability band"
+)
+```
+
+| Package | True probability | Comparisons | Signed error (points) | Absolute error (points) |
+|:---|:---|---:|---:|---:|
+| occJSDM | Below 20% | 510 | 2.8 | 4.4 |
+| occJSDM | 20% to below 80% | 1999 | 1.3 | 7.2 |
+| occJSDM | 80% or above | 491 | -2.1 | 3.6 |
+| gllvm | Below 20% | 510 | -1.0 | 4.0 |
+| gllvm | 20% to below 80% | 1999 | 1.5 | 8.5 |
+| gllvm | 80% or above | 491 | 1.6 | 4.8 |
+| sjSDM | Below 20% | 510 | -1.2 | 4.0 |
+| sjSDM | 20% to below 80% | 1999 | 1.5 | 8.5 |
+| sjSDM | 80% or above | 491 | 2.0 | 4.9 |
+| Hmsc | Below 20% | 510 | 1.0 | 4.2 |
+| Hmsc | 20% to below 80% | 1999 | 1.4 | 7.4 |
+| Hmsc | 80% or above | 491 | -0.3 | 3.9 |
+
+New sites: direction and size of errors within each probability band
+
+``` r
+knitr::kable(
+  filter(band_errors, question == "Reconstruct sampled sites") |> select(-question),
+  digits = 1,
+  col.names = c("Package", "True probability", "Comparisons",
+                "Signed error (points)", "Absolute error (points)"),
+  caption = "Sampled sites: direction and size of errors within each probability band"
+)
+```
+
+| Package | True probability | Comparisons | Signed error (points) | Absolute error (points) |
+|:---|:---|---:|---:|---:|
+| occJSDM | Below 20% | 220 | 8.8 | 9.8 |
+| occJSDM | 20% to below 80% | 559 | 2.6 | 13.4 |
+| occJSDM | 80% or above | 221 | -10.4 | 10.9 |
+| gllvm | Below 20% | 220 | 4.6 | 7.7 |
+| gllvm | 20% to below 80% | 559 | 2.9 | 14.7 |
+| gllvm | 80% or above | 221 | -6.9 | 8.9 |
+| sjSDM | Below 20% | 220 | 2.9 | 7.7 |
+| sjSDM | 20% to below 80% | 559 | 2.8 | 17.8 |
+| sjSDM | 80% or above | 221 | -4.8 | 8.8 |
+| Hmsc | Below 20% | 220 | 7.4 | 9.3 |
+| Hmsc | 20% to below 80% | 559 | 2.8 | 14.0 |
+| Hmsc | 80% or above | 221 | -9.4 | 10.5 |
+
+Sampled sites: direction and size of errors within each probability band
+
+Read the signed and absolute columns together. A positive signed value
+in the low band indicates overestimation on average there. A negative
+value in the high band indicates underestimation. A small middle-band
+signed average does not imply accurate middle-band predictions; check
+its absolute-error column. The counts indicate how much of this
+community each result describes. They are not numbers of independent
+simulation replicates.
+
+### Are the same species difficult for every package?
+
+``` r
+species_errors <- predictions |>
+  group_by(package, question, species) |>
+  summarise(
+    comparisons = n(),
+    signed_error_pp = mean(signed_error_pp),
+    absolute_error_pp = mean(absolute_error_pp),
+    .groups = "drop"
+  )
+
+ggplot(species_errors, aes(absolute_error_pp, species, colour = package)) +
+  geom_point(position = position_dodge(width = 0.6), size = 2.4) +
+  facet_wrap(~ question) +
+  scale_colour_manual(values = package_colours, labels = package_labels) +
+  scale_x_continuous(limits = c(0, NA)) +
+  labs(x = "Average absolute error (percentage points)", y = "Species",
+       colour = "Package", title = "An overall average hides differences among species") +
+  theme(legend.position = "bottom")
+```
+
+![](teaching-data/lesson-N-errors-by-species-1.png)<!-- -->
+
+Every plotted error is a distance from matching simulated truth. This
+figure helps identify which species deserve closer examination. It
+cannot by itself establish why a species is difficult or whether the
+same pattern recurs in other communities.
+
+To inspect a species in detail, filter the same table. Here is
+species_01, the first species in the input order. Change that name to
+examine another species. The [complete species error
+table](teaching-data/lesson-N-species-errors.csv) contains both error
+measures and counts for every species, package and question.
+
+``` r
+species_errors |>
+  filter(species == "species_01") |>
+  select(-species) |>
+  knitr::kable(
+    digits = 1,
+    col.names = c("Package", "Question", "Comparisons",
+                  "Signed error (points)", "Absolute error (points)"),
+    caption = "Species_01: actual error against truth; sjSDM provisional"
+  )
+```
+
+| Package | Question | Comparisons | Signed error (points) | Absolute error (points) |
+|:---|:---|---:|---:|---:|
+| occJSDM | Reconstruct sampled sites | 100 | -0.6 | 9.9 |
+| occJSDM | Predict new sites | 300 | -1.2 | 5.6 |
+| gllvm | Reconstruct sampled sites | 100 | -2.1 | 9.0 |
+| gllvm | Predict new sites | 300 | -3.0 | 4.1 |
+| sjSDM | Reconstruct sampled sites | 100 | -2.3 | 9.0 |
+| sjSDM | Predict new sites | 300 | -3.2 | 4.2 |
+| Hmsc | Reconstruct sampled sites | 100 | -0.8 | 9.5 |
+| Hmsc | Predict new sites | 300 | -1.4 | 4.7 |
+
+Species_01: actual error against truth; sjSDM provisional
+
+## 7. What environmental response does each model recover?
+
+We now move along one gradient while keeping the other at its training
+mean. The horizontal axis runs from two training standard deviations
+below the mean to two above it. All curves **average over hidden
+conditions**, matching the new-site question.
+
+Each black dashed line is the true response. Each coloured line is a
+model’s estimated response. We show all ten species, rather than
+selecting the most attractive examples. The curves are point summaries;
+no common uncertainty interval was calculated across all four fitting
+methods. Their agreement or separation is not a test of a statistically
+significant difference between packages.
+
+``` r
+response_curves <- as_tibble(comparison$curves) |>
+  mutate(package = factor(package, levels = package_order))
+
+true_curves <- response_curves |>
+  distinct(gradient, value, species, truth)
+```
+
+``` r
+ggplot(filter(response_curves, gradient == "environment_1"),
+       aes(value, estimate, colour = package)) +
+  geom_line(linewidth = 0.65) +
+  geom_line(data = filter(true_curves, gradient == "environment_1"),
+            aes(value, truth), inherit.aes = FALSE,
+            colour = "black", linetype = "dashed", linewidth = 0.8) +
+  facet_wrap(~ species, ncol = 2) +
+  scale_colour_manual(values = package_colours, labels = package_labels) +
+  scale_y_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1),
+                     labels = scales::label_percent()) +
+  labs(x = "Environmental gradient 1 (training standard deviations)",
+       y = "Occurrence probability", colour = "Package",
+       title = "Gradient 1: fitted curves beside the true response",
+       subtitle = "Black dashed line = truth; gradient 2 held at its training mean") +
+  theme(legend.position = "bottom")
+```
+
+![](teaching-data/lesson-N-environmental-gradient-1-1.png)<!-- -->
+
+``` r
+ggplot(filter(response_curves, gradient == "environment_2"),
+       aes(value, estimate, colour = package)) +
+  geom_line(linewidth = 0.65) +
+  geom_line(data = filter(true_curves, gradient == "environment_2"),
+            aes(value, truth), inherit.aes = FALSE,
+            colour = "black", linetype = "dashed", linewidth = 0.8) +
+  facet_wrap(~ species, ncol = 2) +
+  scale_colour_manual(values = package_colours, labels = package_labels) +
+  scale_y_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1),
+                     labels = scales::label_percent()) +
+  labs(x = "Environmental gradient 2 (training standard deviations)",
+       y = "Occurrence probability", colour = "Package",
+       title = "Gradient 2: fitted curves beside the true response",
+       subtitle = "Black dashed line = truth; gradient 1 held at its training mean") +
+  theme(legend.position = "bottom")
+```
+
+![](teaching-data/lesson-N-environmental-gradient-2-1.png)<!-- -->
+
+Look for three different kinds of disagreement: a curve that is
+generally too high or low, one that changes too steeply or too weakly,
+and one that changes in the wrong direction. Their ecological
+implications differ, even if their overall average errors happen to be
+similar. For example, species_03’s gradient-1 curves follow truth
+closely, while species_04’s gradient-1 curves are too flat. Along
+gradient 2, species_03’s fitted responses are much flatter than its true
+response. These examples are visible in the full set of panels; they
+illustrate how to read a curve, rather than determining which results we
+include.
+
+These are observational responses within this simulated model, with
+other measured conditions fixed and unmeasured conditions averaged over.
+For a real dataset, a fitted environmental association does not by
+itself establish a causal effect. Also, these curves differ from the
+zero-factor occupancy-gradient profiles taught in [Lesson
+3](occJSDM-lesson-3.md): here we deliberately average over hidden
+variation.
+
+## 8. If we did not know truth, how would we score predictions?
+
+In real field data we observe 0s and 1s, not the probabilities that
+generated them. Held-out outcomes can still score probabilistic
+predictions. A **Brier score** averages the squared difference between
+predicted probability and the observed 0 or 1. A **negative log score**
+penalises assigning low probability to what actually occurred. Lower is
+better for both. Neither is measured in percentage points.
+
+``` r
+outcome_scores <- new_site_predictions |>
+  group_by(package) |>
+  summarise(
+    Brier_score = mean((estimate - observed)^2),
+    negative_log_score = -mean(
+      observed * log(estimate) + (1 - observed) * log1p(-estimate)
+    ),
+    .groups = "drop"
+  )
+
+knitr::kable(outcome_scores, digits = 4,
+             caption = "Scores for 3,000 held-out binary outcomes; sjSDM provisional")
+```
+
+| package | Brier_score | negative_log_score |
+|:--------|------------:|-------------------:|
+| occJSDM |      0.1818 |             0.5414 |
+| gllvm   |      0.1827 |             0.5472 |
+| sjSDM   |      0.1827 |             0.5474 |
+| Hmsc    |      0.1817 |             0.5422 |
+
+Scores for 3,000 held-out binary outcomes; sjSDM provisional
+
+The scores are close in this pilot. Even the true probability will
+sometimes give substantial error against a random binary outcome: a
+species predicted with 80% probability is still absent about one time in
+five. This is why the probability-error tables and the outcome-score
+table measure different things. We do not use sampled-site outcome
+scores to claim independent prediction skill, because those observations
+helped fit the models.
+
+## 9. Optional: fit the same configurations yourself
+
+Run each package’s fitting example in a **fresh R session** with its
+recorded dependencies available. Load `comparison` and `training` as
+above first. The examples show the selected configuration; they do not
+replace the multiple-start and diagnostic checks. Bayesian defaults and
+numerical results can change with package versions.
+
+### occJSDM: directly observed binary data
+
+There are no repeated `Site`, `Sample` or `Primer` identifiers in this
+input. occJSDM infers binary JSDM mode. `n_lattrait = 0` removes latent
+species-trait structure; `n_factors = 2` retains the two hidden site
+factors.
+
+``` r
+library(occJSDM)
+
+set.seed(26092211)
+
+fit_occJSDM <- runOccJSDM(
+  data = list(info = training$x, OTU = training$y),
+  occCovariates = names(training$x),
+  listParams = list(n_factors = 2, n_lattrait = 0),
+  MCMCparams = list(nchain = 4, nburn = 2000, niter = 4000, nthin = 1)
+)
+```
+
+### gllvm: the checked VA configuration
+
+We show the residual-based initialisation that reproduced the best VA
+solution. The full pilot also tried other seeds and starting methods. A
+single call cannot demonstrate stability across starts.
+
+``` r
+library(gllvm)
+
+fit_gllvm <- gllvm(
+  y = training$y,
+  X = training$x,
+  family = binomial("logit"),
+  link = "logit",
+  num.lv = 2,
+  method = "VA",
+  seed = 26092332,
+  sd.errors = FALSE,
+  control.start = list(starting.val = "res", n.init = 1, jitter.var = 0.1),
+  control = list(maxit = 12000, max.iter = 12000)
+)
+```
+
+### sjSDM: the original provisional configuration
+
+Select the Python environment appropriate for your machine before
+loading reticulate or sjSDM. This switch explicitly disables Mojo in the
+recorded fork. `df = 2` sets the covariance factor dimension; the
+environmental response is linear, not a neural network.
+
+``` r
+Sys.setenv(SJSDM_MOJO_BACKEND = "0")
+
+library(sjSDM)
+
+fit_sjSDM <- sjSDM(
+  Y = training$y,
+  env = linear(data = training$x, lambda = 0),
+  biotic = bioticStruct(df = 2, lambda = 0),
+  family = binomial("logit"),
+  device = "cpu",
+  dtype = "float64",
+  iter = 3000L,
+  sampling = 2000L,
+  step_size = 100L,
+  learning_rate = 0.002,
+  parallel = 0L,
+  control = sjSDMControl(
+    optimizer = RMSprop(weight_decay = 0),
+    scheduler = 0,
+    early_stopping_training = 0
+  ),
+  seed = 26092341,
+  se = FALSE,
+  verbose = FALSE
+)
+```
+
+Zero weight decay is an explicit choice in this original pilot, not the
+optimiser’s usual default. A later sensitivity check restored the
+default 0.0001 penalty and still missed our full repeated-start
+criterion. Its predictions have not been substituted into the
+comparison. sjSDM’s live Python model cannot simply be saved and
+restored as an ordinary R object; the study archives verified numeric
+parameters separately.
+
+### Hmsc: a site level without spatial information
+
+Every training site has its own independent random level. Fixing both
+the minimum and maximum to two prevents the factor count from changing
+during this comparison. `XScale = FALSE` avoids changing our already
+standardised predictors again.
+
+``` r
+library(Hmsc)
+
+study_design <- data.frame(
+  site = factor(rownames(training$x), levels = rownames(training$x))
+)
+
+site_level <- HmscRandomLevel(units = levels(study_design$site)) |>
+  setPriors(nfMin = 2, nfMax = 2)
+
+model_Hmsc <- Hmsc(
+  Y = training$y,
+  XData = training$x,
+  XFormula = ~ environment_1 + environment_2,
+  XScale = FALSE,
+  distr = "probit",
+  studyDesign = study_design,
+  ranLevels = list(site = site_level)
+)
+
+set.seed(26092221)
+
+fit_Hmsc <- sampleMcmc(
+  model_Hmsc,
+  samples = 4000,
+  transient = 2000,
+  thin = 1,
+  nChains = 4,
+  nParallel = 1,
+  verbose = 1000
+)
+```
+
+### What did these runs cost?
+
+The table separates time for the selected fit from time spent on all
+original attempts. Times are elapsed wall time measured on one Apple
+Silicon machine; some processes ran concurrently. Summing them is an
+accounting of fit effort, not the elapsed duration of the project or a
+controlled speed benchmark. It excludes setup, checking, exports and the
+later sjSDM investigation.
+
+``` r
+selected_runs <- tibble(
+  package = names(comparison$selected),
+  fit = unname(comparison$selected)
+)
+
+selected_times <- as_tibble(comparison$attempts) |>
+  inner_join(selected_runs, by = c("package", "fit")) |>
+  transmute(package, selected_fit_seconds = seconds)
+
+runtime_summary <- as_tibble(comparison$attempts) |>
+  group_by(package) |>
+  summarise(
+    attempts = n(),
+    sum_of_attempt_seconds = sum(seconds),
+    .groups = "drop"
+  ) |>
+  left_join(selected_times, by = "package")
+
+knitr::kable(
+  runtime_summary, digits = 1,
+  col.names = c("Package", "Attempts", "All attempt seconds", "Selected fit seconds")
+)
+```
+
+| Package | Attempts | All attempt seconds | Selected fit seconds |
+|:--------|---------:|--------------------:|---------------------:|
+| Hmsc    |        1 |                24.0 |                 24.0 |
+| gllvm   |       15 |                39.5 |                  0.6 |
+| occJSDM |        1 |                18.6 |                 18.6 |
+| sjSDM   |        6 |               861.3 |                256.6 |
+
+The original longer sjSDM workers saved complete numeric fits but
+subsequently exited with a parser error because their driver file was
+edited while running. The saved fits were checked in fresh processes
+against the input hashes and native predictions; the execution error
+remains in the record. Later runs used immutable driver snapshots.
+Numerical probability integration was independently checked at finer
+resolution, with differences much smaller than the ecological errors
+shown here.
+
+## 10. What this lesson establishes, and what remains open
+
+The four packages can be compared on the same perfectly observed
+community **when their prediction targets are explicitly matched**.
+Perfect observation still leaves appreciable probability error. Across
+this one community, the differences among new-site scores are small,
+while errors vary among species and probability bands.
+
+This does not establish a generally superior package, settle sjSDM
+optimisation, or demonstrate systematic bias across repeated
+communities. A broader study would need independent simulated
+communities, both logit- and probit-generating scenarios, and
+sensitivity to sample size and priors. Spatial effects, traits,
+residual-correlation comparisons and variation partitioning require
+their own matched examples. They are not silently included in this
+pilot.
+
+Try these exercises with the saved tables, without refitting:
+
+1.  Choose a species **before** examining its error. Compare its signed
+    and absolute errors across packages and explain why the numbers
+    differ.
+2.  Find a probability band with a small signed error but a larger
+    absolute error. Explain what averaging has hidden.
+3.  Pick an environmental curve that misses truth. Describe whether its
+    baseline, direction or steepness is wrong.
+4.  Explain why the two sampled-site and new-site figures cannot be used
+    as an ordinary training-versus-test overfitting comparison.
+
+## Reproduction record
+
+The compact bundle records seed 26092201, complete generating truth, fit
+selection, input/source hashes, diagnostics and unrounded estimates. The
+occJSDM snapshot is `3a97267`; Doug’s sjSDM fork snapshot is `d2ca508`.
+The examples use gllvm 2.0.15 and Hmsc 3.3-7. No fit is rerun while
+knitting, and the lesson needs no Python or full MCMC files to render.
+
+For the full fitting, selection, numerical extraction and validation
+commands, see `dev/simstudy/jsdm-package-comparison/README.md` in the
+source repository. The development reports retain failed attempts,
+optimisation follow-ups and environment limitations; that directory is
+deliberately excluded from the built package. The compact teaching
+bundle and this lesson are included.
+
+Return to the [Quickstart and lesson guide](occJSDM.md), [Lesson
+1](occJSDM-lesson-1.md) or [Lesson 3](occJSDM-lesson-3.md).

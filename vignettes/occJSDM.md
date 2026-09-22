@@ -12,19 +12,27 @@ code and compare the results with the truth used to simulate their data.
   survey](occJSDM-lesson-0.md). Optional preparation: sites, field
   samples, primers, PCR replicates, environmental covariates, traits and
   maps of the known truth.
+
 - [Lesson 1: Fit the model and compare its answers with
   truth](occJSDM-lesson-1.md). The main starting point: fit the model,
   understand occupancy error, and inspect actual examples of weak true
   detections, strong true detections and false positives.
+
 - [Lesson 2: Spatial landscapes and dispersal](occJSDM-lesson-2.md). A
   planned lesson on smooth environmental gradients, residual spatial
   structure and a separate dispersal simulation. It is not yet a worked
   spatial validation.
+
 - [Lesson 3: Understand the model’s outputs by comparing them with
   truth](occJSDM-lesson-3.md). Environmental responses, trait effects,
   species associations, ordination, variation partitioning and detection
   effort. It includes a function index and explains why a real simulated
   effect can remain uncertain.
+
+- [Lesson N: Compare four JSDMs](occJSDM-lesson-N.md). A worked
+  non-spatial pilot comparing occJSDM, gllvm, sjSDM and Hmsc on the same
+  perfectly observed community, with matching truth and explicit fitting
+  limitations.
 
 You can read Lesson 3 after Lesson 1; the spatial lesson is not a
 prerequisite. The earlier output tour has been replaced by Lesson 3. The
@@ -80,6 +88,7 @@ absent; an interval excluding zero does not demonstrate that its
 magnitude is accurate.
 
 For a particular function, use the index at the end of Lesson 3 or the
-package’s R help. Genuine new-site prediction, spatial validation and
-comparisons with other JSDM packages require their own matched examples
-and are not established by the current non-spatial lessons.
+package’s R help. Lesson 3 includes independent-site prediction, and
+Lesson N provides a matched four-package pilot. Spatial validation
+remains separate work in Lesson 2. One pilot cannot establish a general
+package ranking.

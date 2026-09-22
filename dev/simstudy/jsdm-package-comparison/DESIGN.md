@@ -1,6 +1,6 @@
 # Lesson N: comparing four JSDMs when presence is observed perfectly
 
-Design prepared 21 September 2026. Status: proposed pilot design; no comparison fits have been run.
+Design prepared 21 September 2026. Status: accepted pilot design. The first fits and checks were run on 22 September 2026; see [FITTING-REPORT.md](FITTING-REPORT.md). The original design below is retained, with execution decisions recorded in [RUN-PLAN.md](RUN-PLAN.md).
 
 ## What we want to learn
 

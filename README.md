@@ -21,6 +21,7 @@ Start with the teaching lessons. They show readable R code alongside the simulat
 - [Lesson 1: Fit the model and compare its answers with truth](vignettes/occJSDM-lesson-1.md).
 - [Lesson 2: Spatial landscapes and dispersal](vignettes/occJSDM-lesson-2.md), an outline pending review of the spatial submodel in PR #8.
 - [Lesson 3: Understand the model outputs](vignettes/occJSDM-lesson-3.md), with true and fitted environmental effects, trait effects, species associations, variation partitioning and detection-effort curves.
+- [Lesson N: Compare four JSDMs](vignettes/occJSDM-lesson-N.md), a worked pure-JSDM pilot with occJSDM, gllvm, sjSDM and Hmsc, comparing probabilities and environmental responses with simulation truth. sjSDM results remain provisional.
 
 After installing with vignettes, open the completed lessons in R:
 
@@ -28,6 +29,7 @@ After installing with vignettes, open the completed lessons in R:
 vignette("occJSDM-lesson-0", package = "occJSDM")
 vignette("occJSDM-lesson-1", package = "occJSDM")
 vignette("occJSDM-lesson-3", package = "occJSDM")
+vignette("occJSDM-lesson-N", package = "occJSDM")
 ```
 
 The quickstart guide and simulator reference are also available:
