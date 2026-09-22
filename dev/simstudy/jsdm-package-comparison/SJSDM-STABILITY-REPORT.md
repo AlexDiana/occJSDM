@@ -1,5 +1,7 @@
 # Why the first sjSDM fits were not fully stable
 
+Latest resumed-study status and remaining work: [SJSDM-STABILITY-HANDOVER.md](SJSDM-STABILITY-HANDOVER.md).
+
 This continues the [four-package pilot](FITTING-REPORT.md). The investigation uses the same training data and the same two-factor logit model. Test outcomes and simulated truth are not used to choose fitting settings. Original results are retained.
 
 ## What the first checks showed
