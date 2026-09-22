@@ -2076,28 +2076,28 @@ plotLatentPresences <- function(latentPresences,
 
 # OTHER -------
 
-#' extractWAIC
+#' Extract an observed-data site WAIC, or the legacy stored score
 #'
-#' Compute the WAIC for model comparison
-#'
-#' @details
-#' Compute the WAIC for model comparison
-#'
-#' @param fitModel Output from the function runOccJSDM
-#'
-#' @return The WAIC
-#'
-#' @examples
-#' \dontrun{
-#' extractWAIC(fitModel)
-#' }
-#'
+#' @param fitModel Output from [runOccJSDM()].
+#' @param type `"site"` (default) computes observed-data WAIC using
+#'   [computeSiteWAIC()]. `"legacy"` retrieves the old stored scalar, which
+#'   includes sampled latent states and is not a new-site prediction criterion.
+#' @param ... Arguments passed to [computeSiteWAIC()], for example the original
+#'   `threshold` for an old saved fit or numerical integration settings.
+#' @return A numeric score. For pointwise contributions, uncertainty and
+#'   integration diagnostics, call [computeSiteWAIC()] directly.
+#' @details The default now performs numerical post-processing rather than
+#'   reading a scalar. It supports non-spatial binary, occupancy and two-stage
+#'   fits. It stops for unsupported targets or failed numerical integration.
+#'   Fitting is unchanged; `results_output$WAIC` still stores the legacy score
+#'   for compatibility. Do not use that score to choose a factor count for
+#'   new-site predictions. Legacy scores and site WAIC values are not comparable.
+#' @md
 #' @export
-#'
-extractWAIC <- function(fitModel){
-
-  fitModel$results_output$WAIC
-
+extractWAIC <- function(fitModel, type = c("site", "legacy"), ...) {
+  type <- match.arg(type)
+  if (type == "legacy") return(fitModel$results_output$WAIC)
+  computeSiteWAIC(fitModel, ...)$WAIC
 }
 
 #' returnVariancePartitioning

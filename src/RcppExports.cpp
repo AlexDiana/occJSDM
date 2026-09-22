@@ -616,6 +616,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// site_loglik_cpp
+arma::vec site_loglik_cpp(const arma::mat& eta, const arma::mat& log_g0, const arma::mat& log_g1, const arma::mat& loadings, const arma::mat& nodes, const arma::vec& log_weights);
+RcppExport SEXP _occJSDM_site_loglik_cpp(SEXP etaSEXP, SEXP log_g0SEXP, SEXP log_g1SEXP, SEXP loadingsSEXP, SEXP nodesSEXP, SEXP log_weightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type eta(etaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type log_g0(log_g0SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type log_g1(log_g1SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type loadings(loadingsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type nodes(nodesSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type log_weights(log_weightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(site_loglik_cpp(eta, log_g0, log_g1, loadings, nodes, log_weights));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_occJSDM_setOccJSDMSeed", (DL_FUNC) &_occJSDM_setOccJSDMSeed, 1},
@@ -655,6 +671,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_occJSDM_spatEffectMeanCpp", (DL_FUNC) &_occJSDM_spatEffectMeanCpp, 3},
     {"_occJSDM_sample_BBsL_cpp", (DL_FUNC) &_occJSDM_sample_BBsL_cpp, 16},
     {"_occJSDM_sample_BBsL_parallel", (DL_FUNC) &_occJSDM_sample_BBsL_parallel, 16},
+    {"_occJSDM_site_loglik_cpp", (DL_FUNC) &_occJSDM_site_loglik_cpp, 6},
     {NULL, NULL, 0}
 };
 

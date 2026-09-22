@@ -335,7 +335,9 @@ create_waic_quantities <- function(n_obs){
 #'   \item{results_output}{Posterior samples/summaries, including
 #'   \code{jsdm_output} (JSDM coefficient posteriors), \code{beta_theta_output},
 #'   \code{p_output}, \code{q_output}, \code{theta0_output} (detection-process
-#'   posteriors), \code{WAIC}, and (per \code{summarisedLatentPresences})
+#'   posteriors), the legacy complete-data score \code{WAIC} (use
+#'   \code{computeSiteWAIC()} for observed-data model comparison), and
+#'   (per \code{summarisedLatentPresences})
 #'   either posterior means or full samples of \code{z_output} (latent
 #'   occupancy), \code{w_output} (latent collection), \code{psi_output}
 #'   (occupancy probabilities), and \code{theta_output} (collection
@@ -1399,6 +1401,7 @@ runOccJSDM <- function(data,
     "ncov_theta" = ncov_theta,
     "ncov_psi" = ncov_psi,
     "OTU" = OTU,
+    "threshold" = if (model %in% c("occupancy", "two_stage")) threshold else NULL,
     "X0_psi" = X0_psi,
     "list_Xs" = list_Xs,
     "list_X_psi_mat" = list_Xpsi_mat,
