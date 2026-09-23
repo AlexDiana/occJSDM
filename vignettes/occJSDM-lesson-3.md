@@ -954,7 +954,14 @@ outputs$collection |>
 
 ![](occJSDM-lesson-3_files/figure-gfm/collection-effects-1.png)<!-- -->
 
-Use `returnCollectionCovariates()` to extract these draws. [Lesson
+Use `returnCollectionCovariates()` to extract these draws. Two related
+helpers answer different questions about collection.
+`plotCollectionRates()` shows each species’ collection probability with
+the covariates fixed at their mean, one value per species.
+`computeAverageCollectionProbs()` instead returns a sample-by-species
+matrix of posterior mean collection probabilities using each field
+sample’s actual covariate values, which is the quantity to use when
+asking which samples were poorly collected. [Lesson
 1](occJSDM-lesson-1.md) compares true and estimated PCR detection,
 laboratory false-positive and field-contamination probabilities, and
 shows why their values alone cannot classify every positive detection
@@ -1029,9 +1036,13 @@ on measured environmental covariates is incomplete.
 `computeConditionalOccupancyProbs()` summarizes the model’s belief that
 the species actually occupied the surveyed site, accounting for the
 observation process. Its appropriate simulation check is the realized
-0/1 state, not the generating probability. [Lesson
-1](occJSDM-lesson-1.md) puts these quantities alongside the actual
-simulated detection cases, with maps in Lesson 0.
+0/1 state, not the generating probability. Its sample-level counterpart,
+`computeConditionalSamplePresenceProbs()`, returns a sample-by-species
+matrix of posterior probabilities that the species’ DNA was in each
+field sample; the latent presence table below shows the same quantity in
+its `CondSampleProb` column, beside the PCR results that produced it.
+[Lesson 1](occJSDM-lesson-1.md) puts these quantities alongside the
+actual simulated detection cases, with maps in Lesson 0.
 
 Which one should a study report? [Ji et
 al. (2025)](#references-and-further-reading) reported the predictive
@@ -1812,8 +1823,13 @@ decide whether further computation or investigation is needed.
 
 ### Get the diagnostics for your own fit
 
-Use the `fitmodel` returned by `runOccJSDM()`. If you are reproducing
-our saved example instead, load its complete fit first:
+Use the `fitmodel` returned by `runOccJSDM()`. At the end of fitting,
+`runOccJSDM()` calls `computeDiagnostics()` to print a block-by-block
+summary of Rhat and effective sample size to the console and to warn if
+any block has an Rhat above 1.1 or an ESS below 50. Those are loose
+screening thresholds that catch gross failures. For the stricter,
+per-parameter checks below, use the table-returning function. If you are
+reproducing our saved example instead, load its complete fit first:
 
 ``` r
 saved_fit <- readRDS("/path/to/full-fits/default-fit.rds")
@@ -2804,11 +2820,11 @@ scripts document and check the array calculations behind them.
 | Which species share unmeasured site responses? | `returnResidualCorrelationMatrix()`, `plotResidualCorrelationMatrix()` | Matched matrices and native uncertainty display above |
 | What do ordination axes represent? | `returnOrdinationScores()`, `returnFactorLoadings()`, `plotOrdinationScores()`, `plotFactorLoadings()`, `plotBiplot()` | Combined contribution plus truth-aligned native scores, loadings and biplot |
 | How is variation allocated? | `returnVariancePartitioning()`, `plotVariancePartitioning()` | Matching true and fitted fractions above |
-| What affects collection? | `returnCollectionCovariates()`, `plotCollectionCovariates()`, `plotCollectionRates()` | Collection effects above; observation process in Lesson 1 |
+| What affects collection? | `returnCollectionCovariates()`, `plotCollectionCovariates()`, `plotCollectionRates()`, `computeAverageCollectionProbs()` | Collection effects above; observation process in Lesson 1 |
 | What about PCR failures and contamination? | `plotDetectionRates()`, `plotStage1FPRates()`, `plotStage2FPRates()` | Combined and separate native rate plots above; actual cases in Lesson 1 |
 | How does sampling effort affect detection? | `plotCumulativeSpeciesDetections()` | Analytic expectation and native survey-outcome intervals above |
-| What happened at a particular site/sample? | `computeConditionalOccupancyProbs()`, `computePredictiveOccupancyProbs()`, `returnLatentPresences()`, `plotLatentPresences()` | Native tables above, with matching states and probabilities |
-| Can I trust the computation? | `returnConvergenceDiagnostics()`, `plotTraceplot()`, `extractWAIC()` | Diagnostics above; these have no single simulated true value |
+| What happened at a particular site/sample? | `computeConditionalOccupancyProbs()`, `computeConditionalSamplePresenceProbs()`, `computePredictiveOccupancyProbs()`, `returnLatentPresences()`, `plotLatentPresences()` | Native tables above, with matching states and probabilities |
+| Can I trust the computation? | `computeDiagnostics()`, `returnConvergenceDiagnostics()`, `plotTraceplot()`, `extractWAIC()` | Diagnostics above; these have no single simulated true value |
 | How well does it predict unsurveyed sites? | `predictNewSites()` | 300 independent non-spatial sites above, with clearly distinguished probability targets |
 | What about spatial prediction? | Spatial model outputs | Planned Lesson 2; not validated by this lesson |
 
