@@ -1,0 +1,51 @@
+$selected
+                         occJSDM                             Hmsc 
+     "occJSDM-attempt-1-start-1"         "Hmsc-attempt-1-start-1" 
+                           gllvm                            sjSDM 
+"gllvm-VA-attempt-2-start-2-res"      "sjSDM-multistart-start-11" 
+
+$original_selected
+                         occJSDM                             Hmsc 
+     "occJSDM-attempt-1-start-1"         "Hmsc-attempt-1-start-1" 
+                           gllvm                            sjSDM 
+"gllvm-VA-attempt-2-start-2-res"        "sjSDM-attempt-2-start-1" 
+
+$truth_used
+[1] FALSE
+
+$sjSDM_configuration
+$sjSDM_configuration$epochs
+[1] 3000
+
+$sjSDM_configuration$learning_rate
+[1] 0.002
+
+$sjSDM_configuration$sampling
+[1] 2000
+
+$sjSDM_configuration$batch
+[1] 100
+
+$sjSDM_configuration$optimiser
+[1] "RMSprop"
+
+$sjSDM_configuration$weight_decay
+[1] 1e-04
+
+$sjSDM_configuration$polish_epochs
+[1] 1000
+
+$sjSDM_configuration$polish_learning_rate
+[1] 2e-04
+
+$sjSDM_configuration$fit_seed
+[1] 26092811
+
+$sjSDM_configuration$polish_seed
+[1] 26092911
+
+$sjSDM_configuration$backend
+[1] "torch_tmp"
+
+
+Revised selection recorded without reading truth.
