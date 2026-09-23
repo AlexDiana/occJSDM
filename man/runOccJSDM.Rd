@@ -28,8 +28,9 @@ runOccJSDM(
   \item{OTU}{A matrix of dimension (N x S), where N is
   \code{nrow(data$info)} and S is the number of species, containing the
   number of reads of each species in each observation.}
-  \item{traits}{(Optional) species (rows) by trait (columns) matrix of
-species traits, matched to \code{colnames(data$OTU)} by row name. }
+  \item{traits}{(Optional) species (rows) by trait (columns) matrix or
+  data.frame of species traits (numeric and/or categorical), matched to
+  \code{colnames(data$OTU)} by row name.}
 }}
 
 \item{listParams}{(Optional) list of model-size hyperparameters:

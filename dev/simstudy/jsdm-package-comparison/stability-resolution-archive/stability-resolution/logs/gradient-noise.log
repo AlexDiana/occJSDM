@@ -1,0 +1,30 @@
+Native gradient experiment 2000 draws finished in 6.277587582997512 seconds
+Native gradient experiment 20000 draws finished in 34.73985062498832 seconds
+Completed native gradient sampling at endpoint 1 
+Native gradient experiment 2000 draws finished in 5.69018670800142 seconds
+Native gradient experiment 20000 draws finished in 33.3752803329844 seconds
+Completed native gradient sampling at endpoint 2 
+Native gradient experiment 2000 draws finished in 5.63876512501156 seconds
+Native gradient experiment 20000 draws finished in 33.464835292019416 seconds
+Completed native gradient sampling at endpoint 3 
+        start sampling evaluations precise_objective mean_objective
+1 2000      1     2000         100          484.3067       484.3856
+1 20000     1    20000          40          484.3067       484.3001
+2 2000      2     2000         100          484.4331       484.5031
+2 20000     2    20000          40          484.4331       484.4765
+3 2000      3     2000         100          484.4319       484.4981
+3 20000     3    20000          40          484.4319       484.4428
+        objective_se precise_directional_gradient mean_directional_gradient
+1 2000    0.03389372                   0.06142926                0.06180963
+1 20000   0.01789092                   0.06142926                0.05578068
+2 2000    0.03460152                   0.05174612                0.03024864
+2 20000   0.01783426                   0.05174612                0.05032022
+3 2000    0.03223896                   0.05236468                0.05585640
+3 20000   0.01489680                   0.05236468                0.05286015
+        gradient_se
+1 2000  0.008753189
+1 20000 0.005167262
+2 2000  0.009037112
+2 20000 0.004580462
+3 2000  0.008460016
+3 20000 0.004280954

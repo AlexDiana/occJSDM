@@ -17,4 +17,7 @@
 ^pkgdown$
 ^\.github$
 ^vignettes/articles$
+^vignettes/LESSON-PLAN\.md$
+^vignettes/ORIG_occJSDM\.Rmd$
 ^\.posit/assistant$
+^vignettes/images$

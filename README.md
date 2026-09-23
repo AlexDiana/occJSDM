@@ -15,14 +15,29 @@ Note the `build_vignettes = TRUE` -- without it, `remotes::install_github()` ski
 
 ## Getting started
 
-See the package vignettes for a walkthrough of fitting a model with `runOccJSDM()` and simulating data with `simulateOccJSDMData()`:
+Start with the teaching lessons. They show readable R code alongside the simulated truth and matching results:
+
+- [Lesson 0 (optional): Create and explore a simulated survey](vignettes/occJSDM-lesson-0.md).
+- [Lesson 1: Fit the model and compare its answers with truth](vignettes/occJSDM-lesson-1.md).
+- [Lesson 2: Spatial landscapes and dispersal](vignettes/occJSDM-lesson-2.md), an outline pending review of the spatial submodel in PR #8.
+- [Lesson 3: Understand the model outputs](vignettes/occJSDM-lesson-3.md), with true and fitted environmental effects, trait effects, species associations, variation partitioning and detection-effort curves.
+- [Lesson 4: Compare four JSDMs](vignettes/occJSDM-lesson-4.md), a worked pure-JSDM pilot with occJSDM, gllvm, sjSDM and Hmsc, comparing probabilities and environmental responses with simulation truth. sjSDM turns out to have two local optima, which the lesson explains.
+
+After installing with vignettes, open the completed lessons in R:
+
+``` r
+vignette("occJSDM-lesson-0", package = "occJSDM")
+vignette("occJSDM-lesson-1", package = "occJSDM")
+vignette("occJSDM-lesson-3", package = "occJSDM")
+vignette("occJSDM-lesson-4", package = "occJSDM")
+```
+
+The quickstart guide and simulator reference are also available:
 
 ``` r
 vignette("occJSDM", package = "occJSDM")
 vignette("simulateOccJSDMData", package = "occJSDM")
 ```
-
-For a plain-language explanation of spatial prediction, ecological inference and survey design, see [Spatial effects, inference and sampling design](vignettes/occJSDM.Rmd#spatial-effects-inference-and-sampling-design) in the main vignette. It covers the area represented by a sample, spacing and geographical extent, field and PCR replication, and how to check predictions at unsampled locations.
 
 ## How to cite
 

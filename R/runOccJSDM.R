@@ -273,8 +273,9 @@ create_waic_quantities <- function(n_obs){
 #'   \item{OTU}{A matrix of dimension (N x S), where N is
 #'   \code{nrow(data$info)} and S is the number of species, containing the
 #'   number of reads of each species in each observation.}
-#'   \item{traits}{(Optional) species (rows) by trait (columns) matrix of
-#' species traits, matched to \code{colnames(data$OTU)} by row name. }
+#'   \item{traits}{(Optional) species (rows) by trait (columns) matrix or
+#'   data.frame of species traits (numeric and/or categorical), matched to
+#'   \code{colnames(data$OTU)} by row name.}
 #' }
 #' @param listParams (Optional) list of model-size hyperparameters:
 #' \describe{
@@ -503,8 +504,10 @@ runOccJSDM <- function(data,
         stop("'threshold' must be strictly greater than 0.")
       }
 
-      y[y >= threshold] <- 1
-      y[y < threshold] <- 0
+      readsAboveThreshold <- y >= threshold
+      readsBelowThreshold <- y < threshold
+      y[readsAboveThreshold] <- 1
+      y[readsBelowThreshold] <- 0
 
     }
 
@@ -728,11 +731,20 @@ runOccJSDM <- function(data,
 
         idx_speciesNames <- match(speciesNames, speciesNamesInTraitsMatrix)
         Tr <- data$traits
-        Tr <- Tr[idx_speciesNames,]
-        Tr <- as.matrix(Tr)
+        Tr <- Tr[idx_speciesNames, , drop = FALSE]
+
+        list_Tr <- create_covariates_matrix(
+          Tr,
+          spline_vars = FALSE,
+          remove_intercept = TRUE
+        )
+        Tr <- list_Tr$X
+        list_Tr_mat <- list_Tr$list_matrix
+        rownames(Tr) <- speciesNames
         traitsNames <- colnames(Tr)
       } else {
         Tr <- matrix(NA, S, 0)
+        list_Tr_mat <- NULL
       }
 
     }
@@ -1396,6 +1408,7 @@ runOccJSDM <- function(data,
     "list_X_psi_mat" = list_Xpsi_mat,
     "list_Xs_mat" = list_Xs_mat,
     "list_X_theta_mat" = list_X_theta_mat,
+    "list_Tr_mat" = list_Tr_mat,
     "l_s_grid" = l_s_grid,
     "model" = model,
     "jsdmModel" = jsdmModel

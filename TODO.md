@@ -50,19 +50,19 @@ output: html_document
 
 **Release criterion agreed 10 September 2026:** retain all advertised modelling features, fix incorrect or materially biased point estimates, and allow undercoverage or overcoverage to wait. This triage assumes a GitHub beta. The CRAN submission and paper work can follow later.
 
-**Beta gates: review the collection-covariate fix, complete the other three code workstreams, then run the targeted bias and release checks.** The `B0` and high-`q` findings remain conditional release gates: reassess them after the code fixes before deciding whether any prior change is needed.
+**Beta gates: workstreams 1 to 3 are approved; complete the spatial fitting and read-threshold items, then run the targeted bias and release checks.** The `B0` and high-`q` findings remain conditional release gates: reassess them after the code fixes before deciding whether any prior change is needed.
 
 ## Required code work (Alex, with Doug validating)
 
-1. **ALEX TO REVIEW: align collection covariates with the samples used by the sampler.** Implemented on branch `codex/align-collection-covariates`. In `R/runOccJSDM.R`, one canonical table of typed `(Site, Sample)` pairs now supplies `M` and `X_theta`, in the same order as `P`, `K` and the latent-state indices. Collection covariates are read directly from those rows, preserving identifier columns when requested as covariates. The pasted `SiteSample` label no longer controls covariate grouping or ordering.
+1. **Align collection covariates with the samples used by the sampler.** Implemented on branch `codex/align-collection-covariates`. In `R/runOccJSDM.R`, one canonical table of typed `(Site, Sample)` pairs now supplies `M` and `X_theta`, in the same order as `P`, `K` and the latent-state indices. Collection covariates are read directly from those rows, preserving identifier columns when requested as covariates. The pasted `SiteSample` label no longer controls covariate grouping or ordering.
 
     **Review:** check the source change and `test-collection-alignment.R`. Its 70 assertions verify actual covariate/observation/index pairing for numeric sites `1`, `2`, `10`, global and within-site sample IDs, shuffled rows, unequal primer/PCR replication, colliding character labels, categorical covariates, identifier covariates and intercept-only models. The original implementation fails the pairing checks; the revised implementation passes.
 
     **Before closing:** review the paired recovery results in `dev/simstudy/collection-alignment-validation.md`, then record Alex's decision before moving this item to *Fixed bugs*. The reproducible runner is `dev/simstudy/validate_collection_alignment.R`. It compares negative, zero and positive slopes on the fitted covariate scale using unchanged priors and backend code. This alignment fix does not close the separate `B0`, high-`q`, RNG, correlation or spatial gates. Any material slope bias exposed by subsequent checks remains a beta blocker; interval coverage alone does not.
 
     APPROVED
-    
-2. **ALEX TO REVIEW: ensure random draws on the public fitting path are safe and independent.** Implemented on branch `codex/serial-sampling-rng`. The collection and JSDM Polya-Gamma sampling bodies now execute directly on the main thread, including when several TBB threads are requested. The two dormant RNG-bearing worker helpers also run serially. `src/rng.h` uses one advancing R-seeded C++ stream; it no longer derives supposedly independent TBB streams from OpenMP thread IDs. All modelling features remain available, and deterministic probability/sufficient-statistic workers remain parallel.
+
+2. **Ensure random draws on the public fitting path are safe and independent.** Implemented on branch `codex/serial-sampling-rng`. The collection and JSDM Polya-Gamma sampling bodies now execute directly on the main thread, including when several TBB threads are requested. The two dormant RNG-bearing worker helpers also run serially. `src/rng.h` uses one advancing R-seeded C++ stream; it no longer derives supposedly independent TBB streams from OpenMP thread IDs. All modelling features remain available, and deterministic probability/sufficient-statistic workers remain parallel.
 
     **Review:** inspect `src/rng.h`, the four changed worker invocation sites in `src/functions.cpp` and `src/jsdm.cpp`, and `test-rng-safety.R`. Before the fix, the new tests found only 2,447 distinct values among 8,192 PG draws and failed nine assertions. After the fix, all 29 assertions pass: same-seed full fits reproduce across requested one/four threads and repeated four-thread fits for binary, continuous, occupancy and two-stage models, including spatial fields, traits, factors, multiple primers and collection covariates. Consecutive fits and repeated sampler calls consume new draws; the requested thread setting is preserved.
 
@@ -70,23 +70,37 @@ output: html_document
 
     **Before closing:** Alex should review the change and evidence, then record the decision before moving this item to *Fixed bugs*. Serial sampling is the beta safety contract; parallel RNG stream design remains deferred. These checks do not close the separate spatial, correlation, `B0` or high-`q` point-estimate gates, or establish nominal interval coverage.
 
-<<<<<<< HEAD
     APPROVED
 
-3. **Preserve residual species correlations during factor reparameterisation.** `reparamFactorModel()` in `R/jsdmfun.R`, its calls in `runOccJSDM()`, and the correlation outputs in `R/output.R`. The current transform preserves `U %*% L` but rescales factors unequally, so `cov2cor(crossprod(L))` changes. A direct check of current code changes one species pair from +0.316 to -0.316 without changing the linear predictor. This is an algebraic output defect; the withdrawn coverage argument is unnecessary, and even the signs are not a safe workaround.
-=======
-3. **ALEX TO REVIEW: preserve residual species correlations during factor reparameterisation.** Implemented on branch `codex/preserve-residual-correlations`. `reparamFactorModel()` in `R/jsdmfun.R` now applies an orthogonal QR rotation with signs only, and a sign reflection for one factor. It preserves both the factor contribution and the loading covariance, including zero anchors, deficient rank and rectangular matrices. Both final `U`/`L` and `A`/`C` call sites in `runOccJSDM()` use the correction. `plotBiplot()` and its help no longer claim loadings are fixed to one.
->>>>>>> 78560296a21ab82f6a4dd997cabe029e7060cc22
+3. **Preserve residual species correlations during factor reparameterisation.** Implemented on branch `codex/preserve-residual-correlations`. `reparamFactorModel()` in `R/jsdmfun.R` now applies an orthogonal QR rotation with signs only, and a sign reflection for one factor. It preserves both the factor contribution and the loading covariance, including zero anchors, deficient rank and rectangular matrices. Both final `U`/`L` and `A`/`C` call sites in `runOccJSDM()` use the correction. `plotBiplot()` and its help no longer claim loadings are fixed to one.
 
     **Validation:** 235 focused expectations cover the per-draw invariants, actual stored factor and trait products, correlation outputs, ordination and prediction scale; the full suite passes. Three continuous and three binary datasets with non-degenerate correlations use paired old/corrected transformations of identical posterior draws. Mean absolute correlation error falls from 0.247 to 0.021 for continuous data and from 0.179 to 0.054 for binary data; corrected correlations match the raw draws within `6.7e-16`. The package check has zero errors; its three warnings are from unchanged source/toolchain issues.
 
-    **Review evidence and limits:** [mathematical audit, results and reproduction instructions](dev/simstudy/factor-correlation-validation.md), with the tracked runner `dev/simstudy/validate_factor_correlations.R`. This removes an output distortion without changing the sampler; it does not establish nominal interval coverage or close other recovery gates. Old saved fits require refitting or retained raw draws because the discarded scales cannot be recovered from their normalized loadings. Retain this item until Alex reviews it.
+    **Review evidence and limits:** [mathematical audit, results and reproduction instructions](dev/simstudy/factor-correlation-validation.md), with the tracked runner `dev/simstudy/validate_factor_correlations.R`. This removes an output distortion without changing the sampler; it does not establish nominal interval coverage or close other recovery gates. Old saved fits require refitting or retained raw draws because the discarded scales cannot be recovered from their normalized loadings.
+
+    APPROVED
 
 4. **Resolve the spatial length-scale boundary behavior on the full fitting path.** `update_jSDMcoef()`, `computePsiCoef()` and `precomputeSORmatrices()` in `R/jsdmfun.R`, together with the spatial coefficient update in `src/jsdm.cpp`. The recorded failure is that different generating ranges lead to the largest grid value. *Fixed bugs* 48 closed the isolated `sample_ls()` investigation; a successful test using a supplied GP draw does not validate the inputs produced during an actual fit.
 
     **Do:** reproduce the full-fit symptom with the current simulator and a nonzero spatial field. Trace the `SE` passed to `sample_ls()` after the coefficient updates, and verify that its coordinates, scale and covariance representation match `Ks_all`, `Lm1_grid` and `logDetKuu_grid`. Fix the demonstrated mismatch in field construction or scoring. Do not repeat the already ruled-out amplitude and log-determinant experiments without new evidence.
 
     **Done when:** several sufficiently informative simulated datasets with distinct interior grid ranges no longer all select the same upper boundary, and spatial-field and occupancy point estimates recover their generating pattern and level. Use the coordinate scale actually fitted and a fixed knot count. A moving chain alone is insufficient; exact range recovery in every replicate and nominal interval coverage are not beta requirements. Keep spatial fitting available.
+
+5. **Correct read thresholds greater than one, which currently erase every detection.** `R/runOccJSDM.R:502-503`, in the `occupancy` and `two_stage` branch. Truncation is two in-place statements: `y[y >= threshold] <- 1` sets every qualifying count to 1, and `y[y < threshold] <- 0` then zeroes those same entries, because 1 is below any threshold above one. So `threshold = 2` and `threshold = 3` hand the sampler an all-zero detection matrix, and the fit proceeds on data containing no detections at all. The default `threshold = 1` is unaffected, which is why this survived. Found by the PR #11 investigation and confirmed here on 14 September 2026 by running the two statements on `c(0, 1, 3, 7, 25, NA)`: four detections at threshold 1, none at 2 or 3, with `NA` preserved throughout.
+
+    **This is a documented argument, not an unsupported one.** The roxygen at `R/runOccJSDM.R:290` states that reads at or above the threshold count as a detection and that the value must be at least 1, and the validation at `:495` rejects only values of zero or below. Thresholds of 2 and 3 therefore pass every check the function makes and then destroy the data silently. Nothing in `tests/testthat/` passes a `threshold` argument at all, so no existing test could have caught it.
+
+    **Do:** build the binary matrix from the original counts in a single comparison rather than two sequential in-place assignments, preserving missing values. Cover both models in that branch, not only `two_stage`.
+
+    **Done when:** regression tests cover thresholds 1, 2 and 3 and assert the resulting detections against a binary matrix computed directly from the counts, including missing values. A fit at a threshold above one agrees with fitting the equivalent data thresholded outside the package. A reproducer through the installed entry point already exists on the PR #11 branch at `dev/simstudy/nonspatial-bias-recheck/q-audit/reproduce_threshold_preprocessing.R`.
+
+    FIXED
+
+6. **Correct the environmental response probabilities returned by `returnCovariateEffect()` and `plotCovariateEffect()`. ALEX TO REVIEW.** Implemented on `codex/fix-covariate-response`. The old numeric calculation added the intercept after converting to a probability, producing values above one or below zero. It also standardized already standardized values again. The categorical calculation omitted the intercept and first level, and both wrappers ignored the requested interval level.
+
+    **What changed:** vary one environmental predictor in its original units, hold other numeric predictors at their medians and other categorical predictors at their first fitted levels, and set latent site and spatial contributions to zero. Add the intercept and all environmental terms before converting to a probability. Use the fitted spline knots and categorical encoding. Both plots now show the requested credible interval; categorical plots use a median point and interval bar. The numeric response column is now correctly named `median`; scripts using its old name, `mean`, need updating. These are corrections to the output functions, so existing fits with the stored covariate metadata need no refit.
+
+    **Review:** check `tests/testthat/test-covariate-response.R` and the saved-fit reproduction in `dev/simstudy/covariate-response-validation.md`. Confirm the response target and reference conditions are suitable and clearly documented. Keep this in the review queue until Alex approves; the correction does not establish recovery of true ecological effects or close the other bias checks.
 
 ## Required bias recheck and release preparation (Doug and Alex)
 
@@ -118,7 +132,7 @@ After the code fixes, check whether the estimates are still systematically wrong
 >
 > We are releasing the beta of occJSDM, an R package combining joint species distribution modelling with the two-stage eDNA occupancy model of Ji et al. (2025). It estimates false-negative and false-positive detection at field and lab stages, with primer-specific lab rates.
 >
-> Features include environmental and collection covariates, species traits, nonlinear environmental responses, spatial effects, ordination, residual species correlations, variance partitioning, and prediction at new sites. Simpler study designs support classical occupancy and JSDM-only models.
+> Features include environmental and collection covariates, species traits, nonlinear environmental responses, spatial effects, ordination, residual species correlations, variation partitioning, and prediction at new sites. Simpler study designs support classical occupancy and JSDM-only models.
 >
 > This is beta software. Credible intervals can under- or overcover; nominal interval coverage has not been established across all supported designs. False-positive models require informative assumptions, and users should examine prior sensitivity, especially with weak detection or higher contamination rates. The README and vignettes describe the tested settings and remaining limitations.
 >
@@ -144,7 +158,7 @@ Every outstanding item from the previous TODO is accounted for below or in the r
 
 ## Paper and broader validation
 
-- **Categorical species traits:** defer implementation. State the currently supported trait encoding; retaining species-trait modelling does not require introducing a new encoding in this beta.
+- ~~**Categorical species traits:** defer implementation.~~ **IMPLEMENTED by Alex, 16 September 2026** (`9a784a9`, `bf76faa`). `data$traits` now accepts a data.frame with factor columns. `R/runOccJSDM.R:732` routes it through `create_covariates_matrix()` with `remove_intercept = TRUE`, so categorical traits are dummy-coded the way occupancy covariates already were, and `fit$infos$list_Tr_mat` records the encoding. Covered by the "model fits with categorical species traits" test in `test-smoke-configs.R`; suite 641 passing on 16 September. The `traits` roxygen now documents a matrix or data.frame of numeric and/or categorical traits. Nothing further is deferred here.
 - **Reproduce the Ecology Letters analyses:** defer the full reproduction and decision about including it in the repository. The beta needs the targeted checks above.
 - **Repeat the complete simulation grid after fixes:** defer the comprehensive paper run. For a deliberate production-grid run, specify `base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated`; a bare runner invocation also selects additional experimental cells.
 - **Choose the paper's replicate count:** defer the R = 200-500 calibration study and any claim of nominal coverage. The existing R = 100 study remains a historical baseline.
@@ -168,7 +182,7 @@ All speed work can wait once the unsafe RNG path is removed from beta. Preserve 
 
 ## Future modelling features
 
-- **Improved model-selection criterion:** defer replacing the current criterion's tendency to overfit; avoid implying that a selected model is necessarily the true model.
+- **Improved model-selection criterion:** defer a validated observed-data WAIC or site-level cross-validation workflow. The current scalar combines likelihood terms for sampled latent occupancy/collection states with observed PCR terms; it does not integrate those states for new-site prediction. Lesson 3 documents the limitation, extracts actual values without ranking models by them, and compares matched fits on 300 independent sites instead. Preserve this distinction in the public help; avoid implying that a selected model is necessarily the generating model.
 - **Count-data models:** defer, including the `sample_rnb()` work above.
 - **Source-sink inference scenario:** defer a dedicated simulation with opposing environmental and spatial effects.
 - **Separate environmental, spatial and latent-factor contributions:** defer restricted/orthogonalised alternatives intended to keep environmental effects stable when additional components are added. This is a modelling extension, separate from the correlation correction required for beta.
@@ -273,7 +287,7 @@ Items 16 and 18 are marked **partially fixed**: the crash in each is gone, but p
 
     **Only the wiring is closed.** What the default *should be* remains open and is a design decision, not a defect. It was tracked as a group B item until Alex removed it in `093f2bb`; if that removal meant the decision is made, the chosen values should be recorded here, and if not the item needs restoring.
 
-28. **`set.seed()` did not control any of the C++ samplers, so `runOccJSDM()` was not reproducible.** Found 29 July 2026 while writing the regression test for Fixed bugs 26; fixed the same day.
+28. ~~**`set.seed()` did not control any of the C++ samplers, so `runOccJSDM()` was not reproducible.**~~ Found 29 July 2026 while writing the regression test for Fixed bugs 26; fixed the same day.
 
     Fixed bugs 26 replaced `randinvg()`'s use of R's global RNG inside an OpenMP loop with `thread_local` engines, which correctly closed the data race. But neither replacement engine ever read R's RNG state: `get_rng()` was seeded from the literal `12345 + omp_get_thread_num()`, and `mvrnormArmaQuick_TS()` from `std::random_device{}()`. Measured before the fix: two fits of the same fixture under the same `set.seed(4242)` differed by 5.09 on `B0_output`.
 
@@ -293,13 +307,13 @@ Items 16 and 18 are marked **partially fixed**: the crash in each is gone, but p
 
     **Reviewed by Alex, 31 July 2026: "We don't care about reproducibility."** Taken as a decision not to invest further, not a request to revert, and the fix stays. Worth recording why: reproducibility here is **load-bearing internally even though it is not a user-facing priority**. The simulation study's paired design depends on it, and that pairing is what produced the strongest evidence in the whole study, that only 104 of 49,978 `resid_cor` coverage decisions flipped between the pre- and post-fix runs on identical truths. Remove the R-derived seeding and every future before/after comparison loses that power. The tier-1 test at `test-regression-bugs.R:243` guards it and should stay.
 
-29. **The sparse-GP knot default no longer floors at 30 or crashes below 31 sites.** Filed 27 July 2026 (then group B item 3) after the simulation study hit it; fixed by Alex in `42198d9`, unlogged. Verified 29 July: `getDefaultSupportPoints()` (`R/jsdmfun.R:875`) is now `min(floor(n * 0.2), n - 1)`. The old `max(30, floor(n * 0.2))` fed `kmeans(X_s, centers = ps)` and so was a constant 30 for any dataset below 150 sites -- roughly one knot per site at n = 31, defeating the point of a sparse GP -- and errored outright below 31. The `n - 1` cap is what removes the crash.
+29. ~~**The sparse-GP knot default floors at 30 and crashes below 31 sites.**~~ Filed 27 July 2026 (then group B item 3) after the simulation study hit it; fixed by Alex in `42198d9`, unlogged. Verified 29 July: `getDefaultSupportPoints()` (`R/jsdmfun.R:875`) is now `min(floor(n * 0.2), n - 1)`. The old `max(30, floor(n * 0.2))` fed `kmeans(X_s, centers = ps)` and so was a constant 30 for any dataset below 150 sites -- roughly one knot per site at n = 31, defeating the point of a sparse GP -- and errored outright below 31. The `n - 1` cap is what removes the crash.
 
-30. **`ds = 0` no longer produces a null spatial field.** Filed 27 July 2026 (then group B item 4); fixed by Alex in `42198d9`, unlogged. The simulator's cross-species spatial covariance used to collapse to jitter at `ds = 0` -- measured `sd(spatField)` of 0.0019 against \~1.0 at `ds = 2` -- so any scenario built at `ds = 0` was silently a null-field test. Verified 29 July at seed 42: `sd(spatField)` is 0.598 at `ds = 0`, 0.467 at `ds = 1`, 0.678 at `ds = 2`. The study grid still uses `ds = 2`, now by choice rather than necessity.
+30. ~~**`ds = 0` produces a null spatial field.**~~ Filed 27 July 2026 (then group B item 4); fixed by Alex in `42198d9`, unlogged. The simulator's cross-species spatial covariance used to collapse to jitter at `ds = 0` -- measured `sd(spatField)` of 0.0019 against \~1.0 at `ds = 2` -- so any scenario built at `ds = 0` was silently a null-field test. Verified 29 July at seed 42: `sd(spatField)` is 0.598 at `ds = 0`, 0.467 at `ds = 1`, 0.678 at `ds = 2`. The study grid still uses `ds = 2`, now by choice rather than necessity.
 
     *Both of these were removed from group B by `42198d9` without a Fixed-bugs entry, which is why they are recorded here late. The check that caught it: `TODO.md`'s group B numbering had a gap at 5 and 6.*
 
-31. **`plotCollectionRates()` errored on every input.** Reported by Doug 29 July 2026, fixed the same day. Failed with `object 'Min' not found` for any `fitModel`, with or without `idx_species`.
+31. ~~**`plotCollectionRates()` errored on every input.**~~ Reported by Doug 29 July 2026, fixed the same day. Failed with `object 'Min' not found` for any `fitModel`, with or without `idx_species`.
 
     `plotSpeciesRates()` (`R/output.R:819`) had been extracted as a shared helper and never wired up to its only caller. Three independent breakages in the same call path, which is why nothing had ever run it successfully:
 
@@ -313,13 +327,13 @@ Items 16 and 18 are marked **partially fixed**: the crash in each is gone, but p
 
     **Note, since resolved:** this fixed the species-ordering defect for this function only. `plotOccupancyRates()`, `plotFPTPStage2Rates()` and `plotStage1FPRates()` still ordered on the full species set while indexing a filtered one (this was filed as group C at the time, not group B as originally written here). The test added here asserted label-to-value pairing rather than mere absence of error, and served as the template for fixing those three -- see Fixed bugs 32.
 
-32. **`plotOccupancyRates()`, `plotFPTPStage2Rates()` and `plotStage1FPRates()` shared the species-ordering defect `plotCollectionRates()` had (Fixed bugs 31).** Filed as group C at the time; fixed by Claude 29 July 2026. Each computed `order()` on the *filtered* `idx_species` subset and then used the result to index the *unfiltered* `speciesNames`, so for any `idx_species` other than a prefix `1:k` the factor levels named the wrong species and bars silently vanished.
+32. ~~**`plotOccupancyRates()`, `plotFPTPStage2Rates()` and `plotStage1FPRates()` shared the species-ordering defect `plotCollectionRates()` had (Fixed bugs 31).**~~ Filed as group C at the time; fixed by Claude 29 July 2026. Each computed `order()` on the *filtered* `idx_species` subset and then used the result to index the *unfiltered* `speciesNames`, so for any `idx_species` other than a prefix `1:k` the factor levels named the wrong species and bars silently vanished.
 
     `plotOccupancyRates()` and `plotStage1FPRates()` now delegate to the `plotSpeciesRates()` helper fixed in Fixed bugs 31, which subsets first and derives labels from the subset. `plotFPTPStage2Rates()` has a two-interval (`p`/`q`) layout that doesn't fit that helper, so it was fixed inline: order and labels are both now derived from the filtered `data_plot`. `plotStage2FPRates()` was already correct and untouched.
 
     Verified against a live fit with `idx_species = c(3, 1, 10)`: all four functions now plot exactly that subset with matching labels. Full test suite passes (119/119). `R/output.R`.
 
-33. **`returnCovariateEffect()`/`plotCovariateEffect()` had no `idx_species` default, and fixing that exposed two further bugs in the code they call.** Filed as group C at the time; fixed by Claude 29 July 2026.
+33. ~~**`returnCovariateEffect()`/`plotCovariateEffect()` had no `idx_species` default, and fixing that exposed two further bugs in the code they call.**~~ Filed as group C at the time; fixed by Claude 29 July 2026.
 
     Both functions declared `idx_species` with no default, so `returnCovariateEffect(fit, covName)` errored instead of defaulting to all species -- the same gap as `predictNewSites()` (Fixed bugs 34). Gave both a `NULL` default resolving to all species, matching every other return/plot function in `R/output.R`.
 
@@ -349,7 +363,7 @@ Items 16 and 18 are marked **partially fixed**: the crash in each is gone, but p
 
     **Noticed, not fixed:** `computeNewOutputs()` prints `Computing species i out of S` to stdout via `Rcout` on every call, unconditionally, and it cannot be silenced. Filed separately in group C.
 
-35. **The vignette could not be built, so `R CMD check` never reached code inspection.** **FIXED 30 July 2026** by Doug regenerating `data/sampleresults.rda`.
+35. ~~**The vignette could not be built, so `R CMD check` never reached code inspection.**~~ **FIXED 30 July 2026** by Doug regenerating `data/sampleresults.rda`.
 
     Two failures in sequence, each hidden behind the previous one. First `plotCollectionRates()` errored on every input (Fixed bugs 31). With that fixed, the build failed in `plotCovariateEffect()`, apparently for want of a `covNames` default; naming the covariate in the chunk did not fix it either, and it then failed with `'from' must be a finite number`.
 

@@ -67,3 +67,17 @@ test_that("model fits without species traits", {
   expect_valid_fit(fit_fixture(simulate_fixture(model = "two_stage"),
                                traits = FALSE))
 })
+
+test_that("model fits with categorical species traits", {
+  sim <- simulate_fixture(model = "two_stage")
+  sim$data_list$traits <- data.frame(
+    mass = rnorm(ncol(sim$data_list$OTU)),
+    diet = factor(rep(c("carnivore", "herbivore"), length.out = ncol(sim$data_list$OTU))),
+    row.names = colnames(sim$data_list$OTU)
+  )
+  fit <- fit_fixture(sim)
+  expect_valid_fit(fit)
+  expect_true(any(grepl("^diet", colnames(fit$Tr))))
+  expect_equal(rownames(fit$Tr), colnames(sim$data_list$OTU))
+  expect_true(!is.null(fit$infos$list_Tr_mat))
+})

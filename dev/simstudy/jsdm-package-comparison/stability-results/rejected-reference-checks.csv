@@ -1,0 +1,4 @@
+"start","convergence","loglik_81","loglik_161","loglik_241","maximum_residual_sd","accepted","reason"
+1,0,-482.816955175727,-483.82371047468,-484.169645117357,409248.005719778,FALSE,"Likelihood fails finer-grid verification"
+2,0,-483.29756013305,-484.351640612357,-483.690091496107,23004.5845146851,FALSE,"Likelihood fails finer-grid verification"
+3,0,-482.036614827045,-484.850773678112,-484.247688453545,14301.4504351667,FALSE,"Likelihood fails finer-grid verification"

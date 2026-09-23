@@ -1,0 +1,194 @@
+### Read native ordination plots after aligning their axes
+
+The combined contribution above avoids an ambiguity: a rotation or reflection of both the site scores and species loadings leaves every fitted occurrence probability unchanged. Axis 1 in two fits need not represent the same direction. The package already chooses a loading-based orientation at fitting, but that convention alone does not make an axis a biological quantity.
+
+For this simulation we can use the **known species loadings** to orient every posterior draw. The orthogonal Procrustes calculation below finds the rotation or reflection that brings the fitted loadings closest to the generating loadings, without changing their lengths. We apply that same transformation to the site scores. This is a simulation-only aid: the true loadings would be unavailable for real observations. It removes orientation differences, not estimation error, and uses no true site scores to choose the rotation.
+
+These plots use the PCR-observation fit, including all 6,000 retained iterations from each of four chains. We make a separate plotting copy. For a rotation matrix `rotation`, the transformed scores and loadings are `scores %*% rotation` and `t(rotation) %*% loadings`; their product is still `scores %*% loadings`. The exporter also verifies this for every draw.
+
+```{r ordination-load-examples, purl=FALSE}
+ordination_examples <- readRDS("teaching-data/ordination-examples.rds")
+```
+
+For an ordinary analysis, the same five native functions work directly on `fitmodel`, using the package's stored orientation:
+
+```{r ordination-standard, eval=FALSE, purl=TRUE}
+ordinary_site_quantiles <- occJSDM::returnOrdinationScores(fitmodel)
+ordinary_loading_quantiles <- occJSDM::returnFactorLoadings(fitmodel)
+ordinary_sites <- occJSDM::plotOrdinationScores(fitmodel)
+ordinary_loadings <- occJSDM::plotFactorLoadings(fitmodel)
+ordinary_biplot <- occJSDM::plotBiplot(fitmodel)
+```
+
+With the full `fitmodel` from Lesson 1, run this simulation comparison preparation once. `known_truth` is the generating parameter list loaded at the start of this lesson.
+
+```{r ordination-align, eval=FALSE, purl=TRUE}
+true_factors <- known_truth$jsdmParams_true
+score_draws <- fitmodel$results_output$jsdm_output$U_output
+loading_draws <- fitmodel$results_output$jsdm_output$L_output
+aligned_scores <- score_draws
+aligned_loadings <- loading_draws
+
+for (chain in seq_len(dim(loading_draws)[4])) {
+  for (iteration in seq_len(dim(loading_draws)[3])) {
+    current_loadings <- loading_draws[, , iteration, chain]
+    decomposition <- svd(current_loadings %*% t(true_factors$L))
+    rotation <- decomposition$u %*% t(decomposition$v)
+
+    aligned_scores[, , iteration, chain] <-
+      score_draws[, , iteration, chain] %*% rotation
+    aligned_loadings[, , iteration, chain] <-
+      crossprod(rotation, current_loadings)
+  }
+}
+
+fit_for_ordination <- fitmodel
+fit_for_ordination$results_output$jsdm_output$U_output <- aligned_scores
+fit_for_ordination$results_output$jsdm_output$L_output <- aligned_loadings
+
+# Match truth by the identities attached to the original simulation.
+site_names <- as.character(fitmodel$infos$siteNames)
+species_names <- fitmodel$infos$speciesNames
+true_sites <- true_factors$U[
+  match(site_names, rownames(known_truth$z_true)), , drop = FALSE
+]
+true_species <- true_factors$L[
+  , match(species_names, colnames(known_truth$z_true)), drop = FALSE
+]
+site_truth <- tibble(site = site_names, x = true_sites[, 1], y = true_sites[, 2])
+loading_truth <- tibble(
+  species = species_names, x = true_species[1, ], y = true_species[2, ]
+)
+
+# Quantiles are 2.5%, 50% and 97.5%, pooled across all retained draws.
+site_quantiles <- occJSDM::returnOrdinationScores(fit_for_ordination)
+loading_quantiles <- occJSDM::returnFactorLoadings(fit_for_ordination)
+
+# Choose sites by their original order, before inspecting their estimates.
+shown_sites <- site_names[seq(1, length(site_names), by = 10)]
+score_comparison <- site_truth |>
+  mutate(
+    estimate = site_quantiles["50%", site, 1],
+    lower = site_quantiles["2.5%", site, 1],
+    upper = site_quantiles["97.5%", site, 1]
+  ) |>
+  filter(site %in% shown_sites) |>
+  select(site, truth = x, estimate, lower, upper)
+```
+
+The native return functions provide arrays, with quantile first, then site and factor for scores, or factor and species for loadings. Here is the first aligned coordinate for the ten displayed sites. These are summaries **after truth-assisted orientation**, not estimates of an intrinsically labelled ecological axis.
+
+```{r ordination-score-table, purl=FALSE}
+ordination_examples$score_comparison |>
+  knitr::kable(digits = 2, caption = "First aligned site coordinate: truth and posterior quantiles.")
+```
+
+#### Site scores: what differs among locations?
+
+The native plot places each site label at its posterior median. We show the same ten sites in separate panels with common axes to keep the figure readable. A black cross marks the generating score; a dotted connector identifies the corresponding estimate. Sites close together have similar fitted residual scores, after the measured environmental effects have been accounted for. This is a factor-space comparison, not a geographical map.
+
+```{r ordination-sites, eval=FALSE, purl=TRUE}
+native_sites <- occJSDM::plotOrdinationScores(fit_for_ordination)
+site_plot_data <- native_sites$data |>
+  mutate(name = as.character(name), site = name) |>
+  filter(site %in% shown_sites) |>
+  left_join(site_truth, by = "site", suffix = c("", "_truth"))
+
+native_sites$data <- site_plot_data
+native_sites <- native_sites +
+  geom_segment(
+    data = site_plot_data,
+    aes(x = x, y = y, xend = x_truth, yend = y_truth),
+    inherit.aes = FALSE, linetype = "dotted", colour = "grey35"
+  ) +
+  geom_point(
+    data = site_truth |>
+      filter(site %in% shown_sites) |>
+      mutate(name = site),
+    aes(x = x, y = y), inherit.aes = FALSE, shape = 4, size = 3
+  ) +
+  facet_wrap(~ name, ncol = 5) +
+  coord_equal() +
+  labs(
+    title = "Ten sites in aligned factor space",
+    caption = "Black crosses: truth. Labels: fitted medians. Circles summarize marginal interval widths."
+  )
+
+native_sites
+```
+
+```{r ordination-sites-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/ordination-sites.png")
+```
+
+Here the site medians cluster near zero despite quite different generating scores. Alignment has not recovered those site differences precisely. The circles are a visual summary of uncertainty, **not 95% joint credible regions**. The native function gives each circle the area of the rectangle formed by the two marginal 95% intervals: its radius is `sqrt(width_1 * width_2 / pi)`. It does not use the joint shape of the posterior cloud. Consult the returned marginal quantiles for interval values; a truth cross inside a circle is not a formal coverage test.
+
+#### Species loadings: how does each species respond to the factors?
+
+A loading is a species' response to a unit change in a hidden site score, on the occurrence log-odds scale. Opposite loading directions indicate opposite residual responses. They do not establish competition, facilitation or another causal interaction.
+
+```{r ordination-loadings, eval=FALSE, purl=TRUE}
+native_loadings <- occJSDM::plotFactorLoadings(fit_for_ordination)
+loading_plot_data <- native_loadings$data |>
+  mutate(species = as.character(name)) |>
+  left_join(loading_truth, by = "species", suffix = c("", "_truth"))
+
+native_loadings$data <- loading_plot_data
+native_loadings <- native_loadings +
+  geom_segment(
+    data = loading_plot_data,
+    aes(x = x, y = y, xend = x_truth, yend = y_truth),
+    inherit.aes = FALSE, linetype = "dotted", colour = "grey35"
+  ) +
+  geom_point(
+    data = mutate(loading_truth, name = species), aes(x = x, y = y),
+    inherit.aes = FALSE, shape = 4, size = 3
+  ) +
+  facet_wrap(~ name, ncol = 5) +
+  coord_equal() +
+  labs(
+    title = "Species responses to the aligned factors",
+    caption = "Black crosses: true loadings. Labels: fitted medians. Circles are not joint credible regions."
+  )
+
+native_loadings
+```
+
+```{r ordination-loadings-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/ordination-loadings.png")
+```
+
+Each species has its own panel with common axes. Several species have identical generating loadings, so their truth crosses coincide. OTU_4 has zero generating loadings and sits at the origin. The fitted loadings need not be exactly zero or identical even after alignment.
+
+#### Biplot: put sites and species together
+
+The biplot uses all 100 sites and the ten species. Grey points are fitted site medians; blue arrows are fitted loading medians. The dashed black arrows are the generating loadings, multiplied by **the same display multiplier** as the blue arrows. Arrow lengths are rescaled for readability, so they are not on the site-score scale and are not direct effect-size readings from this figure.
+
+```{r ordination-biplot, eval=FALSE, purl=TRUE}
+site_medians <- site_quantiles["50%", , ]
+loading_medians <- loading_quantiles["50%", , ]
+arrow_multiplier <- 0.8 *
+  max(sqrt(rowSums(site_medians^2))) /
+  max(sqrt(colSums(loading_medians^2)))
+
+native_biplot <- occJSDM::plotBiplot(fit_for_ordination, arrow_scale = 0.8) +
+  geom_segment(
+    data = loading_truth,
+    aes(x = 0, y = 0, xend = x * arrow_multiplier, yend = y * arrow_multiplier),
+    inherit.aes = FALSE, linetype = "dashed", colour = "black",
+    arrow = grid::arrow(length = grid::unit(0.15, "cm"))
+  ) +
+  coord_equal() +
+  labs(
+    title = "Sites and species in one aligned biplot",
+    caption = "Grey: fitted sites. Blue: fitted species. Dashed black: true species, at the same display scale."
+  )
+
+native_biplot
+```
+
+```{r ordination-biplot-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/ordination-biplot.png")
+```
+
+A site lying farther in a species-arrow direction tends to receive a larger contribution from these factors to that species' occurrence log-odds. The complete probability also includes the intercept and measured environmental effects. Because truth helped choose the orientation, agreement in arrow direction is not an independent accuracy check. This median biplot has no uncertainty display, and multiplying separate posterior medians does not reproduce the median of the draw-by-draw contribution. Use the invariant contribution comparison above to assess recovery of that contribution, and variation partitioning below to ask how large it is relative to the other model components.

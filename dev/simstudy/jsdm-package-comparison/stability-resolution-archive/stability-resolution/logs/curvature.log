@@ -1,0 +1,100 @@
+  start nodes penalised_score max_gradient hessian_asymmetry  step
+1     1   121       -484.3025 4.329076e-05      7.639202e-09 1e-04
+  flat_eigenvalue flat_alignment_with_rotation max_abs_H_times_generator
+1   -4.139633e-07                            1               6.28701e-06
+  smallest_other_eigenvalue largest_eigenvalue negative_eigenvalues
+1                0.03938201           20.24824                    0
+  near_zero_other_eigenvalues condition_excluding_flat elapsed_seconds
+1                           0                 514.1494         26.4518
+  start nodes penalised_score max_gradient hessian_asymmetry  step
+1     1   161       -484.3025 4.329076e-05       7.66184e-09 1e-04
+  flat_eigenvalue flat_alignment_with_rotation max_abs_H_times_generator
+1   -4.141388e-07                            1              6.287066e-06
+  smallest_other_eigenvalue largest_eigenvalue negative_eigenvalues
+1                0.03938201           20.24824                    0
+  near_zero_other_eigenvalues condition_excluding_flat elapsed_seconds
+1                           0                 514.1494        64.02931
+  start nodes penalised_score max_gradient hessian_asymmetry  step
+1     2   121       -484.4299 3.098693e-05      8.077983e-09 1e-04
+  flat_eigenvalue flat_alignment_with_rotation max_abs_H_times_generator
+1   -8.317348e-07                            1              6.094217e-06
+  smallest_other_eigenvalue largest_eigenvalue negative_eigenvalues
+1                0.04064069           20.62972                    0
+  near_zero_other_eigenvalues condition_excluding_flat elapsed_seconds
+1                           0                 507.6124         115.409
+  start nodes penalised_score max_gradient hessian_asymmetry  step
+1     2   161       -484.4299 3.098693e-05      8.123676e-09 1e-04
+  flat_eigenvalue flat_alignment_with_rotation max_abs_H_times_generator
+1   -8.313531e-07                            1              6.094218e-06
+  smallest_other_eigenvalue largest_eigenvalue negative_eigenvalues
+1                0.04064069           20.62972                    0
+  near_zero_other_eigenvalues condition_excluding_flat elapsed_seconds
+1                           0                 507.6124        152.5531
+  start nodes penalised_score max_gradient hessian_asymmetry  step
+1     3   121       -484.4299 2.575164e-05      9.703705e-09 1e-04
+  flat_eigenvalue flat_alignment_with_rotation max_abs_H_times_generator
+1    7.030125e-07                            1              1.868658e-06
+  smallest_other_eigenvalue largest_eigenvalue negative_eigenvalues
+1                0.04064049           20.62972                    0
+  near_zero_other_eigenvalues condition_excluding_flat elapsed_seconds
+1                           0                  507.615        205.5417
+  start nodes penalised_score max_gradient hessian_asymmetry  step
+1     3   161       -484.4299 2.580862e-05       9.71322e-09 1e-04
+  flat_eigenvalue flat_alignment_with_rotation max_abs_H_times_generator
+1    6.466615e-07                            1               1.86192e-06
+  smallest_other_eigenvalue largest_eigenvalue negative_eigenvalues
+1                0.04064049           20.62972                    0
+  near_zero_other_eigenvalues condition_excluding_flat elapsed_seconds
+1                           0                  507.615         245.085
+  max_beta_difference_2_3 max_rotated_loading_difference_2_3
+1            1.038254e-05                       1.020743e-05
+  max_implied_covariance_difference_2_3 rotation_determinant
+1                          8.182451e-05                    1
+       t penalised_score distance_from_solution_2
+1  -0.25       -485.0806               -1.0829257
+2  -0.20       -484.7989               -0.8663405
+3  -0.15       -484.6132               -0.6497554
+4  -0.10       -484.5016               -0.4331703
+5  -0.05       -484.4456               -0.2165851
+6   0.00       -484.4299                0.0000000
+7   0.05       -484.4418                0.2165851
+8   0.10       -484.4714                0.4331703
+9   0.15       -484.5104                0.6497554
+10  0.20       -484.5526                0.8663405
+11  0.25       -484.5931                1.0829257
+12  0.30       -484.6280                1.2995108
+13  0.35       -484.6547                1.5160960
+14  0.40       -484.6713                1.7326811
+15  0.45       -484.6769                1.9492662
+16  0.50       -484.6708                2.1658514
+17  0.55       -484.6534                2.3824365
+18  0.60       -484.6253                2.5990216
+19  0.65       -484.5879                2.8156068
+20  0.70       -484.5430                3.0321919
+21  0.75       -484.4930                3.2487770
+22  0.80       -484.4409                3.4653622
+23  0.85       -484.3905                3.6819473
+24  0.90       -484.3466                3.8985324
+25  0.95       -484.3149                4.1151176
+26  1.00       -484.3025                4.3317027
+27  1.05       -484.3180                4.5482879
+28  1.10       -484.3718                4.7648730
+29  1.15       -484.4762                4.9814581
+30  1.20       -484.6454                5.1980433
+31  1.25       -484.8957                5.4146284
+  score_solution_2 score_solution_1 minimum_interior_score t_at_minimum
+1        -484.4299        -484.3025              -484.6769         0.45
+  barrier_below_lower_endpoint parameter_distance
+1                    0.2470088           4.331703
+      species beta_difference residual_sd_solution_1 residual_sd_solution_2
+1  species_01     0.055070783              0.3403378              0.5219862
+2  species_02     2.542408236              3.3317361              1.0869726
+3  species_03     0.078510510              1.2818374              1.0904052
+4  species_04     0.034821607              0.3718535              0.5907175
+5  species_05     0.094629162              0.8069281              0.4887691
+6  species_06     0.031393863              0.4617601              0.4486539
+7  species_07     0.140066575              2.7024999              2.4880231
+8  species_08     0.006897973              0.3234412              0.3232625
+9  species_09     1.188232717              0.9661977              3.0557368
+10 species_10     0.470582642              2.1109461              2.6055219
+Curvature check finished in 280 seconds
