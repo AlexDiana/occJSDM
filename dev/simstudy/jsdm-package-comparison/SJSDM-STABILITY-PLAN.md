@@ -30,7 +30,7 @@ Use the same three seeds as the original longer fits (26092341:26092343), 3,000 
 
 ## Resumed investigation: separate integration noise from distinct optima
 
-Doug requested completion after Lesson N merged. Work on a new branch from the unchanged pilot. Keep the original dataset, selected fits and all original exports intact. Do not read test outcomes or generating truth during diagnosis. Use the existing frozen PyTorch environment; do not modify either user's package checkout or install/update software.
+Doug requested completion after Lesson 4 merged. Work on a new branch from the unchanged pilot. Keep the original dataset, selected fits and all original exports intact. Do not read test outcomes or generating truth during diagnosis. Use the existing frozen PyTorch environment; do not modify either user's package checkout or install/update software.
 
 First measure native Monte Carlo objective/gradient variability at the three saved weak-penalty endpoints, against the verified 121-node likelihood derivative. Use 100 independent evaluations with 2,000 integration draws, and 40 with 20,000 draws per endpoint. Report the average directional gradient along the accurately calculated descent direction with its Monte Carlo standard error, not only a single noisy gradient. A smaller learning rate cannot remove bias in a noisy likelihood approximation.
 

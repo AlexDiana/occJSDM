@@ -2,7 +2,7 @@
 
 Start with [FITTING-REPORT.md](FITTING-REPORT.md) for the ecological explanation, actual fitted results, diagnostics and figures. [DESIGN.md](DESIGN.md) contains the agreed design; [RUN-PLAN.md](RUN-PLAN.md) records the budgets set before fitting and every subsequent diagnostic decision.
 
-The first pilot has been run. occJSDM and Hmsc passed the declared MCMC checks; gllvm's usable VA solution was reproduced from separate starts after rejecting unstable EVA fits. sjSDM was provisional in the first version because its longer unpenalised starts differed by more than the declared likelihood-stability criterion; the [follow-up record](SJSDM-STABILITY-REPORT.md) then showed that the weak-penalty objective has two genuine local maxima, reproduced the better one from independent starts, and recorded a revised selection before reading truth. The saved numerical calculations passed independent review. The [student-facing Lesson N](../../../vignettes/occJSDM-lesson-N.md) now uses the revised sjSDM selection and keeps the original in its record. It is not a replicated benchmark.
+The first pilot has been run. occJSDM and Hmsc passed the declared MCMC checks; gllvm's usable VA solution was reproduced from separate starts after rejecting unstable EVA fits. sjSDM was provisional in the first version because its longer unpenalised starts differed by more than the declared likelihood-stability criterion; the [follow-up record](SJSDM-STABILITY-REPORT.md) then showed that the weak-penalty objective has two genuine local maxima, reproduced the better one from independent starts, and recorded a revised selection before reading truth. The saved numerical calculations passed independent review. The [student-facing Lesson 4](../../../vignettes/occJSDM-lesson-4.md) now uses the revised sjSDM selection and keeps the original in its record. It is not a replicated benchmark.
 
 ## Files and commands
 
@@ -62,7 +62,7 @@ The run contains 23 fits: two Bayesian fits, six gllvm EVA starts, nine gllvm VA
 
 ## Build and check the teaching lesson
 
-The student-facing source is `vignettes/occJSDM-lesson-N.Rmd`. Its only saved-data dependency is `vignettes/teaching-data/jsdm-comparison.rds` (about 300 KB). That ordinary-R bundle contains all original observations and generating truth, the original selected predictions, checked response curves, numeric point-fit parameters and provenance. Rendering needs neither the four fitting packages nor Python or the full fits. It does require the declared plotting/knitting dependencies. Long fitting examples are visible but marked `eval=FALSE`.
+The student-facing source is `vignettes/occJSDM-lesson-4.Rmd`. Its only saved-data dependency is `vignettes/teaching-data/jsdm-comparison.rds` (about 300 KB). That ordinary-R bundle contains all original observations and generating truth, the original selected predictions, checked response curves, numeric point-fit parameters and provenance. Rendering needs neither the four fitting packages nor Python or the full fits. It does require the declared plotting/knitting dependencies. Long fitting examples are visible but marked `eval=FALSE`.
 
 From the repository root, using the same `environment`, `code` and `run` variables as above (for the existing run, do not regenerate inputs or refit):
 
@@ -71,8 +71,8 @@ From the repository root, using the same `environment`, `code` and `run` variabl
 "$environment/run-r" "$code/verify-teaching.R" "$run" "$code"
 "$environment/run-r" dev/simstudy/vignette-lesson/test_lesson_links.R
 
-"$environment/run-r" -e 'rmarkdown::render("vignettes/occJSDM-lesson-N.Rmd")'
-"$environment/run-r" -e 'rmarkdown::render("vignettes/occJSDM-lesson-N.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE))'
+"$environment/run-r" -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd")'
+"$environment/run-r" -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE))'
 ```
 
 The numerical verifier executes the exact displayed simulator and matches the saved community and scaled inputs, independently recomputes every overall/band/species error summary, checks all 1,020 true curve values against the raw generating parameters, and checks the fitted curves with direct normal integration or a finer quadrature. It also executes the displayed one-species marginal-prediction example. Change the exporter or mathematical helper only with a new export and verification; the bundle records their hashes. The hash manifest preserves the original absolute archive paths. If the archive moves, re-export from its new location before running the numerical verifier; ordinary lesson rendering is unaffected. The source lesson remains canonical. Generated Markdown and seven figures are review artifacts; HTML is local and ignored by Git.

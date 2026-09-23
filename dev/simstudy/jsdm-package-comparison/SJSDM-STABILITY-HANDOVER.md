@@ -18,7 +18,7 @@ The approximately 0.1274 score gap still exceeds the original 0.1 stability crit
 
 In plain words: the fitting procedure can stop at two slightly different answers, even when the calculation is precise. Their predictions are fairly similar on the checking grid, but one fits the training data better. **We have not yet checked whether the stationary points are genuine local maxima or whether one is a saddle point.** Do not call the best result a proven global optimum.
 
-These references use the already-declared weak penalty, weight decay 0.0001. They are diagnostic R optimisations of the same penalised likelihood, not native sjSDM fits, and must not silently replace the package fit in Lesson N. Their finite, modest parameter scales and successful finer-integration checks distinguish them from the earlier rejected, exploding unpenalised references.
+These references use the already-declared weak penalty, weight decay 0.0001. They are diagnostic R optimisations of the same penalised likelihood, not native sjSDM fits, and must not silently replace the package fit in Lesson 4. Their finite, modest parameter scales and successful finer-integration checks distinguish them from the earlier rejected, exploding unpenalised references.
 
 ## Native random-integration check
 
@@ -33,7 +33,7 @@ The complete measured means and standard errors are in [gradient-noise-summary.c
 3. Keep the precise reference distinct from a native package fit. Any alternative optimiser, starting strategy, integration budget or regularisation choice must be stated explicitly. The original unpenalised baseline and the default-penalty sensitivity arm remain different configurations.
 4. Once a native result meets a clearly recorded stability assessment, save its selection before reading truth. Export revised predictions separately, compare them with the existing lesson values, then update the lesson and reports with the actual changed configuration and results.
 
-No test outcomes or generating parameters were read by this resumed investigation. The original pilot selection and all Lesson N ecological results remain unchanged and provisional for sjSDM. Neither repository's package implementation nor the Python/R environment was modified. PyTorch CPU remains selected; Mojo was not used or upgraded.
+No test outcomes or generating parameters were read by this resumed investigation. The original pilot selection and all Lesson 4 ecological results remain unchanged and provisional for sjSDM. Neither repository's package implementation nor the Python/R environment was modified. PyTorch CPU remains selected; Mojo was not used or upgraded.
 
 ## Where everything is
 

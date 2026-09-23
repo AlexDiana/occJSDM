@@ -1,6 +1,6 @@
-# Lesson N pilot: fitting four comparable JSDMs
+# Lesson 4 pilot: fitting four comparable JSDMs
 
-Run on 22 September 2026. This report records actual fits, not installation tests. This development report supports the [student-facing Lesson N](../../../vignettes/occJSDM-lesson-N.md).
+Run on 22 September 2026. This report records actual fits, not installation tests. This development report supports the [student-facing Lesson 4](../../../vignettes/occJSDM-lesson-4.md).
 
 All four packages receive the same 100 sites, ten species and two environmental measurements. Each species is recorded as present or absent without observation error. Every model has room for two hidden site factors. A separate set of 300 sites is reserved for prediction. The simulator, complete ecological parameter table and all fitting attempts are saved.
 
@@ -83,4 +83,4 @@ The longer sjSDM workers completed their fits and saved complete numeric paramet
 
 The Hmsc native-prediction verification required a local serial wrapper because this environment cannot report its CPU count. A single-posterior-draw call also exposed a singleton-dimension problem; duplicating that same draw twice allowed the comparison. Neither workaround changes the fitted posterior. The mathematical prediction helper matched the resulting native predictions.
 
-The [sjSDM follow-up](SJSDM-STABILITY-REPORT.md) was paused on 22 September and completed on 23 September 2026. Lesson N now uses the revised weak-penalty selection, keeps the original provisional result in its record, and teaches the two-local-maxima finding alongside readable simulation/fitting/extraction code and probability-scale environmental response curves. Repeated communities, larger sample sizes, a probit-generating scenario, matched prior sensitivity and spatial comparisons remain later work. No package source code was changed by this pilot.
+The [sjSDM follow-up](SJSDM-STABILITY-REPORT.md) was paused on 22 September and completed on 23 September 2026. Lesson 4 now uses the revised weak-penalty selection, keeps the original provisional result in its record, and teaches the two-local-maxima finding alongside readable simulation/fitting/extraction code and probability-scale environmental response curves. Repeated communities, larger sample sizes, a probit-generating scenario, matched prior sensitivity and spatial comparisons remain later work. No package source code was changed by this pilot.

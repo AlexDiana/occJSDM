@@ -1,4 +1,4 @@
-# Lesson N: comparing four JSDMs when presence is observed perfectly
+# Lesson 4: comparing four JSDMs when presence is observed perfectly
 
 Design prepared 21 September 2026. Status: accepted pilot design. The first fits and checks were run on 22 September 2026; see [FITTING-REPORT.md](FITTING-REPORT.md). The original design below is retained, with execution decisions recorded in [RUN-PLAN.md](RUN-PLAN.md).
 
@@ -73,7 +73,7 @@ Also score the held-out 0/1 occurrences with the Brier score and log score. Thes
 
 ## What students will see
 
-Write `vignettes/occJSDM-lesson-N.Rmd` with visible, readable tidyverse code and the existing teaching CSS. Show simulation, fitting and extraction code with explanatory variable names and blank lines between steps. Long fits will be displayed but not run while knitting; rendering will use a compact, verified results bundle.
+Write `vignettes/occJSDM-lesson-4.Rmd` with visible, readable tidyverse code and the existing teaching CSS. Show simulation, fitting and extraction code with explanatory variable names and blank lines between steps. Long fits will be displayed but not run while knitting; rendering will use a compact, verified results bundle.
 
 1. **The same community given to all four models.** Show a small presence/absence matrix beside the known probabilities. Explain why a 0 is not a known probability of zero.
 2. **True versus estimated probabilities.** Use identical 0% to 100% axes and a diagonal equality line, with separate panels for sampled-site recovery and new-site prediction. Label every panel's target and information available to the model.

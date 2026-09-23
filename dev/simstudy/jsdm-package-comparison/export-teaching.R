@@ -116,6 +116,6 @@ output <- file.path(code, "../../../vignettes/teaching-data/jsdm-comparison.rds"
 saveRDS(lesson, output, compress = "xz")
 stopifnot(file.copy(
   file.path(root, "results/errors-by-species.csv"),
-  file.path(dirname(output), "lesson-N-species-errors.csv"), overwrite = TRUE
+  file.path(dirname(output), "lesson-4-species-errors.csv"), overwrite = TRUE
 ))
 cat("Saved compact teaching bundle:", normalizePath(output), "\n")

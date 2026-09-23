@@ -1,4 +1,4 @@
-Lesson N: Compare four JSDMs with a community whose truth we know
+Lesson 4: Compare four JSDMs with a community whose truth we know
 ================
 
 ## What are we comparing?
@@ -160,7 +160,7 @@ ggplot(example_cells, aes(site, species, fill = probability)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-![](teaching-data/lesson-N-observed-versus-probability-1.png)<!-- -->
+![](teaching-data/lesson-4-observed-versus-probability-1.png)<!-- -->
 
 ### Optional: reproduce this community
 
@@ -612,7 +612,7 @@ ggplot(new_site_predictions, aes(truth, estimate)) +
        subtitle = "300 independent test sites x 10 species; no test observations supplied")
 ```
 
-![](teaching-data/lesson-N-new-site-probabilities-1.png)<!-- -->
+![](teaching-data/lesson-4-new-site-probabilities-1.png)<!-- -->
 
 These are genuine predictions at new sites. The target is the average
 over possible hidden conditions, not the unknowable particular condition
@@ -636,7 +636,7 @@ ggplot(sampled_site_predictions, aes(truth, estimate)) +
        subtitle = "100 training sites x 10 species; observations helped fit the model")
 ```
 
-![](teaching-data/lesson-N-sampled-site-probabilities-1.png)<!-- -->
+![](teaching-data/lesson-4-sampled-site-probabilities-1.png)<!-- -->
 
 The sampled-site plot is more scattered. Even knowing all ten species’
 presences does not tell us the hidden conditions perfectly. Do not
@@ -705,7 +705,7 @@ ggplot(overall_errors, aes(package, average_absolute_error_pp, fill = package)) 
        caption = "Panels answer different probability questions.\nThese bars do not show uncertainty across independently simulated communities.")
 ```
 
-![](teaching-data/lesson-N-absolute-error-comparison-1.png)<!-- -->
+![](teaching-data/lesson-4-absolute-error-comparison-1.png)<!-- -->
 
 At new sites, the average absolute errors are about **6.1, 7.1, 7.1 and
 6.3 points**, in package order. At sampled sites they are about **12.1,
@@ -819,7 +819,7 @@ ggplot(species_errors, aes(absolute_error_pp, species, colour = package)) +
   theme(legend.position = "bottom")
 ```
 
-![](teaching-data/lesson-N-errors-by-species-1.png)<!-- -->
+![](teaching-data/lesson-4-errors-by-species-1.png)<!-- -->
 
 Every plotted error is a distance from matching simulated truth. This
 figure helps identify which species deserve closer examination. It
@@ -829,7 +829,7 @@ same pattern recurs in other communities.
 To inspect a species in detail, filter the same table. Here is
 species_01, the first species in the input order. Change that name to
 examine another species. The [complete species error
-table](teaching-data/lesson-N-species-errors.csv) contains both error
+table](teaching-data/lesson-4-species-errors.csv) contains both error
 measures and counts for every species, package and question.
 
 ``` r
@@ -897,7 +897,7 @@ ggplot(filter(response_curves, gradient == "environment_1"),
   theme(legend.position = "bottom")
 ```
 
-![](teaching-data/lesson-N-environmental-gradient-1-1.png)<!-- -->
+![](teaching-data/lesson-4-environmental-gradient-1-1.png)<!-- -->
 
 ``` r
 ggplot(filter(response_curves, gradient == "environment_2"),
@@ -917,7 +917,7 @@ ggplot(filter(response_curves, gradient == "environment_2"),
   theme(legend.position = "bottom")
 ```
 
-![](teaching-data/lesson-N-environmental-gradient-2-1.png)<!-- -->
+![](teaching-data/lesson-4-environmental-gradient-2-1.png)<!-- -->
 
 Look for three different kinds of disagreement: a curve that is
 generally too high or low, one that changes too steeply or too weakly,

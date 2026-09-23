@@ -1,4 +1,4 @@
-# New independent community for Lesson N. All coefficients are fixed before fitting.
+# New independent community for Lesson 4. All coefficients are fixed before fitting.
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1L)
 root <- normalizePath(args[1])

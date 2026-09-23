@@ -1,5 +1,5 @@
 ---
-title: "Lesson N: Compare four JSDMs with a community whose truth we know"
+title: "Lesson 4: Compare four JSDMs with a community whose truth we know"
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -7,7 +7,7 @@ output:
     fig_width: 9
     fig_height: 6
 vignette: >
-  %\VignetteIndexEntry{Lesson N: Compare four JSDMs with a community whose truth we know}
+  %\VignetteIndexEntry{Lesson 4: Compare four JSDMs with a community whose truth we know}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options:
@@ -19,7 +19,7 @@ editor_options:
 knitr::opts_chunk$set(
   echo = TRUE, collapse = FALSE, comment = "#>",
   fig.width = 9, fig.height = 6, dpi = 150, dev = "png",
-  fig.path = "teaching-data/lesson-N-"
+  fig.path = "teaching-data/lesson-4-"
 )
 
 source("lesson-links.R")
@@ -519,7 +519,7 @@ ggplot(species_errors, aes(absolute_error_pp, species, colour = package)) +
 
 Every plotted error is a distance from matching simulated truth. This figure helps identify which species deserve closer examination. It cannot by itself establish why a species is difficult or whether the same pattern recurs in other communities.
 
-To inspect a species in detail, filter the same table. Here is species_01, the first species in the input order. Change that name to examine another species. The [complete species error table](teaching-data/lesson-N-species-errors.csv) contains both error measures and counts for every species, package and question.
+To inspect a species in detail, filter the same table. Here is species_01, the first species in the input order. Change that name to examine another species. The [complete species error table](teaching-data/lesson-4-species-errors.csv) contains both error measures and counts for every species, package and question.
 
 ```{r inspect-one-species}
 species_errors |>

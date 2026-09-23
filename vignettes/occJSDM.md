@@ -29,10 +29,10 @@ code and compare the results with the truth used to simulate their data.
   effort. It includes a function index and explains why a real simulated
   effect can remain uncertain.
 
-- [Lesson N: Compare four JSDMs](occJSDM-lesson-N.md). A worked
+- [Lesson 4: Compare four JSDMs](occJSDM-lesson-4.md). A worked
   non-spatial pilot comparing occJSDM, gllvm, sjSDM and Hmsc on the same
-  perfectly observed community, with matching truth and explicit fitting
-  limitations.
+  perfectly observed community, with matching truth, explicit fitting
+  checks, and an example of a fit with two local optima.
 
 You can read Lesson 3 after Lesson 1; the spatial lesson is not a
 prerequisite. The earlier output tour has been replaced by Lesson 3. The
@@ -89,6 +89,6 @@ magnitude is accurate.
 
 For a particular function, use the index at the end of Lesson 3 or the
 package’s R help. Lesson 3 includes independent-site prediction, and
-Lesson N provides a matched four-package pilot. Spatial validation
+Lesson 4 provides a matched four-package pilot. Spatial validation
 remains separate work in Lesson 2. One pilot cannot establish a general
 package ranking.

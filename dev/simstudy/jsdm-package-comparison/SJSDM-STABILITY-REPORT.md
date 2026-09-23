@@ -44,7 +44,7 @@ The initial pilot deliberately set optimiser weight decay to zero. sjSDM's expos
 
 The sensitivity arm uses exactly the same seeds and fitting settings as the original three longer fits, except for this default weight decay. Selection and checks use the penalised training objective, not unpenalised likelihood or closeness to simulated truth. The three fits completed, but their penalised-objective spread was 0.1261, still above 0.1. A final continuation of 1,000 smaller steps reduced the largest fixed-grid prediction difference to 0.706 percentage points; its penalised-objective spread remained 0.1264. All three final integration checks agreed within 0.000000001 log-likelihood units. These results do not pass both declared stability checks.
 
-Doug then redirected work to building Lesson N, and the first version of the lesson labelled sjSDM provisional with the original unpenalised fit. Stable predictions on the checking grid do not establish stable parameter estimates or eliminate uncertainty elsewhere. The investigation resumed afterwards; its outcome is below.
+Doug then redirected work to building Lesson 4, and the first version of the lesson labelled sjSDM provisional with the original unpenalised fit. Stable predictions on the checking grid do not establish stable parameter estimates or eliminate uncertainty elsewhere. The investigation resumed afterwards; its outcome is below.
 
 Independent review found no blocking mathematical or data-leakage issue. One minor robustness improvement remains: the unpenalised continuation checker reports its fine-grid disagreement but does not include that guard in its `passed` flag. The observed disagreement is at most 5.2e-9, so this does not change the current failed stability assessment; both penalty checkers already enforce the guard.
 
@@ -60,7 +60,7 @@ Because the repeated-fit spread criterion assumed one optimum, the assessment wa
 
 ## What the revision changed
 
-The revised sjSDM export scores 7.14 points average absolute error at new sites and 13.3 at sampled sites, against 7.14 and 13.6 for the original provisional fit. New-site predictions moved by at most 0.38 points. The two maxima differ by at most 1.9 points at new sites and by up to 39 points for some sampled-site reconstructions, mostly species 2 and 9, while their average errors are almost identical. The Lesson N bundle was re-exported from the separately versioned `revised/` results root and re-verified; the original selection and exports are unchanged in the archive. Lesson N now reports the revised fit and teaches the two-maxima finding in its computation-check section.
+The revised sjSDM export scores 7.14 points average absolute error at new sites and 13.3 at sampled sites, against 7.14 and 13.6 for the original provisional fit. New-site predictions moved by at most 0.38 points. The two maxima differ by at most 1.9 points at new sites and by up to 39 points for some sampled-site reconstructions, mostly species 2 and 9, while their average errors are almost identical. The Lesson 4 bundle was re-exported from the separately versioned `revised/` results root and re-verified; the original selection and exports are unchanged in the archive. Lesson 4 now reports the revised fit and teaches the two-maxima finding in its computation-check section.
 
 ## Reproducibility
 

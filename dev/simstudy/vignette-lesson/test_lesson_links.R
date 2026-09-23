@@ -3,7 +3,7 @@
 # external links, and the Visual editor's encoding of inline-R destinations.
 root <- normalizePath(".")
 lessons <- c("occJSDM", "occJSDM-lesson-0", "occJSDM-lesson-1",
-             "occJSDM-lesson-2", "occJSDM-lesson-3", "occJSDM-lesson-N")
+             "occJSDM-lesson-2", "occJSDM-lesson-3", "occJSDM-lesson-4")
 quickstart <- readLines("vignettes/occJSDM.Rmd", warn = FALSE)
 start <- grep("^```\\{r setup,", quickstart)
 end <- which(seq_along(quickstart) > start & quickstart == "```")[1]
@@ -17,7 +17,7 @@ fixture <- c(
   "---", "title: Link regression check", "output: html_document", "---", "",
   setup, "",
   "[Lesson 1](occJSDM-lesson-1.md)", "",
-  "[Lesson N](occJSDM-lesson-N.md)", "",
+  "[Lesson 4](occJSDM-lesson-4.md)", "",
   "[Section](occJSDM-lesson-3.md#check-computation-as-well-as-ecological-recovery)", "",
   "[Relative](./occJSDM-lesson-0.md)", "",
   "[External](https://example.org/occJSDM-lesson-1.md)", "",
@@ -36,7 +36,7 @@ for (format in c("html", "markdown", "html")) {
                             envir = new.env(parent = globalenv()), quiet = TRUE)
   rendered <- paste(readLines(path, warn = FALSE), collapse = "\n")
   if (format == "html") {
-    stopifnot(grepl('href="occJSDM-lesson-N.html"', rendered, fixed = TRUE),
+    stopifnot(grepl('href="occJSDM-lesson-4.html"', rendered, fixed = TRUE),
               grepl('href="occJSDM-lesson-1.html"', rendered, fixed = TRUE),
               grepl('href="occJSDM-lesson-3.html#check-computation-as-well-as-ecological-recovery"', rendered, fixed = TRUE),
               grepl('href="./occJSDM-lesson-0.html"', rendered, fixed = TRUE),

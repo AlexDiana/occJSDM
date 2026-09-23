@@ -2,7 +2,7 @@
 # generated HTML needs different destinations; never rewrite the source files.
 local({
   lessons <- c("occJSDM", "occJSDM-lesson-0", "occJSDM-lesson-1",
-               "occJSDM-lesson-2", "occJSDM-lesson-3", "occJSDM-lesson-N")
+               "occJSDM-lesson-2", "occJSDM-lesson-3", "occJSDM-lesson-4")
 
   # The document hook sees code as well as prose. Skip fenced blocks and inline
   # code so displayed examples are preserved. (*SKIP)(*F) is PCRE's skip syntax.

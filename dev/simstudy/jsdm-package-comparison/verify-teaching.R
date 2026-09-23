@@ -12,7 +12,7 @@ stopifnot(identical(lesson$predictions, readRDS(file.path(root, "results/predict
           identical(unname(tools::md5sum(names(lesson$provenance$source_hashes))),
                     unname(lesson$provenance$source_hashes)))
 stopifnot(identical(
-  read.csv(file.path(repo, "vignettes/teaching-data/lesson-N-species-errors.csv")),
+  read.csv(file.path(repo, "vignettes/teaching-data/lesson-4-species-errors.csv")),
   read.csv(file.path(root, "results/errors-by-species.csv"))
 ))
 keys <- lesson$predictions[c("package", "target", "site", "species")]
@@ -24,7 +24,7 @@ stopifnot(nrow(keys) == 16000, !anyDuplicated(keys),
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(tibble))
-text <- readLines(file.path(repo, "vignettes/occJSDM-lesson-N.Rmd"))
+text <- readLines(file.path(repo, "vignettes/occJSDM-lesson-4.Rmd"))
 chunk <- function(label) {
   start <- grep(paste0("^```\\{r ", label, "[,}]"), text)
   stopifnot(length(start) == 1)
