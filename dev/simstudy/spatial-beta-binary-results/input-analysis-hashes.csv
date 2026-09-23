@@ -1,0 +1,16 @@
+case,file,md5
+package60-range4-full,package60-range4-full/fit.rds,a54a7c2254342b55bd0d5dfedeca5b84
+package60-range4-full,package60-range4-full/validation.rds,1cfd37c56d80877940c7bd17f773d618
+package60-range4-full,package60-range4-full/data-truth.rds,a56300d402ab3a5d80a88b7463e06003
+package60-range4-full,package60-range4-full/provenance.rds,e05b925a3b723aad042a292995258fab
+package60-range4-full,dev/simstudy/summarise_spatial_binary.R,ebea9d441a0698bc037acc880ee5e23a
+package60-range6-full,package60-range6-full/fit.rds,d543dbcd41b81f12146b43dea608b82e
+package60-range6-full,package60-range6-full/validation.rds,1bb29e9b955d159d47fce00e7d6419a6
+package60-range6-full,package60-range6-full/data-truth.rds,b3a0a85133f9c7e7ebf3029149861f10
+package60-range6-full,package60-range6-full/provenance.rds,8504dbb7ac1dbf75a4eb409270ab89a5
+package60-range6-full,dev/simstudy/summarise_spatial_binary.R,ebea9d441a0698bc037acc880ee5e23a
+package60-range8-full,package60-range8-full/fit.rds,580601bfffd87596b42989318bcead45
+package60-range8-full,package60-range8-full/validation.rds,4b404894a85779347680aa41e9bb6c90
+package60-range8-full,package60-range8-full/data-truth.rds,cb4378f40e5a80c7ff03488af38b1f99
+package60-range8-full,package60-range8-full/provenance.rds,5a170e9a5b602276e7db2d252d4c58bd
+package60-range8-full,dev/simstudy/summarise_spatial_binary.R,ebea9d441a0698bc037acc880ee5e23a
