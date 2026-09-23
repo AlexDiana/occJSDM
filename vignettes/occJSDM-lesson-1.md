@@ -274,6 +274,9 @@ read-count detection workflows discussed here:
 | Repeated sites, but each field sample contributes only one row | One-stage occupancy model | Repeated field observations with one detection stage |
 | Repeated sites and repeated sample identifiers | Two-stage occupancy model | PCR/primer observations nested within field samples |
 
+The two-stage model is the one described by [Ji et
+al. (2025)](occJSDM-lesson-3.md#references-and-further-reading), which
+separates DNA collection in the field from detection in the laboratory.
 These lessons use field-sample IDs that are unique across the survey,
 and reuse a sample’s ID for its PCR/primer rows. The fitting function
 prints the model it recognized; check that this matches the survey you
@@ -323,8 +326,14 @@ fitting if you need retained site-state (`z_output`) and
 site-probability (`psi_output`) draws. In the current implementation,
 sample-state (`w_output`) and collection-probability (`theta_output`)
 outputs still contain means; the flag does **not** preserve every latent
-quantity’s draws. Keeping draws uses more memory. Lesson 3 shows how to
-inspect output dimensions rather than guess what an array contains.
+quantity’s draws. Keeping draws uses more memory: the original
+walkthrough gave the example of 500 sites and 100 species with 4,000
+retained iterations, which stores about 800 MB of site-probability draws
+unthinned. Setting `nthin` above one keeps every `nthin`-th iteration
+and shrinks the object in proportion, at the cost of fewer draws for the
+summaries. Thinning does not repair poor mixing; it only reduces
+storage. Lesson 3 shows how to inspect output dimensions rather than
+guess what an array contains.
 
 ``` r
 comparison_results <- occupancy_results |>

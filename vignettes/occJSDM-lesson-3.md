@@ -388,6 +388,40 @@ includes the generating effect. Those are separate questions. The native
 function orders traits by their lower interval endpoints, so match by
 the trait labels when comparing the two figures.
 
+The plot draws intervals only. To report point estimates beside them, or
+to sort and filter trait-by-environment pairs, summarise the posterior
+array yourself. `returnTraitsCoeff()` returns draws with dimensions
+`[draw, environmental covariate, trait]`, with names on the last two.
+The recipe below builds one row per pair and works for any posterior
+array this package returns, such as `returnOccupancyCovariates()` or
+`returnCollectionCovariates()`, after adjusting the dimension names.
+
+``` r
+trait_draws <- occJSDM::returnTraitsCoeff(fitmodel)
+
+trait_summary <- expand_grid(
+  covariate = dimnames(trait_draws)[[2]],
+  trait = dimnames(trait_draws)[[3]]
+) |>
+  rowwise() |>
+  mutate(
+    draws = list(trait_draws[, covariate, trait]),
+    mean = mean(draws),
+    lower = quantile(draws, 0.025),
+    upper = quantile(draws, 0.975)
+  ) |>
+  ungroup() |>
+  select(-draws) |>
+  arrange(covariate, lower)
+
+trait_summary
+```
+
+`expand_grid()` lists every covariate-by-trait pair, `rowwise()` lets
+each row pull its own vector of draws, and the three summaries are
+computed from that vector. The result is an ordinary tibble that can be
+filtered, joined to the generating values, or passed to `ggplot2`.
+
 ### A real cancellation inside this simulated community
 
 The model allows a species’ environmental response to combine three
@@ -532,12 +566,22 @@ the generating value.
 
 ## Ordination: compare the combined effect before naming the axes
 
-`returnOrdinationScores()` returns hidden site scores;
-`returnFactorLoadings()` returns species loadings. Multiplying a site’s
-scores by a species’ loadings gives their combined contribution to its
-occurrence predictor. Rotating both sets of axes, or reversing their
-signs together, can leave that contribution unchanged. Unaligned true
-and fitted axes are therefore a misleading accuracy comparison.
+The occupancy part of the model writes species $j$’s log-odds of
+occupying site $i$ as
+$\text{logit}(\psi_{ij}) = \beta_{0j} + X_i \beta_j + U_i L_j$. The
+first two terms are the intercept and the measured environmental
+effects. In the third, $U_i$ holds site $i$’s scores on the hidden
+factors and $L_j$ holds species $j$’s loadings on them. That product is
+what carries residual co-occurrence: species that load on the same
+factor rise and fall together across sites for reasons the measured
+covariates do not explain, whether an unmeasured gradient or an
+interaction. `returnOrdinationScores()` returns the hidden site scores
+$U$; `returnFactorLoadings()` returns the species loadings $L$.
+Multiplying a site’s scores by a species’ loadings gives their combined
+contribution to its occurrence predictor. Rotating both sets of axes, or
+reversing their signs together, can leave that contribution unchanged.
+Unaligned true and fitted axes are therefore a misleading accuracy
+comparison.
 
 ``` r
 site_scores <- occJSDM::returnOrdinationScores(fitmodel)
@@ -988,6 +1032,20 @@ observation process. Its appropriate simulation check is the realized
 0/1 state, not the generating probability. [Lesson
 1](occJSDM-lesson-1.md) puts these quantities alongside the actual
 simulated detection cases, with maps in Lesson 0.
+
+Which one should a study report? [Ji et
+al. (2025)](#references-and-further-reading) reported the predictive
+probabilities, because they are estimated from the environmental
+relationships learned across all sites and are therefore less sensitive
+to the handful of detections at any one site. The conditional
+probability moves with that site’s own PCR results, so a single
+contaminated or failed sample can shift it substantially. The two are
+most useful together: a site where the conditional probability is high
+but the predictive probability is low is one where weak positive
+evidence overrode unfavourable covariates, and the reverse pattern marks
+a site the model believes occupied despite few detections. Their
+Supplementary Information 12 works through such cases; Lesson 1’s worked
+detections do the same on this simulation.
 
 `returnLatentPresences()` and `plotLatentPresences()` collect those
 fitted quantities by site, sample and primer. The next section
@@ -2664,6 +2722,28 @@ outside its bar identifies an interval that misses the generating rate
 in this dataset. These rate intervals summarize parameter uncertainty,
 unlike the random survey-count ranges in the cumulative-detection
 examples.
+
+Every plotting function in this package returns a `ggplot2` object, so
+the plots can be placed side by side with the `patchwork` package. Its
+`+` operator lays two plots next to each other, and `/` stacks them.
+Pairing each stage’s false-positive plot with its success plot puts what
+should ideally be low beside what should ideally be high.
+
+``` r
+library(patchwork)
+
+field_rates <- (plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1)) +
+  plotCollectionRates(fitmodel, idx_species = 1:10)
+
+laboratory_rates <- (plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1)) +
+  plotDetectionRates(fitmodel, idx_species = 1:10)
+
+field_rates / laboratory_rates
+```
+
+The parentheses matter: the first `+` inside them adds a `ggplot2` layer
+to one plot, whereas the `+` between the parenthesised plot and the next
+plot is `patchwork`’s side-by-side operator.
 
 ## Reproduce the extraction or find a function
 
