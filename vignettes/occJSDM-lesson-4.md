@@ -21,7 +21,7 @@ version of this lesson, sjSDM was labelled provisional because repeated
 optimisation runs disagreed. A follow-up found that its fitting problem
 has two genuine local optima, reproduced the better one from independent
 starts, and recorded the selection before any truth was read. The lesson
-now uses that checked fit and, in section 4, teaches what the two optima
+now uses that checked fit and, in section 5, teaches what the two optima
 mean.
 
 You will learn to:
@@ -33,6 +33,8 @@ You will learn to:
     truth.
 4.  Compare environmental responses on the probability scale.
 5.  Separate reliable computation from accurate ecological estimation.
+6.  Explain what makes the model joint, and use that to predict one
+    species from another.
 
 The code is visible throughout. Knit this file, or run its chunks with
 `vignettes` as the working directory. Rendering reads a compact results
@@ -282,7 +284,156 @@ The sjSDM R version is 1.0.7 inside Doug’s fork release **v0.2.1**. The
 release also has an optional Mojo path, but this experiment explicitly
 used PyTorch. Mojo was neither used nor upgraded.
 
-## 3. Two probability questions that must not be mixed
+## 3. What a joint model adds to factoring a matrix
+
+Hidden factors are a familiar idea outside ecology. A recommender system
+takes a table of viewers by films, with a 1 where a viewer liked a film,
+and finds two small tables whose product reproduces it: a score for each
+viewer on a few hidden dimensions, and a position for each film on the
+same dimensions. The dimensions turn out to be genres that nobody
+labelled, and multiplying the two tables fills in the films a viewer has
+not yet seen. Replace viewers by sites and films by species, and the
+same arithmetic recovers unmeasured habitat axes from co-occurrence
+alone. That is where the hidden factors in section 1 come from, and it
+is a good way to build intuition for them.
+
+A JSDM uses that low-rank idea, but it is not a factorisation of your
+data matrix, and the difference is worth stating plainly. **A
+factorisation describes the table you have. A JSDM estimates how species
+covary, so that it can reason about tables you do not have.** Three
+additions make the difference.
+
+- **It factors the residual, not the data.** The measured environment
+  enters first as an ordinary regression, one coefficient vector per
+  species. The hidden factors are then asked to explain only what the
+  environment left over. That is why the output is called a *residual*
+  correlation. If you measure a gradient that the factors had been
+  standing in for and add it as a covariate, the association it produced
+  shrinks. That is the model working as intended, not a contradiction.
+- **It is a probability model of a presence or absence.** A recommender
+  regresses 1s and 0s as if they were continuous scores and reports a
+  fitted number per cell. A JSDM treats each cell as a Bernoulli outcome
+  whose probability is a logit or probit transform of the linear
+  predictor. That gives a likelihood, and with it uncertainty for every
+  parameter, sensible behaviour for rare species, and a basis for
+  comparing models.
+- **It treats the site scores as random and averages over them.** In a
+  recommender, each viewer’s score vector is a parameter, because
+  recommending to that viewer needs it. In a JSDM, a site’s hidden
+  scores are assumed to be drawn from a standard normal distribution.
+  The optimised packages here average over every value the scores could
+  take and keep only the species loadings; the Bayesian packages sample
+  the scores for the fitted sites but likewise average over them at new
+  sites. Because the scores are independent standard normals, the
+  covariance between two species’ residuals at a site is the dot product
+  of their two loading rows. That holds at any site, sampled or not. The
+  loading matrix therefore describes the community rather than the
+  particular sites surveyed, and the species-by-species matrix built
+  from it is what the packages report as the residual covariance or
+  association matrix.
+
+Put together, these define the **joint probability distribution of the
+whole species vector at a site**. That is the sense in which the model
+is joint. Two things follow that no factorisation offers. First,
+recording one species at a site tells you something about the others,
+because it is evidence about that site’s hidden scores. Second, the same
+model answers two different prediction questions, depending on whether
+such evidence is available. The next section makes that distinction
+precise; the exercise below shows the first consequence in numbers.
+
+### Exercise: predict one species given another
+
+Suppose a survey at a new site has recorded species_03 as present and we
+want the probability that species_10 is also there. A stacked model, one
+species at a time, would give the same answer whether or not species_03
+was seen: it assumes independence once the environment is known. A JSDM
+does not. Species_03’s presence shifts the plausible values of the
+site’s hidden scores, and species_10’s loadings translate that shift
+into a changed probability.
+
+The calculation averages over the hidden scores. We draw many
+standard-normal score pairs, compute both species’ probabilities at each
+draw, and average. The probability of species_10 alone is the plain
+average. Its probability given species_03 present weights each draw by
+how likely species_03 was to be present there, and given species_03
+absent weights by the complement. We use the same gllvm parameters as
+the marginal example above, and the generating parameters for
+comparison. The environment is set to the training mean, and then to one
+standard deviation above it on gradient 1, because conditional
+information matters most where a species is not already near certain.
+
+``` r
+conditional_probabilities <- function(parameters, given, target,
+                                      environment = c(0, 0), draws = 200000) {
+  set.seed(26092299)
+  hidden_scores <- matrix(rnorm(draws * nrow(parameters$loading)), nrow = draws)
+
+  linear_score <- function(species) {
+    sum(c(1, environment) * parameters$beta[, species]) +
+      hidden_scores %*% parameters$loading[, species]
+  }
+
+  p_given  <- plogis(linear_score(given))
+  p_target <- plogis(linear_score(target))
+
+  c(
+    target_alone = mean(p_target),
+    target_given_present = sum(p_target * p_given) / sum(p_given),
+    target_given_absent = sum(p_target * (1 - p_given)) / sum(1 - p_given)
+  )
+}
+
+fitted_parameters <- comparison$point_parameters$gllvm
+
+true_parameters <- list(beta = known_truth$scaled_coefficients,
+                        loading = known_truth$loadings)
+colnames(true_parameters$beta) <- colnames(training$y)
+colnames(true_parameters$loading) <- colnames(training$y)
+
+conditional_table <- rbind(
+  `Fitted gllvm, mean environment` =
+    conditional_probabilities(fitted_parameters, "species_03", "species_10"),
+  `Generating truth, mean environment` =
+    conditional_probabilities(true_parameters, "species_03", "species_10"),
+  `Fitted gllvm, gradient 1 at +1 SD` =
+    conditional_probabilities(fitted_parameters, "species_03", "species_10", c(1, 0)),
+  `Generating truth, gradient 1 at +1 SD` =
+    conditional_probabilities(true_parameters, "species_03", "species_10", c(1, 0))
+)
+
+knitr::kable(
+  100 * conditional_table, digits = 1,
+  col.names = c("species_10 alone", "given species_03 present", "given species_03 absent"),
+  caption = "Occurrence probability of species_10 at a new site, in percent"
+)
+```
+
+|  | species_10 alone | given species_03 present | given species_03 absent |
+|:---|---:|---:|---:|
+| Fitted gllvm, mean environment | 89.2 | 91.6 | 88.1 |
+| Generating truth, mean environment | 83.9 | 88.1 | 81.8 |
+| Fitted gllvm, gradient 1 at +1 SD | 72.4 | 78.6 | 71.4 |
+| Generating truth, gradient 1 at +1 SD | 64.2 | 73.0 | 62.4 |
+
+Occurrence probability of species_10 at a new site, in percent
+
+Read across a row. A stacked model would put the same number in all
+three columns. Here the middle column is higher and the right column
+lower, in the fitted model and in the truth, because species_03 and
+species_10 respond to the same hidden factors. The gap widens when
+species_10 is less certain to begin with. The fitted gap is somewhat
+smaller than the true gap in this community; the fitted residual spread
+for these two species is below its generating value, which is one of the
+errors the response curves in section 8 also show. With 200,000 draws
+the Monte Carlo error is in the second decimal place; change the seed to
+check.
+
+This is only a demonstration on a single pair chosen for its strong
+fitted association, not a validated conditional-prediction test. A real
+test would hold out species records at independent sites and score the
+conditional predictions against them.
+
+## 4. Two probability questions that must not be mixed
 
 | Question | Information available to the fitted model | Matching simulated truth |
 |----|----|----|
@@ -405,7 +556,7 @@ normal-probit model, the corresponding average has the exact expression
 averaging still applies this within each parameter draw. The full
 checked extraction scripts are recorded in the reproduction notes below.
 
-## 4. Check the computation before interpreting the ecology
+## 5. Check the computation before interpreting the ecology
 
 For occJSDM and Hmsc we used four chains, each with 2,000 warm-up and
 4,000 retained iterations. Chains should agree, and enough effectively
@@ -588,7 +739,7 @@ to truth. Fitting criteria from different packages are not directly
 comparable here, so a larger numerical likelihood is not a cross-package
 score.
 
-## 5. Put the estimated probabilities beside truth
+## 6. Put the estimated probabilities beside truth
 
 In each panel, a point is one species at one site. On the diagonal,
 estimate and truth agree. Above it, the model overestimates; below it,
@@ -645,7 +796,7 @@ observations”: the two figures have **different targets**. Averaging
 over hidden conditions removes variation that the sampled-site exercise
 asks the model to reconstruct.
 
-## 6. How far wrong, and in which direction?
+## 7. How far wrong, and in which direction?
 
 We calculate an error for every species at every site:
 
@@ -857,7 +1008,7 @@ species_errors |>
 
 Species_01: actual error against truth
 
-## 7. What environmental response does each model recover?
+## 8. What environmental response does each model recover?
 
 We now move along one gradient while keeping the other at its training
 mean. The horizontal axis runs from two training standard deviations
@@ -938,7 +1089,7 @@ zero-factor occupancy-gradient profiles taught in [Lesson
 3](occJSDM-lesson-3.md): here we deliberately average over hidden
 variation.
 
-## 8. If we did not know truth, how would we score predictions?
+## 9. If we did not know truth, how would we score predictions?
 
 In real field data we observe 0s and 1s, not the probabilities that
 generated them. Held-out outcomes can still score probabilistic
@@ -979,7 +1130,7 @@ table measure different things. We do not use sampled-site outcome
 scores to claim independent prediction skill, because those observations
 helped fit the models.
 
-## 9. Optional: fit the same configurations yourself
+## 10. Optional: fit the same configurations yourself
 
 Run each package’s fitting example in a **fresh R session** with its
 recorded dependencies available. Load `comparison` and `training` as
@@ -1171,7 +1322,7 @@ Numerical probability integration was independently checked at finer
 resolution, with differences much smaller than the ecological errors
 shown here.
 
-## 10. What this lesson establishes, and what remains open
+## 11. What this lesson establishes, and what remains open
 
 The four packages can be compared on the same perfectly observed
 community **when their prediction targets are explicitly matched**.
@@ -1199,6 +1350,10 @@ Try these exercises with the saved tables, without refitting:
     baseline, direction or steepness is wrong.
 4.  Explain why the two sampled-site and new-site figures cannot be used
     as an ordinary training-versus-test overfitting comparison.
+5.  Rerun the conditional-prediction example with
+    `comparison$point_parameters$sjSDM` in place of the gllvm
+    parameters. The two fits agree closely on species_10 alone but not
+    on how much species_03 changes it. Explain from their loadings why.
 
 ## Reproduction record
 
@@ -1206,7 +1361,7 @@ The compact bundle records seed 26092201, complete generating truth, fit
 selection, input/source hashes, diagnostics and unrounded estimates. It
 also keeps the original provisional sjSDM selection, the twelve-start
 classification, the curvature summary and the three-way sjSDM comparison
-shown in section 4. The occJSDM snapshot is `3a97267`; Doug’s sjSDM fork
+shown in section 5. The occJSDM snapshot is `3a97267`; Doug’s sjSDM fork
 snapshot is `d2ca508`. The examples use gllvm 2.0.15 and Hmsc 3.3-7. No
 fit is rerun while knitting, and the lesson needs no Python or full MCMC
 files to render.
