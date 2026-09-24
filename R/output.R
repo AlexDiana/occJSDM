@@ -480,8 +480,8 @@ plotOccupancyGradient <- function(fitModel,
 
 #' Stop early on a fit that predates `infos$X0_psi`.
 #'
-#' `X0_psi` holds the raw (untransformed) occupancy covariates, and the
-#' covariate-effect functions need it to build their prediction grid. It was
+#' `X0_psi` holds pre-spline covariates: standardized numbers and original
+#' factors. Stored means and SDs recover the original numeric units. It was
 #' added by `e60e3ad`; any model object fitted before that lacks the field.
 #' Without this guard the failure surfaces deep inside the grid construction
 #' as `min(NULL)` giving `Inf` and then `seq(Inf, -Inf, ...)` erroring with
@@ -510,122 +510,122 @@ stopIfNoRawCovariates <- function(fitModel, what){
   invisible(TRUE)
 }
 
-#' returnCovariateEffect
+#' Environmental response curves
 #'
-#' Return predicted species response curve
+#' Return predicted species responses as one environmental covariate changes.
 #'
 #' @details
+#' Numeric covariates are evaluated at 200 points over their observed range,
+#' in the original input units. Categorical covariates include every fitted
+#' level, including the first (reference) level. Other numeric covariates are
+#' held at their observed medians; other categorical covariates are held at
+#' their first fitted levels. Splines use the fitted scaling and knots.
 #'
+#' For each posterior draw, the intercept and all environmental contributions
+#' are added before conversion to an occupancy probability with the inverse
+#' logit. Continuous-response models retain the identity scale. Hidden site
+#' (latent-factor) and spatial contributions are set to zero. These are
+#' conditional environmental response curves, not predictions for particular
+#' sites or averages over unmeasured site conditions. They are not evidence
+#' of a causal effect of the covariate.
 #'
-#' @param fitModel Output from the function runOccJSDM
-#' @param covName Character vector. Name(s) of the covariate(s) to evaluate
-#' @param idx_species Indexes of the species to include (leave out for all species)
-#' @param confidence Numeric scalar between 0 and 1. The width of the Bayesian
-#'   credible interval to compute (default is \code{0.95} for a 95\% interval).
+#' @param fitModel Output from the function runOccJSDM.
+#' @param covName Character scalar. Name of one occupancy covariate in the
+#'   original input data, before scaling or spline expansion.
+#' @param idx_species Integer indexes of the species to include (default: all).
+#' @param confidence Numeric scalar strictly between 0 and 1. Probability
+#'   contained in the equal-tail Bayesian credible interval (default: 0.95).
+#'
+#' @return For a numeric covariate, a data frame with \code{x}, \code{median},
+#'   \code{lower}, \code{upper} and \code{Species}. The \code{median} column
+#'   contains the posterior median. Earlier versions labelled it \code{mean};
+#'   scripts using that column must now use \code{median}.
+#'   For a categorical covariate, a data frame with \code{x}, \code{Species},
+#'   \code{draw} and \code{value}, containing all posterior draws at every level.
+#'   Here \code{confidence} does not alter the raw draws; it controls the
+#'   intervals when \code{plotCovariateEffect()} summarises them.
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-returnCovariateEffect <- function(fitModel,
-                                  covName,
-                                  idx_species = NULL,
-                                  confidence = .95){
-
-  B_output <- fitModel$results_output$jsdm_output$B_output
-  B0_output <- fitModel$results_output$jsdm_output$B0_output
-  speciesNames <- fitModel$infos$speciesNames
-
-  if (is.null(idx_species)) {
-    idx_species <- seq_along(speciesNames)
-  }
-
-  sp_name <- speciesNames[idx_species]
-
-  B_output_vec <- apply(B_output, c(1,2), c)
-  B0_output_vec <- apply(B0_output, 1, c)
-
+returnCovariateEffect <- function(fitModel, covName, idx_species = NULL,
+                                  confidence = .95) {
   stopIfNoRawCovariates(fitModel, "returnCovariateEffect")
+  if (length(covName) != 1L) {
+    stop("covName must name one covariate.", call. = FALSE)
+  }
+  idx_species <- validate_covariate_response(fitModel, covName, idx_species, confidence)
 
-  X_psi <- fitModel$X_psi
-  X0_psi <- fitModel$infos$X0_psi
-
-  link_model <- ifelse(fitModel$infos$jsdmModel == "continuous","identity","logit")
-
-  list_matrix <- fitModel$infos$list_X_psi_mat
+  B <- fitModel$results_output$jsdm_output$B_output
+  B0 <- fitModel$results_output$jsdm_output$B0_output
+  # Iterations within chains, retaining singleton species/covariate dimensions.
+  n_draws <- dim(B0)[2L] * dim(B0)[3L]
+  B_draws <- array(aperm(B, c(3L, 4L, 1L, 2L)), c(n_draws, dim(B)[1L], dim(B)[2L]))
+  B0_draws <- matrix(aperm(B0, c(2L, 3L, 1L)), nrow = n_draws)
 
   returnCovariateEffect_base(
-    covName,
-    idx_species,
-    sp_name,
-    B0_output_vec,
-    B_output_vec,
-    list_matrix,
-    speciesNames,
-    X0 = X0_psi,
-    X = X_psi,
-    link = link_model
+    cov_name = covName, idx_species = idx_species,
+    B0_output_vec = B0_draws, B_output_vec = B_draws,
+    list_matrix = fitModel$infos$list_X_psi_mat,
+    speciesNames = fitModel$infos$speciesNames,
+    X0 = fitModel$infos$X0_psi, X = fitModel$X_psi,
+    link = if (fitModel$infos$jsdmModel == "continuous") "identity" else "logit",
+    confidence = confidence
   )
-
 }
 
-#' plotCovariateEffect
+# Validate shared public arguments before any posterior calculations.
+validate_covariate_response <- function(fitModel, covNames, idx_species, confidence) {
+  if (!is.character(covNames) || !length(covNames) || anyNA(covNames) ||
+      any(!covNames %in% fitModel$infos$list_X_psi_mat$names_df)) {
+    stop("Each covariate name must match an original occupancy covariate.", call. = FALSE)
+  }
+  if (!is.numeric(confidence) || length(confidence) != 1L ||
+      !is.finite(confidence) || confidence <= 0 || confidence >= 1) {
+    stop("confidence must be a single number strictly between 0 and 1.", call. = FALSE)
+  }
+  n_species <- length(fitModel$infos$speciesNames)
+  if (is.null(idx_species)) idx_species <- seq_len(n_species)
+  if (!is.numeric(idx_species) || !length(idx_species) || anyNA(idx_species) ||
+      any(!is.finite(idx_species) | idx_species != floor(idx_species) |
+            idx_species < 1L | idx_species > n_species)) {
+    stop("idx_species must contain valid positive integer species indexes.", call. = FALSE)
+  }
+  idx_species
+}
+
+#' Plot environmental response curves
 #'
-#' Plot predicted species response curve
+#' Show posterior medians and credible intervals as environmental covariates
+#' change, using the same conditional responses as \code{returnCovariateEffect()}.
 #'
-#' @details
-#'
-#'
-#' @param fitModel Output from the function runOccJSDM
-#' @param covNames Character vector. Name(s) of the covariate(s) to evaluate
-#' @param idx_species Indexes of the species to include (leave out for all species)
-#' @param confidence Numeric scalar between 0 and 1. The width of the Bayesian
-#'   credible interval to compute (default is \code{0.95} for a 95\% interval).
+#' @inheritParams returnCovariateEffect
+#' @param covNames Character vector. Names of occupancy covariates in the
+#'   original input data, before scaling or spline expansion.
+#' @inherit returnCovariateEffect details
+#' @return A named list of ggplot objects, one per requested covariate.
+#'   Numeric responses use lines and ribbons; categorical responses use
+#'   points and bars. Both display posterior medians and the requested
+#'   equal-tail credible intervals.
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-plotCovariateEffect <- function(fitModel,
-                                covNames,
-                                idx_species = NULL,
-                                confidence = .95){
-
-  B_output <- fitModel$results_output$jsdm_output$B_output
-  B0_output <- fitModel$results_output$jsdm_output$B0_output
-  speciesNames <- fitModel$infos$speciesNames
-
-  if (is.null(idx_species)) {
-    idx_species <- seq_along(speciesNames)
-  }
-
-  sp_name <- speciesNames[idx_species]
-
-  B_output_vec <- apply(B_output, c(1,2), c)
-  B0_output_vec <- apply(B0_output, 1, c)
-
+plotCovariateEffect <- function(fitModel, covNames, idx_species = NULL,
+                                confidence = .95) {
   stopIfNoRawCovariates(fitModel, "plotCovariateEffect")
-
-  X_psi <- fitModel$X_psi
-  X0_psi <- fitModel$infos$X0_psi
-
-  link_model <- ifelse(fitModel$infos$jsdmModel == "continuous","identity","logit")
-
-  list_matrix <- fitModel$infos$list_X_psi_mat
-
-  plot_list <- plotCovariateEffect_base(
-    idx_species,
-    covNames,
-    B0_output_vec,
-    B_output_vec,
-    list_matrix,
-    speciesNames,
-    X0 = X0_psi,
-    X = X_psi,
-    link = link_model
-  )
-
-  plot_list
+  idx_species <- validate_covariate_response(fitModel, covNames, idx_species, confidence)
+  plots <- lapply(covNames, function(cov_name) {
+    data <- returnCovariateEffect(fitModel, cov_name, idx_species, confidence)
+    plot_covariate_response(
+      data, cov_name, fitModel$infos$list_X_psi_mat$is_numeric[[cov_name]],
+      link = if (fitModel$infos$jsdmModel == "continuous") "identity" else "logit",
+      confidence = confidence
+    )
+  })
+  stats::setNames(plots, covNames)
 }
 
 #' returnBaselineOccupancyRates
@@ -2320,5 +2320,4 @@ computeSpeciesDetected <- function(beta_theta_output, p_output, M, K, primer, al
   output
 
 }
-
 
