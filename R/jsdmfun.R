@@ -1226,6 +1226,18 @@ sample_tau <- function(z, eta, a_tau, b_tau){
   tau
 }
 
+# Half-Cauchy(scale) prior on each response SD. With v = tau^2,
+# v | auxiliary ~ IG(1/2, 1/auxiliary), auxiliary ~ IG(1/2, 1/scale^2).
+# Refresh the auxiliary conditional on the current SD before drawing the new
+# variance. This Gibbs step has no rejection loop or lower bound on the SD.
+sample_tau_half_cauchy <- function(z,eta,tau,scale) {
+  sumsqs <- colSums((z-eta)^2)
+  vapply(seq_len(ncol(z)),function(s) {
+    auxiliary <- rinvgamma_cpp(1,1/tau[s]^2+1/scale^2)
+    sqrt(rinvgamma_cpp((nrow(z)+1)/2,sumsqs[s]/2+1/auxiliary))
+  },numeric(1))
+}
+
 # sample size parameter of responses
 sample_rnb <- function(z, eta, tune_sd = 5){
 
@@ -1607,7 +1619,11 @@ update_jSDMcoef <- function(list_data,
 
   # sample variance of continuous output
   if(model == "continuous"){
-    tau <- sample_tau(z, psiCoef, a_tau, b_tau)
+    if (identical(list_priors$noise_prior$type,"half_cauchy")) {
+      tau <- sample_tau_half_cauchy(z,psiCoef,tau,list_priors$noise_prior$scale)
+    } else {
+      tau <- sample_tau(z, psiCoef, a_tau, b_tau)
+    }
   }
 
   # sample Omega
