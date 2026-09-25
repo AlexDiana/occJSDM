@@ -6,10 +6,18 @@ This is a working document for Doug and Alex. Edit it as the lessons develop, an
 
 The aim is to help an empirical ecologist understand what occJSDM does, read and learn from the R code, and judge its answers by comparing them with known simulated truth. A completed teaching example illustrates one dataset; it does not establish that the model is unbiased or ready for release.
 
+> Next step is for Doug to go through the lessons and ask for revisions, further explanations, and further examples. Insert comments inside the \*.Rmd files as follows:
+>
+> <!-- DOUG: CLARIFY -- What does “marginal probability” mean here? -->
+>
+> <!-- DOUG: EXAMPLE -- Show a small numerical example with two species. -->
+>
+> <!-- DOUG: CHANGE -- Explain the figure before introducing the equation. -->
+
 ## At a glance
 
 | Lesson | Status | What it teaches | Source |
-|---|---|---|---|
+|------------------|------------------|------------------|------------------|
 | Unnumbered Quickstart | Built; merged in PR #12 | Short fitting example, lesson navigation and where to start. Replaces the old standalone output tour. | [occJSDM.Rmd](occJSDM.Rmd) |
 | Lesson 0: Create and explore a simulated survey | Built on main, including unbalanced-data extension | Optional introduction to sites, samples, primers, PCR replicates, covariates, traits and maps; removing whole samples while preserving paired rows. | [occJSDM-lesson-0.Rmd](occJSDM-lesson-0.Rmd) |
 | Lesson 1: Fit the model and compare its answers with truth | Built on main, including fitting reference and unbalanced fit | Perfect-observation and PCR fits, occupancy errors, false positives, prior sensitivity and unequal field replication. | [occJSDM-lesson-1.Rmd](occJSDM-lesson-1.Rmd) |
@@ -39,10 +47,10 @@ The canonical lesson sources are the `.Rmd` files. Rendered `.md` files and figu
 
 Implement the existing outline after the reviewed spatial correction is available and its source revision can be recorded. The outline was written while PR #8 was awaiting review; check its current status before starting. A merge by itself does not validate a new simulation or lesson.
 
-1. **2A: Smooth environmental gradients.** Build environmental surfaces first, then generate species distributions from them. Show that geography can matter through measured habitat even without an extra spatial process.
-2. **2B: Additional spatial structure.** Add a known spatial contribution representing unmeasured conditions. Compare models with and without spatial effects using the same observations. Show true, fitted and difference maps, plus matching variation partitioning.
-3. **2C: Contrasting dispersal.** Use a separate, explicit movement or colonisation simulation for species with different dispersal abilities. Keep habitat and observation conditions comparable. This requires simulator work: changing a spatial Gaussian-process range is not the same as simulating dispersal, and the inspected spatial model uses a shared range rather than estimating a dispersal rate for each species.
-4. **2D: Prediction beyond sampled sites.** Reserve sites and spatial blocks before fitting. Show interpolation, extrapolation and changes with distance from observations. Compare predictions with the appropriate known probabilities, keeping held-out observations out of fitting and preprocessing.
+1.  **2A: Smooth environmental gradients.** Build environmental surfaces first, then generate species distributions from them. Show that geography can matter through measured habitat even without an extra spatial process.
+2.  **2B: Additional spatial structure.** Add a known spatial contribution representing unmeasured conditions. Compare models with and without spatial effects using the same observations. Show true, fitted and difference maps, plus matching variation partitioning.
+3.  **2C: Contrasting dispersal.** Use a separate, explicit movement or colonisation simulation for species with different dispersal abilities. Keep habitat and observation conditions comparable. This requires simulator work: changing a spatial Gaussian-process range is not the same as simulating dispersal, and the inspected spatial model uses a shared range rather than estimating a dispersal rate for each species.
+4.  **2D: Prediction beyond sampled sites.** Reserve sites and spatial blocks before fitting. Show interpolation, extrapolation and changes with distance from observations. Compare predictions with the appropriate known probabilities, keeping held-out observations out of fitting and preprocessing.
 
 The detailed questions and constraints are already in the [Lesson 2 outline](occJSDM-lesson-2.Rmd). If the dispersal simulator cannot calculate probabilities directly, repeated independent simulations will be needed to estimate them, with their own Monte Carlo uncertainty shown separately.
 
@@ -97,7 +105,7 @@ The audit compares `vignettes/occJSDM.Rmd` at revision `8654ff1` with the teachi
 The original walkthrough is preserved unchanged from that revision as [ORIG_occJSDM.Rmd](ORIG_occJSDM.Rmd). It is an archival reference, excluded from package builds. The current `occJSDM.Rmd` remains the Quickstart and lesson guide.
 
 | Original content | Current home and status | Remaining work |
-|---|---|---|
+|------------------------|------------------------|------------------------|
 | Input structure and fitting arguments | Lessons 0 and 1 plus the Quickstart show current fitting code. Lesson 1 now includes a concise reference for model inference, identifiers, covariates, traits, priors, threshold, missingness and retained latent output. | Keep it aligned with the current API, including `n_lattrait` for fitting and the limited scope of `summarisedLatentPresences = FALSE`. |
 | Unbalanced study design created by dropping whole field samples | Lesson 0 removes one whole sample at each of three declared sites, retaining 197 samples and 2,364 PCR rows. Lesson 1 presents a separate matching fit and its diagnostics against unchanged truth. | Keep the example limited to handling unequal effort. One removal pattern and fit cannot estimate the general consequences of sample loss. |
 | MCMC settings | Lesson 1 explains chains, burn-in, retained iterations and thinning. | Keep aligned with the actual fitting API; do not recommend thinning as a repair for poor mixing. |
@@ -126,13 +134,14 @@ Add free-form notes below. These can be questions, suggested examples, wording c
 
 <!-- Add notes here. An optional format is: date; lesson/topic; note; next step or decision needed. -->
 
-_Add notes here._
+*Add notes here.*
 
 ### Decisions made after this update
 
 <!-- Record the date, decision and affected lesson here, then update its status above. -->
 
 - **21 September 2026:** Doug requested pull request review of Lessons 3, 4 and 2. The review combines the completed Lesson 3, Quickstart and planning document with the Lesson 4 design. The Lesson 2 outline was already on main; the proposed changes repair its navigation. The planned spatial and four-package experiments remain unfinished.
+
 - **21 September 2026, after PR #12 merged:** Doug asked whether the original vignette's content had all been retained. The audit identified missing practical instructions. He approved restoring hands-on fitting diagnostics first and recording every remaining migration gap above.
 
 - **22 September 2026:** Doug approved starting the migration gaps and auditing sjSDM site-level variation partitioning. The first batch adds native tables/plots, fitting guidance and the unbalanced-data workflow. Further prediction, spatial and model-selection experiments remain planned.

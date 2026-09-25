@@ -113,7 +113,7 @@ observation_settings <- list(
 `rbind()` stacks the two primer vectors as rows of a matrix; its columns are species. The parameters have these meanings:
 
 | Setting | What we are choosing |
-|----|----|
+|------------------------------------|------------------------------------|
 | `p` | Probability of a laboratory detection event when DNA is in the sample. |
 | `q` | Probability of a laboratory false-positive event when DNA is absent from the sample. |
 | `theta0` | Probability that DNA enters a sample despite the species being absent from the site. |
@@ -202,7 +202,7 @@ species_traits |>
 ```
 
 | Object | One row represents | Important columns |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | `info` | One PCR observation | `Site`, `Sample`, `Primer`, environmental covariates, coordinates and a collection covariate. |
 | `OTU` | The same PCR observation in the same row order | One read-count column per species. OTU_1, for example, is a simulated species label. |
 | `traits` | One species | Two simulated trait measurements. |
