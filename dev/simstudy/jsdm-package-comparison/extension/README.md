@@ -2,6 +2,8 @@
 
 Status: all 640 planned combinations were attempted, exported and verified on 24 September 2026. There are 626 successful scored fits: 505 passed the declared diagnostics and 121 remain flagged. The 14 failed gllvm fits are preserved. Completion means the fixed experiment has finished, not that every fit passed its numerical checks. See [PLAN.md](PLAN.md) for the approved scenarios, statistical targets and fitting budgets.
 
+The [saved-fit calibration extension](CALIBRATION.md), completed on 25 September, adds bias/RMSE and interval coverage/width to Lesson 4 sections 14-15. It reuses all 626 scored fits, adds no model fits, and keeps missing uncertainty and diagnostic failures explicit. Its independent verification reconstructs the original communities and checks the archived truth before the compact teaching bundle is installed.
+
 ## Where everything lives
 
 - Working tree: `/Users/douglasyu/src/occJSDM/.worktrees/lesson-4-extension/`, branch `codex/lesson-4-extension`.
