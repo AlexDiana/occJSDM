@@ -269,30 +269,184 @@ These coefficient comparisons undo both environmental and trait standardisation.
 
 Ten independent communities are useful for an exploratory teaching comparison. They do not provide precise estimates of how often an interval misses a true effect or incorrectly excludes zero for an irrelevant trait. We retain the individual results and the diagnostic failures instead of turning a small experiment into a claim that one package is generally best.
 
-## 14. Across communities, are estimates biased?
+```{r calibration-report-setup, include=FALSE}
+# The report reads the existing verified results; it never fits a model.
+calibration <- readRDS("teaching-data/lesson-4-calibration.rds")
+stopifnot(calibration$complete)
+source("lesson-4-calibration-tables.R")
+knitr::opts_chunk$set(echo = FALSE)
 
-The September fits can answer more questions without being fitted again. We now use the same saved results to distinguish **bias**, **typical error** and **interval coverage**. All four packages remain in this comparison. These calculations extend the ten-community experiment; they do not add new simulated communities.
+prediction_calibration <- as_tibble(calibration$prediction) |>
+  mutate(package = factor(package, levels = package_order))
+prediction_summary <- prediction_calibration |>
+  group_by(package, scenario, n_sites, n_species, response, use_traits) |>
+  summarise(communities = n(), flagged = sum(!diagnostic_pass),
+    bias_mcse = if (n() > 1) sd(bias) / sqrt(n()) else NA_real_, bias = mean(bias),
+    rmse = sqrt(mean(rmse^2)), .groups = "drop") |>
+  mutate(bias_pp = 100 * bias, bias_mcse_pp = 100 * bias_mcse, rmse_pp = 100 * rmse)
+all_calibration <- as_tibble(calibration$summary) |>
+  filter(population == "All scored fits")
+baseline_calibration <- filter(all_calibration, scenario == "baseline")
+calibration_targets <- tribble(
+  ~target, ~term, ~Target,
+  "Marginal probability", "Five fixed environments", "Occurrence probability",
+  "Environmental coefficient", "Intercept", "Species intercept",
+  "Environmental coefficient", "environment_1", "Environment 1 effect",
+  "Environmental coefficient", "environment_2", "Environment 2 effect"
+)
+# Scalar prose lookups fail if a target becomes ambiguous or disappears.
+report_value <- function(pkg, scenario_name, sites, target_name = "Marginal probability",
+    term_name = "Five fixed environments", response_name = "linear", measure = "coverage") {
+  z <- filter(all_calibration, package == pkg, scenario == scenario_name,
+    n_sites == sites, target == target_name, term == term_name, response == response_name)
+  stopifnot(nrow(z) == 1L, is.finite(z[[measure]]))
+  z[[measure]]
+}
+report_pct <- function(...) sprintf("%.1f%%", 100 * report_value(...))
+report_prediction_range <- function(sites, measure) {
+  z <- filter(prediction_summary, scenario == "baseline", n_sites == sites)[[measure]]
+  paste(sprintf("%.1f", 100 * range(z)), collapse = " to ")
+}
+```
+
+```{r calibration-report-style, results='asis'}
+if (knitr::is_html_output(excludes = c("markdown", "gfm"))) {
+  cat("<style>\n", paste(readLines("lesson-4-calibration.css"), collapse = "\n"), "\n</style>\n", sep = "")
+}
+```
+
+## 14. Across communities, are estimates biased? {.lesson-calibration}
+
+::: {.calibration-lead}
+The four packages give similar occurrence predictions in the baseline scenario. Their uncertainty intervals are less consistent. Getting the estimate close and getting its uncertainty right are separate achievements.
+:::
+
+We simulated communities whose true probabilities and environmental effects are known, gave the packages the same observations, and checked their answers. These are the September results: ten independent communities, fitted with either 100 or 300 training sites. The older occJSDM-only validation study is a separate experiment and is not pooled here.
+
+::: {.calibration-finding}
+**What the comparison says**
+
+- **Predictions:** average bias is small in the baseline for all four packages. More training sites reduce prediction error substantially.
+- **Uncertainty:** baseline probability coverage is close to 95% for occJSDM and Hmsc. Coefficient coverage is more variable for occJSDM, gllvm and sjSDM.
+- **Harder conditions:** rare species, correlated predictors and an unsuitable response shape can change the answer. Diagnostic warnings and the small number of independent communities prevent a confident overall ranking.
+:::
+
+### How close are the predictions?
+
+**Bias** is the average signed error: positive means overestimation, negative means underestimation, and zero means neither direction dominates. Errors can cancel. **RMSE** measures their size, giving larger errors more weight; smaller is better. Both are in percentage points here, so an estimate of 45% for a true probability of 40% has an error of +5 points.
+
+```{r calibration-report-prediction-table, results='asis'}
+prediction_summary |>
+  filter(scenario == "baseline") |>
+  transmute(Package = package, sites = paste(n_sites, "sites"),
+    Bias = sprintf("%+.2f", bias_pp), RMSE = sprintf("%.2f", rmse_pp)) |>
+  pivot_wider(names_from = sites, values_from = c(Bias, RMSE), names_glue = "{sites}: { .value}") |>
+  select(Package, `100 sites: Bias`, `100 sites: RMSE`, `300 sites: Bias`, `300 sites: RMSE`) |>
+  calibration_report_table("Baseline predictions at 300 independent test sites. Each package has ten scored communities at each training size; flagged fits are included.")
+```
+
+**Read this as:** all four packages have average baseline bias below one percentage point. Their RMSE is about `r report_prediction_range(100, "rmse")` points with 100 training sites and `r report_prediction_range(300, "rmse")` with 300. Small differences between packages are much less convincing than the improvement from adding sites.
+
+### Does that hold when ecology gets harder?
+
+```{r calibration-report-bias, fig.height=4.2, fig.alt='Average prediction bias by package and ecological scenario, with one community-based Monte Carlo standard error and a zero-bias reference line.'}
+calibration_summary_plot(filter(prediction_summary, scenario != "traits"),
+  "bias", package_order, "Prediction bias (percentage points; dashed line = zero)")
+```
+
+The dots show average bias, and the bars show **one Monte Carlo standard error (MCSE)**. This measures uncertainty from having only ten simulated communities; it is not the uncertainty of an individual species estimate. The same convention is used in the coverage plots below. Species and test sites are not counted as independent simulation repetitions.
+
+The rare-species scenario produces more overestimation, especially for occJSDM with 100 sites. Bias alone still misses an important problem: a package can make positive and negative errors that cancel. The full community-level RMSE results are retained in the expandable section below.
+
+### How close are the environmental effects?
+
+These coefficients describe a species' baseline tendency to occur and its response to each measured environment. Their units differ from probability points. Hmsc uses a probit link, so its coefficient values cannot be checked against the same logit coefficient truth.
+
+```{r calibration-report-coefficient-bias, results='asis'}
+calibration_comparison_table(filter(baseline_calibration, n_sites == 100),
+  calibration_targets[-1, ], package_order, measures = "Bias +/- MCSE") |>
+  select(-Measure) |>
+  calibration_report_table("Baseline, 100 training sites: coefficient bias +/- one MCSE, in original coefficient units. The full results also show 300 sites, RMSE and interval widths.")
+```
+
+Average coefficient bias is also modest in this baseline. That does not establish that every species' effect is recovered accurately, or that its interval is reliable. The next question checks the intervals directly.
+
+## 15. Do 95% intervals contain the truth? {.lesson-calibration}
+
+A 95% interval is useful only if it contains the truth often enough **and** is narrow enough to say something. Coverage is the percentage of intervals that contain the known truth across repeated datasets. The reference is 95%. A value far below that signals too many misses; a value above it can reflect unnecessarily wide intervals.
+
+### All four packages together
+
+This table separates **occurrence probabilities** from **environmental coefficients**. Probability intervals are evaluated at five fixed environmental settings shared by all packages, rather than the 300 test sites used for prediction errors above. Coefficients are checked on their original logit scale. The two targets are never averaged together.
+
+```{r calibration-report-coverage-table, results='asis'}
+report_coverage <- bind_rows(lapply(c(100, 300), function(sites) {
+  calibration_comparison_table(filter(baseline_calibration, n_sites == sites),
+    calibration_targets, package_order, measures = "Coverage +/- MCSE (%)") |>
+    select(-Measure) |>
+    mutate(Sites = sites, .after = Target)
+}))
+calibration_report_table(report_coverage,
+  "Baseline coverage (%) +/- one MCSE. The reference is 95%; every available result here uses ten communities. Flagged fits remain included.")
+```
+
+::: {.calibration-finding}
+**How to read the baseline**
+
+- **occJSDM:** probability coverage is close to 95%, but the first environmental effect is covered less often: `r report_pct("occJSDM", "baseline", 100, "Environmental coefficient", "environment_1")` at 100 sites and `r report_pct("occJSDM", "baseline", 300, "Environmental coefficient", "environment_1")` at 300.
+- **gllvm:** at 100 sites, coverage for the first environmental effect is `r report_pct("gllvm", "baseline", 100, "Environmental coefficient", "environment_1")`. Its uncertainty calculations have numerical warnings, discussed below.
+- **sjSDM:** coverage for that effect rises from `r report_pct("sjSDM", "baseline", 100, "Environmental coefficient", "environment_1")` to `r report_pct("sjSDM", "baseline", 300, "Environmental coefficient", "environment_1")`. Its native intervals account for only part of the fitted model's uncertainty.
+- **Hmsc:** probability coverage is close to 95%, but convergence warnings limit how much confidence to place in that result.
+:::
+
+**The missing entries have different meanings.** `Unavailable` means we have not calculated probability intervals for gllvm or sjSDM. `Different link` means Hmsc's coefficients lack a matching numerical truth in this logit-generated experiment. Neither means zero coverage or a failed comparison of predictions: all four packages appear in the prediction checks.
+
+### Probability coverage across the scenarios
+
+```{r calibration-report-probability-coverage, fig.height=4.2, fig.alt='Probability coverage for the five ecological conditions, with the 95 percent reference line. gllvm and sjSDM panels explicitly say no intervals.'}
+calibration_summary_plot(filter(all_calibration, target == "Marginal probability", scenario != "traits"),
+  "coverage", package_order, "Probability coverage (%; dashed line = 95%)")
+```
+
+**occJSDM's baseline is not the whole story.** At 100 sites its probability coverage falls to `r report_pct("occJSDM", "rare", 100)` with rare species and `r report_pct("occJSDM", "correlated", 100)` with correlated predictors. Hmsc is closer to 95% in these scenarios, but unresolved MCMC diagnostics prevent treating that as evidence of a clear winner.
+
+**The response shape matters for both packages.** With curved truth and 300 sites, a straight-response fit gives coverage of `r report_pct("occJSDM", "curved", 300)` for occJSDM and `r report_pct("Hmsc", "curved", 300)` for Hmsc. Including the quadratic term raises those to `r report_pct("occJSDM", "curved", 300, response_name = "quadratic")` and `r report_pct("Hmsc", "curved", 300, response_name = "quadratic")`. More data cannot supply a curve that the fitted model leaves out.
+
+### Environmental-effect coverage across the scenarios
+
+```{r calibration-report-coefficient-coverage, fig.height=3.8, fig.alt='Coverage of the first environmental coefficient by package and scenario; Hmsc is labelled different link.'}
+calibration_summary_plot(filter(all_calibration, target == "Environmental coefficient",
+  term == "environment_1", scenario != "traits"), "coverage", package_order,
+  "First environmental effect: coverage (%; dashed line = 95%)")
+```
+
+This figure follows the **first environmental effect**, not all coefficients pooled. The curved scenario is included only when the fitted model contains the quadratic term. Every point is an average over the available communities, with one MCSE shown. The full tables below retain the other effects and the interval widths. In particular, a flagged gllvm fit in the rare-species scenario produces exceptionally wide intervals; high coverage there is not evidence of useful precision.
+
+### What limits the comparison?
+
+**Some fits or uncertainty calculations still have warnings.** Of the `r sum(calibration$native_intervals$package == "gllvm")` saved gllvm fits used for the native interval extension, `r sum(calibration$native_intervals$package == "gllvm" & !calibration$native_intervals$numerical_pass)` have a covariance-matrix warning. Hmsc has unresolved MCMC diagnostics in `r sum(calibration$manifest$package == "Hmsc" & calibration$manifest$scenario == "rare" & calibration$manifest$n_sites == 300 & !calibration$manifest$diagnostic_pass)` of its `r sum(calibration$manifest$package == "Hmsc" & calibration$manifest$scenario == "rare" & calibration$manifest$n_sites == 300)` rare-species fits at 300 sites. The main results retain flagged fits; the full results also show the sensitivity to keeping only fits that pass the relevant checks.
+
+**The intervals use different methods.** occJSDM and Hmsc use posterior draws. gllvm uses its native variational covariance calculation. sjSDM's native coefficient intervals hold species associations and other species' coefficients fixed, so they omit uncertainty in those fitted quantities. This is a limitation of the uncertainty calculation tested here, not a demonstrated explanation for every coverage shortfall.
+
+**Ten independent communities give a preliminary comparison.** Many species or test sites do not substitute for more communities. These data support the patterns above; they do not establish an overall package ranking. The trait comparison is also narrower: occJSDM and gllvm have comparable trait-effect intervals, Hmsc uses a different coefficient scale, and sjSDM was not fitted in that experiment.
+
+The full results below keep probability bias at the five interval settings, coefficient and trait results, interval widths, diagnostic counts and methods together. All numbers are read from the saved results bundle when the lesson is rendered.
+
+<details>
+<summary>Full results, interval widths and methods</summary>
+
+::: {.calibration-details}
+
+These detailed tables and community-level plots retain the full comparison, including interval widths and diagnostic sensitivity.
+
+
+### Detailed prediction errors {.unlisted .unnumbered}
+
+The September fits can answer more questions through additional uncertainty calculations. We now use the same saved results to distinguish **bias**, **typical error** and **interval coverage**. All four packages remain in this comparison. These calculations extend the ten-community experiment; they do not add new simulated communities.
 
 An estimate's **signed error** is its estimate minus truth. Averaging signed errors over independent simulated communities estimates bias: persistent overestimation is positive, and persistent underestimation is negative. Errors in opposite directions can cancel, so we also report **root mean squared error (RMSE)**. RMSE squares each error before averaging and then takes a square root. It describes error size and gives larger errors more weight than mean absolute error does.
 
 ```{r calibration-data}
-calibration <- readRDS("teaching-data/lesson-4-calibration.rds")
-stopifnot(calibration$complete)
-
-prediction_calibration <- as_tibble(calibration$prediction) |>
-  mutate(package = factor(package, levels = package_order))
-
-prediction_summary <- prediction_calibration |>
-  group_by(package, scenario, n_sites, n_species, response, use_traits) |>
-  summarise(
-    communities = n(),
-    flagged = sum(!diagnostic_pass),
-    bias_pp = 100 * mean(bias),
-    bias_mcse_pp = if (n() > 1) 100 * sd(bias) / sqrt(n()) else NA_real_,
-    rmse_pp = 100 * sqrt(mean(rmse^2)),
-    .groups = "drop"
-  )
-
 prediction_summary |>
   filter(scenario == "baseline") |>
   select(package, n_sites, communities, flagged, bias_pp, bias_mcse_pp, rmse_pp) |>
@@ -326,23 +480,23 @@ prediction_calibration |>
 
 Small signed errors alongside appreciable RMSE mean that errors cancel, not that individual estimates are precise. Compare the distributions of community results, rather than choosing a winner from a small difference between averages. The failure counts in section 12 still apply. Where a package failed on some communities, its average describes only the communities with a scored fit.
 
-## 15. Do 95% intervals contain the truth?
+### Detailed interval comparisons {.unlisted .unnumbered}
 
 **Coverage** asks how often an interval includes the generating truth across repeated datasets. For example, an interval from 0.2 to 0.5 covers a true occurrence probability of 0.4 but misses a truth of 0.7. A narrow interval can be confidently wrong; a very wide interval can cover the truth while saying little. We therefore show **coverage and interval width together**.
 
 Bayesian credible intervals and approximate frequentist confidence intervals have different definitions. Repeated simulation lets us measure the coverage of either procedure. Bayesian intervals are not guaranteed to have exactly 95% coverage under the ecological truth distribution used here.
 
-### Which saved results support this calculation?
+#### Which saved results support this calculation? {.unlisted .unnumbered}
 
 - **All four packages:** point errors for test-site probabilities and five shared environmental settings.
 - **occJSDM and Hmsc:** 95% equal-tailed intervals for marginal occurrence probabilities, calculated from every saved global parameter draw.
-- **occJSDM:** intervals for environmental coefficients, where the fitted response contains the generating terms and the logit coefficient definitions match.
+- **occJSDM, gllvm and sjSDM:** intervals for environmental coefficients in the ecological scenarios where the fitted response contains the generating terms and the logit coefficient definitions match. occJSDM uses posterior quantiles; gllvm and sjSDM use their native standard errors with a normal approximation.
 - **occJSDM and gllvm:** existing intervals for the measured trait effects on their matching logit scale.
-- **gllvm and sjSDM probability intervals, and their ordinary environmental-coefficient intervals:** unavailable from the records saved for this experiment. Missing intervals are recorded as unavailable, not as zero coverage.
+- **gllvm and sjSDM probability intervals:** remain unavailable. This extension adds native coefficient intervals; it does not bootstrap occurrence probabilities. Species-specific environmental intervals in gllvm's hierarchical trait models also remain unavailable; the measured trait-effect intervals above are a different target. Missing intervals are recorded as unavailable, not as zero coverage.
 
 Hmsc fitted a probit model to logit-generated data. Its probabilities can be compared with the true probabilities, but its raw coefficients do not have the same numerical truth as the logit coefficients. For coefficient recovery we restrict the calculation to conditions where the fitted response includes the generating terms for every species. The straight-response fit to the curved scenario is therefore omitted from the coefficient tables as a whole, including the species whose generating responses remain straight. Its probability errors and coverage still include every species. This study measures performance under the existing logit-generating design. A probit-generating arm is still needed for a balanced comparison of that modelling choice.
 
-### Probability intervals at five shared environments
+#### Probability intervals at five shared environments {.unlisted .unnumbered}
 
 To keep the interval calculation inspectable, we evaluate five fixed settings: both environmental gradients at zero, then each gradient at -1 and +1 while the other remains zero. These are original simulation units, before training-data standardisation. Every package and community uses the same settings. Hidden site conditions are integrated out **within each posterior draw**, and the interval is then calculated across those marginal-probability draws. These are intervals for the average probability given the measured environment, not intervals for a particular site's hidden conditions or for a future binary observation.
 
@@ -352,28 +506,53 @@ knitr::kable(calibration$grid, row.names = TRUE)
 
 The probability coverage calculation therefore uses a different evaluation set from the 300-site point-error table above. Its mean, lower endpoint and upper endpoint were checked for numerical integration accuracy. It uses every archived draw, including all four chains. The original fitting diagnostics remain attached; post-processing cannot repair an unconverged chain.
 
-```{r calibration-probability-summary}
-probability_summary <- as_tibble(calibration$summary) |>
-  filter(target == "Marginal probability", scenario == "baseline", population == "All scored fits") |>
-  mutate(package = factor(package, levels = package_order)) |>
-  arrange(package, n_sites)
+#### All four packages together {.unlisted .unnumbered}
 
-probability_summary |>
-  transmute(
-    Package = package, Sites = n_sites, Communities = communities,
-    Flagged = flagged_communities, `Communities with intervals` = interval_communities,
-    `Coverage (%)` = 100 * coverage, `Coverage MCSE (points)` = 100 * coverage_mcse,
-    `Mean width (points)` = 100 * width
-  ) |>
-  knitr::kable(digits = 1)
+The tables below use the same four package columns throughout. Each target is kept separate: **probability** means the five fixed environments above, while **intercept** and **slopes** are conditional logit coefficients on the original predictor scale. Probability bias, RMSE and interval width are in percentage points; coefficient bias, RMSE and width are in coefficient units. Coverage is always a percentage. These probability errors therefore use the same five settings as the intervals, unlike the 300-site prediction errors in section 14.
+
+`Unavailable` means an interval was not calculated. `Different link` means Hmsc's probit coefficient cannot be compared numerically with the logit truth. `Not fitted` is reserved for the sjSDM trait experiment, which was not run. None of these is zero coverage. The community row reports scored communities followed by communities with intervals. MCSE comes from variation between independent communities, not from treating species or environmental settings as independent replicates.
+
+```{r calibration-combined-targets}
+calibration_targets <- tribble(
+  ~target, ~term, ~Target,
+  "Marginal probability", "Five fixed environments", "Probability: five environments",
+  "Environmental coefficient", "Intercept", "Coefficient: intercept",
+  "Environmental coefficient", "environment_1", "Coefficient: environment 1",
+  "Environmental coefficient", "environment_2", "Coefficient: environment 2"
+)
+
+baseline_calibration <- as_tibble(calibration$summary) |>
+  filter(scenario == "baseline", population == "All scored fits")
 ```
 
-`NA` means that this archive cannot supply the interval comparison. Within each community we average coverage and width over its species and the five settings; we then average those community summaries equally. Coverage MCSE is calculated from the variation among the community summaries. It is not a binomial standard error that treats every species-setting pair as independent. With ten communities, the result is exploratory and the MCSE itself is uncertain.
+**Baseline, 100 training sites**
+
+```{r calibration-combined-100}
+calibration_comparison_table(
+  filter(baseline_calibration, n_sites == 100), calibration_targets, package_order
+) |> knitr::kable()
+```
+
+**Baseline, 300 training sites**
+
+```{r calibration-combined-300}
+calibration_comparison_table(
+  filter(baseline_calibration, n_sites == 300), calibration_targets, package_order
+) |> knitr::kable()
+```
+
+Within each community, coverage and width are averaged over its eligible species and settings or coefficients; the community summaries then receive equal weight. With ten communities, these results are exploratory and the MCSE itself is uncertain. A wider interval can cover more truths without being more informative. The coefficient methods and additional numerical flags are explained below.
 
 ```{r calibration-probability-intervals, fig.height=8}
+probability_missing <- expand_grid(
+  condition = unique(with(subset(calibration$per_community, target == "Marginal probability" & scenario != "traits"), paste(scenario, response, sep = ": "))),
+  measure = c("Coverage (%)", "Mean width (points)"), package = c("gllvm", "sjSDM")
+)
+
 as_tibble(calibration$per_community) |>
   filter(target == "Marginal probability", scenario != "traits", intervals > 0) |>
   mutate(
+    package = factor(package, levels = package_order),
     condition = paste(scenario, response, sep = ": "),
     diagnostic = if_else(diagnostic_pass, "Passed checks", "Unresolved"),
     sites = factor(n_sites)
@@ -384,9 +563,12 @@ as_tibble(calibration$per_community) |>
   ggplot(aes(package, 100 * value, colour = sites, shape = diagnostic)) +
   geom_hline(data = data.frame(measure = "Coverage (%)"), aes(yintercept = 95), linetype = 2, inherit.aes = FALSE) +
   geom_point(position = position_jitterdodge(jitter.width = .15, dodge.width = .6, seed = 25), alpha = .8) +
+  geom_text(data = probability_missing, aes(x = package, y = -Inf, label = "No intervals"),
+    inherit.aes = FALSE, vjust = -.7, size = 2.5) +
+  scale_x_discrete(limits = package_order, drop = FALSE) +
   facet_grid(condition ~ measure, scales = "free_y") +
   labs(x = NULL, y = NULL, colour = "Training sites", shape = "Diagnostics",
-    caption = "Each point summarises one community. The dashed line marks nominal 95% coverage.") +
+    caption = "Each point summarises one community. Empty package columns identify missing intervals.") +
   theme_bw()
 ```
 
@@ -394,43 +576,109 @@ The straight-response fits to curved truth illustrate why width matters. At 300 
 
 The baseline is also not a substitute for checking difficult conditions. The rare-species and correlated-environment panels show lower occJSDM coverage than its baseline. This records a pattern to investigate with further replication and diagnostic work; it does not by itself identify a software defect or establish an overall package ranking.
 
-All scored fits are retained above. A companion summary restricted to fits that passed the original diagnostics is also saved. Compare it with the full summary as a sensitivity check; excluding difficult fits can select easier communities, so the restricted summary is not a corrected package ranking.
+#### Environmental coefficients and trait relationships {.unlisted .unnumbered}
 
-```{r calibration-diagnostic-sensitivity}
-as_tibble(calibration$summary) |>
-  filter(target == "Marginal probability", scenario == "baseline", intervals > 0) |>
-  transmute(Package = package, Sites = n_sites, Fits = population,
-    Communities = interval_communities, `Coverage (%)` = 100 * coverage,
-    `Mean width (points)` = 100 * width) |>
-  knitr::kable(digits = 1)
+For compatible coefficient targets we undo predictor scaling and centring. occJSDM's intercept adjustment is made jointly with each draw's slopes before taking quantiles. For gllvm and sjSDM, we transform the coefficient covariance matrix before constructing each estimate plus or minus 1.96 standard errors. Rescaling a marginal intercept interval alone would discard its dependence on the slopes.
+
+**The native procedures account for different amounts of uncertainty.** gllvm uses its variational model's coefficient covariance. Its selected start was replayed using the original frozen package, seed and inputs because the required fitting object had not been saved. The reconstruction must match the archived coefficients, loadings and log likelihood before its intervals are accepted. sjSDM's saved weights can be restored directly, without optimisation. Its native standard errors hold species associations and other species' coefficients fixed. Measuring their coverage tests that conditional approximation; these are not intervals that propagate all fitted-parameter uncertainty.
+
+sjSDM's standard errors also use Monte Carlo integration. Two independent random streams are checked at 2,000 integration draws, increasing to 8,000 and then 32,000 if any standard error on the original predictor scale differs by more than 5%. This checks numerical stability, not whether coverage is good. Covariance problems and remaining integration instability are recorded separately from the original fit diagnostics.
+
+```{r calibration-combined-status}
+calibration_status <- as_tibble(calibration$manifest) |>
+  filter(scenario != "traits", !(scenario == "curved" & response == "linear")) |>
+  left_join(as_tibble(calibration$native_intervals) |>
+    select(job, ok, numerical_pass), by = "job") |>
+  group_by(package) |>
+  summarise(Planned = n(), `Fit passed` = sum(fit_ok & diagnostic_pass),
+    `Fit flagged` = sum(fit_ok & !diagnostic_pass), `Fit failed` = sum(!fit_ok),
+    `Native interval flags` = if (all(is.na(numerical_pass))) NA_integer_ else sum(ok & !numerical_pass, na.rm = TRUE),
+    .groups = "drop") |>
+  mutate(package = factor(package, levels = package_order)) |>
+  arrange(package)
+
+calibration_status |>
+  mutate(`Native interval flags` = if_else(is.na(`Native interval flags`),
+    "Not applicable", as.character(`Native interval flags`))) |>
+  knitr::kable()
 ```
 
-### Environmental coefficients and trait relationships
+This diagnostic table covers the same 80 planned ecological fits per package whose response specification supports coefficient recovery. Native interval flags are an additional check for gllvm and sjSDM and can overlap original fit flags; they are not extra fits. Bayesian intervals retain their original MCMC diagnostics. One gllvm fit failed originally, leaving 79 native gllvm calculations alongside 80 sjSDM calculations. All saved finite intervals remain in the main comparison; invalid species covariance blocks are unavailable.
 
-For compatible coefficient targets we undo predictor scaling and centring. For the intercept, the adjustment is made jointly with each draw's slopes before taking quantiles. Rescaling a marginal intercept interval alone would discard the relevant dependence.
+The next figure follows the first environmental slope across all compatible ecological scenarios. Each point summarises that slope's ten species within one community; colour distinguishes the training size. Coverage and width should be read together. The quadratic scenario includes the fitted square term even though this figure displays only its linear slope.
 
-```{r calibration-environmental-effects}
-as_tibble(calibration$summary) |>
-  filter(target == "Environmental coefficient", scenario == "baseline", n_sites == 100,
-    population == "All scored fits") |>
-  transmute(Package = package, Coefficient = term, Communities = communities,
-    Bias = bias, RMSE = rmse, `Coverage (%)` = 100 * coverage, `Mean width` = width) |>
-  knitr::kable(digits = 3)
+```{r calibration-native-coefficient-intervals, fig.height=8}
+native_status <- as_tibble(calibration$manifest) |>
+  select(job, package, scenario, n_sites, n_species, response, use_traits, replicate) |>
+  left_join(as_tibble(calibration$native_intervals) |>
+    select(job, numerical_pass), by = "job")
+
+as_tibble(calibration$per_community) |>
+  filter(target == "Environmental coefficient", term == "environment_1",
+    scenario != "traits", intervals > 0) |>
+  left_join(native_status, by = c("package", "scenario", "n_sites", "n_species",
+    "response", "use_traits", "replicate")) |>
+  mutate(package = factor(package, levels = package_order),
+    condition = paste(scenario, response, sep = ": "), sites = factor(n_sites),
+    diagnostic = if_else(diagnostic_pass & coalesce(numerical_pass, TRUE),
+      "Passed available checks", "Fit or interval flagged")) |>
+  select(package, condition, sites, diagnostic, coverage, width) |>
+  pivot_longer(c(coverage, width), names_to = "measure", values_to = "value") |>
+  mutate(value = if_else(measure == "coverage", 100 * value, value),
+    measure = recode(measure, coverage = "Coverage (%)", width = "Mean coefficient width")) |>
+  ggplot(aes(package, value, colour = sites, shape = diagnostic)) +
+  geom_hline(data = data.frame(measure = "Coverage (%)"), aes(yintercept = 95),
+    linetype = 2, inherit.aes = FALSE) +
+  geom_point(position = position_jitterdodge(jitter.width = .15, dodge.width = .6, seed = 25), alpha = .8) +
+  geom_text(data = expand_grid(
+      condition = c("baseline: linear", "correlated: linear", "curved: quadratic", "rare: linear"),
+      measure = c("Coverage (%)", "Mean coefficient width")),
+    aes(x = "Hmsc", y = -Inf, label = "Different link"), inherit.aes = FALSE, vjust = -.7, size = 2.5) +
+  scale_x_discrete(limits = package_order, drop = FALSE) +
+  facet_wrap(vars(condition, measure), ncol = 2, scales = "free_y") +
+  labs(x = NULL, y = NULL, colour = "Training sites", shape = "Diagnostics",
+    caption = "First environmental slope, original predictor units. sjSDM uses conditional native uncertainty.") +
+  theme_bw()
 ```
 
-The coefficient table reports the same conditional ecological coefficient target as the simulator; it does not compare the orientation of latent factor axes. The probability comparison remains the shared target across all four packages. Hmsc is absent from this coefficient table because its link differs, not because it failed to supply estimates.
+A flagged gllvm rare-species fit produces an exceptionally wide interval scale in the figure; its high coverage should not be read as a successful uncertainty calculation. Hmsc keeps its place on the axis, with its coefficient comparison labelled `Different link`.
+
+#### How much do the diagnostic flags matter? {.unlisted .unnumbered}
+
+The following combined sensitivity view keeps only fits that pass the relevant checks. occJSDM and Hmsc retain their original MCMC criteria. For gllvm and sjSDM coefficient intervals, both original fitting checks and the additional native interval checks must pass. Probability results retain the original fitting checks; their missing intervals remain unavailable. This filter is applied separately by package, so the retained communities can differ. Excluding difficult fits is a sensitivity analysis, not a corrected ranking.
+
+```{r calibration-combined-sensitivity, results='asis'}
+checked_calibration <- calibration_checked_summary(calibration) |>
+  filter(scenario == "baseline")
+
+for (sites in c(100, 300)) {
+  cat("\n\n**Baseline,", sites, "training sites: passed relevant checks**\n\n")
+  print(calibration_comparison_table(
+    filter(checked_calibration, n_sites == sites), calibration_targets[c(1, 3), ], package_order,
+    measures = c("Coverage +/- MCSE (%)", "Mean interval width", "Communities: scored / intervals")
+  ) |> knitr::kable())
+  cat("\n\n")
+}
+```
+
+#### Trait relationships in the same format {.unlisted .unnumbered}
 
 ```{r calibration-trait-effects}
-as_tibble(calibration$summary) |>
-  filter(target == "Trait coefficient", n_sites == 100, n_species == 10,
-    population == "All scored fits") |>
-  transmute(Package = package, Relationship = term, Communities = communities,
-    Flagged = flagged_communities, Bias = bias, `Coverage (%)` = 100 * coverage,
-    `Mean width` = width) |>
-  knitr::kable(digits = 3)
+trait_targets <- tribble(
+  ~target, ~term, ~Target,
+  "Trait coefficient", "drought_tolerance / environment_1", "Drought trait: environment 1",
+  "Trait coefficient", "drought_tolerance / environment_2", "Drought trait: environment 2",
+  "Trait coefficient", "irrelevant_trait / environment_1", "Irrelevant trait: environment 1",
+  "Trait coefficient", "irrelevant_trait / environment_2", "Irrelevant trait: environment 2"
+)
+
+calibration_comparison_table(
+  filter(as_tibble(calibration$summary), target == "Trait coefficient", n_sites == 100,
+    n_species == 10, population == "All scored fits"), trait_targets, package_order
+) |> knitr::kable()
 ```
 
-This displayed trait slice uses 100 sites and ten species; the saved summary also contains the 300-site and thirty-species cases. For the irrelevant trait, truth is zero, so an interval that misses truth also excludes zero incorrectly. For a genuinely nonzero effect, covering truth and excluding zero answer different questions. gllvm's original standard-error warnings and unavailable fits still matter; these are approximate intervals from the selected fits, not a guarantee of calibration.
+Hmsc trait coefficients are on the probit scale, and sjSDM was not included in the trait experiment. Their columns make those limits explicit. This displayed trait slice uses 100 sites and ten species; the saved summary also contains the 300-site and thirty-species cases. For the irrelevant trait, truth is zero, so an interval that misses truth also excludes zero incorrectly. For a genuinely nonzero effect, covering truth and excluding zero answer different questions. gllvm's original standard-error warnings and unavailable fits still matter; these are approximate intervals from the selected fits, not a guarantee of calibration.
 
 The compact bundle contains per-community summaries and individual grid/coefficient records, so these tables can be filtered without accessing the large fitting archive. For example:
 
@@ -441,4 +689,8 @@ as_tibble(calibration$per_community) |>
   select(replicate, diagnostic_pass, bias, rmse, coverage, width)
 ```
 
-No model was refitted for these sections. A larger coverage study should add independent communities, complete the gllvm/sjSDM uncertainty methods, and include a probit-generating arm under a declared fitting and diagnostic protocol. Preserve these ten communities and their failures as the original experiment. The July/August occJSDM-only study predates model fixes and remains historical evidence; it is not pooled with these September results.
+The gllvm coefficient-interval calculation replays selected fits solely to recover their native uncertainty calculations; the saved point estimates are retained. sjSDM coefficient intervals require no refit. A larger coverage study should add independent communities, assess gllvm/sjSDM marginal-probability intervals, and include a probit-generating arm under a declared fitting and diagnostic protocol. Preserve these ten communities and their failures as the original experiment. The July/August occJSDM-only study predates model fixes and remains historical evidence; it is not pooled with these September results.
+
+:::
+
+</details>
