@@ -12,7 +12,9 @@ We change one ecological feature at a time. All four packages receive the same o
 | Correlated environment | The two predictors are strongly correlated | Can we distinguish their effects when they usually change together? |
 | Curved responses | Five species prefer an intermediate value of gradient 1 | Does the fitted model need a curve to describe the relationship? |
 
-The complete experiment has **640 package/model combinations**, before optimisation restarts: 400 ecological comparisons and 240 trait comparisons. The following status is part of the saved results. It prevents an unfinished run from looking like a completed benchmark.
+### Which fits passed, remained flagged or failed?
+
+The complete experiment has **640 package/dataset/model combinations**, before optimisation restarts: 400 ecological comparisons and 240 trait comparisons. Each counted fit represents one combination, even if fitting it required several starts or a longer MCMC run. All 640 were attempted. The table is calculated from the saved results, so unsuccessful combinations remain visible alongside the estimates we can score.
 
 ```{r extension-data}
 extension <- readRDS("teaching-data/lesson-4-extension.rds")
@@ -20,17 +22,38 @@ extension <- readRDS("teaching-data/lesson-4-extension.rds")
 extension_status <- as_tibble(extension$manifest) |>
   group_by(package) |>
   summarise(
-    planned = n(),
-    completed = sum(completed),
-    passed_diagnostics = sum(diagnostic_pass),
+    attempted = sum(completed),
+    passed = sum(fit_ok & diagnostic_pass),
+    flagged = sum(fit_ok & !diagnostic_pass),
+    failed = sum(completed & !fit_ok),
     scored = sum(scored),
     .groups = "drop"
-  )
+  ) |>
+  arrange(match(package, c("occJSDM", "gllvm", "Hmsc", "sjSDM")))
 
-knitr::kable(extension_status)
+extension_status <- bind_rows(
+  extension_status,
+  extension_status |>
+    summarise(package = "Total", across(where(is.numeric), sum))
+)
+
+knitr::kable(
+  extension_status,
+  col.names = c("Package", "Attempted", "Passed", "Flagged", "Failed", "Scored")
+)
 ```
 
 **Run status:** `r if (extension$all_attempted) "All planned fitting combinations have been attempted. Check the diagnostic and scoring counts before interpreting the comparisons." else "The expanded study is still running. Results below are incomplete and must not be used to rank packages or draw conclusions about sample size."`
+
+**Passed**, **flagged** and **failed** are mutually exclusive outcomes. A passed fit produced estimates and met the declared diagnostics. A flagged fit produced estimates that could be scored, but an unresolved diagnostic means we should treat them as provisional. A failed combination supplied no estimate accepted for scoring within the fixed fitting budget. Here, 505 passed plus 121 flagged fits give 626 scored fits; the remaining 14 failed combinations have no prediction-error score.
+
+For **occJSDM and Hmsc**, we checked agreement among four MCMC chains and their effective sample sizes: Rhat at most 1.01 and bulk/tail ESS at least 400 for all monitored coefficients, residual covariances, fixed-grid probabilities and applicable trait effects. We also checked the numerical integration used for those probabilities. One longer fitting attempt was allowed if the initial checks failed. All 180 occJSDM fits passed the final checks in this experiment. The 86 flagged Hmsc fits still failed at least one Rhat/ESS criterion after the longer attempt; having posterior draws available did not make those diagnostics satisfactory.
+
+For **gllvm and sjSDM**, we allowed up to six independent starts and asked whether another acceptable start reproduced the best solution: objective scores within 0.1 units and marginal probabilities within one percentage point on a fixed training grid. gllvm used its fitted log-likelihood and sjSDM its checked penalised training log-likelihood. The 33 flagged gllvm fits and two flagged sjSDM fits had an acceptable selected estimate but did not meet this agreement check. In each of the 14 failed gllvm combinations, no start met the numerical acceptance rules, which required reported convergence, finite gradients and a maximum absolute gradient below 0.01. Thus, "failed" here does not necessarily mean that the software crashed; it means that none of its attempts supplied an estimate we could accept under the declared rules.
+
+All **121 flagged fits remain in the scored results** and are marked as unresolved in the comparisons below. Failed combinations remain in the counts and archive but cannot contribute a prediction error; paired comparisons require estimates at both settings. Read the number of available communities and their diagnostic status alongside each average, because leaving out difficult failed cases can affect that average. We did not keep refitting until favourable results appeared, or use the known truth to choose a start. sjSDM has fewer attempted combinations because it did not enter the trait experiment. These counts describe the specified datasets, settings and budgets; passing diagnostics does not establish ecological accuracy or a general ranking of the packages.
+
+### What ecological changes did we simulate?
 
 These are the **true generating curves** for the first species in the first simulated community. They show what the ecological changes mean. They are not fitted results. The other environmental predictor is held at zero, and hidden site conditions are averaged over.
 

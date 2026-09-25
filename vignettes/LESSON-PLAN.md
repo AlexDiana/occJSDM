@@ -66,6 +66,20 @@ Use Doug's sjSDM fork v0.2.1 with the PyTorch CPU backend explicitly selected fo
 
 Doug approved a ten-community extension on 23 September 2026: nested 100/300-site comparisons; separate rare-species, correlated-environment and curved-response conditions; linear versus curved fitted responses; and a trait experiment with 10/30 species and traits supplied/omitted. The design, fixed fitting budgets, implementation checks and storage paths are in [the extension plan](../dev/simstudy/jsdm-package-comparison/extension/PLAN.md). The study finished on 24 September: all 640 combinations were attempted and 626 scored; 505 passed diagnostics, 121 remain flagged, and 14 failed gllvm fits are preserved. Lesson 4 presents the saved results with their diagnostic status. A balanced logit/probit benchmark, spatial comparisons and 1,000-site runs remain later work.
 
+#### Run archive and eventual cleanup
+
+The full Lesson 4 extension archive is at this exact location, outside the former extension worktree:
+
+```text
+/Users/douglasyu/src/occJSDM/dev/simstudy/results/lesson-4-extension-20260923/
+```
+
+On 25 September 2026, `du -sk` measured 21,462,696 KiB allocated to this directory: **21.98 GB (20.47 GiB), approximately 22 GB**. It is ignored by Git and excluded from package builds, so pushing the repository does not back it up. Removing the old extension worktree did not remove this archive.
+
+Keep this directory while the saved fits may be needed for detailed diagnostic review, rescoring or further analyses. It can be deleted later when those records are no longer needed, or after copying it to another archive. Deleting it removes the saved posterior draws and fitted parameters, failed attempts, detailed diagnostics, simulation inputs/truth, logs and scoring-recovery records. Recreating those full records would require running the fits again. The committed compact bundle, `vignettes/teaching-data/lesson-4-extension.rds`, and the lesson sources, rendered Markdown and figures remain sufficient to render the existing lesson without this archive. No archive files were deleted during this documentation update.
+
+The student-facing [fit-status summary in Lesson 4](occJSDM-lesson-4.md#which-fits-passed-remained-flagged-or-failed) reports passed, flagged, failed and scored counts separately for each package, explains the checks, and states how unresolved results enter the comparisons. Its counts come directly from the compact bundle's manifest, checked against the archive's `status.csv`.
+
 ### Other teaching work still needed
 
 - **Spatial and cross-package prediction.** Lesson 3 now supplies the non-spatial, genuinely independent-site example. Spatial prediction remains in Lesson 2; the four-package pilot is now taught in Lesson 4.
