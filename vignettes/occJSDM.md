@@ -18,10 +18,12 @@ code and compare the results with the truth used to simulate their data.
   understand occupancy error, and inspect actual examples of weak true
   detections, strong true detections and false positives.
 
-- [Lesson 2: Spatial landscapes and dispersal](occJSDM-lesson-2.md). A
-  planned lesson on smooth environmental gradients, residual spatial
-  structure and a separate dispersal simulation. It is not yet a worked
-  spatial validation.
+- [Lesson 2: Spatial landscapes and dispersal](occJSDM-lesson-2.md).
+  Explains what the spatial field learns, how range differs from
+  geographical extent, and how to choose sample spacing, extent and
+  replication. Its worked examples on smooth environmental gradients,
+  residual spatial structure and dispersal are still planned; it is not
+  yet a worked spatial validation.
 
 - [Lesson 3: Understand the model’s outputs by comparing them with
   truth](occJSDM-lesson-3.md). Environmental responses, trait effects,
