@@ -198,6 +198,8 @@ This was applied on 4 August 2026 to the `thinOutput()` rewrite, which had been 
 
 ## Git and build artifacts
 
+**Doug's workspace preference (23 September 2026):** use an isolated Git worktree inside `~/src/occJSDM/.worktrees/` for new work. A worktree still uses a branch; do not substitute switching branches in the main checkout. Keep new scripts, reports, logs and simulation output inside `~/src/occJSDM/`, rather than the Codex task directory. Put large regenerable run files in the ignored `dev/simstudy/results/` directory. Preserve existing external environments and older worktrees unless their relocation or removal is requested. Exclude `.worktrees/` from Git tracking and R package builds.
+
 - **`src/*.o`/`src/*.so` tracking is fixed**: confirmed this session (`git ls-files 'src/*.o' 'src/*.so'` returns nothing) -- no longer tracked, despite the earlier note in this file claiming they were. Superseded.
 - **`src/occJSDM.dll` untracking is fixed** (this session, `1b4b8ad`): `.gitignore` already had `src/*.dll` (so new dll files won't get re-added), but the file itself was still tracked from before that rule existed (`git check-ignore` doesn't flag already-tracked files even when a matching ignore rule exists). Ran `git rm --cached src/occJSDM.dll` and committed -- the file remains on disk locally (needed for Doug's Windows build) but git no longer tracks it. Still exists in git *history* (introduced by Alex's `a9700ab` commit, \~8.6 MB compiled Windows binary) -- purging history would need the same reclone coordination with Alex as the `traitdata_caiwang.rdata` item below.
 - `.gitignore` also changed in `a9700ab`: added a blanket `/deprecated/` rule (replacing the narrower `deprecated/analysis/`).

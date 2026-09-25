@@ -15,15 +15,21 @@ logistic_normal <- function(mu, sd, nodes = 31L) {
   out
 }
 
-# An independent identity handles very large residual SDs without a coarse
-# quadrature grid skipping the narrow logistic transition.
+# Use normal-density integration at ordinary SDs, where the probability-domain
+# identity can miss rare-event mass at its endpoints. At very large SDs that
+# identity is smoother than the near-step in the normal-density integrand.
 logistic_normal_adaptive <- function(mu, sd, tolerance = 1e-9) {
   stopifnot(length(sd) %in% c(1L, length(mu)))
   sd <- rep_len(sd, length(mu))
   vapply(seq_along(mu), function(i) {
     if (sd[i] < 0.05) return(logistic_normal(mu[i], sd[i], 31L))
-    integrate(function(u) pnorm((mu[i] - qlogis(u)) / sd[i]),
-              lower = 0, upper = 1, rel.tol = tolerance,
+    if (sd[i] >= 10) {
+      return(integrate(function(u) pnorm((mu[i] - qlogis(u)) / sd[i]),
+                       lower = 0, upper = 1, rel.tol = tolerance,
+                       abs.tol = tolerance, subdivisions = 2000L)$value)
+    }
+    integrate(function(z) plogis(mu[i] + sd[i] * z) * dnorm(z),
+              lower = -Inf, upper = Inf, rel.tol = tolerance,
               abs.tol = tolerance, subdivisions = 2000L)$value
   }, numeric(1))
 }

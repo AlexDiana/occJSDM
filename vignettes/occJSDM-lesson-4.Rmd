@@ -529,6 +529,8 @@ ggplot(overall_errors, aes(package, average_absolute_error_pp, fill = package)) 
 
 At new sites, the average absolute errors are about **6.1, 7.1, 7.1 and 6.3 points**, in package order. At sampled sites they are about **12.1, 11.9, 13.3 and 12.2 points**. These are measured results, not notional examples, and they are not the older occJSDM-only sample-size experiment.
 
+Why are the new-site errors lower here, even though sampled sites supply more observations? The targets differ. At a new site, the score asks for the occurrence probability **averaged over possible hidden site conditions**, not the probability under some "average" hidden condition. At a sampled site, it asks for the probability under that site's particular hidden conditions. The ten observed presences and absences help infer those conditions, but do not reveal them exactly. If the generating distribution and global model parameters were known perfectly, the new-site average could be calculated exactly, while the sampled-site probability would still be uncertain. The lower new-site error therefore does not show that withholding observations helps; it reflects an easier, averaged target in this comparison.
+
 The signed averages are only about +1 point, because overestimates and underestimates largely cancel. An average absolute error of 6.1 points means the predictions miss by 6.1 points on average when direction is ignored. It does not mean every prediction is 6.1 points wrong, or that 6.1% of species are incorrectly classified.
 
 ### Does performance differ for rare and common occurrences?
@@ -843,3 +845,250 @@ The compact bundle records seed 26092201, complete generating truth, fit selecti
 For the full fitting, selection, numerical extraction and validation commands, see `dev/simstudy/jsdm-package-comparison/README.md` in the source repository. The development reports retain failed attempts, optimisation follow-ups and environment limitations; that directory is deliberately excluded from the built package. The compact teaching bundle and this lesson are included.
 
 Return to the [Quickstart and lesson guide](occJSDM.md), [Lesson 1](occJSDM-lesson-1.md) or [Lesson 3](occJSDM-lesson-3.md).
+
+## 12. Does more data help when ecology becomes harder?
+
+The original example above used one small community. The extension below repeats the experiment across **ten independently simulated communities**, so we can see how much the answer varies between datasets. Within each community, the 100 training sites are part of the 300 training sites. Both fits predict the same 300 independent test sites.
+
+We change one ecological feature at a time. All four packages receive the same observations. The extension still assumes perfect observation and independent sites; field collection, PCR and spatial effects are not involved.
+
+| Simulation | What changes | What we want to learn |
+|---|---|---|
+| Baseline | Neither of the complications below | Does collecting more sites improve estimates? |
+| Rare species | Three species become much less common | Are their distributions especially difficult to estimate? |
+| Correlated environment | The two predictors are strongly correlated | Can we distinguish their effects when they usually change together? |
+| Curved responses | Five species prefer an intermediate value of gradient 1 | Does the fitted model need a curve to describe the relationship? |
+
+The complete experiment has **640 package/model combinations**, before optimisation restarts: 400 ecological comparisons and 240 trait comparisons. The following status is part of the saved results. It prevents an unfinished run from looking like a completed benchmark.
+
+```{r extension-data}
+extension <- readRDS("teaching-data/lesson-4-extension.rds")
+
+extension_status <- as_tibble(extension$manifest) |>
+  group_by(package) |>
+  summarise(
+    planned = n(),
+    completed = sum(completed),
+    passed_diagnostics = sum(diagnostic_pass),
+    scored = sum(scored),
+    .groups = "drop"
+  )
+
+knitr::kable(extension_status)
+```
+
+**Run status:** `r if (extension$all_attempted) "All planned fitting combinations have been attempted. Check the diagnostic and scoring counts before interpreting the comparisons." else "The expanded study is still running. Results below are incomplete and must not be used to rank packages or draw conclusions about sample size."`
+
+These are the **true generating curves** for the first species in the first simulated community. They show what the ecological changes mean. They are not fitted results. The other environmental predictor is held at zero, and hidden site conditions are averaged over.
+
+```{r extension-generating-curves, fig.height=5}
+extension$generating_curves |>
+  as_tibble() |>
+  filter(scenario %in% c("baseline", "rare", "curved")) |>
+  ggplot(aes(environment, probability, colour = scenario)) +
+  geom_line(linewidth = 1) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(
+    x = "Environmental gradient 1, in original simulation units",
+    y = "True probability of occurrence",
+    colour = "Simulation",
+    caption = "Known generating truth for species_01, community 1; no model estimates in this figure."
+  ) +
+  theme_bw()
+```
+
+The curved example has a preferred environmental value. Giving a straight-response model more sites cannot make it express that shape. We therefore fit the curved datasets twice: once with the two ordinary predictors, and once with an additional squared-gradient predictor. Each package receives the same set of predictors in each comparison. This separates **too little information** from **an unsuitable response shape**.
+
+```{r extension-curved-design-example}
+# Construct the curve before learning centring and scaling from training sites.
+training_predictors <- as_tibble(extension$curve_training_raw) |>
+  mutate(environment_1_squared = environment_1^2)
+
+# Repeat the same operation at test sites, then use the training transformation.
+test_predictors <- as_tibble(extension$curve_test_raw) |>
+  mutate(environment_1_squared = environment_1^2)
+```
+
+A pair of strongly correlated environmental measurements creates a different difficulty. If warm sites are nearly always dry, their observations provide little information about whether warmth or dryness explains a species' response. Predictions within that same setting can look reasonable even when the individual environmental effects remain uncertain.
+
+```{r extension-correlated-environment, fig.height=4}
+extension$correlated_environment |>
+  as_tibble() |>
+  ggplot(aes(environment_1, environment_2)) +
+  geom_point(alpha = 0.45) +
+  labs(
+    x = "Environmental gradient 1",
+    y = "Environmental gradient 2",
+    caption = "Actual simulated training conditions; generating correlation = 0.85."
+  ) +
+  theme_bw()
+```
+
+### Compare errors one community at a time
+
+The vertical axis below is the average absolute difference between estimated and true new-site probabilities, in percentage points. Zero means perfect recovery of the probability. Each connected pair represents the **same simulated community**, fitted at the two sample sizes. A downward line means that adding sites reduced error in that community. Differences among the ten lines show how much the answer depends on the dataset.
+
+A fit whose diagnostics remain unresolved is marked separately. An unsuccessful fit has no error estimate and stays in the status table. Neither kind of difficulty should disappear from a package comparison.
+
+```{r extension-sample-size-errors, fig.height=8}
+if (nrow(extension$overall) > 0) {
+  ecological_errors <- as_tibble(extension$overall) |>
+    filter(scenario != "traits") |>
+    mutate(
+      sites = factor(n_sites, levels = c(100, 300)),
+      diagnostic_status = if_else(diagnostic_pass, "Passed checks", "Unresolved"),
+      comparison = paste(scenario, response, sep = ": ")
+    )
+
+  ggplot(ecological_errors, aes(sites, mae_pp, group = replicate)) +
+    geom_line(alpha = 0.4) +
+    geom_point(aes(shape = diagnostic_status), size = 2) +
+    facet_grid(comparison ~ package) +
+    labs(
+      x = "Training sites",
+      y = "Average absolute error (percentage points)",
+      shape = "Fit diagnostics",
+      caption = "Each line is one independent community. The table above records missing fits; incomplete runs are not a benchmark."
+    ) +
+    theme_bw()
+}
+```
+
+```{r extension-paired-summary}
+if (nrow(extension$overall) > 0) {
+  paired_errors <- as_tibble(extension$overall) |>
+    filter(scenario != "traits") |>
+    select(package, scenario, response, replicate, n_sites, mae_pp, diagnostic_pass) |>
+    tidyr::pivot_wider(
+      names_from = n_sites,
+      values_from = c(mae_pp, diagnostic_pass),
+      names_expand = TRUE
+    )
+
+  if (all(c("mae_pp_100", "mae_pp_300") %in% names(paired_errors))) {
+    paired_summary <- paired_errors |>
+      filter(!is.na(mae_pp_100), !is.na(mae_pp_300)) |>
+      group_by(package, scenario, response) |>
+      summarise(
+        paired_communities = n(),
+        pairs_with_unresolved_diagnostics = sum(!diagnostic_pass_100 | !diagnostic_pass_300),
+        error_100_sites = mean(mae_pp_100),
+        error_300_sites = mean(mae_pp_300),
+        change_in_error = mean(mae_pp_300 - mae_pp_100),
+        .groups = "drop"
+      )
+
+    knitr::kable(paired_summary, digits = 2)
+  }
+}
+```
+
+A negative change means lower error with 300 sites. These averages use only communities with estimates at both site counts, including any marked unresolved fits. Read the number of paired communities and the diagnostic counts alongside every average. An omitted failed fit is not evidence that its prediction error was zero.
+
+```{r extension-fitted-curves, fig.height=7}
+if (nrow(extension$fitted_curves) > 0) {
+  extension$fitted_curves |>
+    as_tibble() |>
+    ggplot(aes(environment)) +
+    geom_line(aes(y = truth), colour = "black", linetype = "dashed", linewidth = 0.8) +
+    geom_line(aes(y = estimate, colour = response), linewidth = 0.8) +
+    facet_grid(n_sites ~ package) +
+    scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    labs(
+      x = "Environmental gradient 1",
+      y = "Occurrence probability",
+      colour = "Fitted response",
+      caption = "Species_01, community 1. Dashed black: generating truth. Coloured lines: fitted marginal probabilities. Rows show training-site counts."
+    ) +
+    theme_bw()
+}
+```
+
+Do not treat the thousands of species-by-site predictions as thousands of independent experimental repetitions. The replication unit here is a simulated community. For a formal sample-size summary we need matched completed fits at both site counts and must report which communities, if any, could not be compared.
+
+## 13. Do traits explain species responses, and do they improve prediction?
+
+A species' environmental effect describes how its distribution changes along a gradient. A **trait effect** asks why those environmental responses differ among species. For example, do drought-tolerant species respond less negatively to increasingly dry conditions?
+
+This experiment contains two measured traits. The first truly changes the environmental responses. The second has **no generating effect**. Individual species also differ for reasons that these measured traits do not explain. Knowing the simulation truth lets us distinguish missing a real effect from finding an apparent effect for an irrelevant trait.
+
+There are two separate ways to collect more information:
+
+- **More sites, 100 versus 300:** better observations of each species' environmental response.
+- **More species, 10 versus 30:** more species with which to estimate the relationship between traits and environmental responses.
+
+The larger community contains the original ten species. Both site counts are used at both species counts. For every dataset, we fit models **with and without the measured traits**. In gllvm we retain species random slopes in both arms, so the comparison does not also switch on an extra allowance for unexplained species differences.
+
+occJSDM, gllvm and Hmsc have suitable trait-model interfaces. The inspected sjSDM fork does not have an equivalent trait-fitting interface, so its absence from this part is not a failed trait-recovery result.
+
+```{r extension-trait-prediction-errors, fig.height=7}
+if (nrow(extension$overall) > 0) {
+  trait_errors <- as_tibble(extension$overall) |>
+    filter(scenario == "traits") |>
+    mutate(
+      trait_information = if_else(use_traits, "Traits supplied", "Traits omitted"),
+      design = paste(n_sites, "sites x", n_species, "species")
+    )
+
+  if (nrow(trait_errors) > 0) {
+    ggplot(trait_errors, aes(trait_information, mae_pp, group = replicate)) +
+      geom_line(alpha = 0.4) +
+      geom_point(aes(shape = diagnostic_pass), size = 2) +
+      facet_grid(design ~ package) +
+      labs(
+        x = NULL,
+        y = "Average absolute error (percentage points)",
+        shape = "Passed fit checks",
+        caption = "Paired fits use identical observations. Lower error means probabilities are closer to their simulated truth."
+      ) +
+      theme_bw() +
+      theme(axis.text.x = element_text(angle = 25, hjust = 1))
+  }
+}
+```
+
+Improved prediction and clear evidence of a trait relationship are different outcomes. A model can predict reasonably while remaining uncertain about why species differ. Conversely, a detectable trait relationship need not greatly improve predictions when each species already has plenty of observations.
+
+The next figure subtracts the known true trait effect from each estimate. The dashed black line therefore means **accurate estimation**, not necessarily **no trait effect**. The dotted red line means an estimated effect of zero. For the irrelevant trait, those references coincide because its true effect is zero. An interval crossing the black line includes the truth; an interval crossing the red line includes no effect. These are different questions for a trait whose generating effect is nonzero.
+
+```{r extension-trait-coefficient-recovery, fig.height=9}
+if (nrow(extension$traits) > 0) {
+  matched_trait_effects <- as_tibble(extension$traits) |>
+    filter(link == "logit") |>
+    mutate(
+      coefficient_error = estimate - truth,
+      lower_error = lower - truth,
+      upper_error = upper - truth,
+      design = paste(n_sites, "sites x", n_species, "species"),
+      relationship = paste(trait, environment, sep = " / ")
+    )
+
+  no_effect_references <- matched_trait_effects |>
+    distinct(relationship, design, truth) |>
+    mutate(no_effect_on_error_scale = -truth)
+
+  ggplot(matched_trait_effects, aes(factor(replicate), coefficient_error, colour = package)) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    geom_hline(
+      data = no_effect_references,
+      aes(yintercept = no_effect_on_error_scale),
+      colour = "#D55E00", linetype = "dotted"
+    ) +
+    geom_pointrange(
+      aes(ymin = lower_error, ymax = upper_error),
+      position = position_dodge(width = 0.5)
+    ) +
+    facet_grid(relationship ~ design, scales = "free_y") +
+    labs(
+      x = "Independent simulated community",
+      y = "Estimated trait effect minus its true value",
+      colour = "Package",
+      caption = "Dashed black: estimate equals truth. Dotted red: estimated effect is zero. Coefficient differences are not probability percentage points."
+    ) +
+    theme_bw()
+}
+```
+
+These coefficient comparisons undo both environmental and trait standardisation. Hmsc's probit coefficients have different units from the simulation's logit coefficients, so they are not overlaid on the same numerical truth here. Hmsc remains in the probability comparison above, where estimates and truth share the same meaning. gllvm's saved records retain its standard-error warnings; passing the objective and gradient checks does not establish that every uncertainty estimate is reliable. Its coefficient table records the true direction or absence of each relationship and explicitly identifies the different link scale.
+
+Ten independent communities are useful for an exploratory teaching comparison. They do not provide precise estimates of how often an interval misses a true effect or incorrectly excludes zero for an irrelevant trait. We retain the individual results and the diagnostic failures instead of turning a small experiment into a claim that one package is generally best.

@@ -31,6 +31,13 @@ summaries. Optional chunks labelled `eval=FALSE` explain how to obtain
 the underlying outputs from a full fit, without starting a long fit
 while knitting.
 
+In those optional examples, `fitmodel` is the full object returned by
+`runOccJSDM()`. If you followed Lesson 1’s `fit <- runOccJSDM(...)`
+example, first set `fitmodel <- fit`. If you have the archived teaching
+fits, the [reproduction
+section](#reproduce-the-extraction-or-find-a-function) shows how to load
+one as `fitmodel`.
+
 ``` r
 library(dplyr)
 library(tidyr)
@@ -231,9 +238,30 @@ make that easier to see than the coefficient plot alone.
 
 `returnOccupancyRates()` similarly describes the probability when the
 standardized measured predictors and the hidden factors are all zero. It
-is not the average occupancy across the landscape. Here are the
-posterior means of that baseline probability and their matching true
-values.
+transforms each species’ occupancy intercept to the probability scale
+and returns a **posterior-draw-by-species matrix**, pooling retained
+iterations across chains. In this fit, there are 24,000 rows and ten
+species columns.
+
+Use it to compare species’ baseline occurrence probabilities under the
+same reference conditions, or to report a baseline estimate with its
+uncertainty. This is not the average occupancy across the landscape:
+measured environmental effects and hidden site contributions have been
+set to zero, not averaged over sites.
+
+``` r
+baseline_draws <- occJSDM::returnOccupancyRates(fitmodel)
+
+# One posterior mean per species, named by species.
+colMeans(baseline_draws)
+
+# Two rows (lower and upper 95% credible limits), one column per species.
+apply(baseline_draws, 2, quantile, probs = c(0.025, 0.975))
+```
+
+`colMeans()` averages probabilities after transforming every draw;
+transforming the mean log-odds would generally give a different answer.
+Here are these posterior summaries and their matching true values.
 
 ``` r
 outputs$baseline |>
@@ -954,8 +982,39 @@ outputs$collection |>
 
 ![](occJSDM-lesson-3_files/figure-gfm/collection-effects-1.png)<!-- -->
 
-Use `returnCollectionCovariates()` to extract these draws. Two related
-helpers answer different questions about collection.
+`returnCollectionCovariates()` returns a
+**posterior-draw-by-collection-covariate-by-species array**, pooling
+retained iterations across chains. Here its dimensions are 24,000 by two
+by ten: the covariates are `(Intercept)` and `X_theta`. These are
+coefficients on the **log-odds scale**, not collection probabilities.
+The intercept describes collection at the mean covariate value; the
+slope describes the change in log-odds for a one-standard-deviation
+increase in the collection covariate.
+
+Use these draws to assess the direction, size and uncertainty of
+collection effects for each species. For example, a positive slope means
+collection becomes more likely as the covariate increases, conditional
+on the species being present at the site.
+
+``` r
+collection_draws <- occJSDM::returnCollectionCovariates(fitmodel)
+
+# Retain dimensions 2 and 3: covariate rows and species columns.
+collection_means <- apply(collection_draws, c(2, 3), mean)
+collection_means
+
+# Inspect uncertainty for one named slope and species.
+quantile(collection_draws[, "X_theta", "OTU_1"], probs = c(0.025, 0.975))
+```
+
+Replace `X_theta` and `OTU_1` with names from your own fit. An interval
+spanning zero means the direction remains uncertain under this interval
+criterion. These pooled draws support posterior summaries; use the
+separate chain arrays in the [diagnostics
+section](#check-computation-as-well-as-ecological-recovery) for
+convergence checks.
+
+Two related helpers answer different questions about collection.
 `plotCollectionRates()` shows each species’ collection probability with
 the covariates fixed at their mean, one value per species.
 `computeAverageCollectionProbs()` instead returns a sample-by-species
@@ -1035,14 +1094,38 @@ on measured environmental covariates is incomplete.
 
 `computeConditionalOccupancyProbs()` summarizes the model’s belief that
 the species actually occupied the surveyed site, accounting for the
-observation process. Its appropriate simulation check is the realized
-0/1 state, not the generating probability. Its sample-level counterpart,
-`computeConditionalSamplePresenceProbs()`, returns a sample-by-species
-matrix of posterior probabilities that the species’ DNA was in each
-field sample; the latent presence table below shows the same quantity in
-its `CondSampleProb` column, beside the PCR results that produced it.
-[Lesson 1](occJSDM-lesson-1.md) puts these quantities alongside the
-actual simulated detection cases, with maps in Lesson 0.
+observation process. It returns a **site-by-species matrix** of
+posterior probabilities, with site identifiers as row names and species
+names as column names. Here that is 100 rows by ten columns. Each entry
+is the posterior mean of the latent 0/1 occupancy state, so an entry of
+0.8 means an 80% posterior probability that the species was present at
+that site, given the survey observations and the fitted model.
+
+``` r
+conditional_occupancy <- occJSDM::computeConditionalOccupancyProbs(fitmodel)
+
+# Inspect the first five sites and three species, keeping their labels.
+conditional_occupancy[1:5, 1:3, drop = FALSE]
+
+# A named vector for one species, ready to join to a table of site coordinates.
+conditional_occupancy[, "OTU_1"]
+```
+
+Use this matrix to map inferred presence at surveyed sites or examine
+sites with uncertain occupancy; match its row names to site identifiers
+when joining other data. It contains posterior probabilities rather than
+individual draws or credible limits. Its appropriate simulation check is
+the realized 0/1 state, not the generating probability. These are
+estimates at surveyed sites; use `predictNewSites()` for unsurveyed
+sites.
+
+Its sample-level counterpart, `computeConditionalSamplePresenceProbs()`,
+returns a sample-by-species matrix of posterior probabilities that the
+species’ DNA was in each field sample; the latent presence table below
+shows the same quantity in its `CondSampleProb` column, beside the PCR
+results that produced it. [Lesson 1](occJSDM-lesson-1.md) puts these
+quantities alongside the actual simulated detection cases, with maps in
+Lesson 0.
 
 Which one should a study report? [Ji et
 al. (2025)](#references-and-further-reading) reported the predictive
