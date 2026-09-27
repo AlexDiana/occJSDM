@@ -36,7 +36,7 @@ p <- ggplot(b,aes(support,100*mean,color=arm,group=arm))+
   geom_point(position=pd,size=2.5)+facet_wrap(~band,nrow=1)+scale_color_manual(values=colors)+
   labs(title='Spatial occupancy bias under feasible sampling',
     subtitle='Nine independent communities; 100 sites, two field samples, two primers, six PCR replicates per primer',
-    x='Spatial support points',y='Estimated minus true occupancy (percentage points)',color=NULL,
+    x='Spatial support points',y='Occupancy bias (percentage points)',color=NULL,
     caption='Faint points: individual communities. Bars: approximate 95% intervals using variation within each spatial range.\nGreen band: provisional five-point target for average bias; it is not an individual-prediction or rare-species guarantee.')
 ggsave(file.path(out,'occupancy-bias.png'),p,width=12,height=5.3,dpi=180,bg='white')
 r <- decorate(a[a$metric=='occupancy' & a$quantity=='bias' & a$group %in% c('prevalence_1pct','prevalence_5pct'),])
@@ -64,3 +64,23 @@ p <- ggplot(c,aes(support,100*mean,color=arm,group=arm))+
     y='Intervals containing truth (%)',color=NULL,
     caption='Dashed line: nominal 95%. Site/species intervals within a community are dependent.\nThis small study does not establish precise repeated-sampling coverage; flagged fits require caution.')
 ggsave(file.path(out,'interval-containment.png'),p,width=12,height=7,dpi=180,bg='white')
+
+range_points <- decorate(groups[groups$metric=='range',])
+range_cells <- split(range_points,interaction(range_points$arm,range_points$support,range_points$grid_index,drop=TRUE))
+range_means <- do.call(rbind,lapply(range_cells,function(d) {
+  stopifnot(nrow(d)==3L)
+  data.frame(arm=d$arm[1],support=d$support[1],truth=d$truth[1],
+    estimate=mean(d$estimate),se=sd(d$estimate)/sqrt(nrow(d)))
+}))
+p <- ggplot(range_means,aes(truth,estimate,color=support,group=support))+
+  geom_abline(slope=1,intercept=0,linetype=2,color='grey40')+
+  geom_point(data=range_points,alpha=.35,size=1.5)+
+  geom_line(linewidth=.6)+
+  geom_errorbar(aes(ymin=estimate-se,ymax=estimate+se),width=.005)+
+  geom_point(size=2.5)+facet_wrap(~arm,nrow=1)+
+  scale_color_manual(values=c('20 (default)'='#777777','50'='#147d92','100 (all sites)'='#783f89'))+
+  scale_x_continuous(breaks=sort(unique(range_points$truth)),labels=function(x)sprintf('%.3f',x))+
+  labs(title='Did estimated spatial ranges track the three different truths?',
+    x='True spatial range (standardized coordinates)',y='Estimated spatial range',color='Support points',
+    caption='Dashed line: exact recovery. Faint points: independent communities; larger points: three-community means.\nBars show one between-community standard error at each fixed range, not posterior credible intervals.')
+ggsave(file.path(out,'spatial-range.png'),p,width=12,height=5.3,dpi=180,bg='white')

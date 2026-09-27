@@ -42,4 +42,6 @@ Rscript dev/simstudy/spatial-targeted-recheck/run.R --repo=. --study=STUDY --mod
 
 After the initial batch, use `summarise.R --mode=select` with the same repo/study arguments to write the diagnostic-selected keys. Run `run.R --mode=long --keys=KEYS` for that comma-separated list, then `summarise.R --mode=initial` and `--mode=final`. The summary outputs include per-community and aggregate substitution sensitivity. `verify.R --phase=selected --study=STUDY --selection=STUDY/summary-final/selected-fits.csv` audits every selected fit. `plot.R --summary=STUDY/summary-final` draws the figures.
 
-The research regression tests run with `testthat::test_file("test-study.R", stop_on_failure=TRUE)` from this directory. Outputs are kept separately from tracked scripts and compact reports.
+Render `report.Rmd` with the `summary` parameter set to `STUDY/summary-final` and `study` set to `STUDY`, using absolute paths. Its setup requires all 81 selected results, every prescribed longer check, and audit hashes matching the selected results. The report includes paired detection contrasts and separate plots for probability bias, rare species, interval containment and spatial range. Its narrative conclusions must be completed after inspecting final diagnostics and sensitivity results.
+
+Run both `test-study.R` and `test-analysis.R` through `testthat::test_file(..., stop_on_failure=TRUE)` from this directory. Outputs are kept separately from tracked scripts and compact reports.
