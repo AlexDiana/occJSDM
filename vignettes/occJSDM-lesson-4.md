@@ -81,7 +81,8 @@ predictions <- predictions |>
     absolute_error_pp = abs(signed_error_pp)
   )
 
-theme_set(theme_bw(base_size = 12))
+# Keep the registered ternary theme elements valid when vignettes share a session.
+theme_set(ggtern::theme_bw(base_size = 12))
 ```
 
 ## 1. What the models receive, and what we keep secret

@@ -19,7 +19,13 @@ editor_options:
 knitr::opts_chunk$set(
   echo = TRUE, collapse = FALSE, comment = "#>",
   fig.width = 9, fig.height = 6, dpi = 150, dev = "png",
-  fig.path = "teaching-data/lesson-4-"
+  # R's vignette cleanup removes generated figure directories after HTML builds.
+  # Keep temporary figures separate from the saved teaching inputs.
+  fig.path = if (knitr::is_html_output(excludes = c("markdown", "gfm"))) {
+    "occJSDM-lesson-4_files/figure-html/"
+  } else {
+    "teaching-data/lesson-4-"
+  }
 )
 
 source("lesson-links.R")
@@ -78,7 +84,8 @@ predictions <- predictions |>
     absolute_error_pp = abs(signed_error_pp)
   )
 
-theme_set(theme_bw(base_size = 12))
+# Keep the registered ternary theme elements valid when vignettes share a session.
+theme_set(ggtern::theme_bw(base_size = 12))
 ```
 
 ## 1. What the models receive, and what we keep secret
