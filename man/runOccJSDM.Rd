@@ -42,7 +42,11 @@ runOccJSDM(
   \item{n_supportpoints}{Number of spatial support points used to
   approximate the Gaussian process over site coordinates when
   \code{spatCovariates} is non-empty. Defaults to
-  \code{getDefaultSupportPoints(n)}.}
+  20 percent of the number of unique coordinate locations, rounded down.
+  Capped to the number of unique locations. Requesting that number uses
+  every location as a support point. Short-range spatial patterns may
+  require more support points; check that increasing their number does
+  not materially change the estimated field or occupancy probabilities.}
 }}
 
 \item{threshold}{Threshold used to truncate the reads to binary detections
