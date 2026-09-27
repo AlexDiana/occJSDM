@@ -4,6 +4,8 @@ An R package for fitting a combined occupancy and joint species distribution mod
 
 #### **N.B. This is beta software, and we are still in bugfixing mode.** 
 
+Validation is still in progress. In the tested non-spatial designs with limited replication, estimates pull low occupancy probabilities upwards and high probabilities downwards, even when the overall average is close to the truth. Stronger collection priors can hide real collection effects. See the [current-code comparison](dev/simstudy/current-main-recheck/REPORT.md) and the [archived bias recheck and prior comparisons](dev/simstudy/nonspatial-bias-recheck.md). Nominal interval coverage has not been established across supported designs.
+
 ## Installation
 
 ``` r
