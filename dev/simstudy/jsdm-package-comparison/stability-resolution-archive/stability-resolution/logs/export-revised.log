@@ -1,0 +1,54 @@
+Warning message:
+package ‘dplyr’ was built under R version 4.5.2 
+# A tibble: 8 × 7
+  package target                cells signed_error_pp absolute_error_pp
+  <chr>   <chr>                 <int>           <dbl>             <dbl>
+1 Hmsc    new_site_prediction    3000            1.06              6.28
+2 Hmsc    sampled_site_recovery  1000            1.09             12.2 
+3 gllvm   new_site_prediction    3000            1.08              7.15
+4 gllvm   sampled_site_recovery  1000            1.09             11.9 
+5 occJSDM new_site_prediction    3000            1.02              6.10
+6 occJSDM sampled_site_recovery  1000            1.10             12.1 
+7 sjSDM   new_site_prediction    3000            1.08              7.14
+8 sjSDM   sampled_site_recovery  1000            1.16             13.3 
+  brier_score negative_log_score
+        <dbl>              <dbl>
+1       0.182              0.542
+2       0.159              0.483
+3       0.183              0.547
+4       0.146              0.450
+5       0.182              0.541
+6       0.156              0.477
+7       0.183              0.547
+8       0.120              0.382
+# A tibble: 6 × 7
+  variant                            target                cells signed_error_pp
+  <chr>                              <chr>                 <int>           <dbl>
+1 best native fit, basin B           new_site_prediction    3000            1.11
+2 best native fit, basin B           sampled_site_recovery  1000            1.16
+3 original unpenalised (provisional) new_site_prediction    3000            1.09
+4 original unpenalised (provisional) sampled_site_recovery  1000            1.16
+5 revised selected, basin A          new_site_prediction    3000            1.08
+6 revised selected, basin A          sampled_site_recovery  1000            1.16
+  absolute_error_pp brier_score negative_log_score
+              <dbl>       <dbl>              <dbl>
+1              7.11       0.183              0.547
+2             13.3        0.119              0.379
+3              7.14       0.183              0.547
+4             13.6        0.119              0.379
+5              7.14       0.183              0.547
+6             13.3        0.120              0.382
+# A tibble: 2 × 5
+  target                max_abs_difference_original_vs_revised_pp
+  <chr>                                                     <dbl>
+1 new_site_prediction                                       0.379
+2 sampled_site_recovery                                     8.47 
+  mean_abs_difference_original_vs_revised_pp max_abs_difference_basin_A_vs_B_pp
+                                       <dbl>                              <dbl>
+1                                     0.0427                               1.86
+2                                     0.652                               39.1 
+  mean_abs_difference_basin_A_vs_B_pp
+                                <dbl>
+1                               0.221
+2                               4.69 
+Revised export written under /Users/douglasyu/src/occJSDM_sjsdm/lesson-n-pilot-20260922/revised 

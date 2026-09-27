@@ -1,2 +1,4 @@
 *.html
 *.R
+!lesson-4-calibration-tables.R
+!lesson-links.R

@@ -90,3 +90,43 @@ test_that("simstudy keeps absent detection blocks and intercept-only truth intac
   expect_null(blocks$p$truth)
   expect_null(blocks$q$truth)
 })
+
+test_that("simstudy trait truth uses the fitted numeric trait units", {
+  raw <- data.frame(size=c(2,4,6,8), speed=c(10,14,18,22))
+  design <- create_covariates_matrix(raw,spline_vars=FALSE,remove_intercept=TRUE)
+  G <- matrix(c(.3,-.5,1,0),2,2,dimnames=list(names(raw),c('env1','env2')))
+  x <- simstudy_truth_case()
+  x$sim$data_list <- list(traits=as.matrix(raw))
+  x$sim$true_params$jsdmParams_true <- list(G=G,B=matrix(1,2,4))
+  x$fit$infos$list_Tr_mat <- design$list_matrix
+  x$fit$Tr <- design$X
+  # Match named metadata by identity, not storage order.
+  x$fit$infos$list_Tr_mat$sd_df <- rev(design$list_matrix$sd_df)
+  blocks <- do.call(simstudy_param_blocks,x)
+  offset <- matrix(colMeans(raw)%*%G,nrow(raw),ncol(G),byrow=TRUE)
+  expect_equal(unname(design$X%*%blocks$G$truth+offset),
+               unname(as.matrix(raw)%*%G),tolerance=1e-12)
+  expect_identical(dimnames(blocks$G$truth),dimnames(G))
+  expect_identical(blocks$B$truth,x$sim$true_params$jsdmParams_true$B)
+  expect_identical(x$sim$true_params$jsdmParams_true$G,G)
+  # Trait centering needs an offset in residual coefficients to preserve B;
+  # it is not an equivalent default prior under a simple rescaling of G.
+  expect_gt(max(abs(design$X%*%blocks$G$truth-as.matrix(raw)%*%G)),1)
+  x$fit$infos$list_Tr_mat <- NULL
+  expect_identical(do.call(simstudy_param_blocks,x)$G$truth,G)
+})
+
+test_that("simstudy rejects ambiguous or invalid trait-scale mappings", {
+  raw <- data.frame(size=c(2,4,6,8))
+  design <- create_covariates_matrix(raw,spline_vars=FALSE,remove_intercept=TRUE)
+  x <- simstudy_truth_case()
+  x$sim$data_list <- list(traits=as.matrix(raw))
+  x$sim$true_params$jsdmParams_true$G <- matrix(.3,1,1,dimnames=list('size','env'))
+  x$fit$Tr <- design$X
+  x$fit$infos$list_Tr_mat <- design$list_matrix
+  x$fit$infos$list_Tr_mat$sd_df <- c(other=2)
+  expect_error(do.call(simstudy_param_blocks,x),'trait.*scal')
+  x$fit$infos$list_Tr_mat <- design$list_matrix
+  colnames(x$fit$Tr) <- 'other'
+  expect_error(do.call(simstudy_param_blocks,x),'trait.*mapping')
+})

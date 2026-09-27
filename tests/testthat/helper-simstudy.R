@@ -511,6 +511,29 @@ simstudy_param_blocks <- function(fit, sim, truth) {
   jo <- ro$jsdm_output
   jp <- sim$true_params$jsdmParams_true
 
+  # Current fits standardise measured numeric traits; older fits used raw
+  # traits. G changes units, while the full environmental B truth stays fixed.
+  # Centering also shifts the residual trait component, so this conversion
+  # does not imply that the old and current default priors are equivalent.
+  G <- jp$G
+  trait_scaling <- fit$infos$list_Tr_mat
+  if (!is.null(G) && length(G) && !is.null(trait_scaling)) {
+    traits <- colnames(sim$data_list$traits)
+    if (length(traits) != nrow(G) || anyDuplicated(traits) ||
+        !identical(trait_scaling$names_df, traits) ||
+        !identical(colnames(fit$Tr), traits) ||
+        (!is.null(rownames(G)) && !identical(rownames(G), traits))) {
+      stop("simstudy: trait coefficient/design mapping is ambiguous.")
+    }
+    scales <- trait_scaling$sd_df[traits]
+    if (length(scales) != nrow(G) || anyDuplicated(names(trait_scaling$sd_df)) ||
+        any(!is.finite(scales)) || any(scales <= 0) ||
+        any(lengths(trait_scaling$cat_levels) > 0)) {
+      stop("simstudy: numeric trait scales are missing or invalid.")
+    }
+    G <- sweep(G, 1L, scales, "*")
+  }
+
   # The simulator uses raw collection covariates; the fit centres/scales
   # them. Transform the truth so both sides describe the same predictor.
   beta_theta <- sim$true_params$beta_theta_true
@@ -554,7 +577,7 @@ simstudy_param_blocks <- function(fit, sim, truth) {
   list(
     B0         = list(post = jo$B0_output,         truth = jp$B0),
     B          = list(post = jo$B_output,          truth = jp$B),
-    G          = list(post = jo$G_output,          truth = jp$G),
+    G          = list(post = jo$G_output,          truth = G),
     sigma_b    = list(post = jo$sigmab_output,     truth = jp$sigma_b),
     tau        = list(post = jo$tau_output,        truth = jp$tau),
     beta_theta = list(post = ro$beta_theta_output,

@@ -2,6 +2,8 @@
 
 19 September 2026. Follow-up to the [non-spatial sampling-design comparison](nonspatial-design-recheck.md).
 
+**Archived study.** The numbers below use frozen revision `80d449d`. The [27 September paired rerun](current-main-recheck/REPORT.md) assesses current production code on these same communities and preserves this historical result unchanged.
+
 **Adding sites helped, but substantial error remained.** Average absolute occupancy-probability error fell from **11.8 percentage points with 100 sites**, to **9.7 with 300 sites**, and **8.9 with 1,000 sites**.
 
 These are errors in estimated **occupancy probabilities**, measured at the same original 100 sites. Every model receives the true presence/absence states, so collection failures, PCR failures and false positives play no part in these results.

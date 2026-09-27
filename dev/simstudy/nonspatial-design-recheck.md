@@ -1,5 +1,7 @@
 # More field samples, more sites, and known site conditions
 
+**Archived study.** The numbers below use frozen revision `80d449d`. The [27 September paired rerun](current-main-recheck/REPORT.md) assesses current production code on these same communities and preserves this historical result unchanged. PRs #8 and #10 are now merged; neither supplies spatial effects to these non-spatial fits.
+
 **JSDM-only follow-up completed 19 September:** the [100, 300 and 1,000-site comparison](jsdm-sample-size-recheck.md) supplies exact presence/absence, removing collection and PCR error. At the same original 100 sites, average absolute occupancy-probability error falls from 11.8 to 9.7 to 8.9 percentage points. All ten communities improve at each increase in site count; two longer checks barely change the results. The report includes three figures and explains why perfect observations do not reveal exact probabilities.
 
 This follow-up asks whether the large occupancy errors in the [non-spatial investigation](nonspatial-bias-recheck.md) improve when we collect more field samples, visit more sites, or supply information about the hidden differences between sites. It uses six PCR replicates per primer throughout. **More field samples and more sites both help, but substantial occupancy errors remain.** Four field samples at 100 sites give almost the same overall improvement as two samples at 300 sites in these simulations, with a smaller increase in sampling and PCR effort. Supplying the true hidden site conditions also helps, but does not remove the difficulty.
@@ -17,7 +19,7 @@ There are two primers, each with six PCR replicates, so each field sample requir
 
 Each design is fitted to the same ten underlying simulated communities, once under low contamination and once under high contamination. There are ten species in each community. These are ten paired communities with two contamination versions, not twenty independently generated communities. We retain the same species relationships, original occupied/unoccupied states, field samples and PCR observations. The extra samples and sites are additions to those original observations. This makes the changes easier to interpret than comparing unrelated simulated datasets.
 
-The model uses the existing default priors and the approved, frozen package build `80d449d`. Both simulation and fitting have no spatial effects. The pending spatial correction in PR #8 therefore cannot explain differences in this experiment. The package standardizes covariates using each fitted dataset: adding sites or field samples changes those centres and scales, and thus changes the defaults' implications on the raw covariate scale. The simulated biological relationships on the raw scale are preserved.
+The model uses the existing default priors and the approved, frozen package build `80d449d`. Both simulation and fitting have no spatial effects. The spatial correction in PR #8 therefore cannot explain differences in this experiment. The package standardizes covariates using each fitted dataset: adding sites or field samples changes those centres and scales, and thus changes the defaults' implications on the raw covariate scale. The simulated biological relationships on the raw scale are preserved.
 
 ## What does the hidden-site-condition control actually provide?
 

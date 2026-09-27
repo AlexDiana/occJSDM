@@ -1,0 +1,63 @@
+/* A scoped adaptation of the validation article, leaving the worked lesson alone. */
+div.lesson-calibration {
+  --cal-ground: #F5F6F4;
+  --cal-rule: #D3D8D2;
+  --cal-ink: #15202B;
+  --cal-soft: #4E5B62;
+  --cal-accent: #1F5F6B;
+  background: var(--cal-ground);
+  color: var(--cal-ink);
+  border-radius: 8px;
+  padding: 1.5rem 1.7rem 2rem;
+  margin-top: 2.5rem;
+  line-height: 1.65;
+}
+html[data-bs-theme="dark"] div.lesson-calibration {
+  --cal-ground: #12181C;
+  --cal-rule: #2C3740;
+  --cal-ink: #E4E9E7;
+  --cal-soft: #A6B2B6;
+  --cal-accent: #6BB3BF;
+}
+.lesson-calibration h2, .lesson-calibration h3 {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--cal-ink);
+}
+.lesson-calibration h2 {
+  border-top: 1px solid var(--cal-rule);
+  padding-top: 1.4rem;
+  margin-top: 2rem;
+  font-size: 1.8em;
+}
+.lesson-calibration h3 { margin-top: 1.8rem; font-size: 1.45em; }
+.lesson-calibration .calibration-lead {
+  font-family: "Iowan Old Style", Palatino, Georgia, serif;
+  font-size: 1.25em;
+  color: var(--cal-soft);
+}
+.lesson-calibration .calibration-finding {
+  border-left: 3px solid var(--cal-accent);
+  padding: .6rem 1rem;
+  margin: 1.5rem 0;
+}
+.lesson-calibration .calibration-finding p { margin: .3rem 0; }
+.lesson-calibration .calibration-note { color: var(--cal-soft); font-size: .94em; }
+.lesson-calibration .calibration-scroller { overflow-x: auto; margin: 1.2rem 0; }
+.lesson-calibration .calibration-table { display: table; width: 100%; border-collapse: collapse; }
+.lesson-calibration .calibration-table caption { text-align: left; color: var(--cal-soft); padding-bottom: .6rem; }
+.lesson-calibration .calibration-table th,
+.lesson-calibration .calibration-table td { padding: .7rem .6rem; border-bottom: 1px solid var(--cal-rule); text-align: center; }
+.lesson-calibration .calibration-table th { color: var(--cal-soft); font-size: .9em; }
+.lesson-calibration .calibration-table td { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lesson-calibration .calibration-table th:first-child,
+.lesson-calibration .calibration-table td:first-child { text-align: left; white-space: normal; }
+.lesson-calibration img { max-width: 100%; height: auto; border: 1px solid var(--cal-rule); border-radius: 6px; }
+.lesson-calibration details { border-top: 1px solid var(--cal-rule); margin-top: 2rem; padding-top: 1rem; }
+.lesson-calibration summary { color: var(--cal-accent); cursor: pointer; font-weight: 600; }
+.lesson-calibration summary:focus-visible { outline: 2px solid var(--cal-accent); outline-offset: 5px; }
+@media (max-width: 600px) {
+  div.lesson-calibration { padding: 1rem .6rem; }
+  .lesson-calibration .calibration-table th, .lesson-calibration .calibration-table td { padding: .5rem .4rem; }
+}
