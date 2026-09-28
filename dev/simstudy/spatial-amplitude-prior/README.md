@@ -20,6 +20,7 @@ Use absolute paths for `REPO`, `STUDY` and `REFERENCE`. `STUDY/source` must cont
 ```sh
 Rscript test-metrics.R
 Rscript test-analysis.R
+Rscript test-execution.R
 Rscript run.R --repo=REPO --study=STUDY --reference=REFERENCE --mode=baseline --prior=inverse_gamma --workers=4
 Rscript run.R --repo=REPO --study=STUDY --reference=REFERENCE --mode=initial --workers=4
 Rscript continue.R REPO STUDY REFERENCE 8

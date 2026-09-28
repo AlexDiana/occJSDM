@@ -7,12 +7,13 @@ repo<-normalizePath(a[1]);study<-normalizePath(a[2]);reference<-normalizePath(a[
 scripts<-file.path(repo,'dev/simstudy/spatial-amplitude-prior')
 source(file.path(repo,'dev/simstudy/spatial-targeted-recheck/analysis.R'))
 source(file.path(scripts,'metrics.R'));source(file.path(scripts,'analysis.R'))
+source(file.path(scripts,'execution.R'))
 keys<-unlist(lapply(c(4,6,8),function(g)sprintf('range%d-rep%02d-binary-k100',g,1:3)))
 initials<-file.path(study,'half_cauchy/initial',paste0(keys,'-result.rds'))
 run_summary<-function(phase) {
-  status<-system2(file.path(R.home('bin'),'Rscript'),shQuote(c(file.path(scripts,'summarise.R'),
-    paste0('--repo=',repo),paste0('--study=',study),paste0('--phase=',phase))),
-    stdout=file.path(study,paste0('summary-',phase,'.log')),stderr=TRUE)
+  status<-run_logged_r(file.path(scripts,'summarise.R'),
+    c(paste0('--repo=',repo),paste0('--study=',study),paste0('--phase=',phase)),
+    file.path(study,paste0('summary-',phase,'.log')))
   stopifnot(status==0L)
 }
 # Prepare shared settings atomically in the parent before separate long processes.
@@ -33,10 +34,9 @@ prepare_long<-function(prior) {
 run_fit<-function(task) {
   log<-file.path(study,paste(task$key,task$prior,task$mode,'log',sep='.'))
   cat(format(Sys.time()),task$key,task$prior,task$mode,'dispatched\n');flush.console()
-  status<-system2(file.path(R.home('bin'),'Rscript'),shQuote(c(file.path(scripts,'run.R'),
-    paste0('--repo=',repo),paste0('--study=',study),paste0('--reference=',reference),
-    paste0('--mode=',task$mode),paste0('--prior=',task$prior),paste0('--keys=',task$key),'--workers=1')),
-    stdout=log,stderr=TRUE)
+  status<-run_logged_r(file.path(scripts,'run.R'),
+    c(paste0('--repo=',repo),paste0('--study=',study),paste0('--reference=',reference),
+    paste0('--mode=',task$mode),paste0('--prior=',task$prior),paste0('--keys=',task$key),'--workers=1'),log)
   if(status!=0L)stop('Fit failed, see ',log)
   result<-read_checked_result(file.path(study,task$prior,task$mode,paste0(task$key,'-result.rds')))
   cat(format(Sys.time()),task$key,task$mode,'complete; flags',length(result$reasons),'\n');flush.console()

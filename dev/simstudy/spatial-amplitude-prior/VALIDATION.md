@@ -25,3 +25,5 @@ After the first four initial fits, Doug authorized using more than four CPUs. Th
 ## Outstanding scientific validation
 
 The scientific initial fits, prescribed longer checks, initialization sensitivity, paired results and final independent audits must be complete before claiming a scientific result. The two-stage extension is conditional on the prespecified binary gate and satisfactory final numerical audit. No default change or merge follows automatically from testing the prior.
+
+An operational logging fix restarted four newly dispatched continuation checks after about four minutes, before any of those four had saved a fit. R's `system2(stdout = file, stderr = TRUE)` captured output rather than returning the numeric exit status; the corrected adapter sends both streams to the same file. Four execution regressions verify stdout/stderr preservation, paths/arguments with spaces, and successful/failing exit codes. The original initial pool continued uninterrupted, all completed fits were preserved, and the restarted jobs used their original input RNG states and full prescribed budgets.
