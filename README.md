@@ -4,6 +4,8 @@ An R package for fitting a combined occupancy and joint species distribution mod
 
 #### **N.B. This is beta software, and we are still in bugfixing mode.** 
 
+Validation is still in progress. In the tested non-spatial designs with limited replication, estimates pull low occupancy probabilities upwards and high probabilities downwards, even when the overall average is close to the truth. Stronger collection priors can hide real collection effects. See the [current-code comparison](dev/simstudy/current-main-recheck/REPORT.md) and the [archived bias recheck and prior comparisons](dev/simstudy/nonspatial-bias-recheck.md). Nominal interval coverage has not been established across supported designs.
+
 ## Installation
 
 ``` r
@@ -19,8 +21,9 @@ Start with the teaching lessons. They show readable R code alongside the simulat
 
 - [Lesson 0 (optional): Create and explore a simulated survey](vignettes/occJSDM-lesson-0.md).
 - [Lesson 1: Fit the model and compare its answers with truth](vignettes/occJSDM-lesson-1.md).
-- [Lesson 2: Spatial landscapes and dispersal](vignettes/occJSDM-lesson-2.md), an outline pending review of the spatial submodel in PR #8.
+- [Lesson 2: Spatial landscapes and dispersal](vignettes/occJSDM-lesson-2.md), a plain-language account of what the spatial field learns, how to choose sample spacing and extent, and how to validate spatial prediction. Its worked example is pending review of the spatial submodel in PR #8.
 - [Lesson 3: Understand the model outputs](vignettes/occJSDM-lesson-3.md), with true and fitted environmental effects, trait effects, species associations, variation partitioning and detection-effort curves.
+- [Lesson 4: Compare four JSDMs](vignettes/occJSDM-lesson-4.md), a worked pure-JSDM pilot with occJSDM, gllvm, sjSDM and Hmsc, comparing probabilities and environmental responses with simulation truth. sjSDM turns out to have two local optima, which the lesson explains.
 
 After installing with vignettes, open the completed lessons in R:
 
@@ -28,6 +31,7 @@ After installing with vignettes, open the completed lessons in R:
 vignette("occJSDM-lesson-0", package = "occJSDM")
 vignette("occJSDM-lesson-1", package = "occJSDM")
 vignette("occJSDM-lesson-3", package = "occJSDM")
+vignette("occJSDM-lesson-4", package = "occJSDM")
 ```
 
 The quickstart guide and simulator reference are also available:

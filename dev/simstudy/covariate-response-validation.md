@@ -1,6 +1,6 @@
 # Environmental response output correction
 
-Status: implemented on `codex/fix-covariate-response`, awaiting Alex's review.
+Status: approved by Doug for merging on 28 September 2026 ([PR #13](https://github.com/AlexDiana/occJSDM/pull/13)).
 
 `returnCovariateEffect()` and `plotCovariateEffect()` previously returned impossible occupancy probabilities. The numeric calculation converted the environmental term to a probability and then added the intercept: `B0 + plogis(XB)`. The intercept is measured in log-odds, so it must be added **before** the conversion. The stored `X0_psi` also contains standardized numeric predictors, despite its historical description as raw data; standardizing it again gave the wrong x-axis and environmental contribution. The categorical path omitted the intercept and first level. Both public wrappers ignored the requested `confidence`.
 
@@ -60,3 +60,11 @@ The final source test suite reports **706 passes, no failures, errors or test wa
 `R CMD check --no-manual --ignore-vignettes` (built with `--no-build-vignettes`, before the column-name follow-up) completed with **0 errors, 3 warnings and 3 notes**. Its installed-package tests report 670 passes, no failures or test warnings, and eight expected skips (six CRAN-skipped checks and two requiring source access). After the column was renamed to `median`, the full source suite, generated help-file check and archived-fit validation were rerun successfully. Vignettes were not rebuilt for this output-only fix.
 
 The warnings concern unchanged files: the R header's unsupported compiler warning option, the undocumented `predictNewSites(verbose)` argument, and GNU extensions in `src/Makevars`. Notes concern the existing LICENSE declaration and package-wide global-symbol checks, plus the `.git` pointer file included by building in a worktree. None is a probability-calculation failure; this is not a claim of a warning-free package build.
+
+## Integration validation, 28 September 2026
+
+Doug approved PR #13 for merging. Current main (`d3d710e`) was merged into the branch; the only code conflicts were blank lines at the ends of `R/jsdmfun.R` and `R/output.R`. Comparing parsed code against main confirms that only the response-output functions and their helpers differ. No fitting function, prior or sampler changes.
+
+The combined source suite passes 837 expectations with zero failures or test warnings and one opt-in coverage-study skip. Full `devtools::check(document = FALSE)` completes with zero errors, three warnings and five notes, including vignette construction and rebuilding. Installed-package tests pass 834 expectations with zero failures or test warnings and three expected skips. All three warnings match the previous integration baseline after removing elapsed timings and archive paths: the compiler header warning, undocumented `predictNewSites(verbose)` and GNU Makevars extensions.
+
+The saved-fit validation was rerun against the checked installation. The unchanged archived fit still has MD5 `67a364872efeb742de94e705194a7c33`; all checked probabilities are valid and independently reconstructed summaries agree within `1e-12`. Lesson 3's stale review wording was updated and its final source rendered successfully after that prose-only edit. The existing teaching examples and figures are unchanged. Logs and check objects are retained locally in `dev/simstudy/results/pr13-integration-20260928/`.

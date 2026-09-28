@@ -1,0 +1,12 @@
+"warning","count"
+"Convergence issue in 'A_output'. Max R-hat > 1.1",3
+"Convergence issue in 'B_output'. Max R-hat > 1.1",76
+"Convergence issue in 'B0_output'. Max R-hat > 1.1",3
+"Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",3
+"Convergence issue in 'C_output'. Max R-hat > 1.1",4
+"Convergence issue in 'G_output'. Max R-hat > 1.1",9
+"Convergence issue in 'p_output'. Max R-hat > 1.1",3
+"Convergence issue in 'q_output'. Max R-hat > 1.1",2
+"Convergence issue in 'theta0_output'. Max R-hat > 1.1",6
+"Low ESS in 'B'. Min ESS < 50",2
+"Low ESS in 'theta0'. Min ESS < 50",1

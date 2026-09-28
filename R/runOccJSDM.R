@@ -286,7 +286,11 @@ create_waic_quantities <- function(n_obs){
 #'   \item{n_supportpoints}{Number of spatial support points used to
 #'   approximate the Gaussian process over site coordinates when
 #'   \code{spatCovariates} is non-empty. Defaults to
-#'   \code{getDefaultSupportPoints(n)}.}
+#'   20 percent of the number of unique coordinate locations, rounded down.
+#'   Capped to the number of unique locations. Requesting that number uses
+#'   every location as a support point. Short-range spatial patterns may
+#'   require more support points; check that increasing their number does
+#'   not materially change the estimated field or occupancy probabilities.}
 #' }
 #' @param threshold Threshold used to truncate the reads to binary detections
 #' for occupancy/two-stage models. Reads greater than or equal to the
@@ -329,6 +333,18 @@ create_waic_quantities <- function(n_obs){
 #' reproduces the previous hard-coded behaviour exactly. Its value is still
 #' under review, so treat a non-default setting as a diagnostic rather than a
 #' recommended configuration.
+#'
+#' For continuous responses, \code{tau_prior} selects the noise prior:
+#' \code{"inverse_gamma"} (current default) places an inverse-gamma prior on
+#' each species' noise variance, with \code{a_tau} (shape, default \code{5})
+#' and \code{b_tau} (rate for the reciprocal variance, default \code{5}).
+#' \code{"half_cauchy"} places a half-Cauchy prior on the noise standard
+#' deviation, with \code{tau_scale} (default \code{1}) in response units.
+#' The half-Cauchy option allows noise close to zero; the inverse-gamma
+#' default strongly discourages it. Each scale, shape and rate must be a
+#' finite positive number. These settings do not change the binary,
+#' occupancy or two-stage detection models. The chosen continuous noise
+#' prior is saved in \code{infos$noise_prior}.
 #'
 #' @return A list with:
 #' \describe{
@@ -818,7 +834,7 @@ runOccJSDM <- function(data,
   # precompute spatial quantities
   {
     # Spatial covariates matrix
-    list_Xs <- computeSpatialSummaries(Xs, ps, maxPoints = 5)
+    list_Xs <- computeSpatialSummaries(Xs, ps)
     Xs_centers <- list_Xs$Xs_centers
     Xs_index <- list_Xs$Xs_index
     X_s_centers <- list_Xs$X_s_centers
@@ -841,6 +857,11 @@ runOccJSDM <- function(data,
     a_sigmabs <- 10; b_sigmabs <- 1
     a_sigmah <- 10; b_sigmah <- 1
     a_tau <- 5; b_tau <- 5
+    noise_prior <- if (model == "continuous") read_noise_prior(listPriors) else NULL
+    if (identical(noise_prior$type,"inverse_gamma")) {
+      a_tau <- noise_prior$shape
+      b_tau <- noise_prior$rate
+    }
     a_l_s <- 1; b_l_s <- 1
 
     list_priors <- list(
@@ -852,6 +873,7 @@ runOccJSDM <- function(data,
       "b_sigmah" = b_sigmah,
       "a_tau" = a_tau,
       "b_tau" = b_tau,
+      "noise_prior" = noise_prior,
       "a_l_s" = a_l_s,
       "b_l_s" = b_l_s
     )
@@ -1069,7 +1091,7 @@ runOccJSDM <- function(data,
         Bt <- t(B) - computeBtcoef(G, Tr, A, C, matrix(0, S, ncov_psi))
         Bst <- t(Bs) - computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps))
 
-        Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
+        Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=n)
 
         list_jSDMparams <- list(
           "B0" = B0,
@@ -1409,6 +1431,7 @@ runOccJSDM <- function(data,
     "model" = model,
     "jsdmModel" = jsdmModel
   )
+  infos$noise_prior <- noise_prior
 
   list(
     "results_output" = results_output,
@@ -1418,4 +1441,24 @@ runOccJSDM <- function(data,
     "Xs" = Xs,
     "X_psi" = X_psi)
 
+}
+
+# Continuous-response noise priors are separate from the detection priors.
+read_noise_prior <- function(priors) {
+  type <- get_param(priors,"tau_prior","inverse_gamma")
+  if (!is.character(type) || length(type)!=1L || is.na(type) ||
+      !type %in% c("half_cauchy","inverse_gamma"))
+    stop("tau_prior must be 'half_cauchy' or 'inverse_gamma'")
+  type <- unname(as.character(type))
+  positive_scalar <- function(name,default) {
+    value <- get_param(priors,name,default)
+    if (!is.numeric(value) || length(value)!=1L || !is.finite(value) || value<=0)
+      stop(name," must be a finite positive number")
+    value
+  }
+  if (type == "half_cauchy") {
+    list(type=type,scale=positive_scalar("tau_scale",1))
+  } else {
+    list(type=type,shape=positive_scalar("a_tau",5),rate=positive_scalar("b_tau",5))
+  }
 }
