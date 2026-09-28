@@ -116,18 +116,16 @@ Every outstanding item from the previous TODO is accounted for below or in the r
 
 ## Performance and parallelisation
 
-All speed work can wait once the unsafe RNG path is removed from beta. Preserve the live serial `sample_BBsL_cpp()` call unless a separately validated change replaces it.
+**Status, 28 September 2026:** Alex's parallel detection-probability and PCR-rate parameter calculations remain active. The RNG defects are fixed: random-draw steps now run serially under the approved sampling contract. Preserve the live serial `sample_BBsL_cpp()` path unless a separately validated change replaces it. The performance work below remains outside the beta requirements.
 
-- **Alternative Polya-Gamma sampler:** defer the performance experiment. Profile again after the correctness fixes; the historical hotspot was the collection-covariate update.
-- **Parallel chains:** defer. When implemented, use portable PSOCK workers, independent process streams, one safe sampler per process, and correctly merge per-chain WAIC accumulators and posterior means.
-- **Remove `.onLoad()`'s global `mc.cores` setting:** defer the session-state/CRAN cleanup. This setting provides no protection for the current TBB RNG problem; that protection must be implemented in the beta work above.
-- **Repeated `computePsiCoef()` calls:** defer optimisation. The three current calls use changed coefficients or factors; there is no demonstrated redundant-call saving.
-- **Precompute/fuse the `c_imk` update:** defer moving invariant work out of the chain loop and avoiding the repeated `w_all` gather.
-- **Optional, cheaper WAIC:** defer the new option and likelihood optimisation; preserve the current estimator's semantics.
-- **Vectorised initial values:** defer replacing nested `w`/`z` initialisation loops with grouped reductions.
-- **Selective posterior storage:** defer a `keep` argument and allocation/thinning improvements. Some large arrays are genuinely filled and used; classify them before suppressing storage.
-- **Avoid repeated matrix inversions:** defer wiring in and validating the precision/Cholesky implementation. The unused `_TS_opt` name does not make it worker-safe: its normal draw still uses `arma::randn()`.
-- **Fully reproducible parallel random draws:** defer the full stream redesign if beta uses main-thread serial draws. Key streams or persistent state by all relevant sampling identifiers so iterations, chains and parameter blocks cannot repeat one another's stream. Re-enable parallel sampling only after resolving both the race and the identical-stream defect, including the JSDM PG path.
+- **First priority: parallel chains.** Use portable PSOCK workers, reproducible per-chain seeds and one safe sampler per process. Add an explicit core budget, correctly combine posterior arrays, latent-state means and WAIC accumulators, and test agreement across worker counts with the same chain seeds. Benchmark runtime and memory.
+- **Profile current code before choosing further CPU optimizations.** Measure representative binary spatial and two-stage fits; July's bottleneck ranking predates the current spatial updates. Reassess an alternative Polya-Gamma sampler, reuse of unchanged `computePsiCoef()` components, and fusion of the repeated `w_all`/`c_imk` work. Alex already moved `y_pos` outside the iteration loop.
+- **Selective posterior storage:** retain a `keep` option and allocation/thinning improvements as a memory priority. Latent-state posterior means already save space; classify the remaining large arrays and downstream requirements before suppressing storage.
+- **Avoid repeated matrix inversions:** narrow this to the collection, trait and factor updates. The spatial coefficient sampler already uses triangular solves. Validate the remaining precision/Cholesky substitutions; the unused `_TS_opt` helper still draws through `arma::randn()` and must stay on the main thread of its process.
+- **Optional, cheaper WAIC:** retain an option to skip the fitting-time calculation and profile its likelihood costs. Coordinate with PR #14's separate observed-data criterion; preserve each estimator's semantics.
+- **Remove `.onLoad()`'s global `mc.cores` setting:** retain as session-state/CRAN housekeeping. It is still present and does not control the current fitter's TBB workers.
+- **Vectorised initial values:** low priority. Replacing nested `w`/`z` initialization loops affects startup; measure its share of total runtime before investing.
+- **Fully reproducible parallel random draws:** defer until after parallel chains and fresh profiling. Parallel chains need no within-process RNG redesign. Re-enabling threaded sampling requires independent, advancing streams and tests against races, repeated streams and scheduling-dependent results.
 
 ## Future modelling features
 
