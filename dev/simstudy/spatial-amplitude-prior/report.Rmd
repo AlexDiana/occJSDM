@@ -27,9 +27,13 @@ labels<-c(inverse_gamma='Current inverse-gamma',half_cauchy='Half-Cauchy(1)')
 metric<-function(name)paired[paired$metric==name & paired$arm=='binary',]
 fmt<-function(x)formatC(x,format='f',digits=3)
 image<-function(name)knitr::include_graphics(file.path(folder,name))
-selected<-readRDS(file.path(folder,'selected-results.rds'))
-probe_selection<-read('initialization-selection.csv');probe<-readRDS(probe_selection$file)
-stopifnot(identical(unname(tools::md5sum(probe_selection$file)),probe_selection$md5))
+probe<-read('initialization-summary.csv')
+stopifnot(nrow(probe)==1L,probe$nchain==4L)
+manifest<-file.path(folder,'artifact-md5.csv')
+if(file.exists(manifest)) {
+  hashes<-read('artifact-md5.csv')
+  stopifnot(identical(unname(tools::md5sum(file.path(folder,hashes$file))),hashes$md5))
+}
 ```
 
 ## What was tested?
@@ -127,7 +131,7 @@ bad<-fits[fits$flag_count>0,]
 if(nrow(bad))for(i in seq_len(nrow(bad)))cat('\n- **',bad$community[i],' / ',labels[bad$prior[i]],'**: ',bad$reasons[i],'\n',sep='')
 ```
 
-The separate initialization check used `r probe$mcmc$nburn` burn-in and `r probe$mcmc$niter` retained iterations in each of four chains. Its spatial diagnostic result is **`r if(nzchar(probe_selection$spatial_flags)) 'flagged' else 'acceptable under the prespecified thresholds'`**. This check is excluded from the paired recovery summaries.
+The separate initialization check used `r probe$nburn` burn-in and `r probe$niter` retained iterations in each of four chains. Its spatial diagnostic result is **`r if(nzchar(probe$spatial_flags)) 'flagged' else 'acceptable under the prespecified thresholds'`**. This check is excluded from the paired recovery summaries.
 
 ## Should the experiment extend to two-stage data?
 
@@ -141,6 +145,6 @@ knitr::kable(data.frame(Criterion=gate$criterion,Result=ifelse(gate$pass,'Pass',
 
 ## Validation and limits
 
-The default-fit compatibility pilot differed from the previous installed version by at most 2.22e-15 across posterior values, with identical final RNG state and warnings. The half-Cauchy conditional sampler was checked against direct numerical integration. The full package check had zero errors and the three existing warnings. The selected results were independently reconstructed through the package's native spatial projection; fitted probabilities, intervals, field means and trace summaries were checked against the saved results. Source, input and fit fingerprints accompany the numerical evidence.
+The default-fit compatibility pilot differed from the previous installed version by at most 2.22e-15 across posterior values, with identical final RNG state and warnings. The half-Cauchy conditional sampler was checked against direct numerical integration. The full package check had zero errors and the three existing warnings. The selected results were independently reconstructed through the package's native spatial projection; fitted probabilities, intervals, field means and trace summaries were checked against the saved results. Source, input and fit fingerprints accompany the numerical evidence. The audit found `r sum(audit$native_threshold_crossings)` crossings of the 1.05 Rhat threshold between native and independent field reconstruction. Tiny floating-point differences can change folded ranks around a median; any unresolved crossing must be reviewed before extending the study.
 
 This experiment uses nine binary communities at the observed sites, one spatial-amplitude scale, and 100 supports. It does not validate new-site predictions, trait or latent-factor interactions, a wide range of prior scales, or two-stage detection performance. The occupancy-intercept prior remains unchanged; widening it is a separate post-beta task.

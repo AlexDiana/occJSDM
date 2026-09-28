@@ -96,5 +96,9 @@ if(phase=='final' && 'binary' %in% arms) {
     fit=probe$source_fit,fit_md5=probe$source_fit_md5,
     spatial_flags=paste(spatial_flags(probe$spatial$diagnostics),collapse='; ')),
     file.path(out,'initialization-selection.csv'),row.names=FALSE)
+  write.csv(data.frame(key=probe$job$key,nchain=probe$mcmc$nchain,nburn=probe$mcmc$nburn,
+    niter=probe$mcmc$niter,starts=paste(probe$starts,collapse=', '),
+    spatial_flags=paste(spatial_flags(probe$spatial$diagnostics),collapse='; ')),
+    file.path(out,'initialization-summary.csv'),row.names=FALSE)
   cat('Two-stage extension gate:',if(all(gate$pass))'PASS' else 'FAIL','\n')
 }
