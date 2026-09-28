@@ -346,6 +346,20 @@ create_waic_quantities <- function(n_obs){
 #' occupancy or two-stage detection models. The chosen continuous noise
 #' prior is saved in \code{infos$noise_prior}.
 #'
+#' For spatial fits, \code{sigma_bs_prior = "half_cauchy"} enables an
+#' experimental half-Cauchy prior on the shared residual spatial-coefficient
+#' standard deviation, with \code{sigma_bs_scale} (default \code{1}) on the
+#' linear-predictor scale. This amplitude is not necessarily the realised
+#' spatial field's standard deviation, especially with reduced support.
+#' The default \code{sigma_bs_prior = "inverse_gamma"} retains the existing
+#' inverse-gamma prior on its variance (shape \code{10}, scale \code{1}).
+#' These settings require spatial covariates; \code{sigma_bs_scale} requires
+#' the half-Cauchy choice and must be a finite positive number. The applied
+#' choice is saved in \code{infos$spatial_sd_prior}. Half-Cauchy chains start
+#' at the supplied scale (the prior median); default chains retain their
+#' existing starting value. This is separate from
+#' continuous observation noise and changes no occupancy or detection prior.
+#'
 #' @return A list with:
 #' \describe{
 #'   \item{results_output}{Posterior samples/summaries, including
@@ -855,6 +869,7 @@ runOccJSDM <- function(data,
 
     a_sigmab <- 10; b_sigmab <- 1
     a_sigmabs <- 10; b_sigmabs <- 1
+    spatial_sd_prior <- read_spatial_sd_prior(listPriors,ps>0)
     a_sigmah <- 10; b_sigmah <- 1
     a_tau <- 5; b_tau <- 5
     noise_prior <- if (model == "continuous") read_noise_prior(listPriors) else NULL
@@ -869,6 +884,7 @@ runOccJSDM <- function(data,
       "b_sigmab" = b_sigmab,
       "a_sigmabs" = a_sigmabs,
       "b_sigmabs" = b_sigmabs,
+      "spatial_sd_prior" = spatial_sd_prior,
       "a_sigmah" = a_sigmah,
       "b_sigmah" = b_sigmah,
       "a_tau" = a_tau,
@@ -1083,7 +1099,8 @@ runOccJSDM <- function(data,
         As <- matrix(0, S, gt)
         U <- matrix(0, n, d)
         sigma_b <- 1
-        sigma_bs <- .001
+        sigma_bs <- if (identical(spatial_sd_prior$type,"half_cauchy"))
+          spatial_sd_prior$scale else .001
         sigma_h <- 1
         idx_ls <- 3 # dim(list_SoRSummaries$Ks_all)[3][5]
         tau <- rep(1, S)
@@ -1432,6 +1449,7 @@ runOccJSDM <- function(data,
     "jsdmModel" = jsdmModel
   )
   infos$noise_prior <- noise_prior
+  infos$spatial_sd_prior <- spatial_sd_prior
 
   list(
     "results_output" = results_output,
@@ -1441,6 +1459,29 @@ runOccJSDM <- function(data,
     "Xs" = Xs,
     "X_psi" = X_psi)
 
+}
+
+# This prior controls spatial coefficients, not continuous-response noise.
+read_spatial_sd_prior <- function(priors,spatial) {
+  supplied <- any(c("sigma_bs_prior","sigma_bs_scale") %in% names(priors))
+  if (!spatial) {
+    if (supplied) stop("sigma_bs prior settings require spatial covariates")
+    return(NULL)
+  }
+  type <- get_param(priors,"sigma_bs_prior","inverse_gamma")
+  if (!is.character(type) || length(type)!=1L || is.na(type) ||
+      !type %in% c("half_cauchy","inverse_gamma"))
+    stop("sigma_bs_prior must be 'half_cauchy' or 'inverse_gamma'")
+  type <- unname(as.character(type))
+  if (type=="inverse_gamma") {
+    if ("sigma_bs_scale" %in% names(priors))
+      stop("sigma_bs_scale requires sigma_bs_prior = 'half_cauchy'")
+    return(list(type=type,shape=10,rate=1))
+  }
+  scale <- get_param(priors,"sigma_bs_scale",1)
+  if (!is.numeric(scale) || length(scale)!=1L || !is.finite(scale) || scale<=0)
+    stop("sigma_bs_scale must be a finite positive number")
+  list(type=type,scale=unname(scale))
 }
 
 # Continuous-response noise priors are separate from the detection priors.
