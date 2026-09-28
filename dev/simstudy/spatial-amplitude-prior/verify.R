@@ -72,7 +72,7 @@ audit<-function(i) {
     stored<-r$groups[r$groups$metric=='occupancy' & r$groups$group==g,names(expected)]
     stopifnot(nrow(stored)==1L);group_error<-max(group_error,abs(expected-unlist(stored)))
   }
-  stopifnot(max(field_error,trace_error,probability_error,group_error)<1e-9,diag_error<1e-6)
+  stopifnot(max(field_error,trace_error,probability_error,group_error)<1e-9,diag_error<1e-12)
   cat(row$key,row$prior,'verified\n');flush.console()
   data.frame(key=row$key,prior=row$prior,field_error=field_error,trace_error=trace_error,
     diagnostic_error=diag_error,native_rhat_difference=native_rhat_difference,

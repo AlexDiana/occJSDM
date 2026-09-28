@@ -1,13 +1,13 @@
 # Spatial-amplitude half-Cauchy experiment
 
-The [prespecified protocol](PLAN.md) compares the existing inverse-gamma spatial-amplitude prior with an opt-in half-Cauchy(scale 1) prior using nine saved binary communities at 100 spatial support points. Production implementation and fitting protocol were frozen at `4509629`; the old fitting reference is `d3d710e`, and the branch starts from main `74e33a5`. Default priors remain unchanged. This experiment is separate from continuous observation noise and from the post-beta occupancy-intercept-prior task.
+The [prespecified protocol](PLAN.md) and [user-authorized compute amendment](COMPUTE-AMENDMENT.md) compares the existing inverse-gamma spatial-amplitude prior with an opt-in half-Cauchy(scale 1) prior using nine saved binary communities at 100 spatial support points. Production implementation and fitting protocol were frozen at `4509629`; the old fitting reference is `d3d710e`, and the branch starts from main `74e33a5`. Default priors remain unchanged. This experiment is separate from continuous observation noise and from the post-beta occupancy-intercept-prior task.
 
 ## Files and archives
 
 - `metrics.R` reconstructs field draws in bounded blocks and checks amplitude and per-species field summaries.
 - `run.R` reads the original immutable input archive, uses a separately installed experimental package, and saves complete fits before scoring. It fingerprints both installed R code and the compiled library.
 - `analysis.R` and `summarise.R` select symmetric longer comparisons and evaluate the prespecified binary extension rule. Summary directories distinguish selected observation arms.
-- `continue.R` waits for the nine initial fits, runs the finite list of required longer fits and the separate initialization check with at most four workers, then stops at the binary comparison. It does not automatically start two-stage fits.
+- `continue.R` uses available worker slots to run the finite list of required longer fits and the separate initialization check, then stops at the binary comparison. The original cap was four; Doug authorized a total cap of eight during execution. Each sampler remains single-threaded. It does not automatically start two-stage fits.
 - `verify.R` reconstructs every selected draw through the native spatial projection, independently checks probabilities, interval containment, field summaries and stored diagnostics, and records numerical sensitivity of folded-rank Rhat.
 - `plot.R` and `report.Rmd` produce scientific figures and an HTML report from audited selected results.
 
@@ -22,7 +22,7 @@ Rscript test-metrics.R
 Rscript test-analysis.R
 Rscript run.R --repo=REPO --study=STUDY --reference=REFERENCE --mode=baseline --prior=inverse_gamma --workers=4
 Rscript run.R --repo=REPO --study=STUDY --reference=REFERENCE --mode=initial --workers=4
-Rscript continue.R REPO STUDY REFERENCE
+Rscript continue.R REPO STUDY REFERENCE 8
 Rscript verify.R STUDY STUDY/summary-binary-final
 Rscript plot.R REPO STUDY/summary-binary-final
 ```

@@ -121,7 +121,8 @@ the half-Cauchy choice and must be a finite positive number. The applied
 choice is saved in \code{infos$spatial_sd_prior}. Half-Cauchy chains start
 at the supplied scale (the prior median); default chains retain their
 existing starting value. This is separate from
-continuous observation noise and changes no occupancy or detection prior.}
+continuous observation noise and leaves all other occupancy and detection
+priors unchanged.}
 }
 \value{
 A list with:

@@ -358,7 +358,8 @@ create_waic_quantities <- function(n_obs){
 #' choice is saved in \code{infos$spatial_sd_prior}. Half-Cauchy chains start
 #' at the supplied scale (the prior median); default chains retain their
 #' existing starting value. This is separate from
-#' continuous observation noise and changes no occupancy or detection prior.
+#' continuous observation noise and leaves all other occupancy and detection
+#' priors unchanged.
 #'
 #' @return A list with:
 #' \describe{
