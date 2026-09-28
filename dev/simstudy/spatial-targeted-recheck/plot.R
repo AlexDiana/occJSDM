@@ -80,6 +80,7 @@ p <- ggplot(range_means,aes(truth,estimate,color=support,group=support))+
   geom_point(size=2.5)+facet_wrap(~arm,nrow=1)+
   scale_color_manual(values=c('20 (default)'='#777777','50'='#147d92','100 (all sites)'='#783f89'))+
   scale_x_continuous(breaks=sort(unique(range_points$truth)),labels=function(x)sprintf('%.3f',x))+
+  coord_cartesian(ylim=range(c(range_points$truth,range_points$estimate)))+
   labs(title='Did estimated spatial ranges track the three different truths?',
     x='True spatial range (standardized coordinates)',y='Estimated spatial range',color='Support points',
     caption='Dashed line: exact recovery. Faint points: independent communities; larger points: three-community means.\nBars show one between-community standard error at each fixed range, not posterior credible intervals.')
