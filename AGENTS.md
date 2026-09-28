@@ -335,7 +335,7 @@ To restore automatic deployment on push, put back the two lines recorded in the 
 
 ## Current work status
 
-- **28 September 2026: PR #13 is merged with Doug's approval.** The response-output correction is on main as `43351bb`; it does not change fitting, priors or the sampler. PR #14 remains pending Alex. The tightened `TODO.md` puts the spatial-amplitude half-Cauchy comparison before beta and occupancy-intercept widening after beta. Older dated review-status notes below are historical.
+- **28 September 2026: PR #13 is merged with Doug's approval.** The response-output correction is on main as `43351bb`; it does not change fitting, priors or the sampler. PR #14 remains pending Alex. The tightened `TODO.md` puts the spatial-amplitude half-Cauchy comparison before beta and occupancy-intercept widening after beta. Doug clarified that the generic remaining occupancy-bias decision duplicates that post-beta prior task; it is no longer a separate beta prerequisite. Document the remaining bias as a beta limitation, and test rather than assume that widening resolves it. Older dated review-status notes below are historical.
 
 - **28 September 2026: the targeted spatial study is complete.** `dev/simstudy/spatial-targeted-recheck/REPORT.md` records nine communities, 81 initial fits and 26 longer checks on frozen `d3d710e`. It finds substantial rare-species and low/high occupancy bias under unchanged defaults; more support points do not resolve it. One native q convergence warning remains. See the dated spatial section below; this does not reopen the corrected spatial sampler or close the beta bias assessment.
 

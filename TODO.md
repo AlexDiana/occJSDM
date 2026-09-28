@@ -48,7 +48,7 @@ output: html_document
 
 # **v0.1.0-beta Public release**
 
-**Release criterion agreed 10 September 2026:** retain all advertised modelling features, fix incorrect or materially biased point estimates, and allow undercoverage or overcoverage to wait. This triage assumes a GitHub beta. The CRAN submission and paper work can follow later.
+**Release criterion agreed 10 September 2026:** retain all advertised modelling features, fix incorrect or materially biased point estimates, and allow undercoverage or overcoverage to wait. **Exception agreed 28 September:** the remaining occupancy-probability bias is deferred to the post-beta occupancy-intercept-prior task and must be documented as a beta limitation. This triage assumes a GitHub beta. The CRAN submission and paper work can follow later.
 
 **Status, 28 September 2026:** the collection-alignment, RNG and residual-correlation fixes are merged, as are the spatial correction in [PR #8](https://github.com/AlexDiana/occJSDM/pull/8) and the optional continuous-noise prior in [PR #10](https://github.com/AlexDiana/occJSDM/pull/10). Alex fixed read thresholds greater than one in `5382460`. Doug approved the output corrections in [PR #13](https://github.com/AlexDiana/occJSDM/pull/13) for merging on 28 September; PR #14 remains pending Alex's review. The studies in [PR #11](https://github.com/AlexDiana/occJSDM/pull/11) retain their frozen `80d449d` evidence; the [paired rerun against current `2a75bf1`](dev/simstudy/current-main-recheck/REPORT.md) is complete. It preserves the broad findings but retains five convergence flags, including one substantial case. This rerun changes neither default settings nor release targets, and no bias gate is cleared by merging code or preserving historical evidence.
 
@@ -64,11 +64,9 @@ output: html_document
 
 2. **Investigate the worst remaining convergence flag.** Review high-contamination, 300-site community 5 (Rhat up to 1.74) before relying on precise comparisons. Assess and report the other four flagged fits alongside it. [Current-code results](dev/simstudy/current-main-recheck/REPORT.md#numerical-checks-and-limits).
 
-3. **Decide which remaining occupancy biases must be addressed before beta.** Low probabilities remain too high and high probabilities too low; extra field sampling helps but does not resolve this. Agree a non-spatial acceptance criterion and record any further work or explicit deferral. Keep collection/detection priors unchanged unless paired comparisons justify a change.
+3. **After approved code changes land: check and refresh the release package.** Run the tests and installed-package check, fix new failures, regenerate `sampleresults`, and rebuild affected vignette results. Record the code revision, seeds, priors and thread settings. The [previous package check](dev/simstudy/current-main-recheck/VALIDATION.md) is complete; this is the final integration check.
 
-4. **After approved code changes land: check and refresh the release package.** Run the tests and installed-package check, fix new failures, regenerate `sampleresults`, and rebuild affected vignette results. Record the code revision, seeds, priors and thread settings. The [previous package check](dev/simstudy/current-main-recheck/VALIDATION.md) is complete; this is the final integration check.
-
-5. **Before announcing beta: document the limitations.** Update the README, fitting documentation and announcement with the demonstrated performance, remaining occupancy/spatial bias and interval uncertainty. Remove unsupported assurances about low-q intervals or extra PCRs eliminating bias. Keep all advertised features available.
+4. **Before announcing beta: document the limitations.** Update the README, fitting documentation and announcement with the demonstrated performance, remaining occupancy/spatial bias and interval uncertainty. Remove unsupported assurances about low-q intervals or extra PCRs eliminating bias. Keep all advertised features available.
 
 **Agreed constraints:** at most six PCR replicates per primer. The provisional spatial target is mean signed occupancy error within five percentage points, separately below 20%, at 20-80% and above 80% truth, in sufficiently informative scenarios. Assess rare species separately. Occupancy-intercept widening and the full interval-calibration study are post-beta work.
 
@@ -92,12 +90,12 @@ Every outstanding item from the previous TODO is accounted for below or in the r
 
 ## Prior sensitivity
 
-- **Widening the occupancy-intercept prior:** post-beta release task, deferred by Doug on 28 September 2026. Compare the current Normal(mean 0, SD 1) prior with wider alternatives in paired full-model fits using the saved rare-species datasets. Assess occupancy bias, interval coverage and convergence before choosing a new default, and retain informative detection priors. This prior change and its validation are not prerequisites for the beta release.
+- **Widening the occupancy-intercept prior:** post-beta follow-up for the remaining occupancy-probability bias, including rare-species overestimation and low/high probabilities pulled toward the middle. Deferred by Doug on 28 September 2026. Compare the current Normal(mean 0, SD 1) prior with wider alternatives in paired full-model fits using the saved datasets. Assess bias, interval coverage and convergence before choosing a new default, and retain informative detection priors. Widening is a candidate remedy to test, not an established fix. This work is not a prerequisite for beta.
 
 ## Interval calibration
 
 - **Collection-slope and q interval calibration:** defer interval-width work once the point-estimate checks above clear. The old q coverage comparison used the wrong simulated truth; rerun it with the corrected positive-read probability before describing either low-q or high-q coverage. The collection row-alignment defect is fixed (see *Fixed bugs* 49), but that does not establish correct interval widths. Keep the two mechanisms separate.
-- **`B0` undercoverage in the continuous model:** defer the second clean-configuration experiment. Its recorded concern is interval width with negligible bias. This is separate from `B0` bias in occupancy/two-stage fits, which is rechecked above.
+- **`B0` undercoverage in the continuous model:** defer the second clean-configuration experiment. Its recorded concern is interval width with negligible bias. This is separate from `B0` bias in occupancy/two-stage fits, covered by the post-beta prior task above.
 - **`theta0` overcoverage:** defer. The recorded point-estimate bias fell substantially; excess interval width is allowed for beta. If revisited, investigate the previously untested collection-prior mean change rather than tightening `theta0`'s own prior to force a coverage target.
 
 ## Review and maintenance
