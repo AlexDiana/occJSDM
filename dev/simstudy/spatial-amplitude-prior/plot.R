@@ -74,8 +74,10 @@ trace_data<-do.call(rbind,lapply(selected,function(z) {
     prior=prior,chain=factor(ch),iteration=keep,amplitude=x[keep,ch])))
 }))
 p<-ggplot(trace_data[trace_data$prior=='half_cauchy',],aes(iteration,amplitude,colour=chain))+
-  geom_line(linewidth=.3,alpha=.65)+facet_wrap(~community,scales='free_y',ncol=3)+
+  geom_line(linewidth=.35,alpha=.8)+facet_wrap(~community,scales='free_y',ncol=3)+
+  scale_colour_manual(values=c('1'='#0072B2','2'='#D55E00','3'='#009E73','4'='#8B4E8F'))+
   scale_y_log10()+labs(x='Retained iteration',y='Spatial amplitude (log scale)',colour='Chain',
     title='Do the half-Cauchy chains agree?',
-    subtitle='All nine selected fits. Display subsampled; diagnostics use every retained draw.')
+    subtitle='All nine selected fits. Display subsampled; diagnostics use every retained draw.',
+    caption='Vertical axis scales differ across communities.')
 ggsave(file.path(summary,'amplitude-traces.png'),p,width=11,height=8,dpi=180)
