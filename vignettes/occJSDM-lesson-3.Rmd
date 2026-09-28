@@ -1848,9 +1848,9 @@ remaining_gradient_2
 knitr::include_graphics("teaching-data/remaining-plots-gradient-2.png")
 ```
 
-The original walkthrough used `plotCovariateEffect()` here. That helper cannot currently be restored as a trustworthy occupancy-probability example: for numeric predictors it adds a log-odds intercept after the inverse-logit transformation, and its purported raw predictor grid is already standardized in this fit. For example, its median for `OTU_1` along environmental gradient 1 ranges from 1.772 to 1.815, outside the probability scale. The developer diagnostic `remaining-plots-diagnose-covariate.R` reproduces this from the archived fit. The two checked `plotOccupancyGradient()` calls above provide the response-curve examples.
+The original walkthrough used `plotCovariateEffect()` here. Before the correction in [PR #13](https://github.com/AlexDiana/occJSDM/pull/13), its numeric calculation added a log-odds intercept after the inverse-logit transformation and standardized predictors twice. The archived fit consequently gave impossible median probabilities of 1.772 to 1.815 for `OTU_1` along environmental gradient 1. The corrected helper applies the inverse-logit to the complete environmental linear predictor and reuses fitted scaling and encoding. Existing fits with the required covariate metadata need no refit.
 
-A correction to `returnCovariateEffect()` and `plotCovariateEffect()` is awaiting review in [PR #13](https://github.com/AlexDiana/occJSDM/pull/13). It also renames the numeric posterior-median column from `mean` to `median`. The figures above already use the correct probability calculation; their differences from the simulated truth are not caused by that output bug.
+The corrected `returnCovariateEffect()` and `plotCovariateEffect()` vary one predictor in original units, hold other numeric predictors at their medians and categories at their first fitted levels, and set spatial and latent site effects to zero. The numeric posterior-median column is now named `median`, replacing `mean`. The two `plotOccupancyGradient()` examples above already use the correct probability calculation; their differences from the simulated truth are not caused by this output bug.
 
 ### Separate false-positive and detection-rate plots
 
@@ -1987,7 +1987,7 @@ These exporters preserve all posterior draws for their summaries. They do not re
 | Ecological question | Useful functions | Truth check in the lessons |
 |---|---|---|
 | How do I prepare and fit data? | `simulateOccJSDMData()`, `runOccJSDM()` | Lessons 0 and 1 |
-| How does each species respond to the environment? | `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()` | Coefficients and native gradients above; the defect in `plotCovariateEffect()` is explicit |
+| How does each species respond to the environment? | `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()` | Coefficients and native gradients above; corrected conditional response curves are also available |
 | What is baseline occupancy? | `returnOccupancyRates()`, `plotOccupancyRates()` | Baseline table and native plot above |
 | Do traits explain species responses? | `returnTraitsCoeff()`, `plotTraitsCoefficients()` | Custom and native trait plots with standardized truth; cancellation diagnostic above |
 | Which species share unmeasured site responses? | `returnResidualCorrelationMatrix()`, `plotResidualCorrelationMatrix()` | Matched matrices and native uncertainty display above |

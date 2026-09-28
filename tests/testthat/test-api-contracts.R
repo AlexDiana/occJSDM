@@ -80,8 +80,8 @@ test_that("returnCovariateEffect() returns one row per grid point per species", 
                                idx_species = 1:2, confidence = 0.95)
   expect_s3_class(eff, "data.frame")
   expect_gt(nrow(eff), 0)
-  # a fitted value and an interval, whatever they end up being called
-  expect_gte(ncol(eff), 4)
+  # Name the actual statistic, so a median cannot be mistaken for a mean.
+  expect_named(eff, c("x", "median", "lower", "upper", "Species"))
   expect_true(any(grepl("species|sp", names(eff), ignore.case = TRUE)))
 })
 
