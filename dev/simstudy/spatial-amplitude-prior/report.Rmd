@@ -1,0 +1,146 @@
+---
+title: "Does a half-Cauchy prior improve spatial recovery?"
+author: "occJSDM validation"
+date: "28 September 2026"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    self_contained: true
+params:
+  summary: null
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE,message=FALSE,warning=FALSE)
+stopifnot(!is.null(params$summary))
+folder<-normalizePath(params$summary)
+read<-function(name)read.csv(file.path(folder,name),stringsAsFactors=FALSE)
+fits<-read('fits.csv');paired<-read('paired-summary.csv');groups<-read('groups.csv')
+gate<-read('extension-gate.csv');audit<-read('independent-audit.csv')
+stopifnot(nrow(fits)==18L,nrow(audit)==18L,!anyDuplicated(audit[c('key','prior')]))
+joined<-merge(fits,audit,by=c('key','prior'),suffixes=c('_selected','_audit'))
+stopifnot(nrow(joined)==18L,all(joined$result_md5_selected==joined$result_md5_audit),
+  all(joined$fit_md5_selected==joined$fit_md5_audit))
+labels<-c(inverse_gamma='Current inverse-gamma',half_cauchy='Half-Cauchy(1)')
+metric<-function(name)paired[paired$metric==name & paired$arm=='binary',]
+fmt<-function(x)formatC(x,format='f',digits=3)
+image<-function(name)knitr::include_graphics(file.path(folder,name))
+selected<-readRDS(file.path(folder,'selected-results.rds'))
+probe_selection<-read('initialization-selection.csv');probe<-readRDS(probe_selection$file)
+stopifnot(identical(unname(tools::md5sum(probe_selection$file)),probe_selection$md5))
+```
+
+## What was tested?
+
+We changed one prior: the shared standard deviation of the spatial coefficients. The current model puts an inverse-gamma(shape 10, scale 1) prior on its variance. The experimental model puts a half-Cauchy(scale 1) prior on its standard deviation. This gives the model considerably more freedom to estimate a strong spatial effect. It changes both the concentration and typical scale of the prior; it is not a test of tail shape alone.
+
+Both models use the **same nine saved binary communities**, with 100 sites, eight species, and 100 spatial support points. Three communities were generated at each of three spatial ranges. Species have 1%, 5%, 25% or 75% mean occupancy. The binary observations are the true occupied/unoccupied states, so this comparison isolates the spatial model from imperfect detection. All other priors are unchanged, including the occupancy-intercept prior. Half-Cauchy chains start at amplitude 1; the original default starts at .001. A separate four-start check examines sensitivity to initial amplitudes 0.1, 0.3, 1 and 3.
+
+```{r prior-figure, out.width='100%'}
+image('spatial-amplitude-priors.png')
+```
+
+## Did the spatial field improve?
+
+A useful prior should recover the spatial field, not simply increase the amplitude estimate. **Total error** includes mistakes in both field level and spatial pattern. **Centred error** removes each species' mean across sites and measures the remaining spatial pattern. Lower errors and higher correlation are better. These are errors on the model's linear-predictor scale, not percentage-point occupancy errors.
+
+```{r field-table}
+show<-paired[match(c('raw_rmse','centred_rmse','centred_correlation','centred_slope','amplitude_mean'),paired$metric),]
+knitr::kable(data.frame(
+  Measure=c('Total spatial-field error (RMSE)','Centred spatial-pattern error (RMSE)',
+    'Centred spatial-pattern correlation','Centred field slope on truth','Estimated spatial amplitude'),
+  `Current prior`=fmt(show$inverse_gamma),`Half-Cauchy`=fmt(show$half_cauchy),
+  `Paired change (95% interval)`=paste0(fmt(show$mean),' [',fmt(show$lower),', ',fmt(show$upper),']'),
+  check.names=FALSE),align=c('l','r','r','r'))
+```
+
+Values average over the nine communities. The paired change is half-Cauchy minus current prior. The intervals describe uncertainty across communities, accounting for the three fixed range strata. With only three communities per stratum, they are descriptive and can be wide.
+
+```{r field-figure, out.width='100%'}
+image('paired-field-recovery.png')
+```
+
+The centred error improved in **`r metric('centred_rmse')$decreased` of nine communities**. A centred slope of 1 would mean the recovered field has the correct size along the true spatial pattern; a smaller slope indicates attenuation. Neither the slope nor the amplitude alone establishes accurate recovery.
+
+## What do the spatial patterns look like?
+
+This example was fixed in the protocol: the first community at the middle spatial range, showing one species from each prevalence group. Each map is centred across sites for that species. Truth and both estimates use the same colour scale.
+
+```{r pattern-map, out.width='100%'}
+image('illustrative-spatial-patterns.png')
+```
+
+## Did occupancy estimates improve?
+
+A spatial effect can change occupancy estimates even when its own recovery remains poor. We therefore evaluate occupancy separately. Positive bias means overestimation; negative bias means underestimation.
+
+```{r occupancy-table}
+show<-paired[match(c('occupancy_bias','occupancy_mae','occupancy_rmse','occupancy_coverage'),paired$metric),]
+knitr::kable(data.frame(
+  Measure=c('Average signed error (percentage points)','Average absolute error (percentage points)',
+    'Root-mean-square error (percentage points)','95% interval containment (%)'),
+  `Current prior`=round(100*show$inverse_gamma,2),`Half-Cauchy`=round(100*show$half_cauchy,2),
+  check.names=FALSE),align=c('l','r','r'))
+```
+
+```{r occupancy-figure, out.width='100%'}
+image('occupancy-bias.png')
+```
+
+The probability bands group individual site-species probabilities by their true values. They are different from groups of species averaging 1%, 5%, 25% or 75% occupancy across all sites. **Interval containment here is descriptive:** nine communities do not establish nominal 95% coverage.
+
+```{r prevalence-table}
+rows<-groups[groups$metric=='occupancy' & groups$group %in% paste0('prevalence_',c(1,5,25,75),'pct'),]
+tab<-do.call(rbind,lapply(split(rows,interaction(rows$prior,rows$group,drop=TRUE)),function(z)
+  data.frame(Prior=labels[z$prior[1]],`True mean occupancy (%)`=as.numeric(gsub('[^0-9]','',z$group[1])),
+    `Bias (points)`=round(100*mean(z$bias),2),`Absolute error (points)`=round(100*mean(z$mae),2),
+    check.names=FALSE)))
+tab<-tab[order(tab[[2]],tab$Prior),];knitr::kable(tab,row.names=FALSE)
+```
+
+## What happened to the spatial range?
+
+```{r range-table}
+show<-paired[match(c('range_mae','range_coverage'),paired$metric),]
+knitr::kable(data.frame(Measure=c('Mean absolute range error','95% range interval containment'),
+  `Current prior`=fmt(show$inverse_gamma),`Half-Cauchy`=fmt(show$half_cauchy),
+  check.names=FALSE),align=c('l','r','r'))
+```
+
+Range is measured on the standardized coordinate scale. The three generating ranges were 0.1067, 0.1711 and 0.2356. A stronger estimated amplitude does not by itself imply better range recovery.
+
+## Were the chains reliable?
+
+Initial fits used two chains, 3,000 burn-in iterations and 5,000 retained iterations per chain. If either prior failed the prespecified checks, both priors were compared using four chains, 6,000 burn-in and 12,000 retained iterations. Previously saved longer controls were reused. Longer runs were selected by diagnostics before inspecting recovery outcomes.
+
+**`r sum(fits$prior=='half_cauchy' & fits$phase=='long')` of nine pairs required the longer schedule.** Among the 18 selected fits, **`r sum(fits$flag_count>0)` retain at least one diagnostic flag**, including **`r sum(fits$spatial_flag_count>0)` with a spatial-amplitude or field-summary flag**. The threshold is rank-normalized Rhat above 1.05 or mean ESS below 100; unavailable spatial diagnostics also fail. These thresholds are screening rules, not proof that every posterior mode was visited.
+
+```{r diagnostics-table}
+knitr::kable(fits[,c('community','prior','phase','spatial_flag_count','flag_count')],
+  col.names=c('Community','Prior','Selected schedule','Spatial flags','All flags'),row.names=FALSE)
+```
+
+```{r unresolved-flags, results='asis'}
+bad<-fits[fits$flag_count>0,]
+if(nrow(bad))for(i in seq_len(nrow(bad)))cat('\n- **',bad$community[i],' / ',labels[bad$prior[i]],'**: ',bad$reasons[i],'\n',sep='')
+```
+
+The separate initialization check used `r probe$mcmc$nburn` burn-in and `r probe$mcmc$niter` retained iterations in each of four chains. Its spatial diagnostic result is **`r if(nzchar(probe_selection$spatial_flags)) 'flagged' else 'acceptable under the prespecified thresholds'`**. This check is excluded from the paired recovery summaries.
+
+## Should the experiment extend to two-stage data?
+
+The decision rule was fixed before fitting. It requires lower mean total and centred field error, better centred correlation, improved centred error in at least six communities, satisfactory spatial diagnostics including the initialization check, and no meaningful deterioration in occupancy or range error.
+
+```{r gate-table}
+knitr::kable(data.frame(Criterion=gate$criterion,Result=ifelse(gate$pass,'Pass','Fail')),row.names=FALSE)
+```
+
+**The prespecified extension decision is `r if(all(gate$pass)) 'PASS' else 'FAIL'`.** `r if(all(gate$pass)) 'This supports undertaking the matching two-stage comparison, subject to the reported uncertainty.' else 'The matching two-stage extension is not justified by this binary experiment under the agreed rule.'` This is a decision about the next experiment, not a beta-release acceptance test or a recommendation to change the default prior.
+
+## Validation and limits
+
+The default-fit compatibility pilot differed from the previous installed version by at most 2.22e-15 across posterior values, with identical final RNG state and warnings. The half-Cauchy conditional sampler was checked against direct numerical integration. The full package check had zero errors and the three existing warnings. The selected results were independently reconstructed through the package's native spatial projection; fitted probabilities, intervals, field means and trace summaries were checked against the saved results. Source, input and fit fingerprints accompany the numerical evidence.
+
+This experiment uses nine binary communities at the observed sites, one spatial-amplitude scale, and 100 supports. It does not validate new-site predictions, trait or latent-factor interactions, a wide range of prior scales, or two-stage detection performance. The occupancy-intercept prior remains unchanged; widening it is a separate post-beta task.

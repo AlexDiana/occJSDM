@@ -1,0 +1,34 @@
+# Spatial-amplitude half-Cauchy experiment
+
+The [prespecified protocol](PLAN.md) compares the existing inverse-gamma spatial-amplitude prior with an opt-in half-Cauchy(scale 1) prior using nine saved binary communities at 100 spatial support points. Production implementation and fitting protocol were frozen at `4509629`; the old fitting reference is `d3d710e`, and the branch starts from main `74e33a5`. Default priors remain unchanged. This experiment is separate from continuous observation noise and from the post-beta occupancy-intercept-prior task.
+
+## Files and archives
+
+- `metrics.R` reconstructs field draws in bounded blocks and checks amplitude and per-species field summaries.
+- `run.R` reads the original immutable input archive, uses a separately installed experimental package, and saves complete fits before scoring. It fingerprints both installed R code and the compiled library.
+- `analysis.R` and `summarise.R` select symmetric longer comparisons and evaluate the prespecified binary extension rule. Summary directories distinguish selected observation arms.
+- `continue.R` waits for the nine initial fits, runs the finite list of required longer fits and the separate initialization check with at most four workers, then stops at the binary comparison. It does not automatically start two-stage fits.
+- `verify.R` reconstructs every selected draw through the native spatial projection, independently checks probabilities, interval containment, field summaries and stored diagnostics, and records numerical sensitivity of folded-rank Rhat.
+- `plot.R` and `report.Rmd` produce scientific figures and an HTML report from audited selected results.
+
+Raw archive for this run: `/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-amplitude-20260928`. Original input/control archive: `/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-targeted-20260927`. Both are ignored by Git. Keep them for full reproduction; compact evidence will not substitute for all saved posterior draws.
+
+## Reproduction
+
+Use absolute paths for `REPO`, `STUDY` and `REFERENCE`. `STUDY/source` must contain the frozen production files and `STUDY/library` the separately installed experimental package. Keep the installed library unchanged throughout the run. Run from this directory when invoking the standalone research tests or the audit.
+
+```sh
+Rscript test-metrics.R
+Rscript test-analysis.R
+Rscript run.R --repo=REPO --study=STUDY --reference=REFERENCE --mode=baseline --prior=inverse_gamma --workers=4
+Rscript run.R --repo=REPO --study=STUDY --reference=REFERENCE --mode=initial --workers=4
+Rscript continue.R REPO STUDY REFERENCE
+Rscript verify.R STUDY STUDY/summary-binary-final
+Rscript plot.R REPO STUDY/summary-binary-final
+```
+
+Render `report.Rmd` with `params = list(summary = 'STUDY/summary-binary-final')` and an isolated evaluation environment. Check the complete selected-fit audit and extension rule before undertaking the matching low/high-contamination comparison. A failed field-recovery or convergence criterion stops that extension; no prior-default change is implied.
+
+## Numerical diagnostic audit
+
+Two reconstructions can agree to machine precision yet produce slightly different folded-rank Rhat because the two observations surrounding an even-sample median have theoretically equal absolute deviations; floating-point arithmetic can assign different ranks to that pair. The independent pilot showed field/trace/probability differences below 8.1e-15, exact stored-diagnostic reproduction, and no Rhat threshold crossing. The audit therefore checks exact diagnostics from the saved traces separately from numerical native reconstruction. It records native Rhat differences, changed folded ranks and any crossing of 1.05. Review a crossing conservatively under the longer-sampling rule; do not alter or round frozen production traces after inspecting results. Any unresolved threshold crossing blocks the extension pending review.
