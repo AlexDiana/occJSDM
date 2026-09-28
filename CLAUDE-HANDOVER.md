@@ -2,6 +2,23 @@
 
 Updated 28 September 2026, approximately 18:03 BST. Doug requested: **“wrap up your analysis and write a handover document for Claude.”** This is a handover of existing work, not authorization to restart the simulations. The conditional diagnosis is complete and audited; the original full-model prior comparison is still running. Leave its processes intact.
 
+## Recovery update, 28 September 2026, about 20:30 BST
+
+At about 20:23 BST the Codex app was restarted, which killed every process it had spawned: the coordinator (PID 13505), the progress monitor (PID 14111), the analysis follow-on (PID 37320) and the seven longer fits that were still running. Doug confirmed the kill was a mistake. No partial or temporary files were left; every completed fit, result file and hash is intact. Process identifiers quoted in the sections below are therefore historical.
+
+At 20:27 BST Claude relaunched only the seven missing longer fits with the frozen `run.R`, the unchanged `settings.rds` and the saved input RNG states, so they reproduce what the killed workers would have produced. Nothing completed was refitted. The launcher, a replacement follow-on and `pids.txt` are in `STUDY/recovery-20260928/`, and every dispatch is appended to `STUDY/continuation.log`. Each fit appends to its existing `STUDY/KEY.PRIOR.long.log`.
+
+- range6-rep02 inverse-gamma, PID 85264
+- range8-rep01 half-Cauchy, PID 85285
+- range8-rep01 inverse-gamma, PID 85304
+- range8-rep02 half-Cauchy, PID 85323
+- range8-rep02 inverse-gamma, PID 85343
+- range8-rep03 half-Cauchy, PID 85364
+- range8-rep03 inverse-gamma, PID 85384
+- Replacement follow-on, PID 85402: waits for the seven result files, then runs `summarise.R` initial and final, `rescore-checked.R`, `robust-summarise.R` select, initial and final, `verify-robust.R`, `plot.R` and `export.py`, logging to `STUDY/final-analysis-follow-on.log`. It stops at the first failure and records that in `continuation.log`. It gives up after 16 hours.
+
+Completed longer fits took 3.1 to 3.4 hours each with eight concurrent workers, so the recovered fits should finish around 23:45 BST to 00:15 BST, after which the analysis runs unattended. Do not launch a second copy of any of these jobs.
+
 ## Read this first
 
 1. **Do not launch another `continue.R`, restart the eight workers, or repeat completed fits.** The live coordinator retains its launched-job bookkeeping in memory. Doug explicitly emphasized that substantial work was already completed/in progress and noted the running R processes.
