@@ -114,6 +114,10 @@ audit_one<-function(i) {
     x=truth$Xs[,1],y=truth$Xs[,2],field_truth=truth$field[,s],field_median=q[,2],
     field_lower=q[,1],field_upper=q[,3],probability_truth=truth$psi[,s],
     probability_mean=pm,probability_lower=pq[,1],probability_upper=pq[,2])
+  for(ch in 1:4) {
+    sites[[paste0('field_chain',ch)]]<-apply(fields[,,ch],1,median)
+    sites[[paste0('probability_chain',ch)]]<-rowMeans(probabilities[,,ch])
+  }
   audit<-data.frame(community=row$community,configuration=row$configuration,species=s,
     result_md5=row$result_md5,input_md5=a$input_md5,summary_difference=difference,
     metric_difference=metric_difference,diagnostic_difference=diagnostic_difference,
@@ -129,7 +133,7 @@ sites<-do.call(rbind,lapply(results,`[[`,'sites'))
 audits<-do.call(rbind,lapply(results,`[[`,'audit'))
 diagnostics<-do.call(rbind,lapply(results,`[[`,'diagnostics'))
 stopifnot(nrow(sites)==28800L,nrow(audits)==288L)
-groups<-list()
+groups<-chain_groups<-chain_extrema<-list()
 for(community in unique(sites$community))for(configuration in LETTERS[1:4]) {
   a<-sites[sites$community==community & sites$configuration==configuration,]
   for(group in c('all',as.character(c(.01,.05,.25,.75)))) {
@@ -145,9 +149,37 @@ for(community in unique(sites$community))for(configuration in LETTERS[1:4]) {
       occupancy_bias=mean(b$probability_mean-b$probability_truth),
       occupancy_mae=mean(abs(b$probability_mean-b$probability_truth)),
       occupancy_coverage=mean(b$probability_lower<=b$probability_truth & b$probability_upper>=b$probability_truth))
+    for(ch in 1:4) {
+      med<-b[[paste0('field_chain',ch)]];centred<-med-ave(med,b$species,FUN=mean)
+      chain_groups[[length(chain_groups)+1L]]<-data.frame(community=community,configuration=configuration,
+        group=group,grid_index=b$grid_index[1],chain=ch,
+        raw_rmse=sqrt(mean((med-b$field_truth)^2)),centred_rmse=sqrt(mean((centred-tc)^2)),
+        occupancy_mae=mean(abs(b[[paste0('probability_chain',ch)]]-b$probability_truth)))
+    }
+    # Species were sampled independently: chain labels need not align across
+    # species. Add species-wise extrema before taking the community RMSE.
+    extremes<-vapply(split(seq_len(nrow(b)),b$species),function(ids) {
+      raw_error<-centred_error<-absolute_error<-numeric(4)
+      for(ch in 1:4) {
+        med<-b[[paste0('field_chain',ch)]][ids]
+        raw_error[ch]<-sum((med-b$field_truth[ids])^2)
+        centred_error[ch]<-sum((med-mean(med)-tc[ids])^2)
+        absolute_error[ch]<-sum(abs(b[[paste0('probability_chain',ch)]][ids]-b$probability_truth[ids]))
+      }
+      c(raw_min=min(raw_error),raw_max=max(raw_error),centred_min=min(centred_error),
+        centred_max=max(centred_error),mae_min=min(absolute_error),mae_max=max(absolute_error))
+    },numeric(6))
+    bounds<-rowSums(extremes)/nrow(b)
+    chain_extrema[[length(chain_extrema)+1L]]<-data.frame(community=community,configuration=configuration,
+      group=group,grid_index=b$grid_index[1],raw_rmse_min=sqrt(bounds['raw_min']),
+      raw_rmse_max=sqrt(bounds['raw_max']),centred_rmse_min=sqrt(bounds['centred_min']),
+      centred_rmse_max=sqrt(bounds['centred_max']),occupancy_mae_min=bounds['mae_min'],
+      occupancy_mae_max=bounds['mae_max'])
   }
 }
 groups<-do.call(rbind,groups)
+chain_groups<-do.call(rbind,chain_groups)
+chain_extrema<-do.call(rbind,chain_extrema)
 metrics<-setdiff(names(groups),c('community','configuration','group','grid_index'))
 aggregate<-do.call(rbind,lapply(split(groups,interaction(groups$configuration,groups$group,drop=TRUE)),
   function(a)do.call(rbind,lapply(metrics,function(m)data.frame(configuration=a$configuration[1],
@@ -161,6 +193,24 @@ paired<-do.call(rbind,lapply(c('A','C','D'),function(other) {
       decreased=sum(delta<0),increased=sum(delta>0),as.list(stratified_mean(delta,v$grid_index)))
   }))))
 }))
+# Descriptive envelope over all observed independent-species chain choices,
+# not an MC confidence bound. Pooled-chain medians need not lie inside it.
+chain_sensitivity<-list()
+for(other in c('A','C','D'))for(group in unique(chain_groups$group))
+  for(metric in c('raw_rmse','centred_rmse','occupancy_mae')) {
+    envelopes<-lapply(unique(chain_groups$community),function(community) {
+      z<-chain_extrema[chain_extrema$community==community & chain_extrema$group==group,]
+      base<-z[z$configuration=='B',];alternative<-z[z$configuration==other,]
+      stopifnot(nrow(base)==1L,nrow(alternative)==1L)
+      c(lower=alternative[[paste0(metric,'_min')]]-base[[paste0(metric,'_max')]],
+        upper=alternative[[paste0(metric,'_max')]]-base[[paste0(metric,'_min')]])
+    })
+    bounds<-do.call(rbind,envelopes)
+    chain_sensitivity[[length(chain_sensitivity)+1L]]<-data.frame(comparison=paste0(other,' minus B'),
+      group=group,metric=metric,observed_chain_min_change=mean(bounds[,'lower']),
+      observed_chain_max_change=mean(bounds[,'upper']))
+  }
+chain_sensitivity<-do.call(rbind,chain_sensitivity)
 stopifnot(identical(unname(tools::md5sum(analysis_hashes$file)),analysis_hashes$md5),
   identical(unname(tools::md5sum(selected$file)),selected$result_md5))
 write.csv(audits,file.path(destination,'audit.csv'),row.names=FALSE)
@@ -169,6 +219,9 @@ write.csv(sites,file.path(destination,'sites.csv'),row.names=FALSE)
 write.csv(groups,file.path(destination,'community-groups.csv'),row.names=FALSE)
 write.csv(aggregate,file.path(destination,'aggregate.csv'),row.names=FALSE)
 write.csv(paired,file.path(destination,'paired.csv'),row.names=FALSE)
+write.csv(chain_groups,file.path(destination,'chain-community-groups.csv'),row.names=FALSE)
+write.csv(chain_extrema,file.path(destination,'chain-community-extrema.csv'),row.names=FALSE)
+write.csv(chain_sensitivity,file.path(destination,'chain-sensitivity.csv'),row.names=FALSE)
 write.csv(analysis_hashes,file.path(destination,'analysis-source-md5.csv'),row.names=FALSE)
 artifacts<-c(list.files(destination,pattern='[.]csv$',full.names=TRUE),
   file.path(out,c('all-selected.csv','geometry.csv','information.csv','source-md5.csv','quadrature-checks.csv','validation-source-md5.csv')))

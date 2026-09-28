@@ -72,7 +72,8 @@ copy_csv<-function(path) {
   }
   write.csv(x,file.path(output,basename(path)),row.names=FALSE)
 }
-for(name in c('aggregate.csv','paired.csv','community-groups.csv','audit.csv','analysis-source-md5.csv'))
+for(name in c('aggregate.csv','paired.csv','community-groups.csv','chain-community-groups.csv',
+  'chain-community-extrema.csv','chain-sensitivity.csv','audit.csv','analysis-source-md5.csv'))
   copy_csv(file.path(folder,name))
 for(name in c('all-selected.csv','geometry.csv','information.csv','source-md5.csv','quadrature-checks.csv','validation-source-md5.csv'))
   copy_csv(file.path(raw,name))
