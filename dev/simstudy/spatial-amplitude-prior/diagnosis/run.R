@@ -1,3 +1,6 @@
+Sys.setenv(OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',MKL_NUM_THREADS='1',
+  VECLIB_MAXIMUM_THREADS='1',RCPP_PARALLEL_NUM_THREADS='1')
+RcppParallel::setThreadOptions(numThreads=1L)
 args<-commandArgs(TRUE)
 stopifnot(length(args)>=3L)
 repo<-normalizePath(args[1]);study<-normalizePath(args[2]);mode<-args[3]
@@ -90,16 +93,21 @@ score<-function(x,t,s,offset,unknown_intercept) {
   med<-summaries[,2];truth<-t$field[,s];tc<-truth-mean(truth);fc<-med-mean(med)
   diagnostics<-list()
   add<-function(values,label) {
+    values<-matrix(values,ni,nc);mean_required<-startsWith(label,'probability_')
     diagnostics[[length(diagnostics)+1L]]<<-data.frame(quantity=label,
-      as.list(robust_trace_diagnostics(matrix(values,ni,nc))))
+      as.list(robust_trace_diagnostics(values)),mean_required=mean_required,
+      ess_mean=if(mean_required)as.numeric(posterior::ess_mean(values)) else NA_real_,
+      mcse_mean=if(mean_required)as.numeric(posterior::mcse_mean(values)) else NA_real_)
   }
   for(i in seq_len(n)) {
     add(field[i,],paste0('field_',i));add(probabilities[i,],paste0('probability_',i))
   }
   add(colMeans(field),'field_average');add(sqrt(colMeans(field^2)),'field_rms')
   add(colSums(field*tc)/sum(tc^2),'field_truth_projection')
+  add(colMeans(probabilities),'probability_average')
   if(unknown_intercept)add(x[n+1,,],'intercept')
   diagnostics<-do.call(rbind,diagnostics)
+  mean_bad<-diagnostics$mean_required & (!is.finite(diagnostics$ess_mean) | diagnostics$ess_mean<100)
   pmean<-rowMeans(probabilities)
   pq<-t(apply(probabilities,1,quantile,probs=c(.025,.975),names=FALSE))
   metrics<-data.frame(raw_rmse=sqrt(mean((med-truth)^2)),
@@ -109,8 +117,9 @@ score<-function(x,t,s,offset,unknown_intercept) {
     field_interval_width=mean(summaries[,3]-summaries[,1]),
     occupancy_bias=mean(pmean-t$psi[,s]),occupancy_mae=mean(abs(pmean-t$psi[,s])),
     occupancy_coverage=mean(pq[,1]<=t$psi[,s] & pq[,2]>=t$psi[,s]),
-    flag_count=sum(robust_flag_rows(diagnostics)),max_rhat=max(diagnostics$rhat),
-    min_ess=min(as.matrix(diagnostics[c('ess_bulk','ess_median','ess_q025','ess_q975')])) )
+    flag_count=sum(robust_flag_rows(diagnostics) | mean_bad),max_rhat=max(diagnostics$rhat),
+    min_ess=min(as.matrix(diagnostics[c('ess_bulk','ess_median','ess_q025','ess_q975')]),
+      diagnostics$ess_mean[diagnostics$mean_required]))
   list(metrics=metrics,diagnostics=diagnostics,field_quantiles=summaries,
     probability_mean=pmean,probability_quantiles=pq)
 }
