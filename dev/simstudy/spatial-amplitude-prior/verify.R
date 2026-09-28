@@ -1,7 +1,11 @@
 #!/usr/bin/env Rscript
 # Full-draw audit using native spatial projection, independent of the scorer.
-a<-commandArgs(TRUE);stopifnot(length(a)==2L)
+a<-commandArgs(TRUE);stopifnot(length(a) %in% c(2L,3L))
+workers<-if(length(a)==3L)as.integer(a[3]) else 1L
+stopifnot(workers %in% 1:4)
 study<-normalizePath(a[1]);summary<-normalizePath(a[2])
+script<-normalizePath(sub('^--file=','',commandArgs(FALSE)[grepl('^--file=',commandArgs(FALSE))]))
+repo<-dirname(dirname(dirname(dirname(script))))
 Sys.setenv(RCPP_PARALLEL_NUM_THREADS='1',OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',VECLIB_MAXIMUM_THREADS='1')
 .libPaths(c(file.path(study,'library'),.libPaths()));library(occJSDM)
 rows<-read.csv(file.path(summary,'fits.csv'),stringsAsFactors=FALSE)
@@ -10,8 +14,12 @@ audit<-function(i) {
   row<-rows[i,];r<-readRDS(row$result_file);raw<-readRDS(row$fit_file);fit<-raw$fit
   stopifnot(identical(unname(tools::md5sum(row$result_file)),row$result_md5),
     identical(unname(tools::md5sum(row$fit_file)),row$fit_md5),
-    identical(raw$job,r$job),identical(raw$fit_hashes,r$fit_hashes),
-    identical(unname(tools::md5sum(names(r$fit_hashes))),unname(r$fit_hashes)))
+    identical(raw$job,r$job),identical(raw$fit_hashes,r$fit_hashes))
+  original_sources<-names(r$fit_hashes);resolved_sources<-original_sources
+  relocated<-!file.exists(original_sources) & grepl('/dev/simstudy/',original_sources,fixed=TRUE)
+  resolved_sources[relocated]<-paste0(repo,sub('^.*(/dev/simstudy/.*)$','\\1',original_sources[relocated]))
+  stopifnot(all(file.exists(resolved_sources)),
+    identical(unname(tools::md5sum(resolved_sources)),unname(r$fit_hashes)))
   input<-readRDS(r$job$input_file)
   stopifnot(identical(unname(tools::md5sum(r$job$input_file)),r$job$input_md5))
   js<-fit$results_output$jsdm_output;n<-nrow(fit$Xs);S<-dim(js$B0_output)[1]
@@ -74,14 +82,18 @@ audit<-function(i) {
   }
   stopifnot(max(field_error,trace_error,probability_error,group_error)<1e-9,diag_error<1e-12)
   cat(row$key,row$prior,'verified\n');flush.console()
-  data.frame(key=row$key,prior=row$prior,field_error=field_error,trace_error=trace_error,
+  data.frame(key=row$key,prior=row$prior,relocated_source_count=sum(relocated),field_error=field_error,trace_error=trace_error,
     diagnostic_error=diag_error,native_rhat_difference=native_rhat_difference,
     native_threshold_crossings=native_threshold_crossings,folded_rank_changes=folded_rank_changes,probability_error=probability_error,group_error=group_error,
     result_md5=row$result_md5,fit_md5=row$fit_md5)
 }
-# Sequential audit keeps memory use bounded alongside any remaining fits.
-answer<-lapply(seq_len(nrow(rows)),audit)
+# Default to sequential audit alongside fits; use up to four after fitting ends.
+work<-function(i)tryCatch(audit(i),error=function(e)list(key=rows$key[i],prior=rows$prior[i],error=conditionMessage(e)))
+answer<-if(workers==1L)lapply(seq_len(nrow(rows)),work) else parallel::mclapply(
+  seq_len(nrow(rows)),work,mc.cores=workers,mc.preschedule=FALSE,mc.set.seed=FALSE)
+bad<-!vapply(answer,is.data.frame,logical(1))
+if(any(bad)){print(answer[bad]);stop('Independent audit failed')}
 write.csv(do.call(rbind,answer),file.path(summary,'independent-audit.csv'),row.names=FALSE)
-write.csv(data.frame(file=normalizePath('verify.R'),md5=unname(tools::md5sum('verify.R'))),
+write.csv(data.frame(file=script,md5=unname(tools::md5sum(script))),
   file.path(summary,'audit-source.csv'),row.names=FALSE)
 cat('All',nrow(rows),'selected fits independently verified.\n')

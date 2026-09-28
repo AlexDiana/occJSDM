@@ -36,6 +36,13 @@ if(file.exists(manifest)) {
 }
 ```
 
+```{r main-caveat, results='asis'}
+flagged<-sum(fits$spatial_flag_count>0)
+if(flagged>0)cat('**The prior comparison remains provisional:** ',flagged,
+  ' of the 18 selected fits retain spatial convergence flags after the prescribed sampling. ',
+  'Numerical recovery differences below cannot be treated as a settled comparison of the two posteriors.\n\n',sep='')
+```
+
 ## What was tested?
 
 We changed one prior: the shared standard deviation of the spatial coefficients. The current model puts an inverse-gamma(shape 10, scale 1) prior on its variance. The experimental model puts a half-Cauchy(scale 1) prior on its standard deviation. This gives the model considerably more freedom to estimate a strong spatial effect. It changes both the concentration and typical scale of the prior; it is not a test of tail shape alone.
