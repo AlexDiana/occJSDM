@@ -1,0 +1,269 @@
+---
+title: "Spatial validation: realistic surveys and rare species"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    self_contained: true
+    theme: readable
+params:
+  summary: null
+  study: null
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE,message=FALSE,warning=FALSE)
+stopifnot(!is.null(params$summary),!is.null(params$study))
+summary_dir <- normalizePath(params$summary)
+study_dir <- normalizePath(params$study)
+a <- read.csv(file.path(summary_dir,'aggregate.csv'),stringsAsFactors=FALSE)
+fits <- read.csv(file.path(summary_dir,'selected-fits.csv'),stringsAsFactors=FALSE)
+groups <- read.csv(file.path(summary_dir,'groups.csv'),stringsAsFactors=FALSE)
+species <- read.csv(file.path(summary_dir,'species.csv'),stringsAsFactors=FALSE)
+paired <- read.csv(file.path(summary_dir,'paired.csv'),stringsAsFactors=FALSE)
+field <- read.csv(file.path(summary_dir,'field.csv'),stringsAsFactors=FALSE)
+chain_summary <- read.csv(file.path(summary_dir,'chain-review','observed-chain-aggregate.csv'))
+range_chains <- read.csv(file.path(summary_dir,'chain-review','range-chain-diagnostics.csv'))
+checks <- read.csv(file.path(study_dir,'verification-selected-independent.csv'),stringsAsFactors=FALSE)
+stopifnot(all(c('key','needs_long','phase','selected_md5') %in% names(fits)),
+  all(c('key','result_md5','probability_difference','interval_difference','group_difference') %in% names(checks)))
+stopifnot(nrow(fits)==81L,nrow(checks)==81L,
+  !anyDuplicated(fits$key),!anyDuplicated(checks$key),setequal(fits$key,checks$key),
+  all(fits$phase[fits$needs_long]=='long'))
+checks <- checks[match(fits$key,checks$key),]
+stopifnot(identical(checks$result_md5,fits$selected_md5),
+  all(is.finite(as.matrix(checks[c('probability_difference','interval_difference','group_difference')]))),
+  max(checks$probability_difference,checks$interval_difference,checks$group_difference)<1e-10)
+arm_names <- c(binary='True occupancy states supplied',low='Two-stage: low contamination',high='Two-stage: high contamination')
+band_names <- c(low='Below 20%',medium='20% to 80%',high='Above 80%')
+f <- function(x,digits=1)formatC(x,format='f',digits=digits)
+flagged <- fits[!is.na(fits$selected_reasons) & nzchar(fits$selected_reasons),,drop=FALSE]
+stopifnot(nrow(range_chains)==81L,!anyDuplicated(range_chains$key),setequal(range_chains$key,fits$key))
+occupancy <- function(q,keep=c('low','medium','high'))a[a$metric=='occupancy' & a$quantity==q & a$group %in% keep,]
+display_table <- function(q,keep=c('low','medium','high'),digits=1) {
+  d <- occupancy(q,keep)
+  d$label <- ifelse(d$group %in% names(band_names),band_names[d$group],d$group)
+  d$cell <- paste0(f(100*d$mean,digits),' [',f(100*d$lower,digits),', ',f(100*d$upper,digits),']')
+  x <- reshape(d[c('arm','knots','label','cell')],idvar=c('arm','knots'),timevar='label',direction='wide')
+  x <- x[order(match(x$arm,names(arm_names)),x$knots),]
+  x <- x[c('arm','knots',paste0('cell.',unname(band_names[keep])))]
+  x$arm <- unname(arm_names[x$arm])
+  names(x)[1:2] <- c('Observation model','Support points')
+  names(x) <- sub('^cell\\.','',names(x))
+  rownames(x)<-NULL
+  knitr::kable(x)
+}
+```
+
+## What did the study show?
+
+**Occupancy estimates were substantially biased in these feasible two-stage surveys, especially for rare species.** Species averaging 1% true occupancy were estimated at about 29% to 30% with default spatial support settings. Giving the model the true occupied/unoccupied states improved accuracy, but did not eliminate the errors. Increasing support points from 20 to 100 did little to resolve them.
+
+```{r headline-table}
+headline <- function(arm,group,quantity) {
+  x <- a[a$arm==arm & a$knots==20 & a$metric=='occupancy' & a$group==group & a$quantity==quantity,'mean']
+  stopifnot(length(x)==1L);100*x
+}
+knitr::kable(do.call(rbind,lapply(names(arm_names),function(arm)data.frame(
+  Model=unname(arm_names[arm]),
+  `Average absolute error (points)`=f(headline(arm,'all','mae')),
+  `Estimated occupancy of 1% species (%)`=f(1+headline(arm,'prevalence_1pct','bias')),
+  `95% intervals containing truth (%)`=f(headline(arm,'all','coverage')),check.names=FALSE))))
+```
+
+This table averages the nine communities at the default 20 support points. The interval-containment column is descriptive, not a precise calibration estimate. The two-stage intervals were often wide as well as inaccurate. The detailed comparisons below retain all communities and the one unresolved package convergence warning.
+
+## What was tested
+
+These checks ask whether occJSDM recovers spatial occupancy probabilities under a feasible two-stage survey, including deliberately rare species. The probability target includes each sampled site's realized spatial effect. They use **nine independently simulated communities**, three at each of three spatial ranges. Every community has 100 sites and eight species. Two species apiece average 1%, 5%, 25% and 75% true occupancy across the sampled sites.
+
+Each two-stage survey has **two field samples per site, two primers, and six PCR replicates per primer**. Low and high contamination share the same biological truth and field-collection states. Matching binary fits receive the true occupied/unoccupied states, which removes detection error while still requiring the model to estimate the spatial field and occupancy probabilities.
+
+Each dataset is fitted with **20, 50 and 100 spatial support points**. Twenty is the default for 100 unique sites; 100 uses every observed location. More support points give the spatial model more flexibility, but do not add observations.
+
+All 81 initial fits are complete. The predefined diagnostic rules selected **`r sum(fits$needs_long)` longer checks**. After those checks, **`r nrow(flagged)` fits retain flags**. The results below use the selected fits and retain every community. Unresolved mixing can affect posterior means, intervals and comparisons. The uncertainty bars based on variation among communities do not account for unresolved MCMC error.
+
+## How far were the probability estimates from the truth?
+
+Positive errors mean occupancy was estimated too high; negative errors mean it was estimated too low. The table separates low, middle and high true probabilities because errors in opposite directions can cancel in an overall average.
+
+```{r bias-table}
+display_table('bias')
+```
+
+Values are **percentage-point errors**, followed by approximate 95% intervals for the simulation average. Those intervals use variation among the three independent communities within each spatial range. They are different from the fitted model's posterior intervals.
+
+```{r bias-figure, out.width='100%'}
+knitr::include_graphics(file.path(summary_dir,'occupancy-bias.png'),rel_path=FALSE)
+```
+
+The provisional target is an average signed error within five percentage points in sufficiently informative settings. It is assessed separately for each probability group. These operational designs test whether that target is reached; they are not assumed sufficiently informative in advance. Meeting that target does not mean every individual prediction is close to the truth.
+
+## How large were individual errors?
+
+Mean absolute error counts errors in either direction as positive. Unlike average signed error, it cannot look small because overestimates and underestimates cancel.
+
+```{r absolute-error-table}
+display_table('mae')
+```
+
+Values and uncertainty intervals are in percentage points. RMSE, which gives more weight to larger errors, is retained in the accompanying numerical results.
+
+## Were rare species estimated as rare?
+
+These are genuinely rare species across the sampled sites, rather than occasional low-probability sites within otherwise common species. There are 18 species-community cases at each rare prevalence. Species with zero occupied sites remain in the study; among the 1% cases, eight have no occupied sites at all.
+
+```{r rare-table}
+r <- occupancy('bias',c('prevalence_1pct','prevalence_5pct'))
+r$truth <- ifelse(r$group=='prevalence_1pct',.01,.05)
+r <- r[order(match(r$arm,names(arm_names)),r$knots,r$truth),]
+knitr::kable(data.frame(Model=unname(arm_names[r$arm]),Support=r$knots,
+  `True occupancy (%)`=100*r$truth,
+  `Estimated occupancy (%)`=f(100*(r$mean+r$truth),2),
+  `Error (points)`=f(100*r$mean,2),
+  `Estimate / truth`=f((r$mean+r$truth)/r$truth,2),check.names=FALSE))
+```
+
+```{r rare-figure, out.width='100%'}
+knitr::include_graphics(file.path(summary_dir,'rare-species.png'),rel_path=FALSE)
+```
+
+Five percentage points can be a large error for a species whose true occupancy is only 1% or 5%. No separate rare-species acceptance threshold has been chosen; the absolute errors and estimate-to-truth ratios should be judged together.
+
+## Did the 95% intervals contain the truth?
+
+For each fitted site and species, this check asks whether the model's 95% posterior interval contains the known true occupancy probability. The percentages are first calculated within each community and then averaged across communities.
+
+```{r coverage-figure, out.width='100%'}
+knitr::include_graphics(file.path(summary_dir,'interval-containment.png'),rel_path=FALSE)
+```
+
+```{r coverage-table}
+c <- occupancy('coverage')
+c$value <- f(100*c$mean)
+c$group <- unname(band_names[c$group])
+c <- reshape(c[c('arm','knots','group','value')],idvar=c('arm','knots'),timevar='group',direction='wide')
+c <- c[order(match(c$arm,names(arm_names)),c$knots),]
+c <- c[c('arm','knots',paste0('value.',unname(band_names)))]
+c$arm <- unname(arm_names[c$arm]);names(c) <- sub('^value\\.','',names(c))
+names(c)[1:2] <- c('Observation model','Support points');rownames(c)<-NULL
+knitr::kable(c)
+```
+
+These are descriptive containment percentages. Intervals from sites and species in the same community are dependent, and there are only nine independent communities. This study cannot establish precise nominal 95% repeated-sampling coverage. Poorly mixing fits also limit the interpretation of their interval results.
+
+At 20 support points, only 2.4% of intervals for the 1%-prevalence species contained the truth under low contamination, and 3.8% under high contamination. The high containment in the middle-probability group is accompanied by very wide intervals: about 59 and 69 percentage points respectively. It does not establish precise estimation of those probabilities.
+
+Interval width matters too: a wide interval may contain the truth while giving little precision. The table below gives the average distance between the lower and upper endpoints, in percentage points.
+
+```{r interval-width-table}
+display_table('interval_width')
+```
+
+## How much error did imperfect detection add?
+
+The binary control supplies the true occupied/unoccupied states at the same sites. Each comparison below subtracts its mean absolute error from that of the matching two-stage fit. Positive values mean that estimating occupancy from field and PCR detections added error.
+
+```{r detection-comparisons}
+d <- paired[grepl('^(low|high)_minus_binary_k',paired$comparison) & paired$quantity=='mae' & paired$group %in% c('all','low','medium','high'),]
+d$change <- paste0(f(100*d$mean),' [',f(100*d$lower),', ',f(100*d$upper),']')
+d$arm <- sub('_minus_binary_k.*','',d$comparison)
+d$support <- as.integer(sub('.*_k','',d$comparison))
+d <- d[order(match(d$arm,names(arm_names)),d$support,match(d$group,c('all',names(band_names)))),]
+knitr::kable(data.frame(Model=unname(arm_names[d$arm]),Support=d$support,
+  `True probability`=unname(c(all='All',band_names)[d$group]),
+  `Added MAE (points)`=d$change,`Communities worse`=d$increased,
+  `Communities better`=d$decreased,check.names=FALSE))
+```
+
+These paired comparisons isolate the additional difficulty of imperfect detection within this design. They do not establish that the remaining error in the binary control is unavoidable, or identify one particular prior or sampler component as its cause.
+
+## Did more spatial support points help?
+
+The following comparisons use the same simulated community in both fits. A negative change in MAE means that the larger support set reduced average absolute error.
+
+```{r support-comparisons}
+p <- paired[grepl('_k(50|100)_minus_k20$',paired$comparison) & paired$quantity=='mae' & paired$group %in% c('all','low','medium','high'),]
+p$change <- paste0(f(100*p$mean),' [',f(100*p$lower),', ',f(100*p$upper),']')
+p$arm <- sub('_k.*','',p$comparison)
+p$support <- as.integer(sub('.*_k([0-9]+)_minus_k20','\\1',p$comparison))
+p <- p[order(match(p$arm,names(arm_names)),p$support,match(p$group,c('all',names(band_names)))),]
+knitr::kable(data.frame(Model=unname(arm_names[p$arm]),
+  `Support comparison`=paste(p$support,'vs 20'),
+  `True probability`=unname(c(all='All',band_names)[p$group]),
+  `MAE change (points)`=p$change,`Communities improved`=p$decreased,
+  `Communities worsened`=p$increased,check.names=FALSE))
+```
+
+Small changes with intervals spanning zero should not be treated as reliable improvements. The selected support sets need not be nested, so this compares the package's implemented settings. A separate projection diagnostic measures how closely each selected basis could represent the true spatial field even if the field were known.
+
+Going from 20 to 100 support points reduced overall MAE by 0.10 point in the binary control and 0.12 point under low contamination; high-contamination MAE increased by 0.22 point. These changes are small compared with the errors themselves. The observed-chain sensitivity checks span both improvement and worsening for the two-stage support comparisons, so their small apparent differences should not guide a choice of support count on their own.
+
+## Did the spatial range track the truth?
+
+Each generating spatial range is shown separately. This makes it possible to see whether the model distinguishes the three ranges. Averaging errors across different true ranges could conceal opposing errors.
+
+```{r range-figure, out.width='100%'}
+knitr::include_graphics(file.path(summary_dir,'spatial-range.png'),rel_path=FALSE)
+```
+
+The full Gaussian-process fields were generated with amplitude SD 1. The fitted amplitude parameter, attenuation of the estimated fields and support-basis projection errors are retained in the numerical results. For a reduced-support field, the amplitude parameter need not equal the marginal or realized field SD. Recovering occupancy probabilities does not establish perfect recovery of every latent spatial effect.
+
+The two-stage estimates stayed near 0.14 to 0.15 across true ranges of 0.107, 0.171 and 0.236. They therefore did not reliably distinguish these generating ranges. The fitted amplitude parameter averaged about 0.32 to 0.33, close to its prior mean and well below the generating value of 1.
+
+```{r field-recovery-table}
+field_means <- aggregate(cbind(slope,projection_rmse)~arm+knots,field,mean)
+amplitudes <- aggregate(estimate~arm+knots,groups[groups$metric=='spatial_sd',],mean)
+field_means <- merge(field_means,amplitudes,by=c('arm','knots'))
+field_means <- field_means[order(match(field_means$arm,names(arm_names)),field_means$knots),]
+knitr::kable(data.frame(Model=unname(arm_names[field_means$arm]),Support=field_means$knots,
+  `Amplitude (truth 1)`=f(field_means$estimate,3),
+  `Field attenuation slope (ideal 1)`=f(field_means$slope,4),
+  `True-field projection RMSE`=f(field_means$projection_rmse,3),check.names=FALSE))
+```
+
+The attenuation slope compares the posterior-mean spatial field with the true field; values near zero mean little reproduction of the true spatial pattern. A small slope can reflect weak alignment as well as small estimated magnitude. The projection error asks how well the chosen basis could represent the true field if that field were known. With 100 support points the representation error is essentially zero, yet recovery of the true spatial pattern remains weak. More support points improved representational capacity without resolving recovery in these surveys.
+
+## How do the default priors affect interpretation?
+
+These checks assess recovery under prespecified generating scenarios using unchanged package priors. They are not a calibration experiment in which the truth is drawn from those priors. The rare-species intercepts and generating spatial amplitude receive little probability under the fitted priors:
+
+- **Species intercepts:** the fitted prior is Normal(0, 1), whose central 95% interval is about -1.96 to 1.96 on the logit scale. The generating intercepts range from -5.45 to -4.79 for the 1% species and from -3.79 to -3.12 for the 5% species.
+- **Spatial amplitude:** the fitted prior on its square is inverse-Gamma(shape 10, scale 1). The amplitude prior has mean 0.329 and a central 95% interval of 0.242 to 0.457, compared with generating amplitude 1. The prior probability of an amplitude at least 1 is about one in nine million.
+- **PCR detection:** the default Beta(5, 1) prior favors high true-detection probabilities, whereas these simulations use 0.3 to 0.6. The default Beta(1, 20) prior favors low false-positive probabilities; the high-contamination simulations deliberately use 0.15 to 0.3. These assumptions can matter when few true occupied or collected states are observed.
+
+With all other effects zero, the central 95% interval for occupancy implied by the intercept prior is about 12% to 88%. This is a conditional baseline probability, not a prior interval for average species occupancy after adding environmental and spatial effects.
+
+In plain terms, these defaults put little prior weight on the very rare species and large spatial amplitude used here. Prior shrinkage is a plausible contributor to recovery error, but its contribution has not been isolated by comparisons using alternative priors. The errors remain evidence about practical performance under these defaults; the prior mismatch does not make them irrelevant.
+
+These statements were checked against the frozen production source: the [active coefficient sampler](https://github.com/AlexDiana/occJSDM/blob/d3d710e406c5b022df9cb84b7e29e783b4b225c4/src/jsdm.cpp#L1100-L1133), [spatial variance prior settings](https://github.com/AlexDiana/occJSDM/blob/d3d710e406c5b022df9cb84b7e29e783b4b225c4/R/runOccJSDM.R#L856-L857), [amplitude update](https://github.com/AlexDiana/occJSDM/blob/d3d710e406c5b022df9cb84b7e29e783b4b225c4/R/jsdmfun.R#L1180-L1192), and [detection prior settings](https://github.com/AlexDiana/occJSDM/blob/d3d710e406c5b022df9cb84b7e29e783b4b225c4/R/runOccJSDM.R#L804-L809).
+
+## Numerical reliability and remaining limits
+
+Initial fits used two chains with 3,000 burn-in and 5,000 retained iterations. Longer checks used four chains with 6,000 burn-in and 12,000 retained iterations. Selection depended on convergence diagnostics, not on whether a fit's scientific result looked favorable. Initial fits and longer fits are both preserved.
+
+All 26 prescribed longer checks completed. One selected fit, `range6-rep03-high-k050`, retains the package's convergence warning for a PCR false-positive probability. Its largest classical Rhat for that block is 1.113, while the corresponding rank-normalized Rhat is 1.014. The warning remains recorded under the predefined rules; the different diagnostic results are not grounds for silently discarding it.
+
+Replacing initial fits with the longer fits changed a nine-community occupancy-group average bias or MAE by at most 0.87 percentage point, and containment by at most 2.74 points. Within a single community, the largest bias or MAE change was 6.16 points, and the largest containment change was 12.5 points. Longer runs therefore matter for particular communities and small comparisons, even though the broad recovery problems remain.
+
+```{r observed-chain-table}
+ch <- chain_summary[chain_summary$quantity=='mae' & chain_summary$group=='all',]
+ch <- ch[order(match(ch$arm,names(arm_names)),ch$knots),]
+knitr::kable(data.frame(Model=unname(arm_names[ch$arm]),Support=ch$knots,
+  `Pooled MAE (points)`=f(100*ch$pooled,2),
+  `Mean of community chain minima`=f(100*ch$chain_min_mean,2),
+  `Mean of community chain maxima`=f(100*ch$chain_max_mean,2),check.names=FALSE))
+```
+
+These are differences among observed chains, **not confidence intervals or bounds on MCMC error**. Each community's smallest and largest chain-specific errors are averaged across the nine communities. Pooled errors can be smaller than every chain's error when opposing errors cancel. Agreement between observed chains cannot exclude unvisited modes. All 81 selected fits had variable range traces in every chain; no constant range chain was observed.
+
+```{r diagnostic-table}
+if(nrow(flagged))knitr::kable(flagged[c('key','max_group_rhat','max_element_rhat','min_occupancy_ess','selected_reasons')],digits=3) else cat('No selected fit retains a flag under the prespecified screening rules. This is not proof that every posterior mode was explored.')
+```
+
+An independent audit reconstructed every selected fit's posterior probability draws through the package's native spatial projection. It rechecked means, interval endpoints, containment decisions and probability-group scores. The maximum numerical discrepancy across these checks was **`r format(max(checks$probability_difference,checks$interval_difference,checks$group_difference),scientific=TRUE,digits=3)`**.
+
+These fits use one environmental predictor, no traits and no residual factors. They assess recovery at fitted sites, not prediction at new sites. They do not validate all interactions between spatial effects, traits and latent factors, nor compare alternative packages. The earlier strong-information spatial examples remain separate evidence. Priors and production fitting code were unchanged.
+
+The exact production revision is **`r trimws(readLines(file.path(study_dir,'source-revision.txt')))`**. Seeds, input hashes, full fits, warnings and reproduction scripts are preserved with the study. The compact results include separate summaries within each spatial range and changes caused by substituting longer fits, both for individual communities and for the aggregate comparisons.

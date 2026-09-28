@@ -1,6 +1,6 @@
 # Spatial fitting corrections and validation
 
-**Original validation record, ALEX TO REVIEW.** The [spatial review guide](spatial-beta-recheck.md) records the agreed probability-error target and additional support-point and arithmetic checks. The [continuous-noise follow-up](https://github.com/AlexDiana/occJSDM/blob/codex/continuous-noise-prior/dev/simstudy/continuous-noise-prior-validation.md) is reviewed separately. The checks below used the RNG-safe branch as their comparison baseline, including collection covariate alignment. No prior, feature switch, coordinate transformation or range grid was changed for these original checks.
+**Historical validation record for PR #8, approved and merged on 27 September 2026.** The [spatial review guide](spatial-beta-recheck.md) records the agreed probability-error target and additional support-point and arithmetic checks. The [continuous-noise follow-up](continuous-noise-prior-validation.md) is reviewed separately. The checks below used the RNG-safe branch as their comparison baseline, including collection covariate alignment. No prior, feature switch, coordinate transformation or range grid was changed for these original checks.
 
 ## Demonstrated inconsistencies
 

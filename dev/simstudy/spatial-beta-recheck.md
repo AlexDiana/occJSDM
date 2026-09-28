@@ -1,6 +1,6 @@
 # Spatial fitting: review guide and beta checks
 
-**PR #8 now contains the spatial correction only.** The optional continuous-noise prior is reviewed separately on branch `codex/continuous-noise-prior`, after PR #8. The non-spatial investigation and consolidated TODO are on branch `codex/nonspatial-bias-recheck` and can be reviewed independently. No simulations were rerun to make this split; the saved results and original source fingerprints are unchanged.
+**Historical spatial evidence; PR #8 was approved and merged on 27 September 2026.** The optional continuous-noise prior in PR #10 and non-spatial investigation in PR #11 are also merged. The saved spatial results and original source fingerprints below are unchanged. A separate [targeted extension](spatial-targeted-recheck/README.md) addresses operational two-stage surveys, deliberately rare species and spatial support-point sensitivity on current production code.
 
 ## Start the code review here
 
@@ -54,7 +54,7 @@ Spatial range means are 0.1063, 0.1676 and 0.2356 against truths 0.1067, 0.1711 
 
 ## Reproduction and remaining review
 
-The original continuous checks with unchanged priors remain in the [original validation](spatial-range-validation.md). The separate [noise-prior report](https://github.com/AlexDiana/occJSDM/blob/codex/continuous-noise-prior/dev/simstudy/continuous-noise-prior-validation.md) contains the small-noise experiments and their reproduction commands. Their improved results rely on the optional noise-prior change and must not be attributed to PR #8 alone.
+The original continuous checks with unchanged priors remain in the [original validation](spatial-range-validation.md). The separate [noise-prior report](continuous-noise-prior-validation.md) contains the small-noise experiments and their reproduction commands. Their improved results rely on the optional noise-prior change and must not be attributed to PR #8 alone.
 
 The binary runner and reference save input data, truth, seeds, settings, source/library fingerprints and complete fits. These commands reproduce the existing work; reorganising the PR did not execute them again.
 
@@ -68,4 +68,4 @@ Rscript dev/simstudy/validate_binary_oracle.R --input=/path/to/binary-pilot/data
 
 Use binary grid indices 4, 6 and 8 in separate sibling output directories named `package60-range4-full`, `package60-range6-full` and `package60-range8-full`. The 60-observation reference pilot used four chains, 2,000 burn-in iterations and 4,000 retained draws with thinning by three. The saved binary source has unchanged binary priors, complete spatial support and grouped arithmetic. The later approved residual-correlation correction does not change these no-factor, no-trait fits. Raw files remain in the task's `work/spatial-binary-resume-20260913` directory; compact CSVs do not replace them.
 
-Alex still needs to review the spatial code, the support-point advice and these results. Rare species and other sampling designs need separate assessment. The small-noise prior/default decision belongs to the separate noise PR. The consolidated [release TODO](https://github.com/AlexDiana/occJSDM/blob/codex/nonspatial-bias-recheck/TODO.md) records all remaining work. Passing these three informative binary cases does not clear every beta gate.
+The spatial code review is complete and PR #8 is merged. Rare species and other sampling designs need separate assessment; the [targeted extension](spatial-targeted-recheck/README.md) records that study separately. PR #10 added the optional continuous-noise prior without changing the default. The consolidated [release TODO](../../TODO.md) records the remaining work. Passing these three informative binary cases does not clear every beta gate.
