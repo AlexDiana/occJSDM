@@ -122,7 +122,13 @@ choice is saved in \code{infos$spatial_sd_prior}. Half-Cauchy chains start
 at the supplied scale (the prior median); default chains retain their
 existing starting value. This is separate from
 continuous observation noise and leaves all other occupancy and detection
-priors unchanged.}
+priors unchanged.
+In full-rank binary spatial fits, the unbounded half-Cauchy can leave the
+spatial-amplitude posterior mean infinite and spatial-field means
+non-integrable. Use posterior medians and quantiles for spatial summaries
+with this experimental option, and check rank-based chain convergence.
+Bounded occupancy-probability means remain meaningful. This option does
+not establish improved spatial recovery.}
 }
 \value{
 A list with:

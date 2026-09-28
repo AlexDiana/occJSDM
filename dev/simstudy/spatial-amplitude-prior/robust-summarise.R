@@ -6,9 +6,19 @@ scripts<-file.path(repo,'dev/simstudy/spatial-amplitude-prior')
 source(file.path(repo,'dev/simstudy/spatial-targeted-recheck/analysis.R'))
 source(file.path(scripts,'metrics.R'));source(file.path(scripts,'analysis.R'));source(file.path(scripts,'robust.R'))
 root<-file.path(study,'robust-v1')
+out<-file.path(root,paste0('summary-binary-',phase));dir.create(out,showWarnings=FALSE)
+if(phase=='final')for(name in c('extension-gate.csv','extension-decision.csv')) {
+  old<-file.path(out,name);if(file.exists(old))stopifnot(file.remove(old))
+}
+dependency_file<-file.path(root,'dependency-provenance.rds')
+dependencies<-readRDS(dependency_file)
+for(hashes in list(dependencies$dependency_hashes,dependencies$control_hashes))
+  stopifnot(identical(unname(tools::md5sum(names(hashes))),unname(hashes)))
 read_robust<-function(path) {
   if(!file.exists(path))stop('Required robust result missing: ',path)
   a<-readRDS(path);validate_robust_spatial(a)
+  stopifnot(path %in% names(dependencies$result_hashes),
+    identical(unname(tools::md5sum(path)),unname(dependencies$result_hashes[path])))
   stopifnot(identical(a$estimand_version,'robust-v1'),
     identical(unname(tools::md5sum(a$source_fit)),a$source_fit_md5),
     identical(unname(tools::md5sum(a$legacy_result)),a$legacy_result_md5),
@@ -58,9 +68,10 @@ for(key in keys) {
     }
   }
 }
-out<-file.path(root,paste0('summary-binary-',phase));dir.create(out,showWarnings=FALSE)
-provenance<-list(args=args,created=Sys.time(),session=sessionInfo(),
-  script_hashes=tools::md5sum(file.path(scripts,c('robust.R','robust-summarise.R','rescore.R','ESTIMAND-AMENDMENT.md'))))
+provenance<-list(args=args,created=Sys.time(),session=sessionInfo(),dependencies=dependencies,
+  dependency_manifest=tools::md5sum(dependency_file),
+  script_hashes=tools::md5sum(c(file.path(scripts,c('robust.R','robust-summarise.R','rescore.R',
+    'metrics.R','analysis.R','ESTIMAND-AMENDMENT.md')),file.path(repo,'dev/simstudy/spatial-targeted-recheck/analysis.R'))))
 saveRDS(provenance,file.path(out,'provenance.rds'))
 selection<-do.call(rbind,selection);write.csv(selection,file.path(out,'selection.csv'),row.names=FALSE)
 cat('Amended paired longer schedules:',sum(selection$needs_long),'; pending IG:',sum(selection$run_ig_long),
@@ -80,14 +91,17 @@ if(phase=='final') {
   probefile<-file.path(root,'half_cauchy/starts-initial',paste0(key,'-result.rds'))
   probe<-read_robust(probefile)
   validate_choice(probe,initial,'half_cauchy','starts-initial',new_fit_hashes)
-  if(length(probe$legacy_reasons)>0L || any(robust_flag_rows(probe$spatial$diagnostics)) ||
+  legacy_probe<-readRDS(probe$legacy_result)
+  if(length(spatial_flags(legacy_probe$spatial$diagnostics))>0L || any(robust_flag_rows(probe$spatial$diagnostics)) ||
      any(robust_flag_rows(probe$spatial$field_diagnostics))) {
     probefile<-file.path(root,'half_cauchy/starts-long',paste0(key,'-result.rds'))
     probe<-read_robust(probefile);validate_choice(probe,initial,'half_cauchy','starts-long',new_fit_hashes)
   }
   gate<-robust_extension_gate(pairs,selected,probe)
   write.csv(gate,file.path(out,'extension-gate.csv'),row.names=FALSE)
-  flags<-paste(robust_reasons(probe),collapse='; ')
+  trace_flags<-sum(robust_flag_rows(probe$spatial$diagnostics))
+  field_flags<-sum(robust_flag_rows(probe$spatial$field_diagnostics))
+  flags<-if(trace_flags+field_flags>0L)paste(trace_flags,'summary traces and',field_flags,'field entries flagged') else ''
   write.csv(data.frame(file=normalizePath(probefile),md5=unname(tools::md5sum(probefile)),
     fit=probe$source_fit,fit_md5=probe$source_fit_md5,spatial_flags=flags),
     file.path(out,'initialization-selection.csv'),row.names=FALSE)
@@ -96,5 +110,9 @@ if(phase=='final') {
     file.path(out,'initialization-summary.csv'),row.names=FALSE)
   write.csv(probe$spatial$diagnostics,file.path(out,'initialization-diagnostics.csv'),row.names=FALSE)
   write.csv(probe$spatial$field_diagnostics,file.path(out,'initialization-field-diagnostics.csv'),row.names=FALSE)
+  for(name in c('fits.csv','paired-summary.csv')) {
+    original<-file.path(root,'summary-binary-initial',name)
+    stopifnot(file.exists(original),file.copy(original,file.path(out,paste0('initial-',name)),overwrite=TRUE))
+  }
   cat('Amended gate before numerical audit:',if(all(gate$pass))'PASS' else 'FAIL','\n')
 }

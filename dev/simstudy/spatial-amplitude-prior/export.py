@@ -9,8 +9,8 @@ import sys
 
 study = Path(sys.argv[1]).resolve()
 repo = Path(sys.argv[2]).resolve()
-source = study / 'summary-binary-final'
-initial = study / 'summary-binary-initial'
+source = study / 'robust-v1/summary-binary-final'
+initial = study / 'robust-v1/summary-binary-initial'
 scripts = repo / 'dev/simstudy/spatial-amplitude-prior'
 out = scripts / 'results'
 out.mkdir(exist_ok=True)
@@ -41,13 +41,22 @@ for f in fits:
     for path_col, hash_col in [('result_file', 'result_md5'), ('fit_file', 'fit_md5')]:
         with open(f[path_col], 'rb') as stream:
             assert digest_stream(stream) == f[hash_col]
+probe = rows(source / 'initialization-selection.csv')
+probe_audit = rows(source / 'initialization-audit.csv')
+assert len(probe) == len(probe_audit) == 1
+assert probe[0]['md5'] == probe_audit[0]['result_md5']
+assert probe[0]['fit_md5'] == probe_audit[0]['fit_md5']
+for path_col, hash_col in [('file', 'md5'), ('fit', 'fit_md5')]:
+    with open(probe[0][path_col], 'rb') as stream:
+        assert digest_stream(stream) == probe[0][hash_col]
 
 files = ['fits.csv','paired-communities.csv','paired-summary.csv','groups.csv',
-         'spatial-diagnostics.csv','selection.csv','extension-gate.csv',
+         'spatial-diagnostics.csv','field-diagnostics.csv','selection.csv','extension-gate.csv','extension-decision.csv','extension-inputs.csv',
          'initialization-selection.csv','initialization-summary.csv',
-         'independent-audit.csv','audit-source.csv',
+         'initialization-diagnostics.csv','initialization-field-diagnostics.csv',
+         'independent-audit.csv','initialization-audit.csv','audit-source.csv',
          'paired-field-recovery.png','spatial-amplitude-priors.png',
-         'occupancy-bias.png','illustrative-spatial-patterns.png']
+         'occupancy-bias.png','illustrative-spatial-patterns.png','amplitude-traces.png']
 for name in files:
     src = source / name
     assert src.exists(), name
@@ -72,16 +81,16 @@ for name in ['fits.csv','paired-communities.csv','paired-summary.csv','spatial-d
 shutil.copy2(study / 'source-revision.txt', out / 'source-revision.txt')
 shutil.copy2(study / 'default-equivalence.txt', out / 'default-equivalence.txt')
 write(out / 'research-source-md5.csv', [dict(file=p.name, md5=hashlib.md5(p.read_bytes()).hexdigest())
-      for p in sorted(scripts.iterdir()) if p.is_file() and p.suffix in ['.R','.Rmd','.py','.md']])
+      for p in sorted(scripts.iterdir()) if p.is_file() and p.suffix in ['.R','.Rmd','.py','.md','.csv']])
 long_pairs = sum(f['prior'] == 'half_cauchy' and f['phase'] == 'long' for f in fits)
 flags = sum(int(f['spatial_flag_count']) > 0 for f in fits)
 (out / 'README.md').write_text(f'''# Compact spatial-amplitude comparison
 
-Nine binary communities, both priors, 100 supports. {long_pairs} pairs use the longer schedule; {flags} selected fits retain spatial diagnostic flags. Read the report for the scientific conclusion and all limitations.
+Nine binary communities, both priors, 100 supports. {long_pairs} pairs use the longer schedule; {flags} selected fits retain spatial diagnostic flags. Read the report for the scientific conclusion and all limitations. Spatial point estimates are medians for both priors; bounded occupancy point estimates remain means. The original spatial-mean targets are inapplicable under the unbounded half-Cauchy. See `../ESTIMAND-AMENDMENT.md` for the dated pre-outcome amendment and proof.
 
 The paired tables give half-Cauchy minus inverse-gamma changes. Probability errors are proportions; multiply by 100 for percentage points. Communities are the replication units, with three fixed generating-range strata. Interval containment is descriptive and does not establish calibration from nine communities.
 
-`fits.csv` identifies every selected result and fit; `independent-audit.csv` checks each one. The `initial-` tables preserve initial-versus-longer sensitivity. `extension-gate.csv` records the prespecified binary gate. Review native Rhat threshold crossings separately before extending. Figures and `initialization-summary.csv` support rendering the HTML report without raw fits. `artifact-md5.csv` protects this compact bundle; `research-source-md5.csv` records the source scripts.
+`fits.csv` identifies every selected result and fit; `independent-audit.csv` checks each one. The separate initialization fit is checked in `initialization-audit.csv`. The `initial-` tables preserve initial-versus-longer sensitivity. `extension-decision.csv` combines the amended statistical gate with a completed audit requiring no unresolved diagnostic threshold crossings. Figures and compact initialization tables support rendering the HTML report without raw fits. `artifact-md5.csv` protects this compact bundle; `research-source-md5.csv` records the source scripts.
 
 Paths in result/fit manifests are relative to the current raw archive. Paths beginning `../spatial-targeted-20260927/` refer to the immutable original study. The full archives remain local at `{study}` and `{study.parent / 'spatial-targeted-20260927'}`; posterior draws and installed packages are required to rerun the numerical audit. Production fitting revision is recorded in `source-revision.txt`. Defaults were not changed.
 

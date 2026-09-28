@@ -360,6 +360,12 @@ create_waic_quantities <- function(n_obs){
 #' existing starting value. This is separate from
 #' continuous observation noise and leaves all other occupancy and detection
 #' priors unchanged.
+#' In full-rank binary spatial fits, the unbounded half-Cauchy can leave the
+#' spatial-amplitude posterior mean infinite and spatial-field means
+#' non-integrable. Use posterior medians and quantiles for spatial summaries
+#' with this experimental option, and check rank-based chain convergence.
+#' Bounded occupancy-probability means remain meaningful. This option does
+#' not establish improved spatial recovery.
 #'
 #' @return A list with:
 #' \describe{
