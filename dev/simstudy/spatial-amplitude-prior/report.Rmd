@@ -10,6 +10,7 @@ output:
     self_contained: true
 params:
   summary: null
+  diagnosis: "diagnosis/results"
 ---
 
 ```{r setup, include=FALSE}
@@ -158,6 +159,8 @@ if(nrow(bad))for(i in seq_len(nrow(bad)))cat('\n- **',bad$community[i],' / ',lab
 
 The separate initialization check used `r probe$nburn` burn-in and `r probe$niter` retained iterations in each of four chains. Its spatial diagnostic result is **`r if(nzchar(probe$spatial_flags)) 'flagged' else 'acceptable under the prespecified thresholds'`**. This check is excluded from the paired recovery summaries.
 
+The sampler alternates between drawing the spatial coefficients given the amplitude and drawing the amplitude given those coefficients. There are 800 spatial coefficients here. When data provide little information, a small amplitude produces small coefficients, which in turn favour another small amplitude. This dependence is a plausible reason for slow movement across scales; the present experiment does not isolate it as the cause. A tightly concentrated prior can make chains agree while still giving inaccurate spatial fields, so convergence and recovery must be judged separately.
+
 ```{r amplitude-trace-figure, out.width='100%'}
 image('amplitude-traces.png')
 ```
@@ -170,6 +173,34 @@ knitr::kable(data.frame(Measure=c('Total field RMSE','Centred field RMSE','Centr
 ```
 
 These changes are half-Cauchy minus current prior. Sensitivity to the longer schedule is another reason to retain convergence qualifications.
+
+## Why is spatial-pattern recovery difficult?
+
+A separate conditional diagnosis reused the same nine communities and an independently validated sampler. All four checks supplied the true spatial range and environmental coefficient. A supplied the true intercept and fixed amplitude at 0.32; B supplied the true amplitude, 1, and the true intercept; C estimated the intercept under its unchanged Normal(0, SD 1) prior; D added nine independent ecological occupancy states to B. These checks isolate selected assumptions, but do not rank or add up every cause of full-model error.
+
+```{r conditional-setup, include=FALSE}
+diag_folder<-normalizePath(params$diagnosis)
+diag_hashes<-read.csv(file.path(diag_folder,'artifact-md5.csv'))
+stopifnot(identical(unname(tools::md5sum(file.path(diag_folder,diag_hashes$file))),diag_hashes$md5))
+diag_audit<-read.csv(file.path(diag_folder,'audit.csv'))
+diag_aggregate<-read.csv(file.path(diag_folder,'aggregate.csv'))
+stopifnot(nrow(diag_audit)==288L)
+diag_value<-function(configuration,measure,group='all') {
+  x<-diag_aggregate[diag_aggregate$configuration==configuration &
+    diag_aggregate$metric==measure & diag_aggregate$group==group,'mean']
+  stopifnot(length(x)==1L);x
+}
+```
+
+Giving the model the true amplitude, intercept, range and environmental coefficient leaves centred spatial-pattern RMSE at **`r fmt(diag_value('B','centred_rmse'))`**, compared with **`r fmt(diag_value('B','zero_centred_rmse'))`** for an entirely zero field. Thus limited ecological information is a major constraint even with these favourable assumptions. The smallest-range communities have no neighbour with correlation above 0.5 at 61--70% of sites; a 1%-occupancy species has only one expected occupied site among 100.
+
+```{r conditional-field-figure, out.width='100%'}
+knitr::include_graphics(file.path(diag_folder,'conditional-field-error.png'))
+```
+
+All 216 selected A/B/C conditional posteriors pass the planned diagnostic screens. **18 of the 72 D posteriors retain flags**, so its apparent improvement remains qualified. D supplies independent ecological observations of occupancy, not additional PCR replicates of one latent occupancy state. A and B fix amplitude; they do not compare two estimated amplitude priors. The detailed [conditional diagnosis](diagnosis/REPORT.md) records the saved-draw audit, observed-chain sensitivity, rare-species effects and limits.
+
+Estimating the intercept in C barely changes centred spatial-pattern RMSE, but increases rare-species occupancy bias. For species averaging 1% occupancy, mean signed error is **`r round(100*diag_value('C','occupancy_bias','0.01'),2)` percentage points**, versus **`r round(100*diag_value('B','occupancy_bias','0.01'),2)`** with the intercept known. This supports keeping the forthcoming occupancy-intercept-prior study separate from the question of spatial-map recovery.
 
 ## Should the experiment extend to two-stage data?
 

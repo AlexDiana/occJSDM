@@ -6,6 +6,11 @@ stopifnot(identical(unname(tools::md5sum(marker$artifact_hashes$file)),marker$ar
   identical(unname(tools::md5sum(marker$selected$file)),marker$selected$result_md5))
 library(ggplot2)
 aggregate<-read.csv(file.path(folder,'aggregate.csv'));sites<-read.csv(file.path(folder,'sites.csv'))
+selected<-read.csv(file.path(raw,'all-selected.csv'))
+flag_caption<-paste('Unresolved convergence flags:',paste(vapply(LETTERS[1:4],function(cfg) {
+  rows<-selected[selected$configuration==cfg,]
+  sprintf('%s %d/%d',cfg,sum(rows$flag_count>0),nrow(rows))
+},character(1)),collapse='; '),'. Flagged results are provisional.')
 labels<-c(A='A: amplitude 0.32',B='B: true amplitude 1',C='C: estimate intercept',D='D: ten ecological states')
 group_labels<-c(all='All species','0.01'='1% occupancy','0.05'='5% occupancy',
   '0.25'='25% occupancy','0.75'='75% occupancy')
@@ -25,13 +30,14 @@ draw_comparison<-function(metric,title,axis,filename,scale=1,zero=FALSE) {
       subtitle='Nine saved communities; range and environmental coefficient supplied at truth',
       caption=paste0('B is the reference: A changes amplitude; C estimates the intercept under N(0,1); D adds nine independent occupancy states per site.\n',
         'Intervals describe variation across communities, not posterior uncertainty. ',
-        if(zero)'Dashed lines show error from estimating a zero spatial field.' else 'Probability errors are in percentage points.'))+base_theme
+        if(zero)'Dashed lines show error from estimating a zero spatial field.' else 'Probability errors are in percentage points.',
+        '\n',flag_caption))+base_theme
   if(zero) {
     z<-aggregate[aggregate$metric=='zero_centred_rmse' & aggregate$configuration=='B',]
     z$group<-factor(z$group,levels=names(group_labels),labels=group_labels)
     g<-g+geom_vline(data=z,aes(xintercept=mean),linetype=2,colour='#444444')
   }
-  ggsave(file.path(folder,filename),g,width=15,height=4.8,dpi=160,bg='white')
+  ggsave(file.path(folder,filename),g,width=15,height=5.1,dpi=160,bg='white')
 }
 draw_comparison('centred_rmse','What limits recovery of the spatial pattern?',
   'Centred field RMSE (lower is better)','conditional-field-error.png',zero=TRUE)
@@ -48,13 +54,14 @@ m$method<-factor(m$method,levels=c('Truth',LETTERS[1:4]),
   labels=c('Truth','A: amplitude 0.32','B: true amplitude 1','C: estimate intercept','D: ten ecological states'))
 m$species_label<-factor(m$species,levels=c(2,4,6,8),labels=c('1% occupancy','5% occupancy','25% occupancy','75% occupancy'))
 limit<-max(abs(m$value))
-g<-ggplot(m,aes(x,y,fill=value))+geom_point(shape=21,size=2.8,colour=NA)+
+g<-ggplot(m,aes(x,y,fill=value))+geom_point(shape=21,size=2.8,colour='transparent',stroke=0)+
   facet_grid(species_label~method)+coord_equal()+
   scale_fill_gradient2(low='#2166AC',mid='white',high='#B2182B',midpoint=0,limits=c(-limit,limit),name='Centred field')+
   labs(title='Known parameters and extra ecological observations: an illustrative community',
     subtitle='Middle spatial range, community 1; one prespecified species from each prevalence group',
     x='Standardized x coordinate',y='Standardized y coordinate',
-    caption='Each map is centred across sites. The shared colour scale shows both pattern and magnitude. D adds independent ecological states, not PCR replicates.')+
+    caption=paste('Each map is centred across sites. The shared colour scale shows both pattern and magnitude. D adds independent ecological states, not PCR replicates.',
+      flag_caption,sep='\n'))+
   theme_minimal(base_size=11)+theme(panel.grid=element_blank(),plot.title=element_text(face='bold'),
     strip.text=element_text(face='bold'),plot.caption=element_text(hjust=0),legend.position='right')
 ggsave(file.path(folder,'conditional-field-maps.png'),g,width=15,height=11,dpi=160,bg='white')

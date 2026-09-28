@@ -4,6 +4,8 @@ The [prespecified protocol](PLAN.md), [compute amendment](COMPUTE-AMENDMENT.md) 
 
 **Use the amended median analysis.** In these full-rank binary fits, the unbounded half-Cauchy leaves the posterior amplitude mean infinite and spatial-field means non-integrable. Both priors therefore use pointwise field medians and rank/quantile diagnostics; bounded occupancy probabilities retain their posterior means. The original mean calculations remain archived, but their extension gate is mathematically inapplicable. No fitting or prior change was made in response to this discovery.
 
+The separate [conditional diagnosis of poor spatial recovery](diagnosis/REPORT.md) is complete: all 288 posteriors were independently audited, with the remaining convergence flags retained. The full-model prior comparison is still running at this handover; [Claude’s handover](../../../CLAUDE-HANDOVER.md) identifies the live queue and remaining reporting steps.
+
 ## Files and archives
 
 - `metrics.R` reconstructs field draws in bounded blocks and checks amplitude and per-species field summaries.
@@ -37,7 +39,7 @@ Rscript plot.R REPO STUDY/robust-v1/summary-binary-final
 python3 export.py STUDY REPO
 ```
 
-Run up to four rescoring/audit workers after fitting ends, or one alongside fits. Inspect the amended `select` output before final summarization: any additional initial diagnostic flag requires the same single paired longer schedule and then rescoring. Do not rerun or overwrite existing fits. Render `report.Rmd` with `params = list(summary = 'STUDY/robust-v1/summary-binary-final')` or the compact `results` directory, using an isolated evaluation environment. Check `extension-decision.csv` before undertaking the matching low/high-contamination comparison. A failed field-recovery, convergence or audit criterion stops that extension; no prior-default change is implied.
+Run up to four rescoring/audit workers after fitting ends, or one alongside fits. Inspect the amended `select` output before final summarization: any additional initial diagnostic flag requires the same single paired longer schedule and then rescoring. Do not rerun or overwrite existing fits. After exporting, render `report.Rmd` with its `summary` parameter set to the absolute compact `results` directory and `diagnosis` set to the absolute `diagnosis/results` directory, using an isolated evaluation environment. The compact bundle includes the required initial-sensitivity tables. Check `extension-decision.csv` before undertaking the matching low/high-contamination comparison. A failed field-recovery, convergence or audit criterion stops that extension; no prior-default change is implied.
 
 The checked rescoring wrapper verifies the frozen hashes in `scoring-dependencies.csv` before and after extraction and binds every cached result to those dependencies. It complements the core scorer's own hashes without changing previously frozen scoring code. Summary selection requires this dependency manifest as well as matching input, fit, legacy-result and scorer fingerprints.
 
