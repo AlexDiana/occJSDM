@@ -29,3 +29,5 @@ The wrapper used in AMENDMENT-1.md, `perl -MPOSIX -e 'POSIX::setsid() or die; ex
 ## Scoring
 
 The phase A scorer (Task 4: `analysis.R`, `summarise.R`, `verify.R`) implements the README's outcome and gate definitions with R18, R20, R21, R25 and R27 as stated in the README, AMENDMENT-1.md and this amendment. It is developed and validated without computing any new-arm outcome (controller ruling R28): its tests use hand-computed synthetic examples, and it is validated by scoring the control arm and reproducing the archived control results. The new arms are scored only after the scorer has passed review.
+
+AMENDMENT-1.md ends its run procedure with the rule that no occupancy error is computed before both `STUDY/selection/A1/selected-fits.csv` and `STUDY/selection/A2/selected-fits.csv` exist. Under R28 the control arm is scored for this validation while the A2 fits are still running, so that rule is relaxed for the control arm only: its outcomes are already recorded in the archives, and no selection uses them, since every selection is computed by frozen code from convergence flags alone. For the new arms the rule is unchanged by this amendment.
