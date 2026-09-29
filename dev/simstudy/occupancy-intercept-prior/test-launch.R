@@ -1,10 +1,13 @@
 library(testthat)
-source('jobs.R');source('verify-helpers.R');source('launch.R');source('flags.R')
+source('jobs.R');source('verify-helpers.R');source('launch.R');source('flags.R');source('select.R')
 
 # Research tests for the phase launcher (launch.R), the frozen flag rules
 # (flags.R) and the selection script (select.R). Run from this directory with
 # `Rscript test-launch.R`. Tests that need the saved archives or the study
 # archive are skipped when absent; set OCCJSDM_ARCHIVES to relocate them.
+# The suite never writes into the live study archive and does not depend on
+# its fits: command-line tests run against a temporary copy of its installed
+# library and exported source, and the live study is only read (pilot fits).
 here <- normalizePath('.')
 repo <- normalizePath('../../..')
 archives <- Sys.getenv('OCCJSDM_ARCHIVES','/Users/douglasyu/src/occJSDM/dev/simstudy/results')
@@ -19,6 +22,16 @@ run_cli <- function(script,args) {
   out <- suppressWarnings(system2(rscript,c(shQuote(script),shQuote(args)),stdout=TRUE,stderr=TRUE))
   list(status=attr(out,'status') %||% 0L,output=paste(out,collapse='\n'))
 }
+# A study holding only the installed library, exported source and revision of
+# the live study (enough for the fingerprint check), with no fits or logs.
+study_copy <- local({cache <- NULL;function() {
+  if(is.null(cache)) {
+    d <- tempfile('studycopy');dir.create(d)
+    for(x in c('source','library')) stopifnot(file.copy(file.path(study,x),d,recursive=TRUE))
+    stopifnot(file.copy(file.path(study,'source-revision.txt'),d));cache <<- normalizePath(d)
+  }
+  cache
+}})
 launch_args <- function(repo_dir,study_dir,...) c(paste0('--repo=',repo_dir),paste0('--study=',study_dir),
   paste0('--inputs-root=',inputs_root),paste0('--archives=',archives),'--phases=A1,A2','--sds=2,3,5','--max-procs=8',...)
 # A copy of the files a launcher checkout needs, at another path.
@@ -156,14 +169,19 @@ test_that('the phase A queue is 60 A1 initial and 27 A2 long jobs at the control
   expect_identical(c(nrow(committed[[2]]),nrow(committed[[3]])),c(60L,27L))
   expect_setequal(c(id(committed[[2]]),id(committed[[3]])),id(committed[[1]]))
   expect_identical(committed[[2]]$key,qa1$key);expect_identical(committed[[3]]$key,qa2$key)
-  expect_identical(nrow(bad(character(),numeric(),character())),0L)
+  none <- bad(character(),numeric(),character());expect_identical(nrow(none),0L)
+  for(override in list(NULL,'long')) {
+    e <- build_queue(c('A1','A2'),c(2,3,5),'/study',archives,none,override)
+    expect_identical(nrow(e),0L);expect_true(all(c(QUEUE_COLUMNS[QUEUE_COLUMNS!='fit_exists'],'lock') %in% names(e)))
+    expect_identical(nrow(queue_counts(e)),0L)
+  }
 })
 
 test_that('a dry run prints the queue and counts, writes the queue CSV and changes nothing in the study', {
-  need_study()
-  before <- list.files(study,recursive=TRUE,all.files=TRUE,include.dirs=TRUE)
+  need_study();sc <- study_copy()
+  before <- list.files(sc,recursive=TRUE,all.files=TRUE,include.dirs=TRUE)
   out <- tempfile(fileext='.csv')
-  r <- run_cli(file.path(here,'launch.R'),launch_args(repo,study,'--dry-run',paste0('--queue-out=',out)))
+  r <- run_cli(file.path(here,'launch.R'),launch_args(repo,sc,'--dry-run',paste0('--queue-out=',out)))
   expect_identical(r$status,0L)
   expect_match(r$output,'87 jobs');expect_match(r$output,'A1 +sd2 +initial +20');expect_match(r$output,'A2 +sd5 +long +9')
   expect_match(r$output,'Dry run: nothing started')
@@ -171,21 +189,26 @@ test_that('a dry run prints the queue and counts, writes the queue CSV and chang
   expect_identical(names(q),QUEUE_COLUMNS);expect_identical(nrow(q),87L)
   expect_identical(q$fit[1],'fits/A2/sd2/long/range4-rep01-binary-k100-fit.rds')
   expect_false(any(q$fit_exists))
-  expect_identical(list.files(study,recursive=TRUE,all.files=TRUE,include.dirs=TRUE),before)
+  expect_identical(list.files(sc,recursive=TRUE,all.files=TRUE,include.dirs=TRUE),before)
+  # An empty job list (select.R found nothing to repeat) is an empty queue, not an error.
+  empty <- tempfile(fileext='.txt');writeLines('"phase","sd","key"',empty)
+  r <- run_cli(file.path(here,'launch.R'),launch_args(repo,sc,paste0('--only=',empty),'--schedule-override=long'))
+  expect_identical(r$status,0L);expect_match(r$output,'Queue is empty; nothing to run')
+  expect_false(dir.exists(file.path(sc,'logs')))
 })
 
 test_that('the command line refuses another checkout, changed frozen scripts and existing locks', {
-  need_study()
+  need_study();sc <- study_copy()
   other <- copy_checkout()
-  r <- run_cli(file.path(here,'launch.R'),launch_args(other,study,'--dry-run'))
+  r <- run_cli(file.path(here,'launch.R'),launch_args(other,sc,'--dry-run'))
   expect_identical(r$status,1L);expect_match(r$output,'is not the launcher of --repo')
-  r <- run_cli(file.path(other,LAUNCH_SCRIPT),launch_args(other,study,'--dry-run'))
+  r <- run_cli(file.path(other,LAUNCH_SCRIPT),launch_args(other,sc,'--dry-run'))
   expect_identical(r$status,0L);expect_match(r$output,'Dry run: nothing started')
   run <- file.path(other,RUN_SCRIPT);writeLines(c(readLines(run),'# edited'),run)
-  r <- run_cli(file.path(other,LAUNCH_SCRIPT),launch_args(other,study,'--dry-run'))
+  r <- run_cli(file.path(other,LAUNCH_SCRIPT),launch_args(other,sc,'--dry-run'))
   expect_identical(r$status,1L);expect_match(r$output,'Frozen fit script changed')
   unlink(run)
-  r <- run_cli(file.path(other,LAUNCH_SCRIPT),launch_args(other,study,'--dry-run'))
+  r <- run_cli(file.path(other,LAUNCH_SCRIPT),launch_args(other,sc,'--dry-run'))
   expect_identical(r$status,1L);expect_match(r$output,'run.R not found')
   fake <- tempfile('study');dir.create(fake);fake <- normalizePath(fake)
   lock <- fit_lock_path(fit_path(fake,'A1',3,'initial','jsdm-n0300-07'));dir.create(lock,recursive=TRUE)
@@ -428,12 +451,91 @@ test_that('the selection needs every first fit, lists the long repeats, and asse
 })
 
 test_that('select.R before the first fits exist exits non-zero and writes nothing', {
-  need_study()
-  r <- run_cli(file.path(here,'select.R'),c(paste0('--repo=',repo),paste0('--study=',study),paste0('--inputs-root=',inputs_root),
-    '--phases=A1,A2','--sds=2,3,5','--mode=plan'))
+  need_archives()
+  empty <- tempfile('study');dir.create(empty);empty <- normalizePath(empty)
+  sel <- function(...) run_cli(file.path(here,'select.R'),c(paste0('--repo=',repo),paste0('--study=',empty),
+    paste0('--inputs-root=',inputs_root),paste0('--archives=',archives),'--sds=2,3,5',...))
+  r <- sel('--phases=A1,A2','--mode=plan')
   expect_identical(r$status,1L);expect_match(r$output,'87 first fits are missing')
-  r <- run_cli(file.path(here,'select.R'),c(paste0('--repo=',repo),paste0('--study=',study),paste0('--inputs-root=',inputs_root),
-    '--phases=A1','--sds=2,3,5','--mode=plan','--workers=2'))
+  r <- sel('--phases=A1','--mode=plan','--workers=2')
   expect_identical(r$status,1L);expect_match(r$output,'60 first fits are missing')
-  expect_false(dir.exists(file.path(study,'selection')))
+  r <- sel('--phases=A1','--mode=final')
+  expect_identical(r$status,1L);expect_match(r$output,'60 first fits are missing')
+  expect_identical(list.files(empty,recursive=TRUE,all.files=TRUE,include.dirs=TRUE),character())
+})
+
+# Stub flags for the end-to-end selection test: every metadata, md5, input and
+# table round-trip check is real; only the Rhat computation is replaced.
+stub_flags <- function(phase,fit,warnings,input,sc) data.frame(rule='stub',warnings=length(warnings),max_group_rhat=1,
+  max_element_rhat=1,unresolved_rhat=0L,spatial_trace_flags=NA_integer_,spatial_field_flags=NA_integer_,
+  flagged=isTRUE(fit$stub_flag),reasons=if(isTRUE(fit$stub_flag)) 'stub flag' else '',stringsAsFactors=FALSE)
+
+test_that('select.R plan and final record a flagged initial fit, its single longer repeat and each arm\'s selected fit', {
+  need_archives()
+  ts <- tempfile('study');dir.create(ts);ts <- normalizePath(ts)
+  specs <- phase_jobs('A1',archives,inputs_root)
+  fake_fit <- function(key,schedule,flag) {
+    rec <- list(phase='A1',key=key,sd=2,schedule=schedule,mcmc=schedule_mcmc('A1',schedule,archives),
+      input_md5=specs[[key]]$input_md5,fit=list(infos=list(intercept_prior=list(mean=0,sd=2)),stub_flag=flag),
+      warnings=character())
+    f <- fit_path(ts,'A1',2,schedule,key);dir.create(dirname(f),recursive=TRUE,showWarnings=FALSE);saveRDS(rec,f);f
+  }
+  for(k in phase_keys('A1')) fake_fit(k,'initial',k=='jsdm-n0100-03')
+  args <- function(mode) c(paste0('--repo=',repo),paste0('--study=',ts),paste0('--inputs-root=',inputs_root),
+    paste0('--archives=',archives),'--phases=A1','--sds=2',paste0('--mode=',mode),'--workers=2')
+  out <- file.path(ts,'selection','A1')
+  expect_identical(select_main(args('plan'),flag_fn=stub_flags),0L)
+  sel <- read_flag_table(file.path(out,'long-selection.csv'))
+  expect_identical(nrow(sel),20L);expect_identical(sel$key[sel$flagged],'jsdm-n0100-03');expect_true(is.double(sel$sd))
+  expect_identical(read_only_jobs(file.path(out,'long-keys.txt')),data.frame(phase='A1',sd=2,key='jsdm-n0100-03',stringsAsFactors=FALSE))
+  expect_identical(nrow(read_flag_table(file.path(out,'long-fit-flags.csv'))),0L)
+  ctl <- read_flag_table(file.path(out,'control-flags.csv'))
+  expect_identical(nrow(ctl),20L);expect_true(all(ctl$sd==1));expect_false(any(ctl$flagged))
+  tables <- file.path(out,c('long-selection.csv','long-keys.txt','long-fit-flags.csv','control-flags.csv'))
+  before <- unname(tools::md5sum(tables))
+  expect_identical(select_main(args('plan'),flag_fn=stub_flags),0L)
+  expect_identical(unname(tools::md5sum(tables)),before)
+  # Final mode needs the single longer repeat of every flagged initial fit.
+  expect_error(select_main(args('final'),flag_fn=stub_flags),'Longer repeats missing: 1.*longer-repeat launcher')
+  expect_false(file.exists(file.path(out,'selected-fits.csv')))
+  q <- build_queue('A1',c(2,3,5),ts,archives,read_only_jobs(file.path(out,'long-keys.txt')),'long')
+  expect_identical(q$fit,fit_path(ts,'A1',2,'long','jsdm-n0100-03'))
+  fake_fit('jsdm-n0100-03','long',FALSE)
+  expect_identical(select_main(args('final'),flag_fn=stub_flags),0L)
+  expect_identical(nrow(read_flag_table(file.path(out,'repeat-flags.csv'))),1L)
+  s <- utils::read.csv(file.path(out,'selected-fits.csv'),stringsAsFactors=FALSE)
+  expect_identical(c(sum(s$role=='new'),sum(s$role=='control')),c(20L,20L))
+  r <- s[s$role=='new' & s$key=='jsdm-n0100-03',]
+  expect_identical(r$selected_schedule,'long');expect_true(r$long_repeat);expect_true(r$first_flagged);expect_false(r$flagged)
+  expect_identical(r$fit,'fits/A1/sd2/long/jsdm-n0100-03-fit.rds')
+  expect_true(all(s$selected_schedule[s$role=='new' & s$key!='jsdm-n0100-03']=='initial'))
+  cc <- utils::read.csv(file.path(out,'convergence.csv'),stringsAsFactors=FALSE)
+  expect_identical(cc$stratum,c('n100','n300','n100','n300'));expect_identical(cc$selected_flagged,rep(0L,4L))
+  expect_identical(cc$long_repeats[cc$sd==2],c(1L,0L));expect_identical(cc$first_flagged[cc$sd==2],c(1L,0L))
+  # A first fit changed after the selection was recorded is refused.
+  fake_fit('jsdm-n0300-10','initial',TRUE)
+  expect_error(select_main(args('final'),flag_fn=stub_flags),'changed after the selection was recorded')
+})
+
+# The documented detached form: nohup, a new session via perl's setsid, a pid
+# file and an exit-status file, around a stub launcher run.
+test_that('the documented detached wrapper starts a new session and records its pid and exit status', {
+  if(!nzchar(Sys.which('perl'))) skip('perl not available')
+  ts <- stub_study();logs <- file.path(ts,'logs');dir.create(logs)
+  driver <- tempfile(fileext='.R')
+  writeLines(c(sprintf('setwd(%s)',deparse(here)),"source('jobs.R');source('verify-helpers.R');source('launch.R')",
+    sprintf('ts <- %s',deparse(ts)),
+    "cmd <- function(job) list(command='/bin/sh',args=c('-c',sprintf('sleep 1; mkdir -p %s; touch %s',shQuote(dirname(job$fit)),shQuote(job$fit))))",
+    "q <- order_queue(queue_frame('A1',2,'initial',c('jsdm-n0100-01','jsdm-n0100-02'),'initial',ts))",
+    "res <- execute_queue(q,ts,2L,cmd,poll=0.05,stamp='detached');quit(save='no',status=res$status)"),driver)
+  inner <- sprintf('echo $$ $(ps -o pgid= -p $$) > %s; %s %s; echo $? > %s',shQuote(file.path(logs,'ids')),
+    shQuote(rscript),shQuote(driver),shQuote(file.path(logs,'stub.exit')))
+  system(sprintf("nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh -c %s < /dev/null > %s 2>&1 & echo $! > %s",
+    shQuote(inner),shQuote(file.path(logs,'stub.out')),shQuote(file.path(logs,'stub.pid'))))
+  for(i in 1:600) {if(file.exists(file.path(logs,'stub.exit'))) break;Sys.sleep(0.1)}
+  expect_identical(readLines(file.path(logs,'stub.exit')),'0')
+  ids <- scan(file.path(logs,'ids'),quiet=TRUE);pid <- as.numeric(readLines(file.path(logs,'stub.pid')))
+  expect_identical(ids[1],ids[2]);expect_identical(ids[1],pid)
+  expect_false(identical(ids[2],as.numeric(system('ps -o pgid= -p $$',intern=TRUE))))
+  expect_true('exit_status: 0' %in% readLines(file.path(logs,'launch-detached','DONE')))
 })

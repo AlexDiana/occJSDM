@@ -19,12 +19,19 @@
 #   selected-fits.csv   each arm's selected fit per community, with its flags
 #   convergence.csv     selected fits still flagged, per phase, A1 site count and arm
 # A table that exists is never replaced: a recomputation must be byte-identical.
-# Nothing here computes or reads an occupancy error. Not hashed into fits.
+# No occupancy error is computed or used. The only file read that holds any is
+# the spatial-amplitude fits.csv, read by control_schedules() for the A2
+# control schedules, fit paths and md5s; its archived control occupancy bias,
+# MAE and coverage columns are loaded with it but never used (AMENDMENT-1.md).
+# The A2 flag rule also uses the true spatial field (see flags.R). Not hashed
+# into fits.
 
 read_flag_table <- function(path) {
   if(!file.exists(path)) stop('Required selection table missing: ',path)
-  utils::read.csv(path,stringsAsFactors=FALSE,colClasses=c(role='character',phase='character',key='character',
-    schedule='character',fit='character',fit_md5='character',rule='character',reasons='character'))
+  x <- utils::read.csv(path,stringsAsFactors=FALSE,colClasses=c(role='character',phase='character',sd='numeric',
+    key='character',schedule='character',fit='character',fit_md5='character',rule='character',reasons='character'))
+  stopifnot(is.double(x$sd))
+  x
 }
 
 empty_flag_table <- function() {
@@ -35,7 +42,8 @@ empty_flag_table <- function() {
   stopifnot(identical(names(x),c(ITEM_COLUMNS,FLAG_COLUMNS)));x
 }
 
-select_main <- function(args) {
+# flag_fn is fit_flags except in tests of the selection bookkeeping.
+select_main <- function(args,flag_fn=fit_flags) {
   o <- parse_options(args,known=c('repo','study','inputs-root','archives','phases','sds','mode','workers','out'),
     required=c('repo','study','inputs-root','phases','sds','mode'))
   phases <- split_list(o$phases,'phases')
@@ -52,7 +60,7 @@ select_main <- function(args) {
   sc <- load_flag_scorers(repo,archives)
   items <- selection_items(phases,sds,study,archives,repo)
   check_first_fits(items)
-  flags <- function(rows) {x <- evaluate_items(rows,sc,archives,inputs_root,workers);if(is.null(x)) empty_flag_table() else x}
+  flags <- function(rows) {x <- evaluate_items(rows,sc,archives,inputs_root,workers,flag_fn);if(is.null(x)) empty_flag_table() else x}
   report <- function(name,status,x) cat(name,status,':',nrow(x),'fits,',sum(x$flagged),'flagged\n')
   new <- items$role=='new'
   if(o$mode=='plan') {
@@ -80,9 +88,9 @@ select_main <- function(args) {
     repeats <- items[0,]
     if(nrow(flagged)) {
       fits <- as.character(mapply(fit_path,study,flagged$phase,flagged$sd,'long',flagged$key,USE.NAMES=FALSE))
-      repeats <- data.frame(role='new',phase=flagged$phase,sd=flagged$sd,key=flagged$key,schedule='long',fit=fits,
+      repeats <- data.frame(role='new',phase=flagged$phase,sd=as.numeric(flagged$sd),key=flagged$key,schedule='long',fit=fits,
         fit_label=path_within(fits,study),expected_md5=NA_character_,stringsAsFactors=FALSE)
-      check_first_fits(repeats)
+      check_first_fits(repeats,repeats=TRUE)
     }
     repeat_flags <- flags(repeats)
     report('repeat-flags.csv',write_frozen_table(repeat_flags,file.path(out,'repeat-flags.csv')),repeat_flags)

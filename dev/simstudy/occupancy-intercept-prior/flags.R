@@ -1,10 +1,13 @@
 # Frozen convergence-flag rules for the occupancy-intercept prior study and the
 # selection bookkeeping built on them. Every flag is computed from saved draws,
-# identically for the control and new arms, and nothing here computes or reads
-# an occupancy (or any other estimation) error: truth enters only to define
-# which cells form a probability band or prevalence group, exactly as in the
-# archived scorers. Not sourced or hashed by run.R. Source jobs.R and
-# verify-helpers.R first.
+# identically for the control and new arms. No occupancy error is computed or
+# read here, and none is used. Generating truth enters in two ways: in every
+# phase it defines which cells form a probability band or prevalence group, as
+# in the archived scorers; in A2 the archived robust rule also screens the
+# field_projection traces, which project each field draw onto the centred true
+# spatial field, and robust_field_draws also returns a field-recovery summary
+# against the true field, which spatial_tables discards unread. Not sourced or
+# hashed by run.R. Source jobs.R and verify-helpers.R first. See AMENDMENT-1.md.
 #
 # Phases A1 and B use the current-main recheck rule (select.R:17-19 there, with
 # diagnostics combined as its run.R:79-81): flag a fit with any fitting warning,
@@ -256,8 +259,9 @@ b_rhats <- function(fit,input,trace_summary) {
 # spatial-targeted-recheck/score.R:79-151 (occupancy groups, cells, blocks and
 # species), with the rank/quantile amplitude substitution of
 # spatial-amplitude-prior/rescore.R:42-53 and the spatial screens of
-# spatial-amplitude-prior/robust.R:38-86. The field summary robust_field_draws
-# also returns (field error against the true field) is discarded unread.
+# spatial-amplitude-prior/robust.R:38-86. Those screens use the true spatial
+# field for the field_projection traces; the field-recovery summary that
+# robust_field_draws also returns is discarded unread.
 spatial_tables <- function(fit,input,sp) {
   t <- input$truth;js <- fit$results_output$jsdm_output
   n <- input$settings$n;S <- input$settings$S;ni <- dim(js$B0_output)[2];nc <- dim(js$B0_output)[3]
@@ -358,11 +362,16 @@ selection_items <- function(phases,sds,study,archives,repo) {
   do.call(rbind,rows)
 }
 
-check_first_fits <- function(items) {
+# `repeats` names the fits as the single longer repeats of final mode.
+check_first_fits <- function(items,repeats=FALSE) {
   new <- items$role=='new'
   missing <- items$fit[new & !file.exists(items$fit)]
-  if(length(missing)) stop(length(missing),' first fits are missing (for example ',missing[1],
-    '); run the selection only after the launcher has written DONE with exit status 0')
+  if(length(missing)) {
+    if(repeats) stop('Longer repeats missing: ',length(missing),' (for example ',missing[1],
+      '); run the final selection only after the longer-repeat launcher has written DONE with exit status 0')
+    stop(length(missing),' first fits are missing (for example ',missing[1],
+      '); run the selection only after the launcher has written DONE with exit status 0')
+  }
   locks <- fit_lock_path(items$fit[new]);locks <- locks[dir.exists(locks)]
   if(length(locks)) stop(length(locks),' fit locks exist (for example ',locks[1],'); a fit may still be running')
   absent <- items$fit[!new & !file.exists(items$fit)]
@@ -371,7 +380,9 @@ check_first_fits <- function(items) {
 }
 
 # Flags of one saved fit, after checking that it is the fit the item names.
-evaluate_item <- function(item,sc,archives,inputs_root) {
+# flag_fn is fit_flags except in tests of the surrounding bookkeeping.
+evaluate_item <- function(item,sc,archives,inputs_root,flag_fn=fit_flags) {
+  sd <- as.numeric(item$sd)
   spec <- phase_jobs(item$phase,archives,inputs_root,item$key)[[1]]
   md5 <- unname(tools::md5sum(item$fit))
   if(!is.na(item$expected_md5) && !identical(md5,item$expected_md5))
@@ -382,20 +393,20 @@ evaluate_item <- function(item,sc,archives,inputs_root) {
     fields <- if(item$phase=='A2') c('key','community','grid_index','replicate','arm','knots','input_md5') else names(spec$job)
     if(!identical(saved$job[fields],spec$job[fields])) stop('Control fit job record differs from the archived job: ',item$fit_label)
   } else {
-    same <- c(phase=identical(saved$phase,item$phase),key=identical(saved$key,item$key),sd=identical(saved$sd,item$sd),
+    same <- c(phase=identical(saved$phase,item$phase),key=identical(saved$key,item$key),sd=identical(saved$sd,sd),
       schedule=identical(saved$schedule,item$schedule),mcmc=identical(saved$mcmc,schedule_mcmc(item$phase,item$schedule,archives)),
       input_md5=identical(saved$input_md5,spec$input_md5))
     if(!all(same)) stop('Fit ',item$fit_label,' is not the expected fit; differing: ',paste(names(same)[!same],collapse=', '))
-    check_fit_prior(saved$fit,item$sd)
+    check_fit_prior(saved$fit,sd)
   }
   input <- readRDS(checked_input(spec$input_file,spec$input_md5))
-  cbind(data.frame(role=item$role,phase=item$phase,sd=item$sd,key=item$key,schedule=item$schedule,
-    fit=item$fit_label,fit_md5=md5,stringsAsFactors=FALSE),fit_flags(item$phase,saved$fit,saved$warnings,input,sc))
+  cbind(data.frame(role=item$role,phase=item$phase,sd=sd,key=item$key,schedule=item$schedule,
+    fit=item$fit_label,fit_md5=md5,stringsAsFactors=FALSE),flag_fn(item$phase,saved$fit,saved$warnings,input,sc))
 }
 
-evaluate_items <- function(items,sc,archives,inputs_root,workers=1L) {
+evaluate_items <- function(items,sc,archives,inputs_root,workers=1L,flag_fn=fit_flags) {
   if(!nrow(items)) return(NULL)
-  work <- function(i) tryCatch(evaluate_item(items[i,,drop=FALSE],sc,archives,inputs_root),
+  work <- function(i) tryCatch(evaluate_item(items[i,,drop=FALSE],sc,archives,inputs_root,flag_fn),
     error=function(e) structure(conditionMessage(e),class='flag-error'))
   out <- if(workers==1L) lapply(seq_len(nrow(items)),work) else
     parallel::mclapply(seq_len(nrow(items)),work,mc.cores=workers,mc.preschedule=FALSE,mc.set.seed=FALSE)

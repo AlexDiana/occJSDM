@@ -11,7 +11,9 @@
 # selection.csv (A2 initial inverse-gamma reasons) and fits.csv (A2 selected
 # longer inverse-gamma reasons). Rhat must agree within 1e-12, counts, flags and
 # reason strings exactly. Writes results/flag-crosscheck.csv by default and
-# exits non-zero on any disagreement. Reads no occupancy error.
+# exits non-zero on any disagreement. Uses no occupancy error: of the files it
+# reads, only the spatial-amplitude fits.csv holds any (archived control
+# occupancy columns), and only its reason strings are used.
 
 check_main <- function(args) {
   o <- parse_options(args,known=c('repo','archives','inputs-root','workers','out'),required=c('repo','archives','inputs-root'))

@@ -106,16 +106,17 @@ estimated_wall_seconds <- function(seconds,max_procs) {
 
 queue_frame <- function(phase,sd,schedule,key,control_schedule,study) {
   n <- length(key)
-  q <- data.frame(order=NA_integer_,phase=rep(phase,length.out=n),sd=rep(as.numeric(sd),length.out=n),
+  q <- data.frame(order=rep(NA_integer_,n),phase=rep(phase,length.out=n),sd=rep(as.numeric(sd),length.out=n),
     schedule=rep(schedule,length.out=n),key=key,control_schedule=rep(control_schedule,length.out=n),stringsAsFactors=FALSE)
-  q$expected_seconds <- mapply(expected_seconds,q$phase,q$schedule,q$key,USE.NAMES=FALSE)
-  q$fit <- as.character(mapply(fit_path,study,q$phase,q$sd,q$schedule,q$key,USE.NAMES=FALSE))
+  q$expected_seconds <- as.numeric(unlist(mapply(expected_seconds,q$phase,q$schedule,q$key,USE.NAMES=FALSE)))
+  q$fit <- as.character(unlist(mapply(fit_path,study,q$phase,q$sd,q$schedule,q$key,USE.NAMES=FALSE)))
   q$lock <- fit_lock_path(q$fit)
   q
 }
 
 # Longest first; ties keep phase, SD and community order.
 order_queue <- function(q) {
+  if(!nrow(q)) {q$order <- integer();return(q)}
   rank <- function(p,k) match(k,phase_keys(p))
   within <- mapply(rank,q$phase,q$key,USE.NAMES=FALSE)
   q <- q[order(-q$expected_seconds,match(q$phase,PHASES),q$sd,within),,drop=FALSE]
