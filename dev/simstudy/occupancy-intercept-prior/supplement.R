@@ -4,7 +4,7 @@
 # while any first fit of a requested SD is missing. Frozen select.R and flags.R
 # are not edited; this script applies their frozen functions instead.
 #
-#   Rscript supplement.R --repo=REPO --study=STUDY --inputs-root=DIR --phase=A1|A2
+#   Rscript supplement.R --repo=REPO --study=STUDY --inputs-root=DIR --phase=A1|A2|B
 #     [--archives=DIR] [--workers=N] [--out=DIR]
 #
 # Reads two files the controller writes in STUDY/selection/<phase>:
@@ -24,10 +24,12 @@
 # must be identical), OUT/<phase>/manual-flags.csv (the flag rows, in the
 # format of select.R's flag tables) and OUT/<phase>/manual-selection.csv (the
 # format of selected-fits.csv, plus first_fit and first_fit_md5), and then
-# scores every listed fit with analysis.R's score_item. OUT defaults to
-# STUDY/summary. Like analysis.R it refuses to run before the other
-# sub-phase's selection exists (AMENDMENT-1.md, R29). Such an SD fails criterion 4 of its sub-phase (R27); its
-# criteria 1 to 3 are reported descriptively. Not sourced or hashed by run.R.
+# scores every listed fit with analysis.R's score_item (phase B: analysis-b.R's
+# b_score_item). OUT defaults to STUDY/summary. Like analysis.R it refuses to
+# run before the other sub-phase's selection exists (AMENDMENT-1.md, R29); phase
+# B has its own selection, and the manual record is its selection for the SD.
+# Such an SD fails criterion 4 of its sub-phase (R27); its criteria 1 to 3 are
+# reported descriptively. Not sourced or hashed by run.R.
 
 read_manual_selected <- function(sel_dir,phase) {
   path <- file.path(sel_dir,'manual-selected.csv')
@@ -94,18 +96,21 @@ supplement_table <- function(phase,ms,flags,control_schedule) {
 
 control_schedule_of <- function(phase,archives) {cs <- control_schedules(phase,archives);stats::setNames(cs$schedule,cs$key)}
 
-# flag_fn and score_fn are fit_flags and score_item except in tests.
-supplement_main <- function(args,flag_fn=fit_flags,score_fn=score_item) {
+# flag_fn and score_fn are fit_flags and the phase's scorer (score_item, or
+# b_score_item in phase B) except in tests.
+supplement_main <- function(args,flag_fn=fit_flags,score_fn=NULL) {
   o <- parse_options(args,known=c('repo','study','inputs-root','archives','phase','workers','out'),
     required=c('repo','study','inputs-root','phase'))
-  phase <- o$phase;if(!phase %in% SCORED_PHASES) stop('--phase must be A1 or A2')
+  phase <- o$phase;if(!phase %in% c(SCORED_PHASES,'B')) stop('--phase must be A1, A2 or B')
   repo <- normalizePath(o$repo,mustWork=TRUE);study <- normalizePath(o$study,mustWork=TRUE)
   archives <- normalizePath(o$archives %||% dirname(study),mustWork=TRUE);inputs_root <- normalizePath(o$`inputs-root`,mustWork=TRUE)
   workers <- parse_workers(o$workers %||% '1');out <- o$out %||% file.path(study,'summary')
   sel_dir <- selection_dir(study,phase)
   # It scores fits, so AMENDMENT-1's rule holds here too (R29): not before the other sub-phase's selection exists.
-  other <- file.path(selection_dir(study,setdiff(SCORED_PHASES,phase)),'selected-fits.csv')
-  if(!file.exists(other)) stop('AMENDMENT-1.md: no new-arm occupancy error is computed before both selections exist, and ',other,' is missing')
+  if(phase %in% SCORED_PHASES) {
+    other <- file.path(selection_dir(study,setdiff(SCORED_PHASES,phase)),'selected-fits.csv')
+    if(!file.exists(other)) stop('AMENDMENT-1.md: no new-arm occupancy error is computed before both selections exist, and ',other,' is missing')
+  }
   ms <- read_manual_selected(sel_dir,phase);if(is.null(ms)) stop('No manual record ',file.path(sel_dir,'manual-selected.csv'))
   missing <- read_manual_missing(sel_dir,phase)
   sf <- file.path(sel_dir,'selected-fits.csv');selected_sds <- if(file.exists(sf)) unique(read_selected(sf)$sd) else numeric()
@@ -117,7 +122,8 @@ supplement_main <- function(args,flag_fn=fit_flags,score_fn=score_item) {
   d <- file.path(out,phase);dir.create(d,recursive=TRUE,showWarnings=FALSE)
   cat('manual-flags.csv',write_frozen_table(flags,file.path(d,'manual-flags.csv')),'\n')
   cat('manual-selection.csv',write_frozen_table(table,file.path(d,'manual-selection.csv')),'\n')
-  sc <- load_metric_scorers(repo,archives)
+  sc <- if(phase=='B') load_b_scorers(repo,archives) else load_metric_scorers(repo,archives)
+  score_fn <- score_fn %||% (if(phase=='B') b_score_item else score_item)
   scored <- items;scored$expected_md5 <- flags$fit_md5[match(paste(scored$sd,scored$key,scored$schedule),paste(flags$sd,flags$key,flags$schedule))]
   for(i in seq_len(nrow(scored))) score_fn(scored[i,,drop=FALSE],sc,archives,inputs_root,out)
   cat('Recorded and scored',nrow(ms),'manually selected fits of phase',phase,'(SD',paste(unique(ms$sd),collapse=', '),
@@ -131,7 +137,7 @@ if(sys.nframe()==0L) {
   if(length(repo_arg)!=1L || !identical(normalizePath(file.path(repo_arg,'dev/simstudy/occupancy-intercept-prior'),mustWork=FALSE),here)) {
     cat('ERROR: run the supplement.R of the --repo checkout (',here,' is not under --repo)\n',sep='');quit(save='no',status=1)
   }
-  for(f in c('jobs.R','verify-helpers.R','flags.R','analysis.R')) source(file.path(here,f))
+  for(f in c('jobs.R','verify-helpers.R','flags.R','analysis.R','analysis-b.R')) source(file.path(here,f))
   status <- tryCatch(supplement_main(commandArgs(trailingOnly=TRUE)),error=function(e) {cat('ERROR:',conditionMessage(e),'\n');1L})
   quit(save='no',status=status)
 }

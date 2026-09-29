@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
-# Independent audit of the phase A scorer, from the saved posterior draws.
+# Independent audit of the scorer, from the saved posterior draws.
 #
-#   Rscript verify.R --repo=REPO --study=STUDY --inputs-root=DIR --phase=A1|A2
+#   Rscript verify.R --repo=REPO --study=STUDY --inputs-root=DIR --phase=A1|A2|B
 #     --arms=1[,2,3,5] [--archives=DIR] [--summary=DIR] [--out=DIR] [--workers=N]
-#   Rscript verify.R --repo=REPO --study=STUDY --phase=A [--summary=DIR] [--out=DIR]
+#   Rscript verify.R --repo=REPO --study=STUDY --phase=A|final [--summary=DIR] [--out=DIR]
 #
 # The fits to audit are read here from their own records: the controls from
 # results/control-provenance.csv; a new arm from select.R's selected-fits.csv,
@@ -12,23 +12,29 @@
 # summary must hold exactly these fits (SUMMARY defaults to STUDY/summary). For
 # each fit this script re-reads the saved fit and its input and recomputes,
 # with code written here and nothing else:
-#   the per-draw occupancy probabilities (A1: inverse logit of X B + U L + B0;
-#   A2: the same with the spatial field, from its own kernel basis, checked
-#   against the package's native basis), the truth (A1 from the generating
-#   parameters, A2 the input's psi, checked against its parameters), posterior
-#   means, type-7 0.025 and 0.975 quantiles, containment, the bands and groups,
-#   E, |E|, mean absolute cell error, coverage, overall MAE and B0 bias and
-#   coverage; and the convergence diagnostics of the phase's flag rule.
+#   the per-draw occupancy probabilities (A1 and B: inverse logit of
+#   X B + U L + B0; A2: the same with the spatial field, from its own kernel
+#   basis, checked against the package's native basis), the truth (A1 and B
+#   from the generating parameters, A2 the input's psi, checked against its
+#   parameters), posterior means, type-7 0.025 and 0.975 quantiles,
+#   containment, the bands and groups, E, |E|, mean absolute cell error,
+#   coverage, overall MAE and B0 bias and coverage; in phase B also the
+#   collection intercept (beta_theta) bias and coverage on the standardised
+#   collection-covariate scale and the B0 and collection intercept posterior
+#   correlation; and the convergence diagnostics of the phase's flag rule.
 # From these per-community values it then recomputes every across-community
-# table: summary-means.csv, b0-means.csv, convergence.csv (flag counts from its
-# own diagnostics) and, with the control and a new arm, gate criteria 1 to 4
-# (gate-detail.csv, gate.csv) and the schedule-matched sensitivity. It requires
+# table: summary-means.csv, b0-means.csv, beta-theta-means.csv (phase B),
+# convergence.csv (flag counts from its own diagnostics; in phase B per
+# contamination level, R24) and, with the control and a new arm, gate criteria
+# 1 to 4 (gate-detail.csv, gate.csv) and the schedule-matched sensitivity. It requires
 # summarise.R's tables to agree (VERIFY_TOL_* below) and the stored diagnostics
 # to be reproduced: the selection's flag tables when a selection exists (and
 # supplement.R's manual-flags.csv), and for the controls also the archived
 # result files. With --phase=A it recomputes the phase A rows from its own A1
-# and A2 gate results. It never loads the scorer's code (neither the study's
-# analysis, summary or supplement scripts nor the archived scorers); jobs.R
+# and A2 gate results, and with --phase=final the final decision table from
+# its own phase A and phase B results. It never loads the scorer's code
+# (neither the study's analysis, summary or supplement scripts nor the
+# archived scorers); jobs.R
 # supplies only paths, option parsing, md5-checked input lookup and the library
 # fingerprint check. Writes to OUT/<phase> (OUT defaults to STUDY/verify):
 # verify-arms-<arms>.csv (per fit), tables-arms-<arms>.csv (every table
@@ -83,9 +89,10 @@ audit_cells_from_draws <- function(phase,draws,truth,target_prevalence=NULL,n_or
     covered=matrix(q[,1]<=tv & tv<=q[,2],nrow(truth)),target_prevalence=target_prevalence)
 }
 
-# Bands (below 0.2, 0.2 to 0.8 inclusive, above 0.8), the A1 rare group (every
-# fitted site of each species with mean truth below 0.2 over all fitted sites),
-# the A1 all-site scope, and the A2 prevalence groups and 1% plus 5% group.
+# Bands (below 0.2, 0.2 to 0.8 inclusive, above 0.8), the A1 and B rare group
+# (every fitted site of each species with mean truth below 0.2 over all fitted
+# sites), the A1 all-site scope (none in B), and the A2 prevalence groups and
+# 1% plus 5% group.
 audit_groups <- function(cells) {
   tv <- as.vector(cells$truth);ev <- as.vector(cells$estimate);cv <- as.vector(cells$covered)
   site <- rep(seq_len(cells$n),cells$S);species <- rep(seq_len(cells$S),each=cells$n)
@@ -93,11 +100,11 @@ audit_groups <- function(cells) {
   add <- function(scope,group,keep) sets[[length(sets)+1L]] <<- list(scope=scope,group=group,idx=which(keep))
   bands <- function(scope,keep) {add(scope,'all',keep);add(scope,'low',keep & tv<.2);add(scope,'middle',keep & tv>=.2 & tv<=.8)
     add(scope,'high',keep & tv>.8)}
-  if(cells$phase=='A1') {
+  if(cells$phase %in% c('A1','B')) {
     bands('primary',site<=cells$n_original)
     mean_truth <- vapply(seq_len(cells$S),function(s) mean(tv[species==s]),numeric(1))
     add('primary','rare_below_20pct',species %in% which(mean_truth<.2))
-    if(cells$n>cells$n_original) bands('allsites',rep(TRUE,length(tv)))
+    if(cells$phase=='A1' && cells$n>cells$n_original) bands('allsites',rep(TRUE,length(tv)))
   } else {
     bands('primary',rep(TRUE,length(tv)))
     tp <- cells$target_prevalence
@@ -199,6 +206,73 @@ audit_a2_cells <- function(fit,input,native=NULL) {
   cells
 }
 
+# Phase B, the two-stage fits: the truth from the generating parameters with
+# the fitted design (the design checked against the input's raw site
+# covariates, the linear predictor against the input's eta), and the per-draw
+# probability X B + U L + B0 as in A1. Only the scored cells are kept with
+# their draws: the original sites of every species and every fitted site of a
+# rare species. The per-draw means the flag rule needs are accumulated on the
+# way, in the archive's representation (plogis of the whole matrix, mean over
+# each group's cells): the occupancy groups of all fitted sites and of the
+# original sites, the rare and common species, and the mean collection
+# probability over every sample and species.
+audit_b_cells <- function(fit,input) {
+  sim <- input$sim;jp <- sim$true_params$jsdmParams_true;info <- sim$data_list$info
+  js <- fit$results_output$jsdm_output;X <- fit$X_psi;n <- nrow(X);P <- ncol(X)
+  S <- dim(js$B0_output)[1];ni <- dim(js$B0_output)[2];nc <- dim(js$B0_output)[3];n0 <- input$design$original_sites
+  stopifnot(n==input$scenario$n,S==input$scenario$S,fit$infos$ps==0,identical(fit$infos$model,'two_stage'),n0>=1,n0<=n)
+  sites <- info[!duplicated(info$Site),,drop=FALSE];sites <- sites[order(sites$Site),,drop=FALSE]
+  design_difference <- max(abs(unname(scale(as.matrix(sites[paste0('X_psi.EnvCov.',seq_len(P))])))-unname(X)))
+  eta <- X%*%jp$B+jp$U%*%jp$L+matrix(jp$B0,n,S,byrow=TRUE);truth_difference <- max(abs(eta-jp$eta))
+  if(!(design_difference<=1e-10) || !(truth_difference<=1e-10)) stop('Input design or linear predictor disagrees with its generating parameters: ',
+    design_difference,', ',truth_difference)
+  tv <- as.vector(audit_logistic(eta));site <- rep(seq_len(n),S);species <- rep(seq_len(S),each=n)
+  rare <- species %in% which(vapply(seq_len(S),function(s) mean(tv[species==s]),numeric(1))<.2)
+  keep <- which(site<=n0 | rare);original <- which(site<=n0);ot <- tv[original]
+  occ <- list('occupancy:all'=seq_along(tv),'occupancy:low'=which(tv<.2),'occupancy:medium'=which(tv>=.2 & tv<=.8),'occupancy:high'=which(tv>.8),
+    'occupancy_original_sites:all'=original,'occupancy_original_sites:low'=original[ot<.2],
+    'occupancy_original_sites:medium'=original[ot>=.2 & ot<=.8],'occupancy_original_sites:high'=original[ot>.8],
+    'occupancy:rare_below_20pct'=which(rare),'occupancy:common_20pct_or_more'=which(!rare))
+  occ <- occ[lengths(occ)>0L]
+  Xt <- fit$X_theta;bt <- fit$results_output$beta_theta_output;d <- dim(js$U_output)[2];N <- ni*nc
+  draws <- matrix(NA_real_,length(keep),N);traces <- matrix(NA_real_,length(occ),N,dimnames=list(names(occ),NULL));theta_trace <- numeric(N)
+  for(ch in seq_len(nc)) for(it in seq_len(ni)) {
+    k <- (ch-1L)*ni+it
+    e <- X%*%matrix(js$B_output[,,it,ch],P,S)+matrix(js$U_output[,,it,ch],n,d)%*%matrix(js$L_output[,,it,ch],d,S)+
+      matrix(js$B0_output[,it,ch],n,S,byrow=TRUE)
+    p <- as.vector(audit_logistic(e))
+    draws[,k] <- p[keep];traces[,k] <- vapply(occ,function(ix) mean(p[ix]),numeric(1))
+    theta_trace[k] <- mean(as.vector(audit_logistic(Xt%*%matrix(bt[,,it,ch],ncol(Xt),S))))
+  }
+  q <- t(apply(draws,1,function(x) {s <- sort(x);c(audit_q7(s,.025),audit_q7(s,.975))}))
+  full <- function(v,na) {x <- rep(na,n*S);x[keep] <- v;matrix(x,n,S)}
+  list(phase='B',n=n,S=S,n_original=as.integer(n0),truth=matrix(tv,n,S),estimate=full(as.vector(draws%*%rep(1,N))/N,NA_real_),
+    lower=full(q[,1],NA_real_),upper=full(q[,2],NA_real_),covered=full(q[,1]<=tv[keep] & tv[keep]<=q[,2],NA),keep=keep,draws=draws,
+    occ_traces=traces,theta_trace=theta_trace,ni=ni,nc=nc,truth_difference=truth_difference)
+}
+
+# The collection intercept (beta_theta) on the standardised collection-covariate
+# scale: its truth is the generating intercept plus the mean raw covariate
+# times the generating slope, the raw covariate being that of each sample,
+# ordered by site and sample (the fitted design is checked against it). Bias,
+# type-7 containment and, per species, the Pearson correlation of the B0 and
+# collection intercept draws pooled over chains; all averaged over species.
+b_samples_raw <- function(fit,input) {
+  info <- input$sim$data_list$info
+  s <- info[!duplicated(info[c('Site','Sample')]),,drop=FALSE];s <- s[order(s$Site,s$Sample),,drop=FALSE];raw <- s$X_theta
+  if(!(max(abs(unname(cbind(1,scale(raw)))-unname(fit$X_theta)))<=1e-10)) stop('Fitted collection design disagrees with the samples')
+  raw
+}
+audit_theta <- function(fit,input) {
+  raw <- b_samples_raw(fit,input);bt <- input$sim$true_params$beta_theta_true;truth <- bt[1,]+mean(raw)*bt[2,]
+  ro <- fit$results_output;S <- length(truth)
+  a <- matrix(ro$beta_theta_output[1,,,,drop=FALSE],S);b <- matrix(ro$jsdm_output$B0_output,S);N <- ncol(a)
+  est <- as.vector(a%*%rep(1,N))/N
+  q <- t(apply(a,1,function(x) {s <- sort(x);c(audit_q7(s,.025),audit_q7(s,.975))}))
+  r <- vapply(seq_len(S),function(s) {x <- a[s,]-sum(a[s,])/N;y <- b[s,]-sum(b[s,])/N;sum(x*y)/sqrt(sum(x*x)*sum(y*y))},numeric(1))
+  c(species=S,bt_bias=mean(est-truth),bt_abs_bias=mean(abs(est-truth)),bt_coverage=mean(q[,1]<=truth & truth<=q[,2]),b0_bt_correlation=mean(r))
+}
+
 # ---------------------------------------------------------------------------
 # Convergence diagnostics, recomputed
 # ---------------------------------------------------------------------------
@@ -223,6 +297,40 @@ audit_diag_a1 <- function(fit,cells,warnings) {
   block <- function(a) {m <- matrix(a,prod(head(dim(a),-2L)));vapply(seq_len(nrow(m)),function(k) audit_rhat(as_chains(m[k,],ni,nc)),numeric(1))}
   elements <- c(block(js$B0_output),block(js$B_output),vapply(original,function(k) audit_rhat(as_chains(cells$draws[k,],ni,nc)),numeric(1)))
   additional <- audit_rhat(js$sigmah_output)
+  all <- c(groups,elements,additional)
+  mg <- audit_safe_max(groups);me <- audit_safe_max(c(elements,additional));un <- sum(!is.finite(all) | all<=0)
+  flagged <- warnings>0L || un>0L || !is.finite(mg) || !is.finite(me) || mg>1.05 || me>1.05
+  list(summary=list(warnings=warnings,max_group_rhat=mg,max_element_rhat=me,unresolved_rhat=un,spatial_trace_flags=NA,
+    spatial_field_flags=NA,flagged=flagged),vectors=list(groups=groups,elements=elements,additional=additional))
+}
+
+# Phase B rule (the same pr11 rule, as flags.R applies it): groups are the mean
+# over the elements of each parameter block (B0, collection intercept and
+# slope, the slope by the sign of its truth, theta0, p, q and q against its
+# nominal truth), the occupancy groups of all fitted and of the original sites,
+# the rare and common species and the mean collection probability; elements
+# every element of those blocks; additional the environmental slopes, every
+# original-site probability and sigma_h. Named metric:group and
+# metric:element as the archived design scorer's tables.
+audit_diag_b <- function(fit,input,cells,warnings) {
+  ro <- fit$results_output;js <- ro$jsdm_output;ni <- cells$ni;nc <- cells$nc;n <- cells$n;S <- cells$S
+  slope_sign <- sign(stats::sd(b_samples_raw(fit,input))*input$sim$true_params$beta_theta_true[2,])
+  blocks <- list(B0=js$B0_output,collection_intercept=ro$beta_theta_output[1,,,,drop=FALSE],collection_slope=ro$beta_theta_output[2,,,,drop=FALSE],
+    theta0=ro$theta0_output,p=ro$p_output,q=ro$q_output,q_nominal=ro$q_output)
+  flat <- function(a) matrix(a,prod(head(dim(a),-2L)))
+  rhats <- function(m,label) stats::setNames(vapply(seq_len(nrow(m)),function(k) audit_rhat(as_chains(m[k,],ni,nc)),numeric(1)),paste0(label,':',seq_len(nrow(m))))
+  groups <- numeric();elements <- numeric()
+  for(nm in names(blocks)) {
+    m <- flat(blocks[[nm]]);elements <- c(elements,rhats(m,nm))
+    groups[[paste0(nm,':all')]] <- audit_rhat(as_chains(draw_means(m,seq_len(nrow(m))),ni,nc))
+    if(nm=='collection_slope') for(g in 1:3) {ix <- which(slope_sign==g-2L)
+      if(length(ix)) groups[[paste0(nm,':',c('negative','zero','positive')[g])]] <- audit_rhat(as_chains(draw_means(m,ix),ni,nc))}
+  }
+  occ <- vapply(seq_len(nrow(cells$occ_traces)),function(k) audit_rhat(as_chains(cells$occ_traces[k,],ni,nc)),numeric(1))
+  groups <- c(groups,stats::setNames(occ,rownames(cells$occ_traces)),'collection_probability:all'=audit_rhat(as_chains(cells$theta_trace,ni,nc)))
+  original <- match(which(rep(seq_len(n),S)<=cells$n_original),cells$keep)
+  additional <- c(rhats(flat(js$B_output),'environment_slope'),rhats(cells$draws[original,,drop=FALSE],'original_probability'),
+    'sigma_h:1'=audit_rhat(js$sigmah_output))
   all <- c(groups,elements,additional)
   mg <- audit_safe_max(groups);me <- audit_safe_max(c(elements,additional));un <- sum(!is.finite(all) | all<=0)
   flagged <- warnings>0L || un>0L || !is.finite(mg) || !is.finite(me) || mg>1.05 || me>1.05
@@ -325,8 +433,23 @@ vector_difference <- function(a,b,relative=FALSE) {
   max(d)
 }
 
+# The largest difference between two named vectors; Inf unless they hold the same names.
+named_difference <- function(a,b) if(!setequal(names(a),names(b)) || anyDuplicated(names(a)) || anyDuplicated(names(b))) Inf else
+  vector_difference(a,b[names(a)])
+
 # Stored per-element diagnostics of the archived control results.
 archive_comparison <- function(phase,f,archives,diag) {
+  if(phase=='B') {
+    rf <- file.path(archives,sub('-fit[.]rds$','-result.rds',f$fit));r <- readRDS(rf)
+    stored <- list(warnings=length(r$warnings),max_group_rhat=r$diagnostics$max_group_rhat,max_element_rhat=r$diagnostics$max_element_rhat,
+      unresolved_rhat=r$diagnostics$unresolved_rhat,spatial_trace_flags=NA,spatial_field_flags=NA,
+      flagged=length(r$warnings)>0L || r$diagnostics$unresolved_rhat>0L || !is.finite(r$diagnostics$max_group_rhat) ||
+        !is.finite(r$diagnostics$max_element_rhat) || r$diagnostics$max_group_rhat>1.05 || r$diagnostics$max_element_rhat>1.05)
+    named <- function(x,col) stats::setNames(x$rhat,paste0(x$metric,':',x[[col]]))
+    rh <- max(named_difference(diag$vectors$groups,named(r$groups,'group')),named_difference(diag$vectors$elements,named(r$elements,'element')),
+      named_difference(diag$vectors$additional,named(r$additional_diagnostics,'element')))
+    return(list(source=paste('archive',basename(rf)),stored=stored,rhat=rh,ess=0,crossings=0L))
+  }
   if(phase=='A1') {
     rf <- file.path(archives,sub('-fit[.]rds$','-result.rds',f$fit));r <- readRDS(rf)
     stored <- list(warnings=length(r$warnings),max_group_rhat=r$diagnostics$max_group_rhat,max_element_rhat=r$diagnostics$max_element_rhat,
@@ -374,9 +497,13 @@ archive_comparison <- function(phase,f,archives,diag) {
 # ---------------------------------------------------------------------------
 
 # Stratum and community of a key, stated here afresh: the A1 fits at 100 and
-# 300 sites of replicate r form generating community r (R21); A2 keys are communities.
-audit_stratum <- function(phase,key) if(phase=='A1') ifelse(grepl('^jsdm-n0100-',key),'n100',ifelse(grepl('^jsdm-n0300-',key),'n300',NA)) else rep('all',length(key))
-audit_community <- function(phase,key) if(phase=='A1') sub('^jsdm-n0[13]00-','',key) else key
+# 300 sites of replicate r form generating community r (R21); the phase B fits
+# at the qnear and qfar contamination levels of replicate r form generating
+# community r (R24); A2 keys are communities.
+audit_stratum <- function(phase,key) if(phase=='A1') ifelse(grepl('^jsdm-n0100-',key),'n100',ifelse(grepl('^jsdm-n0300-',key),'n300',NA)) else
+  if(phase=='B') ifelse(grepl('^design-qnear_K6-sites300-[0-9]{2}$',key),'qnear',ifelse(grepl('^design-qfar_K6-sites300-[0-9]{2}$',key),'qfar',NA)) else
+  rep('all',length(key))
+audit_community <- function(phase,key) if(phase=='A1') sub('^jsdm-n0[13]00-','',key) else if(phase=='B') sub('^design-q(near|far)_K6-sites300-','',key) else key
 
 audit_fit <- function(f,phase,study,archives,inputs_root,tabs,flag_rows,native) {
   path <- if(f$arm=='control') file.path(archives,f$fit) else file.path(study,f$fit)
@@ -385,6 +512,7 @@ audit_fit <- function(f,phase,study,archives,inputs_root,tabs,flag_rows,native) 
   spec <- phase_jobs(phase,archives,inputs_root,f$key)[[1]]
   input <- readRDS(checked_input(spec$input_file,spec$input_md5))
   if(phase=='A1') {cells <- audit_a1_cells(fit,input);diag <- audit_diag_a1(fit,cells,warnings)}
+  else if(phase=='B') {cells <- audit_b_cells(fit,input);diag <- audit_diag_b(fit,input,cells,warnings)}
   else {cells <- audit_a2_cells(fit,input,native);diag <- audit_diag_a2(fit,input,cells,warnings)}
   g <- audit_groups(cells)
   pick <- function(x) x[x$sd==f$sd & x$kind==f$kind & x$key==f$key,,drop=FALSE]
@@ -394,7 +522,9 @@ audit_fit <- function(f,phase,study,archives,inputs_root,tabs,flag_rows,native) 
   i <- match(id(g),id(be));j <- match(id(g),id(cv))
   diff <- function(a,b) if(anyNA(a) || anyNA(b) || length(a)!=length(b)) Inf else if(!length(a)) 0 else max(abs(a-b))
   all_g <- g[g$group=='all',];k <- match(all_g$scope,ma$scope)
-  b <- audit_b0(fit$results_output$jsdm_output$B0_output,input$truth$B0)
+  # the generating B0: the input's (A1, A2); phase B's jsdmParams_true, as its linear predictor
+  b0_truth <- if(phase=='B') input$sim$true_params$jsdmParams_true$B0 else input$truth$B0
+  b <- audit_b0(fit$results_output$jsdm_output$B0_output,b0_truth)
   stored_sel <- if(!is.null(flag_rows)) flag_rows[flag_rows$role==f$arm & flag_rows$sd==f$sd & flag_rows$key==f$key &
     flag_rows$fit_md5==f$fit_md5,,drop=FALSE] else NULL
   if(!is.null(stored_sel) && nrow(stored_sel)>1L) stored_sel <- stored_sel[1,,drop=FALSE]
@@ -427,8 +557,16 @@ audit_fit <- function(f,phase,study,archives,inputs_root,tabs,flag_rows,native) 
     (out$selection_diagnostics || !is.null(arch))
   meta <- data.frame(sd=f$sd,arm=f$arm,kind=f$kind,key=f$key,stratum=audit_stratum(phase,f$key),community=audit_community(phase,f$key),
     stringsAsFactors=FALSE)
-  list(row=out,groups=cbind(meta[rep(1L,nrow(g)),,drop=FALSE],g,row.names=NULL),
+  res <- list(row=out,groups=cbind(meta[rep(1L,nrow(g)),,drop=FALSE],g,row.names=NULL),
     b0=cbind(meta,as.data.frame(as.list(b))),flagged=diag$summary$flagged)
+  if(phase=='B') {
+    # beta-theta.csv: the collection intercept bias and coverage and the B0 correlation
+    th <- audit_theta(fit,input);bt <- pick(tabs$theta);cols <- c('bt_bias','bt_abs_bias','bt_coverage','b0_bt_correlation')
+    res$row$max_diff_theta <- if(nrow(bt)==1L && bt$species==th[['species']]) max(abs(unlist(bt[cols])-th[cols])) else Inf
+    res$row$pass <- res$row$pass && ok(res$row$max_diff_theta,VERIFY_TOL_POINTS)
+    res$theta <- cbind(meta,as.data.frame(as.list(th)))
+  }
+  res
 }
 
 # ---------------------------------------------------------------------------
@@ -500,8 +638,10 @@ VERIFY_GATE_TOL <- 1e-9   # the accepted "at most" allowance (R30), restated
 # R27): vals holds this audit's primary per-fit groups of both arms (selected
 # fits of valid communities only), flags its recomputed flags per selected fit.
 audit_gate <- function(phase,vals,flags,sd,with_c4=TRUE) {
-  strata <- if(phase=='A1') c('n100','n300') else 'all'
-  gated <- if(phase=='A1') 'low' else c('low','rare_1_5pct')
+  # A1 (R21) and B (R24): criterion 1 pooled over the two strata of each
+  # generating community, the low band only; the no-harm criteria per stratum.
+  strata <- switch(phase,A1=c('n100','n300'),B=c('qnear','qfar'),'all')
+  gated <- if(phase %in% c('A1','B')) 'low' else c('low','rare_1_5pct')
   keys <- phase_keys(phase);ctl <- vals[vals$sd==1,,drop=FALSE];new <- vals[vals$sd==sd,,drop=FALSE]
   out <- list()
   add <- function(criterion,component,stratum,communities,needed,improved,value_new,value_control,statistic,missing_new,pass,decisive)
@@ -518,7 +658,7 @@ audit_gate <- function(phase,vals,flags,sd,with_c4=TRUE) {
     }
     a <- value(new);b <- value(ctl);ids <- intersect(names(a),names(b));n <- length(ids)
     need <- ceiling(2*n/3);imp <- sum(a[ids]<b[ids]);mn <- if(n) mean(a[ids]) else NA;mc <- if(n) mean(b[ids]) else NA
-    add('c1',g,if(phase=='A1') 'pooled' else 'all',n,need,imp,mn,mc,mn-mc,NA,if(n==0) NA else imp>=need && mn<mc,NA)
+    add('c1',g,if(phase %in% c('A1','B')) 'pooled' else 'all',n,need,imp,mn,mc,mn-mc,NA,if(n==0) NA else imp>=need && mn<mc,NA)
   }
   at_most <- function(criterion,component,h,d,n,a,b,limit) add(criterion,component,h,n,NA,NA,a,b,d,NA,
     if(n==0) NA else d<=limit+VERIFY_GATE_TOL,if(n==0) NA else d>limit && d<=limit+VERIFY_GATE_TOL)
@@ -587,9 +727,10 @@ audit_means <- function(g,by,cols,fns) {
   rownames(x) <- NULL;x
 }
 
-# summary-means.csv, b0-means.csv, convergence.csv, gate-detail.csv, gate.csv
-# and schedule-matched.csv against this audit's own per-community values.
-audit_gate_tables <- function(phase,arms,own,own_b0,flags,sel,tabs) {
+# summary-means.csv, b0-means.csv, beta-theta-means.csv (phase B),
+# convergence.csv, gate-detail.csv, gate.csv and schedule-matched.csv against
+# this audit's own per-community values.
+audit_gate_tables <- function(phase,arms,own,own_b0,flags,sel,tabs,own_theta=NULL) {
   checks <- list();gates <- list()
   sel_g <- own[own$kind=='selected',,drop=FALSE]
   sm <- audit_means(sel_g,c('sd','stratum','scope','group'),c(mean_signed_error='signed_error',mean_abs_signed_error='abs_signed_error',
@@ -599,6 +740,12 @@ audit_gate_tables <- function(phase,arms,own,own_b0,flags,sel,tabs) {
   bm <- audit_means(own_b0[own_b0$kind=='selected',,drop=FALSE],c('sd','stratum'),c(mean_b0_bias='b0_bias',mean_b0_abs_bias='b0_abs_bias',
     mean_b0_coverage='b0_coverage'))
   checks[[2]] <- compare_rows('b0-means.csv',bm,tabs$b0means,c('sd','stratum'),c('communities','mean_b0_bias','mean_b0_abs_bias','mean_b0_coverage'))
+  if(!is.null(own_theta)) {
+    tm <- audit_means(own_theta[own_theta$kind=='selected',,drop=FALSE],c('sd','stratum'),c(mean_bt_bias='bt_bias',mean_bt_abs_bias='bt_abs_bias',
+      mean_bt_coverage='bt_coverage',mean_b0_bt_correlation='b0_bt_correlation'))
+    checks[[length(checks)+1L]] <- compare_rows('beta-theta-means.csv',tm,tabs$btmeans,c('sd','stratum'),
+      c('communities','mean_bt_bias','mean_bt_abs_bias','mean_bt_coverage','mean_b0_bt_correlation'))
+  }
   keys <- phase_keys(phase);strata <- unique(audit_stratum(phase,keys))
   cv <- do.call(rbind,lapply(arms,function(sd) do.call(rbind,lapply(strata,function(h) {
     f <- flags[flags$sd==sd & flags$stratum==h,,drop=FALSE];n <- nrow(f)
@@ -607,7 +754,7 @@ audit_gate_tables <- function(phase,arms,own,own_b0,flags,sel,tabs) {
     data.frame(sd=sd,stratum=h,selected_fits=n,selected_flagged=if(n) sum(f$flagged) else NA,
       first_flagged=if(sd==1 || !n) NA else sum(first_flag),long_repeats=if(sd==1 || !n) NA else nrow(firsts),
       missing_fits=sum(audit_stratum(phase,keys)==h)-n,stringsAsFactors=FALSE)}))))
-  checks[[3]] <- compare_rows('convergence.csv',cv,tabs$convergence,c('sd','stratum'),
+  checks[[length(checks)+1L]] <- compare_rows('convergence.csv',cv,tabs$convergence,c('sd','stratum'),
     c('selected_fits','selected_flagged','first_flagged','long_repeats','missing_fits'))
   new_sds <- setdiff(arms,1)
   if(1 %in% arms && length(new_sds)) {
@@ -683,13 +830,67 @@ verify_phase_a <- function(repo,study,summary,out) {
   if(all(checks$pass)) 0L else 1L
 }
 
+# The final decision per SD, restated from the README ("Gate"): the smallest SD
+# passing phase A and phase B is recommended; passing A and failing B is a
+# binary-only improvement that does not change the default; only PASS passes,
+# so an UNDETERMINED phase B does not change it either; phase B runs only for
+# SDs that pass phase A. a, b: sd and result of phase A and of phase B.
+audit_decision <- function(a,b) {
+  sds <- sort(a$sd);ra <- a$result[match(sds,a$sd)];rb <- b$result[match(sds,b$sd)]
+  if(length(setdiff(b$sd,a$sd)) || any(ra!='PASS' & !is.na(rb)) || any(ra=='PASS' & is.na(rb)))
+    stop('Phase B results must exist exactly for the SDs that pass phase A')
+  rb[is.na(rb)] <- 'NOT RUN';both <- ra=='PASS' & rb=='PASS';best <- if(any(both)) min(sds[both]) else NA_real_
+  consequence <- vapply(seq_along(sds),function(i) if(ra[i]!='PASS') 'fails phase A: not adopted (phase B not run)' else switch(rb[i],
+    PASS='passes phases A and B',FAIL='binary-only improvement (passes phase A, fails phase B): does not change the default',
+    'phase B undetermined (passes phase A; phase B neither passes nor fails): not adopted, does not change the default'),'')
+  decision <- if(any(both)) paste0('sigma_b0 = ',format(best),', the smallest SD passing phases A and B, is recommended as the new default; ',
+    'the change is made in a separate reviewed pull request') else 'no SD passes phases A and B: the default stays at sigma_b0 = 1'
+  data.frame(sd=sds,phase_a_result=ra,phase_b_result=rb,passes_both=both,recommended=both & sds %in% best,consequence=consequence,
+    study_decision=decision,stringsAsFactors=FALSE)
+}
+
+# The audit's own per-SD result of a sub-phase, from a passed audit.
+own_results <- function(out,phase,tag) {
+  f <- file.path(out,phase,paste0('gate-audit-arms-',tag,'.csv'));v <- file.path(out,phase,paste0('verify-arms-',tag,'.csv'))
+  t <- file.path(out,phase,paste0('tables-arms-',tag,'.csv'))
+  if(!all(file.exists(c(f,v,t)))) stop('Run verify.R for phase ',phase,' with --arms=',gsub('-',',',tag),' first')
+  if(!all(utils::read.csv(v)$pass) || !all(utils::read.csv(t)$pass)) stop('The phase ',phase,' audit did not pass')
+  g <- utils::read.csv(f,stringsAsFactors=FALSE);unique(g[c('sd','result')])
+}
+
+# Final decision: the phase A result per SD from this audit's own A1 and A2
+# gate results (with the phase A audit passed), the phase B result from its own
+# phase B gate audit over the SDs that pass phase A; the stored
+# summary/final/decision.csv must say the same.
+verify_final <- function(repo,study,summary,out) {
+  pa <- file.path(out,'A','verify-phase-a.csv')
+  if(!file.exists(pa) || !all(utils::read.csv(pa)$pass)) stop('Run verify.R --phase=A first; it must pass')
+  a1 <- own_results(out,'A1','1-2-3-5');a2 <- own_results(out,'A2','1-2-3-5')
+  sds <- sort(a1$sd);if(!setequal(sds,a2$sd)) stop('The A1 and A2 audits cover different SDs')
+  a <- data.frame(sd=sds,result=ifelse(a1$result[match(sds,a1$sd)]=='PASS' & a2$result[match(sds,a2$sd)]=='PASS','PASS','FAIL'),stringsAsFactors=FALSE)
+  passing <- a$sd[a$result=='PASS']
+  b <- if(length(passing)) own_results(out,'B',paste(c(1,passing),collapse='-')) else data.frame(sd=numeric(),result=character())
+  mine <- audit_decision(a,b)
+  stored <- utils::read.csv(file.path(summary,'final','decision.csv'),stringsAsFactors=FALSE)
+  checks <- compare_rows('final/decision.csv',mine,stored,'sd',setdiff(names(mine),'sd'))
+  dir.create(file.path(out,'final'),recursive=TRUE,showWarnings=FALSE)
+  utils::write.csv(checks,file.path(out,'final','verify-final.csv'),row.names=FALSE)
+  tag_b <- paste(c(1,passing),collapse='-')
+  audit_source(out,'final',c(file.path(repo,'dev/simstudy/occupancy-intercept-prior',c('verify.R','jobs.R')),file.path(summary,'final','decision.csv'),pa,
+    file.path(out,rep(c('A1','A2'),each=3),c('gate-audit-arms-1-2-3-5.csv','verify-arms-1-2-3-5.csv','tables-arms-1-2-3-5.csv')),
+    file.path(out,'B',paste0(c('gate-audit-arms-','verify-arms-','tables-arms-'),tag_b,'.csv'))),repo,study)
+  cat('Final decision audit:',sum(checks$pass),'of',nrow(checks),'checks agree; wrote',file.path(out,'final','verify-final.csv'),'\n')
+  if(all(checks$pass)) 0L else 1L
+}
+
 verify_main <- function(args) {
   o <- parse_options(args,known=c('repo','study','inputs-root','archives','phase','arms','workers','summary','out'),
     required=c('repo','study','phase'))
-  phase <- o$phase;if(!phase %in% c('A1','A2','A')) stop('--phase must be A1, A2 or A')
+  phase <- o$phase;if(!phase %in% c('A1','A2','A','B','final')) stop('--phase must be A1, A2, A, B or final')
   repo <- normalizePath(o$repo,mustWork=TRUE);study <- normalizePath(o$study,mustWork=TRUE)
   summary <- o$summary %||% file.path(study,'summary');out <- o$out %||% file.path(study,'verify')
   if(phase=='A') return(verify_phase_a(repo,study,summary,out))
+  if(phase=='final') return(verify_final(repo,study,summary,out))
   if(is.null(o$arms) || is.null(o$`inputs-root`)) stop('Missing --arms or --inputs-root')
   arms <- strsplit(o$arms,',',fixed=TRUE)[[1]]
   if(!length(arms) || !all(arms %in% c('1','2','3','5')) || anyDuplicated(arms)) stop('--arms must list arms among 1, 2, 3, 5')
@@ -702,6 +903,7 @@ verify_main <- function(args) {
     x[x$sd %in% arms,,drop=FALSE]}
   tabs <- list(band=read('band-error.csv'),coverage=read('coverage.csv'),mae=read('mae.csv'),b0=read('b0.csv'),
     means=read('summary-means.csv'),b0means=read('b0-means.csv'),convergence=read('convergence.csv'))
+  if(phase=='B') {tabs$theta <- read('beta-theta.csv');tabs$btmeans <- read('beta-theta-means.csv')}
   new_sds <- setdiff(arms,1)
   if(1 %in% arms && length(new_sds)) {tabs$detail <- read('gate-detail.csv');tabs$gate <- read('gate.csv');tabs$matched <- read('schedule-matched.csv')}
   fits <- unique(tabs$band[c('sd','arm','kind','key','schedule','fit','fit_md5')]);rownames(fits) <- NULL
@@ -730,18 +932,19 @@ verify_main <- function(args) {
   own_b0 <- do.call(rbind,lapply(res,`[[`,'b0'))
   flags <- do.call(rbind,lapply(res[fits$kind=='selected'],function(r) data.frame(sd=r$row$sd,key=r$row$key,
     stratum=audit_stratum(phase,r$row$key),flagged=r$flagged,stringsAsFactors=FALSE)))
-  ag <- audit_gate_tables(phase,arms,own,own_b0,flags,sel,tabs)
+  own_theta <- if(phase=='B') do.call(rbind,lapply(res,`[[`,'theta')) else NULL
+  ag <- audit_gate_tables(phase,arms,own,own_b0,flags,sel,tabs,own_theta)
   dir.create(file.path(out,phase),recursive=TRUE,showWarnings=FALSE);tag <- paste(arms,collapse='-')
   dest <- file.path(out,phase,paste0('verify-arms-',tag,'.csv'));utils::write.csv(x,dest,row.names=FALSE)
   tdest <- file.path(out,phase,paste0('tables-arms-',tag,'.csv'));utils::write.csv(ag$checks,tdest,row.names=FALSE)
   if(!is.null(ag$gate)) utils::write.csv(ag$gate,file.path(out,phase,paste0('gate-audit-arms-',tag,'.csv')),row.names=FALSE)
   audit_source(out,phase,c(file.path(repo,'dev/simstudy/occupancy-intercept-prior',c('verify.R','jobs.R','results/control-provenance.csv')),
     file.path(summary,phase,c('band-error.csv','coverage.csv','mae.csv','b0.csv','summary-means.csv','b0-means.csv','convergence.csv',
-      'gate-detail.csv','gate.csv','schedule-matched.csv')),sel$sources),repo,study)
+      'gate-detail.csv','gate.csv','schedule-matched.csv',if(phase=='B') c('beta-theta.csv','beta-theta-means.csv'))),sel$sources),repo,study)
   m <- function(k) if(all(is.na(x[[k]]))) 'not applicable' else format(max(x[[k]],na.rm=TRUE),digits=3)
   cat('Verified',sum(x$pass),'of',nrow(x),'fits. Largest differences: signed error',m('max_diff_signed_error'),
     '; mean absolute error',m('max_diff_mean_abs_cell_error'),'; MAE',m('max_diff_mae'),'; coverage',m('max_diff_coverage'),
-    '; B0',m('max_diff_b0'),'; selection Rhat',m('sel_group_rhat_diff'),m('sel_element_rhat_diff'),'; archive Rhat',m('archive_rhat_vector_diff'),
+    '; B0',m('max_diff_b0'),if(phase=='B') paste('; beta_theta',m('max_diff_theta')),'; selection Rhat',m('sel_group_rhat_diff'),m('sel_element_rhat_diff'),'; archive Rhat',m('archive_rhat_vector_diff'),
     '; archive ESS (relative)',m('archive_ess_relative_diff'),'\n')
   cat('Tables:',sum(ag$checks$pass),'of',nrow(ag$checks),'checks agree across',paste(unique(ag$checks$table),collapse=', '),'\n')
   cat('Wrote',dest,tdest,file.path(out,phase,'audit-source.csv'),sep='\n  ');cat('\n')

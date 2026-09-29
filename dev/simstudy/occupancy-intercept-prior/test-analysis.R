@@ -1,15 +1,19 @@
 #!/usr/bin/env Rscript
-# Research tests for the phase A scorer: analysis.R (per-community outcomes),
-# summarise.R (tables and the gate) and verify.R (independent audit). Run from
-# this directory with `Rscript test-analysis.R`; the exit status is 1 if any
-# expectation fails or any block errors.
+# Research tests for the scorer: analysis.R (phase A per-community outcomes),
+# analysis-b.R (phase B), summarise.R (tables, the gates and the final
+# decision) and verify.R (independent audit). Run from this directory with
+# `Rscript test-analysis.R`; the exit status is 1 if any expectation fails or
+# any block errors.
 #
 # Blind development (ruling R28): every metric and gate criterion is checked on
 # hand-computed synthetic examples. Real fits enter only as mechanics fixtures:
-# one archived control fit (whose archived result the scorer must reproduce)
-# and the sd 3 pilot fit (a pilot-schedule fit that is never scored; only its
-# loading path is exercised and no outcome of it is printed or compared).
-# No new-arm fit is read. Tests that need the archives skip when absent.
+# archived control fits (whose archived results the scorer must reproduce) and
+# the phase A sd 3 pilot fits (pilot-schedule fits that are never scored; only
+# their loading path is exercised and no outcome of them is printed or
+# compared). The phase B new-arm loading path is exercised on a synthetic
+# new-arm copy of a control fit, written to a temporary directory. No new-arm
+# fit is read, and nothing under the study's fits/B is read. Tests that need
+# the archives skip when absent.
 if(!identical(Sys.getenv('OCCJSDM_TEST_ANALYSIS_INNER'),'1')) {
   Sys.setenv(OCCJSDM_TEST_ANALYSIS_INNER='1')
   self <- normalizePath(sub('^--file=','',grep('^--file=',commandArgs(),value=TRUE)[1]))
@@ -21,7 +25,7 @@ if(!identical(Sys.getenv('OCCJSDM_TEST_ANALYSIS_INNER'),'1')) {
 }
 
 library(testthat)
-for(f in c('jobs.R','verify-helpers.R','flags.R','analysis.R','supplement.R','summarise.R')) source(f)
+for(f in c('jobs.R','verify-helpers.R','flags.R','analysis.R','analysis-b.R','supplement.R','summarise.R')) source(f)
 here <- normalizePath('.')
 repo <- normalizePath('../../..')
 archives <- Sys.getenv('OCCJSDM_ARCHIVES','/Users/douglasyu/src/occJSDM/dev/simstudy/results')
@@ -37,6 +41,7 @@ run_cli <- function(script,args) {
 }
 # The archived scorer definitions, md5-checked and loaded on first use.
 delayedAssign('sc',if(have_archives) load_metric_scorers(repo,archives) else NULL)
+delayedAssign('bsc',if(have_archives) load_b_scorers(repo,archives) else NULL)
 # Type-7 sample quantile written out by hand: h = (N - 1) p + 1.
 q7 <- function(x,p) {x <- sort(x);h <- (length(x)-1)*p+1;lo <- floor(h);x[lo]+(h-lo)*(x[min(lo+1,length(x))]-x[lo])}
 row_of <- function(g,scope,group) {r <- g[g$scope==scope & g$group==group,,drop=FALSE];stopifnot(nrow(r)==1L);r}
@@ -246,14 +251,15 @@ test_that('A2 cells: probability draws through the archived spatial reconstructi
 # Per-fit primary rows for one arm: every community has the bands, the gated
 # rare group and 'all' (whose mean absolute cell error is the overall MAE).
 arm_rows <- function(phase,sd,values=list(),communities=NULL) {
-  keys <- if(phase=='A1') phase_keys('A1') else phase_keys('A2')
+  keys <- phase_keys(phase)
   base <- list(low=10,middle=5,high=5,rare_1_5pct=8,rare_below_20pct=20,all=0)
   cov <- list(low=.8,middle=.8,high=.8,rare_1_5pct=.8,rare_below_20pct=.8,all=.8)
-  groups <- if(phase=='A1') c('low','middle','high','all','rare_below_20pct') else c('low','middle','high','all','rare_1_5pct')
+  # A1 and B: bands and the rare group of replicate 07; A2: bands and the 1% plus 5% group.
+  groups <- if(phase=='A2') c('low','middle','high','all','rare_1_5pct') else c('low','middle','high','all','rare_below_20pct')
   rows <- list()
   for(k in keys) for(g in groups) {
     if(g=='rare_below_20pct' && !grepl('-07$',k)) next
-    rows[[length(rows)+1L]] <- data.frame(phase=phase,sd=sd,key=k,stratum=stratum_of(phase,k),community=community_of(phase,k),
+    rows[[length(rows)+1L]] <- data.frame(phase=phase,sd=sd,key=k,stratum=phase_stratum(phase,k),community=phase_community(phase,k),
       scope='primary',group=g,cells=10L,signed_error=base[[g]],abs_signed_error=base[[g]],mean_abs_cell_error=if(g=='all') 8 else base[[g]],
       coverage=cov[[g]],stringsAsFactors=FALSE)
   }
@@ -267,7 +273,7 @@ arm_rows <- function(phase,sd,values=list(),communities=NULL) {
   x
 }
 conv_rows <- function(phase,sd,flagged=0L) {
-  strata <- if(phase=='A1') c('n100','n300') else 'all';n <- if(phase=='A1') 10L else 9L
+  strata <- switch(phase,A1=c('n100','n300'),B=c('qnear','qfar'),'all');n <- if(phase=='A2') 9L else 10L
   data.frame(phase=phase,stratum=strata,sd=sd,role=if(sd==1) 'control' else 'new',selected_fits=n,
     selected_flagged=rep_len(flagged,length(strata)),stringsAsFactors=FALSE)
 }
@@ -692,11 +698,11 @@ gate_fixture <- function(phase,new,control=arm_rows(phase,1),flagged_new=charact
   x <- rbind(control,new);x$arm <- ifelse(x$sd==1,'control','new');x$kind <- 'selected'
   k <- unique(x[c('sd','key','stratum')])
   flags <- data.frame(sd=k$sd,key=k$key,stratum=k$stratum,flagged=k$sd!=1 & k$key %in% flagged_new,stringsAsFactors=FALSE)
-  strata <- unique(stratum_of(phase,phase_keys(phase)))
+  strata <- unique(phase_stratum(phase,phase_keys(phase)))
   conv <- do.call(rbind,lapply(c(1,2),function(a) do.call(rbind,lapply(strata,function(h) {f <- flags[flags$sd==a & flags$stratum==h,];n <- nrow(f)
     data.frame(phase=phase,stratum=h,sd=a,role=if(a==1) 'control' else 'new',selected_fits=n,selected_flagged=if(n) sum(f$flagged) else NA,
       first_flagged=if(a==1 || !n) NA else sum(f$flagged),long_repeats=if(a==1 || !n) NA else 0L,
-      missing_fits=sum(stratum_of(phase,phase_keys(phase))==h)-n,stringsAsFactors=FALSE)}))))
+      missing_fits=sum(phase_stratum(phase,phase_keys(phase))==h)-n,stringsAsFactors=FALSE)}))))
   g <- gate_subphase(phase,x,conv,2,missing)
   m <- gate_subphase(phase,x,NULL,2,missing)$detail;m$first_fits_used <- 0L
   b0 <- unique(x[c('phase','sd','arm','kind','key','stratum','community')])
@@ -757,4 +763,444 @@ test_that('verify.R audits the reachable R27 states: an absent SD, and an SD wit
   s <- synthetic_study(new_sds=3,absent_sd=2)
   sel <- ve$audit_selection('A1',c(1,2,3),repo,s$study,s$out)
   expect_identical(sum(sel$selected$sd==2),0L);expect_identical(sum(sel$missing$sd==2),20L)
+})
+
+# ---------------------------------------------------------------------------
+# Phase B (two-stage): estimand, R24 pooling, secondary outcomes, gate and the
+# final decision (README "Occupancy probability, truth and scored cells",
+# "Gate", "Secondary outcomes"; AMENDMENT-2.md R24 and R27; R22)
+# ---------------------------------------------------------------------------
+
+test_that('phase B keys: qnear and qfar of one replicate are one generating community at two contamination levels (R24)', {
+  k <- phase_keys('B')
+  expect_identical(phase_stratum('B',k),rep(c('qnear','qfar'),each=10))
+  expect_identical(phase_community('B',k),rep(reps,2))
+  # the phase A strata and communities are those of analysis.R
+  for(p in c('A1','A2')) {
+    expect_identical(phase_stratum(p,phase_keys(p)),stratum_of(p,phase_keys(p)))
+    expect_identical(phase_community(p,phase_keys(p)),community_of(p,phase_keys(p)))
+  }
+  expect_error(b_stratum('design-qnear_K6-q20-01'),'phase B key')
+})
+
+# The A1 hand example as a phase B community: 4 fitted sites, of which sites 1
+# and 2 are original; sp3 is rare (all-site mean .125). The scored cells are the
+# original sites of every species and every fitted site of the rare species, so
+# the other cells (sites 3 and 4 of sp1 and sp2) carry no interval.
+hand_b <- function(estimate=NULL) {
+  a <- hand_a1();cov <- a$covered;cov[3:4,1:2] <- NA
+  b0 <- data.frame(species=1:3,truth=c(-1,0,2),estimate=c(-.5,.25,1),lower=c(-2,-1,.5),upper=c(0,1,1.8))
+  b0$bias <- b0$estimate-b0$truth;b0$covered <- b0$lower<=b0$truth & b0$truth<=b0$upper
+  # collection intercept: species 1 and 3 covered, species 2 not (its truth -.2 lies below the lower bound -.1)
+  th <- data.frame(species=1:3,truth=c(.5,-.2,1),estimate=c(.7,.1,.9),lower=c(0,-.1,.5),upper=c(1,.4,1.2))
+  th$bias <- th$estimate-th$truth;th$covered <- th$lower<=th$truth & th$truth<=th$upper;th$correlation <- c(-.6,-.2,.2)
+  b_make_cells(truth=a$truth,estimate=estimate %||% a$estimate,covered=cov,n_original=2L,b0=b0,theta=th)
+}
+
+test_that('phase B signed error, MAE and coverage: bands on the original sites, the rare group on all fitted sites, no all-site scope', {
+  need_archives()
+  expect_identical(b_scored_cells(hand_a1()$truth,2L),c(1L,2L,5L,6L,9L,10L,11L,12L))
+  g <- b_group_table(hand_b(),bsc)
+  expect_identical(unique(g$scope),'primary');expect_setequal(g$group,c('all','low','middle','high','rare_below_20pct'))
+  low <- row_of(g,'primary','low')
+  expect_identical(low$cells,2L);expect_equal(low$signed_error,5,tolerance=1e-12);expect_equal(low$coverage,1)
+  mid <- row_of(g,'primary','middle')
+  expect_identical(mid$cells,3L);expect_equal(mid$signed_error,100*(-.10+.10+.05)/3,tolerance=1e-12)
+  expect_equal(mid$mean_abs_cell_error,100*(.10+.10+.05)/3,tolerance=1e-12);expect_equal(mid$coverage,0)
+  high <- row_of(g,'primary','high')
+  expect_equal(high$signed_error,-5,tolerance=1e-12);expect_equal(high$abs_signed_error,5,tolerance=1e-12)
+  all <- row_of(g,'primary','all')
+  expect_identical(all$cells,6L);expect_equal(all$mean_abs_cell_error,100*.40/6,tolerance=1e-12);expect_equal(all$coverage,3/6)
+  rare <- row_of(g,'primary','rare_below_20pct')
+  expect_identical(rare$cells,4L);expect_equal(rare$signed_error,100*(.05+.05+.05-.03)/4,tolerance=1e-12)
+  expect_equal(rare$mean_abs_cell_error,100*.18/4,tolerance=1e-12);expect_equal(rare$coverage,.75)
+  # a scored cell must have an interval; an unscored one need not
+  a <- hand_a1();cov <- a$covered;cov[4,3] <- NA
+  expect_error(b_make_cells(a$truth,a$estimate,cov,2L),'scored cell')
+  # no rare species: the group is absent and only the original sites are scored
+  a$truth[,3] <- c(.25,.15,.30,.30);cov <- a$covered;cov[3:4,] <- NA
+  cells <- b_make_cells(a$truth,a$truth,cov,2L)
+  expect_false('rare_below_20pct' %in% b_group_table(cells,bsc)$group);expect_identical(b_scored_cells(a$truth,2L),c(1L,2L,5L,6L,9L,10L))
+})
+
+test_that('phase B beta_theta intercept bias and coverage, and the B0 correlation, average over species', {
+  s <- b_theta_summary(hand_b()$theta)
+  expect_identical(s$species,3L);expect_equal(s$bt_bias,mean(c(.2,.3,-.1)),tolerance=1e-12)
+  expect_equal(s$bt_abs_bias,mean(c(.2,.3,.1)),tolerance=1e-12);expect_equal(s$bt_coverage,2/3)
+  expect_equal(s$b0_bt_correlation,mean(c(-.6,-.2,.2)),tolerance=1e-12)
+  expect_identical(names(s),c('species','bt_bias','bt_abs_bias','bt_coverage','b0_bt_correlation'))
+})
+
+# A synthetic two-stage fit with the real fits' array layout: 3 species at 4
+# fitted sites (2 original), 2 covariates, 2 site factors, 2 samples per site
+# and 2 primers, 6 retained draws in each of 2 chains. The package outputs are
+# the posterior means the archived design scorer checks. The collection
+# intercept draws of species 1 and 2 are exact linear functions of their B0
+# draws, so their correlations are 1 and -1.
+b_fixture <- function() {
+  set.seed(20260929)
+  n <- 4L;n0 <- 2L;S <- 3L;P <- 2L;d <- 2L;M <- 2L;np <- 2L;ni <- 6L;nc <- 2L;species <- paste0('sp',1:S)
+  xraw <- cbind(c(-1,0,1,2),c(3,1,2,0));X <- unname(scale(xraw))
+  traw <- c(.5,-.5,1,0,-1,2,.3,-.3);Xt <- unname(cbind(1,scale(traw)))
+  site <- rep(seq_len(n),each=M*np);sample <- rep(seq_len(n*M),each=np);primer <- rep(seq_len(np),times=n*M)
+  info <- data.frame(Site=site,Sample=sample,Primer=primer,X_psi.EnvCov.1=xraw[site,1],X_psi.EnvCov.2=xraw[site,2],X_theta=traw[sample])
+  B0 <- qlogis(c(.08,.5,.93));B <- rbind(c(.2,-.3,.1),c(-.1,.2,.05))
+  U <- cbind(c(.1,-.1,.2,0),c(0,.1,-.2,.1));L <- rbind(c(.5,.2,-.4),c(-.3,.1,.2))
+  jp <- list(B0=B0,B=B,U=U,L=L,eta=sweep(X%*%B+U%*%L,2,B0,'+'))
+  bt <- rbind(c(.5,-.2,1),c(1,-1,0))
+  tp <- list(jsdmParams_true=jp,beta_theta_true=bt,p_true=matrix(c(.9,.8,.85,.95,.7,.75),np,S),q_true=matrix(.05,np,S),
+    w_true=matrix(rbinom(n*M*S,1,.5),n*M,S))
+  OTU <- matrix(rpois(nrow(info)*S,3),nrow(info),S,dimnames=list(NULL,species))
+  input <- list(scenario=list(S=S,n=n,model='two_stage',ncov_psi=P,P=np),truth=list(params=list(theta0=c(.02,.03,.04))),
+    sim=list(true_params=tp,data_list=list(info=info,OTU=OTU)),design=list(original_sites=n0))
+  B0d <- array(rnorm(S*ni*nc,B0,.3),c(S,ni,nc));Bd <- array(rnorm(P*S*ni*nc,as.vector(B),.1),c(P,S,ni,nc))
+  Ud <- array(rnorm(n*d*ni*nc,as.vector(U),.1),c(n,d,ni,nc));Ld <- array(rnorm(d*S*ni*nc,as.vector(L),.1),c(d,S,ni,nc))
+  btd <- array(rnorm(2*S*ni*nc,as.vector(bt),.2),c(2,S,ni,nc));btd[1,1,,] <- 2*B0d[1,,]+1;btd[1,2,,] <- .5-B0d[2,,]
+  # every draw's probability, written out cell by cell
+  p <- array(NA_real_,c(n,S,ni,nc));th <- array(NA_real_,c(n*M,S,ni,nc))
+  for(ch in 1:nc) for(it in 1:ni) for(s in 1:S) {
+    for(i in 1:n) p[i,s,it,ch] <- plogis(B0d[s,it,ch]+sum(X[i,]*Bd[,s,it,ch])+sum(Ud[i,,it,ch]*Ld[,s,it,ch]))
+    for(j in 1:(n*M)) th[j,s,it,ch] <- plogis(sum(Xt[j,]*btd[,s,it,ch]))
+  }
+  ro <- list(jsdm_output=list(B0_output=B0d,B_output=Bd,U_output=Ud,L_output=Ld,sigmah_output=matrix(runif(ni*nc,.5,1.5),ni,nc)),
+    beta_theta_output=btd,p_output=array(runif(np*S*ni*nc,.6,.95),c(np,S,ni,nc)),q_output=array(runif(np*S*ni*nc,.01,.1),c(np,S,ni,nc)),
+    theta0_output=array(runif(S*ni*nc,.01,.05),c(S,ni,nc)),psi_output=apply(p,c(1,2),mean),theta_output=apply(th,c(1,2),mean))
+  fit <- list(results_output=ro,infos=list(ps=0,model='two_stage',speciesNames=species),X_psi=X,X_theta=Xt)
+  list(fit=fit,input=input,job=list(family='design',arm='sites300',priors=list()),p=p,truth=plogis(jp$eta),
+    bt_truth=bt[1,]+mean(traw)*bt[2,],B0d=B0d,btd=btd)
+}
+pearson <- function(x,y) sum((x-mean(x))*(y-mean(y)))/sqrt(sum((x-mean(x))^2)*sum((y-mean(y))^2))
+
+test_that('phase B cells from a synthetic two-stage fit, through the archived design scorer', {
+  need_archives()
+  x <- b_fixture()
+  cells <- b_cells(x$fit,x$input,x$job,bsc)
+  expect_identical(cells$phase,'B');expect_identical(c(cells$n,cells$S,cells$n_original),c(4L,3L,2L))
+  expect_equal(cells$truth,x$truth,tolerance=1e-12)
+  expect_equal(cells$estimate,apply(x$p,c(1,2),mean),tolerance=1e-12)
+  draws <- function(i,s) as.vector(x$p[i,s,,])
+  # sp1 (truth mean about .08) is rare: all its sites are scored; sp2 and sp3 on the original sites only
+  scored <- rbind(c(1,1),c(2,1),c(3,1),c(4,1),c(1,2),c(2,2),c(1,3),c(2,3))
+  for(k in seq_len(nrow(scored))) {i <- scored[k,1];s <- scored[k,2]
+    expect_equal(cells$lower[i,s],q7(draws(i,s),.025),tolerance=1e-12);expect_equal(cells$upper[i,s],q7(draws(i,s),.975),tolerance=1e-12)
+    expect_identical(cells$covered[i,s],q7(draws(i,s),.025)<=x$truth[i,s] && x$truth[i,s]<=q7(draws(i,s),.975))}
+  expect_true(all(is.na(cells$covered[3:4,2:3])))
+  expect_lt(cells$checks$estimate_vs_score_fit,1e-12);expect_lt(cells$checks$groups_vs_score_fit,1e-10)
+  # B0: the generating B0 on the logit scale, bias and type-7 containment per species
+  B0 <- x$input$sim$true_params$jsdmParams_true$B0
+  expect_equal(cells$b0$bias,vapply(1:3,function(s) mean(x$B0d[s,,]),numeric(1))-B0,tolerance=1e-12)
+  expect_identical(cells$b0$covered,vapply(1:3,function(s) q7(x$B0d[s,,],.025)<=B0[s] && B0[s]<=q7(x$B0d[s,,],.975),logical(1)))
+  # beta_theta intercept: truth on the standardised collection-covariate scale (alpha + mean(raw) beta)
+  expect_equal(cells$theta$truth,x$bt_truth,tolerance=1e-12)
+  expect_equal(cells$theta$bias,vapply(1:3,function(s) mean(x$btd[1,s,,]),numeric(1))-x$bt_truth,tolerance=1e-12)
+  expect_identical(cells$theta$covered,vapply(1:3,function(s) {v <- x$btd[1,s,,];q7(v,.025)<=x$bt_truth[s] && x$bt_truth[s]<=q7(v,.975)},logical(1)))
+  # B0 and beta_theta intercept correlation over the 12 pooled draws of each species
+  expect_equal(cells$theta$correlation,c(1,-1,pearson(as.vector(x$B0d[3,,]),as.vector(x$btd[1,3,,]))),tolerance=1e-12)
+  g <- b_group_table(cells,bsc)
+  expect_identical(row_of(g,'primary','rare_below_20pct')$cells,4L);expect_identical(row_of(g,'primary','all')$cells,6L)
+  e <- as.vector(cells$estimate-x$truth)[c(1,2,5,6,9,10)]
+  expect_equal(row_of(g,'primary','all')$signed_error,100*mean(e),tolerance=1e-10)
+  expect_equal(b_theta_summary(cells$theta)$b0_bt_correlation,mean(cells$theta$correlation),tolerance=1e-12)
+})
+
+test_that('phase B criterion 1 pools qnear and qfar of each replicate (R24); the no-harm criteria hold at each level', {
+  # replicates 01-07: qnear 6, qfar 13, mean 9.5 < 10, improved although qfar alone is worse;
+  # 08-10: qnear 9, qfar 11, mean exactly 10: a tie, not improved
+  new <- arm_rows('B',2,list(v('low',6,'qnear',reps[1:7]),v('low',13,'qfar',reps[1:7]),v('low',9,'qnear',reps[8:10]),v('low',11,'qfar',reps[8:10])))
+  g <- gate('B',new)
+  c1 <- detail(g,'c1','low')
+  expect_identical(nrow(c1),1L);expect_identical(c1$stratum,'pooled');expect_identical(c1$communities,10L)
+  expect_identical(c1$needed,7L);expect_identical(c1$improved,7L);expect_equal(c1$value_new,(7*9.5+3*10)/10);expect_true(c1$pass)
+  # the gated group is the low band only; the replicate 07 rare group is descriptive (R22)
+  expect_identical(unique(detail(g,'c1')$component),'low')
+  # criteria 2 to 4 are evaluated at qnear and at qfar separately: here the qfar low band is 2.4 points worse
+  expect_setequal(unique(g$detail$stratum[g$detail$criterion %in% c('c2','c3','c4')]),c('qnear','qfar'))
+  d <- detail(g,'c2','low','qfar');expect_equal(d$value_new-d$value_control,(7*13+3*11)/10-10);expect_false(d$pass)
+  expect_true(detail(g,'c2','low','qnear')$pass)
+  # so phase B fails although pooled criterion 1 passes
+  expect_true(g$row$c1_pass);expect_false(g$row$c2_pass);expect_identical(g$row$result,'FAIL')
+  # improved by one point at both levels: every criterion passes
+  ok <- gate('B',arm_rows('B',2,list(v('low',9))))
+  expect_identical(ok$row$result,'PASS');expect_identical(detail(ok,'c1','low')$improved,10L)
+  # six of ten pooled communities improved fails
+  six <- gate('B',arm_rows('B',2,list(v('low',9),v('low',11,community=reps[7:10]))))
+  expect_identical(detail(six,'c1','low')$improved,6L);expect_false(detail(six,'c1','low')$pass)
+  # however the replicate 07 rare group moves, it is not gated
+  expect_identical(gate('B',arm_rows('B',2,list(v('low',9),v('rare_below_20pct',90))))$row$result,'PASS')
+})
+
+test_that('phase B criterion 4 compares flagged selected fits with the control at each contamination level', {
+  ok <- arm_rows('B',2,list(v('low',9)))
+  # the pr11 control selection flags 1 qnear and 3 qfar fits
+  ctl <- transform(conv_rows('B',1),selected_flagged=c(1L,3L))
+  pass <- gate('B',ok,conv=rbind(ctl,transform(conv_rows('B',2),selected_flagged=c(1L,3L))))
+  expect_true(all(detail(pass,'c4')$pass));expect_identical(pass$row$result,'PASS')
+  expect_identical(detail(pass,'c4',stratum='qfar')$value_control,3)
+  near <- gate('B',ok,conv=rbind(ctl,transform(conv_rows('B',2),selected_flagged=c(2L,0L))))
+  expect_false(detail(near,'c4',stratum='qnear')$pass);expect_true(detail(near,'c4',stratum='qfar')$pass)
+  expect_identical(near$row$result,'FAIL')
+  far <- gate('B',ok,conv=rbind(ctl,transform(conv_rows('B',2),selected_flagged=c(0L,4L))))
+  expect_false(detail(far,'c4',stratum='qfar')$pass);expect_identical(far$row$result,'FAIL')
+})
+
+test_that('a phase B replicate valid at only one contamination level leaves pooled criterion 1 and fails criterion 4 at that level (R24, R27)', {
+  ok <- arm_rows('B',2,list(v('low',9)))
+  gone <- ok[ok$key!='design-qfar_K6-sites300-04',]
+  conv <- rbind(conv_rows('B',1),transform(conv_rows('B',2),selected_fits=c(10L,9L)))
+  g <- gate('B',gone,conv=conv)
+  c1 <- detail(g,'c1','low');expect_identical(c1$communities,9L);expect_identical(c1$needed,6L);expect_true(c1$pass)
+  expect_false(detail(g,'c4',stratum='qfar')$pass);expect_identical(detail(g,'c4',stratum='qfar')$missing_new,1L)
+  expect_true(detail(g,'c4',stratum='qnear')$pass)
+  expect_identical(detail(g,'c2','low','qfar')$communities,9L);expect_identical(detail(g,'c2','low','qnear')$communities,10L)
+  expect_identical(detail(g,'c3','high','qnear')$communities,10L);expect_identical(g$row$result,'FAIL')
+  # the same through the manual record of a community without a valid selected fit
+  g <- gate('B',ok[ok$key!='design-qnear_K6-sites300-09',],missing=data.frame(sd=2,key='design-qnear_K6-sites300-09',reason='quarantined'))
+  expect_false(detail(g,'c4',stratum='qnear')$pass);expect_identical(detail(g,'c1','low')$communities,9L);expect_identical(g$row$result,'FAIL')
+})
+
+# A phase B selection as select.R writes it: selected-fits.csv, and
+# convergence.csv with the single stratum 'all' that its size_stratum gives
+# every phase B key; the controls flagged as in the pr11 selection.
+B_CONTROL_FLAGGED <- sprintf('design-%s_K6-sites300-%s',c('qnear','qfar','qfar','qfar'),c('02','05','07','09'))
+b_selection <- function(dir,new_flagged=character(),repeated=character()) {
+  keys <- phase_keys('B')
+  sf <- rbind(data.frame(phase='B',sd=2,key=keys,role='new',first_schedule='initial',selected_schedule=ifelse(keys %in% repeated,'long','initial'),
+      long_repeat=keys %in% repeated,fit=sprintf('fits/B/sd2/%s/%s-fit.rds',ifelse(keys %in% repeated,'long','initial'),keys),
+      fit_md5=sprintf('%032d',seq_along(keys)),rule='pr11',first_flagged=keys %in% repeated,flagged=keys %in% new_flagged,reasons='',stringsAsFactors=FALSE),
+    data.frame(phase='B',sd=1,key=keys,role='control',first_schedule=NA,selected_schedule='initial',long_repeat=NA,
+      fit=sprintf('pr11-current-20260927/initial/%s-fit.rds',keys),fit_md5=sprintf('%032d',100+seq_along(keys)),rule='pr11',
+      first_flagged=NA,flagged=keys %in% B_CONTROL_FLAGGED,reasons='',stringsAsFactors=FALSE))
+  dir.create(dir,recursive=TRUE,showWarnings=FALSE)
+  utils::write.csv(sf,file.path(dir,'selected-fits.csv'),row.names=FALSE)
+  utils::write.csv(convergence_counts(sf),file.path(dir,'convergence.csv'),row.names=FALSE)
+  cf <- sf[sf$sd==1,];cf <- data.frame(role='control',phase='B',sd=1,key=cf$key,schedule='initial',fit=cf$fit,fit_md5=cf$fit_md5,rule='pr11',
+    warnings=0L,max_group_rhat=1,max_element_rhat=1,unresolved_rhat=0L,spatial_trace_flags=NA,spatial_field_flags=NA,flagged=cf$flagged,reasons='',
+    stringsAsFactors=FALSE)
+  utils::write.csv(cf,file.path(dir,'control-flags.csv'),row.names=FALSE)
+  sf
+}
+
+test_that('phase B convergence counts are per contamination level, checked against select.R convergence.csv (R24)', {
+  need_archives()
+  d <- tempfile('selB')
+  b_selection(d,new_flagged=c('design-qnear_K6-sites300-03','design-qfar_K6-sites300-06'),repeated=c('design-qnear_K6-sites300-03','design-qnear_K6-sites300-04'))
+  expect_identical(unique(utils::read.csv(file.path(d,'convergence.csv'))$stratum),'all')
+  cv <- convergence_table('B',c(1,2),d,repo,read_manual_missing(tempfile(),'B'))
+  row <- function(sd,h) cv[cv$sd==sd & cv$stratum==h,,drop=FALSE]
+  expect_identical(nrow(cv),4L);expect_setequal(cv$stratum,c('qnear','qfar'))
+  expect_identical(row(1,'qnear')$selected_flagged,1L);expect_identical(row(1,'qfar')$selected_flagged,3L)
+  expect_identical(row(2,'qnear')$selected_flagged,1L);expect_identical(row(2,'qfar')$selected_flagged,1L)
+  expect_identical(row(2,'qnear')$long_repeats,2L);expect_identical(row(2,'qnear')$first_flagged,2L);expect_identical(row(2,'qfar')$long_repeats,0L)
+  expect_identical(row(2,'qfar')$selected_fits,10L);expect_identical(row(2,'qfar')$expected_fits,10L)
+  # a select.R total that the per-level counts do not add up to is refused
+  x <- utils::read.csv(file.path(d,'convergence.csv'));x$selected_flagged[x$sd==2] <- 5L;utils::write.csv(x,file.path(d,'convergence.csv'),row.names=FALSE)
+  expect_error(convergence_table('B',c(1,2),d,repo,read_manual_missing(tempfile(),'B')),'convergence.csv')
+  # before the phase B selection exists, the controls' counts per level come from the archived flag cross-check
+  cv <- convergence_table('B',1,tempfile('none'),repo,read_manual_missing(tempfile(),'B'))
+  expect_identical(cv$selected_flagged[cv$stratum=='qnear'],1L);expect_identical(cv$selected_flagged[cv$stratum=='qfar'],3L)
+})
+
+test_that('the final decision: the smallest SD passing phases A and B is recommended; PASS then FAIL is binary-only; UNDETERMINED is not adopted', {
+  a <- function(r) data.frame(sd=c(2,3,5),subphase='A',result=r,stringsAsFactors=FALSE)
+  b <- function(r,sds=c(2,3,5)) data.frame(sd=sds,subphase='B',result=r,stringsAsFactors=FALSE)
+  d <- final_decision(a(c('PASS','PASS','PASS')),b(c('FAIL','PASS','PASS')))
+  expect_identical(names(d),c('sd','phase_a_result','phase_b_result','passes_both','recommended','consequence','study_decision'))
+  expect_identical(d$sd,c(2,3,5));expect_identical(d$phase_b_result,c('FAIL','PASS','PASS'))
+  expect_identical(d$passes_both,c(FALSE,TRUE,TRUE));expect_identical(d$recommended,c(FALSE,TRUE,FALSE))
+  expect_match(d$consequence[1],'binary-only improvement');expect_match(d$consequence[1],'does not change the default')
+  expect_match(d$consequence[2],'passes phases A and B');expect_match(d$study_decision[1],'sigma_b0 = 3')
+  expect_match(d$study_decision[1],'separate reviewed pull request');expect_identical(length(unique(d$study_decision)),1L)
+  # every SD fails phase B or is undetermined: no default change
+  d <- final_decision(a(c('PASS','PASS','PASS')),b(c('UNDETERMINED','FAIL','FAIL')))
+  expect_false(any(d$recommended));expect_match(d$consequence[1],'undetermined');expect_match(d$consequence[1],'does not change the default')
+  expect_match(d$consequence[2],'binary-only');expect_match(d$study_decision[1],'default stays at sigma_b0 = 1')
+  # phase B runs only for SDs that pass phase A
+  d <- final_decision(a(c('FAIL','PASS','PASS')),b(c('PASS','PASS'),sds=c(3,5)))
+  expect_identical(d$phase_b_result,c('NOT RUN','PASS','PASS'));expect_match(d$consequence[1],'fails phase A')
+  expect_identical(d$recommended,c(FALSE,TRUE,FALSE))
+  expect_error(final_decision(a(c('PASS','PASS','PASS')),b(c('PASS','PASS'),sds=c(3,5))),'phase B result')
+  expect_error(final_decision(a(c('FAIL','PASS','PASS')),b(c('PASS','PASS','PASS'))),'did not pass phase A')
+})
+
+# A temporary study with synthetic phase B score records built by the phase B
+# record constructor: the 20 controls, and 20 records of SD 2 whose cell errors
+# are half the control's. The synthetic selection names the real control fits.
+synthetic_study_b <- function(new_flagged=character()) {
+  st <- tempfile('study');dir.create(st);out <- file.path(st,'summary')
+  items <- control_items('B',st,archives,repo);hashes <- b_score_hashes(repo,archives)
+  write_record <- function(item,cells) {
+    rec <- b_score_record(item,cells,bsc,hashes,input_md5='synthetic');p <- score_path(out,'B',item$sd,item$key,item$schedule)
+    dir.create(dirname(p),recursive=TRUE,showWarnings=FALSE);saveRDS(rec,p)
+  }
+  for(i in seq_len(nrow(items))) write_record(items[i,,drop=FALSE],hand_b())
+  sel <- file.path(st,'selection/B');sf <- b_selection(sel,new_flagged=new_flagged)
+  i <- match(sf$key[sf$sd==1],items$key)
+  sf$fit[sf$sd==1] <- items$fit_label[i];sf$fit_md5[sf$sd==1] <- items$expected_md5[i];sf$selected_schedule[sf$sd==1] <- items$schedule[i]
+  utils::write.csv(sf,file.path(sel,'selected-fits.csv'),row.names=FALSE)
+  utils::write.csv(convergence_counts(sf),file.path(sel,'convergence.csv'),row.names=FALSE)
+  cf <- utils::read.csv(file.path(sel,'control-flags.csv'),stringsAsFactors=FALSE);j <- match(cf$key,items$key)
+  cf$fit <- items$fit_label[j];cf$fit_md5 <- items$expected_md5[j];cf$schedule <- items$schedule[j]
+  utils::write.csv(cf,file.path(sel,'control-flags.csv'),row.names=FALSE)
+  better <- hand_b(estimate=hand_a1()$truth+(hand_a1()$estimate-hand_a1()$truth)/2);new <- sf[sf$sd==2,]
+  for(k in seq_len(nrow(new))) write_record(data.frame(role='new',phase='B',sd=2,key=new$key[k],schedule='initial',fit=file.path(st,new$fit[k]),
+    fit_label=new$fit[k],expected_md5=new$fit_md5[k],kind='selected',stringsAsFactors=FALSE),better)
+  list(study=st,out=out)
+}
+
+test_that('summarise.R scores phase B end to end: per-level tables, beta_theta tables, the gate in summary/B, and the final decision', {
+  need_archives()
+  s <- synthetic_study_b()
+  r <- run_cli('summarise.R',cli_args(s$study,'--phase=B','--arms=1,2',paste0('--out=',s$out)))
+  expect_identical(r$status,0L);expect_false(grepl('PASS|FAIL',r$output))
+  d <- file.path(s$out,'B')
+  for(f in c('band-error.csv','coverage.csv','mae.csv','b0.csv','beta-theta.csv','convergence.csv','summary-means.csv','b0-means.csv',
+    'beta-theta-means.csv','gate.csv','gate-detail.csv','schedule-matched.csv','provenance.csv')) expect_true(file.exists(file.path(d,f)),info=f)
+  g <- utils::read.csv(file.path(d,'gate.csv'),stringsAsFactors=FALSE)
+  expect_identical(g$subphase,'B');expect_identical(g$result,'PASS');expect_identical(g$c1_low_communities,10L)
+  expect_identical(c(g$c4_qnear_flagged_control,g$c4_qfar_flagged_control),c(1L,3L))
+  expect_true(all(c('c2_low_qnear_diff','c2_mae_qfar_diff','c3_high_qfar_drop') %in% names(g)))
+  cv <- utils::read.csv(file.path(d,'convergence.csv'),stringsAsFactors=FALSE)
+  expect_setequal(cv$stratum,c('qnear','qfar'));expect_identical(sum(cv$selected_flagged[cv$sd==1]),4L)
+  bt <- utils::read.csv(file.path(d,'beta-theta.csv'),stringsAsFactors=FALSE)
+  expect_identical(nrow(bt),40L);expect_equal(unique(bt$bt_bias),mean(c(.2,.3,-.1)),tolerance=1e-12)
+  bm <- utils::read.csv(file.path(d,'beta-theta-means.csv'),stringsAsFactors=FALSE)
+  expect_identical(nrow(bm),4L);expect_equal(unique(bm$mean_b0_bt_correlation),mean(c(-.6,-.2,.2)),tolerance=1e-12)
+  be <- utils::read.csv(file.path(d,'band-error.csv'),stringsAsFactors=FALSE)
+  expect_identical(unique(be$scope),'primary');expect_setequal(unique(be$stratum),c('qnear','qfar'))
+  # two flagged selected qnear fits, one more than the control's one, fail criterion 4 at qnear
+  s2 <- synthetic_study_b(new_flagged=c('design-qnear_K6-sites300-01','design-qnear_K6-sites300-05'))
+  expect_identical(run_cli('summarise.R',cli_args(s2$study,'--phase=B','--arms=1,2',paste0('--out=',s2$out)))$status,0L)
+  g2 <- utils::read.csv(file.path(s2$out,'B/gate.csv'),stringsAsFactors=FALSE)
+  expect_identical(g2$result,'FAIL');expect_false(g2$c4_qnear_pass);expect_true(g2$c4_qfar_pass)
+  # the final decision reads the phase A and phase B gates
+  dir.create(file.path(s$out,'A'));utils::write.csv(data.frame(sd=2,subphase='A',result='PASS'),file.path(s$out,'A/gate.csv'),row.names=FALSE)
+  r <- run_cli('summarise.R',c(paste0('--repo=',repo),paste0('--study=',s$study),'--phase=final',paste0('--out=',s$out)))
+  expect_identical(r$status,0L);expect_false(grepl('PASS|FAIL',r$output))
+  fd <- utils::read.csv(file.path(s$out,'final/decision.csv'),stringsAsFactors=FALSE)
+  expect_identical(fd$sd,2L);expect_true(fd$recommended);expect_match(fd$study_decision,'sigma_b0 = 2')
+})
+
+test_that('analysis-b.R refuses new arms before the phase B selection exists, invalid arms and other phases', {
+  need_archives()
+  empty <- tempfile('study');dir.create(empty)
+  r <- run_cli('analysis-b.R',cli_args(empty,'--phase=B','--arms=1,2',paste0('--out=',tempfile())))
+  expect_identical(r$status,1L);expect_match(r$output,'selection/B/selected-fits.csv')
+  r <- run_cli('analysis-b.R',cli_args(empty,'--phase=B','--arms=4'))
+  expect_identical(r$status,1L);expect_match(r$output,'--arms')
+  r <- run_cli('analysis-b.R',cli_args(empty,'--phase=A1','--arms=1'))
+  expect_identical(r$status,1L);expect_match(r$output,'phase B')
+  expect_identical(list.files(empty,recursive=TRUE),character())
+})
+
+test_that('an archived phase B control is scored exactly as its archived result (design-qnear_K6-sites300-01)', {
+  need_archives()
+  items <- control_items('B',study,archives,repo);item <- items[items$key=='design-qnear_K6-sites300-01',,drop=FALSE]
+  expect_identical(item$schedule,'initial')
+  out <- tempfile('scores')
+  expect_no_warning(path <- b_score_item(item,bsc,archives,inputs_root,out))
+  r <- readRDS(path);old <- readRDS(file.path(archives,'pr11-current-20260927/initial/design-qnear_K6-sites300-01-result.rds'))
+  expect_identical(r$version,B_SCORE_VERSION);expect_identical(r$role,'control');expect_identical(r$sd,1)
+  expect_identical(r$stratum,'qnear');expect_identical(r$community,'01')
+  expect_identical(r$cells$estimate,as.vector(old$estimate));expect_identical(r$cells$truth,as.vector(old$truth))
+  expect_identical(sum(!is.na(r$cells$covered)),1000L)
+  for(b in c('all','low','middle','high')) {
+    mine <- row_of(r$groups,'primary',b);theirs <- old$groups[old$groups$metric=='occupancy_original_sites' & old$groups$group==if(b=='middle') 'medium' else b,]
+    expect_identical(mine$cells,as.integer(theirs$n_elements))
+    expect_lt(abs(mine$signed_error-100*theirs$bias),1e-10);expect_lt(abs(mine$mean_abs_cell_error-100*theirs$mae),1e-10)
+  }
+  el <- function(m) old$elements[old$elements$metric==m,]
+  expect_lt(max(abs(r$b0_species$bias-el('B0')$bias)),1e-12);expect_lt(max(abs(r$theta_species$bias-el('collection_intercept')$bias)),1e-12)
+  expect_identical(r$theta_species$truth,el('collection_intercept')$truth)
+  expect_true(all(abs(r$theta_species$correlation)<=1))
+  mtime <- file.mtime(path);expect_identical(b_score_item(item,bsc,archives,inputs_root,out),path);expect_identical(file.mtime(path),mtime)
+})
+
+test_that('the phase B new-arm loading path checks the fit it scores (a synthetic new-arm copy of a control fit; no new-arm fit is read)', {
+  need_archives()
+  key <- 'design-qfar_K6-sites300-10';items <- control_items('B',study,archives,repo);ctl <- items[items$key==key,,drop=FALSE]
+  expect_identical(ctl$schedule,'initial')
+  st <- tempfile('study');saved <- readRDS(ctl$fit);spec <- phase_jobs('B',archives,inputs_root,key)[[1]]
+  saved$fit$infos$intercept_prior <- list(mean=0,sd=2)
+  dest <- fit_path(st,'B',2,'initial',key);dir.create(dirname(dest),recursive=TRUE)
+  saveRDS(list(fit=saved$fit,warnings=saved$warnings,phase='B',key=key,sd=2,schedule='initial',mcmc=schedule_mcmc('B','initial',archives),
+    input_md5=spec$input_md5),dest,compress=FALSE)
+  item <- data.frame(role='new',phase='B',sd=2,key=key,schedule='initial',fit=dest,fit_label=path_within(dest,st),
+    expected_md5=unname(tools::md5sum(dest)),kind='selected',stringsAsFactors=FALSE)
+  out <- tempfile('scores')
+  expect_no_warning(p <- b_score_item(item,bsc,archives,inputs_root,out));r <- readRDS(p)
+  expect_identical(r$role,'new');expect_identical(r$sd,2);expect_identical(nrow(r$cells),3000L);expect_identical(r$stratum,'qfar')
+  expect_true(all(is.finite(r$groups$signed_error)));expect_identical(r$theta$species,10L)
+  bad <- item;bad$sd <- 3;expect_error(b_score_item(bad,bsc,archives,inputs_root,tempfile('scores')),'not the expected fit')
+  bad <- item;bad$expected_md5 <- strrep('0',32);expect_error(b_score_item(bad,bsc,archives,inputs_root,tempfile('scores')),'md5')
+  unlink(st,recursive=TRUE)
+})
+
+test_that('verify.R recomputes the phase B cells, groups, B0, beta_theta intercept and correlation independently', {
+  need_archives()
+  src <- readLines(file.path(here,'verify.R'))
+  expect_false(any(grepl('source',src,fixed=TRUE) & grepl('analysis',src,fixed=TRUE)))
+  ve <- new.env();sys.source(file.path(here,'verify.R'),envir=ve)
+  x <- b_fixture()
+  mine <- ve$audit_b_cells(x$fit,x$input)
+  cx <- b_cells(x$fit,x$input,x$job,bsc);theirs <- b_group_table(cx,bsc)
+  own <- ve$audit_groups(mine);m <- merge(own,theirs,by=c('scope','group'))
+  expect_identical(nrow(m),nrow(theirs));expect_identical(nrow(own),nrow(theirs))
+  expect_lt(max(abs(m$signed_error.x-m$signed_error.y)),1e-10);expect_lt(max(abs(m$mean_abs_cell_error.x-m$mean_abs_cell_error.y)),1e-10)
+  expect_lt(max(abs(m$coverage.x-m$coverage.y)),1e-12);expect_identical(m$cells.x,m$cells.y)
+  b0 <- ve$audit_b0(x$fit$results_output$jsdm_output$B0_output,x$input$sim$true_params$jsdmParams_true$B0);s0 <- b0_summary(cx$b0)
+  expect_lt(max(abs(b0[c('b0_bias','b0_abs_bias','b0_coverage')]-unlist(s0[c('b0_bias','b0_abs_bias','b0_coverage')]))),1e-12)
+  th <- ve$audit_theta(x$fit,x$input);st <- b_theta_summary(cx$theta)
+  expect_lt(max(abs(th[c('bt_bias','bt_abs_bias','bt_coverage','b0_bt_correlation')]-unlist(st[c('bt_bias','bt_abs_bias','bt_coverage','b0_bt_correlation')]))),1e-12)
+  expect_identical(unname(th[['species']]),3)
+})
+
+test_that("verify.R's phase B flag diagnostics reproduce flags.R's frozen pr11 rule", {
+  need_archives()
+  ve <- new.env();sys.source(file.path(here,'verify.R'),envir=ve)
+  x <- b_fixture();fl_sc <- load_flag_scorers(repo,archives)
+  mine <- ve$audit_b_cells(x$fit,x$input)
+  for(w in list(character(),'a fitting warning')) {
+    fl <- fit_flags('B',x$fit,w,x$input,fl_sc);d <- ve$audit_diag_b(x$fit,x$input,mine,length(w))$summary
+    expect_lt(abs(d$max_group_rhat-fl$max_group_rhat),1e-12);expect_lt(abs(d$max_element_rhat-fl$max_element_rhat),1e-12)
+    expect_identical(as.integer(d$unresolved_rhat),as.integer(fl$unresolved_rhat));expect_identical(d$flagged,fl$flagged)
+  }
+  expect_true(ve$audit_diag_b(x$fit,x$input,mine,1L)$summary$flagged)
+})
+
+test_that('verify.R recomputes the phase B tables and gate (R24) and catches planted errors', {
+  ve <- new.env();sys.source(file.path(here,'verify.R'),envir=ve)
+  new <- arm_rows('B',2,list(v('low',6,'qnear',reps[1:7]),v('low',9.5,'qfar',reps[1:7]),v('low',9,'qnear',reps[8:10]),v('low',11,'qfar',reps[8:10])))
+  f <- gate_fixture('B',new,flagged_new='design-qfar_K6-sites300-03')
+  th <- f$own_b0[c('phase','sd','arm','kind','key','stratum','community')];th$species <- 10L
+  th$bt_bias <- ifelse(th$sd==1,.2,.1);th$bt_abs_bias <- .3;th$bt_coverage <- .9;th$b0_bt_correlation <- -.4
+  tabs <- f$tabs;tabs$btmeans <- beta_theta_means(th)
+  audit <- function(t=tabs) ve$audit_gate_tables('B',c(1,2),f$own,f$own_b0,f$flags,NULL,t,own_theta=th)
+  ag <- audit()
+  expect_true(all(ag$checks$pass));expect_identical(unique(ag$gate$result),f$gate$row$result)
+  expect_true('beta-theta-means.csv' %in% ag$checks$table)
+  expect_identical(ag$gate$stratum[ag$gate$criterion=='c1'],'pooled');expect_setequal(ag$gate$stratum[ag$gate$criterion=='c4'],c('qnear','qfar'))
+  # no control fit is flagged in this fixture, so one flagged qfar fit fails criterion 4 at qfar only
+  expect_false(ag$gate$pass[ag$gate$criterion=='c4' & ag$gate$stratum=='qfar']);expect_true(ag$gate$pass[ag$gate$criterion=='c4' & ag$gate$stratum=='qnear'])
+  plant <- function(part,fn) {t <- tabs;t[[part]] <- fn(t[[part]]);failing_tables(audit(t))}
+  expect_identical(plant('btmeans',function(x) {x$mean_b0_bt_correlation[1] <- 0;x}),'beta-theta-means.csv')
+  expect_identical(plant('gate',function(x) transform(x,c1_low_improved=c1_low_improved-1L)),'gate.csv')
+  expect_identical(plant('detail',function(x) {i <- x$criterion=='c2' & x$stratum=='qfar' & x$component=='low';x$pass[i] <- !x$pass[i];x}),'gate-detail.csv')
+  expect_identical(plant('convergence',function(x) {x$selected_flagged[x$sd==2 & x$stratum=='qfar'] <- 0L;x}),'convergence.csv')
+})
+
+test_that('verify.R audits the final decision table from its own phase A and phase B results', {
+  ve <- new.env();sys.source(file.path(here,'verify.R'),envir=ve)
+  a <- data.frame(sd=c(2,3,5),result=c('PASS','PASS','PASS'),stringsAsFactors=FALSE)
+  cols <- c('phase_a_result','phase_b_result','passes_both','recommended','consequence','study_decision')
+  for(rb in list(c('FAIL','PASS','PASS'),c('UNDETERMINED','FAIL','FAIL'),c('PASS','PASS','PASS'))) {
+    b <- data.frame(sd=c(2,3,5),result=rb,stringsAsFactors=FALSE)
+    mine <- ve$audit_decision(a,b);theirs <- final_decision(transform(a,subphase='A'),transform(b,subphase='B'))
+    expect_true(all(ve$compare_rows('final/decision.csv',mine,theirs,'sd',cols)$pass))
+  }
+  # every SD passes both phases: the smallest, SD 2, is recommended, so marking SD 3 is an error
+  theirs$recommended <- c(FALSE,TRUE,FALSE)
+  expect_false(all(ve$compare_rows('final/decision.csv',ve$audit_decision(a,b),theirs,'sd',cols)$pass))
+  # phase A failed for SD 2: phase B was not run for it
+  a2 <- transform(a,result=c('FAIL','PASS','PASS'));b2 <- data.frame(sd=c(3,5),result=c('FAIL','PASS'),stringsAsFactors=FALSE)
+  mine <- ve$audit_decision(a2,b2);expect_identical(mine$phase_b_result,c('NOT RUN','FAIL','PASS'));expect_identical(mine$recommended,c(FALSE,FALSE,TRUE))
 })

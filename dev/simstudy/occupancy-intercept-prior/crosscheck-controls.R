@@ -2,7 +2,7 @@
 # Cross-check of the scorer's control outcomes against the archived control
 # results (R10: the archives are a cross-check only, never the source).
 #
-#   Rscript crosscheck-controls.R --repo=REPO --study=STUDY --phase=A1|A2
+#   Rscript crosscheck-controls.R --repo=REPO --study=STUDY --phase=A1|A2|B
 #     [--archives=DIR] [--summary=DIR] [--out=DIR]
 #
 # For every selected control fit, compares summarise.R's tables (SUMMARY
@@ -20,6 +20,15 @@
 #       interval and containment; signed error, MAE and coverage in each band
 #       and prevalence group; the 1% plus 5% group from the archived cells; B0
 #       bias, absolute bias and coverage.
+#   B   the pr11-current-20260927 result file of the selected fit, written by
+#       the design scorer, and the published community-scores.csv ("current"):
+#       per-cell posterior-mean probability and truth of all fitted cells;
+#       signed error, mean absolute error and cell count in each band of the
+#       original 100 sites and in the rare group over all fitted sites; per
+#       species B0 and collection intercept bias and truth, and their means
+#       (the published B0 and collection_intercept rows). The B archives
+#       record no interval, so coverage, B0 and collection intercept coverage
+#       and the B0 and collection intercept correlation are not cross-checked.
 # Writes OUT/control-validation-<phase>.csv (one row per control) and
 # OUT/control-validation-summary-<phase>.csv (largest difference per
 # quantity); OUT defaults to the study directory's results/. Exits 1 if any
@@ -92,12 +101,46 @@ crosscheck_a2 <- function(key,rec,be,cv,b0,archives,fits,pub) {
     published_coverage=mx(pc),rare_group=rare_d,b0=b0_d,stringsAsFactors=FALSE)
 }
 
+crosscheck_b <- function(key,fit_label,rec,be,b0,bt,archives,pub) {
+  r <- readRDS(file.path(archives,sub('-fit[.]rds$','-result.rds',fit_label)))
+  b <- be[be$key==key & be$scope=='primary',,drop=FALSE];p <- pub[pub$key==key & pub$version=='current',,drop=FALSE]
+  cells_ok <- TRUE;de <- dm <- pe <- pm <- numeric()
+  pairs <- rbind(c('occupancy_original_sites','all','all'),c('occupancy_original_sites','low','low'),c('occupancy_original_sites','medium','middle'),
+    c('occupancy_original_sites','high','high'),c('occupancy','rare_below_20pct','rare_below_20pct'))
+  present <- character()
+  for(k in seq_len(nrow(pairs))) {
+    g <- r$groups[r$groups$metric==pairs[k,1] & r$groups$group==pairs[k,2],,drop=FALSE];if(!nrow(g)) next
+    present <- c(present,pairs[k,3]);m <- b[b$group==pairs[k,3],,drop=FALSE]
+    q <- p[p$metric==pairs[k,1] & p$group==pairs[k,2],,drop=FALSE]
+    if(nrow(g)!=1L || nrow(m)!=1L || nrow(q)!=1L || m$cells!=g$n_elements || q$n_elements!=g$n_elements) {cells_ok <- FALSE;next}
+    de <- c(de,abs(m$signed_error-100*g$bias));dm <- c(dm,abs(m$mean_abs_cell_error-100*g$mae))
+    pe <- c(pe,abs(m$signed_error-100*q$bias));pm <- c(pm,abs(m$mean_abs_cell_error-100*q$mae))
+  }
+  if(!setequal(b$group,present)) cells_ok <- FALSE
+  el <- function(metric) r$elements[r$elements$metric==metric,,drop=FALSE]
+  pg <- function(metric) p[p$metric==metric & p$group=='all',,drop=FALSE]
+  bb <- b0[b0$key==key,,drop=FALSE];tt <- bt[bt$key==key,,drop=FALSE]
+  if(nrow(bb)!=1L || nrow(tt)!=1L || nrow(pg('B0'))!=1L || nrow(pg('collection_intercept'))!=1L) stop('Missing B0 or collection intercept rows for ',key)
+  data.frame(phase='B',key=key,cells=nrow(rec$cells),archive=basename(sub('-fit[.]rds$','-result.rds',fit_label)),
+    cells_and_groups_equal=cells_ok,groups_compared=length(de),
+    estimate=max(abs(rec$cells$estimate-as.vector(r$estimate))),truth=max(abs(rec$cells$truth-as.vector(r$truth))),
+    signed_error=mx(de),mean_abs_cell_error=mx(dm),published_signed_error=mx(pe),published_mean_abs_cell_error=mx(pm),
+    rare_species=sum(colMeans(r$truth)<.2),
+    b0_species=max(abs(rec$b0_species$bias-el('B0')$bias),abs(rec$b0_species$truth-el('B0')$truth)),
+    b0=max(abs(bb$b0_bias-mean(el('B0')$bias)),abs(bb$b0_abs_bias-mean(abs(el('B0')$bias)))),
+    published_b0=max(abs(bb$b0_bias-pg('B0')$bias),abs(bb$b0_abs_bias-pg('B0')$mae)),
+    bt_species=max(abs(rec$theta_species$bias-el('collection_intercept')$bias),abs(rec$theta_species$truth-el('collection_intercept')$truth)),
+    bt=max(abs(tt$bt_bias-mean(el('collection_intercept')$bias)),abs(tt$bt_abs_bias-mean(abs(el('collection_intercept')$bias)))),
+    published_bt=max(abs(tt$bt_bias-pg('collection_intercept')$bias),abs(tt$bt_abs_bias-pg('collection_intercept')$mae)),
+    stringsAsFactors=FALSE)
+}
+
 crosscheck_main <- function(args) {
   o <- parse_options(args,known=c('repo','study','archives','phase','summary','out'),required=c('repo','study','phase'))
   repo <- normalizePath(o$repo,mustWork=TRUE);study <- normalizePath(o$study,mustWork=TRUE)
   archives <- normalizePath(o$archives %||% dirname(study),mustWork=TRUE)
   summary <- o$summary %||% file.path(study,'summary');out <- o$out %||% file.path(repo,ANALYSIS_REL,'results')
-  phase <- o$phase;if(!phase %in% c('A1','A2')) stop('--phase must be A1 or A2')
+  phase <- o$phase;if(!phase %in% c('A1','A2','B')) stop('--phase must be A1, A2 or B')
   read <- function(name) {x <- utils::read.csv(file.path(summary,phase,name),stringsAsFactors=FALSE,
     colClasses=c(key='character',community='character',fit='character',fit_md5='character'));x[x$sd==1 & x$kind=='selected',,drop=FALSE]}
   be <- read('band-error.csv');cv <- read('coverage.csv');b0 <- read('b0.csv')
@@ -105,7 +148,11 @@ crosscheck_main <- function(args) {
   if(!setequal(unique(be$key),ctl$key)) stop('The summary does not hold every control of phase ',phase)
   rec <- function(i) {r <- readRDS(score_path(summary,phase,1,ctl$key[i],ctl$schedule[i]))
     if(!identical(r$fit_md5,ctl$expected_md5[i])) stop('Record of another fit: ',ctl$key[i]);r}
-  rows <- if(phase=='A1') {
+  rows <- if(phase=='B') {
+    pub <- utils::read.csv(file.path(repo,'dev/simstudy/current-main-recheck/results/community-scores.csv'),stringsAsFactors=FALSE)
+    bt <- read('beta-theta.csv')
+    lapply(seq_len(nrow(ctl)),function(i) crosscheck_b(ctl$key[i],ctl$fit_label[i],rec(i),be,b0,bt,archives,pub))
+  } else if(phase=='A1') {
     pub <- utils::read.csv(file.path(repo,'dev/simstudy/current-main-recheck/results/community-scores.csv'),stringsAsFactors=FALSE)
     lapply(seq_len(nrow(ctl)),function(i) crosscheck_a1(ctl$key[i],ctl$fit_label[i],rec(i),be,archives,pub))
   } else {
@@ -133,7 +180,7 @@ crosscheck_main <- function(args) {
 
 if(sys.nframe()==0L) {
   here <- dirname(normalizePath(sub('^--file=','',grep('^--file=',commandArgs(),value=TRUE)[1])))
-  for(f in c('jobs.R','verify-helpers.R','flags.R','analysis.R')) source(file.path(here,f))
+  for(f in c('jobs.R','verify-helpers.R','flags.R','analysis.R','analysis-b.R')) source(file.path(here,f))
   status <- tryCatch(crosscheck_main(commandArgs(trailingOnly=TRUE)),error=function(e) {cat('ERROR:',conditionMessage(e),'\n');1L})
   quit(save='no',status=status)
 }

@@ -31,3 +31,7 @@ Recorded 29 September 2026. The task review of the scorer, after the look of Dev
 - The manual record of R27 now includes `manual-selected.csv` and `supplement.R` (SCORING.md), so that the case which frozen `select.R` cannot record can be scored and reported as R27 requires.
 
 The scorer agent made these changes without seeing any new-arm outcome.
+
+## Note: phase B control scoring before the phase B selection
+
+Recorded 29 September 2026. The phase B scorer (`analysis-b.R`, with the phase B parts of `summarise.R` and `verify.R`) was validated by scoring and auditing the 20 phase B control fits (SD 1, the archived pr11 fits) while the phase B new-arm fits were still running, before `STUDY/selection/B/selected-fits.csv` existed, at the controller's instruction for Task 5. This follows the practice AMENDMENT-2.md records for the phase A controls: the control outcomes are already recorded in the pr11 archive, and the phase B selection is computed by frozen code (`select.R`, `flags.R`) from convergence flags alone, so scoring the controls early cannot steer it. No new-arm phase B outcome was computed: `analysis-b.R` refuses new arms before the phase B selection exists. The scorer agent did not load or inspect any phase B new-arm fit.
