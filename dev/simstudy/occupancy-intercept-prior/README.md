@@ -1,5 +1,7 @@
 # Occupancy-intercept prior study: frozen protocol
 
+Amended 29 September 2026, before any scientific fit: see [AMENDMENT-1.md](AMENDMENT-1.md), which changes how phase A1 is gated (R21) and the order of the phase A launches (R23).
+
 This is the prespecified protocol for testing a wider prior on the species occupancy intercept `B0`. It is frozen by the commit that adds it, "Freeze the occupancy-intercept prior protocol and phase A launcher", made before any scientific fit of a new arm. Nothing below changes afterwards except through a dated amendment file in this directory, and no amendment may be made after the fits it concerns have been scored. The plan is [PLAN.md](PLAN.md); where the rulings recorded below refine the plan, the rulings apply.
 
 ## Question

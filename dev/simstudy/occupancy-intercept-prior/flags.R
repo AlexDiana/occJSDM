@@ -452,13 +452,21 @@ final_selected <- function(initial,repeats,longs,controls) {
   x
 }
 
-# Per phase and arm (sd 1 is the control): selected fits still flagged after
-# the single longer repeat, the gate's convergence criterion.
+# Default output directory of select.R: one per set of phases selected
+# together (Amendment 1, R23), for example STUDY/selection/A1.
+selection_dir <- function(study,phases) file.path(study,'selection',paste(phases,collapse='-'))
+
+# Amendment 1 (R21): A1 no-harm criteria apply at 100 and 300 sites separately.
+size_stratum <- function(key) ifelse(grepl('^jsdm-n0100-',key),'n100',ifelse(grepl('^jsdm-n0300-',key),'n300','all'))
+
+# Per phase, stratum and arm (sd 1 is the control): selected fits still flagged
+# after the single longer repeat, the gate's convergence criterion.
 convergence_counts <- function(selected) {
-  groups <- split(selected,interaction(selected$phase,selected$sd,drop=TRUE,lex.order=TRUE))
-  x <- do.call(rbind,lapply(groups,function(g) data.frame(phase=g$phase[1],sd=g$sd[1],role=g$role[1],
+  selected$stratum <- size_stratum(selected$key)
+  groups <- split(selected,interaction(selected$phase,selected$stratum,selected$sd,drop=TRUE,lex.order=TRUE))
+  x <- do.call(rbind,lapply(groups,function(g) data.frame(phase=g$phase[1],stratum=g$stratum[1],sd=g$sd[1],role=g$role[1],
     selected_fits=nrow(g),selected_flagged=sum(g$flagged),first_flagged=if(g$role[1]=='control') NA_integer_ else sum(g$first_flagged),
     long_repeats=if(g$role[1]=='control') NA_integer_ else sum(g$long_repeat),stringsAsFactors=FALSE)))
-  x <- x[order(match(x$phase,PHASES),x$sd),,drop=FALSE];rownames(x) <- NULL
+  x <- x[order(match(x$phase,PHASES),x$sd,x$stratum),,drop=FALSE];rownames(x) <- NULL
   x
 }

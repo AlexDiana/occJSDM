@@ -146,6 +146,16 @@ test_that('the phase A queue is 60 A1 initial and 27 A2 long jobs at the control
   expect_error(build_queue('A1',2,'/study',archives,bad('A2',2,'range4-rep01-binary-k100')),'not in --phases')
   expect_error(build_queue('A1',2,'/study',archives,bad(c('A1','A1'),2,c('jsdm-n0100-01','jsdm-n0100-01'))),'Duplicated')
   g <- tempfile();writeLines('phase,key\nA1,jsdm-n0100-01',g);expect_error(read_only_jobs(g),'phase, sd, key')
+  # Amendment 1 (R23): A1 and A2 are launched separately; their queues are the two halves of the phase A queue.
+  qa1 <- build_queue('A1',c(2,3,5),'/study',archives);qa2 <- build_queue('A2',c(2,3,5),'/study',archives)
+  expect_identical(c(nrow(qa1),nrow(qa2)),c(60L,27L));expect_true(all(qa1$schedule=='initial'));expect_true(all(qa2$schedule=='long'))
+  id <- function(x) paste(x$phase,x$sd,x$schedule,x$key)
+  expect_setequal(c(id(qa1),id(qa2)),id(q))
+  committed <- lapply(c('phase-a-queue.csv','phase-a1-queue.csv','phase-a2-queue.csv'),function(f)
+    utils::read.csv(file.path(here,'results',f),stringsAsFactors=FALSE))
+  expect_identical(c(nrow(committed[[2]]),nrow(committed[[3]])),c(60L,27L))
+  expect_setequal(c(id(committed[[2]]),id(committed[[3]])),id(committed[[1]]))
+  expect_identical(committed[[2]]$key,qa1$key);expect_identical(committed[[3]]$key,qa2$key)
   expect_identical(nrow(bad(character(),numeric(),character())),0L)
 })
 
@@ -377,6 +387,12 @@ test_that('the selection needs every first fit, lists the long repeats, and asse
   expect_true(all(ctl$sd==1));expect_true(all(nchar(ctl$expected_md5)==32L))
   expect_identical(ctl$fit_label[ctl$key=='range6-rep03-binary-k100'],'spatial-targeted-20260927/long/range6-rep03-binary-k100-fit.rds')
   expect_error(check_first_fits(items),'87 first fits are missing')
+  # Amendment 1 (R23): A1 and A2 are selected in separate runs, each in its own directory.
+  a1 <- selection_items('A1',c(2,3,5),'/nowhere',archives,repo);a2 <- selection_items('A2',c(2,3,5),'/nowhere',archives,repo)
+  expect_identical(c(sum(a1$role=='new'),sum(a1$role=='control'),sum(a2$role=='new'),sum(a2$role=='control')),c(60L,20L,27L,9L))
+  expect_identical(rbind(a1,a2),items)
+  expect_identical(selection_dir('/s','A1'),'/s/selection/A1');expect_identical(selection_dir('/s','A2'),'/s/selection/A2')
+  expect_identical(selection_dir('/s',c('A1','A2')),'/s/selection/A1-A2')
   # long-keys.txt is a launcher job list.
   sel <- data.frame(phase=c('A1','A1','A1'),sd=c(2,3,5),key=c('jsdm-n0100-01','jsdm-n0100-02','jsdm-n0300-03'),
     flagged=c(TRUE,FALSE,TRUE))
@@ -386,19 +402,28 @@ test_that('the selection needs every first fit, lists the long repeats, and asse
     schedule=schedule,fit=paste0(key,'-',schedule),fit_md5='m',rule='pr11',warnings=0L,max_group_rhat=1,
     max_element_rhat=1,unresolved_rhat=0L,spatial_trace_flags=NA_integer_,spatial_field_flags=NA_integer_,
     flagged=flagged,reasons=if(flagged) 'x' else '',stringsAsFactors=FALSE)
-  initial <- rbind(flag('A1',2,'k1','initial',TRUE),flag('A1',2,'k2','initial',FALSE))
-  repeats <- flag('A1',2,'k1','long',TRUE)
+  k1 <- 'jsdm-n0100-01';k2 <- 'jsdm-n0300-01'
+  initial <- rbind(flag('A1',2,k1,'initial',TRUE),flag('A1',2,k2,'initial',FALSE))
+  repeats <- flag('A1',2,k1,'long',TRUE)
   longs <- flag('A2',2,'r1','long',FALSE)
-  controls <- rbind(flag('A1',1,'k1','initial',FALSE,'control'),flag('A1',1,'k2','initial',FALSE,'control'),
+  controls <- rbind(flag('A1',1,k1,'initial',FALSE,'control'),flag('A1',1,k2,'initial',FALSE,'control'),
     flag('A2',1,'r1','long',TRUE,'control'))
   s <- final_selected(initial,repeats,longs,controls)
   expect_identical(s$selected_schedule[s$sd==2],c('long','initial','long'))
   expect_identical(s$first_schedule[s$sd==2],c('initial','initial','long'))
   expect_identical(s$long_repeat[s$sd==2],c(TRUE,FALSE,FALSE))
-  expect_identical(s$flagged[s$sd==2],c(TRUE,FALSE,FALSE));expect_identical(s$fit[s$sd==2][1],'k1-long')
+  expect_identical(s$flagged[s$sd==2],c(TRUE,FALSE,FALSE));expect_identical(s$fit[s$sd==2][1],'jsdm-n0100-01-long')
+  # Amendment 1 (R21): A1 convergence counts are kept separately at 100 and 300 sites.
   c <- convergence_counts(s)
-  expect_identical(c$selected_flagged[c$phase=='A1' & c$sd==2],1L);expect_identical(c$selected_flagged[c$phase=='A1' & c$sd==1],0L)
-  expect_identical(c$long_repeats[c$phase=='A1' & c$sd==2],1L);expect_identical(c$selected_flagged[c$phase=='A2' & c$sd==1],1L)
+  expect_identical(names(c),c('phase','stratum','sd','role','selected_fits','selected_flagged','first_flagged','long_repeats'))
+  expect_identical(c$stratum,c('n100','n300','n100','n300','all','all'));expect_identical(c$sd,c(1,1,2,2,1,2))
+  a1 <- function(stratum,sd,col) c[[col]][c$phase=='A1' & c$stratum==stratum & c$sd==sd]
+  expect_identical(a1('n100',2,'selected_flagged'),1L);expect_identical(a1('n300',2,'selected_flagged'),0L)
+  expect_identical(a1('n100',1,'selected_flagged'),0L);expect_identical(a1('n100',2,'long_repeats'),1L)
+  expect_identical(a1('n300',2,'long_repeats'),0L);expect_identical(a1('n100',2,'selected_fits'),1L)
+  expect_identical(c$selected_flagged[c$phase=='A2' & c$sd==1],1L)
+  expect_identical(size_stratum(c('jsdm-n0100-07','jsdm-n0300-07','range4-rep01-binary-k100','design-qfar_K6-sites300-01')),
+    c('n100','n300','all','all'))
   expect_error(final_selected(initial,repeats[0,],longs,controls),'longer repeat is missing')
 })
 
@@ -407,5 +432,8 @@ test_that('select.R before the first fits exist exits non-zero and writes nothin
   r <- run_cli(file.path(here,'select.R'),c(paste0('--repo=',repo),paste0('--study=',study),paste0('--inputs-root=',inputs_root),
     '--phases=A1,A2','--sds=2,3,5','--mode=plan'))
   expect_identical(r$status,1L);expect_match(r$output,'87 first fits are missing')
+  r <- run_cli(file.path(here,'select.R'),c(paste0('--repo=',repo),paste0('--study=',study),paste0('--inputs-root=',inputs_root),
+    '--phases=A1','--sds=2,3,5','--mode=plan','--workers=2'))
+  expect_identical(r$status,1L);expect_match(r$output,'60 first fits are missing')
   expect_false(dir.exists(file.path(study,'selection')))
 })

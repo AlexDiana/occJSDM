@@ -7,7 +7,8 @@
 #     --sds=2,3,5 --mode=plan|final [--workers=N] [--archives=DIR] [--out=DIR]
 #
 # plan, once the launcher's DONE marker reports exit status 0, writes to OUT
-# (default STUDY/selection), in this order:
+# (default STUDY/selection/<phases>, for example STUDY/selection/A1; see
+# AMENDMENT-1.md), in this order:
 #   long-selection.csv  every new-arm first fit at the initial schedule, flagged or not
 #   long-keys.txt       the flagged ones, as a launcher job list for --only
 #   long-fit-flags.csv  new-arm first fits already at the longer schedule; no
@@ -16,7 +17,7 @@
 # final, once the single longer repeats are complete, writes
 #   repeat-flags.csv    each longer repeat
 #   selected-fits.csv   each arm's selected fit per community, with its flags
-#   convergence.csv     selected fits still flagged, per phase and arm
+#   convergence.csv     selected fits still flagged, per phase, A1 site count and arm
 # A table that exists is never replaced: a recomputation must be byte-identical.
 # Nothing here computes or reads an occupancy error. Not hashed into fits.
 
@@ -47,7 +48,7 @@ select_main <- function(args) {
   repo <- normalizePath(o$repo,mustWork=TRUE);study <- normalizePath(o$study,mustWork=TRUE)
   archives <- normalizePath(o$archives %||% dirname(study),mustWork=TRUE)
   inputs_root <- normalizePath(o$`inputs-root`,mustWork=TRUE)
-  out <- o$out %||% file.path(study,'selection')
+  out <- o$out %||% selection_dir(study,phases)
   sc <- load_flag_scorers(repo,archives)
   items <- selection_items(phases,sds,study,archives,repo)
   check_first_fits(items)
