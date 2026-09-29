@@ -16,17 +16,23 @@
 #   mae.csv             overall MAE M per community (scope primary is the gate's)
 #   b0.csv              B0 bias, absolute bias and coverage per community (logit scale)
 #   convergence.csv     selected fits and flags per stratum and arm, from the
-#                       selection (controls: control-flags.csv); before a
-#                       selection exists, controls only, from results/flag-crosscheck.csv
+#                       selection (controls: control-flags.csv); for an SD that
+#                       select.R could not record, from supplement.R's manual
+#                       record (R27), or none; before a selection exists,
+#                       controls only, from results/flag-crosscheck.csv
 #   summary-means.csv   across-community means per arm, stratum, scope and group
 #   b0-means.csv        across-community means of the B0 outcomes per arm and stratum
 #   provenance.csv      scorer hashes, arguments, records read
 # and, when the control and a new arm are both requested:
-#   gate.csv            one row per SD: the numbers of every criterion, PASS or FAIL
-#   gate-detail.csv     the same, one row per criterion and component
+#   gate.csv            one row per SD: the numbers of every criterion and the
+#                       result: PASS, FAIL, or UNDETERMINED when no criterion
+#                       fails but one is evaluated over no community (NA)
+#   gate-detail.csv     the same, one row per criterion and component, with
+#                       tolerance_decisive: whether GATE_TOL decided an "at most" comparison
 #   schedule-matched.csv  criteria 1 to 3 with each new arm's first fits (R12), descriptive
 # When the gates of both A1 and A2 exist, or with --phase=A, OUT/A/gate.csv
 # holds the A1 and A2 rows and one phase A row per SD (passes A1 and A2).
+# No verdict is printed; it is read from gate.csv after verify.R has passed.
 # Not sourced or hashed by run.R.
 
 GATE_BANDS <- c('low','middle','high')
@@ -44,10 +50,18 @@ gate_config <- function(phase) switch(phase,
 ceil_two_thirds <- function(n) as.integer((2L*n+2L)%/%3L)
 
 detail_row <- function(phase,sd,criterion,component,stratum,communities=NA,needed=NA,improved=NA,value_new=NA,
-  value_control=NA,statistic=NA,threshold=NA,missing_new=NA,pass)
+  value_control=NA,statistic=NA,threshold=NA,missing_new=NA,pass,tolerance_decisive=NA)
   data.frame(phase=phase,sd=sd,criterion=criterion,component=component,stratum=stratum,communities=as.integer(communities),
     needed=as.integer(needed),improved=as.integer(improved),value_new=as.numeric(value_new),value_control=as.numeric(value_control),
-    statistic=as.numeric(statistic),threshold=as.numeric(threshold),missing_new=as.integer(missing_new),pass=pass,stringsAsFactors=FALSE)
+    statistic=as.numeric(statistic),threshold=as.numeric(threshold),missing_new=as.integer(missing_new),pass=as.logical(pass),
+    tolerance_decisive=as.logical(tolerance_decisive),stringsAsFactors=FALSE)
+
+# An "at most" comparison over n communities: NA when there is nothing to
+# compare, and whether GATE_TOL decided it (the difference lies in (limit, limit + GATE_TOL]).
+at_most <- function(n,difference,limit) {
+  if(n==0L) return(list(pass=NA,decisive=NA))
+  list(pass=difference<=limit+GATE_TOL,decisive=difference>limit && difference<=limit+GATE_TOL)
+}
 
 # One quantity of one group and stratum for the fits valid in both arms (the
 # same communities for both arms; a group empty in a community is left out).
@@ -75,28 +89,29 @@ criterion1 <- function(x,phase,sd,group) {
   n <- length(ids);needed <- ceil_two_thirds(n);improved <- sum(vn[ids]<vc[ids])
   mn <- if(n) mean(vn[ids]) else NA_real_;mc <- if(n) mean(vc[ids]) else NA_real_
   detail_row(phase,sd,'c1',group,cfg$c1_stratum,n,needed,improved,mn,mc,mn-mc,
-    pass=n>0L && improved>=needed && mn<mc)
+    pass=if(n==0L) NA else improved>=needed && mn<mc)
 }
 
 # Criterion 2 at one stratum: each band's mean |E| worse by at most 1 point and
-# the mean overall MAE worse by at most 0.5 point. A band with no cells in any
-# community cannot be worse and passes.
+# the mean overall MAE worse by at most 0.5 point. Over no community (a band
+# with no cells anywhere, or an arm without valid fits, R27) it is NA, never PASS.
 criterion2 <- function(x,phase,sd,stratum) {
   one <- function(group,column,component,limit) {
     p <- paired(x,sd,group,stratum,column)
-    mn <- if(p$n) mean(p$new) else NA_real_;mc <- if(p$n) mean(p$control) else NA_real_
+    mn <- if(p$n) mean(p$new) else NA_real_;mc <- if(p$n) mean(p$control) else NA_real_;a <- at_most(p$n,mn-mc,limit)
     detail_row(phase,sd,'c2',component,stratum,p$n,value_new=mn,value_control=mc,statistic=mn-mc,threshold=limit,
-      pass=p$n==0L || mn-mc<=limit+GATE_TOL)
+      pass=a$pass,tolerance_decisive=a$decisive)
   }
   rbind(do.call(rbind,lapply(GATE_BANDS,function(g) one(g,'abs_signed_error',g,1))),one('all','mean_abs_cell_error','mae',.5))
 }
 
-# Criterion 3 at one stratum: each band's mean coverage lower by at most 0.03.
+# Criterion 3 at one stratum: each band's mean coverage lower by at most 0.03
+# (NA over no community).
 criterion3 <- function(x,phase,sd,stratum) do.call(rbind,lapply(GATE_BANDS,function(g) {
   p <- paired(x,sd,g,stratum,'coverage')
-  mn <- if(p$n) mean(p$new) else NA_real_;mc <- if(p$n) mean(p$control) else NA_real_
+  mn <- if(p$n) mean(p$new) else NA_real_;mc <- if(p$n) mean(p$control) else NA_real_;a <- at_most(p$n,mc-mn,.03)
   detail_row(phase,sd,'c3',g,stratum,p$n,value_new=mn,value_control=mc,statistic=mc-mn,threshold=.03,
-    pass=p$n==0L || mc-mn<=.03+GATE_TOL)
+    pass=a$pass,tolerance_decisive=a$decisive)
 }))
 
 # Criterion 4 at one stratum: flagged selected fits of the new arm at most the
@@ -109,6 +124,13 @@ criterion4 <- function(conv,phase,sd,stratum,valid_new) {
   fn <- conv$selected_flagged[conv$sd==sd & conv$stratum==stratum];fn <- if(length(fn)==1L) fn else NA_real_
   detail_row(phase,sd,'c4','flags',stratum,value_new=fn,value_control=fc,statistic=fn-fc,threshold=0,missing_new=missing,
     pass=missing==0L && isTRUE(fn<=fc))
+}
+
+# FAIL if any criterion fails; otherwise UNDETERMINED if any is NA (evaluated
+# over no community); otherwise PASS. Only PASS passes.
+gate_result <- function(pass,descriptive=FALSE) {
+  if(descriptive) return('DESCRIPTIVE')
+  if(any(!pass,na.rm=TRUE)) 'FAIL' else if(anyNA(pass)) 'UNDETERMINED' else 'PASS'
 }
 
 gate_row <- function(d,phase,sd,descriptive=FALSE) {
@@ -125,7 +147,7 @@ gate_row <- function(d,phase,sd,descriptive=FALSE) {
         list(r$value_new,r$value_control,r$missing_new,r$pass)))
   }
   for(k in c('c1','c2','c3','c4')) row[[paste0(k,'_pass')]] <- if(any(d$criterion==k)) all(d$pass[d$criterion==k]) else NA
-  row$result <- if(descriptive) 'DESCRIPTIVE' else if(all(d$pass)) 'PASS' else 'FAIL'
+  row$result <- gate_result(d$pass,descriptive)
   as.data.frame(row,stringsAsFactors=FALSE)
 }
 
@@ -139,7 +161,9 @@ gate_subphase <- function(phase,scores,conv,sd,missing=NULL) {
   x <- scores[scores$scope=='primary' & scores$sd %in% c(1,sd),,drop=FALSE]
   if(!setequal(unique(x$key[x$sd==1]),keys)) stop('The control arm lacks a valid selected fit for some community of phase ',phase)
   gone <- if(is.null(missing)) character() else missing$key[missing$sd==sd]
-  valid <- setdiff(unique(x$key[x$sd==sd]),gone)
+  both <- intersect(gone,unique(x$key[x$sd==sd]))
+  if(length(both)) stop('Community both scored and recorded as missing for SD ',sd,': ',both[1])
+  valid <- unique(x$key[x$sd==sd])
   if(length(setdiff(valid,keys))) stop('Unknown community for SD ',sd,': ',setdiff(valid,keys)[1])
   x <- x[x$sd==1 | x$key %in% valid,,drop=FALSE]
   d <- do.call(rbind,c(lapply(cfg$gated,function(g) criterion1(x,phase,sd,g)),
@@ -184,7 +208,7 @@ same_table <- function(a,b,cols) all(vapply(cols,function(k)
   if(is.numeric(a[[k]]) || is.numeric(b[[k]]) || is.logical(a[[k]])) identical(as.numeric(a[[k]]),as.numeric(b[[k]])) else
     identical(as.character(a[[k]]),as.character(b[[k]])),logical(1)))
 
-convergence_table <- function(phase,arms,sel_dir,repo,missing) {
+convergence_table <- function(phase,arms,sel_dir,repo,missing,supplement=NULL) {
   keys <- phase_keys(phase);strata <- unique(stratum_of(phase,keys))
   cols <- c('phase','stratum','sd','role','selected_fits','selected_flagged','first_flagged','long_repeats')
   f <- file.path(sel_dir,'convergence.csv')
@@ -206,32 +230,64 @@ convergence_table <- function(phase,arms,sel_dir,repo,missing) {
         first_flagged=NA_integer_,long_repeats=NA_integer_,stringsAsFactors=FALSE)}))
     source <- 'results/flag-crosscheck.csv (flags.R on the control fits; control selection not yet recorded for this phase)'
   }
-  cv <- cv[cv$sd %in% arms,cols,drop=FALSE]
+  cv <- cv[cv$sd %in% arms,cols,drop=FALSE];cv$source <- if(nrow(cv)) source else character()
+  # An SD that select.R could not record (R27): its supplement's selected fits, or none.
+  if(!is.null(supplement) && nrow(supplement)) {
+    sup <- convergence_counts(supplement)[cols];sup$source <- 'manual supplement (R27)';cv <- rbind(cv,sup)
+  }
   for(sd in setdiff(arms,unique(cv$sd))) cv <- rbind(cv,data.frame(phase=phase,stratum=strata,sd=sd,role='new',selected_fits=0L,
-    selected_flagged=NA_integer_,first_flagged=NA_integer_,long_repeats=NA_integer_,stringsAsFactors=FALSE))
+    selected_flagged=NA_integer_,first_flagged=NA_integer_,long_repeats=NA_integer_,source='absent (R27)',stringsAsFactors=FALSE))
+  for(sd in setdiff(arms,1)) for(h in setdiff(strata,cv$stratum[cv$sd==sd])) cv <- rbind(cv,data.frame(phase=phase,stratum=h,sd=sd,
+    role='new',selected_fits=0L,selected_flagged=NA_integer_,first_flagged=NA_integer_,long_repeats=NA_integer_,source='absent (R27)',
+    stringsAsFactors=FALSE))
   cv$expected_fits <- vapply(cv$stratum,function(h) sum(stratum_of(phase,keys)==h),integer(1))
   cv$manual_missing <- vapply(seq_len(nrow(cv)),function(i) sum(missing$sd==cv$sd[i] & stratum_of(phase,missing$key)==cv$stratum[i]),integer(1))
   cv$missing_fits <- cv$expected_fits-cv$selected_fits
-  cv$source <- source;rownames(cv) <- NULL
-  cv[order(cv$sd,cv$stratum),,drop=FALSE]
+  cv <- cv[order(cv$sd,cv$stratum),c(cols,'expected_fits','manual_missing','missing_fits','source'),drop=FALSE];rownames(cv) <- NULL
+  cv
 }
 
-# Records of the requested arms, each checked against the fit it must be of.
+# Items of one new arm: select.R's selected-fits.csv, or, for an SD that
+# select.R could not record (R27), supplement.R's manual-selection.csv, which
+# must list exactly the fits of the controller's manual-selected.csv.
+arm_items <- function(phase,sd,study,sel_dir,out) {
+  sf <- file.path(sel_dir,'selected-fits.csv');mf <- file.path(out,phase,'manual-selection.csv')
+  in_sel <- file.exists(sf) && {z <- read_selected(sf);any(z$role=='new' & z$sd==sd)}
+  ms <- if(file.exists(mf)) read_selected(mf) else NULL;in_sup <- !is.null(ms) && any(ms$sd==sd)
+  if(in_sel && in_sup) stop('SD ',sd,' is both in selected-fits.csv and in the manual supplement ',mf)
+  if(in_sel) return(list(items=new_items(phase,sd,study,sel_dir),table=NULL))
+  empty <- new_items_empty()
+  if(!in_sup) return(list(items=empty,table=NULL))
+  x <- ms[ms$sd==sd,,drop=FALSE];m <- read_manual_selected(sel_dir,phase);m <- m[m$sd==sd,,drop=FALSE]
+  if(!setequal(paste(x$key,x$fit,x$fit_md5),paste(m$key,m$fit,m$fit_md5)) || nrow(x)!=nrow(m))
+    stop('manual-selection.csv does not list the fits of manual-selected.csv for SD ',sd,'; rerun supplement.R')
+  item <- function(key,schedule,fit,md5,kind) data.frame(role='new',phase=phase,sd=sd,key=key,schedule=schedule,
+    fit=file.path(study,fit),fit_label=fit,expected_md5=md5,kind=kind,stringsAsFactors=FALSE)
+  rows <- c(lapply(seq_len(nrow(x)),function(i) item(x$key[i],x$selected_schedule[i],x$fit[i],x$fit_md5[i],'selected')),
+    lapply(which(x$long_repeat %in% TRUE),function(i) item(x$key[i],'initial',as.character(x$first_fit[i]),as.character(x$first_fit_md5[i]),'first')))
+  list(items=do.call(rbind,rows),table=x)
+}
+new_items_empty <- function() data.frame(role=character(),phase=character(),sd=numeric(),key=character(),schedule=character(),
+  fit=character(),fit_label=character(),expected_md5=character(),kind=character(),stringsAsFactors=FALSE)
+
+# Records of the requested arms, each checked against the fit it must be of,
+# and the supplement tables of the SDs recorded by hand (R27).
 collect_records <- function(phase,arms,study,archives,repo,out,hashes,sel_dir,missing) {
-  recs <- list()
+  recs <- list();sup <- list()
   if(1 %in% arms) {
     ctl <- control_items(phase,study,archives,repo)
     for(i in seq_len(nrow(ctl))) recs[[length(recs)+1L]] <- read_record(score_path(out,phase,1,ctl$key[i],ctl$schedule[i]),
       ctl$expected_md5[i],ctl$fit_label[i],hashes,'control',1,'selected')
   }
   for(sd in setdiff(arms,1)) {
-    x <- new_items(phase,sd,study,sel_dir)
+    a <- arm_items(phase,sd,study,sel_dir,out);x <- a$items;sup[[length(sup)+1L]] <- a$table
     for(i in seq_len(nrow(x))) recs[[length(recs)+1L]] <- read_record(score_path(out,phase,sd,x$key[i],x$schedule[i]),
       x$expected_md5[i],x$fit_label[i],hashes,'new',sd,x$kind[i])
     gone <- setdiff(phase_keys(phase),x$key[x$kind=='selected'])
     if(length(gone)) cat('R27: SD',sd,'has no valid selected fit for',length(gone),'communities:',paste(gone,collapse=', '),'\n')
   }
-  recs
+  sup <- Filter(Negate(is.null),sup)
+  list(records=recs,supplement=if(length(sup)) do.call(rbind,sup) else NULL)
 }
 
 record_table <- function(recs,part) {
@@ -273,7 +329,7 @@ summarise_main <- function(args) {
     g <- lapply(SCORED_PHASES,function(p) {f <- file.path(out,p,'gate.csv');if(!file.exists(f)) stop('Missing ',f)
       utils::read.csv(f,stringsAsFactors=FALSE)})
     x <- combine_phase_a(g[[1]],g[[2]]);dir.create(file.path(out,'A'),recursive=TRUE,showWarnings=FALSE)
-    cat('Wrote',write_table(x,file.path(out,'A'),'gate.csv'),'\n');print(x[x$subphase=='A',],row.names=FALSE)
+    cat('Wrote',write_table(x,file.path(out,'A'),'gate.csv'),'\n')
     return(0L)
   }
   if(!o$phase %in% SCORED_PHASES) stop('--phase must be A1, A2 or A')
@@ -282,7 +338,7 @@ summarise_main <- function(args) {
   sel_dir <- selection_dir(study,phase)
   missing <- if(dir.exists(sel_dir)) read_manual_missing(sel_dir,phase) else read_manual_missing(tempfile(),phase)
   hashes <- current_score_hashes(repo,archives)
-  recs <- collect_records(phase,arms,study,archives,repo,out,hashes,sel_dir,missing)
+  collected <- collect_records(phase,arms,study,archives,repo,out,hashes,sel_dir,missing);recs <- collected$records
   selected <- Filter(function(r) r$kind=='selected',recs)
   # Per-community tables hold every scored fit, labelled by kind: 'selected',
   # and 'first' for a first fit replaced by its longer repeat (sensitivity only).
@@ -294,7 +350,7 @@ summarise_main <- function(args) {
   m <- every[every$group=='all',c(meta,'scope','cells','mean_abs_cell_error')];names(m)[names(m)=='mean_abs_cell_error'] <- 'mae'
   write_table(m,d,'mae.csv')
   b0 <- record_table(recs,'b0');write_table(b0,d,'b0.csv')
-  conv <- convergence_table(phase,arms,sel_dir,repo,missing)
+  conv <- convergence_table(phase,arms,sel_dir,repo,missing,collected$supplement)
   write_table(conv,d,'convergence.csv')
   write_table(summary_means(groups),d,'summary-means.csv')
   write_table(b0_means(b0[b0$kind=='selected',,drop=FALSE]),d,'b0-means.csv')
@@ -315,14 +371,15 @@ summarise_main <- function(args) {
     gate <- rbind_fill(rows)
     write_table(gate,d,'gate.csv');write_table(do.call(rbind,details),d,'gate-detail.csv')
     write_table(do.call(rbind,matched),d,'schedule-matched.csv')
-    print(gate[c('sd','subphase',grep('_pass$',names(gate),value=TRUE),'result')],row.names=FALSE)
+    # No verdict is printed: it is read from gate.csv once verify.R has passed (SCORING.md).
+    cat('Wrote',file.path(d,c('gate.csv','gate-detail.csv','schedule-matched.csv')),sep='\n  ');cat('\n')
     other <- file.path(out,setdiff(SCORED_PHASES,phase),'gate.csv')
     if(file.exists(other)) {
       o2 <- utils::read.csv(other,stringsAsFactors=FALSE)
       if(setequal(o2$sd,gate$sd)) {
         both <- if(phase=='A1') combine_phase_a(gate,o2) else combine_phase_a(o2,gate)
-        dir.create(file.path(out,'A'),recursive=TRUE,showWarnings=FALSE);write_table(both,file.path(out,'A'),'gate.csv')
-        print(both[both$subphase=='A',],row.names=FALSE)
+        dir.create(file.path(out,'A'),recursive=TRUE,showWarnings=FALSE)
+        cat('Wrote',write_table(both,file.path(out,'A'),'gate.csv'),'\n')
       }
     }
   }
@@ -341,7 +398,7 @@ if(sys.nframe()==0L) {
   if(length(repo_arg)!=1L || !identical(normalizePath(file.path(repo_arg,'dev/simstudy/occupancy-intercept-prior'),mustWork=FALSE),here)) {
     cat('ERROR: run the summarise.R of the --repo checkout (',here,' is not under --repo)\n',sep='');quit(save='no',status=1)
   }
-  for(f in c('jobs.R','verify-helpers.R','flags.R','analysis.R')) source(file.path(here,f))
+  for(f in c('jobs.R','verify-helpers.R','flags.R','analysis.R','supplement.R')) source(file.path(here,f))
   status <- tryCatch(summarise_main(commandArgs(trailingOnly=TRUE)),error=function(e) {cat('ERROR:',conditionMessage(e),'\n');1L})
   quit(save='no',status=status)
 }
