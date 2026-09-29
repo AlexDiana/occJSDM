@@ -128,7 +128,17 @@ spatial-amplitude posterior mean infinite and spatial-field means
 non-integrable. Use posterior medians and quantiles for spatial summaries
 with this experimental option, and check rank-based chain convergence.
 Bounded occupancy-probability means remain meaningful. This option does
-not establish improved spatial recovery.}
+not establish improved spatial recovery.
+
+\code{sigma_b0} is the prior standard deviation of each species'
+occupancy intercept on the logit scale, which has a
+Normal(0, \code{sigma_b0}^2) prior. The default \code{1} is the previous
+fixed prior and leaves default fits unchanged. It must be a finite positive
+number, applies to spatial and non-spatial fits alike, and does not affect
+the collection (detection) intercept. The applied prior is saved in
+\code{infos$intercept_prior}. This option is experimental and its value is
+still under evaluation, so treat a non-default setting as a diagnostic
+rather than a recommended configuration.}
 }
 \value{
 A list with:

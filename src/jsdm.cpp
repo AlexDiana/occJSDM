@@ -1075,7 +1075,8 @@ List sample_BBsL_cpp(arma::mat k,
                  arma::mat Ks,
                  arma::mat Xs_centers,
                  arma::mat Omega,
-                 std::string model) {
+                 std::string model,
+                 double sigma_b0 = 1.0) {
 
   int p = X.n_cols;
   int ps = Cs.n_cols;
@@ -1098,6 +1099,8 @@ List sample_BBsL_cpp(arma::mat k,
   if (total_dim > 0) {
 
     arma::vec diag_B(total_dim, arma::fill::ones);
+    // Occupancy intercept prior variance; the factor loadings keep unit variance.
+    diag_B(0) = std::pow(sigma_b0, 2);
 
     // SAFEGUARD: Only subvec if p > 0 and ps > 0
     if (p > 0) {
@@ -1288,7 +1291,8 @@ List sample_BBsL_parallel(arma::mat k,
                  arma::mat Ks,
                  arma::mat Xs_centers,
                  arma::mat Omega,
-                 std::string model) {
+                 std::string model,
+                 double sigma_b0 = 1.0) {
 
   int p = X.n_cols;
   int ps = Cs.n_cols;
@@ -1311,6 +1315,8 @@ List sample_BBsL_parallel(arma::mat k,
   if (total_dim > 0) {
 
     arma::vec diag_B(total_dim, arma::fill::ones);
+    // Occupancy intercept prior variance; the factor loadings keep unit variance.
+    diag_B(0) = std::pow(sigma_b0, 2);
 
     if (p > 0) {
       diag_B.subvec(1, p).fill(std::pow(sigma_b, 2));

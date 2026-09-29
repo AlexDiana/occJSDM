@@ -1057,11 +1057,12 @@ sample_rnb <- function(z, eta, tune_sd = 5){
 
 
 # sample the intercepts, fixed effects, spatial fixed effects and the factor loadings
+# The species intercept has a Normal(0, sigma_b0^2) prior; loadings keep unit variance.
 sample_BBsL <- function(k, X, Tr, U,
                         G, A, C, sigma_b,
                         Gs, As, Cs, sigma_bs,
                         Ks, Xs_centers,
-                        Omega, model) {
+                        Omega, model, sigma_b0 = 1) {
 
   p <- ncol(X)
   ps <- ncol(Cs)
@@ -1079,6 +1080,7 @@ sample_BBsL <- function(k, X, Tr, U,
   if(1 + p + ps + d > 0){
 
     B_current <- diag(1, nrow = 1 + p + d + ps)
+    diag(B_current)[1] <- sigma_b0^2
     diag(B_current)[1 + seq_len(p)] <- sigma_b^2
     diag(B_current)[1 + p + d + seq_len(ps)] <- sigma_bs^2
 
@@ -1220,13 +1222,15 @@ loglik_spatialEffect <- function(KsBs_s, Lm1, logdet, sigma_s){
 spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
                                       kappa, Omega, Xs_centers,
                                       list_SoRSummaries, a_l_s, b_l_s,
-                                      location = NULL) {
+                                      location = NULL, sigma_b0 = 1) {
   n <- nrow(X)
   p <- ncol(X)
   d <- ncol(U)
   ps <- nrow(M_Bs)
   S <- ncol(Omega)
-  prior_precision <- c(1, rep(1/sigma_b^2,p), rep(1,d), rep(1/sigma_bs^2,ps))
+  # B0 must be integrated under the same Normal(0, sigma_b0^2) prior that
+  # sample_BBsL_cpp() then uses to draw it.
+  prior_precision <- c(1/sigma_b0^2, rep(1/sigma_b^2,p), rep(1,d), rep(1/sigma_bs^2,ps))
   prior_means <- rbind(rep(0,S), M_B, matrix(0,d,S), M_Bs)
   prior_linear <- prior_precision * prior_means
   constant_omega <- vapply(seq_len(S),function(s) all(Omega[,s]==Omega[1,s]),logical(1))
@@ -1238,7 +1242,7 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
     # existing constant-precision Gram-matrix shortcut.
     if (anyDuplicated(location) && !all(constant_omega)) {
       return(spatial_range_logweights_grouped(X,U,M_B,M_Bs,sigma_b,sigma_bs,
-        kappa,Omega,Xs_centers,list_SoRSummaries,a_l_s,b_l_s,location))
+        kappa,Omega,Xs_centers,list_SoRSummaries,a_l_s,b_l_s,location,sigma_b0))
     }
   }
   grid <- list_SoRSummaries$l_s_grid
@@ -1267,7 +1271,7 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
 spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
                                            kappa,Omega,Xs_centers,
                                            list_SoRSummaries,a_l_s,b_l_s,
-                                           location) {
+                                           location,sigma_b0=1) {
   n <- nrow(X);p <- ncol(X);d <- ncol(U);ps <- nrow(M_Bs);S <- ncol(Omega)
   if(length(location)!=n || anyNA(location))
     stop("location must contain one non-missing group label per site row")
@@ -1277,7 +1281,7 @@ spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
   first <- which(!duplicated(group))
   A <- cbind(1,X,U)
   pa <- ncol(A)
-  precision <- c(1,rep(1/sigma_b^2,p),rep(1,d),rep(1/sigma_bs^2,ps))
+  precision <- c(1/sigma_b0^2,rep(1/sigma_b^2,p),rep(1,d),rep(1/sigma_bs^2,ps))
   prior_mean <- rbind(rep(0,S),M_B,matrix(0,d,S),M_Bs)
   prior_linear <- precision*prior_mean
   diagonal_precision <- diag(precision,length(precision))
@@ -1371,6 +1375,8 @@ update_jSDMcoef <- function(list_data,
     b_sigmah <- list_priors$b_sigmah
     a_l_s <- list_priors$a_l_s
     b_l_s <- list_priors$b_l_s
+    # Prior SD of the species occupancy intercept (read by runOccJSDM()).
+    sigma_b0 <- list_priors$intercept_prior$sd
   }
 
   # read state variables
@@ -1425,7 +1431,8 @@ update_jSDMcoef <- function(list_data,
     logweights <- spatial_range_logweights(X,U,M_B,M_Bs,sigma_b,sigma_bs,
                                             kappa,Omega,list_Xs$Xs_centers,
                                             list_SoRSummaries,a_l_s,b_l_s,
-                                            location=list_Xs$Xs_index)
+                                            location=list_Xs$Xs_index,
+                                            sigma_b0=sigma_b0)
     idx_ls <- sample_ls(logweights)
     l_s <- list_SoRSummaries$l_s_grid[idx_ls]
     Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
@@ -1436,12 +1443,14 @@ update_jSDMcoef <- function(list_data,
                            G, A, C, sigma_b,
                            Gs, As, Cs, sigma_bs,
                            Ks, list_Xs$Xs_centers,
-                           Omega, model)
+                           Omega, model,
+                           sigma_b0 = sigma_b0)
   # list_BBsL <- sample_BBsL_parallel(k, X, Tr, U,
   #                          G, A, C, sigma_b,
   #                          Gs, As, Cs, sigma_bs,
   #                          Ks, list_Xs$Xs_centers,
-  #                          Omega, model)
+  #                          Omega, model,
+  #                          sigma_b0 = sigma_b0)
   B <- list_BBsL$B
   Bt <- list_BBsL$Bt
   Bs <- list_BBsL$Bs

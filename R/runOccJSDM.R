@@ -367,6 +367,16 @@ create_waic_quantities <- function(n_obs){
 #' Bounded occupancy-probability means remain meaningful. This option does
 #' not establish improved spatial recovery.
 #'
+#' \code{sigma_b0} is the prior standard deviation of each species'
+#' occupancy intercept on the logit scale, which has a
+#' Normal(0, \code{sigma_b0}^2) prior. The default \code{1} is the previous
+#' fixed prior and leaves default fits unchanged. It must be a finite positive
+#' number, applies to spatial and non-spatial fits alike, and does not affect
+#' the collection (detection) intercept. The applied prior is saved in
+#' \code{infos$intercept_prior}. This option is experimental and its value is
+#' still under evaluation, so treat a non-default setting as a diagnostic
+#' rather than a recommended configuration.
+#'
 #' @return A list with:
 #' \describe{
 #'   \item{results_output}{Posterior samples/summaries, including
@@ -877,6 +887,7 @@ runOccJSDM <- function(data,
     a_sigmab <- 10; b_sigmab <- 1
     a_sigmabs <- 10; b_sigmabs <- 1
     spatial_sd_prior <- read_spatial_sd_prior(listPriors,ps>0)
+    intercept_prior <- read_intercept_prior(listPriors)
     a_sigmah <- 10; b_sigmah <- 1
     a_tau <- 5; b_tau <- 5
     noise_prior <- if (model == "continuous") read_noise_prior(listPriors) else NULL
@@ -892,6 +903,7 @@ runOccJSDM <- function(data,
       "a_sigmabs" = a_sigmabs,
       "b_sigmabs" = b_sigmabs,
       "spatial_sd_prior" = spatial_sd_prior,
+      "intercept_prior" = intercept_prior,
       "a_sigmah" = a_sigmah,
       "b_sigmah" = b_sigmah,
       "a_tau" = a_tau,
@@ -1457,6 +1469,7 @@ runOccJSDM <- function(data,
   )
   infos$noise_prior <- noise_prior
   infos$spatial_sd_prior <- spatial_sd_prior
+  infos$intercept_prior <- intercept_prior
 
   list(
     "results_output" = results_output,
@@ -1466,6 +1479,14 @@ runOccJSDM <- function(data,
     "Xs" = Xs,
     "X_psi" = X_psi)
 
+}
+
+# The occupancy intercept prior is Normal(0, sd^2); it is not the collection intercept.
+read_intercept_prior <- function(priors) {
+  sd <- get_param(priors, "sigma_b0", 1)
+  if (!is.numeric(sd) || length(sd) != 1L || !is.finite(sd) || sd <= 0)
+    stop("sigma_b0 must be a finite positive number")
+  list(mean = 0, sd = unname(sd))
 }
 
 # This prior controls spatial coefficients, not continuous-response noise.
