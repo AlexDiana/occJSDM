@@ -7,12 +7,17 @@
 # Runs run.R once per phase in separate processes, then checks the installed
 # library, the recorded intercept prior, input hashes before and after, resume
 # and overwrite refusal on a real fit, and that each community's reused control
-# fit is readable with the same posterior output layout as the new fit.
+# fit is readable with the same posterior output layout as the new fit. Through
+# the real run.R it also checks that an identical rerun resumes from the same
+# checkout and from a copy of the scripts at another absolute path, that a held
+# lock refuses the key without being broken, and that a library or revision
+# differing from the committed fingerprint is refused before anything is
+# fitted. Exits non-zero unless every check passes.
 args <- commandArgs(trailingOnly=TRUE)
 repo_arg <- sub('^--repo=','',grep('^--repo=',args,value=TRUE))
 if(length(repo_arg)!=1L) stop('Missing or repeated --repo')
 scripts <- file.path(normalizePath(repo_arg),'dev/simstudy/occupancy-intercept-prior')
-source(file.path(scripts,'jobs.R'))
+source(file.path(scripts,'jobs.R'));source(file.path(scripts,'verify-helpers.R'))
 o <- parse_options(args,known=c('repo','study','archives','inputs-root'),required=c('repo','study'))
 repo <- normalizePath(o$repo);study <- normalizePath(o$study)
 archives <- normalizePath(o$archives %||% dirname(study))
@@ -30,7 +35,7 @@ inputs <- data.frame(key=names(specs),input_file=vapply(specs,`[[`,'','input_fil
 inputs$md5_before <- unname(tools::md5sum(inputs$input_file))
 stopifnot(identical(inputs$md5_before,inputs$recorded_md5))
 
-run_args <- function(p,key) c(paste0('--repo=',repo),paste0('--study=',study),paste0('--phase=',p),
+run_args <- function(p,key,repo_dir=repo,study_dir=study) c(paste0('--repo=',repo_dir),paste0('--study=',study_dir),paste0('--phase=',p),
   paste0('--sd=',SD),'--schedule=pilot',paste0('--keys=',key),'--workers=1',
   paste0('--archives=',archives),paste0('--inputs-root=',inputs_root))
 cat(format(Sys.time()),'launching',nrow(PILOTS),'pilot fits\n');flush.console()
@@ -42,9 +47,60 @@ cat(format(Sys.time()),'pilot fits complete\n');flush.console()
 
 # Resume: an identical rerun must leave the saved fit untouched.
 a1 <- fit_path(study,'A1',SD,'pilot',PILOTS$key[1]);a1_md5 <- unname(tools::md5sum(a1))
-resume_status <- run_logged_r(file.path(scripts,'run.R'),run_args('A1',PILOTS$key[1]),file.path(pdir,'A1-resume.log'))
-resume_ok <- resume_status==0L && identical(unname(tools::md5sum(a1)),a1_md5) &&
-  any(grepl('resumed',readLines(file.path(pdir,'A1-resume.log'))))
+unchanged_a1 <- function() identical(unname(tools::md5sum(a1)),a1_md5)
+log_has <- function(log,pattern) any(grepl(pattern,readLines(log),fixed=TRUE))
+resume_log <- file.path(pdir,'A1-resume.log')
+resume_status <- run_logged_r(file.path(scripts,'run.R'),run_args('A1',PILOTS$key[1]),resume_log)
+resume_ok <- resume_status==0L && unchanged_a1() && log_has(resume_log,'resumed')
+
+hardening <- list()
+record <- function(check,pass,detail) hardening[[length(hardening)+1L]] <<-
+  data.frame(check=check,pass=isTRUE(pass),detail=detail,stringsAsFactors=FALSE)
+record('identical rerun resumes',resume_ok,paste('exit',resume_status,'; fit md5 unchanged',unchanged_a1()))
+
+# The same scripts at another absolute path must resume the same fit.
+scratch <- tempfile('pilot-hardening-');dir.create(scratch)
+relocated <- file.path(scratch,'relocated-repo')
+for(f in runner_script_files('A1')) {
+  dir.create(dirname(file.path(relocated,f)),recursive=TRUE,showWarnings=FALSE)
+  stopifnot(file.copy(file.path(repo,f),file.path(relocated,f)))
+}
+relocated_log <- file.path(pdir,'A1-resume-relocated.log')
+s1 <- run_logged_r(file.path(relocated,RUN_SCRIPT),run_args('A1',PILOTS$key[1],repo_dir=relocated),relocated_log)
+record('rerun from a copy of the scripts at another path resumes',
+  s1==0L && unchanged_a1() && log_has(relocated_log,'resumed'),
+  paste('repo copy',relocated,'; exit',s1,'; fit md5 unchanged',unchanged_a1()))
+
+# A held (or stale) lock refuses the key and is left in place.
+lock <- fit_lock_path(a1);stopifnot(dir.create(lock))
+writeLines('planted by pilot.R to test lock refusal',file.path(lock,'owner'))
+lock_log <- file.path(pdir,'A1-lock-refusal.log')
+s2 <- run_logged_r(file.path(scripts,'run.R'),run_args('A1',PILOTS$key[1]),lock_log)
+lock_kept <- dir.exists(lock);release_fit_lock(lock)
+record('held lock refuses the key without breaking it',
+  s2!=0L && lock_kept && unchanged_a1() && log_has(lock_log,'already exists'),
+  paste('exit',s2,'; lock kept',lock_kept,'; fit md5 unchanged',unchanged_a1()))
+
+# A study whose library or revision differs from the committed fingerprint is
+# refused before any fit (scratch copy; the real study library is untouched).
+tampered <- file.path(scratch,'tampered-study');dir.create(tampered)
+stopifnot(all(file.copy(file.path(study,c('source','library','source-revision.txt')),tampered,recursive=TRUE)))
+description <- file.path(tampered,'library/occJSDM/DESCRIPTION')
+cat('Tampered: yes\n',file=description,append=TRUE)
+library_log <- file.path(pdir,'A1-fingerprint-library-refusal.log')
+s3 <- run_logged_r(file.path(scripts,'run.R'),run_args('A1',PILOTS$key[1],study_dir=tampered),library_log)
+record('changed installed library file is refused',
+  s3!=0L && log_has(library_log,'fingerprint mismatch') && log_has(library_log,'changed library/occJSDM/DESCRIPTION') &&
+    !dir.exists(file.path(tampered,'fits')),paste('exit',s3,'; no fits directory',!dir.exists(file.path(tampered,'fits'))))
+stopifnot(file.copy(file.path(study,'library/occJSDM/DESCRIPTION'),description,overwrite=TRUE))
+writeLines(strrep('0',40),file.path(tampered,'source-revision.txt'))
+revision_log <- file.path(pdir,'A1-fingerprint-revision-refusal.log')
+s4 <- run_logged_r(file.path(scripts,'run.R'),run_args('A1',PILOTS$key[1],study_dir=tampered),revision_log)
+record('different source revision is refused',
+  s4!=0L && log_has(revision_log,'fingerprint mismatch') && log_has(revision_log,'is not the recorded revision') &&
+    !dir.exists(file.path(tampered,'fits')),paste('exit',s4,'; no fits directory',!dir.exists(file.path(tampered,'fits'))))
+unlink(scratch,recursive=TRUE)
+hardening <- do.call(rbind,hardening)
 
 layout <- function(results,mcmc) {
   x <- posterior_layout(results);n <- mcmc$niter/mcmc$nthin;c <- mcmc$nchain
@@ -53,8 +109,7 @@ layout <- function(results,mcmc) {
 checks <- lapply(seq_len(nrow(PILOTS)),function(i) {
   p <- PILOTS$phase[i];key <- PILOTS$key[i];spec <- specs[[key]]
   dest <- fit_path(study,p,SD,'pilot',key);saved <- readRDS(dest)
-  metadata <- saved[c('phase','key','sd','schedule','mcmc','job','input_file','input_md5','listPriors_added',
-    'runner','fit_expression','phase_priors','source_revision','fit_hashes','script_hashes','library','threads_per_fit')]
+  metadata <- saved_fit_metadata(saved)
   changed <- metadata;changed$sd <- 5
   before <- unname(tools::md5sum(dest))
   refused <- tryCatch({existing_fit_status(dest,changed);FALSE},error=function(e) grepl('Refusing to overwrite',conditionMessage(e)))
@@ -73,7 +128,7 @@ checks <- lapply(seq_len(nrow(PILOTS)),function(i) {
   }
   data.frame(phase=p,key=key,sd=SD,schedule='pilot',fit_file=dest,
     library_is_study=identical(saved$library,library_dir) && identical(saved$loaded_library,library_dir),
-    fit_hashes_current=identical(saved$fit_hashes,tools::md5sum(production_files(study,library_dir))),
+    fit_hashes_current=identical(saved$fit_hashes,hash_files(production_files(study,library_dir),study)),
     intercept_prior_sd=saved$fit$infos$intercept_prior$sd,
     intercept_prior_ok=identical(saved$fit$infos$intercept_prior,list(mean=0,sd=SD)),
     listPriors_added=paste(names(saved$listPriors_added),unlist(saved$listPriors_added),sep='=',collapse=';'),
@@ -102,5 +157,8 @@ compact <- table;compact$fit_file <- sub(paste0('^',study,'/'),'',compact$fit_fi
 compact$control_fit <- sub(paste0('^',archives,'/'),'',compact$control_fit)
 results <- file.path(scripts,'results');dir.create(results,showWarnings=FALSE)
 write.csv(compact,file.path(results,'pilot.csv'),row.names=FALSE)
+write.csv(hardening,file.path(pdir,'hardening-check.csv'),row.names=FALSE)
+write.csv(hardening,file.path(results,'pilot-hardening.csv'),row.names=FALSE)
 print(t(table[,setdiff(names(table),c('fit_file','control_fit'))]))
-cat(if(all(table$pass)) 'All pilot checks pass.\n' else 'PILOT CHECK FAILED\n')
+print(hardening)
+finish_gate(c(stats::setNames(table$pass,paste('pilot',table$phase)),stats::setNames(hardening$pass,hardening$check)),'pilot')

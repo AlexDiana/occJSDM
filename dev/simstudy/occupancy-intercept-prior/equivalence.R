@@ -6,8 +6,9 @@
 #     [--archives=DIR] [--inputs-root=DIR]
 #
 # launch runs each fit below as its own R process (so each loads exactly one
-# library), then compares. A control run evaluates the archived control
-# runner's unmodified fitting statement with the control library; a study run
+# library), then compares; it exits non-zero unless every check passes. A
+# control run evaluates the archived control runner's unmodified fitting
+# statement with the control library; a study run
 # evaluates run.R's statement with STUDY/library, default priors (no sigma_b0)
 # or explicit sigma_b0 = 1. Same saved input and RNG state; short schedule
 # (2 chains, 50 burn-in, 50 retained). The two full-length runs refit the saved
@@ -16,7 +17,7 @@ args <- commandArgs(trailingOnly=TRUE)
 repo_arg <- sub('^--repo=','',grep('^--repo=',args,value=TRUE))
 if(length(repo_arg)!=1L) stop('Missing or repeated --repo')
 scripts <- file.path(normalizePath(repo_arg),'dev/simstudy/occupancy-intercept-prior')
-source(file.path(scripts,'jobs.R'))
+source(file.path(scripts,'jobs.R'));source(file.path(scripts,'verify-helpers.R'))
 o <- parse_options(args,known=c('repo','study','mode','run','archives','inputs-root','workers'),
   required=c('repo','study','mode'))
 repo <- normalizePath(o$repo);study <- normalizePath(o$study)
@@ -145,8 +146,6 @@ compare <- function() {
   write.csv(compact,file.path(results,'equivalence.csv'),row.names=FALSE)
   print(table[,c('check','max_abs_diff','bitwise_identical','warnings_identical','rng_final_identical',
     'explicit1_identical_to_default','pass')])
-  cat(if(all(table$pass)) 'All equivalence checks pass.\n' else 'EQUIVALENCE FAILED for: ',
-    paste(table$check[!table$pass],collapse=', '),'\n')
   invisible(table)
 }
 
@@ -154,7 +153,7 @@ if(o$mode=='fit') {
   r <- RUNS[RUNS$run==o$run,];if(nrow(r)!=1L) stop('Unknown --run: ',o$run)
   fit_one(r)
 } else if(o$mode=='compare') {
-  compare()
+  table <- compare();finish_gate(stats::setNames(table$pass,table$check),'equivalence')
 } else if(o$mode=='launch') {
   source(file.path(repo,'dev/simstudy/spatial-amplitude-prior/execution.R'))
   workers <- parse_workers(o$workers %||% '4')
@@ -168,5 +167,5 @@ if(o$mode=='fit') {
     cat(format(Sys.time()),run,'exit',s,'\n');s
   },mc.cores=workers,mc.preschedule=FALSE)
   if(!all(unlist(status)==0L)) stop('An equivalence fit failed; see logs in ',eqdir)
-  compare()
+  table <- compare();finish_gate(stats::setNames(table$pass,table$check),'equivalence')
 } else stop('Unknown --mode: ',o$mode)

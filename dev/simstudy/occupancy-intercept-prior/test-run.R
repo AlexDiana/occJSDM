@@ -1,5 +1,5 @@
 library(testthat)
-source('jobs.R')
+source('jobs.R');source('verify-helpers.R')
 
 # Real archives are optional: tests that need them are skipped when absent.
 repo <- normalizePath('../../..')
@@ -259,4 +259,174 @@ test_that('saved fits must record the requested intercept prior', {
   expect_error(check_fit_prior(list(infos=list(intercept_prior=list(mean=0,sd=1))),3),'intercept prior')
   expect_error(check_fit_prior(list(infos=list()),1),'intercept prior')
   expect_true(check_fit_prior(list(infos=list(intercept_prior=list(mean=0,sd=1))),NULL))
+})
+
+# ---- Pre-launch hardening (fix round 1) ----
+
+study_dir <- file.path(archives,'intercept-prior-20260929')
+need_study <- function() if(!dir.exists(file.path(study_dir,'library/occJSDM'))) skip('study library not installed')
+
+test_that('the default archives directory is taken from the normalised study path', {
+  root <- tempfile('results');dir.create(file.path(root,'study'),recursive=TRUE)
+  a <- parse_run_args(with_arg('study',file.path(root,'study','.')))
+  expect_identical(a$archives,normalizePath(root))
+  expect_identical(a$inputs_root,file.path(normalizePath(root),'intercept-prior-inputs'))
+  old <- setwd(root);on.exit(setwd(old))
+  expect_identical(parse_run_args(with_arg('study','study'))$archives,normalizePath(root))
+})
+
+test_that('A2 refuses archived inverse-gamma priors that are not the defaults', {
+  root <- fake_archive()
+  expect_identical(phase_priors('A2',root),list())
+  expect_null(phase_priors('A1',root));expect_null(phase_priors('B',root))
+  saveRDS(list(mcmc=list(nchain=4L,nburn=6000L,niter=12000L,nthin=1L),
+    priors=list(sigma_bs_prior='half_cauchy',sigma_bs_scale=1)),
+    file.path(root,'spatial-amplitude-20260928/inverse_gamma/long/settings.rds'))
+  expect_error(phase_priors('A2',root),'not the defaults')
+})
+
+fake_study <- function() {
+  s <- tempfile('study')
+  files <- c('source/DESCRIPTION','source/NAMESPACE','source/R/a.R','source/R/b.R','source/R/c.R',
+    'source/src/x.cpp','source/src/Makevars','library/occJSDM/libs/occJSDM.so','library/occJSDM/DESCRIPTION',
+    'library/occJSDM/NAMESPACE','library/occJSDM/R/occJSDM','library/occJSDM/R/occJSDM.rdb','library/occJSDM/R/occJSDM.rdx')
+  for(f in files) {dir.create(dirname(file.path(s,f)),recursive=TRUE,showWarnings=FALSE);writeLines(f,file.path(s,f))}
+  writeLines(strrep('a',40),file.path(s,'source-revision.txt'))
+  writeLines('build byproduct',file.path(s,'source/src/x.o'))
+  s
+}
+copy_tree <- function(from) {
+  to <- tempfile('copy');dir.create(to)
+  file.copy(list.files(from,full.names=TRUE,all.files=FALSE),to,recursive=TRUE)
+  to
+}
+
+test_that('the run-time library fingerprint must equal the recorded one', {
+  s <- fake_study();csv <- tempfile(fileext='.csv')
+  write_library_fingerprint(s,csv)
+  fp <- read.csv(csv,colClasses='character')
+  expect_identical(names(fp),c('file','md5','revision'))
+  expect_true('source-revision.txt' %in% fp$file);expect_false('source/src/x.o' %in% fp$file)
+  expect_false(any(startsWith(fp$file,'/')));expect_true(all(fp$revision==strrep('a',40)))
+  expect_identical(check_library_fingerprint(s,csv),strrep('a',40))
+  # Identical content at another absolute path passes.
+  expect_identical(check_library_fingerprint(copy_tree(s),csv),strrep('a',40))
+  changed <- copy_tree(s);cat('rebuilt\n',file=file.path(changed,'library/occJSDM/libs/occJSDM.so'),append=TRUE)
+  expect_error(check_library_fingerprint(changed,csv),'fingerprint mismatch.*changed library/occJSDM/libs/occJSDM.so')
+  code <- copy_tree(s);cat('x\n',file=file.path(code,'library/occJSDM/R/occJSDM.rdb'),append=TRUE)
+  expect_error(check_library_fingerprint(code,csv),'fingerprint mismatch.*occJSDM.rdb')
+  revision <- copy_tree(s);writeLines(strrep('b',40),file.path(revision,'source-revision.txt'))
+  expect_error(check_library_fingerprint(revision,csv),'fingerprint mismatch.*revision')
+  extra <- copy_tree(s);writeLines('new',file.path(extra,'source/R/d.R'))
+  expect_error(check_library_fingerprint(extra,csv),'fingerprint mismatch.*unexpected source/R/d.R')
+  gone <- copy_tree(s);unlink(file.path(gone,'library/occJSDM/R/occJSDM.rdx'))
+  expect_error(check_library_fingerprint(gone,csv),'fingerprint mismatch.*missing library/occJSDM/R/occJSDM.rdx')
+  expect_error(check_library_fingerprint(s,tempfile(fileext='.csv')),'Missing library fingerprint')
+})
+
+test_that('the installed study library matches the committed fingerprint', {
+  need_study()
+  expect_identical(check_library_fingerprint(study_dir,file.path(repo,FINGERPRINT_FILE)),
+    '24a1c981e05969023defc429d48fa3123b8bb74a')
+})
+
+test_that('the hashed runner files hold only the fitting path', {
+  expect_identical(runner_script_files('A1'),c(RUN_SCRIPT,JOBS_SCRIPT,FINGERPRINT_FILE,RUNNERS$pr11$file,PR11_HELPERS))
+  expect_identical(runner_script_files('B'),runner_script_files('A1'))
+  expect_identical(runner_script_files('A2'),c(RUN_SCRIPT,JOBS_SCRIPT,FINGERPRINT_FILE,RUNNERS$amplitude$file))
+  e <- new.env();sys.source('jobs.R',envir=e)
+  expect_false(any(c('control_schedules','relocate_archive_path','max_abs_difference','posterior_layout',
+    'count_numeric','installed_library_files','write_library_fingerprint','saved_fit_metadata','finish_gate') %in% ls(e)))
+  expect_false(any(grepl('verify-helpers',readLines('run.R'))))
+})
+
+meta_for <- function(script_hashes,job=list(key='k',family='jsdm',input_file='/orig/a.rds'))
+  fit_metadata(phase='A1',key='k',sd=3,schedule='pilot',mcmc=list(nchain=2,nburn=200,niter=200,nthin=1),
+    job=job,input_md5='m',runner=list(name='pr11',file=RUNNERS$pr11$file,md5='r',
+      settings='pr11-current-20260927/initial/settings.rds'),fit_expression='fit <- x',phase_priors=NULL,
+    source_revision=strrep('a',40),fit_hashes=c('library/occJSDM/libs/occJSDM.so'='s'),script_hashes=script_hashes)
+
+test_that('script hashes are keyed by repo-relative path, so resume depends on content only', {
+  files <- runner_script_files('A1')
+  make_repo <- function() {
+    r <- tempfile('repo')
+    for(f in files) {dir.create(dirname(file.path(r,f)),recursive=TRUE,showWarnings=FALSE);writeLines(paste('content',f),file.path(r,f))}
+    r
+  }
+  a <- make_repo();b <- make_repo()
+  ha <- hash_files(file.path(a,files),a);hb <- hash_files(file.path(b,files),b)
+  expect_identical(names(ha),files);expect_identical(ha,hb)
+  expect_identical(names(hash_files(file.path(a,RUN_SCRIPT),a,'repo/')),paste0('repo/',RUN_SCRIPT))
+  outside <- tempfile();writeLines('x',outside)
+  expect_error(hash_files(outside,a),'outside')
+  f <- tempfile(fileext='-fit.rds')
+  atomic_save(c(meta_for(ha),list(fit=1,repo=a,runner_file_absolute=file.path(a,RUNNERS$pr11$file))),f)
+  expect_identical(existing_fit_status(f,meta_for(hb)),'resume')
+  writeLines('edited',file.path(b,JOBS_SCRIPT))
+  expect_error(existing_fit_status(f,meta_for(hash_files(file.path(b,files),b))),'Refusing to overwrite.*script_hashes')
+  # Absolute paths are informational: not compared, including the job's input path.
+  m <- meta_for(ha)
+  expect_false(any(c('repo','study','library','input_file','job','runner_file_absolute') %in% names(m)))
+  expect_identical(meta_for(ha,job=list(key='k',family='jsdm',input_file='/elsewhere/a.rds')),m)
+  expect_identical(m$job_record,list(key='k',family='jsdm'))
+  expect_identical(m$listPriors_added,list(sigma_b0=3))
+})
+
+test_that('the one metadata constructor also rebuilds metadata from a saved fit', {
+  job <- list(key='k',family='jsdm',input_file='/orig/a.rds')
+  m <- meta_for(c(x='1'),job=job)
+  saved <- c(m,list(job=job,fit=list(1),warnings=character()))
+  expect_identical(saved_fit_metadata(saved),m)
+  saved$job <- NULL
+  expect_error(saved_fit_metadata(saved),'lacks')
+})
+
+test_that('a per-key lock refuses concurrent or stale holders and is released on exit', {
+  dir <- tempfile('fits');dir.create(dir);dest <- file.path(dir,'k-fit.rds')
+  expect_identical(fit_lock_path(dest),file.path(dir,'k.lock'))
+  lock <- acquire_fit_lock(dest)
+  expect_true(dir.exists(lock));expect_true(file.exists(file.path(lock,'owner')))
+  expect_error(acquire_fit_lock(dest),'lock .* already exists.*stale')
+  expect_true(dir.exists(lock))
+  release_fit_lock(lock);expect_false(dir.exists(lock))
+  locked_job <- function() {l <- acquire_fit_lock(dest);on.exit(release_fit_lock(l),add=TRUE);stop('boom')}
+  expect_error(locked_job(),'boom');expect_false(dir.exists(fit_lock_path(dest)))
+})
+
+test_that('fits failing a post-fit invariant are quarantined, never saved under the normal name', {
+  expect_identical(quarantine_path('/s/fits/A1/sd3/pilot/jsdm-n0100-01-fit.rds',
+    as.POSIXct('2026-09-29 10:11:12',tz='UTC')),'/s/fits/A1/sd3/pilot/jsdm-n0100-01-fit.QUARANTINE-20260929101112.rds')
+  dir <- tempfile('fits');dir.create(dir);dest <- file.path(dir,'k-fit.rds')
+  saved <- list(key='k',fit=list(x=1))
+  expect_error(finalise_fit(saved,dest,function(s) stop('prior not recorded')),
+    'Post-fit invariant failed.*prior not recorded.*QUARANTINE')
+  expect_false(file.exists(dest))
+  q <- list.files(dir,pattern='^k-fit\\.QUARANTINE-[0-9]{14}.*\\.rds$',full.names=TRUE)
+  expect_length(q,1L)
+  expect_identical(readRDS(q)$quarantine_reason,'prior not recorded');expect_identical(readRDS(q)$fit,saved$fit)
+  expect_identical(finalise_fit(saved,dest,function(s) invisible(TRUE)),dest)
+  expect_identical(readRDS(dest),saved)
+  expect_false(any(grepl('\\.tmp$',list.files(dir))))
+})
+
+run_r <- function(code) {
+  f <- tempfile(fileext='.R');writeLines(code,f)
+  system2(file.path(R.home('bin'),'Rscript'),shQuote(f),stdout=FALSE,stderr=FALSE)
+}
+
+test_that('failed jobs and failed gates exit non-zero', {
+  here <- normalizePath('.')
+  pre <- sprintf('source(%s);source(%s)',deparse(file.path(here,'jobs.R')),deparse(file.path(here,'verify-helpers.R')))
+  expect_identical(job_failures(list(a='a',b=structure('Error',class='try-error'),c=NULL),c('a','b','c')),c('b','c'))
+  expect_identical(job_failures(list('a',list(key='b',error='boom')),c('a','b')),'b')
+  expect_identical(job_failures(list('a'),c('a','b')),'b')
+  expect_identical(job_failures(list('b','a'),c('a','b')),c('a','b'))
+  expect_identical(run_r(c(pre,"finish_jobs(list('a','b'),c('a','b'),'test')")),0L)
+  expect_identical(run_r(c(pre,"finish_jobs(list('a',structure('Error in x',class='try-error')),c('a','b'),'test')")),1L)
+  expect_identical(run_r(c(pre,"finish_jobs(list('a',NULL),c('a','b'),'test')")),1L)
+  expect_identical(run_r(c(pre,"finish_jobs(list('a',list(key='b',error='boom')),c('a','b'),'test')")),1L)
+  expect_identical(run_r(c(pre,"finish_gate(c(x=TRUE,y=TRUE),'gate')")),0L)
+  expect_identical(run_r(c(pre,"finish_gate(c(x=TRUE,y=FALSE),'gate')")),1L)
+  expect_identical(run_r(c(pre,"finish_gate(c(x=NA),'gate')")),1L)
+  expect_identical(run_r(c(pre,"finish_gate(logical(),'gate')")),1L)
 })
