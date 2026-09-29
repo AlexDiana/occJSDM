@@ -1,5 +1,7 @@
 # Amendment 2 to the frozen protocol
 
+Protocol deviations found after this amendment are recorded in [DEVIATIONS.md](DEVIATIONS.md).
+
 Dated 29 September 2026. This amendment was made before any scoring of any arm in this study: no occupancy error, interval coverage or `B0` outcome of any fit, new arm or control, had been computed under this protocol, and no scoring code existed. At this date the phase A1 fits and their selection are complete (`STUDY/selection/A1`) and the phase A2 fits are running. Where this amendment differs from [README.md](README.md) or [AMENDMENT-1.md](AMENDMENT-1.md), this amendment applies; the rest of both files is unchanged.
 
 ## Status of the rulings
