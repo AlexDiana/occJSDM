@@ -48,6 +48,26 @@ if(flagged>0)cat('**The prior comparison remains provisional:** ',flagged,
   'Numerical recovery differences below cannot be treated as a settled comparison of the two posteriors.\n\n',sep='')
 ```
 
+## What did we find?
+
+```{r headline, include=FALSE}
+amp<-read('spatial-diagnostics.csv');amp<-amp[amp$quantity=='amplitude',]
+amp_range<-function(p,col)range(amp[amp$prior==p,col])
+hc_flagged<-sum(fits$prior=='half_cauchy' & fits$spatial_flag_count>0)
+ig_flagged<-sum(fits$prior=='inverse_gamma' & fits$spatial_flag_count>0)
+cr<-metric('centred_rmse');rr<-metric('raw_rmse');cc<-metric('centred_correlation')
+am<-metric('amplitude_median');om<-metric('occupancy_mae');rm<-metric('range_mae')
+amp_median<-function(p)range(fits$amplitude_median[fits$prior==p])
+```
+
+**The half-Cauchy prior did not improve spatial recovery in this experiment, and its chains did not converge.** Averaged over the nine communities, centred spatial-pattern error was `r fmt(cr$inverse_gamma)` under the current prior and `r fmt(cr$half_cauchy)` under the half-Cauchy, a paired change of `r fmt(cr$mean)` with descriptive 95% interval `r fmt(cr$lower)` to `r fmt(cr$upper)`. Centred error fell in only `r cr$decreased` of the nine communities. Total field error changed by `r fmt(rr$mean)` and centred correlation by `r fmt(cc$mean)`. Occupancy and range accuracy were essentially unchanged: overall occupancy MAE moved by `r round(100*om$mean,2)` percentage points and range MAE by `r fmt(rm$mean)`.
+
+Rather than moving the fitted amplitude towards the generating value of 1, the broader prior mostly lowered it. The half-Cauchy posterior amplitude medians ranged from `r fmt(amp_median('half_cauchy')[1])` to `r fmt(amp_median('half_cauchy')[2])`, against `r fmt(amp_median('inverse_gamma')[1])` to `r fmt(amp_median('inverse_gamma')[2])` under the current prior, and the median fell in `r am$decreased` of nine communities. Under both priors the recovered fields are nearly flat: the root-mean-square of the median field averaged `r fmt(metric('median_field_rms')$inverse_gamma)` under the current prior and `r fmt(metric('median_field_rms')$half_cauchy)` under the half-Cauchy, against a true value of about `r fmt(mean(fits$true_rms))`. The half-Cauchy intervals were wider, so more true field values fell inside them; that is not better recovery of the spatial pattern.
+
+`r if(hc_flagged==9) 'All nine' else paste(hc_flagged,'of the nine')` half-Cauchy fits failed the prespecified spatial convergence screens even after four chains of 6,000 burn-in and 12,000 retained iterations, with amplitude rank-normalized Rhat between `r fmt(amp_range('half_cauchy','rhat')[1])` and `r fmt(amp_range('half_cauchy','rhat')[2])` and bulk ESS between `r round(amp_range('half_cauchy','ess_bulk')[1])` and `r round(amp_range('half_cauchy','ess_bulk')[2])`. Under the current prior, `r if(ig_flagged==0) 'no fit was flagged' else paste(ig_flagged,'fits were flagged')`; amplitude Rhat never exceeded `r fmt(amp_range('inverse_gamma','rhat')[2])` and bulk ESS was at least `r round(amp_range('inverse_gamma','ess_bulk')[1])`. The separate four-start check was `r if(nzchar(probe$spatial_flags)) 'also flagged' else 'not flagged'`. The recovery differences above therefore compare posteriors that the half-Cauchy chains had not fully explored, and they are reported with that qualification rather than as a settled comparison of the two posteriors.
+
+**The prespecified, audited extension decision is `r if(all(gate$pass)) 'PASS' else 'FAIL'`.** `r if(all(gate$pass)) 'The matching two-stage comparison is therefore supported.' else 'The matching two-stage comparison is therefore not undertaken.'` The default inverse-gamma prior is unchanged. The separate conditional diagnosis summarised below shows that these nine communities carry limited information about their spatial fields even when amplitude, range, intercept and environmental coefficient are supplied at their true values, which is consistent with a prior change alone not restoring the maps.
+
 ## What was tested?
 
 We changed one prior: the shared standard deviation of the spatial coefficients. The current model puts an inverse-gamma(shape 10, scale 1) prior on its variance. The experimental model puts a half-Cauchy(scale 1) prior on its standard deviation. This gives the model considerably more freedom to estimate a strong spatial effect. It changes both the concentration and typical scale of the prior; it is not a test of tail shape alone.

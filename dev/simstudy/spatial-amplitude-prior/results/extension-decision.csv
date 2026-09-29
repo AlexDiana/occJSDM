@@ -1,0 +1,10 @@
+criterion,value,pass
+Lower mean raw median-field RMSE,0.0064562172488667,FALSE
+Lower mean centred median-field RMSE,0.00652484191140501,FALSE
+Higher mean centred median-field correlation,-0.00413172622687465,FALSE
+Centred RMSE improved in at least six communities,1,FALSE
+No unresolved spatial rank/quantile diagnostics in either prior,9,FALSE
+Initialization rank/quantile diagnostics pass,1,FALSE
+Range MAE increase at most 0.01,0.000146939300413198,TRUE
+Occupancy MAE increase at most 0.01,-0.000231567071737909,TRUE
+All paired fits and start check audited without unresolved diagnostic threshold crossings,0,TRUE

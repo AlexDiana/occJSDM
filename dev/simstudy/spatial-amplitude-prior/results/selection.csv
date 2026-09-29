@@ -1,0 +1,10 @@
+key,needs_long,legacy_needs_long,robust_needs_long,initial_ig_reasons,initial_hc_reasons,run_ig_long,run_hc_long
+range4-rep01-binary-k100,TRUE,TRUE,TRUE,,group Rhat > 1.05; element Rhat > 1.05; 13 spatial summary traces fail rank/quantile checks; 4 pointwise spatial fields fail rank/quantile checks,FALSE,FALSE
+range4-rep02-binary-k100,TRUE,TRUE,TRUE,,group Rhat > 1.05; element Rhat > 1.05; 25 spatial summary traces fail rank/quantile checks; 800 pointwise spatial fields fail rank/quantile checks,FALSE,FALSE
+range4-rep03-binary-k100,TRUE,TRUE,TRUE,,group Rhat > 1.05; element Rhat > 1.05; 25 spatial summary traces fail rank/quantile checks; 800 pointwise spatial fields fail rank/quantile checks,FALSE,FALSE
+range6-rep01-binary-k100,TRUE,TRUE,TRUE,,group Rhat > 1.05; element Rhat > 1.05; 25 spatial summary traces fail rank/quantile checks; 800 pointwise spatial fields fail rank/quantile checks,FALSE,FALSE
+range6-rep02-binary-k100,TRUE,TRUE,TRUE,,group Rhat > 1.05; element Rhat > 1.05; 25 spatial summary traces fail rank/quantile checks; 800 pointwise spatial fields fail rank/quantile checks,FALSE,FALSE
+range6-rep03-binary-k100,TRUE,TRUE,TRUE,group Rhat > 1.05; element Rhat > 1.05; 1 spatial summary traces fail rank/quantile checks,group Rhat > 1.05; element Rhat > 1.05; 25 spatial summary traces fail rank/quantile checks; 800 pointwise spatial fields fail rank/quantile checks,FALSE,FALSE
+range8-rep01-binary-k100,TRUE,TRUE,TRUE,,group Rhat > 1.05; element Rhat > 1.05; 25 spatial summary traces fail rank/quantile checks; 800 pointwise spatial fields fail rank/quantile checks,FALSE,FALSE
+range8-rep02-binary-k100,TRUE,TRUE,TRUE,,group Rhat > 1.05; element Rhat > 1.05; 25 spatial summary traces fail rank/quantile checks; 800 pointwise spatial fields fail rank/quantile checks,FALSE,FALSE
+range8-rep03-binary-k100,TRUE,TRUE,TRUE,,group Rhat > 1.05; element Rhat > 1.05; 25 spatial summary traces fail rank/quantile checks; 800 pointwise spatial fields fail rank/quantile checks,FALSE,FALSE
