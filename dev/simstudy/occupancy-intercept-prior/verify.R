@@ -24,22 +24,32 @@
 # on any disagreement.
 
 # Tolerances. The summaries are means of at most 48,000 draws of probabilities
-# in [0, 1] computed by different but equivalent floating-point routes (sums in
-# another order, another inverse logit, another kernel-basis factorisation).
-# Their rounding differences are of order 1e-14 in probability (the spatial-
-# amplitude audit found at most 1.7e-14 for group means), so 1e-12 in
-# probability, 1e-10 in percentage points, leaves a hundredfold margin while
-# being far below any difference that could matter. Coverage is a proportion of
-# identical containment decisions, so it must agree to rounding (1e-12). Rhat
-# is rank-based, so unchanged ranks give it to rounding (1e-12, as
-# check-flags.R). Mean-based ESS moves with the draws' last bits: relative 1e-9.
+# in [0, 1], aggregated here along other routes (matrix sums in place of mean,
+# a hand-written type-7 quantile, cell sets built afresh). Their rounding
+# differences are of order 1e-14 in probability (the spatial-amplitude audit
+# found at most 1.7e-14 for group means), so 1e-12 in probability, 1e-10 in
+# percentage points, leaves a hundredfold margin while being far below any
+# difference that could matter. Coverage is a proportion of identical
+# containment decisions, so it must agree to rounding (1e-12).
+# Rank-based diagnostics are not continuous in the last bit of the draws: with
+# an even number of draws the two middle draws are tied in the folded
+# statistic, and rounding decides whether that tie survives, which moves Rhat
+# by up to about 1e-6 (seen when group means were first taken with colMeans
+# rather than mean). As in the spatial-amplitude audit (verify-robust.R), the
+# strict diagnostic check therefore rebuilds the draws in the archive's exact
+# numerical representation (plogis, per-draw mean, the Cholesky and solve
+# basis, the robust rule's blocked field products) and requires Rhat to 1e-12
+# (as check-flags.R) and mean-based ESS to relative 1e-9; the package's native
+# basis is checked separately against that basis (1e-10, as score.R did).
 VERIFY_TOL_POINTS <- 1e-10
 VERIFY_TOL_COVERAGE <- 1e-12
 VERIFY_TOL_RHAT <- 1e-12
 VERIFY_TOL_ESS_RELATIVE <- 1e-9
 VERIFY_TOL_BASIS <- 1e-10
 
-audit_logistic <- function(x) 1/(1+exp(-x))
+audit_logistic <- function(x) stats::plogis(x)
+# Per-draw mean over a set of cells (rows) of a cells-by-draws matrix.
+draw_means <- function(d,rows) vapply(seq_len(ncol(d)),function(k) mean(d[rows,k]),numeric(1))
 
 # Type-7 sample quantile of a sorted vector: index 1 + (N - 1) p, linear
 # interpolation between the two neighbouring order statistics.
@@ -118,29 +128,44 @@ audit_a1_cells <- function(fit,input) {
 }
 
 # The spatial basis of every grid range: the squared-exponential kernel from
-# sites to knots times the inverse Cholesky factor of the knot kernel with the
-# package's 1e-5 jitter, K_sx R^-1 with R upper triangular.
+# sites to knots times the inverse transposed Cholesky factor of the knot
+# kernel with the package's 1e-5 jitter, K_sx L^-T with L lower triangular,
+# solved as the archive did so that the draws are bit-identical to it.
 audit_a2_bases <- function(fit) {
   xs <- fit$infos$list_Xs;k <- xs$X_tilde;s <- xs$X_s
   d2 <- function(a,b) outer(a[,1],b[,1],'-')^2+outer(a[,2],b[,2],'-')^2
   lapply(fit$infos$l_s_grid,function(l) {
-    R <- chol(exp(-d2(k,k)/(2*l^2))+diag(1e-5,nrow(k)))
-    (exp(-d2(s,k)/(2*l^2))%*%backsolve(R,diag(nrow(k))))[xs$Xs_index,,drop=FALSE]
+    L <- t(chol(exp(-d2(k,k)/(2*l^2))+diag(1e-5,nrow(k))))
+    t(solve(L,t(exp(-d2(s,k)/(2*l^2)))))[xs$Xs_index,,drop=FALSE]
   })
 }
 
-# Per-draw probability (and spatial field) of every cell of a binary spatial fit.
-audit_a2_draws <- function(fit,bases=audit_a2_bases(fit),keep_field=FALSE) {
+# The field draws of the robust rule's screens, species by species, with each
+# chain's iterations at one grid range multiplied in blocks of 100 as that rule does.
+audit_a2_field <- function(fit,bases) {
+  js <- fit$results_output$jsdm_output;n <- nrow(fit$Xs);ps <- fit$infos$ps
+  S <- dim(js$B0_output)[1];ni <- dim(js$B0_output)[2];nc <- dim(js$B0_output)[3]
+  out <- matrix(NA_real_,n*S,ni*nc)
+  for(s in seq_len(S)) for(ch in seq_len(nc)) for(g in sort(unique(js$idx_ls_output[,ch]))) {
+    ii <- which(js$idx_ls_output[,ch]==g)
+    for(block in split(ii,ceiling(seq_along(ii)/100)))
+      out[(s-1L)*n+seq_len(n),(ch-1L)*ni+block] <- bases[[g]]%*%matrix(js$Bs_output[,s,block,ch,drop=FALSE],ps,length(block))
+  }
+  out
+}
+
+# Per-draw probability of every cell of a binary spatial fit.
+audit_a2_draws <- function(fit,bases=audit_a2_bases(fit)) {
   js <- fit$results_output$jsdm_output;n <- nrow(fit$Xs);ps <- fit$infos$ps;P <- ncol(fit$X_psi)
   S <- dim(js$B0_output)[1];ni <- dim(js$B0_output)[2];nc <- dim(js$B0_output)[3]
   stopifnot(fit$infos$n_factors==0L)
-  out <- matrix(NA_real_,n*S,ni*nc);field <- if(keep_field) out else NULL
+  out <- matrix(NA_real_,n*S,ni*nc)
   for(ch in seq_len(nc)) for(it in seq_len(ni)) {
     f <- bases[[js$idx_ls_output[it,ch]]]%*%matrix(js$Bs_output[,,it,ch],ps,S)
     e <- f+fit$X_psi%*%matrix(js$B_output[,,it,ch],P,S)+matrix(js$B0_output[,it,ch],n,S,byrow=TRUE)
-    k <- (ch-1L)*ni+it;out[,k] <- audit_logistic(as.vector(e));if(keep_field) field[,k] <- as.vector(f)
+    out[,(ch-1L)*ni+it] <- audit_logistic(as.vector(e))
   }
-  if(keep_field) list(probability=out,field=field) else out
+  out
 }
 
 audit_a2_cells <- function(fit,input,native=NULL) {
@@ -153,9 +178,9 @@ audit_a2_cells <- function(fit,input,native=NULL) {
   if(max(abs(colMeans(t$psi)-t$target_prevalence))>1e-10) stop('Input psi does not have the designed prevalences')
   bases <- audit_a2_bases(fit)
   basis_difference <- if(is.null(native)) NA_real_ else native(fit,bases)
-  x <- audit_a2_draws(fit,bases,keep_field=TRUE)
-  cells <- audit_cells_from_draws('A2',x$probability,t$psi,t$target_prevalence)
-  cells$draws <- x$probability;cells$field <- x$field;cells$bases <- bases
+  x <- audit_a2_draws(fit,bases)
+  cells <- audit_cells_from_draws('A2',x,t$psi,t$target_prevalence)
+  cells$draws <- x;cells$field <- audit_a2_field(fit,bases)
   cells$ni <- dim(fit$results_output$jsdm_output$B0_output)[2];cells$nc <- dim(fit$results_output$jsdm_output$B0_output)[3]
   cells$truth_difference <- truth_difference;cells$basis_difference <- basis_difference
   cells
@@ -179,7 +204,7 @@ audit_diag_a1 <- function(fit,cells,warnings) {
   group <- list()
   for(base in list(original,seq_len(n*S))) {
     p <- tv[base]
-    for(m in list(base,base[p<.2],base[p>=.2 & p<=.8],base[p>.8])) group[[length(group)+1L]] <- colMeans(cells$draws[m,,drop=FALSE])
+    for(m in list(base,base[p<.2],base[p>=.2 & p<=.8],base[p>.8])) group[[length(group)+1L]] <- draw_means(cells$draws,m)
   }
   groups <- vapply(group,function(v) audit_rhat(as_chains(v,ni,nc)),numeric(1))
   block <- function(a) {m <- matrix(a,prod(head(dim(a),-2L)));vapply(seq_len(nrow(m)),function(k) audit_rhat(as_chains(m[k,],ni,nc)),numeric(1))}
@@ -218,7 +243,7 @@ audit_diag_a2 <- function(fit,input,cells,warnings) {
   occ_sets <- list(all=seq_along(tv),low=which(tv<.2),medium=which(tv>=.2 & tv<=.8),high=which(tv>.8))
   for(p in c(1,5,25,75)) occ_sets[[paste0('prevalence_',p,'pct')]] <- which(abs(tp[species]-p/100)<1e-10)
   occ_sets <- occ_sets[lengths(occ_sets)>0L]
-  occ <- t(vapply(occ_sets,function(ix) audit_td(as_chains(colMeans(cells$draws[ix,,drop=FALSE]),ni,nc)),numeric(2)))
+  occ <- t(vapply(occ_sets,function(ix) audit_td(as_chains(draw_means(cells$draws,ix),ni,nc)),numeric(2)))
   amp <- audit_rd(js$sigmabs_output)
   block_list <- list(intercept=js$B0_output,environment_slope=js$B_output,
     range=array(fit$infos$l_s_grid[js$idx_ls_output],c(1L,ni,nc)))
@@ -226,14 +251,14 @@ audit_diag_a2 <- function(fit,input,cells,warnings) {
   for(nm in names(block_list)) {
     m <- matrix(block_list[[nm]],prod(head(dim(block_list[[nm]]),-2L)))
     block_element[[nm]] <- vapply(seq_len(nrow(m)),function(k) audit_td(as_chains(m[k,],ni,nc))[['rhat']],numeric(1))
-    block_group[[nm]] <- audit_td(as_chains(colMeans(m),ni,nc))[['rhat']]
+    block_group[[nm]] <- audit_td(as_chains(draw_means(m,seq_len(nrow(m))),ni,nc))[['rhat']]
   }
   groups <- c(stats::setNames(occ[,'rhat'],paste0('occupancy:',rownames(occ))),
     stats::setNames(unlist(block_group),paste0(names(block_group),':all')),'spatial_sd:all'=amp[['rhat']])
   cell_rhat <- vapply(seq_along(tv),function(k) audit_td(as_chains(cells$draws[k,],ni,nc))[['rhat']],numeric(1))
   elements <- c(cell_rhat,unlist(block_element),amp[['rhat']])
   element_metric <- c(rep('occupancy',length(tv)),rep(names(block_element),lengths(block_element)),'spatial_sd')
-  sp <- t(vapply(seq_len(S),function(s) audit_td(as_chains(colMeans(cells$draws[species==s,,drop=FALSE]),ni,nc)),numeric(2)))
+  sp <- t(vapply(seq_len(S),function(s) audit_td(as_chains(draw_means(cells$draws,which(species==s)),ni,nc)),numeric(2)))
   # Spatial screens.
   tf <- input$truth$field;tc <- sweep(tf,2,colMeans(tf),'-');denom <- colSums(tc^2)
   traces <- list(amplitude=js$sigmabs_output)
@@ -442,7 +467,7 @@ verify_main <- function(args) {
   dir.create(file.path(out,phase),recursive=TRUE,showWarnings=FALSE)
   dest <- file.path(out,phase,paste0('verify-arms-',paste(arms,collapse='-'),'.csv'))
   utils::write.csv(x,dest,row.names=FALSE)
-  m <- function(k) format(suppressWarnings(max(x[[k]],na.rm=TRUE)),digits=3)
+  m <- function(k) if(all(is.na(x[[k]]))) 'not applicable' else format(max(x[[k]],na.rm=TRUE),digits=3)
   cat('Verified',sum(x$pass),'of',nrow(x),'fits. Largest differences: signed error',m('max_diff_signed_error'),
     '; mean absolute error',m('max_diff_mean_abs_cell_error'),'; MAE',m('max_diff_mae'),'; coverage',m('max_diff_coverage'),
     '; B0',m('max_diff_b0'),'; selection Rhat',m('sel_group_rhat_diff'),m('sel_element_rhat_diff'),'; archive Rhat',m('archive_rhat_vector_diff'),

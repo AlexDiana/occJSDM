@@ -439,6 +439,13 @@ test_that('the new-arm loading path checks the fit it scores (sd 3 pilot fit, me
   expect_error(score_item(bad,sc,archives,inputs_root,tempfile('scores')),'not the expected fit')
   bad <- item;bad$expected_md5 <- strrep('0',32)
   expect_error(score_item(bad,sc,archives,inputs_root,tempfile('scores')),'md5')
+  # The A2 path, on the A2 sd 3 pilot fit (200 draws per chain), again structure only.
+  pilot2 <- file.path(study,'fits/A2/sd3/pilot/range6-rep01-binary-k100-fit.rds');if(!file.exists(pilot2)) skip('A2 pilot fit not available')
+  item2 <- data.frame(role='new',phase='A2',sd=3,key='range6-rep01-binary-k100',schedule='pilot',fit=pilot2,
+    fit_label='fits/A2/sd3/pilot/range6-rep01-binary-k100-fit.rds',expected_md5=unname(tools::md5sum(pilot2)),kind='selected',stringsAsFactors=FALSE)
+  r2 <- readRDS(suppressWarnings(score_item(item2,sc,archives,inputs_root,out)))
+  expect_identical(nrow(r2$cells),800L);expect_true(all(c('rare_1_5pct','prevalence_1pct') %in% r2$groups$group))
+  expect_identical(r2$b0$species,8L);expect_true(all(is.finite(r2$groups$coverage)))
 })
 
 # ---------------------------------------------------------------------------
@@ -507,7 +514,7 @@ test_that('summarise.R with --arms=1 writes the control tables and no gate', {
   r <- run_cli('summarise.R',cli_args(s$study,'--phase=A1','--arms=1',paste0('--out=',s$out)))
   expect_identical(r$status,0L)
   d <- file.path(s$out,'A1')
-  for(f in c('band-error.csv','coverage.csv','mae.csv','b0.csv','convergence.csv','summary-means.csv','provenance.csv'))
+  for(f in c('band-error.csv','coverage.csv','mae.csv','b0.csv','convergence.csv','summary-means.csv','b0-means.csv','provenance.csv'))
     expect_true(file.exists(file.path(d,f)),info=f)
   expect_false(file.exists(file.path(d,'gate.csv')))
   be <- utils::read.csv(file.path(d,'band-error.csv'),stringsAsFactors=FALSE)

@@ -19,6 +19,7 @@
 #                       selection (controls: control-flags.csv); before a
 #                       selection exists, controls only, from results/flag-crosscheck.csv
 #   summary-means.csv   across-community means per arm, stratum, scope and group
+#   b0-means.csv        across-community means of the B0 outcomes per arm and stratum
 #   provenance.csv      scorer hashes, arguments, records read
 # and, when the control and a new arm are both requested:
 #   gate.csv            one row per SD: the numbers of every criterion, PASS or FAIL
@@ -249,6 +250,16 @@ summary_means <- function(g) {
   rownames(x) <- NULL;x
 }
 
+# B0 bias and coverage averaged over species within a community (b0.csv), then
+# over communities (README "Secondary outcomes").
+b0_means <- function(b) {
+  by <- interaction(b$sd,b$stratum,drop=TRUE,lex.order=TRUE)
+  x <- do.call(rbind,lapply(split(b,by),function(z) data.frame(phase=z$phase[1],sd=z$sd[1],arm=z$arm[1],stratum=z$stratum[1],
+    communities=nrow(z),mean_b0_bias=mean(z$b0_bias),mean_b0_abs_bias=mean(z$b0_abs_bias),mean_b0_coverage=mean(z$b0_coverage),
+    stringsAsFactors=FALSE)))
+  rownames(x) <- NULL;x
+}
+
 write_table <- function(x,dir,name) {
   path <- file.path(dir,name);tmp <- paste0(path,'.tmp');utils::write.csv(x,tmp,row.names=FALSE);stopifnot(file.rename(tmp,path));path
 }
@@ -282,10 +293,11 @@ summarise_main <- function(args) {
   write_table(every[c(meta,'scope','group','cells','coverage')],d,'coverage.csv')
   m <- every[every$group=='all',c(meta,'scope','cells','mean_abs_cell_error')];names(m)[names(m)=='mean_abs_cell_error'] <- 'mae'
   write_table(m,d,'mae.csv')
-  write_table(record_table(recs,'b0'),d,'b0.csv')
+  b0 <- record_table(recs,'b0');write_table(b0,d,'b0.csv')
   conv <- convergence_table(phase,arms,sel_dir,repo,missing)
   write_table(conv,d,'convergence.csv')
   write_table(summary_means(groups),d,'summary-means.csv')
+  write_table(b0_means(b0[b0$kind=='selected',,drop=FALSE]),d,'b0-means.csv')
   if(1 %in% arms && length(new_sds)) {
     rows <- list();details <- list();matched <- list()
     for(sd in new_sds) {
