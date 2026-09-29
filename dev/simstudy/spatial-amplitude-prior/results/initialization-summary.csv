@@ -1,0 +1,2 @@
+key,nchain,nburn,niter,starts,spatial_flags
+range6-rep01-binary-k100,4,6000,12000,"0.1, 0.3, 1, 3",11 summary traces and 7 field entries flagged

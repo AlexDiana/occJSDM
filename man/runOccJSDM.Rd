@@ -107,7 +107,28 @@ The half-Cauchy option allows noise close to zero; the inverse-gamma
 default strongly discourages it. Each scale, shape and rate must be a
 finite positive number. These settings do not change the binary,
 occupancy or two-stage detection models. The chosen continuous noise
-prior is saved in \code{infos$noise_prior}.}
+prior is saved in \code{infos$noise_prior}.
+
+For spatial fits, \code{sigma_bs_prior = "half_cauchy"} enables an
+experimental half-Cauchy prior on the shared residual spatial-coefficient
+standard deviation, with \code{sigma_bs_scale} (default \code{1}) on the
+linear-predictor scale. This amplitude is not necessarily the realised
+spatial field's standard deviation, especially with reduced support.
+The default \code{sigma_bs_prior = "inverse_gamma"} retains the existing
+inverse-gamma prior on its variance (shape \code{10}, scale \code{1}).
+These settings require spatial covariates; \code{sigma_bs_scale} requires
+the half-Cauchy choice and must be a finite positive number. The applied
+choice is saved in \code{infos$spatial_sd_prior}. Half-Cauchy chains start
+at the supplied scale (the prior median); default chains retain their
+existing starting value. This is separate from
+continuous observation noise and leaves all other occupancy and detection
+priors unchanged.
+In full-rank binary spatial fits, the unbounded half-Cauchy can leave the
+spatial-amplitude posterior mean infinite and spatial-field means
+non-integrable. Use posterior medians and quantiles for spatial summaries
+with this experimental option, and check rank-based chain convergence.
+Bounded occupancy-probability means remain meaningful. This option does
+not establish improved spatial recovery.}
 }
 \value{
 A list with:

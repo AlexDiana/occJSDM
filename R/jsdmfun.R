@@ -965,6 +965,15 @@ sample_sigmab <- function(B, Tr, G, A, C, a_sigmab, b_sigmab){
 
 }
 
+# Half-Cauchy prior on the shared residual spatial-coefficient SD. Subtract
+# the same observed/latent trait mean as sample_sigmab(). The auxiliary is
+# refreshed from its full conditional, so it need not be retained in output.
+sample_spatial_sd_half_cauchy <- function(B,Tr,G,A,C,sigma,scale) {
+  residual <- t(B)-computeBtcoef(G,Tr,A,C,matrix(0,ncol(B),nrow(B)))
+  auxiliary <- rinvgamma_cpp(1,1/sigma^2+1/scale^2)
+  sqrt(rinvgamma_cpp((length(B)+1)/2,sum(residual^2)/2+1/auxiliary))
+}
+
 # sample variance of factor scores (U ~ N(0, sigma_h^2), iid across sites/factors)
 sample_sigmah <- function(U, a_sigmah, b_sigmah){
 
@@ -1443,7 +1452,12 @@ update_jSDMcoef <- function(list_data,
   # update variance of residuals of environmental covariates
   sigma_b <- sample_sigmab(B, Tr, G, A, C, a_sigmab, b_sigmab)
   if(ps > 0){
-    sigma_bs <- sample_sigmab(Bs, Tr, Gs, As, Cs, a_sigmabs, b_sigmabs)
+    if (identical(list_priors$spatial_sd_prior$type,"half_cauchy")) {
+      sigma_bs <- sample_spatial_sd_half_cauchy(Bs,Tr,Gs,As,Cs,sigma_bs,
+                                               list_priors$spatial_sd_prior$scale)
+    } else {
+      sigma_bs <- sample_sigmab(Bs, Tr, Gs, As, Cs, a_sigmabs, b_sigmabs)
+    }
   }
 
   # sample response to traits (observed and unobsered)

@@ -1,0 +1,2 @@
+key,prior,relocated_source_count,field_error,amplitude_error,trace_error,diagnostic_error,native_rhat_difference,field_diagnostic_difference,field_diagnostic_error,pointwise_reconstruction_error,native_threshold_crossings,probability_error,group_error,result_md5,fit_md5
+range6-rep01-binary-k100,half_cauchy_startcheck,0,5.79536418854332e-14,0,9.79771819231701e-15,0,5.17573747571554e-06,5.17573747571554e-06,0,1.73215174842367e-13,0,1.38777878078145e-14,2.41473507855972e-15,723427662a21cf3ebb0eb5b22060f5de,d64d2b9b975e19413103ccf694e07c21
