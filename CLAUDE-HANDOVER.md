@@ -2,6 +2,10 @@
 
 Updated 28 September 2026, approximately 18:03 BST. Doug requested: **“wrap up your analysis and write a handover document for Claude.”** This is a handover of existing work, not authorization to restart the simulations. The conditional diagnosis is complete and audited; the original full-model prior comparison is still running. Leave its processes intact.
 
+## Completion update, 28 September 2026, about 22:50 BST
+
+The seven recovered fits finished at 22:26 BST, about 7,040 seconds each, and the replacement follow-on ran the full analysis sequence unattended, finishing at 22:42 BST. Everything in "What Claude should finish" below is done except the final review and commit: all 19 audits pass with zero threshold crossings and matching hashes, the audited amended extension decision is FAIL on six of nine criteria, the compact evidence was re-exported after the final report edits, and `report.Rmd` was rendered to `dev/simstudy/spatial-amplitude-prior/report.html` with all figures inspected. `README.md`, `VALIDATION.md`, `TODO.md` item 1 and an `AGENTS.md` status bullet record the outcome. The branch was synchronised with main, which contributed only TODO and handover changes. The uncommitted changes on the branch await Doug's review of the interpretation before the evidence commit; `report.html` is 2.7 MB and untracked, pending a decision on whether to track rendered reports.
+
 ## Recovery update, 28 September 2026, about 20:30 BST
 
 At about 20:23 BST the Codex app was restarted, which killed every process it had spawned: the coordinator (PID 13505), the progress monitor (PID 14111), the analysis follow-on (PID 37320) and the seven longer fits that were still running. Doug confirmed the kill was a mistake. No partial or temporary files were left; every completed fit, result file and hash is intact. Process identifiers quoted in the sections below are therefore historical.
