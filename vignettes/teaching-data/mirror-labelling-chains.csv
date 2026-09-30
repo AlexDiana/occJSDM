@@ -1,0 +1,31 @@
+# Species 6 (OTU_6) of simulation-study fit design-qfar_K6-sites300-05: one row per MCMC chain.
+# Chain posterior means and SDs of the field false-positive rate theta0 and of mean occupancy
+# probability over the 100 scored (original) sites, with the generating values. Values are copied
+# as text from committed files of dev/simstudy/convergence-flag-diagnosis (see REPORT.md there):
+#   dev/simstudy/convergence-flag-diagnosis/results/anatomy/chain-summary.csv (md5 dcd6db73c8bec84fba440a0c9da7ce73): original 4-chain fit, columns chain_mean, chain_sd, truth
+#   dev/simstudy/convergence-flag-diagnosis/results/extended/chain-summary.csv (md5 bb83a00e826c4e40cbb3f1123089e8e0): 16 fresh chains, same columns
+#   dev/simstudy/convergence-flag-diagnosis/results/extended/mode-mass.csv (md5 f8ae61ef5a41ad91ad02730907fe7769): region of each fresh chain (anchored)
+#   dev/simstudy/convergence-flag-diagnosis/results/modes/anchor-validation.csv (md5 e034955775dbe08803b49ff052d07f86): region of each original chain,
+#     'mirror' where its in-sample share of draws labelled mirror exceeds 0.5 (the anchors were calibrated on these chains).
+# Read with read.csv(path, comment.char = "#").
+"run","chain","region","theta0_mean","theta0_sd","mean_occupancy_mean","mean_occupancy_sd","true_theta0","true_mean_occupancy"
+"original 4-chain fit",1,"near-truth",0.03518395,0.02471128,0.4754416,0.09368715,0.03800492,0.5114966
+"original 4-chain fit",2,"mirror",0.2522488,0.04314973,0.4454948,0.08355093,0.03800492,0.5114966
+"original 4-chain fit",3,"near-truth",0.03632365,0.02607,0.4737027,0.09683966,0.03800492,0.5114966
+"original 4-chain fit",4,"mirror",0.2522342,0.04400843,0.4500674,0.08444188,0.03800492,0.5114966
+"16 fresh chains",1,"near-truth",0.03541358,0.02532487,0.4772264,0.09672429,0.03800492,0.5114966
+"16 fresh chains",2,"near-truth",0.03732115,0.02667963,0.4709057,0.1006862,0.03800492,0.5114966
+"16 fresh chains",3,"near-truth",0.03662385,0.02627975,0.4756617,0.09850723,0.03800492,0.5114966
+"16 fresh chains",4,"near-truth",0.03618722,0.0258662,0.4773446,0.09882885,0.03800492,0.5114966
+"16 fresh chains",5,"near-truth",0.03565658,0.02556613,0.4700571,0.09723571,0.03800492,0.5114966
+"16 fresh chains",6,"near-truth",0.03437417,0.0248977,0.4807503,0.09722785,0.03800492,0.5114966
+"16 fresh chains",7,"near-truth",0.03551756,0.02587178,0.4791954,0.1020273,0.03800492,0.5114966
+"16 fresh chains",8,"near-truth",0.03671622,0.02595806,0.4733051,0.09872243,0.03800492,0.5114966
+"16 fresh chains",9,"near-truth",0.03680249,0.02629057,0.4751165,0.09904437,0.03800492,0.5114966
+"16 fresh chains",10,"near-truth",0.03732015,0.0269974,0.4690172,0.1002891,0.03800492,0.5114966
+"16 fresh chains",11,"near-truth",0.03534951,0.02573554,0.4773879,0.09831472,0.03800492,0.5114966
+"16 fresh chains",12,"near-truth",0.03746681,0.02666255,0.4702845,0.0987582,0.03800492,0.5114966
+"16 fresh chains",13,"near-truth",0.03568449,0.02517733,0.4737982,0.09580542,0.03800492,0.5114966
+"16 fresh chains",14,"near-truth",0.03706292,0.02647192,0.4763219,0.1015967,0.03800492,0.5114966
+"16 fresh chains",15,"near-truth",0.03604888,0.02601478,0.4820749,0.09957993,0.03800492,0.5114966
+"16 fresh chains",16,"near-truth",0.03714716,0.02605193,0.4684316,0.09496116,0.03800492,0.5114966

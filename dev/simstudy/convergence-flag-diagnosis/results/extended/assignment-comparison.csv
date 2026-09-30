@@ -1,0 +1,17 @@
+"run","chain","primary_region","primary_share_mirror","primary_share_far","cut_region","cut_share_mirror","agree_cut","refit_n_modes","refit_region","refit_share_mirror","agree_refit"
+"extended",1,"near-truth",0,0.0096,"near-truth",1e-04,TRUE,1,"near-truth",0,TRUE
+"extended",2,"near-truth",0,0.0131,"near-truth",0.0013,TRUE,1,"near-truth",0,TRUE
+"extended",3,"near-truth",0,0.0102,"near-truth",0.001,TRUE,1,"near-truth",0,TRUE
+"extended",4,"near-truth",0,0.0117,"near-truth",8e-04,TRUE,1,"near-truth",0,TRUE
+"extended",5,"near-truth",0,0.0057,"near-truth",0.0012,TRUE,1,"near-truth",0,TRUE
+"extended",6,"near-truth",0,0.007,"near-truth",7e-04,TRUE,1,"near-truth",0,TRUE
+"extended",7,"near-truth",0,0.0065,"near-truth",0.001,TRUE,1,"near-truth",0,TRUE
+"extended",8,"near-truth",0,0.0094,"near-truth",0.0016,TRUE,1,"near-truth",0,TRUE
+"extended",9,"near-truth",0,0.0089,"near-truth",0.001,TRUE,1,"near-truth",0,TRUE
+"extended",10,"near-truth",0,0.0117,"near-truth",0.0016,TRUE,1,"near-truth",0,TRUE
+"extended",11,"near-truth",0,0.0082,"near-truth",0.0011,TRUE,1,"near-truth",0,TRUE
+"extended",12,"near-truth",0,0.0122,"near-truth",0.0017,TRUE,1,"near-truth",0,TRUE
+"extended",13,"near-truth",0,0.0092,"near-truth",5e-04,TRUE,1,"near-truth",0,TRUE
+"extended",14,"near-truth",0,0.0103,"near-truth",0.0018,TRUE,1,"near-truth",0,TRUE
+"extended",15,"near-truth",0,0.0137,"near-truth",9e-04,TRUE,1,"near-truth",0,TRUE
+"extended",16,"near-truth",0,0.0077,"near-truth",0.0014,TRUE,1,"near-truth",0,TRUE

@@ -81,6 +81,8 @@ These are **observed-chain sensitivity ranges**, not confidence intervals or bou
 
 Confidence intervals for paired changes describe variation across ten communities. They are not posterior uncertainty intervals for individual probabilities, do not measure interval coverage, and do not correct for non-convergence. The broad historical coverage study was not rerun here. The available rare-species cases are too few for a general rare-species assessment. No non-spatial release target has been approved through this comparison, and PRs #13 and #14 remain pending Alex's review.
 
+**Follow-up, 30 September 2026:** the flagged high-contamination, 300-site fit of community 5 was diagnosed in the [convergence-flag diagnosis](../convergence-flag-diagnosis/REPORT.md) (one species in two stable labellings, one a mirror image; 16 fresh chains found only the near-truth one), and no conclusion of this report changes.
+
 ## Evidence and reproduction
 
 The [protocol](protocol.md) and [reproduction guide](README.md) describe the archived inputs, isolated production build and checks. Compact results retain each community's errors, paired changes, selected-fit and input hashes, source hashes, warnings and remaining convergence flags. Full fits and logs remain in the separate execution archive; historical evidence is unchanged. The [validation record](VALIDATION.md) records 27 simulation-truth regression expectations and the full package check: 769 passing expectations, zero errors and no new warnings.

@@ -2203,6 +2203,161 @@ to much higher rates. The example therefore raises two separate
 concerns: how precisely the sampler has estimated its posterior
 summaries, and how well that posterior recovers the ecological truth.
 
+### When chains settle on two different explanations
+
+In that example the chains explore the same range of values, only
+slowly. One of our simulation studies of two-stage (eDNA) data found a
+different pattern, in a design that sets laboratory contamination far
+above what the default priors assume: a PCR of a field sample without
+the species’ DNA was positive with probability 0.13 to 0.24, whereas the
+default Beta(1, 20) prior on `q` has mean 0.048. With 24 PCRs per site,
+almost every site had at least one positive PCR for every species, so
+whether a site had any positive said almost nothing about its occupancy.
+For one species in that 300-site community, which is not this lesson’s
+community, two of the four chains settled near the truth and the other
+two on a **mirror** explanation of the same observations: a
+field-contamination probability, or field false-positive rate, `theta0`
+of about 0.25 (truth 0.038), a low collection probability, both
+environmental slopes of the wrong sign, and site occupancy probabilities
+running almost opposite to the truth (correlation -0.86). Both
+explanations were consistent with the observed rate of positive PCRs;
+that is a consistency check, not a likelihood comparison, and it does
+not show that the two fit equally well. Each of the four chains stayed
+in its explanation for all 12,000 retained draws, so each looked stable
+on its own, and the pooled summary averaged the two, giving `theta0`
+0.144.
+
+Rhat compares chains, so it flags this only when chains actually land in
+different explanations. Here the all-chain Rhat for that species’
+`theta0`, collection intercept and environmental slopes was about 1.7,
+and the package’s convergence warnings reported it. The original chains
+ran one after another in one process, as the package runs them, with
+6,000 burn-in and 12,000 retained iterations each. The 16 fresh chains
+were separate single-chain runs with their own seeds (10,000 burn-in and
+40,000 further iterations, every fourth kept), and every one stayed near
+the truth. Counting the two chains of an earlier, shorter fit of the
+same data as near-truth, as their scores suggest, two of the six chains
+run the package’s usual way entered the mirror and none of the 16
+separate runs did; why is not established. Every chain starts from the
+same default values, so such counts show where chains go from that
+start, not how much posterior probability the mirror holds: Rhat cannot
+warn about an explanation that no chain visits. This is the only such
+case found in these studies, and how often it happens in real data is
+unknown. Other flagged fits of the same community, with wider
+occupancy-intercept priors, were not examined for it, and nothing in
+these studies shows the mirror when contamination is at the level the
+priors assume.
+
+The figure reads the study’s per-chain posterior means for that species
+from a small saved file, for the original four-chain fit and the 16
+fresh chains.
+
+``` r
+mirror_chains <- read.csv("teaching-data/mirror-labelling-chains.csv", comment.char = "#")
+run_order <- c("original 4-chain fit", "16 fresh chains")
+
+# Draw the original chains last so the fresh chains do not hide them.
+mirror_chains |>
+  arrange(desc(match(run, run_order))) |>
+  ggplot(aes(x = mean_occupancy_mean, y = theta0_mean)) +
+  geom_hline(yintercept = 1 / 21, colour = "grey55", linetype = "dashed") +
+  geom_point(aes(colour = run, shape = region), size = 2.5, alpha = 0.7) +
+  geom_point(
+    data = distinct(mirror_chains, true_mean_occupancy, true_theta0),
+    aes(x = true_mean_occupancy, y = true_theta0),
+    shape = 4, size = 3, stroke = 1
+  ) +
+  scale_colour_manual(
+    values = setNames(c("#D55E00", "#0072B2"), run_order),
+    breaks = run_order, name = NULL
+  ) +
+  scale_shape_manual(
+    values = c(`near-truth` = 16, mirror = 17),
+    breaks = c("near-truth", "mirror"), name = NULL
+  ) +
+  scale_x_continuous(labels = scales::label_percent(), limits = c(0.35, 0.6)) +
+  scale_y_continuous(labels = scales::label_percent(), limits = c(0, 0.3)) +
+  labs(
+    x = "Chain mean of average occupancy probability over 100 scored sites",
+    y = "Chain mean of theta0\n(field false-positive rate)",
+    caption = "One point per chain. Black cross: generating values. Dashed line: mean of the default Beta(1, 20) prior on theta0."
+  ) +
+  theme(legend.position = "bottom")
+```
+
+<img src="occJSDM-lesson-3_files/figure-gfm/mirror-labelling-chains-1.png" alt="Scatter plot with one point per MCMC chain for one simulated species, showing the chain mean of theta0 against the chain mean of average occupancy probability. Eighteen chains, including all 16 fresh chains, cluster at theta0 of about 3.5 percent, near the generating value of 3.8 percent marked by a black cross. Two chains of the original fit sit apart at theta0 of about 25 percent, with average occupancy only about three points lower."  />
+
+Two chains of the original fit sit far above the rest in `theta0`, yet
+their average occupancy differs from the other chains’ by only about
+three percentage points: the site-by-site pattern is reversed, but the
+average barely moves. In the study, `theta0`, the collection intercept
+and the two environmental slopes carried the signal, with gaps between
+chains of 3.5 to 6.1 pooled within-chain standard deviations, while `B0`
+and average occupancy overlapped (gaps of 0.7 and 0.3). Compare chains
+on those four, not on average occupancy or `B0` alone.
+
+To check your own fit, summarise each chain separately for every
+species. This needs a two-stage or occupancy fit with at least two
+chains: the collection and field-contamination arrays are `NULL` for a
+plain JSDM fit, and a fit with one species or one chain loses array
+dimensions when a row is selected. `theta0_output` and
+`jsdm_output$B0_output` are species by iteration by chain. The first row
+of `beta_theta_output` is the collection intercept, on the log-odds
+scale at the mean of the standardized collection covariates (and
+reference levels of factors). Rows 1 and 2 of `jsdm_output$B_output` are
+the occupancy slopes on the first and second environmental covariates.
+
+``` r
+results <- fitmodel$results_output
+
+# Summarise over iterations (dimension 2), keeping species and chains apart.
+chain_summary <- function(draws, statistic = mean) {
+  out <- apply(draws, c(1, 3), statistic)
+  dimnames(out) <- list(fitmodel$infos$speciesNames,
+                        paste0("chain_", seq_len(ncol(out))))
+  round(out, 3)
+}
+
+chain_summary(results$theta0_output)
+chain_summary(results$theta0_output, sd)
+
+# Collection intercept, then the two occupancy slopes.
+chain_summary(results$beta_theta_output[1, , , ])
+chain_summary(results$beta_theta_output[1, , , ], sd)
+chain_summary(results$jsdm_output$B_output[1, , , ])
+chain_summary(results$jsdm_output$B_output[2, , , ])
+
+chain_summary(results$jsdm_output$B0_output)
+```
+
+The warning sign is a species whose chains fall into groups with means
+that differ by far more than each chain’s own standard deviation. In the
+study the two groups’ `theta0` means were about 0.036 and 0.25, with
+chain standard deviations of about 0.025 and 0.04. In our
+interpretation, two further signs suggest which group is the mirror: a
+`theta0` far above what its prior expects (under the default Beta(1,
+20), about 0.3% of the prior lies above 0.25), and occupancy or
+collection relations that run opposite to what is ecologically plausible
+for the species. Real data have no truth line to settle the question, so
+these are judgments, not proofs.
+
+What to do next is also our interpretation, not a tested procedure. If
+the chains fall into groups, do not report the pooled summary, which
+averages the explanations. Report each group’s estimates, and say which
+you consider plausible and why, or that neither can be ruled out.
+Refitting with other seeds (`set.seed()` before `runOccJSDM()`) shows
+how often each explanation appears when chains are run the package’s
+usual way; it cannot show which one is right, and in the study the
+counts differed between the two ways of running chains for reasons not
+established. A tighter prior on `theta0` is an assumption to justify
+from laboratory and field practice, not a tested fix. The study ran 8
+chains with a Beta(1, 100) prior on `theta0`, but none of the 16 fresh
+default-prior chains entered the mirror either, so the comparison could
+not show whether that prior prevents it; the prior also pulled that
+species’ `theta0` down to 0.011, against a truth of 0.038. The [study
+report](../dev/simstudy/convergence-flag-diagnosis/REPORT.md) gives the
+details and limitations.
+
 ### Where to find other parameter draws
 
 Start from `fitmodel$results_output`. Keep the iteration and chain
