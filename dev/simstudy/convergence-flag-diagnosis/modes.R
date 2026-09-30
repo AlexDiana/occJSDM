@@ -17,7 +17,8 @@
 #       components: the two fitted components (weight, and mean and SD of each
 #         quantity on its own scale), whether or not they form two modes;
 #       quantities_used, dropped_constant, transforms, ridgeline_maxima,
-#       loglik, em_iterations, em_converged.
+#       loglik, em_iterations, em_converged, and em_starts (one row per EM
+#       start: its log-likelihood, iterations and convergence).
 #
 #   chain_regions(result, min_share = VISIT_SHARE)
 #     Per chain: the share of each mode, visits_both (each mode holds at least
@@ -38,14 +39,17 @@
 #     at the right; the generating value dashed.
 #
 # Method (frozen in README.md before any diagnostic fit).
-#   1. Each quantity is put on an unbounded scale (MODE_TRANSFORMS: logit for
-#      theta0 and mean_psi_original_sites, identity for B0), then centred and
-#      scaled by its pooled mean and SD over all draws. A quantity with no
-#      variation (variant (b)'s fixed theta0) is dropped and reported.
+#   1. Each quantity is used on its own scale (MODE_TRANSFORMS: identity for
+#      all three; a logit option exists but is not used, see below), centred
+#      and scaled by its pooled mean and SD over all draws. Probabilities
+#      (theta0, mean_psi_original_sites) outside [0, 1] are refused. A quantity
+#      with no variation (variant (b)'s fixed theta0) is dropped and reported.
 #   2. A two-component Gaussian mixture with full covariances is fitted to the
-#      pooled draws by EM, started from k-means (two centres, initialised at
-#      the means of the draws below and above the median of the first
-#      principal component; no random numbers are used).
+#      pooled draws by EM from several deterministic starts (no random numbers
+#      are used): k-means with two centres initialised at the means of the
+#      draws below and above the median of the first principal component, and
+#      for each quantity a split at its median. The fit with the highest
+#      log-likelihood is kept.
 #   3. The fitted mixture has two modes only if its density has two local
 #      maxima along the ridgeline of the two components (Ray and Lindsay
 #      2005, Annals of Statistics 33:2042-2065: every mode of a two-component
@@ -54,11 +58,21 @@
 #   4. With two modes, each draw takes the component of higher fitted
 #      probability; mode 1 is the component with the lower mean of the first
 #      quantity used (theta0 unless it was dropped).
+# Calibration on the saved pr11 fit of community 5 (Task 1 data, 4 chains of
+# 12,000 draws, done before this method was frozen): on the logit scale with
+# the principal-component start only, the low-theta0 mode's long left tail
+# (theta0 down to 6e-6) widened its component and 170 of chain 2's draws
+# (1.4%), with theta0 0.12 to 0.39 and so in the high region, were labelled
+# mode 1; on the probability scale the principal-component start converged to
+# one overlapping pair (one mode), while the per-quantity starts gave the two
+# modes with at most 26 draws per chain (0.22%) labelled against the chain's
+# region. test-modes.R holds both cases as synthetic regression tests.
 
 `%||%` <- function(x,y) if(is.null(x)) y else x
 
 MODE_QUANTITIES <- c('theta0','B0','mean_psi_original_sites')
-MODE_TRANSFORMS <- c(theta0='logit',B0='identity',mean_psi_original_sites='logit')
+MODE_TRANSFORMS <- c(theta0='identity',B0='identity',mean_psi_original_sites='identity')
+PROBABILITY_QUANTITIES <- c('theta0','mean_psi_original_sites')
 MIN_MODE_WEIGHT <- .01
 VISIT_SHARE <- .01
 EM_MAX_ITERATIONS <- 1000L
@@ -126,9 +140,17 @@ kmeans_start <- function(X) {
   stats::kmeans(X,centers=centres,iter.max=100L)$cluster
 }
 
+# All EM starts: the k-means start and a median split of each quantity.
+em_starts <- function(X,names) {
+  s <- list(principal_component=tryCatch(kmeans_start(X),error=function(e) NULL))
+  for(j in seq_len(ncol(X))) s[[paste0('median_',names[j])]] <- ifelse(X[,j]>stats::median(X[,j]),2L,1L)
+  s
+}
+
 # ---- Mode assignment ----------------------------------------------------------
 
 transform_quantity <- function(x,how,name) {
+  if(name %in% PROBABILITY_QUANTITIES && any(x<0 | x>1)) stop('Quantity ',name,' has draws outside [0, 1]')
   switch(how,identity=x,
     logit={
       if(any(x<=0 | x>=1)) stop('Quantity ',name,' has draws outside (0, 1); cannot take its logit')
@@ -166,9 +188,15 @@ assign_modes <- function(draws,quantities=MODE_QUANTITIES,transforms=MODE_TRANSF
   centre <- vapply(z[used],mean,numeric(1));scale <- sds[used]
   X <- vapply(used,function(q) (z[[q]]-centre[[q]])/scale[[q]],numeric(ni*nc))
   X <- matrix(X,ncol=length(used))
-  fit <- fit_two_gaussians(X,kmeans_start(X))
-  if(is.null(fit)) return(one(list(components=NULL,ridgeline_maxima=1L,loglik=NA_real_,
-    em_iterations=NA_integer_,em_converged=FALSE)))
+  starts <- em_starts(X,used)
+  fits <- lapply(starts,function(st) if(is.null(st)) NULL else fit_two_gaussians(X,st))
+  field <- function(f,k,na) if(is.null(f)) na else f[[k]]
+  start_table <- data.frame(start=names(starts),loglik=vapply(fits,field,numeric(1),k='loglik',na=NA_real_),
+    iterations=vapply(fits,function(f) as.integer(field(f,'iterations',NA_integer_)),integer(1)),
+    converged=vapply(fits,field,logical(1),k='converged',na=NA),row.names=NULL,stringsAsFactors=FALSE)
+  if(all(is.na(start_table$loglik))) return(one(list(components=NULL,ridgeline_maxima=1L,loglik=NA_real_,
+    em_iterations=NA_integer_,em_converged=FALSE,em_starts=start_table)))
+  fit <- fits[[which.max(start_table$loglik)]]
   # Order components so that mode 1 has the lower mean of the first quantity.
   o <- order(vapply(fit$mean,`[`,numeric(1),1L))
   fit$weight <- fit$weight[o];fit$mean <- fit$mean[o];fit$cov <- fit$cov[o];fit$resp <- fit$resp[,o]
@@ -186,7 +214,7 @@ assign_modes <- function(draws,quantities=MODE_QUANTITIES,transforms=MODE_TRANSF
   }
   maxima <- ridgeline_maxima(fit)
   extra <- list(components=components,ridgeline_maxima=as.integer(maxima),loglik=fit$loglik,
-    em_iterations=as.integer(fit$iterations),em_converged=fit$converged)
+    em_iterations=as.integer(fit$iterations),em_converged=fit$converged,em_starts=start_table)
   if(maxima<2L || min(fit$weight)<MIN_MODE_WEIGHT) return(one(extra))
   labels <- matrix(ifelse(fit$resp[,2]>fit$resp[,1],2L,1L),ni,nc)
   c(list(labels=labels,prob_mode2=matrix(fit$resp[,2],ni,nc),n_modes=2L,

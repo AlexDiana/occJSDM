@@ -15,7 +15,10 @@
 #                   process (equivalence-fit --side=...), then compare
 #                   (equivalence-compare); exit 1 unless every check passes;
 #   pilot-checks    check the four pilot fits under ARCHIVE/fits/pilot/ and
-#                   write results/pilot-checks.csv; exit 1 unless all pass.
+#                   write results/pilot-checks.csv; exit 1 unless all pass;
+#   mode-calibration  run assign_modes() on every species of the saved pr11
+#                   fit of community 5 (Task 1 data) and write
+#                   results/mode-calibration.csv.
 # Pilot fits are plumbing checks only and are never analysed.
 
 args <- commandArgs(trailingOnly=TRUE)
@@ -159,6 +162,28 @@ pilot_checks <- function() {
   all(table$pass)
 }
 
+# ---- Mode calibration on the saved pr11 fit -----------------------------------------
+
+mode_calibration <- function() {
+  anatomy <- new.env(parent=globalenv());sys.source(file.path(here,'anatomy.R'),envir=anatomy)
+  modes <- new.env(parent=globalenv());sys.source(file.path(here,'modes.R'),envir=modes)
+  a <- anatomy$chain_anatomy(anatomy$selected_fit(KEY),anatomy$selected_input(KEY),keep_draws=TRUE)
+  S <- dim(attr(a,'draws')[[1]])[1];ni <- dim(attr(a,'draws')[[1]])[2]
+  rows <- lapply(seq_len(S),function(s) {
+    r <- modes$assign_modes(modes$species_mode_draws(a,s));cr <- modes$chain_regions(r)
+    comp <- r$components
+    data.frame(key=KEY,species=s,chain=cr$chain,draws_per_chain=ni,n_modes=r$n_modes,ridgeline_maxima=r$ridgeline_maxima,
+      share_mode1=cr$share_mode1,share_mode2=cr$share_mode2,visits_both=cr$visits_both,region=cr$region,
+      mode1_mean_theta0=if(r$n_modes==2L) comp$mean_theta0[1] else NA_real_,
+      mode2_mean_theta0=if(r$n_modes==2L) comp$mean_theta0[2] else NA_real_,stringsAsFactors=FALSE)
+  })
+  table <- do.call(rbind,rows)
+  for(nm in names(table)) if(is.double(table[[nm]])) table[[nm]] <- signif(table[[nm]],6)
+  utils::write.csv(table,file.path(results,'mode-calibration.csv'),row.names=FALSE)
+  print(table[table$species==6L | table$chain==1L,],row.names=FALSE)
+  TRUE
+}
+
 # ---- Main --------------------------------------------------------------------------------
 
 status <- tryCatch({
@@ -187,6 +212,8 @@ status <- tryCatch({
       if(code!=0L) stop('Equivalence fit ',side,' failed; see ',file.path(EQ_DIR,paste0(side,'.log')))
     }
     if(equivalence_compare()) {cat('Equivalence PASSES\n');0L} else {cat('Equivalence FAILS\n');1L}
+  } else if(o$mode=='mode-calibration') {
+    mode_calibration();0L
   } else if(o$mode=='pilot-checks') {
     if(pilot_checks()) {cat('All pilot checks pass\n');0L} else {cat('Pilot checks FAIL\n');1L}
   } else stop('Unknown --mode: ',o$mode)

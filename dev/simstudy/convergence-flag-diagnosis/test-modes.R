@@ -104,7 +104,7 @@ test_that('malformed input is refused', {
   d2 <- d;d2$B0 <- d2$B0[1:50,]
   expect_error(assign_modes(d2,MODE_QUANTITIES),'same iterations x chains')
   d3 <- d;d3$theta0[1] <- 1.5
-  expect_error(assign_modes(d3,MODE_QUANTITIES),'outside \\(0, 1\\)')
+  expect_error(assign_modes(d3,MODE_QUANTITIES),'outside \\[0, 1\\]')
 })
 
 test_that('the chain strip figure runs for 16 chains, with and without modes', {
@@ -117,4 +117,43 @@ test_that('the chain strip figure runs for 16 chains, with and without modes', {
   expect_silent(plot_chain_strips(d,f2))
   expect_gt(file.size(f1),5000);expect_gt(file.size(f2),5000)
   unlink(c(f1,f2))
+})
+
+test_that('a split in theta0 alone is found when the other quantities are correlated noise', {
+  # The first principal component of the standardised draws follows the
+  # correlated B0 and occupancy noise, so a start from it alone misses the
+  # theta0 split; the per-quantity starts find it.
+  set.seed(391)
+  n <- 3000L;K <- 4L;labels <- matrix(rep(c(1L,2L,1L,2L),each=n),n,K)
+  low <- as.vector(labels)==1L;shared <- rnorm(n*K)
+  d <- list(theta0=matrix(ifelse(low,rbeta(n*K,3,80),rbeta(n*K,25,75)),n,K),
+    B0=matrix(-.3+.6*shared+rnorm(n*K,0,.15),n,K),
+    mean_psi_original_sites=matrix(plogis(.5*shared+rnorm(n*K,0,.1)),n,K))
+  r <- assign_modes(d,MODE_QUANTITIES,c(theta0='identity',B0='identity',mean_psi_original_sites='identity'))
+  expect_identical(r$n_modes,2L)
+  expect_gt(mean(r$labels==labels),.99)
+})
+
+test_that('draws of a long-tailed low mode and a compact high mode are not mislabelled in the tails', {
+  # Shaped like species 6 in the pr11 fit (Task 1 data): the low mode mixes
+  # near-zero theta0 draws with a main body (quantiles 0.1%, 50%, 99% about
+  # 2e-5, 0.027, 0.10 against 1e-4, 0.031, 0.106 in the fit), the high mode
+  # is centred at 0.25 (1% quantile 0.16), theta0 and B0 are correlated with
+  # opposite signs in the two modes, and B0 and occupancy are correlated 0.96.
+  # On the logit scale with a single start, 0.3% to 0.7% of a high-mode
+  # chain's draws were labelled mode 1 (1.4% in the pr11 fit itself).
+  set.seed(401)
+  n <- 6000L;K <- 4L;labels <- matrix(rep(c(1L,2L,1L,2L),each=n),n,K)
+  low <- as.vector(labels)==1L;N <- n*K
+  t_low <- ifelse(runif(N)<.25,rbeta(N,1,200),rbeta(N,3,75));t_high <- rbeta(N,28,84)
+  theta0 <- ifelse(low,t_low,t_high)
+  zt <- ifelse(low,(t_low-mean(t_low))/sd(t_low),(t_high-mean(t_high))/sd(t_high));rho <- ifelse(low,-.55,.45)
+  zB <- rho*zt+sqrt(1-rho^2)*rnorm(N);B0 <- ifelse(low,-.5,-.01)+.65*zB
+  psi <- plogis(ifelse(low,qlogis(.47),qlogis(.45))+.4*(.96*zB+.28*rnorm(N)))
+  r <- assign_modes(list(theta0=matrix(theta0,n,K),B0=matrix(B0,n,K),mean_psi_original_sites=matrix(psi,n,K)),MODE_QUANTITIES)
+  expect_identical(r$n_modes,2L)
+  regions <- chain_regions(r)
+  expect_identical(regions$region,c('1','2','1','2'))
+  expect_lt(max(pmin(regions$share_mode1,regions$share_mode2)),.002)
+  expect_gt(mean(r$labels==labels),.999)
 })
