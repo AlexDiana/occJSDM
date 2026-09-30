@@ -18,19 +18,19 @@
 #     the reconstructed posterior mean occupancy probability (sites x species,
 #     over all files); psi_check, per file the largest absolute difference
 #     between the reconstruction and that file's stored psi_output (the call
-#     stops if any reaches PSI_TOLERANCE); original_sites; and draws, only when
-#     keep_draws is TRUE, one species x iteration x chain array per quantity.
+#     stops if any reaches PSI_TOLERANCE); original_sites;
+#     loadings_truth_canonical; and draws, only when keep_draws is TRUE, one
+#     species x iteration x chain array per quantity.
 #
 #   chain_separation(anatomy)
 #     A list of three data frames (ruling R2 asks that the form be recorded):
 #     $separation, per key, species and quantity: gap (range of the chain
 #       means), pooled_within_sd (root mean square of the chain SDs),
 #       separation (gap / pooled_within_sd), max_split_rhat_within_chain, rhat
-#       and ess_bulk over all chains, fixed (all draws constant, as for the
-#       loadings the package fixes at 0 or 1), and label: 'drifting' if some
-#       chain's own split-Rhat is above SPLIT_RHAT_LIMIT, otherwise
-#       'separated' if separation is above SEPARATION_LIMIT, otherwise
-#       'agrees'.
+#       and ess_bulk over all chains, fixed (all draws constant and the chains
+#       equal), and label: 'drifting' if some chain's own split-Rhat is above
+#       SPLIT_RHAT_LIMIT, otherwise 'separated' if separation is above
+#       SEPARATION_LIMIT, otherwise 'agrees'.
 #     $species, per key and species: label from the non-loading quantities
 #       only (ruling R6: 'separated' if any is separated, else 'drifting' if
 #       any is drifting, else 'agrees'), the separated and drifting
@@ -40,7 +40,9 @@
 #       (loadings included, as R2 reads; filter on species_label to keep only
 #       species separated on identifiable quantities): the chains sorted by
 #       their mean_psi_original_sites chain means and split at the largest gap
-#       into chain_group 1 (lower occupancy) and 2 (higher).
+#       into chain_group 1 (lower occupancy) and 2 (higher), with
+#       partition_matches_separated: whether every separated quantity, split
+#       at its own largest gap, gives the same two sets of chains.
 #
 # Quantities and truths. Truths follow the pr11 scorer, score_fit() in
 # nonspatial-bias-recheck/run_nonspatial_recheck_balanced.R (lines 60-89),
@@ -60,9 +62,11 @@
 #     original sites are 1..input$design$original_sites (100), the pr11
 #     scorer's original-site set (make_design_scorer in
 #     nonspatial-design-recheck/design_helpers.R; verify.R lines 39-45).
-#   L1, L2: latent-factor loadings; truth jsdmParams_true$L when the generating
-#     loadings satisfy the package's constraint (L[1,1] = L[2,2] = 1,
-#     L[2,1] = 0), otherwise NA.
+#   L1, L2: latent-factor loadings as stored, that is after the package's
+#     reparamFactorModel() (R/jsdmfun.R), which rotates each draw so that
+#     species 1 loads on factor 1 only (L[2,1] = 0) and L[1,1] and L[2,2] are
+#     positive. Truth jsdmParams_true$L when the generating loadings are
+#     already in that form (loadings_truth_canonical), otherwise NA.
 #
 # Occupancy reconstruction (ruling R1): reimplemented from
 # current-main-recheck/verify.R lines 29-38, which is a command-line script
@@ -180,8 +184,8 @@ anatomy_truth <- function(fit,input) {
   n0 <- input$design$original_sites
   stopifnot(identical(as.integer(n0),100L),nrow(fit$X_psi)>=n0)
   L <- jp$L
-  constrained <- nrow(L)==2L && ncol(L)>=2L && L[1,1]==1 && L[2,1]==0 && L[2,2]==1
-  loading <- function(k) if(constrained) L[k,] else rep(NA_real_,S)
+  canonical <- nrow(L)==2L && ncol(L)>=2L && L[2,1]==0 && L[1,1]>0 && L[2,2]>0
+  loading <- function(k) if(canonical) L[k,] else rep(NA_real_,S)
   truth <- cbind(B0=jp$B0,theta0=input$truth$params$theta0,
     beta_theta_intercept=bt_fit[1,],beta_theta_slope=bt_fit[2,],
     p_primer1=tp$p_true[1,]*retention[['p']],p_primer2=tp$p_true[2,]*retention[['p']],
@@ -190,7 +194,7 @@ anatomy_truth <- function(fit,input) {
     mean_psi_original_sites=colMeans(plogis(true_eta[seq_len(n0),,drop=FALSE])),
     L1=loading(1L),L2=loading(2L))
   stopifnot(identical(colnames(truth),ANATOMY_QUANTITIES),nrow(truth)==S)
-  list(truth=truth,original_sites=seq_len(n0),loadings_constrained=constrained)
+  list(truth=truth,original_sites=seq_len(n0),loadings_truth_canonical=canonical)
 }
 
 # ---- Draws of one saved fit ------------------------------------------------
@@ -296,7 +300,7 @@ chain_anatomy <- function(fit_paths,input_path,keep_draws=FALSE) {
   attr(out,'psi_mean') <- psi_sum/(ni*K)
   attr(out,'psi_check') <- checks
   attr(out,'original_sites') <- truth$original_sites
-  attr(out,'loadings_constrained') <- truth$loadings_constrained
+  attr(out,'loadings_truth_canonical') <- truth$loadings_truth_canonical
   if(keep_draws) attr(out,'draws') <- draws
   out
 }
@@ -306,6 +310,13 @@ chain_anatomy <- function(fit_paths,input_path,keep_draws=FALSE) {
 quantity_order <- function(q) match(q,c(ANATOMY_QUANTITIES,setdiff(unique(q),ANATOMY_QUANTITIES)))
 join_labels <- function(q) paste(q[order(quantity_order(q))],collapse=';')
 safe_max <- function(x) if(!length(x) || all(is.na(x))) NA_real_ else max(x,na.rm=TRUE)
+
+# Chains below the largest gap in their sorted chain means (ruling R2).
+lower_chains <- function(means,chains) {
+  o <- order(means);cut <- which.max(diff(means[o]))
+  sort(chains[o[seq_len(cut)]])
+}
+same_partition <- function(a,b,chains) setequal(a,b) || setequal(a,setdiff(chains,b))
 
 chain_separation <- function(anatomy) {
   need <- c('key','species','chain','quantity','chain_mean','chain_sd',
@@ -352,16 +363,23 @@ chain_separation <- function(anatomy) {
     psi <- anatomy[anatomy$key==k & anatomy$species==s & anatomy$quantity=='mean_psi_original_sites',,drop=FALSE]
     if(nrow(psi)<2L) stop('Chain grouping needs mean_psi_original_sites chain means for ',k,' species ',s)
     psi <- psi[order(psi$chain),,drop=FALSE]
-    o <- order(psi$chain_mean);cut <- which.max(diff(psi$chain_mean[o]))
-    group <- integer(nrow(psi));group[o[seq_len(cut)]] <- 1L;group[o[-seq_len(cut)]] <- 2L
+    lower <- lower_chains(psi$chain_mean,psi$chain)
+    group <- ifelse(psi$chain %in% lower,1L,2L)
+    # Does each separated quantity, split at its own largest gap, give the
+    # same two sets of chains as the occupancy grouping?
+    separated <- g$quantity[g$label=='separated']
+    matches <- all(vapply(separated,function(q) {
+      x <- anatomy[anatomy$key==k & anatomy$species==s & anatomy$quantity==q,,drop=FALSE]
+      same_partition(lower_chains(x$chain_mean,x$chain),lower,psi$chain)
+    },logical(1)))
     data.frame(key=k,species=s,chain=psi$chain,chain_group=group,chain_mean_psi=psi$chain_mean,
       species_label=species$label[species$key==k & species$species==s],
-      separated_any=join_labels(g$quantity[g$label=='separated']),stringsAsFactors=FALSE)
+      separated_any=join_labels(separated),partition_matches_separated=matches,stringsAsFactors=FALSE)
   })
   chain_groups <- do.call(rbind,chain_groups)
   if(is.null(chain_groups)) chain_groups <- data.frame(key=character(),species=integer(),
     chain=integer(),chain_group=integer(),chain_mean_psi=numeric(),species_label=character(),
-    separated_any=character(),stringsAsFactors=FALSE)
+    separated_any=character(),partition_matches_separated=logical(),stringsAsFactors=FALSE)
   rownames(chain_groups) <- NULL
   list(separation=separation,species=species,chain_groups=chain_groups)
 }
@@ -397,11 +415,12 @@ plot_traces <- function(anatomy,separation,file,max_panels=24L) {
   K <- dim(draws[[1]])[3];ni <- dim(draws[[1]])[2]
   if(K>length(CHAIN_COLOURS)) stop('The trace figure distinguishes at most ',length(CHAIN_COLOURS),' chains')
   colours <- grDevices::adjustcolor(CHAIN_COLOURS[seq_len(K)],alpha.f=.85)
-  keep <- seq(1L,ni,by=max(1L,ni%/%1500L))
+  keep <- seq(1L,ni,by=max(1L,ni%/%600L))
   n <- nrow(chosen);columns <- min(3L,n);rows <- ceiling(n/columns)
-  grDevices::png(file,width=560*columns,height=300*rows+170,res=110,bg=INK[['surface']])
+  grDevices::png(file,width=560*max(columns,2L),height=300*rows+170,res=110,bg=INK[['surface']],
+    type=if(isTRUE(capabilities('cairo'))) 'cairo' else getOption('bitmapType'))
   on.exit(grDevices::dev.off(),add=TRUE)
-  graphics::par(mfrow=c(rows,columns),mar=c(3.2,4.2,3.2,1),oma=c(3.2,0,3.6,0),
+  graphics::par(mfrow=c(rows,columns),mar=c(3.2,4.2,3.2,1),oma=c(3.2,1,3.6,0),
     col.axis=INK[['secondary']],col.lab=INK[['secondary']],fg=INK[['muted']],las=1,cex.axis=.85)
   for(i in seq_len(n)) {
     r <- chosen[i,];x <- matrix(draws[[r$quantity]][r$species,,],ni,K)[keep,,drop=FALSE]
@@ -416,9 +435,9 @@ plot_traces <- function(anatomy,separation,file,max_panels=24L) {
       r$separation,r$rhat,r$max_split_rhat_within_chain),side=3,line=.5,adj=0,cex=.72,col=INK[['secondary']])
     graphics::mtext('Retained iteration',side=1,line=2.1,cex=.7,col=INK[['secondary']])
   }
-  graphics::mtext(sprintf('%s: per-chain traces of retained draws (every %dth draw)',key,max(1L,ni%/%1500L)),
-    outer=TRUE,side=3,line=2,adj=0,cex=1,font=2,col=INK[['primary']])
-  if(!is.null(note)) graphics::mtext(note,outer=TRUE,side=3,line=.8,adj=0,cex=.8,col=INK[['secondary']])
+  graphics::mtext(sprintf('%s: per-chain traces of retained draws (every %dth draw)',key,max(1L,ni%/%600L)),
+    outer=TRUE,side=3,line=2,adj=0,at=.01,cex=1,font=2,col=INK[['primary']])
+  if(!is.null(note)) graphics::mtext(note,outer=TRUE,side=3,line=.8,adj=0,at=.01,cex=.8,col=INK[['secondary']])
   graphics::par(fig=c(0,1,0,1),oma=c(0,0,0,0),mar=c(0,0,0,0),new=TRUE)
   graphics::plot(0,0,type='n',bty='n',xaxt='n',yaxt='n',xlab='',ylab='')
   graphics::legend('bottom',legend=c(paste('Chain',seq_len(K)),'Generating value'),
@@ -458,7 +477,7 @@ run_anatomy <- function(keys=c(FLAGGED_KEYS,REFERENCE_KEYS),out=OUTPUT_DIR) {
       fit_md5=unname(tools::md5sum(fit)),input_file=relative_to(input,ARCHIVES),
       input_md5=unname(tools::md5sum(input)),n_chains=sum(check$n_chains),
       n_iterations=check$n_iterations[1],psi_max_abs_diff=max(check$psi_max_abs_diff),
-      loadings_truth_constrained=attr(a,'loadings_constrained'),trace_figure=figure,stringsAsFactors=FALSE)
+      loadings_truth_canonical=attr(a,'loadings_truth_canonical'),trace_figure=figure,stringsAsFactors=FALSE)
     attr(a,'draws') <- NULL
     anatomy[[key]] <- a;separation[[key]] <- s$separation;species[[key]] <- s$species
     groups[[key]] <- s$chain_groups

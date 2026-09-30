@@ -82,6 +82,16 @@ test_that('chain groups split mean_psi_original_sites chain means at the largest
   expect_identical(g$chain,1:4)
   expect_identical(g$chain_group,c(1L,2L,1L,2L))
   expect_identical(unique(g$species_label),'separated')
+  expect_identical(g$partition_matches_separated,rep(TRUE,4L))
+})
+
+test_that('chain groups record whether the separated quantities split the chains the same way', {
+  set.seed(108)
+  a <- rbind(synthetic(normal_chains(c(0,0,5,5)),'theta0',species=6L),
+    synthetic(normal_chains(c(.2,.7,.21,.69),sd=.01),'mean_psi_original_sites',species=6L))
+  g <- chain_separation(a)$chain_groups
+  expect_identical(g$chain_group[order(g$chain)],c(1L,2L,1L,2L))
+  expect_identical(g$partition_matches_separated,rep(FALSE,4L))
 })
 
 test_that('loadings alone do not make a species separated (R6)', {
@@ -96,7 +106,7 @@ test_that('loadings alone do not make a species separated (R6)', {
   expect_identical(s$species$separated_quantities,'')
 })
 
-test_that('constant draws (loadings fixed by the constraint) agree and are marked fixed', {
+test_that('constant draws agree and are marked fixed', {
   a <- synthetic(matrix(1,100L,4L),'L1')
   s <- chain_separation(a)$separation
   expect_identical(s$label,'agrees')
