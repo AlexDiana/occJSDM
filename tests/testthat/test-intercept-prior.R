@@ -276,5 +276,25 @@ test_that("the MCMC coefficient update forwards sigma_b0 to every intercept site
   default <- fit_with(list(), TRUE)
   expect_gt(length(default$coefficients), 0)
   expect_true(all(default$coefficients == 1))
+  expect_identical(length(default$range), length(default$coefficients))
   expect_true(all(default$range == 1))
+})
+
+test_that("the coefficient update fails clearly without a stored intercept prior", {
+  # A hand-built list_priors that lacks intercept_prior must not fall back to a
+  # silent default or reach the samplers with a NULL prior SD.
+  original_update <- update_jSDMcoef
+  fitter <- runOccJSDM
+  fit_env <- new.env(parent = environment(fitter))
+  fit_env$update_jSDMcoef <- function(list_data, list_params, list_priors, ...) {
+    list_priors$intercept_prior <- NULL
+    original_update(list_data, list_params, list_priors, ...)
+  }
+  environment(fitter) <- fit_env
+  sim <- simulate_fixture(model = "binary")
+  expect_error(suppressMessages(suppressWarnings(fitter(sim$data_list,
+    occCovariates = fixture_occ_covariates(),
+    listParams = list(n_factors = 0L, n_lattrait = 0L),
+    MCMCparams = list(nchain = 1L, nburn = 1L, niter = 1L, nthin = 1L)))),
+    "list_priors$intercept_prior$sd is missing", fixed = TRUE)
 })

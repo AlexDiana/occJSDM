@@ -1377,6 +1377,7 @@ update_jSDMcoef <- function(list_data,
     b_l_s <- list_priors$b_l_s
     # Prior SD of the species occupancy intercept (read by runOccJSDM()).
     sigma_b0 <- list_priors$intercept_prior$sd
+    if (is.null(sigma_b0)) stop("list_priors$intercept_prior$sd is missing")
   }
 
   # read state variables
