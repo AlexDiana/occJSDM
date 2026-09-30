@@ -1158,6 +1158,12 @@ universal false-positive rate for occJSDM. The simulation’s source
 labels also do not exhaust every contamination mechanism possible in a
 real survey.
 
+When laboratory contamination is in fact far above what the default
+priors assume, a separate simulation study found one species’ chains
+settling on two different explanations of the same observations; [Lesson
+3](occJSDM-lesson-3.md#when-chains-settle-on-two-different-explanations)
+shows how to check a fit for this.
+
 ## Are the calculations stable enough to interpret?
 
 The perfect-observation and default-prior fits each use four chains,
