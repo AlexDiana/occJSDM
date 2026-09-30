@@ -21,8 +21,10 @@
 #   for the published community 5 scores and the affected comparisons of
 #   current-main-recheck/REPORT.md are recomputed.
 # Step 3: the intercept-prior phase B gate recomputed with the extended run in
-#   place of the flagged control fit of community 5 (qfar) and that control
-#   counted as unflagged; a descriptive sensitivity, not a re-run of the gate.
+#   place of the flagged control fit of community 5 (qfar), and that control
+#   counted as unflagged if the pr11 flag rule, applied to the 16 extended
+#   chains bound into one fit (validated first on the pr11 fit), leaves it
+#   unflagged; a descriptive sensitivity, not a re-run of the gate.
 #
 # Definitions are the archived ones, loaded after md5 checks, not copied:
 #   current-main-recheck/helpers.R (load_scoring, score_current_fit) and the
@@ -75,6 +77,7 @@ IP_REL <- 'dev/simstudy/occupancy-intercept-prior'
 IP_DIR <- file.path(REPO,IP_REL)
 IP_RESULTS <- file.path(IP_DIR,'results')
 IP_ARCHIVE <- file.path(ARCHIVES,'intercept-prior-20260929')
+DIAG_ARCHIVE <- file.path(ARCHIVES,'convergence-diagnosis-20261001')
 IP_SCRIPTS <- c('jobs.R','verify-helpers.R','flags.R','analysis.R','analysis-b.R','summarise.R')
 ANATOMY_RESULTS <- file.path(IMPACT_DIR,'results/anatomy')
 IMPACT_OUT <- file.path(IMPACT_DIR,'results/impact')
@@ -114,7 +117,62 @@ impact_setup <- function(archives=ARCHIVES,inputs_root=INPUTS_ROOT) {
     stop('anatomy.R differs from the md5 frozen in AMENDMENT-1.md')
   ip <- load_ip()
   sc <- ip$load_b_scorers(REPO,archives)
-  list(ip=ip,sc=sc,recheck=load_recheck_summaries(ip),archives=archives,inputs_root=inputs_root)
+  list(ip=ip,sc=sc,recheck=load_recheck_summaries(ip),flag=load_flag_rule(ip,archives),archives=archives,inputs_root=inputs_root)
+}
+
+# ---- The pr11 flag rule ------------------------------------------------------------
+
+# The pr11 flag rule for two-stage fits (current-main-recheck/select.R:17-19 on
+# the diagnostics of its run.R:79-81) as the intercept-prior study applies it
+# to saved fits: flags.R's fit_flags for phase B (b_rhats, pr11_diagnostics and
+# the archived flag expression), with the archived trace summary, loaded by
+# load_flag_scorers after its md5 checks and validated there on all 70 control
+# fits. The fitting warnings the rule counts are those of the package's own
+# computeDiagnostics (R/diagnostics.R), which runOccJSDM calls on its final
+# output; its definition is parsed from the source the extended run's library
+# was installed from, after checking that file against the pr11 source record
+# (the two revisions' files are identical).
+load_flag_rule <- function(ip,archives=ARCHIVES) {
+  fr <- ip$load_flag_scorers(REPO,archives)
+  path <- file.path(DIAG_ARCHIVE,'source/R/diagnostics.R')
+  x <- utils::read.csv(file.path(RECHECK_RESULTS,'source-hashes.csv'),stringsAsFactors=FALSE)
+  recorded <- ip$recorded_hash(stats::setNames(x$md5,x$path),'source-main/R/diagnostics.R')
+  if(!identical(unname(tools::md5sum(path)),recorded)) stop('R/diagnostics.R of the diagnosis library differs from the pr11 source record')
+  env <- new.env(parent=globalenv());ip$extract_definitions(path,'computeDiagnostics',env)
+  fr$computeDiagnostics <- env$computeDiagnostics;fr$diagnostics_file <- path;fr$diagnostics_md5 <- recorded
+  fr
+}
+
+# The fitting warnings computeDiagnostics issues on a results_output, its
+# printed summary silenced.
+package_warnings <- function(ro,computeDiagnostics) {
+  w <- character()
+  withCallingHandlers(suppressMessages(computeDiagnostics(ro)),
+    warning=function(x) {w <<- c(w,conditionMessage(x));invokeRestart('muffleWarning')})
+  w
+}
+
+# Single-chain results_output lists bound along the chain dimension into the
+# multi-chain results_output runOccJSDM would return for these chains: every
+# array whose last two dimensions are (iterations, 1), at both levels. The
+# per-fit posterior summaries (z, psi, w and theta outputs) and WAIC have no
+# chain dimension and are left out; computeDiagnostics does not read them.
+bind_chains <- function(parts) {
+  K <- length(parts);ni <- dim(parts[[1]]$jsdm_output$B0_output)[2]
+  level <- function(get) {
+    first <- get(parts[[1]])
+    keep <- names(first)[vapply(first,function(a) {d <- dim(a);length(d)>=2L && d[length(d)]==1L && d[length(d)-1L]==ni},logical(1))]
+    out <- list()
+    for(nm in keep) {
+      d <- dim(first[[nm]])
+      xs <- lapply(parts,function(p) {a <- get(p)[[nm]];if(!identical(dim(a),d)) stop('Chains differ in the dimensions of ',nm);a})
+      d[length(d)] <- K;out[[nm]] <- array(unlist(xs,use.names=FALSE),d)
+    }
+    out
+  }
+  ro <- level(function(p) p[names(p)!='jsdm_output'])
+  ro$jsdm_output <- level(function(p) p$jsdm_output)
+  ro
 }
 
 read_recheck <- function(name) utils::read.csv(file.path(RECHECK_RESULTS,name),stringsAsFactors=FALSE)
@@ -270,6 +328,25 @@ converged_convergence <- function(conv,stratum,fewer=1L) {
   conv
 }
 
+# Each new arm counted with one fewer flagged selected fit at the key's
+# contamination level, for each arm whose selected fit of the key is flagged
+# (results/selection-selected-fits-B.csv, md5 checked against the study's
+# evidence record): the bound on criterion 4 if every arm's fit of the
+# community were as converged as the extended run.
+arms_unflagged_convergence <- function(conv,key) {
+  f <- file.path(IP_RESULTS,'selection-selected-fits-B.csv')
+  m <- utils::read.csv(file.path(IP_RESULTS,'evidence-manifest.csv'),stringsAsFactors=FALSE)
+  if(!identical(unname(tools::md5sum(f)),m$md5[m$file=='selection-selected-fits-B.csv'])) stop('selection-selected-fits-B.csv differs from its evidence record')
+  sel <- utils::read.csv(f,stringsAsFactors=FALSE);sel <- sel[sel$key==key & sel$role=='new',,drop=FALSE]
+  stratum <- sub('^design-(qnear|qfar)_K6-sites300-[0-9]{2}$','\\1',key)
+  for(sd in sel$sd[sel$flagged %in% TRUE]) {
+    at <- conv$sd==sd & conv$stratum==stratum
+    if(sum(at)!=1L || conv$selected_flagged[at]<1L) stop('No count to lower for SD ',sd,' at ',stratum)
+    conv$selected_flagged[at] <- conv$selected_flagged[at]-1L
+  }
+  conv
+}
+
 # ---- The other four flagged fits ----------------------------------------------
 
 # Species of one row of current-main-recheck flagged-diagnostics.csv, from the
@@ -377,6 +454,9 @@ score_pr11 <- function(ctx,key=TARGET_KEY) {
   sc$score_current_fit <- function(...) {captured <<- original(...);captured}
   cells <- tryCatch(ip$b_cells(saved$fit,input,spec$job,sc),finally=sc$score_current_fit <- original)
   r <- captured;if(is.null(r)) stop('The design scorer was not run')
+  log_step('pr11 flag rule and package diagnostics on the saved fit')
+  flags <- list(row=ip$fit_flags('B',saved$fit,saved$warnings,input,ctx$flag),warnings_saved=saved$warnings,
+    warnings_recomputed=package_warnings(saved$fit$results_output,ctx$flag$computeDiagnostics))
   recheck_rows <- ctx$recheck$normalise_groups(r,spec$job)
   truth <- r$truth;n <- nrow(truth);S <- ncol(truth);n0 <- as.integer(input$design$original_sites)
   log_step('archived scorers done; reconstructing per-chain draws')
@@ -408,7 +488,7 @@ score_pr11 <- function(ctx,key=TARGET_KEY) {
     sources[[g]] <- list(chains=ch,draws=ni*length(ch),estimate=est,iv=b$iv,max_cell_rhat=b$max_cell_rhat)
   }
   list(key=key,fit_file=fit_file,fit_md5=md5,input_md5=spec$input_md5,truth=truth,n0=n0,idx=idx,chain_means=chain_means,
-    chain_groups=groups,sources=sources,recheck_rows=recheck_rows,phase_b_cells=cells,X_psi=saved$fit$X_psi,
+    chain_groups=groups,sources=sources,recheck_rows=recheck_rows,phase_b_cells=cells,X_psi=saved$fit$X_psi,X_theta=saved$fit$X_theta,flags=flags,
     species=saved$fit$infos$speciesNames,n_warnings=length(saved$warnings),
     checks=c(pooled_vs_scorer=pooled_check,intervals_vs_b_cells=interval_check,unlist(cells$checks)))
 }
@@ -416,12 +496,15 @@ score_pr11 <- function(ctx,key=TARGET_KEY) {
 # The 16 single-chain fits of the extended run (Task 3), each checked against
 # its recorded md5, the community 5 input and the pr11 design; the pooled
 # estimate is the mean of the chain means (equal draws per chain), the
-# intervals and cell Rhats come from score_draw_block on all pooled draws.
+# intervals and cell Rhats come from score_draw_block on all pooled draws. The
+# chains are then bound into one 16-chain fit, on which the package
+# diagnostics give the fitting warnings and the pr11 flag rule is applied, as
+# for a fit that had run the 16 chains together.
 score_extended <- function(ctx,base,chains=seq_len(EXTENDED_CHAINS)) {
   prov <- utils::read.csv(file.path(IMPACT_DIR,'results/extended/provenance.csv'),stringsAsFactors=FALSE)
   prov <- prov[prov$run=='extended',,drop=FALSE]
   n <- nrow(base$truth);S <- ncol(base$truth);idx <- base$idx
-  chain_means <- matrix(NA_real_,n*S,length(chains));kept <- NULL;psi_check <- 0;files <- list()
+  chain_means <- matrix(NA_real_,n*S,length(chains));kept <- NULL;psi_check <- 0;files <- list();parts <- list();shell <- NULL
   for(j in seq_along(chains)) {
     row <- prov[prov$chain==chains[j],,drop=FALSE];if(nrow(row)!=1L) stop('No provenance row for extended chain ',chains[j])
     file <- file.path(ctx$archives,row$fit_file);md5 <- unname(tools::md5sum(file))
@@ -429,13 +512,17 @@ score_extended <- function(ctx,base,chains=seq_len(EXTENDED_CHAINS)) {
     saved <- readRDS(file);fit <- saved$fit
     if(!identical(saved$input_md5,SOURCE_INPUT_MD5) || !identical(saved$run,'extended') || !identical(as.integer(saved$chain),chains[j]) ||
        length(saved$warnings)!=0L || !identical(fit$infos$speciesNames,base$species) || !identical(dim(fit$X_psi),dim(base$X_psi)) ||
-       max(abs(unname(fit$X_psi)-unname(base$X_psi)))>1e-12 || dim(fit$results_output$jsdm_output$B0_output)[3]!=1L)
+       max(abs(unname(fit$X_psi)-unname(base$X_psi)))>1e-12 || !identical(dim(fit$X_theta),dim(base$X_theta)) ||
+       max(abs(unname(fit$X_theta)-unname(base$X_theta)))>1e-12 || dim(fit$results_output$jsdm_output$B0_output)[3]!=1L)
       stop('Extended fit is not the expected chain of community 5: ',file)
     d <- ctx$ip$b_probability_draws(fit,ctx$sc,seq_len(n*S))
     m <- rowMeans(d[,,1]);psi_check <- max(psi_check,max(abs(m-as.vector(fit$results_output$psi_output))))
     if(!(psi_check<1e-10)) stop('Reconstructed draws disagree with the stored posterior mean: ',file)
     if(is.null(kept)) kept <- array(NA_real_,c(length(idx),dim(d)[2],length(chains)))
     kept[,,j] <- d[idx,,1];chain_means[,j] <- m
+    ro <- fit$results_output;parts[[j]] <- ro[setdiff(names(ro),c('z_output','psi_output','w_output','theta_output'))]
+    if(is.null(shell)) shell <- fit[setdiff(names(fit),'results_output')]
+    rm(ro)
     files[[j]] <- data.frame(chain=chains[j],fit_file=row$fit_file,fit_md5=md5,draws=dim(d)[2])
     rm(saved,fit,d);invisible(gc())
     log_step(sprintf('extended chain %d read and reconstructed',chains[j]))
@@ -444,8 +531,19 @@ score_extended <- function(ctx,base,chains=seq_len(EXTENDED_CHAINS)) {
   b <- ctx$sc$score_draw_block(kept,as.vector(base$truth)[idx],'cell')$elements
   est_check <- max(abs(b$estimate-estimate[idx]))
   if(!(est_check<1e-12)) stop('Pooled extended estimate disagrees with its draws: ',est_check)
+  rm(kept);invisible(gc())
+  log_step('pr11 flag rule and package diagnostics on the',length(chains),'bound chains')
+  combined <- c(shell,list(results_output=bind_chains(parts)));rm(parts);invisible(gc())
+  if(!identical(dim(combined$results_output$jsdm_output$B0_output)[3],length(chains))) stop('The bound fit does not hold every chain')
+  spec <- ctx$ip$phase_jobs('B',ctx$archives,ctx$inputs_root,TARGET_KEY)[[1]]
+  if(!identical(spec$input_md5,SOURCE_INPUT_MD5)) stop('Unexpected input record for ',TARGET_KEY)
+  input <- readRDS(ctx$ip$checked_input(spec$input_file,spec$input_md5))
+  w <- package_warnings(combined$results_output,ctx$flag$computeDiagnostics)
+  flags <- list(row=ctx$ip$fit_flags('B',combined,w,input,ctx$flag),warnings=w)
+  rm(combined);invisible(gc())
   list(chains=chains,draws=sum(vapply(files,function(f) f$draws,numeric(1))),estimate=estimate,iv=iv_from_block(b),
-    max_cell_rhat=max(b$rhat,na.rm=TRUE),files=do.call(rbind,files),checks=c(psi_vs_stored=psi_check,pooled_vs_draws=est_check))
+    max_cell_rhat=max(b$rhat,na.rm=TRUE),files=do.call(rbind,files),flags=flags,
+    checks=c(psi_vs_stored=psi_check,pooled_vs_draws=est_check))
 }
 
 # Both scorers' groups for one source estimate of community 5: the
@@ -484,61 +582,94 @@ community5_table <- function(scored,sources) {
 
 # The comparisons of current-main-recheck/REPORT.md that use community 5 of
 # the high-contamination 300-site design, and the four-sample one beside them.
+# Each statement is quoted verbatim from REPORT.md with its bold markup
+# removed (' ... ' joins non-adjacent sentences of one paragraph); quantity
+# names the number the row recomputes.
 COMPARISONS <- list(
   list(id='sites300_mae',section='Do the practical conclusions change?',kind='arm',arm='sites300',group='all',column='mae',
-    statement='Using 300 sites gives 16.97 points (high contamination, overall MAE)',
+    quantity='overall MAE, 300 sites, high contamination (16.97)',
+    statement='Using 300 sites gives 15.20 and 16.97 points.',
     rule='a reported value, not itself a conclusion'),
   list(id='baseline_to_sites300',section='Do the practical conclusions change?',kind='contrast',reference='baseline',alternative='sites300',group='all',
-    statement='300 sites reduce error from the baseline, and every community improves (high contamination)',
+    quantity='MAE reduction from the baseline to 300 sites, high contamination, and communities improving',
+    statement='Using 300 sites gives 15.20 and 16.97 points. Every community improves relative to the baseline in each of these comparisons.',
     rule='holds if the mean reduction is positive and all 10 communities improve; reverses if the mean reduction is not positive'),
   list(id='baseline_to_field4',section='Do the practical conclusions change?',kind='contrast',reference='baseline',alternative='field4',group='all',
-    statement='Four field samples reduce error from 20.52 to 17.23, and every community improves (high contamination)',
+    quantity='MAE reduction from the baseline to four field samples, high contamination, and communities improving',
+    statement=paste('In the two-stage model, four field samples reduce error from 17.97 to 15.26 points under low contamination and from 20.52 to 17.23 under high contamination.',
+      '... Every community improves relative to the baseline in each of these comparisons.'),
     rule='as baseline_to_sites300; does not use the 300-site fit of community 5, so unchanged by construction'),
   list(id='field4_to_sites300',section='Do the practical conclusions change?',kind='contrast',reference='field4',alternative='sites300',group='all',
-    statement='The advantage of 300 sites over four field samples is small (0.26 points) and its paired interval spans zero: no clear winner (high contamination)',
+    quantity='MAE reduction from four field samples to 300 sites, high contamination (0.26, -0.90 to 1.42)',
+    statement=paste('The additional advantage of 300 sites over four field samples is small: 0.06 points under low contamination and 0.26 under high contamination.',
+      'Their paired intervals span zero (-0.98 to 1.11 and -0.90 to 1.42 points). These data do not identify a clear winner between those designs.'),
     rule='holds while the 95% interval spans zero; reverses if it excludes zero (a clear winner); the sign of the mean is reported separately'),
   list(id='sites300_low_bias',section='Do the practical conclusions change?',kind='arm',arm='sites300',group='low',column='bias',
-    statement='Low probabilities remain too high (300 sites, high contamination, true probability below 0.2)',
+    quantity='mean signed error, true probability below 0.2, 300 sites, high contamination',
+    statement='Low probabilities remain too high and high probabilities remain too low.',
     rule='holds if the mean signed error is positive'),
   list(id='sites300_high_bias',section='Do the practical conclusions change?',kind='arm',arm='sites300',group='high',column='bias',
-    statement='High probabilities remain too low (300 sites, high contamination, true probability above 0.8)',
+    quantity='mean signed error, true probability above 0.8, 300 sites, high contamination',
+    statement='Low probabilities remain too high and high probabilities remain too low.',
     rule='holds if the mean signed error is negative'),
   list(id='sites300_code_change',section='How much did probability accuracy change?',kind='version',arm='sites300',group='all',
-    statement='Every paired 95% interval of the current-minus-archived MAE change includes zero (300 sites, high contamination: 0.249, -0.197 to 0.695)',
-    rule='holds while the 95% interval includes zero'))
+    quantity='current minus archived overall MAE, 300 sites, high contamination (0.249, -0.197 to 0.695)',
+    statement='Every paired 95% interval for these eleven changes includes zero.',
+    rule='holds while the 95% interval includes zero'),
+  list(id='two_stage_largest_code_change',section='How much did probability accuracy change?',kind='version_max',group='all',
+    arms=c('baseline','field4','sites300','knownU'),scenarios=c('qnear_K6','qfar_K6'),
+    quantity='largest absolute current minus archived overall MAE change over the eight two-stage arms (0.249)',
+    statement='Across the ten-community summaries, overall mean absolute error changed by at most 0.025 percentage points in binary JSDM and 0.249 points in the two-stage comparisons.',
+    rule='a reported value, not itself a conclusion; note names the arm attaining it'))
 SCENARIO <- 'qfar_K6'
+
+# The largest absolute change of a set of arm changes, and where it occurs.
+largest_change <- function(changes) {
+  i <- which.max(abs(changes$delta));list(value=PP*abs(changes$delta[i]),lower=NA_real_,upper=NA_real_,improved=NA_integer_,
+    note=paste(changes$scenario[i],changes$arm[i]))
+}
 
 comparison_value <- function(cmp,scores,mean_ci) {
   if(cmp$kind=='arm') {
     a <- arm_summary(scores,'current',SCENARIO,cmp$arm,cmp$group)
-    return(list(value=PP*a[[cmp$column]],lower=NA_real_,upper=NA_real_,improved=NA_integer_))
+    return(list(value=PP*a[[cmp$column]],lower=NA_real_,upper=NA_real_,improved=NA_integer_,note=NA_character_))
   }
   if(cmp$kind=='contrast') {
     d <- design_contrast(scores,'current',SCENARIO,cmp$reference,cmp$alternative,cmp$group,mean_ci)
-    return(list(value=PP*d$reduction_mae,lower=PP*d$lower,upper=PP*d$upper,improved=as.integer(d$improved)))
+    return(list(value=PP*d$reduction_mae,lower=PP*d$lower,upper=PP*d$upper,improved=as.integer(d$improved),note=NA_character_))
+  }
+  if(cmp$kind=='version_max') {
+    g <- expand.grid(scenario=cmp$scenarios,arm=cmp$arms,stringsAsFactors=FALSE)
+    g$delta <- vapply(seq_len(nrow(g)),function(i) version_change(scores,g$scenario[i],g$arm[i],cmp$group,mean_ci)$delta_mae_mean,numeric(1))
+    return(largest_change(g))
   }
   v <- version_change(scores,SCENARIO,cmp$arm,cmp$group,mean_ci)
-  list(value=PP*v$delta_mae_mean,lower=PP*v$delta_mae_lower,upper=PP*v$delta_mae_upper,improved=NA_integer_)
+  list(value=PP*v$delta_mae_mean,lower=PP*v$delta_mae_lower,upper=PP*v$delta_mae_upper,improved=NA_integer_,note=NA_character_)
 }
 
 published_value <- function(cmp) {
   if(cmp$kind=='arm') {
     s <- read_recheck('chain-sensitivity-summary.csv')
     r <- s[s$family=='design' & s$scenario==SCENARIO & s$arm==cmp$arm & s$group==cmp$group,]
-    return(list(value=PP*r[[paste0('selected_',cmp$column)]],lower=NA_real_,upper=NA_real_,improved=NA_integer_))
+    return(list(value=PP*r[[paste0('selected_',cmp$column)]],lower=NA_real_,upper=NA_real_,improved=NA_integer_,note=NA_character_))
   }
   if(cmp$kind=='contrast') {
     s <- read_recheck('design-paired-summary.csv')
     r <- s[s$version=='current' & s$family=='design' & s$scenario==SCENARIO & s$reference==cmp$reference & s$alternative==cmp$alternative & s$group==cmp$group,]
-    return(list(value=PP*r$reduction_mae,lower=PP*r$lower,upper=PP*r$upper,improved=as.integer(r$improved)))
+    return(list(value=PP*r$reduction_mae,lower=PP*r$lower,upper=PP*r$upper,improved=as.integer(r$improved),note=NA_character_))
   }
   s <- read_recheck('paired-summary.csv')
-  r <- s[s$comparison=='selected' & s$family=='design' & s$scenario==SCENARIO & s$arm==cmp$arm & s$metric=='occupancy_original_sites' & s$group==cmp$group,]
-  list(value=PP*r$delta_mae_mean,lower=PP*r$delta_mae_lower,upper=PP*r$delta_mae_upper,improved=NA_integer_)
+  s <- s[s$comparison=='selected' & s$family=='design' & s$metric=='occupancy_original_sites' & s$group==cmp$group,]
+  if(cmp$kind=='version_max') {
+    s <- s[s$scenario %in% cmp$scenarios & s$arm %in% cmp$arms,];stopifnot(nrow(s)==length(cmp$scenarios)*length(cmp$arms))
+    return(largest_change(data.frame(scenario=s$scenario,arm=s$arm,delta=s$delta_mae_mean)))
+  }
+  r <- s[s$scenario==SCENARIO & s$arm==cmp$arm,]
+  list(value=PP*r$delta_mae_mean,lower=PP*r$delta_mae_lower,upper=PP*r$delta_mae_upper,improved=NA_integer_,note=NA_character_)
 }
 
 statement_holds <- function(cmp,v) switch(cmp$id,
-  sites300_mae=NA,
+  sites300_mae=,two_stage_largest_code_change=NA,
   baseline_to_sites300=,baseline_to_field4=v$value>0 && identical(v$improved,10L),
   field4_to_sites300=v$lower<0 && v$upper>0,
   sites300_low_bias=v$value>0,
@@ -547,12 +678,13 @@ statement_holds <- function(cmp,v) switch(cmp$id,
   stop('No rule for ',cmp$id))
 
 direction_reverses <- function(cmp,v) switch(cmp$id,
-  sites300_mae=NA,
+  sites300_mae=,two_stage_largest_code_change=NA,
   baseline_to_sites300=,baseline_to_field4=!(v$value>0),
   field4_to_sites300=!(v$lower<0 && v$upper>0),
   sites300_low_bias=!(v$value>0),
   sites300_high_bias=!(v$value<0),
-  sites300_code_change=!(v$lower<=0 && v$upper>=0))
+  sites300_code_change=!(v$lower<=0 && v$upper>=0),
+  stop('No rule for ',cmp$id))
 
 affected_table <- function(scores_by_source,mean_ci) {
   rows <- list()
@@ -560,12 +692,12 @@ affected_table <- function(scores_by_source,mean_ci) {
     pub <- published_value(cmp)
     range <- switch(cmp$kind,arm=PP*sensitivity_range('arm',SCENARIO,cmp$arm,cmp$group,cmp$column),
       contrast=PP*sensitivity_range('contrast',SCENARIO,paste(cmp$reference,cmp$alternative,sep=':'),cmp$group,'reduction_mae'),
-      version=c(min=NA_real_,max=NA_real_))
+      version=,version_max=c(min=NA_real_,max=NA_real_))
     for(s in c('published',names(scores_by_source))) {
       v <- if(s=='published') pub else comparison_value(cmp,scores_by_source[[s]],mean_ci)
       holds <- statement_holds(cmp,v);rev <- direction_reverses(cmp,v)
-      rows[[length(rows)+1L]] <- data.frame(comparison=cmp$id,report_section=cmp$section,statement=cmp$statement,
-        source=s,unit='percentage points',value=v$value,lower=v$lower,upper=v$upper,improved=v$improved,
+      rows[[length(rows)+1L]] <- data.frame(comparison=cmp$id,report_section=cmp$section,quantity=cmp$quantity,statement=cmp$statement,
+        source=s,unit='percentage points',value=v$value,lower=v$lower,upper=v$upper,improved=v$improved,note=v$note,
         change_from_published=v$value-pub$value,sensitivity_min=range[['min']],sensitivity_max=range[['max']],
         inside_sensitivity_range=if(is.na(range[['min']])) NA else v$value>=range[['min']]-1e-12 && v$value<=range[['max']]+1e-12,
         statement_holds=holds,reverses=rev,rule=cmp$rule,stringsAsFactors=FALSE)
@@ -574,27 +706,32 @@ affected_table <- function(scores_by_source,mean_ci) {
   x <- do.call(rbind,rows);rownames(x) <- NULL;x
 }
 
-phase_b_table <- function(published,converged) {
+# The published gate beside the gate with the converged control (converged)
+# and, for criterion 4, with every arm's own flagged community 5 fit also
+# counted as unflagged (arms_unflagged).
+phase_b_table <- function(published,converged,arms_unflagged) {
   key <- c('sd','criterion','component','stratum')
-  a <- published$detail;b <- converged$detail
-  if(!identical(paste(a$sd,a$criterion,a$component,a$stratum),paste(b$sd,b$criterion,b$component,b$stratum)))
-    stop('Gate details do not pair up')
-  x <- data.frame(a[key],communities=a$communities,needed=a$needed,improved_published=a$improved,improved_converged=b$improved,
-    value_new=a$value_new,value_control_published=a$value_control,value_control_converged=b$value_control,
-    statistic_published=a$statistic,statistic_converged=b$statistic,threshold=a$threshold,
-    pass_published=a$pass,pass_converged=b$pass,pass_changed=a$pass!=b$pass,result_published=NA_character_,
-    result_converged=NA_character_,stringsAsFactors=FALSE)
+  a <- published$detail;b <- converged$detail;u <- arms_unflagged$detail
+  tag <- function(d) paste(d$sd,d$criterion,d$component,d$stratum)
+  if(!identical(tag(a),tag(b)) || !identical(tag(a),tag(u))) stop('Gate details do not pair up')
   if(any(a$value_new!=b$value_new,na.rm=TRUE)) stop('A new arm value changed')
+  if(any(u$criterion!='c4' & (u$pass!=b$pass | u$value_new!=b$value_new),na.rm=TRUE)) stop('Counting the arms unflagged changed more than criterion 4')
+  x <- data.frame(a[key],communities=a$communities,needed=a$needed,improved_published=a$improved,improved_converged=b$improved,
+    value_new=a$value_new,value_new_arms_unflagged=u$value_new,value_control_published=a$value_control,value_control_converged=b$value_control,
+    statistic_published=a$statistic,statistic_converged=b$statistic,threshold=a$threshold,
+    pass_published=a$pass,pass_converged=b$pass,pass_changed=a$pass!=b$pass,pass_arms_unflagged=u$pass,result_published=NA_character_,
+    result_converged=NA_character_,result_arms_unflagged=NA_character_,stringsAsFactors=FALSE)
   gate <- lapply(seq_len(nrow(published$rows)),function(i) {
-    p <- published$rows[i,];q <- converged$rows[i,];stopifnot(p$sd==q$sd)
+    p <- published$rows[i,];q <- converged$rows[i,];z <- arms_unflagged$rows[i,];stopifnot(p$sd==q$sd,p$sd==z$sd)
     do.call(rbind,lapply(c('c1','c2','c3','c4','result'),function(k) {
-      pp <- if(k=='result') NA else p[[paste0(k,'_pass')]];qq <- if(k=='result') NA else q[[paste0(k,'_pass')]]
+      pass <- function(r) if(k=='result') NA else r[[paste0(k,'_pass')]]
+      res <- function(r) if(k=='result') r$result else NA_character_
       data.frame(sd=p$sd,criterion=if(k=='result') 'gate' else k,component=if(k=='result') 'result' else 'all components',stratum='both',
         communities=NA_integer_,needed=NA_integer_,improved_published=NA_integer_,improved_converged=NA_integer_,value_new=NA_real_,
-        value_control_published=NA_real_,value_control_converged=NA_real_,statistic_published=NA_real_,statistic_converged=NA_real_,
-        threshold=NA_real_,pass_published=pp,pass_converged=qq,pass_changed=if(k=='result') p$result!=q$result else pp!=qq,
-        result_published=if(k=='result') p$result else NA_character_,result_converged=if(k=='result') q$result else NA_character_,
-        stringsAsFactors=FALSE)
+        value_new_arms_unflagged=NA_real_,value_control_published=NA_real_,value_control_converged=NA_real_,statistic_published=NA_real_,
+        statistic_converged=NA_real_,threshold=NA_real_,pass_published=pass(p),pass_converged=pass(q),
+        pass_changed=if(k=='result') p$result!=q$result else pass(p)!=pass(q),pass_arms_unflagged=pass(z),
+        result_published=res(p),result_converged=res(q),result_arms_unflagged=res(z),stringsAsFactors=FALSE)
     }))
   })
   x <- rbind(x,do.call(rbind,gate));rownames(x) <- NULL
@@ -656,6 +793,32 @@ impact_main <- function(args) {
   add_check('pooled four-chain intervals against b_cells',p$checks[['intervals_vs_b_cells']],1e-12)
   add_check('extended chains: reconstructed means against each fit\'s stored psi_output',e$checks[['psi_vs_stored']],1e-10)
   add_check('extended run: pooled estimate against its pooled draws',e$checks[['pooled_vs_draws']],1e-12)
+
+  # The pr11 flag rule: validated on the pr11 fit, then applied to the 16 bound chains.
+  fp <- p$flags$row;cf <- utils::read.csv(file.path(IP_RESULTS,'selection-control-flags-B.csv'),stringsAsFactors=FALSE)
+  cf <- cf[cf$key==TARGET_KEY,,drop=FALSE];ds <- read_recheck('diagnostic-summary.csv');ds <- ds[ds$key==TARGET_KEY,,drop=FALSE]
+  gap <- max(abs(c(fp$max_group_rhat-cf$max_group_rhat,fp$max_element_rhat-cf$max_element_rhat)))
+  add_check('pr11 flag rule on the pr11 fit against the intercept-prior control flags (selection-control-flags-B.csv): Rhats, warnings, flag and reasons',
+    gap,1e-12,pass=gap<1e-12 && fp$warnings==cf$warnings && fp$unresolved_rhat==cf$unresolved_rhat && identical(fp$flagged,cf$flagged) &&
+      identical(fp$reasons,cf$reasons))
+  gap <- max(abs(c(fp$max_group_rhat-ds$max_group_rhat,fp$max_element_rhat-ds$max_element_rhat)))
+  add_check('pr11 flag rule on the pr11 fit against current-main-recheck diagnostic-summary.csv: Rhats, warnings, unresolved',
+    gap,1e-12,pass=gap<1e-12 && fp$warnings==ds$warnings && fp$unresolved_rhat==ds$unresolved_rhat)
+  add_check('package diagnostics recomputed on the pr11 fit give its saved fitting warnings',NA_real_,NA_real_,
+    pass=identical(sort(p$flags$warnings_recomputed),sort(p$flags$warnings_saved)) && length(p$flags$warnings_saved)==7L)
+  fe <- e$flags$row
+  flag_rows <- rbind(
+    data.frame(fit='pr11 fit (published record)',source='results/selection-control-flags-B.csv (intercept-prior)',chains=4L,
+      draws_per_chain=12000L,warnings=as.integer(cf$warnings),warning_messages=NA_character_,max_group_rhat=cf$max_group_rhat,
+      max_element_rhat=cf$max_element_rhat,unresolved_rhat=as.integer(cf$unresolved_rhat),flagged=cf$flagged,reasons=cf$reasons,stringsAsFactors=FALSE),
+    data.frame(fit='pr11 fit (recomputed)',source='fit_flags on the saved fit; warnings recomputed by computeDiagnostics',chains=4L,
+      draws_per_chain=12000L,warnings=as.integer(fp$warnings),warning_messages=paste(sort(p$flags$warnings_recomputed),collapse=' | '),
+      max_group_rhat=fp$max_group_rhat,max_element_rhat=fp$max_element_rhat,unresolved_rhat=as.integer(fp$unresolved_rhat),flagged=fp$flagged,
+      reasons=fp$reasons,stringsAsFactors=FALSE),
+    data.frame(fit='extended run, 16 chains bound into one fit',source='fit_flags on the bound chains; warnings by computeDiagnostics on the bound output',
+      chains=length(e$chains),draws_per_chain=as.integer(e$files$draws[1]),warnings=as.integer(fe$warnings),
+      warning_messages=paste(e$flags$warnings,collapse=' | '),max_group_rhat=fe$max_group_rhat,max_element_rhat=fe$max_element_rhat,
+      unresolved_rhat=as.integer(fe$unresolved_rhat),flagged=fe$flagged,reasons=fe$reasons,stringsAsFactors=FALSE))
   mean_ci <- ctx$recheck$mean_ci
   subs <- lapply(scored,function(s) substitute_scores(scores,TARGET_KEY,'current',s$recheck))
   for(cmp in COMPARISONS) {
@@ -686,21 +849,26 @@ impact_main <- function(args) {
   add_check('phase B control groups of community 5 (band-error.csv, coverage.csv) from the pr11 fit',
     max(abs(as.matrix(pb[cols])-as.matrix(ctl[cols]))),1e-10)
   g2 <- substitute_phase_b(groups,TARGET_KEY,scored$extended$phase_b,label='extended run (Task 3), 16 chains')
-  conv2 <- converged_convergence(conv,'qfar')
+  # The control counts as unflagged only if the pr11 rule leaves the extended run unflagged.
+  conv2 <- converged_convergence(conv,'qfar',fewer=if(isTRUE(fe$flagged)) 0L else 1L)
   gate2 <- phase_b_gate(g2,conv2,ctx$ip)
-  pbt <- phase_b_table(gate,gate2)
+  gate3 <- phase_b_gate(g2,arms_unflagged_convergence(conv2,TARGET_KEY),ctx$ip)
+  pbt <- phase_b_table(gate,gate2,gate3)
 
   write_csv(other_flagged_fits(),out,'other-flagged-fits.csv')
   write_csv(community5_table(scored,sources),out,'community5-scores.csv')
   write_csv(affected_table(subs[c('pr11_pooled','near_truth','mirror','extended')],mean_ci),out,'affected-comparisons.csv')
   write_csv(pbt,out,'intercept-prior-phase-b.csv')
+  write_csv(flag_rows,out,'flag-rule.csv')
   chk <- do.call(rbind,checks)
   write_csv(chk,out,'reproduction.csv')
   hashed <- c(file.path(IMPACT_DIR,c('impact.R','test-impact.R','anatomy.R')),file.path(IP_DIR,IP_SCRIPTS),
     file.path(RECHECK_DIR,c('helpers.R','summarise.R','chain-sensitivity.R')),
     file.path(REPO,c(ctx$ip$B_METRIC_FILES)))
-  hashed <- unique(hashed)
-  write_csv(data.frame(file=sub(paste0('^',REPO,'/'),'',hashed),md5=unname(tools::md5sum(hashed))),out,'source-hashes.csv')
+  hashed <- c(unique(hashed),ctx$flag$diagnostics_file)
+  label <- ifelse(startsWith(hashed,paste0(REPO,'/')),sub(paste0('^',REPO,'/'),'',hashed),
+    paste0('archives/',sub(paste0('^',ARCHIVES,'/'),'',hashed)))
+  write_csv(data.frame(file=label,md5=unname(tools::md5sum(hashed))),out,'source-hashes.csv')
   rel <- function(f) sub(paste0('^',ARCHIVES,'/'),'',f)
   prov <- rbind(data.frame(source='pr11_pooled',chain=NA_integer_,fit_file=rel(p$fit_file),fit_md5=p$fit_md5,draws=p$sources$pr11_pooled$draws,
       input_md5=p$input_md5,stringsAsFactors=FALSE),

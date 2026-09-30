@@ -1,6 +1,6 @@
 "file","md5"
-"dev/simstudy/convergence-flag-diagnosis/impact.R","3319da309d8399ba79e69740b36c634c"
-"dev/simstudy/convergence-flag-diagnosis/test-impact.R","fb2df449a081ef541008ba8f6418aafc"
+"dev/simstudy/convergence-flag-diagnosis/impact.R","1bd02d94eaab2c9c1bf06dcaadd3b53e"
+"dev/simstudy/convergence-flag-diagnosis/test-impact.R","41313c319c61b56a2403127a140c7caf"
 "dev/simstudy/convergence-flag-diagnosis/anatomy.R","bd98ff3f40cad972f96bdeca5a07e206"
 "dev/simstudy/occupancy-intercept-prior/jobs.R","d6dc59ff47a25de08fad60b8bde827d1"
 "dev/simstudy/occupancy-intercept-prior/verify-helpers.R","5730af8ec50338240699415b81a80899"
@@ -15,3 +15,4 @@
 "dev/simstudy/nonspatial-design-recheck/design_helpers.R","ac8a541dd917626a03b6e8e2a1ef64df"
 "dev/simstudy/jsdm-sample-size-recheck/helpers.R","72b089b79cf529a69eae772e8faf2926"
 "dev/simstudy/spatial-targeted-recheck/score.R","66ce3cb439b0bced0b8467238f91212d"
+"archives/convergence-diagnosis-20261001/source/R/diagnostics.R","1bc63b2d928afe5a557dd0c77d8b8e4e"

@@ -167,6 +167,57 @@ test_that('the four other flagged fits are reported with their Task 1 labels and
   expect_true(all(grepl('B_output',f4$package_warnings)))
 })
 
+# ---- The pr11 flag rule on several chains ----------------------------------------------
+
+test_that('single-chain outputs bind along the chain dimension into one multi-chain output', {
+  set.seed(2)
+  whole <- list(B0_output=array(rnorm(3*5*2),c(3,5,2)),beta_theta_output=array(rnorm(2*3*5*2),c(2,3,5,2)),
+    sigmah_output=array(rnorm(5*2),c(5,2)))
+  one <- function(ch) list(beta_theta_output=whole$beta_theta_output[,,,ch,drop=FALSE],WAIC=1,z_output=matrix(0,4,3),
+    psi_output=matrix(.5,4,3),jsdm_output=list(B0_output=whole$B0_output[,,ch,drop=FALSE],sigmah_output=whole$sigmah_output[,ch,drop=FALSE]))
+  b <- bind_chains(list(one(1),one(2)))
+  expect_identical(b$beta_theta_output,whole$beta_theta_output)
+  expect_identical(b$jsdm_output$B0_output,whole$B0_output)
+  expect_identical(b$jsdm_output$sigmah_output,whole$sigmah_output)
+  # Posterior summaries and WAIC carry no chain dimension and are left out.
+  expect_setequal(names(b),c('beta_theta_output','jsdm_output'))
+  bad <- one(2);bad$jsdm_output$B0_output <- bad$jsdm_output$B0_output[1:2,,,drop=FALSE]
+  expect_error(bind_chains(list(one(1),bad)),'dimensions')
+})
+
+test_that('the package diagnostics warn on disagreeing chains and not on agreeing ones', {
+  set.seed(3)
+  ro <- function(shift) list(theta0_output=array(c(rnorm(2*2000),rnorm(2*2000,shift)),c(2,2000,2)),
+    jsdm_output=list(B0_output=array(rnorm(2*2000*2),c(2,2000,2))))
+  w <- package_warnings(ro(5),ctx$flag$computeDiagnostics)
+  expect_identical(w,"Convergence issue in 'theta0_output'. Max R-hat > 1.1")
+  expect_identical(package_warnings(ro(0),ctx$flag$computeDiagnostics),character())
+})
+
+test_that('every comparison statement is quoted verbatim from the current-code report', {
+  report <- gsub('**','',paste(readLines(file.path(RECHECK_DIR,'REPORT.md')),collapse='\n'),fixed=TRUE)
+  for(cmp in COMPARISONS) for(part in strsplit(cmp$statement,' ... ',fixed=TRUE)[[1]])
+    expect_true(grepl(part,report,fixed=TRUE),info=paste(cmp$id,part))
+})
+
+test_that('the largest two-stage code-version change is read over the eight two-stage arms', {
+  mean_ci <- ctx$recheck$mean_ci
+  cmp <- COMPARISONS[[which(vapply(COMPARISONS,`[[`,'',i='id')=='two_stage_largest_code_change')]]
+  v <- comparison_value(cmp,scores,mean_ci)
+  expect_equal(v$value,0.248991127461452,tolerance=1e-12)
+  expect_identical(v$note,'qfar_K6 sites300')
+  expect_equal(published_value(cmp)$value,v$value,tolerance=1e-12)
+})
+
+test_that('counting the arms\' own community 5 fits as unflagged lowers only their qfar counts', {
+  conv <- phase_b_convergence()
+  c3 <- arms_unflagged_convergence(conv,key5)
+  at <- c3$sd!=1 & c3$stratum=='qfar'
+  expect_identical(c3$selected_flagged[at],conv$selected_flagged[at]-1L)
+  expect_identical(c3[!at,],conv[!at,])
+  expect_identical(c3$selected_flagged[at],c(3L,8L,9L))
+})
+
 # ---- The saved pr11 fit of community 5 (slow) -----------------------------------------
 
 if(!identical(Sys.getenv('IMPACT_FAST'),'1')) test_that('the pr11 fit reproduces the published community 5 scores and chain means', {
@@ -201,4 +252,13 @@ if(!identical(Sys.getenv('IMPACT_FAST'),'1')) test_that('the pr11 fit reproduces
   expect_lt(max(abs(p$sources$near_truth$estimate-matrix(rowMeans(p$chain_means[,c(1,3)]),nrow(p$truth)))),1e-15)
   expect_lt(max(abs(p$sources$mirror$estimate-matrix(rowMeans(p$chain_means[,c(2,4)]),nrow(p$truth)))),1e-15)
   expect_identical(p$chain_groups,list(near_truth=c(1L,3L),mirror=c(2L,4L)))
+  # The pr11 flag rule on the fit reproduces its recorded flags, and the
+  # package diagnostics reproduce its saved warnings.
+  cf <- read.csv(file.path(IP_RESULTS,'selection-control-flags-B.csv'),stringsAsFactors=FALSE);cf <- cf[cf$key==key5,]
+  f <- p$flags$row
+  expect_identical(as.integer(f$warnings),as.integer(cf$warnings))
+  expect_lt(max(abs(c(f$max_group_rhat-cf$max_group_rhat,f$max_element_rhat-cf$max_element_rhat))),1e-12)
+  expect_identical(c(f$flagged,f$reasons),c(cf$flagged,cf$reasons))
+  expect_identical(sort(p$flags$warnings_recomputed),sort(p$flags$warnings_saved))
+  expect_identical(length(p$flags$warnings_saved),7L)
 })
