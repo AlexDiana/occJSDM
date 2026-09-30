@@ -1,5 +1,7 @@
 # Convergence-flag diagnosis: Task 3 protocol
 
+Amended before any diagnostic fit by [AMENDMENT-1.md](AMENDMENT-1.md), which supersedes the parts of this file it names.
+
 This file is the frozen protocol for Task 3 of [PLAN.md](PLAN.md): the prespecified diagnostic fits of the high-contamination, 300-site two-stage (eDNA) fit `design-qfar_K6-sites300-05` (community 5). The commit that adds this file is the freeze. It was written after the runner, launcher, mode assignment, equivalence check and pilots below were finished and before any diagnostic fit started. Nothing in it may be edited after the diagnostic fits are launched except by a dated amendment file in this directory (`AMENDMENT-YYYY-MM-DD.md`) that says what changed and why.
 
 `ARCHIVE` below is `dev/simstudy/results/convergence-diagnosis-20261001` (git-ignored). Diagnostic prior changes are diagnostics only; nothing here recommends a new default, and production code (`R/`, `src/`, `man/`, `tests/`) is not changed.
