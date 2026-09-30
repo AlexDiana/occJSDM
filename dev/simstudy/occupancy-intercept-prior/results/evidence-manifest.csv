@@ -62,3 +62,6 @@
 "verify-tables-A1.csv","verify/A1/tables-arms-1-2-3-5.csv","0ff04a244ebf59aacc83063d12893a61",123679
 "verify-tables-A2.csv","verify/A2/tables-arms-1-2-3-5.csv","d895502953439ef5678b2bb7f4a7940f",75448
 "verify-tables-B.csv","verify/B/tables-arms-1-2-3-5.csv","09f27baa7bf6114968bf538063993176",119226
+"provenance-A1.csv","summary/A1/provenance.csv","a30350567bbb8be2f207c89913a85e10",7141
+"provenance-A2.csv","summary/A2/provenance.csv","3f9205a4e5df9c21268b1c7d728be492",3953
+"provenance-B.csv","summary/B/provenance.csv","97f2bb80f717deb4a84049bf81f8489d",10557
