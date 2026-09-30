@@ -9,7 +9,7 @@ Add the opt-in occupancy-intercept prior `sigma_b0` and record the widening stud
 ## Summary
 
 - Adds `listPriors$sigma_b0`, the prior SD of each species' occupancy intercept `B0`, which has a Normal(0, `sigma_b0` squared) prior. The default 1 is the previous fixed prior, and default fits are unchanged bit for bit.
-- Records the prespecified, audited comparison of SD 2, 3 and 5 against SD 1 in `dev/simstudy/occupancy-intercept-prior/` ([REPORT.md](REPORT.md)). Wider priors passed the gate in binary fits (phase A) and failed it in two-stage fits (phase B), mainly because they made the chains mix much worse there. Every SD is therefore a binary-only improvement and **the default stays at 1**.
+- Records the prespecified, audited comparison of SD 2, 3 and 5 against SD 1 in `dev/simstudy/occupancy-intercept-prior/` (report: `dev/simstudy/occupancy-intercept-prior/REPORT.md`). Wider priors passed the gate in binary fits (phase A) and failed it in two-stage fits (phase B), mainly because they made the chains mix worse there, markedly so at SD 3 and 5. Every SD is therefore a binary-only improvement and **the default stays at 1**.
 - No other prior changes, and `sampleresults` and the vignettes are not regenerated, because no default changes.
 
 ## Package changes
@@ -22,7 +22,7 @@ Add the opt-in occupancy-intercept prior `sigma_b0` and record the widening stud
 ## Study
 
 - Protocol frozen at `31d5e9a` before any new-arm fit, amended before the fits (AMENDMENT-1) and before any scoring (AMENDMENT-2) it concerns, with one recorded deviation (DEVIATIONS.md, Deviation 1: a provisional look at phase A1 outcomes before the A2 selection).
-- 171 new-arm fits on saved datasets, all completed; 49 reused control fits shown equivalent to the default at SD 1; every table independently audited from saved draws, with every audit exiting 0.
+- 171 new-arm fits on saved datasets, all completed. 49 control fits were reused, none refitted: before reuse, `sigma_b0 = 1` was shown identical to the default in the study's library and equivalent to each control library, bitwise for pr11 and spatial-targeted and within 2.2e-15 for spatial-amplitude (`dev/simstudy/occupancy-intercept-prior/results/equivalence.csv`). Every table was independently audited from saved draws, and every audit exited 0.
 - Phase A1 (non-spatial binary JSDM, 10 communities at 100 and 300 sites): PASS for every SD, with small gains (low band 8.30 to 7.87-7.99 points).
 - Phase A2 (spatial binary, 9 communities): PASS for every SD, with larger gains (low band 5.06 to 2.61-3.25; 1% and 5% species 3.11 to 0.76-1.13; low-band coverage 0.45 to 0.69-0.73).
 - Phase B (two-stage, 10 communities at two contamination levels): FAIL for every SD. The low band improved (14.88 to 12.11-13.21), but flagged selected fits rose from 4 of 20 for the control to 7, 16 and 19 of 20 for SD 2, 3 and 5, and SD 3 and 5 worsened the 20-80% band by more than 1 point.
@@ -35,8 +35,8 @@ Add the opt-in occupancy-intercept prior `sigma_b0` and record the widening stud
 
 ## For the reviewer
 
-- Controller rulings R33 to R35, made after scoring began, are not yet confirmed by Doug; see REPORT.md, "Process record".
-- The study archive with the fits and score records is untracked and stays on Doug's machine; `results/` holds the compact committed evidence, listed in `results/evidence-manifest.csv`.
+- Controller rulings R33 to R36, made after scoring began, are not yet confirmed by Doug; see `dev/simstudy/occupancy-intercept-prior/REPORT.md`, "Process record".
+- The study archive with the fits and score records is untracked and stays on Doug's machine; `dev/simstudy/occupancy-intercept-prior/results/` holds the compact committed evidence, listed in its `evidence-manifest.csv`.
 - Merging needs Doug's approval. Alex may want to review the sampler change in `src/jsdm.cpp` and `R/jsdmfun.R` first.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
