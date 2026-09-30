@@ -100,7 +100,7 @@ test_that('true occupancy, occupancy probability and collection states come from
   input <- real_input();tp <- input$sim$true_params
   f <- site_features(input,6L)
   expect_identical(f$true_occupied,as.integer(tp$z_true[,6]))
-  expect_equal(f$true_psi,plogis(tp$jsdmParams_true$eta[,6]))
+  expect_equal(f$true_psi,unname(plogis(tp$jsdmParams_true$eta[,6])))
   # Samples 2s-1 and 2s belong to site s.
   expect_identical(f$collected_sample1,as.integer(tp$w_true[seq(1,600,2),6]))
   expect_identical(f$collected_sample2,as.integer(tp$w_true[seq(2,600,2),6]))
@@ -157,6 +157,12 @@ test_that('positive routes split positives by true occupancy and by true collect
   # in 8 PCRs; the other 6 samples hold 3 in 24.
   expect_equal(r$positive_pcr_rate_collected,6/8)
   expect_equal(r$positive_pcr_rate_uncollected,3/24)
+  # Collected samples: sample 1 at an occupied site, sample 5 at an unoccupied
+  # one. Positives per sample: collected 3 and 3; uncollected 1, 0, 0, 0, 1, 1,
+  # so every collected sample has more positives than every uncollected one.
+  expect_identical(c(r$n_collected_samples,r$collected_samples_at_occupied_sites,
+    r$collected_samples_at_unoccupied_sites),c(2L,1L,1L))
+  expect_equal(r$sample_positive_count_auc,1)
   # Scope: only the first two (original) sites.
   o <- positive_routes(site_features(tiny_input(),1L),scope='original')
   expect_identical(c(o$n_sites,o$n_positive_pcr,o$positive_pcr_at_unoccupied_sites,o$occupied_sites_without_positive),c(2L,4L,0L,1L))
@@ -177,6 +183,14 @@ test_that('positive routes of species 6 agree with a direct count on the real in
   expect_identical(r$occupied_sites_without_positive,sum(tp$z_true[,6]==1 & !site_pos))
   expect_identical(r$n_occupied_sites,sum(tp$z_true[,6]))
   expect_equal(r$naive_detection_rate_sites,mean(site_pos[tp$z_true[,6]==1]))
+  # Collected samples by the true state of their site, and how well the count
+  # of positive PCRs in a sample separates collected from uncollected samples
+  # (the Wilcoxon statistic over all pairs, with ties counted half).
+  site_of_sample <- ceiling(seq_len(600)/2)
+  expect_identical(r$collected_samples_at_occupied_sites,sum(w_row[!duplicated(info$Sample)][tp$z_true[site_of_sample,6]==1]==1))
+  per_sample <- tapply(pos,info$Sample,sum);w_sample <- tp$w_true[,6]
+  wilcoxon <- unname(wilcox.test(per_sample[w_sample==1],per_sample[w_sample==0],exact=FALSE)$statistic)
+  expect_equal(r$sample_positive_count_auc,wilcoxon/(sum(w_sample==1)*sum(w_sample==0)))
 })
 
 test_that('comparison species are those labelled agrees with the closest prevalence', {
@@ -253,4 +267,18 @@ test_that('group rows carry the pooled mean, the generating value and the absolu
   expect_true(g$truth_in_interval[g$quantity=='B0'])
   expect_false(g$truth_in_interval[g$quantity=='theta0'])
   expect_true(all(g$q025<g$group_mean & g$group_mean<g$q975))
+})
+
+test_that('posterior occupancy is summarised by the true state of the site', {
+  sites <- data.frame(key='k',species=6L,chain_group=rep(c('1','2'),each=4),chains=rep(c('2;4','1;3'),each=4),
+    site=rep(1:4,2),original_site=rep(c(TRUE,TRUE,TRUE,FALSE),2),true_occupied=rep(c(1L,1L,0L,0L),2),
+    true_psi=rep(c(.8,.6,.2,.1),2),posterior_mean_psi=c(.9,.5,.3,.6,.2,.3,.7,.9),stringsAsFactors=FALSE)
+  s <- psi_by_true_state(sites)
+  pick <- function(g,sc,z) s[s$chain_group==g & s$scope==sc & s$true_occupied==z,]
+  expect_identical(nrow(s),8L)
+  expect_equal(pick('1','all_sites',1L)$mean_posterior_psi,mean(c(.9,.5)))
+  expect_equal(pick('1','all_sites',0L)$mean_posterior_psi,mean(c(.3,.6)))
+  expect_equal(pick('2','original_sites',0L)$mean_posterior_psi,.7)
+  expect_identical(pick('2','original_sites',0L)$n_sites,1L)
+  expect_equal(pick('2','all_sites',1L)$mean_true_psi,mean(c(.8,.6)))
 })
