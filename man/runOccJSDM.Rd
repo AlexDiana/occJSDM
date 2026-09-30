@@ -131,17 +131,20 @@ Bounded occupancy-probability means remain meaningful. This option does
 not establish improved spatial recovery.
 
 \code{sigma_b0} is the prior standard deviation of each species'
-occupancy intercept on the logit scale, which has a
-Normal(0, \code{sigma_b0}^2) prior. The default \code{1} is the previous
+intercept \code{B0}, which has a Normal(0, \code{sigma_b0}^2) prior on the
+linear-predictor scale (logit for binary, occupancy and two-stage data;
+response units for continuous data). The default \code{1} is the previous
 fixed prior and leaves default fits unchanged. It must be a finite positive
 number, applies to spatial and non-spatial fits alike, and does not affect
 the collection (detection) intercept. The applied prior is saved in
 \code{infos$intercept_prior}. This option remains experimental. A
-simulation study found that wider values reduced occupancy-probability bias
-in binary fits but worsened MCMC mixing in two-stage fits, markedly so at
-SD 3 and 5, so the default stays at \code{1}; check chain convergence with
-any other value. The study is in
-\code{dev/simstudy/occupancy-intercept-prior/} of the source repository.}
+simulation study, which tested binary and two-stage fits only, found that
+wider values reduced occupancy-probability bias in binary fits. In
+two-stage fits they worsened MCMC mixing, markedly so at SD 3 and 5, and
+SD 3 and 5 also increased the bias of probabilities between 0.2 and 0.8,
+so the default stays at \code{1}; check chain convergence with any other
+value. The study is in \code{dev/simstudy/occupancy-intercept-prior/} of
+the source repository.}
 }
 \value{
 A list with:
