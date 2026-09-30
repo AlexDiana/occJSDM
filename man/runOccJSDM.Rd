@@ -136,9 +136,12 @@ Normal(0, \code{sigma_b0}^2) prior. The default \code{1} is the previous
 fixed prior and leaves default fits unchanged. It must be a finite positive
 number, applies to spatial and non-spatial fits alike, and does not affect
 the collection (detection) intercept. The applied prior is saved in
-\code{infos$intercept_prior}. This option is experimental and its value is
-still under evaluation, so treat a non-default setting as a diagnostic
-rather than a recommended configuration.}
+\code{infos$intercept_prior}. This option remains experimental. A
+simulation study found that wider values reduced occupancy-probability bias
+in binary fits but substantially worsened MCMC mixing in two-stage fits, so
+the default stays at \code{1}; check chain convergence with any other
+value. The study is in \code{dev/simstudy/occupancy-intercept-prior/} of
+the source repository.}
 }
 \value{
 A list with:
