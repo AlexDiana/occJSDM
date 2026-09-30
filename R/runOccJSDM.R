@@ -378,10 +378,13 @@ create_waic_quantities <- function(n_obs){
 #' simulation study, which tested binary and two-stage fits only, found that
 #' wider values reduced occupancy-probability bias in binary fits. In
 #' two-stage fits they worsened MCMC mixing, markedly so at SD 3 and 5, and
-#' SD 3 and 5 also increased the bias of probabilities between 0.2 and 0.8,
-#' so the default stays at \code{1}; check chain convergence with any other
-#' value. The study is in \code{dev/simstudy/occupancy-intercept-prior/} of
-#' the source repository.
+#' SD 3 and 5 also increased the bias of probabilities between 0.2 and 0.8, so
+#' the default stays at \code{1}. Occupancy and continuous fits were not
+#' tested. Occupancy fits share the collection-stage intercept of two-stage
+#' fits, which the data separate only weakly from \code{B0}, so wider values
+#' may cause the same mixing problems there. Check chain convergence with any
+#' value other than \code{1}. The study is in
+#' \code{dev/simstudy/occupancy-intercept-prior/} of the source repository.
 #'
 #' @return A list with:
 #' \describe{
