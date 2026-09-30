@@ -112,6 +112,7 @@ pilot_checks <- function() {
   pkg <- load_study_library(study)
   src <- pr11_job(archives,inputs_root);input <- readRDS(checked_input(src$input_file,src$input_md5))
   v6 <- fixed_theta0_value(input)
+  anatomy <- new.env(parent=globalenv());sys.source(file.path(here,'anatomy.R'),envir=anatomy)
   rows <- lapply(VARIANTS,function(v) {
     spec <- run_spec('pilot',v,1L);f <- fit_file(study,spec)
     if(!file.exists(f)) return(data.frame(variant=v,check='fit exists',pass=FALSE,value='missing',stringsAsFactors=FALSE))
@@ -144,6 +145,11 @@ pilot_checks <- function() {
       add('fit input is the saved derived input',identical(s$input_md5,unname(tools::md5sum(file.path(study,DERIVED_INPUT)))),s$input_md5)
     } else add('species count is 10',S==10L,S)
     add('warnings captured as a character vector',is.character(s$warnings),length(s$warnings))
+    # Plumbing for Task 3c: Task 1's chain_anatomy() reads the fit with the
+    # input it was fitted to (variant c: the derived input). No value is used.
+    a <- tryCatch(anatomy$chain_anatomy(f,s$input_file),error=function(e) conditionMessage(e))
+    add('chain_anatomy() reads the fit and its fitted input',is.data.frame(a) && nrow(a)==S*13L &&
+      max(attr(a,'psi_check')$psi_max_abs_diff)<1e-10,if(is.data.frame(a)) paste(nrow(a),'rows') else a)
     add('seconds per 1000 iterations',is.finite(s$seconds_per_1000_iterations),round(s$seconds_per_1000_iterations,2))
     do.call(rbind,ck)
   })

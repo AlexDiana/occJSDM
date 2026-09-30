@@ -34,10 +34,10 @@ LAUNCH_SCRIPT <- file.path(STUDY_REL,'launch.R')
 # Files hashed into every fit whose frozen versions the launcher insists on
 # (set when the protocol was frozen; see README.md).
 FROZEN_MD5 <- c(
-  'dev/simstudy/convergence-flag-diagnosis/run.R'='TO-BE-SET',
-  'dev/simstudy/convergence-flag-diagnosis/fixed-theta0.R'='TO-BE-SET',
-  'dev/simstudy/convergence-flag-diagnosis/results/library-fingerprint.csv'='TO-BE-SET',
-  'dev/simstudy/convergence-flag-diagnosis/results/fixed-theta0/hashes.csv'='TO-BE-SET')
+  'dev/simstudy/convergence-flag-diagnosis/run.R'='f9e167d8cc8879e27b32f80a4135eb26',
+  'dev/simstudy/convergence-flag-diagnosis/fixed-theta0.R'='79df8885f21c206524bc8da900f1d869',
+  'dev/simstudy/convergence-flag-diagnosis/results/library-fingerprint.csv'='7ef28e22ddddc076bc9438022aa419ba',
+  'dev/simstudy/convergence-flag-diagnosis/results/fixed-theta0/hashes.csv'='3134069c78e0f38a2dfe43db6f529d0b')
 LAUNCH_RUNS <- c(VARIANTS,paste0('pilot-',VARIANTS))
 SUMMARY_COLUMNS <- c('order','label','run','variant','chain','seed','status','exit_code','elapsed_seconds',
   'started','finished','pid','log','fit')
