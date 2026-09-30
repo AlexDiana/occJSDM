@@ -282,3 +282,127 @@ test_that('posterior occupancy is summarised by the true state of the site', {
   expect_identical(pick('2','original_sites',0L)$n_sites,1L)
   expect_equal(pick('2','all_sites',1L)$mean_true_psi,mean(c(.8,.6)))
 })
+
+# ---- Fix round 1: implied DNA-holding sample rate, slope-matched species -----
+
+test_that('the DNA-holding sample rate of a draw is the mean over samples of psi*theta + (1-psi)*theta0', {
+  # Two sites with two samples each, two draws. Hand calculation, draw 1:
+  # samples 1 to 4 give 0.2*0.3+0.8*0.05 = 0.10, 0.2*0.5+0.8*0.05 = 0.14,
+  # 0.5*0.6+0.5*0.05 = 0.325 and 0.5*0.1+0.5*0.05 = 0.075, mean 0.16. Draw 2:
+  # 0.4*0.1+0.6*0.1 = 0.10, 0.4*0.2+0.6*0.1 = 0.14, 1*0+0 = 0 and 1*0.5+0 = 0.5,
+  # mean 0.185.
+  psi <- rbind(c(.2,.4),c(.5,1))
+  theta <- rbind(c(.3,.1),c(.5,.2),c(.6,0),c(.1,.5))
+  rho <- dna_holding_rate(psi,theta,theta0=c(.05,.10),site_of_sample=c(1L,1L,2L,2L))
+  expect_equal(rho,c(.16,.185))
+  # Each sample uses its own collection probability: changing one sample's
+  # theta changes the mean by a quarter of psi times the change.
+  theta2 <- theta;theta2[3,1] <- .2
+  expect_equal(dna_holding_rate(psi,theta2,c(.05,.10),c(1L,1L,2L,2L))[1],.16-.5*.4/4)
+  expect_error(dna_holding_rate(psi,theta,c(.05,.10),c(1L,1L,2L)),'site')
+  expect_error(dna_holding_rate(psi,theta,c(.05,.10),c(1L,1L,2L,3L)),'site')
+})
+
+test_that('the implied positive PCR rate mixes p and q by the DNA-holding rate', {
+  # Draw 1: 0.16*0.6+0.84*0.2 = 0.264. Draw 2: 0.185*0.5+0.815*0.1 = 0.174.
+  # p and q are primers x draws; primers carry equal numbers of PCRs.
+  p <- rbind(c(.5,.6),c(.7,.4));q <- rbind(c(.1,.2),c(.3,0))
+  expect_equal(implied_positive_pcr_rate(c(.16,.185),p,q),c(.264,.174))
+})
+
+test_that('draws are summarised by posterior mean and 95 percent central interval', {
+  s <- summarise_draws(1:1001)
+  expect_equal(c(s$value,s$q025,s$q975,s$n_draws),c(501,26,976,1001))
+})
+
+test_that('implied-rate rows pool the draws of the chains in a group', {
+  rates <- list(list(dna_rate=c(.10,.20),positive_pcr_rate=c(.2,.3),collection_probability=c(.5,.7),
+      collection_intercept=c(0,1)),
+    list(dna_rate=c(.30,.40),positive_pcr_rate=c(.4,.5),collection_probability=c(.1,.3),
+      collection_intercept=c(-1,0)))
+  r <- implied_rate_rows(rates,chains=c(1L,2L),label='all',species=6L,key='k')
+  pick <- function(q) r[r$quantity==q,]
+  expect_identical(unique(r$source),'chain_group')
+  expect_identical(unique(r$chains),'1;2')
+  expect_equal(pick('dna_holding_sample_rate')$value,.25)
+  expect_identical(pick('dna_holding_sample_rate')$n_draws,4L)
+  expect_equal(pick('positive_pcr_rate')$value,.35)
+  # The posterior mean of the probability is not the probability of the
+  # posterior-mean logit; both are reported.
+  expect_equal(pick('collection_probability')$value,mean(c(.5,.7,.1,.3)))
+  expect_equal(pick('collection_probability_at_mean_logit')$value,plogis(mean(c(0,1,-1,0))))
+  expect_true(is.na(pick('collection_probability_at_mean_logit')$q025))
+})
+
+test_that('species with the target\'s generating collection slope and agreeing chains are selected', {
+  labels <- data.frame(species=1:6,label=c('agrees','agrees','separated','drifting','agrees','agrees'),
+    stringsAsFactors=FALSE)
+  slope <- c(0,1,0,0,0,0)
+  # Species 3 is separated, 4 drifting, 2 has another slope, 6 is the target.
+  expect_identical(choose_slope_matched_species(slope,labels,target=6L),c(1L,5L))
+  expect_identical(choose_slope_matched_species(c(1,1,1,1,1,0),labels,target=6L),integer(0))
+  expect_error(choose_slope_matched_species(slope,labels[1:5,],target=6L),'target')
+})
+
+test_that('routes count occupied sites that have a DNA-holding sample', {
+  r <- positive_routes(site_features(tiny_input(),1L))
+  # Occupied sites 1 and 2: only site 1 has a collected sample.
+  expect_identical(r$occupied_sites_with_collected_sample,1L)
+})
+
+test_that('implied rates of species 6 from the saved draws match independent per-draw calculations', {
+  need_archives()
+  fit <- readRDS(selected_fit(KEY))$fit;input <- real_input()
+  rates <- chain_rate_draws(fit,input,6L)
+  expect_length(rates,4L)
+  # Independent recomputation of three draws of chain 2 from the raw arrays.
+  ro <- fit$results_output;jo <- ro$jsdm_output;tp <- input$sim$true_params
+  info <- input$sim$data_list$info
+  site_of_sample <- info$Site[!duplicated(info$Sample)]
+  for(it in c(1L,6000L,12000L)) {
+    eta <- fit$X_psi%*%jo$B_output[,6,it,2]+jo$B0_output[6,it,2]+jo$U_output[,,it,2]%*%jo$L_output[,6,it,2]
+    psi <- plogis(eta[,1])
+    theta <- plogis(fit$X_theta%*%ro$beta_theta_output[,6,it,2])[,1]
+    hand <- mean(psi[site_of_sample]*theta+(1-psi[site_of_sample])*ro$theta0_output[6,it,2])
+    expect_equal(rates[[2]]$dna_rate[it],hand,tolerance=1e-12)
+    rho <- hand
+    expect_equal(rates[[2]]$positive_pcr_rate[it],
+      rho*mean(ro$p_output[,6,it,2])+(1-rho)*mean(ro$q_output[,6,it,2]),tolerance=1e-12)
+    expect_equal(rates[[2]]$collection_probability[it],plogis(ro$beta_theta_output[1,6,it,2]),tolerance=1e-12)
+  }
+  # The occupancy reconstruction used here is Task 1's: per-chain sums agree.
+  recon <- chain_reconstruction(fit,1:100)
+  for(ch in 1:4) expect_lt(max(abs(rates[[ch]]$psi_sum-recon[[ch]]$psi_sum[,6])),1e-9)
+})
+
+test_that('implied rates by chain group agree with the realised and generating rates', {
+  need_archives()
+  fit <- readRDS(selected_fit(KEY))$fit;input <- real_input()
+  groups <- read.csv(file.path(ANATOMY_DIR,'results/anatomy/chain-groups.csv'),stringsAsFactors=FALSE)
+  r <- community5_implied_rates(fit,input,groups,KEY,6L)
+  get <- function(src,grp,q) r[r$source==src & r$chain_group==grp & r$quantity==q,]
+  # Realised: 93 of 600 samples hold DNA; 1,838 of 7,200 PCRs are positive.
+  expect_equal(get('realised','',  'dna_holding_sample_rate')$value,93/600)
+  expect_equal(get('realised','','positive_pcr_rate')$value,1838/7200)
+  # Generating: from the true occupancy probability and collection probability.
+  info <- input$sim$data_list$info;tp <- input$sim$true_params
+  smp <- info[!duplicated(info$Sample),]
+  psi <- plogis(tp$jsdmParams_true$eta[smp$Site,6])
+  theta <- plogis(cbind(1,smp$X_theta)%*%tp$beta_theta_true[,6])[,1]
+  generating <- mean(psi*theta+(1-psi)*input$truth$params$theta0[6])
+  expect_equal(get('generating','','dna_holding_sample_rate')$value,generating)
+  # Chain groups: per-draw figures recomputed independently by the reviewer,
+  # given to three decimals (absolute tolerance 0.001).
+  near <- function(x,y) expect_lt(abs(x-y),.001)
+  near(get('chain_group','1','dna_holding_sample_rate')$value,.159)
+  near(get('chain_group','2','dna_holding_sample_rate')$value,.166)
+  near(get('chain_group','1','collection_probability')$value,.061)
+  near(get('chain_group','2','collection_probability')$value,.343)
+  near(get('chain_group','1','collection_probability_at_mean_logit')$value,.056)
+  near(get('chain_group','2','collection_probability_at_mean_logit')$value,.340)
+  # The realised rate lies inside both groups' 95 percent intervals.
+  for(g in c('1','2')) {
+    row <- get('chain_group',g,'dna_holding_sample_rate')
+    expect_true(row$q025<=93/600 && 93/600<=row$q975)
+  }
+})

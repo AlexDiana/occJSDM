@@ -42,6 +42,11 @@
 #     true occupancy probability over the fitted sites, as the pr11 scorer
 #     defines it (colMeans(true_psi)).
 #
+#   choose_slope_matched_species(collection_slope, species_labels, target)
+#     The species labelled 'agrees' whose generating collection slope equals the
+#     target's (for community 5 these are species 8 and 10; species 7 has the
+#     same slope but is labelled drifting): the like-for-like comparison.
+#
 #   subset_fit_chains(fit, chains), chain_reconstruction(fit, original_sites)
 #     A fit reduced to some of its chains, and, per chain, anatomy.R's
 #     fit_draws() applied to that one chain: the draws of every anatomy
@@ -60,6 +65,17 @@
 #     MAE, signed error (estimate minus truth), RMSE and correlation of a
 #     posterior-mean occupancy probability vector against the true one, over
 #     the given sites.
+#
+#   dna_holding_rate(), implied_positive_pcr_rate(), chain_rate_draws(),
+#   implied_rate_rows(), reference_rate_rows(), community5_implied_rates()
+#     Per retained draw, the implied rate at which a field sample holds the
+#     species' DNA, mean over samples of psi_site * theta_sample + (1 -
+#     psi_site) * theta0 with each sample's own collection probability, and the
+#     positive PCR rate it implies with p and q; summarised per chain group
+#     (posterior mean and 95 percent interval) beside the realised rate and the
+#     generating rate (implied-rates.csv). This is what supports the statement
+#     that both chain groups are consistent with the observed data; it is not a
+#     likelihood or posterior-density comparison of the groups.
 #
 #   psi_by_true_state(sites)
 #     The mean posterior occupancy probability of each chain group among the
@@ -187,6 +203,7 @@ positive_routes <- function(features,scope=c('all','original')) {
     unoccupied_sites_with_positive=sum(!occ & site_positive),
     unoccupied_sites_with_collected_sample=sum(!occ & rowSums(sample_col)>0L),
     occupied_sites_without_collected_sample=sum(occ & rowSums(sample_col)==0L),
+    occupied_sites_with_collected_sample=sum(occ & rowSums(sample_col)>0L),
     naive_detection_rate_sites=rate(sum(occ & site_positive),sum(occ)),
     naive_false_positive_rate_sites=rate(sum(!occ & site_positive),sum(!occ)),
     naive_positive_rate_sites=mean(site_positive),
@@ -209,6 +226,16 @@ choose_comparison_species <- function(prevalence,species_labels,target,n=N_COMPA
   if(length(candidates)<n) stop('Only ',length(candidates),' candidate species are labelled agrees; ',n,' wanted')
   distance <- abs(prevalence[candidates]-prevalence[target])
   candidates[order(distance,candidates)][seq_len(n)]
+}
+
+# Species labelled 'agrees' whose generating collection slope equals the
+# target's: the like-for-like comparison, since the collection covariate is
+# what separates the collection probability from the constant theta0.
+choose_slope_matched_species <- function(collection_slope,species_labels,target) {
+  if(!target %in% species_labels$species) stop('The target species is not in the species labels')
+  same <- abs(collection_slope-collection_slope[target])<1e-12
+  sort(species_labels$species[species_labels$label=='agrees' & species_labels$species!=target &
+    same[species_labels$species]])
 }
 
 # ---- Occupancy errors -------------------------------------------------------------
@@ -343,6 +370,103 @@ community5_modes <- function(fit,input,groups,key=COMMUNITY5_KEY,species=TARGET_
   list(modes=bind(modes),sites=bind(sites),psi_max_abs_diff=psi_difference,truth=truth)
 }
 
+# ---- Implied rates of the fitted draws -------------------------------------------
+
+# Per draw, the probability that a field sample holds the species' DNA, averaged
+# over samples: psi (site) * theta (sample) + (1 - psi) * theta0, with each
+# sample's own collection probability and its site's occupancy probability.
+# psi is sites x draws, theta samples x draws, theta0 one value per draw.
+dna_holding_rate <- function(psi,theta,theta0,site_of_sample) {
+  if(length(site_of_sample)!=nrow(theta) || max(site_of_sample)>nrow(psi))
+    stop('site_of_sample must give one valid site per sample')
+  stopifnot(ncol(psi)==ncol(theta),length(theta0)==ncol(theta))
+  ps <- psi[site_of_sample,,drop=FALSE]
+  colMeans(ps*theta+(1-ps)*matrix(theta0,nrow(theta),ncol(theta),byrow=TRUE))
+}
+
+# The fraction of PCRs expected to be positive given the DNA-holding sample
+# rate: rho * p + (1 - rho) * q with p and q averaged over primers (primers
+# carry equal numbers of PCRs). p and q are primers x draws.
+implied_positive_pcr_rate <- function(rho,p,q) rho*colMeans(p)+(1-rho)*colMeans(q)
+
+summarise_draws <- function(x) {
+  ci <- unname(quantile(x,c(.025,.975)))
+  data.frame(value=mean(x),q025=ci[1],q975=ci[2],n_draws=length(x))
+}
+
+# Per chain and per retained draw of one species: the DNA-holding sample rate,
+# the implied positive PCR rate and the collection probability at the mean
+# collection covariate (the covariate is standardised, so plogis of the
+# intercept). The occupancy reconstruction repeats fit_draws()'s formula for one
+# species so as to keep every draw; psi_sum is the per-site sum over the chain's
+# draws, which the tests compare with fit_draws()'s.
+chain_rate_draws <- function(fit,input,species) {
+  ro <- fit$results_output;jo <- ro$jsdm_output
+  dd <- dim(jo$B0_output);ni <- dd[2];nc <- dd[3]
+  n <- nrow(fit$X_psi);ncov <- ncol(fit$X_psi);d <- dim(jo$U_output)[2]
+  info <- input$sim$data_list$info
+  smp <- unique(info[c('Site','Sample')]);smp <- smp[order(smp$Sample),,drop=FALSE]
+  stopifnot(identical(as.integer(smp$Sample),seq_len(nrow(fit$X_theta))),max(smp$Site)==n)
+  lapply(seq_len(nc),function(ch) {
+    beta <- matrix(jo$B_output[,species,,ch],nrow=ncov,ncol=ni)
+    hidden <- matrix(0,n,ni)
+    for(k in seq_len(d))
+      hidden <- hidden+sweep(matrix(jo$U_output[,k,,ch],n,ni),2,jo$L_output[k,species,,ch],'*')
+    psi <- plogis(sweep(fit$X_psi%*%beta,2,jo$B0_output[species,,ch],'+')+hidden)
+    bt <- matrix(ro$beta_theta_output[,species,,ch],nrow=2L,ncol=ni)
+    rho <- dna_holding_rate(psi,plogis(fit$X_theta%*%bt),ro$theta0_output[species,,ch],smp$Site)
+    p <- matrix(ro$p_output[,species,,ch],ncol=ni);q <- matrix(ro$q_output[,species,,ch],ncol=ni)
+    list(chain=ch,dna_rate=rho,positive_pcr_rate=implied_positive_pcr_rate(rho,p,q),
+      collection_probability=plogis(bt[1,]),collection_intercept=bt[1,],psi_sum=rowSums(psi),ni=ni)
+  })
+}
+
+# Posterior summaries of the implied rates for the draws of some chains pooled.
+implied_rate_rows <- function(rates,chains,label,species,key) {
+  pool <- function(nm) unlist(lapply(rates[chains],`[[`,nm),use.names=FALSE)
+  row <- function(q,x,interval=TRUE) {
+    s <- summarise_draws(x)
+    if(!interval) {s$q025 <- NA_real_;s$q975 <- NA_real_}
+    cbind(data.frame(key=key,species=as.integer(species),source='chain_group',chain_group=as.character(label),
+      chains=paste(chains,collapse=';'),quantity=q,stringsAsFactors=FALSE),s)
+  }
+  rbind(row('dna_holding_sample_rate',pool('dna_rate')),
+    row('positive_pcr_rate',pool('positive_pcr_rate')),
+    row('collection_probability',pool('collection_probability')),
+    row('collection_probability_at_mean_logit',plogis(mean(pool('collection_intercept'))),interval=FALSE))
+}
+
+# The same quantities for the realised data and for the generating values.
+reference_rate_rows <- function(input,truth_row,species,key,threshold=READ_THRESHOLD) {
+  tp <- input$sim$true_params;info <- input$sim$data_list$info;Y <- input$sim$data_list$OTU
+  smp <- unique(info[c('Site','Sample','X_theta')]);smp <- smp[order(smp$Sample),,drop=FALSE]
+  psi <- plogis(tp$jsdmParams_true$eta[smp$Site,species])
+  theta <- plogis(cbind(1,smp$X_theta)%*%tp$beta_theta_true[,species])[,1]
+  rho <- mean(psi*theta+(1-psi)*truth_row[['theta0']])
+  pcr <- rho*mean(truth_row[c('p_primer1','p_primer2')])+(1-rho)*mean(truth_row[c('q_primer1','q_primer2')])
+  row <- function(src,q,value) data.frame(key=key,species=as.integer(species),source=src,chain_group='',
+    chains='',quantity=q,value=unname(value),q025=NA_real_,q975=NA_real_,n_draws=NA_integer_,
+    stringsAsFactors=FALSE)
+  rbind(row('realised','dna_holding_sample_rate',mean(tp$w_true[,species])),
+    row('realised','positive_pcr_rate',mean(Y[,species]>=threshold)),
+    row('generating','dna_holding_sample_rate',rho),
+    row('generating','positive_pcr_rate',pcr),
+    row('generating','collection_probability',plogis(truth_row[['beta_theta_intercept']])))
+}
+
+community5_implied_rates <- function(fit,input,groups,key=COMMUNITY5_KEY,species=TARGET_SPECIES) {
+  nc <- dim(fit$results_output$jsdm_output$B0_output)[3]
+  g <- separated_groups(groups,key,species)
+  if(!identical(g$chain,seq_len(nc))) stop('Chain groups do not cover the fit\'s ',nc,' chains')
+  rates <- chain_rate_draws(fit,input,species)
+  rows <- lapply(sort(unique(g$chain_group)),function(grp)
+    implied_rate_rows(rates,g$chain[g$chain_group==grp],grp,species,key))
+  rows <- c(rows,list(implied_rate_rows(rates,seq_len(nc),'all',species,key),
+    reference_rate_rows(input,anatomy_truth(fit,input)$truth[species,],species,key)))
+  out <- do.call(rbind,rows);rownames(out) <- NULL
+  out
+}
+
 # ---- Runner --------------------------------------------------------------------------
 
 run_data_features <- function(key=COMMUNITY5_KEY,species=TARGET_SPECIES,out=COMMUNITY5_DIR) {
@@ -359,10 +483,14 @@ run_data_features <- function(key=COMMUNITY5_KEY,species=TARGET_SPECIES,out=COMM
   groups <- read.csv(file.path(ANATOMY_RESULTS,'chain-groups.csv'),stringsAsFactors=FALSE)
   prevalence <- colMeans(plogis(tp$jsdmParams_true$eta))
   comparison <- choose_comparison_species(prevalence,labels,species,N_COMPARISON)
+  slope <- tp$beta_theta_true[2,]
+  slope_matched <- choose_slope_matched_species(slope,labels,species)
+  if(!length(slope_matched)) stop('No species labelled agrees shares the target\'s collection slope')
   S <- ncol(input$sim$data_list$OTU)
-  role <- rep('other',S);role[comparison] <- 'comparison';role[species] <- 'target'
+  role <- rep('other',S);role[slope_matched] <- 'comparison_slope_matched'
+  role[comparison] <- 'comparison_prevalence';role[species] <- 'target'
   # Per-site data of the target and the comparison species.
-  shown <- c(species,comparison)
+  shown <- c(species,comparison,slope_matched)
   site_rows <- do.call(rbind,lapply(shown,function(s) {
     f <- site_features(input,s);cbind(key=key,role=role[s],f,stringsAsFactors=FALSE)
   }))
@@ -375,7 +503,7 @@ run_data_features <- function(key=COMMUNITY5_KEY,species=TARGET_SPECIES,out=COMM
       r <- positive_routes(f,sc)
       cbind(data.frame(key=key,role=role[s],species=s,species_name=f$species_name[1],
         chain_label=labels$label[labels$species==s],prevalence_psi=unname(prevalence[s]),
-        theta0_true=truth[s,'theta0'],
+        collection_slope_true=unname(slope[s]),theta0_true=truth[s,'theta0'],
         p_effective_primer1=truth[s,'p_primer1'],p_effective_primer2=truth[s,'p_primer2'],
         q_effective_primer1=truth[s,'q_primer1'],q_effective_primer2=truth[s,'q_primer2'],
         stringsAsFactors=FALSE),r[-(1:2)])
@@ -387,12 +515,16 @@ run_data_features <- function(key=COMMUNITY5_KEY,species=TARGET_SPECIES,out=COMM
   write_compact(m$modes,file.path(out,'modes-vs-truth.csv'))
   write_compact(m$sites,file.path(out,'modes-site-occupancy.csv'))
   write_compact(psi_by_true_state(m$sites),file.path(out,'modes-psi-by-true-state.csv'))
+  write_compact(community5_implied_rates(fit,input,groups,key,species),file.path(out,'implied-rates.csv'))
   provenance <- data.frame(key=key,input_file=relative_to(input_path,ARCHIVES),
     input_md5=unname(tools::md5sum(input_path)),fit_file=relative_to(fit_path,ARCHIVES),
     fit_md5=unname(tools::md5sum(fit_path)),read_threshold=READ_THRESHOLD,target_species=species,
     comparison_species=paste(comparison,collapse=';'),
     comparison_rule=paste0('species labelled agrees in results/anatomy/species-labels.csv with the ',
       'closest mean true occupancy probability over the 300 fitted sites to the target, closest first'),
+    slope_matched_species=paste(slope_matched,collapse=';'),
+    slope_matched_rule=paste0('species labelled agrees with the same generating collection slope ',
+      '(beta_theta_true row 2) as the target'),
     n_chains=dim(fit$results_output$jsdm_output$B0_output)[3],
     n_iterations=dim(fit$results_output$jsdm_output$B0_output)[2],
     psi_max_abs_diff=m$psi_max_abs_diff,stringsAsFactors=FALSE)
@@ -402,6 +534,7 @@ run_data_features <- function(key=COMMUNITY5_KEY,species=TARGET_SPECIES,out=COMM
   utils::write.csv(data.frame(file=vapply(sources,relative_to,'',root=REPO),
     md5=unname(tools::md5sum(sources))),file.path(out,'source-hashes.csv'),row.names=FALSE)
   cat('Wrote',out,'; comparison species',paste(comparison,collapse=', '),
+    '; slope-matched species',paste(slope_matched,collapse=', '),
     sprintf('; psi check %.2e\n',m$psi_max_abs_diff))
   invisible(list(site_rows=site_rows,routes=routes,modes=m$modes,sites=m$sites))
 }
