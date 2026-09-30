@@ -40,5 +40,7 @@ The frozen decision rules of [README.md](../README.md) (frozen at 183bc2f), as a
 
 ## Interpretation (not part of the verdicts)
 
+Superseded: Q4 of [REPORT.md](../REPORT.md) replaces the first bullet below. It limits the variants' absence of the mirror to variants (a) and (b), lists thinning and the chains' common starting values among the differences, drops "chance alone is possible but unlikely", and counts the pr11 initial fit's 2 chains beside these 20.
+
 - The mirror mode that held chains 2 and 4 of the saved pr11 fit did not appear in any of the 16 extended chains, nor in any chain of the variants, so this run cannot say what produces it. The diagnostic chains differ from the pr11 fit in more than their number: each runs in its own process with its own seed, and with a longer burn-in (10,000 against 6,000 iterations); thinning by 4 changes only which draws are kept. Treating all 20 chains as exchangeable, the chance that both mirror chains fall among the 4 pr11 chains is 6 in 190 (0.032, Fisher's exact test, one-sided), so chance alone is possible but unlikely; which of these differences matters, if any, is not tested here.
 - Variant (a) moves species 6 `theta0` towards zero (mean 0.011 against 0.036 in the extended run, truth 0.038) and `B0` up (-0.11 against -0.48), with mean occupancy 0.52 (truth 0.51); this is the prior's effect within the near-truth region, not a change of mode.
