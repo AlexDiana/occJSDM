@@ -1484,7 +1484,7 @@ mirror_chains |>
 
 Two chains of the original fit sit far above the rest in `theta0`, yet their average occupancy differs from the other chains' by only about three percentage points: the site-by-site pattern is reversed, but the average barely moves. In the study, `theta0`, the collection intercept and the two environmental slopes carried the signal, with gaps between chains of 3.5 to 6.1 pooled within-chain standard deviations, while `B0` and average occupancy overlapped (gaps of 0.7 and 0.3). Compare chains on those four, not on average occupancy or `B0` alone.
 
-To check your own fit, summarise each chain separately for every species. This needs a two-stage or occupancy fit with at least two chains: the collection and field-contamination arrays are `NULL` for a plain JSDM fit, and a fit with one species or one chain loses array dimensions when a row is selected. `theta0_output` and `jsdm_output$B0_output` are species by iteration by chain. The first row of `beta_theta_output` is the collection intercept, on the log-odds scale at the mean of the standardized collection covariates (and reference levels of factors). The first row of `jsdm_output$B_output` is the occupancy slope on the first environmental covariate.
+To check your own fit, summarise each chain separately for every species. This needs a two-stage or occupancy fit with at least two chains: the collection and field-contamination arrays are `NULL` for a plain JSDM fit, and a fit with one species or one chain loses array dimensions when a row is selected. `theta0_output` and `jsdm_output$B0_output` are species by iteration by chain. The first row of `beta_theta_output` is the collection intercept, on the log-odds scale at the mean of the standardized collection covariates (and reference levels of factors). Rows 1 and 2 of `jsdm_output$B_output` are the occupancy slopes on the first and second environmental covariates.
 
 ```{r extract-chain-means, eval=FALSE}
 results <- fitmodel$results_output
@@ -1500,10 +1500,11 @@ chain_summary <- function(draws, statistic = mean) {
 chain_summary(results$theta0_output)
 chain_summary(results$theta0_output, sd)
 
-# Collection intercept, then the first occupancy slope.
+# Collection intercept, then the two occupancy slopes.
 chain_summary(results$beta_theta_output[1, , , ])
 chain_summary(results$beta_theta_output[1, , , ], sd)
 chain_summary(results$jsdm_output$B_output[1, , , ])
+chain_summary(results$jsdm_output$B_output[2, , , ])
 
 chain_summary(results$jsdm_output$B0_output)
 ```

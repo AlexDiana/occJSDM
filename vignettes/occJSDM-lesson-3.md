@@ -2304,8 +2304,8 @@ dimensions when a row is selected. `theta0_output` and
 `jsdm_output$B0_output` are species by iteration by chain. The first row
 of `beta_theta_output` is the collection intercept, on the log-odds
 scale at the mean of the standardized collection covariates (and
-reference levels of factors). The first row of `jsdm_output$B_output` is
-the occupancy slope on the first environmental covariate.
+reference levels of factors). Rows 1 and 2 of `jsdm_output$B_output` are
+the occupancy slopes on the first and second environmental covariates.
 
 ``` r
 results <- fitmodel$results_output
@@ -2321,10 +2321,11 @@ chain_summary <- function(draws, statistic = mean) {
 chain_summary(results$theta0_output)
 chain_summary(results$theta0_output, sd)
 
-# Collection intercept, then the first occupancy slope.
+# Collection intercept, then the two occupancy slopes.
 chain_summary(results$beta_theta_output[1, , , ])
 chain_summary(results$beta_theta_output[1, , , ], sd)
 chain_summary(results$jsdm_output$B_output[1, , , ])
+chain_summary(results$jsdm_output$B_output[2, , , ])
 
 chain_summary(results$jsdm_output$B0_output)
 ```
