@@ -1,0 +1,9 @@
+"phase","quantity","controls","compared","max_abs_difference"
+"A1","estimate",20,20,0
+"A1","truth",20,20,0
+"A1","signed_error",20,20,4.2632564145606e-14
+"A1","mean_abs_cell_error",20,20,4.9737991503207e-14
+"A1","published_signed_error",20,20,1.06581410364015e-14
+"A1","published_mean_abs_cell_error",20,20,1.06581410364015e-14
+"A1","rare_group",20,2,2.48689957516035e-14
+"A1","cells_and_groups_unequal",20,20,0

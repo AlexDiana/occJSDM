@@ -22,3 +22,4 @@
 ^\.posit/assistant$
 ^\.worktrees$
 ^vignettes/images$
+^CLAUDE-HANDOVER\.md$

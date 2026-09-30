@@ -1,0 +1,862 @@
+"table","item","own","stored","pass"
+"summary-means.csv","row set","1 all primary all; 1 all primary high; 1 all primary low; 1 all primary middle; 1 all primary prevalence_1pct; 1 all primary prevalence_25pct; 1 all primary prevalence_5pct; 1 all primary prevalence_75pct; 1 all primary rare_1_5pct; 2 all primary all; 2 all primary high; 2 all primary low; 2 all primary middle; 2 all primary prevalence_1pct; 2 all primary prevalence_25pct; 2 all primary prevalence_5pct; 2 all primary prevalence_75pct; 2 all primary rare_1_5pct; 3 all primary all; 3 all primary high; 3 all primary low; 3 all primary middle; 3 all primary prevalence_1pct; 3 all primary prevalence_25pct; 3 all primary prevalence_5pct; 3 all primary prevalence_75pct; 3 all primary rare_1_5pct; 5 all primary all; 5 all primary high; 5 all primary low; 5 all primary middle; 5 all primary prevalence_1pct; 5 all primary prevalence_25pct; 5 all primary prevalence_5pct; 5 all primary prevalence_75pct; 5 all primary rare_1_5pct","1 all primary all; 1 all primary high; 1 all primary low; 1 all primary middle; 1 all primary prevalence_1pct; 1 all primary prevalence_25pct; 1 all primary prevalence_5pct; 1 all primary prevalence_75pct; 1 all primary rare_1_5pct; 2 all primary all; 2 all primary high; 2 all primary low; 2 all primary middle; 2 all primary prevalence_1pct; 2 all primary prevalence_25pct; 2 all primary prevalence_5pct; 2 all primary prevalence_75pct; 2 all primary rare_1_5pct; 3 all primary all; 3 all primary high; 3 all primary low; 3 all primary middle; 3 all primary prevalence_1pct; 3 all primary prevalence_25pct; 3 all primary prevalence_5pct; 3 all primary prevalence_75pct; 3 all primary rare_1_5pct; 5 all primary all; 5 all primary high; 5 all primary low; 5 all primary middle; 5 all primary prevalence_1pct; 5 all primary prevalence_25pct; 5 all primary prevalence_5pct; 5 all primary prevalence_75pct; 5 all primary rare_1_5pct",TRUE
+"summary-means.csv","1 all primary all communities","9","9",TRUE
+"summary-means.csv","1 all primary all mean_signed_error","1.3257503213935604","1.32575032139356",TRUE
+"summary-means.csv","1 all primary all mean_abs_signed_error","1.3257503213935604","1.32575032139356",TRUE
+"summary-means.csv","1 all primary all mean_abs_cell_error","8.6877677198631726","8.6877677198631709",TRUE
+"summary-means.csv","1 all primary all mean_coverage","0.51624999999999999","0.51624999999999999",TRUE
+"summary-means.csv","2 all primary all communities","9","9",TRUE
+"summary-means.csv","2 all primary all mean_signed_error","0.28960911887192675","0.28960911887192697",TRUE
+"summary-means.csv","2 all primary all mean_abs_signed_error","0.71136153015905557","0.71136153015905601",TRUE
+"summary-means.csv","2 all primary all mean_abs_cell_error","7.9346522900600229","7.9346522900600203",TRUE
+"summary-means.csv","2 all primary all mean_coverage","0.66347222222222224","0.66347222222222202",TRUE
+"summary-means.csv","3 all primary all communities","9","9",TRUE
+"summary-means.csv","3 all primary all mean_signed_error","0.055648990886687101","0.055648990886687101",TRUE
+"summary-means.csv","3 all primary all mean_abs_signed_error","0.69008491920938919","0.69008491920938897",TRUE
+"summary-means.csv","3 all primary all mean_abs_cell_error","7.8146832100822934","7.8146832100822898",TRUE
+"summary-means.csv","3 all primary all mean_coverage","0.69013888888888886","0.69013888888888897",TRUE
+"summary-means.csv","5 all primary all communities","9","9",TRUE
+"summary-means.csv","5 all primary all mean_signed_error","-0.077506687574758426","-0.077506687574758398",TRUE
+"summary-means.csv","5 all primary all mean_abs_signed_error","0.67621939474088977","0.67621939474088999",TRUE
+"summary-means.csv","5 all primary all mean_abs_cell_error","7.7711135143406471","7.7711135143406498",TRUE
+"summary-means.csv","5 all primary all mean_coverage","0.69319444444444445","0.693194444444444",TRUE
+"summary-means.csv","1 all primary high communities","9","9",TRUE
+"summary-means.csv","1 all primary high mean_signed_error","-12.987365848762913","-12.9873658487629",TRUE
+"summary-means.csv","1 all primary high mean_abs_signed_error","12.987365848762913","12.9873658487629",TRUE
+"summary-means.csv","1 all primary high mean_abs_cell_error","13.027641570512747","13.027641570512699",TRUE
+"summary-means.csv","1 all primary high mean_coverage","0.4737061789697099","0.47370617896971001",TRUE
+"summary-means.csv","2 all primary high communities","9","9",TRUE
+"summary-means.csv","2 all primary high mean_signed_error","-12.150123087243381","-12.150123087243401",TRUE
+"summary-means.csv","2 all primary high mean_abs_signed_error","12.150123087243381","12.150123087243401",TRUE
+"summary-means.csv","2 all primary high mean_abs_cell_error","12.219055034857517","12.219055034857501",TRUE
+"summary-means.csv","2 all primary high mean_coverage","0.52475010187644933","0.52475010187644899",TRUE
+"summary-means.csv","3 all primary high communities","9","9",TRUE
+"summary-means.csv","3 all primary high mean_signed_error","-11.983426153973637","-11.9834261539736",TRUE
+"summary-means.csv","3 all primary high mean_abs_signed_error","11.983426153973637","11.9834261539736",TRUE
+"summary-means.csv","3 all primary high mean_abs_cell_error","12.060521543082315","12.060521543082301",TRUE
+"summary-means.csv","3 all primary high mean_coverage","0.53725221037476889","0.537252210374769",TRUE
+"summary-means.csv","5 all primary high communities","9","9",TRUE
+"summary-means.csv","5 all primary high mean_signed_error","-11.883339197986128","-11.8833391979861",TRUE
+"summary-means.csv","5 all primary high mean_abs_signed_error","11.883339197986128","11.8833391979861",TRUE
+"summary-means.csv","5 all primary high mean_abs_cell_error","11.965034092975062","11.965034092975101",TRUE
+"summary-means.csv","5 all primary high mean_coverage","0.54507216608991627","0.54507216608991604",TRUE
+"summary-means.csv","1 all primary low communities","9","9",TRUE
+"summary-means.csv","1 all primary low mean_signed_error","5.0613088120901253","5.0613088120901297",TRUE
+"summary-means.csv","1 all primary low mean_abs_signed_error","5.0613088120901253","5.0613088120901297",TRUE
+"summary-means.csv","1 all primary low mean_abs_cell_error","5.6920623460651765","5.69206234606518",TRUE
+"summary-means.csv","1 all primary low mean_coverage","0.45259471044537608","0.45259471044537603",TRUE
+"summary-means.csv","2 all primary low communities","9","9",TRUE
+"summary-means.csv","2 all primary low mean_signed_error","3.2471167003040642","3.2471167003040602",TRUE
+"summary-means.csv","2 all primary low mean_abs_signed_error","3.2471167003040642","3.2471167003040602",TRUE
+"summary-means.csv","2 all primary low mean_abs_cell_error","4.3612451109466308","4.3612451109466299",TRUE
+"summary-means.csv","2 all primary low mean_coverage","0.68822372239925145","0.688223722399251",TRUE
+"summary-means.csv","3 all primary low communities","9","9",TRUE
+"summary-means.csv","3 all primary low mean_signed_error","2.8396819797767314","2.8396819797767301",TRUE
+"summary-means.csv","3 all primary low mean_abs_signed_error","2.8396819797767314","2.8396819797767301",TRUE
+"summary-means.csv","3 all primary low mean_abs_cell_error","4.1445589370751641","4.1445589370751597",TRUE
+"summary-means.csv","3 all primary low mean_coverage","0.73025679734263627","0.73025679734263604",TRUE
+"summary-means.csv","5 all primary low communities","9","9",TRUE
+"summary-means.csv","5 all primary low mean_signed_error","2.6062086580454999","2.6062086580454999",TRUE
+"summary-means.csv","5 all primary low mean_abs_signed_error","2.6062086580454999","2.6062086580454999",TRUE
+"summary-means.csv","5 all primary low mean_abs_cell_error","4.0636513802944814","4.0636513802944796",TRUE
+"summary-means.csv","5 all primary low mean_coverage","0.73462550062541376","0.73462550062541399",TRUE
+"summary-means.csv","1 all primary middle communities","9","9",TRUE
+"summary-means.csv","1 all primary middle mean_signed_error","-0.8158896946261055","-0.81588969462610506",TRUE
+"summary-means.csv","1 all primary middle mean_abs_signed_error","1.6121661083097025","1.6121661083097001",TRUE
+"summary-means.csv","1 all primary middle mean_abs_cell_error","13.665263097236805","13.665263097236799",TRUE
+"summary-means.csv","1 all primary middle mean_coverage","0.68240163966598333","0.682401639665983",TRUE
+"summary-means.csv","2 all primary middle communities","9","9",TRUE
+"summary-means.csv","2 all primary middle mean_signed_error","-0.90096009495323881","-0.90096009495323903",TRUE
+"summary-means.csv","2 all primary middle mean_abs_signed_error","1.678804022178086","1.67880402217809",TRUE
+"summary-means.csv","2 all primary middle mean_abs_cell_error","14.273193610718277","14.2731936107183",TRUE
+"summary-means.csv","2 all primary middle mean_coverage","0.6687172981797721","0.66871729817977199",TRUE
+"summary-means.csv","3 all primary middle communities","9","9",TRUE
+"summary-means.csv","3 all primary middle mean_signed_error","-0.91496899727753733","-0.914968997277537",TRUE
+"summary-means.csv","3 all primary middle mean_abs_signed_error","1.687238571384392","1.68723857138439",TRUE
+"summary-means.csv","3 all primary middle mean_abs_cell_error","14.393961401562359","14.3939614015624",TRUE
+"summary-means.csv","3 all primary middle mean_coverage","0.66611001901976064","0.66611001901976097",TRUE
+"summary-means.csv","5 all primary middle communities","9","9",TRUE
+"summary-means.csv","5 all primary middle mean_signed_error","-0.92234824757811962","-0.92234824757811995",TRUE
+"summary-means.csv","5 all primary middle mean_abs_signed_error","1.6978590085784138","1.69785900857841",TRUE
+"summary-means.csv","5 all primary middle mean_abs_cell_error","14.460884872120859","14.4608848721209",TRUE
+"summary-means.csv","5 all primary middle mean_coverage","0.66397235689608969","0.66397235689609002",TRUE
+"summary-means.csv","1 all primary prevalence_1pct communities","9","9",TRUE
+"summary-means.csv","1 all primary prevalence_1pct mean_signed_error","3.3799104588101652","3.37991045881017",TRUE
+"summary-means.csv","1 all primary prevalence_1pct mean_abs_signed_error","3.3799104588101652","3.37991045881017",TRUE
+"summary-means.csv","1 all primary prevalence_1pct mean_abs_cell_error","3.488301852151217","3.4883018521512201",TRUE
+"summary-means.csv","1 all primary prevalence_1pct mean_coverage","0.30111111111111111","0.301111111111111",TRUE
+"summary-means.csv","2 all primary prevalence_1pct communities","9","9",TRUE
+"summary-means.csv","2 all primary prevalence_1pct mean_signed_error","1.1741290405356497","1.1741290405356499",TRUE
+"summary-means.csv","2 all primary prevalence_1pct mean_abs_signed_error","1.1741290405356497","1.1741290405356499",TRUE
+"summary-means.csv","2 all primary prevalence_1pct mean_abs_cell_error","1.6043099290377598","1.60430992903776",TRUE
+"summary-means.csv","2 all primary prevalence_1pct mean_coverage","0.74555555555555553","0.74555555555555597",TRUE
+"summary-means.csv","3 all primary prevalence_1pct communities","9","9",TRUE
+"summary-means.csv","3 all primary prevalence_1pct mean_signed_error","0.653252301828673","0.653252301828673",TRUE
+"summary-means.csv","3 all primary prevalence_1pct mean_abs_signed_error","0.80178969709385783","0.80178969709385794",TRUE
+"summary-means.csv","3 all primary prevalence_1pct mean_abs_cell_error","1.3052475190377084","1.30524751903771",TRUE
+"summary-means.csv","3 all primary prevalence_1pct mean_coverage","0.81499999999999995","0.81499999999999995",TRUE
+"summary-means.csv","5 all primary prevalence_1pct communities","9","9",TRUE
+"summary-means.csv","5 all primary prevalence_1pct mean_signed_error","0.33782426744944166","0.337824267449442",TRUE
+"summary-means.csv","5 all primary prevalence_1pct mean_abs_signed_error","0.7061701582961013","0.70617015829610097",TRUE
+"summary-means.csv","5 all primary prevalence_1pct mean_abs_cell_error","1.2149605602215903","1.21496056022159",TRUE
+"summary-means.csv","5 all primary prevalence_1pct mean_coverage","0.81444444444444442","0.81444444444444397",TRUE
+"summary-means.csv","1 all primary prevalence_25pct communities","9","9",TRUE
+"summary-means.csv","1 all primary prevalence_25pct mean_signed_error","-0.71904771374269116","-0.71904771374269105",TRUE
+"summary-means.csv","1 all primary prevalence_25pct mean_abs_signed_error","2.1666010379621694","2.1666010379621699",TRUE
+"summary-means.csv","1 all primary prevalence_25pct mean_abs_cell_error","13.083502928434468","13.0835029284345",TRUE
+"summary-means.csv","1 all primary prevalence_25pct mean_coverage","0.59611111111111115","0.59611111111111104",TRUE
+"summary-means.csv","2 all primary prevalence_25pct communities","9","9",TRUE
+"summary-means.csv","2 all primary prevalence_25pct mean_signed_error","-1.6264351202772394","-1.62643512027724",TRUE
+"summary-means.csv","2 all primary prevalence_25pct mean_abs_signed_error","2.7439158325356461","2.7439158325356501",TRUE
+"summary-means.csv","2 all primary prevalence_25pct mean_abs_cell_error","13.008757922642991","13.008757922642999",TRUE
+"summary-means.csv","2 all primary prevalence_25pct mean_coverage","0.61722222222222223","0.61722222222222201",TRUE
+"summary-means.csv","3 all primary prevalence_25pct communities","9","9",TRUE
+"summary-means.csv","3 all primary prevalence_25pct mean_signed_error","-1.8009693298900404","-1.80096932989004",TRUE
+"summary-means.csv","3 all primary prevalence_25pct mean_abs_signed_error","2.8553926327243415","2.8553926327243402",TRUE
+"summary-means.csv","3 all primary prevalence_25pct mean_abs_cell_error","12.993225816558772","12.9932258165588",TRUE
+"summary-means.csv","3 all primary prevalence_25pct mean_coverage","0.62333333333333329","0.62333333333333296",TRUE
+"summary-means.csv","5 all primary prevalence_25pct communities","9","9",TRUE
+"summary-means.csv","5 all primary prevalence_25pct mean_signed_error","-1.8948141047611786","-1.89481410476118",TRUE
+"summary-means.csv","5 all primary prevalence_25pct mean_abs_signed_error","2.9162319790019575","2.9162319790019602",TRUE
+"summary-means.csv","5 all primary prevalence_25pct mean_abs_cell_error","12.986937127368314","12.9869371273683",TRUE
+"summary-means.csv","5 all primary prevalence_25pct mean_coverage","0.62333333333333329","0.62333333333333296",TRUE
+"summary-means.csv","1 all primary prevalence_5pct communities","9","9",TRUE
+"summary-means.csv","1 all primary prevalence_5pct mean_signed_error","2.8469497805766339","2.84694978057663",TRUE
+"summary-means.csv","1 all primary prevalence_5pct mean_abs_signed_error","2.8469497805766339","2.84694978057663",TRUE
+"summary-means.csv","1 all primary prevalence_5pct mean_abs_cell_error","5.2654582868868092","5.2654582868868101",TRUE
+"summary-means.csv","1 all primary prevalence_5pct mean_coverage","0.55833333333333335","0.55833333333333302",TRUE
+"summary-means.csv","2 all primary prevalence_5pct communities","9","9",TRUE
+"summary-means.csv","2 all primary prevalence_5pct mean_signed_error","0.97363350361971224","0.97363350361971202",TRUE
+"summary-means.csv","2 all primary prevalence_5pct mean_abs_signed_error","1.307823563022865","1.3078235630228601",TRUE
+"summary-means.csv","2 all primary prevalence_5pct mean_abs_cell_error","4.3245461412114867","4.3245461412114903",TRUE
+"summary-means.csv","2 all primary prevalence_5pct mean_coverage","0.66500000000000004","0.66500000000000004",TRUE
+"summary-means.csv","3 all primary prevalence_5pct communities","9","9",TRUE
+"summary-means.csv","3 all primary prevalence_5pct mean_signed_error","0.56656544210544579","0.56656544210544602",TRUE
+"summary-means.csv","3 all primary prevalence_5pct mean_abs_signed_error","1.1986760495432029","1.1986760495432001",TRUE
+"summary-means.csv","3 all primary prevalence_5pct mean_abs_cell_error","4.1794854417400522","4.1794854417400504",TRUE
+"summary-means.csv","3 all primary prevalence_5pct mean_coverage","0.69222222222222218","0.69222222222222196",TRUE
+"summary-means.csv","5 all primary prevalence_5pct communities","9","9",TRUE
+"summary-means.csv","5 all primary prevalence_5pct mean_signed_error","0.34843620393553471","0.34843620393553498",TRUE
+"summary-means.csv","5 all primary prevalence_5pct mean_abs_signed_error","1.1424762006056897","1.1424762006056901",TRUE
+"summary-means.csv","5 all primary prevalence_5pct mean_abs_cell_error","4.1170421260561465","4.1170421260561501",TRUE
+"summary-means.csv","5 all primary prevalence_5pct mean_coverage","0.70111111111111113","0.70111111111111102",TRUE
+"summary-means.csv","1 all primary prevalence_75pct communities","9","9",TRUE
+"summary-means.csv","1 all primary prevalence_75pct mean_signed_error","-0.20481124006986667","-0.20481124006986701",TRUE
+"summary-means.csv","1 all primary prevalence_75pct mean_abs_signed_error","1.7637320494075572","1.7637320494075599",TRUE
+"summary-means.csv","1 all primary prevalence_75pct mean_abs_cell_error","12.913807811980199","12.913807811980201",TRUE
+"summary-means.csv","1 all primary prevalence_75pct mean_coverage","0.60944444444444446","0.60944444444444401",TRUE
+"summary-means.csv","2 all primary prevalence_75pct communities","9","9",TRUE
+"summary-means.csv","2 all primary prevalence_75pct mean_signed_error","0.63710905160958531","0.63710905160958498",TRUE
+"summary-means.csv","2 all primary prevalence_75pct mean_abs_signed_error","1.8939451953829398","1.89394519538294",TRUE
+"summary-means.csv","2 all primary prevalence_75pct mean_abs_cell_error","12.800995167347859","12.800995167347899",TRUE
+"summary-means.csv","2 all primary prevalence_75pct mean_coverage","0.62611111111111106","0.62611111111111095",TRUE
+"summary-means.csv","3 all primary prevalence_75pct communities","9","9",TRUE
+"summary-means.csv","3 all primary prevalence_75pct mean_signed_error","0.80374754950266936","0.80374754950266902",TRUE
+"summary-means.csv","3 all primary prevalence_75pct mean_abs_signed_error","1.915922489768243","1.9159224897682401",TRUE
+"summary-means.csv","3 all primary prevalence_75pct mean_abs_cell_error","12.780774062992647","12.780774062992601",TRUE
+"summary-means.csv","3 all primary prevalence_75pct mean_coverage","0.63","0.63",TRUE
+"summary-means.csv","5 all primary prevalence_75pct communities","9","9",TRUE
+"summary-means.csv","5 all primary prevalence_75pct mean_signed_error","0.89852688307716655","0.89852688307716699",TRUE
+"summary-means.csv","5 all primary prevalence_75pct mean_abs_signed_error","1.9320740161470591","1.93207401614706",TRUE
+"summary-means.csv","5 all primary prevalence_75pct mean_abs_cell_error","12.765514243716538","12.765514243716501",TRUE
+"summary-means.csv","5 all primary prevalence_75pct mean_coverage","0.63388888888888884","0.63388888888888895",TRUE
+"summary-means.csv","1 all primary rare_1_5pct communities","9","9",TRUE
+"summary-means.csv","1 all primary rare_1_5pct mean_signed_error","3.1134301196933993","3.1134301196933998",TRUE
+"summary-means.csv","1 all primary rare_1_5pct mean_abs_signed_error","3.1134301196933993","3.1134301196933998",TRUE
+"summary-means.csv","1 all primary rare_1_5pct mean_abs_cell_error","4.3768800695190127","4.37688006951901",TRUE
+"summary-means.csv","1 all primary rare_1_5pct mean_coverage","0.42972222222222223","0.42972222222222201",TRUE
+"summary-means.csv","2 all primary rare_1_5pct communities","9","9",TRUE
+"summary-means.csv","2 all primary rare_1_5pct mean_signed_error","1.0738812720776809","1.07388127207768",TRUE
+"summary-means.csv","2 all primary rare_1_5pct mean_abs_signed_error","1.1269745367869586","1.1269745367869599",TRUE
+"summary-means.csv","2 all primary rare_1_5pct mean_abs_cell_error","2.9644280351246235","2.9644280351246199",TRUE
+"summary-means.csv","2 all primary rare_1_5pct mean_coverage","0.70527777777777778","0.705277777777778",TRUE
+"summary-means.csv","3 all primary rare_1_5pct communities","9","9",TRUE
+"summary-means.csv","3 all primary rare_1_5pct mean_signed_error","0.60990887196705945","0.60990887196706001",TRUE
+"summary-means.csv","3 all primary rare_1_5pct mean_abs_signed_error","0.88515520754186028","0.88515520754185995",TRUE
+"summary-means.csv","3 all primary rare_1_5pct mean_abs_cell_error","2.7423664803888803","2.7423664803888799",TRUE
+"summary-means.csv","3 all primary rare_1_5pct mean_coverage","0.75361111111111112","0.75361111111111101",TRUE
+"summary-means.csv","5 all primary rare_1_5pct communities","9","9",TRUE
+"summary-means.csv","5 all primary rare_1_5pct mean_signed_error","0.34313023569248824","0.34313023569248802",TRUE
+"summary-means.csv","5 all primary rare_1_5pct mean_abs_signed_error","0.76296289102478643","0.76296289102478598",TRUE
+"summary-means.csv","5 all primary rare_1_5pct mean_abs_cell_error","2.6660013431388681","2.6660013431388698",TRUE
+"summary-means.csv","5 all primary rare_1_5pct mean_coverage","0.75777777777777777","0.75777777777777799",TRUE
+"b0-means.csv","row set","1 all; 2 all; 3 all; 5 all","1 all; 2 all; 3 all; 5 all",TRUE
+"b0-means.csv","1 all communities","9","9",TRUE
+"b0-means.csv","1 all mean_b0_bias","0.67213639296875993","0.67213639296876004",TRUE
+"b0-means.csv","1 all mean_b0_abs_bias","0.7949076197934174","0.79490761979341695",TRUE
+"b0-means.csv","1 all mean_b0_coverage","0.54166666666666663","0.54166666666666696",TRUE
+"b0-means.csv","2 all communities","9","9",TRUE
+"b0-means.csv","2 all mean_b0_bias","0.32793768435349713","0.32793768435349702",TRUE
+"b0-means.csv","2 all mean_b0_abs_bias","0.46940506679231853","0.46940506679231903",TRUE
+"b0-means.csv","2 all mean_b0_coverage","0.83333333333333337","0.83333333333333304",TRUE
+"b0-means.csv","3 all communities","9","9",TRUE
+"b0-means.csv","3 all mean_b0_bias","0.15593816412225825","0.155938164122258",TRUE
+"b0-means.csv","3 all mean_b0_abs_bias","0.46239336366173212","0.462393363661732",TRUE
+"b0-means.csv","3 all mean_b0_coverage","0.86111111111111116","0.86111111111111105",TRUE
+"b0-means.csv","5 all communities","9","9",TRUE
+"b0-means.csv","5 all mean_b0_bias","-0.074525104726151314","-0.074525104726151301",TRUE
+"b0-means.csv","5 all mean_b0_abs_bias","0.61537149122631851","0.61537149122631896",TRUE
+"b0-means.csv","5 all mean_b0_coverage","0.91666666666666663","0.91666666666666696",TRUE
+"convergence.csv","row set","1 all; 2 all; 3 all; 5 all","1 all; 2 all; 3 all; 5 all",TRUE
+"convergence.csv","1 all selected_fits","9","9",TRUE
+"convergence.csv","1 all selected_flagged","0","0",TRUE
+"convergence.csv","1 all first_flagged","NA","NA",TRUE
+"convergence.csv","1 all long_repeats","NA","NA",TRUE
+"convergence.csv","1 all missing_fits","0","0",TRUE
+"convergence.csv","2 all selected_fits","9","9",TRUE
+"convergence.csv","2 all selected_flagged","0","0",TRUE
+"convergence.csv","2 all first_flagged","0","0",TRUE
+"convergence.csv","2 all long_repeats","0","0",TRUE
+"convergence.csv","2 all missing_fits","0","0",TRUE
+"convergence.csv","3 all selected_fits","9","9",TRUE
+"convergence.csv","3 all selected_flagged","0","0",TRUE
+"convergence.csv","3 all first_flagged","0","0",TRUE
+"convergence.csv","3 all long_repeats","0","0",TRUE
+"convergence.csv","3 all missing_fits","0","0",TRUE
+"convergence.csv","5 all selected_fits","9","9",TRUE
+"convergence.csv","5 all selected_flagged","0","0",TRUE
+"convergence.csv","5 all first_flagged","0","0",TRUE
+"convergence.csv","5 all long_repeats","0","0",TRUE
+"convergence.csv","5 all missing_fits","0","0",TRUE
+"gate-detail.csv","row set","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all; c4 flags all","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all; c4 flags all",TRUE
+"gate-detail.csv","c1 low all communities","9","9",TRUE
+"gate-detail.csv","c1 low all needed","6","6",TRUE
+"gate-detail.csv","c1 low all improved","9","9",TRUE
+"gate-detail.csv","c1 low all value_new","3.2471167003040642","3.2471167003040602",TRUE
+"gate-detail.csv","c1 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate-detail.csv","c1 low all statistic","-1.8141921117860611","-1.81419211178606",TRUE
+"gate-detail.csv","c1 low all missing_new","NA","NA",TRUE
+"gate-detail.csv","c1 low all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c1 low all tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c1 rare_1_5pct all communities","9","9",TRUE
+"gate-detail.csv","c1 rare_1_5pct all needed","6","6",TRUE
+"gate-detail.csv","c1 rare_1_5pct all improved","9","9",TRUE
+"gate-detail.csv","c1 rare_1_5pct all value_new","1.1269745367869586","1.1269745367869599",TRUE
+"gate-detail.csv","c1 rare_1_5pct all value_control","3.1134301196933993","3.1134301196933998",TRUE
+"gate-detail.csv","c1 rare_1_5pct all statistic","-1.9864555829064408","-1.9864555829064401",TRUE
+"gate-detail.csv","c1 rare_1_5pct all missing_new","NA","NA",TRUE
+"gate-detail.csv","c1 rare_1_5pct all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c1 rare_1_5pct all tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c2 low all communities","9","9",TRUE
+"gate-detail.csv","c2 low all needed","NA","NA",TRUE
+"gate-detail.csv","c2 low all improved","NA","NA",TRUE
+"gate-detail.csv","c2 low all value_new","3.2471167003040642","3.2471167003040602",TRUE
+"gate-detail.csv","c2 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate-detail.csv","c2 low all statistic","-1.8141921117860611","-1.81419211178606",TRUE
+"gate-detail.csv","c2 low all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 low all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 low all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle all communities","9","9",TRUE
+"gate-detail.csv","c2 middle all needed","NA","NA",TRUE
+"gate-detail.csv","c2 middle all improved","NA","NA",TRUE
+"gate-detail.csv","c2 middle all value_new","1.678804022178086","1.67880402217809",TRUE
+"gate-detail.csv","c2 middle all value_control","1.6121661083097025","1.6121661083097001",TRUE
+"gate-detail.csv","c2 middle all statistic","0.066637913868383469","0.066637913868383497",TRUE
+"gate-detail.csv","c2 middle all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 middle all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 high all communities","9","9",TRUE
+"gate-detail.csv","c2 high all needed","NA","NA",TRUE
+"gate-detail.csv","c2 high all improved","NA","NA",TRUE
+"gate-detail.csv","c2 high all value_new","12.150123087243381","12.150123087243401",TRUE
+"gate-detail.csv","c2 high all value_control","12.987365848762913","12.9873658487629",TRUE
+"gate-detail.csv","c2 high all statistic","-0.8372427615195317","-0.83724276151953203",TRUE
+"gate-detail.csv","c2 high all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 high all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 high all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 mae all communities","9","9",TRUE
+"gate-detail.csv","c2 mae all needed","NA","NA",TRUE
+"gate-detail.csv","c2 mae all improved","NA","NA",TRUE
+"gate-detail.csv","c2 mae all value_new","7.9346522900600229","7.9346522900600203",TRUE
+"gate-detail.csv","c2 mae all value_control","8.6877677198631726","8.6877677198631709",TRUE
+"gate-detail.csv","c2 mae all statistic","-0.75311542980314972","-0.75311542980315005",TRUE
+"gate-detail.csv","c2 mae all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 mae all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 mae all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 low all communities","9","9",TRUE
+"gate-detail.csv","c3 low all needed","NA","NA",TRUE
+"gate-detail.csv","c3 low all improved","NA","NA",TRUE
+"gate-detail.csv","c3 low all value_new","0.68822372239925145","0.688223722399251",TRUE
+"gate-detail.csv","c3 low all value_control","0.45259471044537608","0.45259471044537603",TRUE
+"gate-detail.csv","c3 low all statistic","-0.23562901195387537","-0.23562901195387501",TRUE
+"gate-detail.csv","c3 low all missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 low all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 low all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 middle all communities","9","9",TRUE
+"gate-detail.csv","c3 middle all needed","NA","NA",TRUE
+"gate-detail.csv","c3 middle all improved","NA","NA",TRUE
+"gate-detail.csv","c3 middle all value_new","0.6687172981797721","0.66871729817977199",TRUE
+"gate-detail.csv","c3 middle all value_control","0.68240163966598333","0.682401639665983",TRUE
+"gate-detail.csv","c3 middle all statistic","0.013684341486211227","0.013684341486211201",TRUE
+"gate-detail.csv","c3 middle all missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 middle all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 high all communities","9","9",TRUE
+"gate-detail.csv","c3 high all needed","NA","NA",TRUE
+"gate-detail.csv","c3 high all improved","NA","NA",TRUE
+"gate-detail.csv","c3 high all value_new","0.52475010187644933","0.52475010187644899",TRUE
+"gate-detail.csv","c3 high all value_control","0.4737061789697099","0.47370617896971001",TRUE
+"gate-detail.csv","c3 high all statistic","-0.051043922906739425","-0.051043922906739397",TRUE
+"gate-detail.csv","c3 high all missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 high all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 high all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags all communities","NA","NA",TRUE
+"gate-detail.csv","c4 flags all needed","NA","NA",TRUE
+"gate-detail.csv","c4 flags all improved","NA","NA",TRUE
+"gate-detail.csv","c4 flags all value_new","0","0",TRUE
+"gate-detail.csv","c4 flags all value_control","0","0",TRUE
+"gate-detail.csv","c4 flags all statistic","0","0",TRUE
+"gate-detail.csv","c4 flags all missing_new","0","0",TRUE
+"gate-detail.csv","c4 flags all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c4 flags all tolerance_decisive","NA","NA",TRUE
+"gate.csv","SD 2 columns","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c1_rare_1_5pct_communities c1_rare_1_5pct_improved c1_rare_1_5pct_mean_control c1_rare_1_5pct_mean_new c1_rare_1_5pct_needed c1_rare_1_5pct_pass c2_high_all_control c2_high_all_diff c2_high_all_new c2_high_all_pass c2_low_all_control c2_low_all_diff c2_low_all_new c2_low_all_pass c2_mae_all_control c2_mae_all_diff c2_mae_all_new c2_mae_all_pass c2_middle_all_control c2_middle_all_diff c2_middle_all_new c2_middle_all_pass c2_pass c3_high_all_control c3_high_all_drop c3_high_all_new c3_high_all_pass c3_low_all_control c3_low_all_drop c3_low_all_new c3_low_all_pass c3_middle_all_control c3_middle_all_drop c3_middle_all_new c3_middle_all_pass c3_pass c4_all_flagged_control c4_all_flagged_new c4_all_missing_new c4_all_pass c4_pass result","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c1_rare_1_5pct_communities c1_rare_1_5pct_improved c1_rare_1_5pct_mean_control c1_rare_1_5pct_mean_new c1_rare_1_5pct_needed c1_rare_1_5pct_pass c2_high_all_control c2_high_all_diff c2_high_all_new c2_high_all_pass c2_low_all_control c2_low_all_diff c2_low_all_new c2_low_all_pass c2_mae_all_control c2_mae_all_diff c2_mae_all_new c2_mae_all_pass c2_middle_all_control c2_middle_all_diff c2_middle_all_new c2_middle_all_pass c2_pass c3_high_all_control c3_high_all_drop c3_high_all_new c3_high_all_pass c3_low_all_control c3_low_all_drop c3_low_all_new c3_low_all_pass c3_middle_all_control c3_middle_all_drop c3_middle_all_new c3_middle_all_pass c3_pass c4_all_flagged_control c4_all_flagged_new c4_all_missing_new c4_all_pass c4_pass result",TRUE
+"gate.csv","SD 2 c1_low_communities","9","9",TRUE
+"gate.csv","SD 2 c1_low_improved","9","9",TRUE
+"gate.csv","SD 2 c1_low_needed","6","6",TRUE
+"gate.csv","SD 2 c1_low_mean_new","3.2471167003040642","3.2471167003040602",TRUE
+"gate.csv","SD 2 c1_low_mean_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate.csv","SD 2 c1_low_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c1_rare_1_5pct_communities","9","9",TRUE
+"gate.csv","SD 2 c1_rare_1_5pct_improved","9","9",TRUE
+"gate.csv","SD 2 c1_rare_1_5pct_needed","6","6",TRUE
+"gate.csv","SD 2 c1_rare_1_5pct_mean_new","1.1269745367869586","1.1269745367869599",TRUE
+"gate.csv","SD 2 c1_rare_1_5pct_mean_control","3.1134301196933993","3.1134301196933998",TRUE
+"gate.csv","SD 2 c1_rare_1_5pct_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_low_all_new","3.2471167003040642","3.2471167003040602",TRUE
+"gate.csv","SD 2 c2_low_all_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate.csv","SD 2 c2_low_all_diff","-1.8141921117860611","-1.81419211178606",TRUE
+"gate.csv","SD 2 c2_low_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_middle_all_new","1.678804022178086","1.67880402217809",TRUE
+"gate.csv","SD 2 c2_middle_all_control","1.6121661083097025","1.6121661083097001",TRUE
+"gate.csv","SD 2 c2_middle_all_diff","0.066637913868383469","0.066637913868383497",TRUE
+"gate.csv","SD 2 c2_middle_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_high_all_new","12.150123087243381","12.150123087243401",TRUE
+"gate.csv","SD 2 c2_high_all_control","12.987365848762913","12.9873658487629",TRUE
+"gate.csv","SD 2 c2_high_all_diff","-0.8372427615195317","-0.83724276151953203",TRUE
+"gate.csv","SD 2 c2_high_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_mae_all_new","7.9346522900600229","7.9346522900600203",TRUE
+"gate.csv","SD 2 c2_mae_all_control","8.6877677198631726","8.6877677198631709",TRUE
+"gate.csv","SD 2 c2_mae_all_diff","-0.75311542980314972","-0.75311542980315005",TRUE
+"gate.csv","SD 2 c2_mae_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_low_all_new","0.68822372239925145","0.688223722399251",TRUE
+"gate.csv","SD 2 c3_low_all_control","0.45259471044537608","0.45259471044537603",TRUE
+"gate.csv","SD 2 c3_low_all_drop","-0.23562901195387537","-0.23562901195387501",TRUE
+"gate.csv","SD 2 c3_low_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_middle_all_new","0.6687172981797721","0.66871729817977199",TRUE
+"gate.csv","SD 2 c3_middle_all_control","0.68240163966598333","0.682401639665983",TRUE
+"gate.csv","SD 2 c3_middle_all_drop","0.013684341486211227","0.013684341486211201",TRUE
+"gate.csv","SD 2 c3_middle_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_high_all_new","0.52475010187644933","0.52475010187644899",TRUE
+"gate.csv","SD 2 c3_high_all_control","0.4737061789697099","0.47370617896971001",TRUE
+"gate.csv","SD 2 c3_high_all_drop","-0.051043922906739425","-0.051043922906739397",TRUE
+"gate.csv","SD 2 c3_high_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c4_all_flagged_new","0","0",TRUE
+"gate.csv","SD 2 c4_all_flagged_control","0","0",TRUE
+"gate.csv","SD 2 c4_all_missing_new","0","0",TRUE
+"gate.csv","SD 2 c4_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c1_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c4_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 result","PASS","PASS",TRUE
+"schedule-matched.csv","row set","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all",TRUE
+"schedule-matched.csv","c1 low all communities","9","9",TRUE
+"schedule-matched.csv","c1 low all needed","6","6",TRUE
+"schedule-matched.csv","c1 low all improved","9","9",TRUE
+"schedule-matched.csv","c1 low all value_new","3.2471167003040642","3.2471167003040602",TRUE
+"schedule-matched.csv","c1 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"schedule-matched.csv","c1 low all statistic","-1.8141921117860611","-1.81419211178606",TRUE
+"schedule-matched.csv","c1 low all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c1 low all tolerance_decisive","NA","NA",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all communities","9","9",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all needed","6","6",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all improved","9","9",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all value_new","1.1269745367869586","1.1269745367869599",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all value_control","3.1134301196933993","3.1134301196933998",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all statistic","-1.9864555829064408","-1.9864555829064401",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all tolerance_decisive","NA","NA",TRUE
+"schedule-matched.csv","c2 low all communities","9","9",TRUE
+"schedule-matched.csv","c2 low all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 low all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 low all value_new","3.2471167003040642","3.2471167003040602",TRUE
+"schedule-matched.csv","c2 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"schedule-matched.csv","c2 low all statistic","-1.8141921117860611","-1.81419211178606",TRUE
+"schedule-matched.csv","c2 low all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 low all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle all communities","9","9",TRUE
+"schedule-matched.csv","c2 middle all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 middle all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 middle all value_new","1.678804022178086","1.67880402217809",TRUE
+"schedule-matched.csv","c2 middle all value_control","1.6121661083097025","1.6121661083097001",TRUE
+"schedule-matched.csv","c2 middle all statistic","0.066637913868383469","0.066637913868383497",TRUE
+"schedule-matched.csv","c2 middle all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 high all communities","9","9",TRUE
+"schedule-matched.csv","c2 high all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 high all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 high all value_new","12.150123087243381","12.150123087243401",TRUE
+"schedule-matched.csv","c2 high all value_control","12.987365848762913","12.9873658487629",TRUE
+"schedule-matched.csv","c2 high all statistic","-0.8372427615195317","-0.83724276151953203",TRUE
+"schedule-matched.csv","c2 high all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 high all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 mae all communities","9","9",TRUE
+"schedule-matched.csv","c2 mae all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 mae all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 mae all value_new","7.9346522900600229","7.9346522900600203",TRUE
+"schedule-matched.csv","c2 mae all value_control","8.6877677198631726","8.6877677198631709",TRUE
+"schedule-matched.csv","c2 mae all statistic","-0.75311542980314972","-0.75311542980315005",TRUE
+"schedule-matched.csv","c2 mae all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 mae all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 low all communities","9","9",TRUE
+"schedule-matched.csv","c3 low all needed","NA","NA",TRUE
+"schedule-matched.csv","c3 low all improved","NA","NA",TRUE
+"schedule-matched.csv","c3 low all value_new","0.68822372239925145","0.688223722399251",TRUE
+"schedule-matched.csv","c3 low all value_control","0.45259471044537608","0.45259471044537603",TRUE
+"schedule-matched.csv","c3 low all statistic","-0.23562901195387537","-0.23562901195387501",TRUE
+"schedule-matched.csv","c3 low all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 low all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 middle all communities","9","9",TRUE
+"schedule-matched.csv","c3 middle all needed","NA","NA",TRUE
+"schedule-matched.csv","c3 middle all improved","NA","NA",TRUE
+"schedule-matched.csv","c3 middle all value_new","0.6687172981797721","0.66871729817977199",TRUE
+"schedule-matched.csv","c3 middle all value_control","0.68240163966598333","0.682401639665983",TRUE
+"schedule-matched.csv","c3 middle all statistic","0.013684341486211227","0.013684341486211201",TRUE
+"schedule-matched.csv","c3 middle all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 high all communities","9","9",TRUE
+"schedule-matched.csv","c3 high all needed","NA","NA",TRUE
+"schedule-matched.csv","c3 high all improved","NA","NA",TRUE
+"schedule-matched.csv","c3 high all value_new","0.52475010187644933","0.52475010187644899",TRUE
+"schedule-matched.csv","c3 high all value_control","0.4737061789697099","0.47370617896971001",TRUE
+"schedule-matched.csv","c3 high all statistic","-0.051043922906739425","-0.051043922906739397",TRUE
+"schedule-matched.csv","c3 high all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 high all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","row set","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all; c4 flags all","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all; c4 flags all",TRUE
+"gate-detail.csv","c1 low all communities","9","9",TRUE
+"gate-detail.csv","c1 low all needed","6","6",TRUE
+"gate-detail.csv","c1 low all improved","9","9",TRUE
+"gate-detail.csv","c1 low all value_new","2.8396819797767314","2.8396819797767301",TRUE
+"gate-detail.csv","c1 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate-detail.csv","c1 low all statistic","-2.2216268323133939","-2.2216268323133899",TRUE
+"gate-detail.csv","c1 low all missing_new","NA","NA",TRUE
+"gate-detail.csv","c1 low all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c1 low all tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c1 rare_1_5pct all communities","9","9",TRUE
+"gate-detail.csv","c1 rare_1_5pct all needed","6","6",TRUE
+"gate-detail.csv","c1 rare_1_5pct all improved","9","9",TRUE
+"gate-detail.csv","c1 rare_1_5pct all value_new","0.88515520754186028","0.88515520754185995",TRUE
+"gate-detail.csv","c1 rare_1_5pct all value_control","3.1134301196933993","3.1134301196933998",TRUE
+"gate-detail.csv","c1 rare_1_5pct all statistic","-2.2282749121515391","-2.2282749121515399",TRUE
+"gate-detail.csv","c1 rare_1_5pct all missing_new","NA","NA",TRUE
+"gate-detail.csv","c1 rare_1_5pct all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c1 rare_1_5pct all tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c2 low all communities","9","9",TRUE
+"gate-detail.csv","c2 low all needed","NA","NA",TRUE
+"gate-detail.csv","c2 low all improved","NA","NA",TRUE
+"gate-detail.csv","c2 low all value_new","2.8396819797767314","2.8396819797767301",TRUE
+"gate-detail.csv","c2 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate-detail.csv","c2 low all statistic","-2.2216268323133939","-2.2216268323133899",TRUE
+"gate-detail.csv","c2 low all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 low all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 low all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle all communities","9","9",TRUE
+"gate-detail.csv","c2 middle all needed","NA","NA",TRUE
+"gate-detail.csv","c2 middle all improved","NA","NA",TRUE
+"gate-detail.csv","c2 middle all value_new","1.687238571384392","1.68723857138439",TRUE
+"gate-detail.csv","c2 middle all value_control","1.6121661083097025","1.6121661083097001",TRUE
+"gate-detail.csv","c2 middle all statistic","0.075072463074689511","0.075072463074689497",TRUE
+"gate-detail.csv","c2 middle all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 middle all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 high all communities","9","9",TRUE
+"gate-detail.csv","c2 high all needed","NA","NA",TRUE
+"gate-detail.csv","c2 high all improved","NA","NA",TRUE
+"gate-detail.csv","c2 high all value_new","11.983426153973637","11.9834261539736",TRUE
+"gate-detail.csv","c2 high all value_control","12.987365848762913","12.9873658487629",TRUE
+"gate-detail.csv","c2 high all statistic","-1.0039396947892758","-1.00393969478928",TRUE
+"gate-detail.csv","c2 high all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 high all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 high all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 mae all communities","9","9",TRUE
+"gate-detail.csv","c2 mae all needed","NA","NA",TRUE
+"gate-detail.csv","c2 mae all improved","NA","NA",TRUE
+"gate-detail.csv","c2 mae all value_new","7.8146832100822934","7.8146832100822898",TRUE
+"gate-detail.csv","c2 mae all value_control","8.6877677198631726","8.6877677198631709",TRUE
+"gate-detail.csv","c2 mae all statistic","-0.87308450978087926","-0.87308450978087904",TRUE
+"gate-detail.csv","c2 mae all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 mae all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 mae all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 low all communities","9","9",TRUE
+"gate-detail.csv","c3 low all needed","NA","NA",TRUE
+"gate-detail.csv","c3 low all improved","NA","NA",TRUE
+"gate-detail.csv","c3 low all value_new","0.73025679734263627","0.73025679734263604",TRUE
+"gate-detail.csv","c3 low all value_control","0.45259471044537608","0.45259471044537603",TRUE
+"gate-detail.csv","c3 low all statistic","-0.27766208689726019","-0.27766208689726002",TRUE
+"gate-detail.csv","c3 low all missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 low all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 low all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 middle all communities","9","9",TRUE
+"gate-detail.csv","c3 middle all needed","NA","NA",TRUE
+"gate-detail.csv","c3 middle all improved","NA","NA",TRUE
+"gate-detail.csv","c3 middle all value_new","0.66611001901976064","0.66611001901976097",TRUE
+"gate-detail.csv","c3 middle all value_control","0.68240163966598333","0.682401639665983",TRUE
+"gate-detail.csv","c3 middle all statistic","0.016291620646222693","0.0162916206462227",TRUE
+"gate-detail.csv","c3 middle all missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 middle all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 high all communities","9","9",TRUE
+"gate-detail.csv","c3 high all needed","NA","NA",TRUE
+"gate-detail.csv","c3 high all improved","NA","NA",TRUE
+"gate-detail.csv","c3 high all value_new","0.53725221037476889","0.537252210374769",TRUE
+"gate-detail.csv","c3 high all value_control","0.4737061789697099","0.47370617896971001",TRUE
+"gate-detail.csv","c3 high all statistic","-0.063546031405058989","-0.063546031405059003",TRUE
+"gate-detail.csv","c3 high all missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 high all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 high all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags all communities","NA","NA",TRUE
+"gate-detail.csv","c4 flags all needed","NA","NA",TRUE
+"gate-detail.csv","c4 flags all improved","NA","NA",TRUE
+"gate-detail.csv","c4 flags all value_new","0","0",TRUE
+"gate-detail.csv","c4 flags all value_control","0","0",TRUE
+"gate-detail.csv","c4 flags all statistic","0","0",TRUE
+"gate-detail.csv","c4 flags all missing_new","0","0",TRUE
+"gate-detail.csv","c4 flags all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c4 flags all tolerance_decisive","NA","NA",TRUE
+"gate.csv","SD 3 columns","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c1_rare_1_5pct_communities c1_rare_1_5pct_improved c1_rare_1_5pct_mean_control c1_rare_1_5pct_mean_new c1_rare_1_5pct_needed c1_rare_1_5pct_pass c2_high_all_control c2_high_all_diff c2_high_all_new c2_high_all_pass c2_low_all_control c2_low_all_diff c2_low_all_new c2_low_all_pass c2_mae_all_control c2_mae_all_diff c2_mae_all_new c2_mae_all_pass c2_middle_all_control c2_middle_all_diff c2_middle_all_new c2_middle_all_pass c2_pass c3_high_all_control c3_high_all_drop c3_high_all_new c3_high_all_pass c3_low_all_control c3_low_all_drop c3_low_all_new c3_low_all_pass c3_middle_all_control c3_middle_all_drop c3_middle_all_new c3_middle_all_pass c3_pass c4_all_flagged_control c4_all_flagged_new c4_all_missing_new c4_all_pass c4_pass result","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c1_rare_1_5pct_communities c1_rare_1_5pct_improved c1_rare_1_5pct_mean_control c1_rare_1_5pct_mean_new c1_rare_1_5pct_needed c1_rare_1_5pct_pass c2_high_all_control c2_high_all_diff c2_high_all_new c2_high_all_pass c2_low_all_control c2_low_all_diff c2_low_all_new c2_low_all_pass c2_mae_all_control c2_mae_all_diff c2_mae_all_new c2_mae_all_pass c2_middle_all_control c2_middle_all_diff c2_middle_all_new c2_middle_all_pass c2_pass c3_high_all_control c3_high_all_drop c3_high_all_new c3_high_all_pass c3_low_all_control c3_low_all_drop c3_low_all_new c3_low_all_pass c3_middle_all_control c3_middle_all_drop c3_middle_all_new c3_middle_all_pass c3_pass c4_all_flagged_control c4_all_flagged_new c4_all_missing_new c4_all_pass c4_pass result",TRUE
+"gate.csv","SD 3 c1_low_communities","9","9",TRUE
+"gate.csv","SD 3 c1_low_improved","9","9",TRUE
+"gate.csv","SD 3 c1_low_needed","6","6",TRUE
+"gate.csv","SD 3 c1_low_mean_new","2.8396819797767314","2.8396819797767301",TRUE
+"gate.csv","SD 3 c1_low_mean_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate.csv","SD 3 c1_low_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c1_rare_1_5pct_communities","9","9",TRUE
+"gate.csv","SD 3 c1_rare_1_5pct_improved","9","9",TRUE
+"gate.csv","SD 3 c1_rare_1_5pct_needed","6","6",TRUE
+"gate.csv","SD 3 c1_rare_1_5pct_mean_new","0.88515520754186028","0.88515520754185995",TRUE
+"gate.csv","SD 3 c1_rare_1_5pct_mean_control","3.1134301196933993","3.1134301196933998",TRUE
+"gate.csv","SD 3 c1_rare_1_5pct_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_low_all_new","2.8396819797767314","2.8396819797767301",TRUE
+"gate.csv","SD 3 c2_low_all_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate.csv","SD 3 c2_low_all_diff","-2.2216268323133939","-2.2216268323133899",TRUE
+"gate.csv","SD 3 c2_low_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_middle_all_new","1.687238571384392","1.68723857138439",TRUE
+"gate.csv","SD 3 c2_middle_all_control","1.6121661083097025","1.6121661083097001",TRUE
+"gate.csv","SD 3 c2_middle_all_diff","0.075072463074689511","0.075072463074689497",TRUE
+"gate.csv","SD 3 c2_middle_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_high_all_new","11.983426153973637","11.9834261539736",TRUE
+"gate.csv","SD 3 c2_high_all_control","12.987365848762913","12.9873658487629",TRUE
+"gate.csv","SD 3 c2_high_all_diff","-1.0039396947892758","-1.00393969478928",TRUE
+"gate.csv","SD 3 c2_high_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_mae_all_new","7.8146832100822934","7.8146832100822898",TRUE
+"gate.csv","SD 3 c2_mae_all_control","8.6877677198631726","8.6877677198631709",TRUE
+"gate.csv","SD 3 c2_mae_all_diff","-0.87308450978087926","-0.87308450978087904",TRUE
+"gate.csv","SD 3 c2_mae_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c3_low_all_new","0.73025679734263627","0.73025679734263604",TRUE
+"gate.csv","SD 3 c3_low_all_control","0.45259471044537608","0.45259471044537603",TRUE
+"gate.csv","SD 3 c3_low_all_drop","-0.27766208689726019","-0.27766208689726002",TRUE
+"gate.csv","SD 3 c3_low_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c3_middle_all_new","0.66611001901976064","0.66611001901976097",TRUE
+"gate.csv","SD 3 c3_middle_all_control","0.68240163966598333","0.682401639665983",TRUE
+"gate.csv","SD 3 c3_middle_all_drop","0.016291620646222693","0.0162916206462227",TRUE
+"gate.csv","SD 3 c3_middle_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c3_high_all_new","0.53725221037476889","0.537252210374769",TRUE
+"gate.csv","SD 3 c3_high_all_control","0.4737061789697099","0.47370617896971001",TRUE
+"gate.csv","SD 3 c3_high_all_drop","-0.063546031405058989","-0.063546031405059003",TRUE
+"gate.csv","SD 3 c3_high_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c4_all_flagged_new","0","0",TRUE
+"gate.csv","SD 3 c4_all_flagged_control","0","0",TRUE
+"gate.csv","SD 3 c4_all_missing_new","0","0",TRUE
+"gate.csv","SD 3 c4_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c1_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c3_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c4_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 result","PASS","PASS",TRUE
+"schedule-matched.csv","row set","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all",TRUE
+"schedule-matched.csv","c1 low all communities","9","9",TRUE
+"schedule-matched.csv","c1 low all needed","6","6",TRUE
+"schedule-matched.csv","c1 low all improved","9","9",TRUE
+"schedule-matched.csv","c1 low all value_new","2.8396819797767314","2.8396819797767301",TRUE
+"schedule-matched.csv","c1 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"schedule-matched.csv","c1 low all statistic","-2.2216268323133939","-2.2216268323133899",TRUE
+"schedule-matched.csv","c1 low all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c1 low all tolerance_decisive","NA","NA",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all communities","9","9",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all needed","6","6",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all improved","9","9",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all value_new","0.88515520754186028","0.88515520754185995",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all value_control","3.1134301196933993","3.1134301196933998",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all statistic","-2.2282749121515391","-2.2282749121515399",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all tolerance_decisive","NA","NA",TRUE
+"schedule-matched.csv","c2 low all communities","9","9",TRUE
+"schedule-matched.csv","c2 low all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 low all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 low all value_new","2.8396819797767314","2.8396819797767301",TRUE
+"schedule-matched.csv","c2 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"schedule-matched.csv","c2 low all statistic","-2.2216268323133939","-2.2216268323133899",TRUE
+"schedule-matched.csv","c2 low all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 low all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle all communities","9","9",TRUE
+"schedule-matched.csv","c2 middle all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 middle all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 middle all value_new","1.687238571384392","1.68723857138439",TRUE
+"schedule-matched.csv","c2 middle all value_control","1.6121661083097025","1.6121661083097001",TRUE
+"schedule-matched.csv","c2 middle all statistic","0.075072463074689511","0.075072463074689497",TRUE
+"schedule-matched.csv","c2 middle all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 high all communities","9","9",TRUE
+"schedule-matched.csv","c2 high all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 high all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 high all value_new","11.983426153973637","11.9834261539736",TRUE
+"schedule-matched.csv","c2 high all value_control","12.987365848762913","12.9873658487629",TRUE
+"schedule-matched.csv","c2 high all statistic","-1.0039396947892758","-1.00393969478928",TRUE
+"schedule-matched.csv","c2 high all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 high all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 mae all communities","9","9",TRUE
+"schedule-matched.csv","c2 mae all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 mae all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 mae all value_new","7.8146832100822934","7.8146832100822898",TRUE
+"schedule-matched.csv","c2 mae all value_control","8.6877677198631726","8.6877677198631709",TRUE
+"schedule-matched.csv","c2 mae all statistic","-0.87308450978087926","-0.87308450978087904",TRUE
+"schedule-matched.csv","c2 mae all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 mae all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 low all communities","9","9",TRUE
+"schedule-matched.csv","c3 low all needed","NA","NA",TRUE
+"schedule-matched.csv","c3 low all improved","NA","NA",TRUE
+"schedule-matched.csv","c3 low all value_new","0.73025679734263627","0.73025679734263604",TRUE
+"schedule-matched.csv","c3 low all value_control","0.45259471044537608","0.45259471044537603",TRUE
+"schedule-matched.csv","c3 low all statistic","-0.27766208689726019","-0.27766208689726002",TRUE
+"schedule-matched.csv","c3 low all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 low all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 middle all communities","9","9",TRUE
+"schedule-matched.csv","c3 middle all needed","NA","NA",TRUE
+"schedule-matched.csv","c3 middle all improved","NA","NA",TRUE
+"schedule-matched.csv","c3 middle all value_new","0.66611001901976064","0.66611001901976097",TRUE
+"schedule-matched.csv","c3 middle all value_control","0.68240163966598333","0.682401639665983",TRUE
+"schedule-matched.csv","c3 middle all statistic","0.016291620646222693","0.0162916206462227",TRUE
+"schedule-matched.csv","c3 middle all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 high all communities","9","9",TRUE
+"schedule-matched.csv","c3 high all needed","NA","NA",TRUE
+"schedule-matched.csv","c3 high all improved","NA","NA",TRUE
+"schedule-matched.csv","c3 high all value_new","0.53725221037476889","0.537252210374769",TRUE
+"schedule-matched.csv","c3 high all value_control","0.4737061789697099","0.47370617896971001",TRUE
+"schedule-matched.csv","c3 high all statistic","-0.063546031405058989","-0.063546031405059003",TRUE
+"schedule-matched.csv","c3 high all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 high all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","row set","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all; c4 flags all","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all; c4 flags all",TRUE
+"gate-detail.csv","c1 low all communities","9","9",TRUE
+"gate-detail.csv","c1 low all needed","6","6",TRUE
+"gate-detail.csv","c1 low all improved","9","9",TRUE
+"gate-detail.csv","c1 low all value_new","2.6062086580454999","2.6062086580454999",TRUE
+"gate-detail.csv","c1 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate-detail.csv","c1 low all statistic","-2.4551001540446253","-2.4551001540446298",TRUE
+"gate-detail.csv","c1 low all missing_new","NA","NA",TRUE
+"gate-detail.csv","c1 low all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c1 low all tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c1 rare_1_5pct all communities","9","9",TRUE
+"gate-detail.csv","c1 rare_1_5pct all needed","6","6",TRUE
+"gate-detail.csv","c1 rare_1_5pct all improved","9","9",TRUE
+"gate-detail.csv","c1 rare_1_5pct all value_new","0.76296289102478643","0.76296289102478598",TRUE
+"gate-detail.csv","c1 rare_1_5pct all value_control","3.1134301196933993","3.1134301196933998",TRUE
+"gate-detail.csv","c1 rare_1_5pct all statistic","-2.350467228668613","-2.3504672286686099",TRUE
+"gate-detail.csv","c1 rare_1_5pct all missing_new","NA","NA",TRUE
+"gate-detail.csv","c1 rare_1_5pct all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c1 rare_1_5pct all tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c2 low all communities","9","9",TRUE
+"gate-detail.csv","c2 low all needed","NA","NA",TRUE
+"gate-detail.csv","c2 low all improved","NA","NA",TRUE
+"gate-detail.csv","c2 low all value_new","2.6062086580454999","2.6062086580454999",TRUE
+"gate-detail.csv","c2 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate-detail.csv","c2 low all statistic","-2.4551001540446253","-2.4551001540446298",TRUE
+"gate-detail.csv","c2 low all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 low all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 low all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle all communities","9","9",TRUE
+"gate-detail.csv","c2 middle all needed","NA","NA",TRUE
+"gate-detail.csv","c2 middle all improved","NA","NA",TRUE
+"gate-detail.csv","c2 middle all value_new","1.6978590085784138","1.69785900857841",TRUE
+"gate-detail.csv","c2 middle all value_control","1.6121661083097025","1.6121661083097001",TRUE
+"gate-detail.csv","c2 middle all statistic","0.085692900268711236","0.085692900268711195",TRUE
+"gate-detail.csv","c2 middle all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 middle all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 high all communities","9","9",TRUE
+"gate-detail.csv","c2 high all needed","NA","NA",TRUE
+"gate-detail.csv","c2 high all improved","NA","NA",TRUE
+"gate-detail.csv","c2 high all value_new","11.883339197986128","11.8833391979861",TRUE
+"gate-detail.csv","c2 high all value_control","12.987365848762913","12.9873658487629",TRUE
+"gate-detail.csv","c2 high all statistic","-1.1040266507767846","-1.10402665077678",TRUE
+"gate-detail.csv","c2 high all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 high all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 high all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 mae all communities","9","9",TRUE
+"gate-detail.csv","c2 mae all needed","NA","NA",TRUE
+"gate-detail.csv","c2 mae all improved","NA","NA",TRUE
+"gate-detail.csv","c2 mae all value_new","7.7711135143406471","7.7711135143406498",TRUE
+"gate-detail.csv","c2 mae all value_control","8.6877677198631726","8.6877677198631709",TRUE
+"gate-detail.csv","c2 mae all statistic","-0.91665420552252552","-0.91665420552252597",TRUE
+"gate-detail.csv","c2 mae all missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 mae all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 mae all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 low all communities","9","9",TRUE
+"gate-detail.csv","c3 low all needed","NA","NA",TRUE
+"gate-detail.csv","c3 low all improved","NA","NA",TRUE
+"gate-detail.csv","c3 low all value_new","0.73462550062541376","0.73462550062541399",TRUE
+"gate-detail.csv","c3 low all value_control","0.45259471044537608","0.45259471044537603",TRUE
+"gate-detail.csv","c3 low all statistic","-0.28203079018003768","-0.28203079018003802",TRUE
+"gate-detail.csv","c3 low all missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 low all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 low all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 middle all communities","9","9",TRUE
+"gate-detail.csv","c3 middle all needed","NA","NA",TRUE
+"gate-detail.csv","c3 middle all improved","NA","NA",TRUE
+"gate-detail.csv","c3 middle all value_new","0.66397235689608969","0.66397235689609002",TRUE
+"gate-detail.csv","c3 middle all value_control","0.68240163966598333","0.682401639665983",TRUE
+"gate-detail.csv","c3 middle all statistic","0.01842928276989364","0.018429282769893598",TRUE
+"gate-detail.csv","c3 middle all missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 middle all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 high all communities","9","9",TRUE
+"gate-detail.csv","c3 high all needed","NA","NA",TRUE
+"gate-detail.csv","c3 high all improved","NA","NA",TRUE
+"gate-detail.csv","c3 high all value_new","0.54507216608991627","0.54507216608991604",TRUE
+"gate-detail.csv","c3 high all value_control","0.4737061789697099","0.47370617896971001",TRUE
+"gate-detail.csv","c3 high all statistic","-0.071365987120206364","-0.071365987120206406",TRUE
+"gate-detail.csv","c3 high all missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 high all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 high all tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags all communities","NA","NA",TRUE
+"gate-detail.csv","c4 flags all needed","NA","NA",TRUE
+"gate-detail.csv","c4 flags all improved","NA","NA",TRUE
+"gate-detail.csv","c4 flags all value_new","0","0",TRUE
+"gate-detail.csv","c4 flags all value_control","0","0",TRUE
+"gate-detail.csv","c4 flags all statistic","0","0",TRUE
+"gate-detail.csv","c4 flags all missing_new","0","0",TRUE
+"gate-detail.csv","c4 flags all pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c4 flags all tolerance_decisive","NA","NA",TRUE
+"gate.csv","SD 5 columns","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c1_rare_1_5pct_communities c1_rare_1_5pct_improved c1_rare_1_5pct_mean_control c1_rare_1_5pct_mean_new c1_rare_1_5pct_needed c1_rare_1_5pct_pass c2_high_all_control c2_high_all_diff c2_high_all_new c2_high_all_pass c2_low_all_control c2_low_all_diff c2_low_all_new c2_low_all_pass c2_mae_all_control c2_mae_all_diff c2_mae_all_new c2_mae_all_pass c2_middle_all_control c2_middle_all_diff c2_middle_all_new c2_middle_all_pass c2_pass c3_high_all_control c3_high_all_drop c3_high_all_new c3_high_all_pass c3_low_all_control c3_low_all_drop c3_low_all_new c3_low_all_pass c3_middle_all_control c3_middle_all_drop c3_middle_all_new c3_middle_all_pass c3_pass c4_all_flagged_control c4_all_flagged_new c4_all_missing_new c4_all_pass c4_pass result","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c1_rare_1_5pct_communities c1_rare_1_5pct_improved c1_rare_1_5pct_mean_control c1_rare_1_5pct_mean_new c1_rare_1_5pct_needed c1_rare_1_5pct_pass c2_high_all_control c2_high_all_diff c2_high_all_new c2_high_all_pass c2_low_all_control c2_low_all_diff c2_low_all_new c2_low_all_pass c2_mae_all_control c2_mae_all_diff c2_mae_all_new c2_mae_all_pass c2_middle_all_control c2_middle_all_diff c2_middle_all_new c2_middle_all_pass c2_pass c3_high_all_control c3_high_all_drop c3_high_all_new c3_high_all_pass c3_low_all_control c3_low_all_drop c3_low_all_new c3_low_all_pass c3_middle_all_control c3_middle_all_drop c3_middle_all_new c3_middle_all_pass c3_pass c4_all_flagged_control c4_all_flagged_new c4_all_missing_new c4_all_pass c4_pass result",TRUE
+"gate.csv","SD 5 c1_low_communities","9","9",TRUE
+"gate.csv","SD 5 c1_low_improved","9","9",TRUE
+"gate.csv","SD 5 c1_low_needed","6","6",TRUE
+"gate.csv","SD 5 c1_low_mean_new","2.6062086580454999","2.6062086580454999",TRUE
+"gate.csv","SD 5 c1_low_mean_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate.csv","SD 5 c1_low_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c1_rare_1_5pct_communities","9","9",TRUE
+"gate.csv","SD 5 c1_rare_1_5pct_improved","9","9",TRUE
+"gate.csv","SD 5 c1_rare_1_5pct_needed","6","6",TRUE
+"gate.csv","SD 5 c1_rare_1_5pct_mean_new","0.76296289102478643","0.76296289102478598",TRUE
+"gate.csv","SD 5 c1_rare_1_5pct_mean_control","3.1134301196933993","3.1134301196933998",TRUE
+"gate.csv","SD 5 c1_rare_1_5pct_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_low_all_new","2.6062086580454999","2.6062086580454999",TRUE
+"gate.csv","SD 5 c2_low_all_control","5.0613088120901253","5.0613088120901297",TRUE
+"gate.csv","SD 5 c2_low_all_diff","-2.4551001540446253","-2.4551001540446298",TRUE
+"gate.csv","SD 5 c2_low_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_middle_all_new","1.6978590085784138","1.69785900857841",TRUE
+"gate.csv","SD 5 c2_middle_all_control","1.6121661083097025","1.6121661083097001",TRUE
+"gate.csv","SD 5 c2_middle_all_diff","0.085692900268711236","0.085692900268711195",TRUE
+"gate.csv","SD 5 c2_middle_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_high_all_new","11.883339197986128","11.8833391979861",TRUE
+"gate.csv","SD 5 c2_high_all_control","12.987365848762913","12.9873658487629",TRUE
+"gate.csv","SD 5 c2_high_all_diff","-1.1040266507767846","-1.10402665077678",TRUE
+"gate.csv","SD 5 c2_high_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_mae_all_new","7.7711135143406471","7.7711135143406498",TRUE
+"gate.csv","SD 5 c2_mae_all_control","8.6877677198631726","8.6877677198631709",TRUE
+"gate.csv","SD 5 c2_mae_all_diff","-0.91665420552252552","-0.91665420552252597",TRUE
+"gate.csv","SD 5 c2_mae_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c3_low_all_new","0.73462550062541376","0.73462550062541399",TRUE
+"gate.csv","SD 5 c3_low_all_control","0.45259471044537608","0.45259471044537603",TRUE
+"gate.csv","SD 5 c3_low_all_drop","-0.28203079018003768","-0.28203079018003802",TRUE
+"gate.csv","SD 5 c3_low_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c3_middle_all_new","0.66397235689608969","0.66397235689609002",TRUE
+"gate.csv","SD 5 c3_middle_all_control","0.68240163966598333","0.682401639665983",TRUE
+"gate.csv","SD 5 c3_middle_all_drop","0.01842928276989364","0.018429282769893598",TRUE
+"gate.csv","SD 5 c3_middle_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c3_high_all_new","0.54507216608991627","0.54507216608991604",TRUE
+"gate.csv","SD 5 c3_high_all_control","0.4737061789697099","0.47370617896971001",TRUE
+"gate.csv","SD 5 c3_high_all_drop","-0.071365987120206364","-0.071365987120206406",TRUE
+"gate.csv","SD 5 c3_high_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c4_all_flagged_new","0","0",TRUE
+"gate.csv","SD 5 c4_all_flagged_control","0","0",TRUE
+"gate.csv","SD 5 c4_all_missing_new","0","0",TRUE
+"gate.csv","SD 5 c4_all_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c1_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c3_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c4_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 result","PASS","PASS",TRUE
+"schedule-matched.csv","row set","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all","c1 low all; c1 rare_1_5pct all; c2 high all; c2 low all; c2 mae all; c2 middle all; c3 high all; c3 low all; c3 middle all",TRUE
+"schedule-matched.csv","c1 low all communities","9","9",TRUE
+"schedule-matched.csv","c1 low all needed","6","6",TRUE
+"schedule-matched.csv","c1 low all improved","9","9",TRUE
+"schedule-matched.csv","c1 low all value_new","2.6062086580454999","2.6062086580454999",TRUE
+"schedule-matched.csv","c1 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"schedule-matched.csv","c1 low all statistic","-2.4551001540446253","-2.4551001540446298",TRUE
+"schedule-matched.csv","c1 low all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c1 low all tolerance_decisive","NA","NA",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all communities","9","9",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all needed","6","6",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all improved","9","9",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all value_new","0.76296289102478643","0.76296289102478598",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all value_control","3.1134301196933993","3.1134301196933998",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all statistic","-2.350467228668613","-2.3504672286686099",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c1 rare_1_5pct all tolerance_decisive","NA","NA",TRUE
+"schedule-matched.csv","c2 low all communities","9","9",TRUE
+"schedule-matched.csv","c2 low all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 low all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 low all value_new","2.6062086580454999","2.6062086580454999",TRUE
+"schedule-matched.csv","c2 low all value_control","5.0613088120901253","5.0613088120901297",TRUE
+"schedule-matched.csv","c2 low all statistic","-2.4551001540446253","-2.4551001540446298",TRUE
+"schedule-matched.csv","c2 low all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 low all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle all communities","9","9",TRUE
+"schedule-matched.csv","c2 middle all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 middle all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 middle all value_new","1.6978590085784138","1.69785900857841",TRUE
+"schedule-matched.csv","c2 middle all value_control","1.6121661083097025","1.6121661083097001",TRUE
+"schedule-matched.csv","c2 middle all statistic","0.085692900268711236","0.085692900268711195",TRUE
+"schedule-matched.csv","c2 middle all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 high all communities","9","9",TRUE
+"schedule-matched.csv","c2 high all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 high all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 high all value_new","11.883339197986128","11.8833391979861",TRUE
+"schedule-matched.csv","c2 high all value_control","12.987365848762913","12.9873658487629",TRUE
+"schedule-matched.csv","c2 high all statistic","-1.1040266507767846","-1.10402665077678",TRUE
+"schedule-matched.csv","c2 high all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 high all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 mae all communities","9","9",TRUE
+"schedule-matched.csv","c2 mae all needed","NA","NA",TRUE
+"schedule-matched.csv","c2 mae all improved","NA","NA",TRUE
+"schedule-matched.csv","c2 mae all value_new","7.7711135143406471","7.7711135143406498",TRUE
+"schedule-matched.csv","c2 mae all value_control","8.6877677198631726","8.6877677198631709",TRUE
+"schedule-matched.csv","c2 mae all statistic","-0.91665420552252552","-0.91665420552252597",TRUE
+"schedule-matched.csv","c2 mae all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 mae all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 low all communities","9","9",TRUE
+"schedule-matched.csv","c3 low all needed","NA","NA",TRUE
+"schedule-matched.csv","c3 low all improved","NA","NA",TRUE
+"schedule-matched.csv","c3 low all value_new","0.73462550062541376","0.73462550062541399",TRUE
+"schedule-matched.csv","c3 low all value_control","0.45259471044537608","0.45259471044537603",TRUE
+"schedule-matched.csv","c3 low all statistic","-0.28203079018003768","-0.28203079018003802",TRUE
+"schedule-matched.csv","c3 low all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 low all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 middle all communities","9","9",TRUE
+"schedule-matched.csv","c3 middle all needed","NA","NA",TRUE
+"schedule-matched.csv","c3 middle all improved","NA","NA",TRUE
+"schedule-matched.csv","c3 middle all value_new","0.66397235689608969","0.66397235689609002",TRUE
+"schedule-matched.csv","c3 middle all value_control","0.68240163966598333","0.682401639665983",TRUE
+"schedule-matched.csv","c3 middle all statistic","0.01842928276989364","0.018429282769893598",TRUE
+"schedule-matched.csv","c3 middle all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 middle all tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 high all communities","9","9",TRUE
+"schedule-matched.csv","c3 high all needed","NA","NA",TRUE
+"schedule-matched.csv","c3 high all improved","NA","NA",TRUE
+"schedule-matched.csv","c3 high all value_new","0.54507216608991627","0.54507216608991604",TRUE
+"schedule-matched.csv","c3 high all value_control","0.4737061789697099","0.47370617896971001",TRUE
+"schedule-matched.csv","c3 high all statistic","-0.071365987120206364","-0.071365987120206406",TRUE
+"schedule-matched.csv","c3 high all pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 high all tolerance_decisive","FALSE","FALSE",TRUE

@@ -367,6 +367,33 @@ create_waic_quantities <- function(n_obs){
 #' Bounded occupancy-probability means remain meaningful. This option does
 #' not establish improved spatial recovery.
 #'
+#' \code{sigma_b0} (experimental) sets how far each species' baseline
+#' occupancy \code{B0} may range. \code{B0} is the species' occupancy at a
+#' site with average covariate values, on the logit scale, and has a Normal(0,
+#' \code{sigma_b0}^2) prior. The default \code{1} is the previous fixed prior
+#' and leaves default fits unchanged. It puts about 95\% of the prior on
+#' baseline occupancies between 12\% and 88\%, so very rare or very common
+#' species can be pulled towards the middle; \code{sigma_b0 = 2} widens that
+#' range to about 2\% to 98\%. The value must be a finite positive number. It
+#' applies to spatial and non-spatial fits and does not affect the collection
+#' (detection) intercept. The applied prior is saved in
+#' \code{infos$intercept_prior}. For continuous data \code{B0} is on the
+#' response scale, so the occupancy interpretation above does not apply.
+#'
+#' A simulation study compared \code{sigma_b0} = 1, 2, 3 and 5
+#' (\code{dev/simstudy/occupancy-intercept-prior/} in the source repository).
+#' In binary fits, wider values reduced the overestimation of low occupancy
+#' probabilities, clearly in spatial fits and only slightly in non-spatial
+#' fits. In two-stage (eDNA) fits the data only weakly separate how often a
+#' species is present from how often a sample catches it when present, and the
+#' default prior probably helps by keeping \code{B0} from drifting along that
+#' trade-off: wider values made the MCMC mix worse, markedly at 3 and 5, and 3
+#' and 5 also increased the bias of probabilities between 0.2 and 0.8.
+#' Occupancy fits share that collection stage and were not tested, and neither
+#' were continuous fits. The default therefore stays at \code{1}. Keep it for
+#' occupancy and two-stage data; if you try a larger value for binary data,
+#' check chain convergence.
+#'
 #' @return A list with:
 #' \describe{
 #'   \item{results_output}{Posterior samples/summaries, including
@@ -877,6 +904,7 @@ runOccJSDM <- function(data,
     a_sigmab <- 10; b_sigmab <- 1
     a_sigmabs <- 10; b_sigmabs <- 1
     spatial_sd_prior <- read_spatial_sd_prior(listPriors,ps>0)
+    intercept_prior <- read_intercept_prior(listPriors)
     a_sigmah <- 10; b_sigmah <- 1
     a_tau <- 5; b_tau <- 5
     noise_prior <- if (model == "continuous") read_noise_prior(listPriors) else NULL
@@ -892,6 +920,7 @@ runOccJSDM <- function(data,
       "a_sigmabs" = a_sigmabs,
       "b_sigmabs" = b_sigmabs,
       "spatial_sd_prior" = spatial_sd_prior,
+      "intercept_prior" = intercept_prior,
       "a_sigmah" = a_sigmah,
       "b_sigmah" = b_sigmah,
       "a_tau" = a_tau,
@@ -1457,6 +1486,7 @@ runOccJSDM <- function(data,
   )
   infos$noise_prior <- noise_prior
   infos$spatial_sd_prior <- spatial_sd_prior
+  infos$intercept_prior <- intercept_prior
 
   list(
     "results_output" = results_output,
@@ -1466,6 +1496,14 @@ runOccJSDM <- function(data,
     "Xs" = Xs,
     "X_psi" = X_psi)
 
+}
+
+# The occupancy intercept prior is Normal(0, sd^2); it is not the collection intercept.
+read_intercept_prior <- function(priors) {
+  sd <- get_param(priors, "sigma_b0", 1)
+  if (!is.numeric(sd) || length(sd) != 1L || !is.finite(sd) || sd <= 0)
+    stop("sigma_b0 must be a finite positive number")
+  list(mean = 0, sd = unname(sd))
 }
 
 # This prior controls spatial coefficients, not continuous-response noise.

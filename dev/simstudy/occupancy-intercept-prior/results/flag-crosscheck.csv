@@ -1,0 +1,71 @@
+"phase","key","schedule","selected","rule","flagged","reasons","source","archived_flagged","archived_reasons","group_rhat_difference","element_rhat_difference","match"
+"A1","jsdm-n0100-01","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",4.66293670342566e-15,8.88178419700125e-16,TRUE
+"A1","jsdm-n0100-02","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",1.11022302462516e-15,6.66133814775094e-16,TRUE
+"A1","jsdm-n0100-03","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",2.22044604925031e-15,4.88498130835069e-15,TRUE
+"A1","jsdm-n0100-04","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",2.88657986402541e-15,3.10862446895044e-15,TRUE
+"A1","jsdm-n0100-05","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",4.2188474935756e-15,1.33226762955019e-15,TRUE
+"A1","jsdm-n0100-06","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",3.10862446895044e-15,1.33226762955019e-15,TRUE
+"A1","jsdm-n0100-07","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",4.44089209850063e-15,2.88657986402541e-15,TRUE
+"A1","jsdm-n0100-08","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",4.2188474935756e-15,2.22044604925031e-15,TRUE
+"A1","jsdm-n0100-09","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",4.44089209850063e-16,1.33226762955019e-15,TRUE
+"A1","jsdm-n0100-10","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",3.10862446895044e-15,8.88178419700125e-16,TRUE
+"A1","jsdm-n0300-01","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",1.11022302462516e-15,1.33226762955019e-15,TRUE
+"A1","jsdm-n0300-02","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",3.5527136788005e-15,8.88178419700125e-16,TRUE
+"A1","jsdm-n0300-03","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",2.66453525910038e-15,1.55431223447522e-15,TRUE
+"A1","jsdm-n0300-04","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",1.33226762955019e-15,6.66133814775094e-16,TRUE
+"A1","jsdm-n0300-05","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",1.99840144432528e-15,4.44089209850063e-16,TRUE
+"A1","jsdm-n0300-06","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",1.99840144432528e-15,3.5527136788005e-15,TRUE
+"A1","jsdm-n0300-07","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",4.44089209850063e-16,3.77475828372553e-15,TRUE
+"A1","jsdm-n0300-08","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",1.77635683940025e-15,2.22044604925031e-16,TRUE
+"A1","jsdm-n0300-09","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",6.66133814775094e-16,1.99840144432528e-15,TRUE
+"A1","jsdm-n0300-10","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",1.77635683940025e-15,6.66133814775094e-16,TRUE
+"A2","range4-rep01-binary-k100","initial",FALSE,"spatial-robust-v1",FALSE,"","robust-v1 selection.csv",FALSE,"",NA,NA,TRUE
+"A2","range4-rep01-binary-k100","long",TRUE,"spatial-robust-v1",FALSE,"","robust-v1 fits.csv",FALSE,"",NA,NA,TRUE
+"A2","range4-rep02-binary-k100","initial",FALSE,"spatial-robust-v1",FALSE,"","robust-v1 selection.csv",FALSE,"",NA,NA,TRUE
+"A2","range4-rep02-binary-k100","long",TRUE,"spatial-robust-v1",FALSE,"","robust-v1 fits.csv",FALSE,"",NA,NA,TRUE
+"A2","range4-rep03-binary-k100","initial",FALSE,"spatial-robust-v1",FALSE,"","robust-v1 selection.csv",FALSE,"",NA,NA,TRUE
+"A2","range4-rep03-binary-k100","long",TRUE,"spatial-robust-v1",FALSE,"","robust-v1 fits.csv",FALSE,"",NA,NA,TRUE
+"A2","range6-rep01-binary-k100","initial",FALSE,"spatial-robust-v1",FALSE,"","robust-v1 selection.csv",FALSE,"",NA,NA,TRUE
+"A2","range6-rep01-binary-k100","long",TRUE,"spatial-robust-v1",FALSE,"","robust-v1 fits.csv",FALSE,"",NA,NA,TRUE
+"A2","range6-rep02-binary-k100","initial",FALSE,"spatial-robust-v1",FALSE,"","robust-v1 selection.csv",FALSE,"",NA,NA,TRUE
+"A2","range6-rep02-binary-k100","long",TRUE,"spatial-robust-v1",FALSE,"","robust-v1 fits.csv",FALSE,"",NA,NA,TRUE
+"A2","range6-rep03-binary-k100","initial",FALSE,"spatial-robust-v1",TRUE,"group Rhat > 1.05; element Rhat > 1.05; 1 spatial summary traces fail rank/quantile checks","robust-v1 selection.csv",TRUE,"group Rhat > 1.05; element Rhat > 1.05; 1 spatial summary traces fail rank/quantile checks",NA,NA,TRUE
+"A2","range6-rep03-binary-k100","long",TRUE,"spatial-robust-v1",FALSE,"","robust-v1 fits.csv",FALSE,"",NA,NA,TRUE
+"A2","range8-rep01-binary-k100","initial",FALSE,"spatial-robust-v1",FALSE,"","robust-v1 selection.csv",FALSE,"",NA,NA,TRUE
+"A2","range8-rep01-binary-k100","long",TRUE,"spatial-robust-v1",FALSE,"","robust-v1 fits.csv",FALSE,"",NA,NA,TRUE
+"A2","range8-rep02-binary-k100","initial",FALSE,"spatial-robust-v1",FALSE,"","robust-v1 selection.csv",FALSE,"",NA,NA,TRUE
+"A2","range8-rep02-binary-k100","long",TRUE,"spatial-robust-v1",FALSE,"","robust-v1 fits.csv",FALSE,"",NA,NA,TRUE
+"A2","range8-rep03-binary-k100","initial",FALSE,"spatial-robust-v1",FALSE,"","robust-v1 selection.csv",FALSE,"",NA,NA,TRUE
+"A2","range8-rep03-binary-k100","long",TRUE,"spatial-robust-v1",FALSE,"","robust-v1 fits.csv",FALSE,"",NA,NA,TRUE
+"B","design-qnear_K6-sites300-01","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",4.44089209850063e-15,2.22044604925031e-15,TRUE
+"B","design-qnear_K6-sites300-02","initial",FALSE,"pr11",TRUE,"1 fitting warning; max group Rhat 1.1041 > 1.05; max element Rhat 1.0697 > 1.05","pr11 long-selection.csv",TRUE,"1 fitting warning; max group Rhat 1.1041 > 1.05; max element Rhat 1.0697 > 1.05",4.66293670342566e-15,4.44089209850063e-15,TRUE
+"B","design-qnear_K6-sites300-02","long",TRUE,"pr11",TRUE,"1 fitting warning; max element Rhat 1.0744 > 1.05","pr11 selected-manifest.csv",TRUE,"1 fitting warning; max element Rhat 1.0744 > 1.05",4.66293670342566e-15,1.33226762955019e-15,TRUE
+"B","design-qnear_K6-sites300-03","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",3.77475828372553e-15,1.33226762955019e-15,TRUE
+"B","design-qnear_K6-sites300-04","initial",FALSE,"pr11",TRUE,"1 fitting warning; max element Rhat 1.0570 > 1.05","pr11 long-selection.csv",TRUE,"1 fitting warning; max element Rhat 1.0570 > 1.05",4.44089209850063e-16,3.77475828372553e-15,TRUE
+"B","design-qnear_K6-sites300-04","long",TRUE,"pr11",FALSE,"","pr11 selected-manifest.csv",FALSE,"",4.44089209850063e-16,2.66453525910038e-15,TRUE
+"B","design-qnear_K6-sites300-05","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",2.66453525910038e-15,2.22044604925031e-16,TRUE
+"B","design-qnear_K6-sites300-06","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",3.10862446895044e-15,2.22044604925031e-15,TRUE
+"B","design-qnear_K6-sites300-07","initial",FALSE,"pr11",TRUE,"max element Rhat 1.0560 > 1.05","pr11 long-selection.csv",TRUE,"max element Rhat 1.0560 > 1.05",2.22044604925031e-15,3.77475828372553e-15,TRUE
+"B","design-qnear_K6-sites300-07","long",TRUE,"pr11",FALSE,"","pr11 selected-manifest.csv",FALSE,"",1.55431223447522e-15,2.22044604925031e-15,TRUE
+"B","design-qnear_K6-sites300-08","initial",FALSE,"pr11",TRUE,"max element Rhat 1.0752 > 1.05","pr11 long-selection.csv",TRUE,"max element Rhat 1.0752 > 1.05",3.99680288865056e-15,4.2188474935756e-15,TRUE
+"B","design-qnear_K6-sites300-08","long",TRUE,"pr11",FALSE,"","pr11 selected-manifest.csv",FALSE,"",3.10862446895044e-15,2.44249065417534e-15,TRUE
+"B","design-qnear_K6-sites300-09","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",6.66133814775094e-16,3.5527136788005e-15,TRUE
+"B","design-qnear_K6-sites300-10","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",2.88657986402541e-15,2.22044604925031e-16,TRUE
+"B","design-qfar_K6-sites300-01","initial",FALSE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",4.2188474935756e-15,1.77635683940025e-15,TRUE
+"B","design-qfar_K6-sites300-01","long",TRUE,"pr11",FALSE,"","pr11 selected-manifest.csv",FALSE,"",2.66453525910038e-15,2.44249065417534e-15,TRUE
+"B","design-qfar_K6-sites300-02","initial",FALSE,"pr11",TRUE,"3 fitting warnings; max element Rhat 1.1072 > 1.05","pr11 long-selection.csv",TRUE,"3 fitting warnings; max element Rhat 1.1072 > 1.05",3.77475828372553e-15,3.10862446895044e-15,TRUE
+"B","design-qfar_K6-sites300-02","long",TRUE,"pr11",FALSE,"","pr11 selected-manifest.csv",FALSE,"",1.33226762955019e-15,4.66293670342566e-15,TRUE
+"B","design-qfar_K6-sites300-03","initial",FALSE,"pr11",TRUE,"2 fitting warnings; max element Rhat 1.0566 > 1.05","pr11 long-selection.csv",TRUE,"2 fitting warnings; max element Rhat 1.0566 > 1.05",3.33066907387547e-15,8.88178419700125e-16,TRUE
+"B","design-qfar_K6-sites300-03","long",TRUE,"pr11",FALSE,"","pr11 selected-manifest.csv",FALSE,"",2.44249065417534e-15,3.5527136788005e-15,TRUE
+"B","design-qfar_K6-sites300-04","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",3.77475828372553e-15,4.44089209850063e-15,TRUE
+"B","design-qfar_K6-sites300-05","initial",FALSE,"pr11",TRUE,"1 fitting warning; max group Rhat 1.0501 > 1.05","pr11 long-selection.csv",TRUE,"1 fitting warning; max group Rhat 1.0501 > 1.05",3.5527136788005e-15,4.44089209850063e-16,TRUE
+"B","design-qfar_K6-sites300-05","long",TRUE,"pr11",TRUE,"7 fitting warnings; max group Rhat 1.7091 > 1.05; max element Rhat 1.7375 > 1.05","pr11 selected-manifest.csv",TRUE,"7 fitting warnings; max group Rhat 1.7091 > 1.05; max element Rhat 1.7375 > 1.05",1.11022302462516e-15,4.66293670342566e-15,TRUE
+"B","design-qfar_K6-sites300-06","initial",FALSE,"pr11",TRUE,"1 fitting warning","pr11 long-selection.csv",TRUE,"1 fitting warning",2.66453525910038e-15,8.88178419700125e-16,TRUE
+"B","design-qfar_K6-sites300-06","long",TRUE,"pr11",FALSE,"","pr11 selected-manifest.csv",FALSE,"",1.11022302462516e-15,4.66293670342566e-15,TRUE
+"B","design-qfar_K6-sites300-07","initial",FALSE,"pr11",TRUE,"1 fitting warning; max group Rhat 1.0616 > 1.05; max element Rhat 1.0631 > 1.05","pr11 long-selection.csv",TRUE,"1 fitting warning; max group Rhat 1.0616 > 1.05; max element Rhat 1.0631 > 1.05",4.66293670342566e-15,4.2188474935756e-15,TRUE
+"B","design-qfar_K6-sites300-07","long",TRUE,"pr11",TRUE,"max element Rhat 1.0550 > 1.05","pr11 selected-manifest.csv",TRUE,"max element Rhat 1.0550 > 1.05",2.44249065417534e-15,4.88498130835069e-15,TRUE
+"B","design-qfar_K6-sites300-08","initial",FALSE,"pr11",TRUE,"8 fitting warnings; max group Rhat 1.4316 > 1.05; max element Rhat 1.8453 > 1.05","pr11 long-selection.csv",TRUE,"8 fitting warnings; max group Rhat 1.4316 > 1.05; max element Rhat 1.8453 > 1.05",3.33066907387547e-15,3.5527136788005e-15,TRUE
+"B","design-qfar_K6-sites300-08","long",TRUE,"pr11",FALSE,"","pr11 selected-manifest.csv",FALSE,"",2.44249065417534e-15,5.10702591327572e-15,TRUE
+"B","design-qfar_K6-sites300-09","initial",FALSE,"pr11",TRUE,"8 fitting warnings; max group Rhat 1.1347 > 1.05; max element Rhat 1.3409 > 1.05","pr11 long-selection.csv",TRUE,"8 fitting warnings; max group Rhat 1.1347 > 1.05; max element Rhat 1.3409 > 1.05",2.88657986402541e-15,2.22044604925031e-16,TRUE
+"B","design-qfar_K6-sites300-09","long",TRUE,"pr11",TRUE,"max element Rhat 1.0539 > 1.05","pr11 selected-manifest.csv",TRUE,"max element Rhat 1.0539 > 1.05",2.44249065417534e-15,2.88657986402541e-15,TRUE
+"B","design-qfar_K6-sites300-10","initial",TRUE,"pr11",FALSE,"","pr11 long-selection.csv",FALSE,"",3.10862446895044e-15,2.66453525910038e-15,TRUE

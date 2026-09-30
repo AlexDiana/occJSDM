@@ -128,7 +128,34 @@ spatial-amplitude posterior mean infinite and spatial-field means
 non-integrable. Use posterior medians and quantiles for spatial summaries
 with this experimental option, and check rank-based chain convergence.
 Bounded occupancy-probability means remain meaningful. This option does
-not establish improved spatial recovery.}
+not establish improved spatial recovery.
+
+\code{sigma_b0} (experimental) sets how far each species' baseline
+occupancy \code{B0} may range. \code{B0} is the species' occupancy at a
+site with average covariate values, on the logit scale, and has a Normal(0,
+\code{sigma_b0}^2) prior. The default \code{1} is the previous fixed prior
+and leaves default fits unchanged. It puts about 95\% of the prior on
+baseline occupancies between 12\% and 88\%, so very rare or very common
+species can be pulled towards the middle; \code{sigma_b0 = 2} widens that
+range to about 2\% to 98\%. The value must be a finite positive number. It
+applies to spatial and non-spatial fits and does not affect the collection
+(detection) intercept. The applied prior is saved in
+\code{infos$intercept_prior}. For continuous data \code{B0} is on the
+response scale, so the occupancy interpretation above does not apply.
+
+A simulation study compared \code{sigma_b0} = 1, 2, 3 and 5
+(\code{dev/simstudy/occupancy-intercept-prior/} in the source repository).
+In binary fits, wider values reduced the overestimation of low occupancy
+probabilities, clearly in spatial fits and only slightly in non-spatial
+fits. In two-stage (eDNA) fits the data only weakly separate how often a
+species is present from how often a sample catches it when present, and the
+default prior probably helps by keeping \code{B0} from drifting along that
+trade-off: wider values made the MCMC mix worse, markedly at 3 and 5, and 3
+and 5 also increased the bias of probabilities between 0.2 and 0.8.
+Occupancy fits share that collection stage and were not tested, and neither
+were continuous fits. The default therefore stays at \code{1}. Keep it for
+occupancy and two-stage data; if you try a larger value for binary data,
+check chain convergence.}
 }
 \value{
 A list with:

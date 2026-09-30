@@ -1,0 +1,21 @@
+"table","item","own","stored","pass"
+"A/gate.csv","row set","2; 3; 5","2; 3; 5",TRUE
+"A/gate.csv","2 a1_result","PASS","PASS",TRUE
+"A/gate.csv","2 a2_result","PASS","PASS",TRUE
+"A/gate.csv","2 result","PASS","PASS",TRUE
+"A/gate.csv","2 smallest_passing","TRUE","TRUE",TRUE
+"A/gate.csv","3 a1_result","PASS","PASS",TRUE
+"A/gate.csv","3 a2_result","PASS","PASS",TRUE
+"A/gate.csv","3 result","PASS","PASS",TRUE
+"A/gate.csv","3 smallest_passing","FALSE","FALSE",TRUE
+"A/gate.csv","5 a1_result","PASS","PASS",TRUE
+"A/gate.csv","5 a2_result","PASS","PASS",TRUE
+"A/gate.csv","5 result","PASS","PASS",TRUE
+"A/gate.csv","5 smallest_passing","FALSE","FALSE",TRUE
+"A/gate.csv sub-phase rows","row set","2 A1; 2 A2; 3 A1; 3 A2; 5 A1; 5 A2","2 A1; 2 A2; 3 A1; 3 A2; 5 A1; 5 A2",TRUE
+"A/gate.csv sub-phase rows","2 A1 result","PASS","PASS",TRUE
+"A/gate.csv sub-phase rows","3 A1 result","PASS","PASS",TRUE
+"A/gate.csv sub-phase rows","5 A1 result","PASS","PASS",TRUE
+"A/gate.csv sub-phase rows","2 A2 result","PASS","PASS",TRUE
+"A/gate.csv sub-phase rows","3 A2 result","PASS","PASS",TRUE
+"A/gate.csv sub-phase rows","5 A2 result","PASS","PASS",TRUE
