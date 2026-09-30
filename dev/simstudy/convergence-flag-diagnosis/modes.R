@@ -1,7 +1,54 @@
 # Mode assignment for the Task 3 diagnostic fits (PLAN.md in this directory).
 # It reads draws already in memory and never fits a model.
 #
-# Interfaces
+# AMENDMENT-1.md (ruling R17) makes the anchored classifier below the primary
+# assignment and the refitted mixture (assign_modes) and the theta0 cut
+# secondary checks reported beside it. README.md's method text describes the
+# refitted mixture as first frozen; AMENDMENT-1 supersedes it.
+#
+# Interfaces: primary (anchored) assignment
+#
+#   calibrate_anchor(draws, near_chains, mirror_chains,
+#                    quantities = ANCHOR_QUANTITIES)
+#     A two-component classifier: component 1 ('near-truth') the mean and
+#     covariance of the given quantities over near_chains, component 2
+#     ('mirror') the same over mirror_chains, equal weights. The frozen one
+#     (results/modes/anchor-classifier.csv, md5 ANCHOR_MD5) is calibrated on
+#     the saved pr11 fit of design-qfar_K6-sites300-05 species 6, chains 1 and
+#     3 near-truth and 2 and 4 mirror (verify.R --mode=anchor-calibration).
+#   write_anchor(anchor, file), read_anchor(file, md5 = ANCHOR_MD5)
+#     The classifier as a CSV of weights, means and covariances, each number
+#     both to 17 significant digits (`value`, for reading) and as a
+#     hexadecimal float (`hex`, which R reads back exactly; its decimal
+#     conversion is not exact for every 17-digit value); read_anchor refuses
+#     a file whose md5 differs (md5 = NULL skips the check).
+#   assign_anchored(draws, anchor)
+#     Each draw takes the component of higher density (equal weights). Returns
+#     method 'anchored', labels (1 near-truth, 2 mirror), log_ratio (log
+#     density of mirror minus near-truth), mode_names, share, overall and
+#     atypical: per chain, the share of draws whose squared Mahalanobis
+#     distance to both components exceeds the ATYPICAL_LEVEL quantile of the
+#     chi-squared distribution (reported, never deciding). theta0 and B0 are
+#     not used, so the assignment is the same whether they vary or are fixed.
+#   anchored_regions(result, min_share = VISIT_SHARE)
+#     Per chain: share_near_truth, share_mirror, visits_both (each at least
+#     min_share) and region ('near-truth', 'mirror' or 'both').
+#   region_pattern(regions)
+#     'every chain visits both', 'each chain in one region', 'one mode only:
+#     near-truth', 'one mode only: mirror' or 'other' (AMENDMENT-1, R15).
+#
+# Interfaces: secondary checks
+#
+#   theta0_cut_assignment(draws, cut = THETA0_CUT)
+#     Mirror when theta0 exceeds 0.135, the valley of the pooled theta0
+#     density of the pr11 fit; only where theta0 is free (the extended run and
+#     variant a). Same result structure as assign_anchored().
+#   compare_assignments(primary, cut = NULL, refit = NULL)
+#     Per chain: the primary region and share of mirror draws, the same for
+#     the theta0 cut and the refitted mixture (its modes named by majority
+#     overlap with the primary labels), and whether each agrees with the
+#     primary; attribute draw_agreement gives the share of draws labelled the
+#     same.
 #
 #   assign_modes(draws, quantities = MODE_QUANTITIES,
 #                transforms = MODE_TRANSFORMS[quantities])
@@ -19,6 +66,7 @@
 #       quantities_used, dropped_constant, transforms, ridgeline_maxima,
 #       loglik, em_iterations, em_converged, and em_starts (one row per EM
 #       start: its log-likelihood, iterations and convergence).
+#     The refitted mixture, a secondary check under AMENDMENT-1.
 #
 #   chain_regions(result, min_share = VISIT_SHARE)
 #     Per chain: the share of each mode, visits_both (each mode holds at least
@@ -48,8 +96,10 @@
 #      pooled draws by EM from several deterministic starts (no random numbers
 #      are used): k-means with two centres initialised at the means of the
 #      draws below and above the median of the first principal component, and
-#      for each quantity a split at its median. The fit with the highest
-#      log-likelihood is kept.
+#      for each quantity a split at its median; and (added by AMENDMENT-1)
+#      chain partitions: each chain against the rest, and for each quantity
+#      the chains split at the largest gap in their chain means. The fit with
+#      the highest log-likelihood is kept.
 #   3. The fitted mixture has two modes only if its density has two local
 #      maxima along the ridgeline of the two components (Ray and Lindsay
 #      2005, Annals of Statistics 33:2042-2065: every mode of a two-component
@@ -67,6 +117,12 @@
 # one overlapping pair (one mode), while the per-quantity starts gave the two
 # modes with at most 26 draws per chain (0.22%) labelled against the chain's
 # region. test-modes.R holds both cases as synthetic regression tests.
+# Review of that method (AMENDMENT-1): on pseudo-chains cut from the same fit
+# it failed when one mode held 1 or 2 of 16 chains or 1 of 8. The
+# chain-partition starts fix the cases where EM stuck (14 and 2, 2 and 14, 7
+# and 1, 1 and 7), but with 15 and 1 or 1 and 15 the mixture's likelihood
+# itself prefers splitting the majority mode's non-Gaussian shape, which no
+# start fixes. Hence the anchored classifier as the primary assignment.
 
 `%||%` <- function(x,y) if(is.null(x)) y else x
 
@@ -79,6 +135,14 @@ EM_MAX_ITERATIONS <- 1000L
 EM_TOLERANCE <- 1e-10
 COVARIANCE_RIDGE <- 1e-8
 RIDGELINE_POINTS <- 2001L
+# Anchored classifier (AMENDMENT-1, ruling R17): quantities that stay free in
+# every variant (theta0 is fixed in (b) and squeezed by the prior in (a)).
+ANCHOR_QUANTITIES <- c('B_slope1','B_slope2','beta_theta_intercept','mean_psi_original_sites')
+ANCHOR_MODES <- c('near-truth','mirror')
+ANCHOR_FILE <- 'results/modes/anchor-classifier.csv'
+ANCHOR_MD5 <- 'e235c2fa641eb05c36232bec0d513bc8'
+ATYPICAL_LEVEL <- .999
+THETA0_CUT <- .135
 
 # ---- Mixture fitting ----------------------------------------------------------
 
@@ -140,10 +204,21 @@ kmeans_start <- function(X) {
   stats::kmeans(X,centers=centres,iter.max=100L)$cluster
 }
 
-# All EM starts: the k-means start and a median split of each quantity.
-em_starts <- function(X,names) {
+# All EM starts: the k-means start and a median split of each quantity, and
+# with ni draws in each of nc chains (nc at least 2) the chain partitions:
+# each chain against the rest, and for each quantity the chains split at the
+# largest gap in their chain means.
+em_starts <- function(X,names,ni=NULL,nc=NULL) {
   s <- list(principal_component=tryCatch(kmeans_start(X),error=function(e) NULL))
   for(j in seq_len(ncol(X))) s[[paste0('median_',names[j])]] <- ifelse(X[,j]>stats::median(X[,j]),2L,1L)
+  if(!is.null(nc) && nc>=2L) {
+    for(k in seq_len(nc)) s[[paste0('chain_',k)]] <- rep(ifelse(seq_len(nc)==k,2L,1L),each=ni)
+    for(j in seq_len(ncol(X))) {
+      mu <- colMeans(matrix(X[,j],ni,nc));o <- order(mu);cut <- which.max(diff(mu[o]))
+      g <- rep(1L,nc);g[o[-seq_len(cut)]] <- 2L
+      s[[paste0('chain_gap_',names[j])]] <- rep(g,each=ni)
+    }
+  }
   s
 }
 
@@ -179,7 +254,7 @@ assign_modes <- function(draws,quantities=MODE_QUANTITIES,transforms=MODE_TRANSF
   used <- setdiff(quantities,constant)
   one <- function(extra=list()) {
     labels <- matrix(1L,ni,nc)
-    c(list(labels=labels,prob_mode2=matrix(NA_real_,ni,nc),n_modes=1L,
+    c(list(method='refit',mode_names='single mode',labels=labels,prob_mode2=matrix(NA_real_,ni,nc),n_modes=1L,
       share=chain_share(labels,1L),overall=overall_share(labels,1L),
       quantities_used=used,dropped_constant=constant,transforms=transforms[used]),extra)
   }
@@ -188,7 +263,7 @@ assign_modes <- function(draws,quantities=MODE_QUANTITIES,transforms=MODE_TRANSF
   centre <- vapply(z[used],mean,numeric(1));scale <- sds[used]
   X <- vapply(used,function(q) (z[[q]]-centre[[q]])/scale[[q]],numeric(ni*nc))
   X <- matrix(X,ncol=length(used))
-  starts <- em_starts(X,used)
+  starts <- em_starts(X,used,ni,nc)
   fits <- lapply(starts,function(st) if(is.null(st)) NULL else fit_two_gaussians(X,st))
   field <- function(f,k,na) if(is.null(f)) na else f[[k]]
   start_table <- data.frame(start=names(starts),loglik=vapply(fits,field,numeric(1),k='loglik',na=NA_real_),
@@ -217,7 +292,8 @@ assign_modes <- function(draws,quantities=MODE_QUANTITIES,transforms=MODE_TRANSF
     em_iterations=as.integer(fit$iterations),em_converged=fit$converged,em_starts=start_table)
   if(maxima<2L || min(fit$weight)<MIN_MODE_WEIGHT) return(one(extra))
   labels <- matrix(ifelse(fit$resp[,2]>fit$resp[,1],2L,1L),ni,nc)
-  c(list(labels=labels,prob_mode2=matrix(fit$resp[,2],ni,nc),n_modes=2L,
+  c(list(method='refit',mode_names=paste0(c('lower ','higher '),used[1]),labels=labels,
+    prob_mode2=matrix(fit$resp[,2],ni,nc),n_modes=2L,
     share=chain_share(labels,2L),overall=overall_share(labels,2L),
     quantities_used=used,dropped_constant=constant,transforms=transforms[used]),extra)
 }
@@ -244,12 +320,19 @@ chain_regions <- function(result,min_share=VISIT_SHARE) {
     region=ifelse(both,'both',ifelse(s1>=s2,'1','2')),stringsAsFactors=FALSE)
 }
 
+# One row per chain and mode. For the anchored and theta0-cut assignments the
+# modes are named (near-truth, mirror) and n_modes is NA; for the refitted
+# mixture n_modes is the number of modes it found.
 mode_mass_table <- function(result,run) {
-  r <- chain_regions(result)
+  method <- result$method %||% 'refit'
+  labels <- result$mode_names %||% as.character(seq_len(result$n_modes))
+  r <- if(method=='refit') chain_regions(result) else {
+    a <- anchored_regions(result);data.frame(chain=a$chain,visits_both=a$visits_both,region=a$region)
+  }
   m <- merge(result$share,r[c('chain','visits_both','region')],by='chain',sort=FALSE)
   m <- m[order(m$chain,m$mode),,drop=FALSE];rownames(m) <- NULL
-  data.frame(run=run,m[c('chain','mode','draws','share')],n_modes=result$n_modes,
-    m[c('visits_both','region')],stringsAsFactors=FALSE)
+  data.frame(run=run,method=method,m[c('chain','mode')],mode_name=labels[m$mode],m[c('draws','share')],
+    n_modes=if(method=='refit') result$n_modes else NA_integer_,m[c('visits_both','region')],stringsAsFactors=FALSE)
 }
 
 species_mode_draws <- function(anatomy,species,quantities=MODE_QUANTITIES) {
@@ -260,6 +343,140 @@ species_mode_draws <- function(anatomy,species,quantities=MODE_QUANTITIES) {
   lapply(stats::setNames(quantities,quantities),function(q) {
     x <- draws[[q]];matrix(x[species,,],dim(x)[2],dim(x)[3])
   })
+}
+
+# ---- Anchored assignment (AMENDMENT-1, ruling R17) -----------------------------
+
+draw_matrix <- function(draws,quantities) {
+  absent <- setdiff(quantities,names(draws))
+  if(length(absent)) stop('Quantities not in draws: ',paste(absent,collapse=', '))
+  mats <- lapply(draws[quantities],as.matrix);shape <- dim(mats[[1]])
+  if(!all(vapply(mats,function(m) identical(dim(m),shape),logical(1))))
+    stop('Every quantity must have the same iterations x chains shape')
+  if(any(vapply(mats,function(m) any(!is.finite(m)),logical(1)))) stop('Draws must be finite')
+  Z <- matrix(vapply(mats,as.vector,numeric(prod(shape))),ncol=length(quantities),dimnames=list(NULL,quantities))
+  list(Z=Z,ni=shape[1],nc=shape[2])
+}
+
+calibrate_anchor <- function(draws,near_chains,mirror_chains,quantities=ANCHOR_QUANTITIES) {
+  if(length(intersect(near_chains,mirror_chains))) stop('A chain cannot calibrate both components')
+  pick <- function(ch) draw_matrix(lapply(draws[quantities],function(m) as.matrix(m)[,ch,drop=FALSE]),quantities)$Z
+  near <- pick(near_chains);mirror <- pick(mirror_chains)
+  list(quantities=quantities,modes=ANCHOR_MODES,weight=c(.5,.5),
+    mean=stats::setNames(list(colMeans(near),colMeans(mirror)),ANCHOR_MODES),
+    cov=stats::setNames(list(stats::cov(near),stats::cov(mirror)),ANCHOR_MODES),
+    n_draws=c(nrow(near),nrow(mirror)),near_chains=as.integer(near_chains),mirror_chains=as.integer(mirror_chains))
+}
+
+number_text <- function(x) sprintf('%.17g',x)
+hex_text <- function(x) sprintf('%a',x)
+
+write_anchor <- function(anchor,file,source=character()) {
+  q <- anchor$quantities;rows <- list()
+  add <- function(component,kind,row,col,value,hex='') rows[[length(rows)+1L]] <<-
+    data.frame(component=component,kind=kind,row=row,col=col,value=value,hex=hex,stringsAsFactors=FALSE)
+  num <- function(component,kind,row,col,x) add(component,kind,row,col,number_text(x),hex_text(x))
+  for(k in seq_along(anchor$modes)) {
+    m <- anchor$modes[k]
+    num(m,'weight','','',anchor$weight[k])
+    add(m,'n_draws','','',as.character(anchor$n_draws[k]))
+    add(m,'chains','','',paste(if(k==1L) anchor$near_chains else anchor$mirror_chains,collapse=';'))
+    num(m,'mean',q,'',unname(anchor$mean[[m]][q]))
+    S <- anchor$cov[[m]]
+    for(i in q) num(m,'cov',i,q,unname(S[i,q]))
+  }
+  for(n in names(source)) add('','source',n,'',source[[n]])
+  dir.create(dirname(file),recursive=TRUE,showWarnings=FALSE)
+  utils::write.csv(do.call(rbind,rows),file,row.names=FALSE)
+  invisible(file)
+}
+
+read_anchor <- function(file,md5=ANCHOR_MD5) {
+  if(!file.exists(file)) stop('Missing anchor classifier: ',file)
+  if(!is.null(md5)) {
+    found <- unname(tools::md5sum(file))
+    if(!identical(found,md5)) stop('Anchor classifier md5 mismatch for ',file,': expected ',md5,', found ',found)
+  }
+  x <- utils::read.csv(file,colClasses='character')
+  modes <- unique(x$component[x$kind=='mean']);if(!identical(modes,ANCHOR_MODES)) stop('Malformed anchor classifier: ',file)
+  q <- x$row[x$kind=='mean' & x$component==modes[1]]
+  get <- function(m,kind) x[x$component==m & x$kind==kind,,drop=FALSE]
+  mean <- lapply(modes,function(m) {g <- get(m,'mean');stats::setNames(as.numeric(g$hex[match(q,g$row)]),q)})
+  cov <- lapply(modes,function(m) {
+    g <- get(m,'cov');S <- matrix(NA_real_,length(q),length(q),dimnames=list(q,q))
+    S[cbind(match(g$row,q),match(g$col,q))] <- as.numeric(g$hex)
+    if(anyNA(S)) stop('Incomplete covariance in ',file);S
+  })
+  chains <- function(m) as.integer(strsplit(get(m,'chains')$value,';',fixed=TRUE)[[1]])
+  list(quantities=q,modes=modes,weight=vapply(modes,function(m) as.numeric(get(m,'weight')$hex),numeric(1),USE.NAMES=FALSE),
+    mean=stats::setNames(mean,modes),cov=stats::setNames(cov,modes),
+    n_draws=vapply(modes,function(m) as.integer(get(m,'n_draws')$value),integer(1),USE.NAMES=FALSE),
+    near_chains=chains(modes[1]),mirror_chains=chains(modes[2]),
+    source=stats::setNames(x$value[x$kind=='source'],x$row[x$kind=='source']))
+}
+
+named_result <- function(method,labels,mode_names=ANCHOR_MODES,extra=list())
+  c(list(method=method,labels=labels,n_modes=2L,mode_names=mode_names,
+    share=chain_share(labels,2L),overall=overall_share(labels,2L)),extra)
+
+assign_anchored <- function(draws,anchor) {
+  dm <- draw_matrix(draws,anchor$quantities);Z <- dm$Z;p <- ncol(Z)
+  l <- lapply(1:2,function(k) log(anchor$weight[k])+log_normal_density(Z,anchor$mean[[k]],anchor$cov[[k]]))
+  labels <- matrix(ifelse(l[[2]]>l[[1]],2L,1L),dm$ni,dm$nc)
+  d2 <- vapply(1:2,function(k) stats::mahalanobis(Z,anchor$mean[[k]],anchor$cov[[k]]),numeric(nrow(Z)))
+  far <- matrix(pmin(d2[,1],d2[,2])>stats::qchisq(ATYPICAL_LEVEL,p),dm$ni,dm$nc)
+  named_result('anchored',labels,anchor$modes,list(log_ratio=matrix(l[[2]]-l[[1]],dm$ni,dm$nc),
+    atypical=data.frame(chain=seq_len(dm$nc),share=colMeans(far)),quantities_used=anchor$quantities))
+}
+
+theta0_cut_assignment <- function(draws,cut=THETA0_CUT) {
+  th <- draw_matrix(draws,'theta0')
+  if(stats::sd(th$Z[,1])==0) stop('theta0 is constant; the theta0 cut applies only where theta0 is free')
+  named_result('theta0 cut',matrix(ifelse(th$Z[,1]>cut,2L,1L),th$ni,th$nc),extra=list(cut=cut))
+}
+
+anchored_regions <- function(result,min_share=VISIT_SHARE) {
+  names <- result$mode_names %||% ANCHOR_MODES
+  r <- chain_regions(result,min_share)
+  data.frame(chain=r$chain,share_near_truth=r$share_mode1,share_mirror=r$share_mode2,visits_both=r$visits_both,
+    region=ifelse(r$region=='both','both',names[match(r$region,c('1','2'))]),stringsAsFactors=FALSE)
+}
+
+region_pattern <- function(regions) {
+  r <- regions$region
+  if(all(r=='both')) return('every chain visits both')
+  if(all(r %in% ANCHOR_MODES)) return(if(length(unique(r))==1L) paste('one mode only:',r[1]) else 'each chain in one region')
+  'other'
+}
+
+# The refitted mixture's labels renamed by the primary mode most of each
+# refitted mode's draws carry, coded 1 (near-truth) and 2 (mirror).
+refit_in_anchor_names <- function(refit,primary) {
+  map <- vapply(sort(unique(as.vector(refit$labels))),function(m) {
+    t <- tabulate(primary$labels[refit$labels==m],2L);which.max(t)
+  },integer(1))
+  names(map) <- sort(unique(as.vector(refit$labels)))
+  matrix(unname(map[as.character(refit$labels)]),nrow(refit$labels),ncol(refit$labels))
+}
+
+compare_assignments <- function(primary,cut=NULL,refit=NULL) {
+  pr <- anchored_regions(primary)
+  out <- data.frame(chain=pr$chain,primary_region=pr$region,primary_share_mirror=pr$share_mirror,stringsAsFactors=FALSE)
+  agreement <- c()
+  if(!is.null(cut)) {
+    cr <- anchored_regions(cut)
+    out$cut_region <- cr$region;out$cut_share_mirror <- cr$share_mirror;out$agree_cut <- cr$region==pr$region
+    agreement['cut'] <- mean(cut$labels==primary$labels)
+  }
+  if(!is.null(refit)) {
+    coded <- refit_in_anchor_names(refit,primary)
+    rr <- anchored_regions(named_result('refit',coded))
+    out$refit_n_modes <- refit$n_modes;out$refit_region <- rr$region;out$refit_share_mirror <- rr$share_mirror
+    out$agree_refit <- rr$region==pr$region
+    agreement['refit'] <- mean(coded==primary$labels)
+  }
+  attr(out,'draw_agreement') <- agreement
+  out
 }
 
 # ---- Figure for many chains -----------------------------------------------------
@@ -306,11 +523,15 @@ plot_chain_strips <- function(draws,file,quantities=names(draws),truth=NULL,mode
   }
   main <- title %||% sprintf('Per-chain distributions, %d chains (thin line 90%%, thick 50%%, dot mean)',K)
   graphics::mtext(main,outer=TRUE,side=3,line=1.8,adj=0,at=.01,cex=.95,font=2,col=STRIP_INK[['primary']])
-  if(!is.null(modes)) graphics::mtext(sprintf('%d mode(s) found; right margin: share of the chain\'s draws in mode 2',
-    modes$n_modes),outer=TRUE,side=3,line=.6,adj=0,at=.01,cex=.75,col=STRIP_INK[['secondary']])
+  names2 <- if(is.null(modes)) NULL else if(identical(modes$method %||% 'refit','refit'))
+    c('mode 1 (lower theta0)','mode 2') else modes$mode_names
+  if(!is.null(modes)) graphics::mtext(if(identical(modes$method %||% 'refit','refit'))
+    sprintf('Refitted mixture: %d mode(s) found; right margin: share of the chain\'s draws in mode 2',modes$n_modes) else
+    sprintf('%s assignment; right margin: share of the chain\'s draws in the %s mode',
+      modes$method,names2[2]),outer=TRUE,side=3,line=.6,adj=0,at=.01,cex=.75,col=STRIP_INK[['secondary']])
   graphics::par(fig=c(0,1,0,1),oma=c(0,0,0,0),mar=c(0,0,0,0),new=TRUE)
   graphics::plot(0,0,type='n',bty='n',xaxt='n',yaxt='n',xlab='',ylab='')
-  keys <- if(is.null(modes)) character() else c('Mostly mode 1 (lower theta0)','Mostly mode 2')
+  keys <- if(is.null(modes)) character() else paste('Mostly',names2)
   if(length(keys) || !is.null(truth)) graphics::legend('bottom',legend=c(keys,if(!is.null(truth)) 'Generating value'),
     col=c(MODE_COLOURS[seq_along(keys)],if(!is.null(truth)) STRIP_INK[['primary']]),
     lty=c(rep(1,length(keys)),if(!is.null(truth)) 2),lwd=c(rep(4,length(keys)),if(!is.null(truth)) 1.4),

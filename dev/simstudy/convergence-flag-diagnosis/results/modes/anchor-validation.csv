@@ -1,0 +1,23 @@
+"check","chain","value"
+"in-sample share of draws labelled mirror",1,8.33333e-05
+"in-sample share of draws labelled mirror",2,1
+"in-sample share of draws labelled mirror",3,0
+"in-sample share of draws labelled mirror",4,1
+"in-sample share of draws far from both components",1,0.00941667
+"in-sample share of draws far from both components",2,0.00358333
+"in-sample share of draws far from both components",3,0.0055
+"in-sample share of draws far from both components",4,0.00783333
+"held out: calibrated on chains 1 and 2, share mirror",3,0
+"held out: calibrated on chains 1 and 2, share mirror",4,1
+"held out: calibrated on chains 3 and 4, share mirror",1,8.33333e-05
+"held out: calibrated on chains 3 and 4, share mirror",2,1
+"held out: calibrated on first halves, share mirror in second halves",1,0.000166667
+"held out: calibrated on first halves, share mirror in second halves",2,1
+"held out: calibrated on first halves, share mirror in second halves",3,0
+"held out: calibrated on first halves, share mirror in second halves",4,1
+"theta0 cut at 0.135: share above the cut",1,5e-04
+"theta0 cut at 0.135: share above the cut",2,0.999667
+"theta0 cut at 0.135: share above the cut",3,0.000916667
+"theta0 cut at 0.135: share above the cut",4,0.999667
+"valley of the pooled theta0 density between 0.08 and 0.2",NA,0.135144
+"squared Mahalanobis distance between the component means (average covariance)",NA,74.9278

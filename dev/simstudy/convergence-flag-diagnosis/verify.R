@@ -18,7 +18,13 @@
 #                   write results/pilot-checks.csv; exit 1 unless all pass;
 #   mode-calibration  run assign_modes() on every species of the saved pr11
 #                   fit of community 5 (Task 1 data) and write
-#                   results/mode-calibration.csv.
+#                   results/mode-calibration.csv;
+#   anchor-calibration  calibrate the anchored classifier of AMENDMENT-1 on the
+#                   same fit (species 6, chains 1 and 3 near-truth, 2 and 4
+#                   mirror), write results/modes/anchor-classifier.csv, and
+#                   record its validation (anchor-validation.csv) and the
+#                   pseudo-chain imbalance checks of all three assignments
+#                   (imbalance-check.csv) in results/modes/.
 # Pilot fits are plumbing checks only and are never analysed.
 
 args <- commandArgs(trailingOnly=TRUE)
@@ -184,6 +190,69 @@ mode_calibration <- function() {
   TRUE
 }
 
+# ---- Anchored classifier (AMENDMENT-1, ruling R17) ------------------------------------
+
+anchor_calibration <- function() {
+  anatomy <- new.env(parent=globalenv());sys.source(file.path(here,'anatomy.R'),envir=anatomy)
+  modes <- new.env(parent=globalenv());sys.source(file.path(here,'modes.R'),envir=modes)
+  fit <- anatomy$selected_fit(KEY)
+  a <- anatomy$chain_anatomy(fit,anatomy$selected_input(KEY),keep_draws=TRUE)
+  d <- modes$species_mode_draws(a,TARGET_SPECIES,unique(c(modes$MODE_QUANTITIES,modes$ANCHOR_QUANTITIES)))
+  rm(a);invisible(gc(FALSE))
+  anchor <- modes$calibrate_anchor(d,near_chains=c(1L,3L),mirror_chains=c(2L,4L))
+  out <- file.path(results,'modes');dir.create(out,showWarnings=FALSE)
+  file <- file.path(out,'anchor-classifier.csv')
+  modes$write_anchor(anchor,file,source=c(key=KEY,species=as.character(TARGET_SPECIES),
+    fit=file.path(PR11_ARCHIVE,basename(dirname(fit)),basename(fit)),fit_md5=unname(tools::md5sum(fit))))
+  back <- modes$read_anchor(file,md5=NULL)
+  stopifnot(identical(back$mean,anchor$mean),identical(back$cov,anchor$cov),identical(back$weight,anchor$weight))
+  sub <- function(ch) lapply(d,function(m) m[,ch,drop=FALSE])
+  half <- function(rows) lapply(d,function(m) m[rows,,drop=FALSE])
+  ni <- nrow(d[[1]]);first <- seq_len(ni/2);second <- setdiff(seq_len(ni),first)
+  share_mirror <- function(r) modes$anchored_regions(r)$share_mirror
+  v <- list()
+  addv <- function(check,chain,value) v[[length(v)+1L]] <<- data.frame(check=check,chain=chain,value=value,stringsAsFactors=FALSE)
+  r <- modes$assign_anchored(d,anchor)
+  addv('in-sample share of draws labelled mirror',1:4,share_mirror(r))
+  addv('in-sample share of draws far from both components',1:4,r$atypical$share)
+  h <- modes$calibrate_anchor(d,1L,2L);addv('held out: calibrated on chains 1 and 2, share mirror',3:4,share_mirror(modes$assign_anchored(sub(3:4),h)))
+  h <- modes$calibrate_anchor(d,3L,4L);addv('held out: calibrated on chains 3 and 4, share mirror',1:2,share_mirror(modes$assign_anchored(sub(1:2),h)))
+  h <- modes$calibrate_anchor(half(first),c(1L,3L),c(2L,4L))
+  addv('held out: calibrated on first halves, share mirror in second halves',1:4,share_mirror(modes$assign_anchored(half(second),h)))
+  addv('theta0 cut at 0.135: share above the cut',1:4,share_mirror(modes$theta0_cut_assignment(d)))
+  th <- as.vector(d$theta0);dd <- stats::density(th,n=2048L);w <- dd$x>.08 & dd$x<.2
+  addv('valley of the pooled theta0 density between 0.08 and 0.2',NA_integer_,dd$x[w][which.min(dd$y[w])])
+  addv('squared Mahalanobis distance between the component means (average covariance)',NA_integer_,
+    stats::mahalanobis(anchor$mean[[1]],anchor$mean[[2]],(anchor$cov[[1]]+anchor$cov[[2]])/2))
+  validation <- do.call(rbind,v);validation$value <- signif(validation$value,6)
+  utils::write.csv(validation,file.path(out,'anchor-validation.csv'),row.names=FALSE)
+  # Pseudo-chains: nl near-truth and nh mirror blocks of chains {1,3} and {2,4}.
+  pseudo <- function(nl,nh,nb) {
+    blocks <- function(ch) lapply(d,function(m) do.call(cbind,lapply(ch,function(j) matrix(m[,j],nrow(m)/nb,nb))))
+    lo <- blocks(c(1,3));hi <- blocks(c(2,4))
+    stats::setNames(lapply(names(d),function(q) cbind(lo[[q]][,seq_len(nl),drop=FALSE],hi[[q]][,seq_len(nh),drop=FALSE])),names(d))
+  }
+  rows <- list()
+  for(cfg in list(c(15,1,8),c(14,2,8),c(8,8,8),c(2,14,8),c(1,15,8),c(7,1,4),c(1,7,4))) {
+    x <- pseudo(cfg[1],cfg[2],cfg[3]);truth <- rep(c('near-truth','mirror'),cfg[1:2])
+    prim <- modes$assign_anchored(x,anchor);cut <- modes$theta0_cut_assignment(x);refit <- modes$assign_modes(x[modes$MODE_QUANTITIES])
+    cmp <- modes$compare_assignments(prim,cut,refit)
+    for(m in c('primary','cut','refit')) {
+      reg <- cmp[[paste0(m,'_region')]];sm <- cmp[[paste0(m,'_share_mirror')]]
+      off <- ifelse(truth=='mirror',1-sm,sm)
+      rows[[length(rows)+1L]] <- data.frame(near_truth_chains=cfg[1],mirror_chains=cfg[2],draws_per_chain=nrow(x[[1]]),
+        method=c(primary='anchored',cut='theta0 cut',refit='refitted mixture')[[m]],
+        refit_modes=if(m=='refit') refit$n_modes else NA_integer_,chains_correct=sum(reg==truth),
+        chains=length(truth),max_off_region=signif(max(off),4),stringsAsFactors=FALSE)
+    }
+  }
+  imbalance <- do.call(rbind,rows)
+  utils::write.csv(imbalance,file.path(out,'imbalance-check.csv'),row.names=FALSE)
+  print(validation,row.names=FALSE);print(imbalance,row.names=FALSE)
+  cat('anchor-classifier.csv md5',unname(tools::md5sum(file)),'\n')
+  TRUE
+}
+
 # ---- Main --------------------------------------------------------------------------------
 
 status <- tryCatch({
@@ -212,6 +281,8 @@ status <- tryCatch({
       if(code!=0L) stop('Equivalence fit ',side,' failed; see ',file.path(EQ_DIR,paste0(side,'.log')))
     }
     if(equivalence_compare()) {cat('Equivalence PASSES\n');0L} else {cat('Equivalence FAILS\n');1L}
+  } else if(o$mode=='anchor-calibration') {
+    anchor_calibration();0L
   } else if(o$mode=='mode-calibration') {
     mode_calibration();0L
   } else if(o$mode=='pilot-checks') {

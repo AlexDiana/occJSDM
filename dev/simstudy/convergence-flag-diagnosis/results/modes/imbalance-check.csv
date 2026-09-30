@@ -1,0 +1,22 @@
+"near_truth_chains","mirror_chains","draws_per_chain","method","refit_modes","chains_correct","chains","max_off_region"
+15,1,1500,"anchored",NA,16,16,0.0006667
+15,1,1500,"theta0 cut",NA,16,16,0.002
+15,1,1500,"refitted mixture",2,1,16,0.076
+14,2,1500,"anchored",NA,16,16,0.0006667
+14,2,1500,"theta0 cut",NA,16,16,0.001333
+14,2,1500,"refitted mixture",2,16,16,0.004667
+8,8,1500,"anchored",NA,16,16,0.0006667
+8,8,1500,"theta0 cut",NA,16,16,0.001333
+8,8,1500,"refitted mixture",2,16,16,0.004667
+2,14,1500,"anchored",NA,16,16,0
+2,14,1500,"theta0 cut",NA,16,16,0.001333
+2,14,1500,"refitted mixture",2,16,16,0.007333
+1,15,1500,"anchored",NA,16,16,0
+1,15,1500,"theta0 cut",NA,16,16,0.001333
+1,15,1500,"refitted mixture",1,15,16,1
+7,1,3000,"anchored",NA,8,8,0.0003333
+7,1,3000,"theta0 cut",NA,8,8,0.001333
+7,1,3000,"refitted mixture",2,8,8,0.002667
+1,7,3000,"anchored",NA,8,8,0
+1,7,3000,"theta0 cut",NA,8,8,0.0006667
+1,7,3000,"refitted mixture",2,8,8,0.005
