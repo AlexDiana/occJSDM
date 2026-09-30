@@ -375,10 +375,10 @@ create_waic_quantities <- function(n_obs){
 #' the collection (detection) intercept. The applied prior is saved in
 #' \code{infos$intercept_prior}. This option remains experimental. A
 #' simulation study found that wider values reduced occupancy-probability bias
-#' in binary fits but substantially worsened MCMC mixing in two-stage fits, so
-#' the default stays at \code{1}; check chain convergence with any other
-#' value. The study is in \code{dev/simstudy/occupancy-intercept-prior/} of
-#' the source repository.
+#' in binary fits but worsened MCMC mixing in two-stage fits, markedly so at
+#' SD 3 and 5, so the default stays at \code{1}; check chain convergence with
+#' any other value. The study is in
+#' \code{dev/simstudy/occupancy-intercept-prior/} of the source repository.
 #'
 #' @return A list with:
 #' \describe{
