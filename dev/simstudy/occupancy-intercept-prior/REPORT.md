@@ -73,10 +73,9 @@ Context from the secondary outcomes (`b0-means-B.csv`, `beta-theta-means-B.csv`)
 
 ## What it means for the release
 
-- The default stays at `sigma_b0 = 1`, and no default-change pull request follows.
+- The default stays at `sigma_b0 = 1`, and no default-change pull request follows; only the opt-in option and this result are proposed for merging.
 - The residual occupancy-probability bias therefore remains in the release. In the phase B control fits the below-20% band is overestimated by about 14 to 15 points and the above-80% band underestimated by about 15 to 19 points; in the phase A2 control fits by about 5 and 13 points. Widening would have reduced these by at most about 3 points, and no arm meets the agreed provisional spatial target (mean signed error within five points in each band; TODO.md, "Agreed constraints") in the above-80% band of A2. As an informal comparison only, since that target was agreed for spatial fits, no arm comes within five points in the low or high band of B either. This should be documented as a beta limitation under TODO release item 5, as the protocol requires.
 - The opt-in `listPriors$sigma_b0` stays available and experimental, and its documentation (`?runOccJSDM`) now says what this study found. In these binary fits a wider value reduced bias at no convergence cost; in two-stage fits it should not be used without careful convergence checks.
-- A pull request containing only the opt-in option and this result can be opened when Doug decides; a draft description is in [PR-DRAFT.md](PR-DRAFT.md).
 
 ## Limitations
 

@@ -136,6 +136,7 @@ The third test's `skip` is the only deferred piece and is resolved in Step 3, no
 - [ ] **Step 2: Run them to confirm they fail**
 
 Run: `Rscript -e 'devtools::load_all(); testthat::test_file("tests/testthat/test-intercept-prior.R")'`
+
 Expected: FAIL (`read_intercept_prior` not found, unused argument `sigma_b0`).
 
 - [ ] **Step 3: Implement.** In `src/jsdm.cpp`, add `double sigma_b0,` after `double sigma_b,` in both signatures and replace the fill in both bodies:
@@ -162,6 +163,7 @@ Call it beside `read_spatial_sd_prior`, put `sigma_b0 = intercept_prior$sd` in t
 - [ ] **Step 4: Run the new tests, then the full suite**
 
 Run: `Rscript -e 'devtools::load_all(); testthat::test_file("tests/testthat/test-intercept-prior.R")'` then `Rscript -e 'devtools::test()'`
+
 Expected: new tests PASS; full suite unchanged from the last recorded count (858 passing, three expected skips) plus the new expectations.
 
 - [ ] **Step 5: Independent review, then commit.** Have a fresh reviewer check that every site holding a literal `1` for the intercept precision was changed (`grep -n "c(1, rep\|fill::ones\|B_current" R/jsdmfun.R src/jsdm.cpp`).
