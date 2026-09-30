@@ -189,10 +189,17 @@ pseudo_chains <- function(nl,nh,nb) {
   out <- lapply(names(d),function(q) cbind(lo[[q]][,seq_len(nl),drop=FALSE],hi[[q]][,seq_len(nh),drop=FALSE]))
   stats::setNames(out,names(d))
 }
+# The classification (each chain's majority component and its off-region
+# share) must be right. Under R18 a chain may instead be 'unknown' when more
+# than 5% of its draws are far from both anchors: one 1,500-draw block of the
+# saved fit (5.3%) is, while no block of 2,500 draws or more exceeds 3.2%.
 expect_split <- function(r,nl,nh) {
-  reg <- anchored_regions(r)
-  expect_identical(reg$region,c(rep('near-truth',nl),rep('mirror',nh)))
+  reg <- anchored_regions(r);truth <- c(rep('near-truth',nl),rep('mirror',nh))
+  expect_identical(ifelse(reg$share_mirror>.5,'mirror','near-truth'),truth)
   expect_lte(max(pmin(reg$share_near_truth,reg$share_mirror)),.01)
+  known <- reg$region!='unknown'
+  expect_identical(reg$region[known],truth[known])
+  expect_true(all(reg$share_far[!known]>UNKNOWN_SHARE))
 }
 
 test_that('the frozen anchor classifier is the one calibrated on the saved pr11 fit, without theta0 or B0', {
@@ -286,4 +293,50 @@ test_that('region patterns follow AMENDMENT-1', {
   expect_identical(region_pattern(reg(rep(c('near-truth','mirror'),8))),'each chain in one region')
   expect_identical(region_pattern(reg(rep('both',16))),'every chain visits both')
   expect_identical(region_pattern(reg(c(rep('both',15),'mirror'))),'other')
+})
+
+# ---- Unknown region (ruling R18) ------------------------------------------------------
+# A chain with more than 5% of its draws far from both anchored components is
+# in an 'unknown' region, and the region pattern is then 'other' (Mixed).
+
+test_that('a chain mostly far from both anchors is in an unknown region and the pattern is other', {
+  need_pr11()
+  anchor <- read_anchor(ANCHOR_FILE)
+  d <- pseudo_chains(8,8,8)
+  # Chain 16: a near-truth block with occupancy shifted up by 0.3.
+  shifted <- pseudo_chains(1,0,8)
+  shifted$mean_psi_original_sites <- pmin(shifted$mean_psi_original_sites+.3,1)
+  d <- stats::setNames(lapply(names(d),function(q) cbind(d[[q]][,1:15],shifted[[q]])),names(d))
+  r <- assign_anchored(d,anchor);reg <- anchored_regions(r)
+  expect_gt(reg$share_far[16],.5)
+  expect_identical(reg$region[16],'unknown')
+  expect_identical(reg$region[1:15],c(rep('near-truth',8),rep('mirror',7)))
+  expect_identical(region_pattern(reg),'other')
+  expect_match(region_note(reg),'16')
+  expect_identical(region_note(anchored_regions(assign_anchored(pseudo_chains(8,8,8),anchor))),'')
+})
+
+test_that('normal pr11 chains, about 1% far from both anchors, stay in their regions', {
+  need_pr11()
+  reg <- anchored_regions(assign_anchored(pr11_draws(),read_anchor(ANCHOR_FILE)))
+  expect_identical(reg$region,c('near-truth','mirror','near-truth','mirror'))
+  expect_true(all(reg$share_far>.003 & reg$share_far<.01))
+  expect_identical(UNKNOWN_SHARE,.05)
+})
+
+test_that('the far-from-both share is carried into mode_mass_table and compare_assignments', {
+  set.seed(431)
+  n <- 2000L;mk <- function(m,s) matrix(rnorm(n*2,m,s),n,2)
+  anchor <- calibrate_anchor(list(x=cbind(mk(0,1),mk(6,1)),y=cbind(mk(0,1),mk(-6,1))),near_chains=1:2,mirror_chains=3:4,
+    quantities=c('x','y'))
+  test <- list(x=cbind(rnorm(n),rnorm(n,6),rnorm(n,30)),y=cbind(rnorm(n),rnorm(n,-6),rnorm(n,30)))
+  r <- assign_anchored(test,anchor)
+  expect_identical(anchored_regions(r)$region,c('near-truth','mirror','unknown'))
+  m <- mode_mass_table(r,run='synthetic')
+  expect_true('share_far' %in% names(m))
+  expect_equal(m$share_far[m$mode==1L],r$atypical$share)
+  expect_identical(m$region[m$chain==3L],c('unknown','unknown'))
+  cmp <- compare_assignments(r)
+  expect_equal(cmp$primary_share_far,r$atypical$share)
+  expect_identical(cmp$primary_region,c('near-truth','mirror','unknown'))
 })

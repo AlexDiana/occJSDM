@@ -220,6 +220,16 @@ anchor_calibration <- function() {
   h <- modes$calibrate_anchor(half(first),c(1L,3L),c(2L,4L))
   addv('held out: calibrated on first halves, share mirror in second halves',1:4,share_mirror(modes$assign_anchored(half(second),h)))
   addv('theta0 cut at 0.135: share above the cut',1:4,share_mirror(modes$theta0_cut_assignment(d)))
+  # Far-from-both share of consecutive blocks of each chain (AMENDMENT-1, R18).
+  far <- matrix(0,ni,4);for(ch in 1:4) {one <- modes$assign_anchored(sub(ch),anchor)
+    Z <- sapply(anchor$quantities,function(q) d[[q]][,ch])
+    d2 <- sapply(1:2,function(k) stats::mahalanobis(Z,anchor$mean[[k]],anchor$cov[[k]]))
+    far[,ch] <- pmin(d2[,1],d2[,2])>stats::qchisq(modes$ATYPICAL_LEVEL,length(anchor$quantities))
+    stopifnot(isTRUE(all.equal(mean(far[,ch]),one$atypical$share)))}
+  for(b in c(1500L,3000L,6000L,12000L)) {
+    s <- unlist(lapply(1:4,function(ch) colMeans(matrix(far[seq_len(ni%/%b*b),ch],b))))
+    addv(sprintf('largest far-from-both share over consecutive blocks of %d draws (%d blocks)',b,length(s)),NA_integer_,max(s))
+  }
   th <- as.vector(d$theta0);dd <- stats::density(th,n=2048L);w <- dd$x>.08 & dd$x<.2
   addv('valley of the pooled theta0 density between 0.08 and 0.2',NA_integer_,dd$x[w][which.min(dd$y[w])])
   addv('squared Mahalanobis distance between the component means (average covariance)',NA_integer_,
@@ -240,10 +250,15 @@ anchor_calibration <- function() {
     for(m in c('primary','cut','refit')) {
       reg <- cmp[[paste0(m,'_region')]];sm <- cmp[[paste0(m,'_share_mirror')]]
       off <- ifelse(truth=='mirror',1-sm,sm)
+      # chains_region_correct: the chain's region is its true one (a chain
+      # visiting both, or unknown under R18, is not); chains_majority_correct:
+      # its majority component is the true one; chains_unknown: R18 applied.
       rows[[length(rows)+1L]] <- data.frame(near_truth_chains=cfg[1],mirror_chains=cfg[2],draws_per_chain=nrow(x[[1]]),
         method=c(primary='anchored',cut='theta0 cut',refit='refitted mixture')[[m]],
-        refit_modes=if(m=='refit') refit$n_modes else NA_integer_,chains_correct=sum(reg==truth),
-        chains=length(truth),max_off_region=signif(max(off),4),stringsAsFactors=FALSE)
+        refit_modes=if(m=='refit') refit$n_modes else NA_integer_,chains=length(truth),
+        chains_region_correct=sum(reg==truth),chains_majority_correct=sum(ifelse(sm>.5,'mirror','near-truth')==truth),
+        chains_unknown=sum(reg=='unknown'),max_off_region=signif(max(off),4),
+        max_share_far=if(m=='primary') signif(max(cmp$primary_share_far),4) else NA_real_,stringsAsFactors=FALSE)
     }
   }
   imbalance <- do.call(rbind,rows)

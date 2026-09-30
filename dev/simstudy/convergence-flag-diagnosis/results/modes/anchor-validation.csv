@@ -19,5 +19,9 @@
 "theta0 cut at 0.135: share above the cut",2,0.999667
 "theta0 cut at 0.135: share above the cut",3,0.000916667
 "theta0 cut at 0.135: share above the cut",4,0.999667
+"largest far-from-both share over consecutive blocks of 1500 draws (32 blocks)",NA,0.0533333
+"largest far-from-both share over consecutive blocks of 3000 draws (16 blocks)",NA,0.0266667
+"largest far-from-both share over consecutive blocks of 6000 draws (8 blocks)",NA,0.0145
+"largest far-from-both share over consecutive blocks of 12000 draws (4 blocks)",NA,0.00941667
 "valley of the pooled theta0 density between 0.08 and 0.2",NA,0.135144
 "squared Mahalanobis distance between the component means (average covariance)",NA,74.9278

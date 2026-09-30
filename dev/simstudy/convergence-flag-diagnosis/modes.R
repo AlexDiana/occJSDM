@@ -26,16 +26,22 @@
 #     Each draw takes the component of higher density (equal weights). Returns
 #     method 'anchored', labels (1 near-truth, 2 mirror), log_ratio (log
 #     density of mirror minus near-truth), mode_names, share, overall and
-#     atypical: per chain, the share of draws whose squared Mahalanobis
-#     distance to both components exceeds the ATYPICAL_LEVEL quantile of the
-#     chi-squared distribution (reported, never deciding). theta0 and B0 are
-#     not used, so the assignment is the same whether they vary or are fixed.
+#     atypical: per chain, the share of draws far from both components, that
+#     is whose squared Mahalanobis distance to each component exceeds the
+#     ATYPICAL_LEVEL (99.9%) quantile of the chi-squared distribution with
+#     one degree of freedom per quantity. theta0 and B0 are not used, so the
+#     assignment is the same whether they vary or are fixed.
 #   anchored_regions(result, min_share = VISIT_SHARE)
-#     Per chain: share_near_truth, share_mirror, visits_both (each at least
-#     min_share) and region ('near-truth', 'mirror' or 'both').
+#     Per chain: share_near_truth, share_mirror, share_far (the far-from-both
+#     share, NA when the result has none), visits_both (each at least
+#     min_share) and region: 'unknown' when share_far exceeds UNKNOWN_SHARE
+#     (AMENDMENT-1, R18), otherwise 'near-truth', 'mirror' or 'both'.
 #   region_pattern(regions)
 #     'every chain visits both', 'each chain in one region', 'one mode only:
-#     near-truth', 'one mode only: mirror' or 'other' (AMENDMENT-1, R15).
+#     near-truth', 'one mode only: mirror' or 'other' (AMENDMENT-1, R15); any
+#     chain in an unknown region gives 'other'.
+#   region_note(regions)
+#     '' or a note naming the chains in an unknown region (R18).
 #
 # Interfaces: secondary checks
 #
@@ -44,7 +50,8 @@
 #     density of the pr11 fit; only where theta0 is free (the extended run and
 #     variant a). Same result structure as assign_anchored().
 #   compare_assignments(primary, cut = NULL, refit = NULL)
-#     Per chain: the primary region and share of mirror draws, the same for
+#     Per chain: the primary region, share of mirror draws and far-from-both
+#     share (primary_share_far), the region and share of mirror draws for
 #     the theta0 cut and the refitted mixture (its modes named by majority
 #     overlap with the primary labels), and whether each agrees with the
 #     primary; attribute draw_agreement gives the share of draws labelled the
@@ -142,6 +149,10 @@ ANCHOR_MODES <- c('near-truth','mirror')
 ANCHOR_FILE <- 'results/modes/anchor-classifier.csv'
 ANCHOR_MD5 <- 'e235c2fa641eb05c36232bec0d513bc8'
 ATYPICAL_LEVEL <- .999
+# A chain with more than this share of its draws far from both anchored
+# components is in an unknown region (AMENDMENT-1, R18). Reference: 0.36% to
+# 0.94% per chain in the saved pr11 fit the anchor was calibrated on.
+UNKNOWN_SHARE <- .05
 THETA0_CUT <- .135
 
 # ---- Mixture fitting ----------------------------------------------------------
@@ -322,17 +333,18 @@ chain_regions <- function(result,min_share=VISIT_SHARE) {
 
 # One row per chain and mode. For the anchored and theta0-cut assignments the
 # modes are named (near-truth, mirror) and n_modes is NA; for the refitted
-# mixture n_modes is the number of modes it found.
+# mixture n_modes is the number of modes it found. share_far is the chain's
+# far-from-both share (anchored assignment only; NA otherwise), and region is
+# 'unknown' when it exceeds UNKNOWN_SHARE. Under AMENDMENT-1 the primary
+# (anchored) assignment is the one written to mode-mass.csv.
 mode_mass_table <- function(result,run) {
   method <- result$method %||% 'refit'
   labels <- result$mode_names %||% as.character(seq_len(result$n_modes))
-  r <- if(method=='refit') chain_regions(result) else {
-    a <- anchored_regions(result);data.frame(chain=a$chain,visits_both=a$visits_both,region=a$region)
-  }
-  m <- merge(result$share,r[c('chain','visits_both','region')],by='chain',sort=FALSE)
+  r <- if(method=='refit') {x <- chain_regions(result);x$share_far <- NA_real_;x} else anchored_regions(result)
+  m <- merge(result$share,r[c('chain','share_far','visits_both','region')],by='chain',sort=FALSE)
   m <- m[order(m$chain,m$mode),,drop=FALSE];rownames(m) <- NULL
   data.frame(run=run,method=method,m[c('chain','mode')],mode_name=labels[m$mode],m[c('draws','share')],
-    n_modes=if(method=='refit') result$n_modes else NA_integer_,m[c('visits_both','region')],stringsAsFactors=FALSE)
+    n_modes=if(method=='refit') result$n_modes else NA_integer_,m[c('share_far','visits_both','region')],stringsAsFactors=FALSE)
 }
 
 species_mode_draws <- function(anatomy,species,quantities=MODE_QUANTITIES) {
@@ -438,8 +450,18 @@ theta0_cut_assignment <- function(draws,cut=THETA0_CUT) {
 anchored_regions <- function(result,min_share=VISIT_SHARE) {
   names <- result$mode_names %||% ANCHOR_MODES
   r <- chain_regions(result,min_share)
-  data.frame(chain=r$chain,share_near_truth=r$share_mode1,share_mirror=r$share_mode2,visits_both=r$visits_both,
-    region=ifelse(r$region=='both','both',names[match(r$region,c('1','2'))]),stringsAsFactors=FALSE)
+  far <- if(is.null(result$atypical)) rep(NA_real_,nrow(r)) else result$atypical$share[match(r$chain,result$atypical$chain)]
+  region <- ifelse(r$region=='both','both',names[match(r$region,c('1','2'))])
+  region[!is.na(far) & far>UNKNOWN_SHARE] <- 'unknown'
+  data.frame(chain=r$chain,share_near_truth=r$share_mode1,share_mirror=r$share_mode2,share_far=far,
+    visits_both=r$visits_both,region=region,stringsAsFactors=FALSE)
+}
+
+region_note <- function(regions) {
+  u <- regions$chain[regions$region=='unknown']
+  if(!length(u)) return('')
+  sprintf('chain%s %s in an unknown region (more than %g%% of draws far from both anchored components)',
+    if(length(u)>1L) 's' else '',paste(u,collapse=', '),100*UNKNOWN_SHARE)
 }
 
 region_pattern <- function(regions) {
@@ -461,7 +483,8 @@ refit_in_anchor_names <- function(refit,primary) {
 
 compare_assignments <- function(primary,cut=NULL,refit=NULL) {
   pr <- anchored_regions(primary)
-  out <- data.frame(chain=pr$chain,primary_region=pr$region,primary_share_mirror=pr$share_mirror,stringsAsFactors=FALSE)
+  out <- data.frame(chain=pr$chain,primary_region=pr$region,primary_share_mirror=pr$share_mirror,
+    primary_share_far=pr$share_far,stringsAsFactors=FALSE)
   agreement <- c()
   if(!is.null(cut)) {
     cr <- anchored_regions(cut)
@@ -491,17 +514,18 @@ plot_chain_strips <- function(draws,file,quantities=names(draws),truth=NULL,mode
   absent <- setdiff(quantities,names(draws))
   if(length(absent)) stop('Quantities not in draws: ',paste(absent,collapse=', '))
   mats <- lapply(draws[quantities],as.matrix);K <- ncol(mats[[1]])
-  majority <- rep(1L,K);share2 <- rep(NA_real_,K)
+  majority <- rep(1L,K);share2 <- rep(NA_real_,K);unknown <- rep(FALSE,K);far <- rep(NA_real_,K)
   if(!is.null(modes)) {
     r <- chain_regions(modes)
     if(nrow(r)!=K) stop('Mode result has ',nrow(r),' chains; draws have ',K)
     majority <- ifelse(r$share_mode2>r$share_mode1,2L,1L);share2 <- r$share_mode2
+    if(!is.null(modes$atypical)) {a <- anchored_regions(modes);unknown <- a$region=='unknown';far <- a$share_far}
   }
   n <- length(quantities);columns <- min(3L,n);rows <- ceiling(n/columns)
   grDevices::png(file,width=520*columns+60,height=(90+22*K)*rows+150,res=110,bg=STRIP_INK[['surface']],
     type=if(isTRUE(capabilities('cairo'))) 'cairo' else getOption('bitmapType'))
   on.exit(grDevices::dev.off(),add=TRUE)
-  graphics::par(mfrow=c(rows,columns),mar=c(3.2,4.2,2.6,if(is.null(modes)) 1 else 4.2),oma=c(2.8,.5,3.2,0),
+  graphics::par(mfrow=c(rows,columns),mar=c(3.2,4.2,2.6,if(is.null(modes)) 1 else if(any(unknown)) 6.5 else 4.2),oma=c(2.8,.5,3.2,0),
     col.axis=STRIP_INK[['secondary']],col.lab=STRIP_INK[['secondary']],fg=STRIP_INK[['muted']],las=1,cex.axis=.8)
   for(q in quantities) {
     x <- mats[[q]]
@@ -512,13 +536,13 @@ plot_chain_strips <- function(draws,file,quantities=names(draws),truth=NULL,mode
     graphics::plot(NA,xlim=xlim,ylim=c(.5,K+.5),xlab='',ylab='',yaxt='n',bty='n')
     graphics::abline(v=pretty(xlim),col=STRIP_INK[['grid']],lwd=.8)
     graphics::axis(2,at=y,labels=paste('Chain',seq_len(K)),tick=FALSE,cex.axis=.7)
-    col <- MODE_COLOURS[majority]
+    col <- ifelse(unknown,STRIP_INK[['muted']],MODE_COLOURS[majority])
     graphics::segments(qs[1,],y,qs[4,],y,col=col,lwd=1.2,lend=1)
     graphics::segments(qs[2,],y,qs[3,],y,col=col,lwd=4,lend=1)
     graphics::points(mu,y,pch=21,bg=col,col=STRIP_INK[['surface']],cex=1.1,lwd=1.2)
     if(is.finite(tv)) graphics::abline(v=tv,lty=2,lwd=1.4,col=STRIP_INK[['primary']])
-    if(!is.null(modes)) graphics::mtext(sprintf('%.0f%%',100*share2),side=4,at=y,line=.3,cex=.6,
-      col=STRIP_INK[['secondary']],las=1)
+    if(!is.null(modes)) graphics::mtext(ifelse(unknown,sprintf('%.0f%%, far %.0f%%',100*share2,100*far),
+      sprintf('%.0f%%',100*share2)),side=4,at=y,line=.3,cex=.6,col=STRIP_INK[['secondary']],las=1)
     graphics::mtext(q,side=3,line=.9,adj=0,cex=.85,font=2,col=STRIP_INK[['primary']])
   }
   main <- title %||% sprintf('Per-chain distributions, %d chains (thin line 90%%, thick 50%%, dot mean)',K)
@@ -532,8 +556,10 @@ plot_chain_strips <- function(draws,file,quantities=names(draws),truth=NULL,mode
   graphics::par(fig=c(0,1,0,1),oma=c(0,0,0,0),mar=c(0,0,0,0),new=TRUE)
   graphics::plot(0,0,type='n',bty='n',xaxt='n',yaxt='n',xlab='',ylab='')
   keys <- if(is.null(modes)) character() else paste('Mostly',names2)
+  key_cols <- MODE_COLOURS[seq_along(keys)]
+  if(any(unknown)) {keys <- c(keys,'Unknown region (far from both anchors)');key_cols <- c(key_cols,STRIP_INK[['muted']])}
   if(length(keys) || !is.null(truth)) graphics::legend('bottom',legend=c(keys,if(!is.null(truth)) 'Generating value'),
-    col=c(MODE_COLOURS[seq_along(keys)],if(!is.null(truth)) STRIP_INK[['primary']]),
+    col=c(key_cols,if(!is.null(truth)) STRIP_INK[['primary']]),
     lty=c(rep(1,length(keys)),if(!is.null(truth)) 2),lwd=c(rep(4,length(keys)),if(!is.null(truth)) 1.4),
     horiz=TRUE,bty='n',cex=.8,text.col=STRIP_INK[['secondary']],inset=c(0,.005),xpd=NA)
   invisible(file)
