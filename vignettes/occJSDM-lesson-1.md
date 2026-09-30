@@ -633,22 +633,6 @@ collection conditions and the ecological model, estimating rates and
 hidden presence states together. There is no universal rule such as “one
 positive is false; three positives are true”.
 
-Each species’ occupancy baseline also has a prior. `B0` is the species’
-occupancy, on the logit scale, at a site with average covariate values,
-and its default prior is Normal(0, 1). That puts about 95% of the prior
-on baseline occupancies between 12% and 88%, so very rare or very common
-species can be pulled towards the middle. Setting `sigma_b0 = 2` in
-`listPriors` widens that range to about 2% to 98%. This option is
-**experimental**. In a [simulation
-study](../dev/simstudy/occupancy-intercept-prior/REPORT.md), wider
-values reduced the overestimation of low occupancy probabilities in
-binary fits, clearly in spatial fits and only slightly in non-spatial
-ones, but in two-stage fits such as this lesson’s PCR fit they made the
-MCMC mix worse. One-stage occupancy and continuous fits were not tested.
-Keep the default for one-stage occupancy and two-stage data; if you try
-a larger value for binary data, check chain convergence. The
-`listPriors` entry in `?runOccJSDM` gives the details.
-
 Here are the rates the model actually estimated, next to their known
 generating values:
 
@@ -720,6 +704,24 @@ format_percent(illustrative_positive_rate, digits = 2)
 ```
 
     #> [1] "4.32%"
+
+The detection rates are not the only quantities with priors. Each
+species’ occupancy baseline, `B0`, is its occupancy on the logit scale
+at a site with average covariate values, and its default prior is
+Normal(0, 1). That puts about 95% of the prior on baseline occupancies
+between 12% and 88%, so very rare or very common species can be pulled
+towards the middle. Setting `sigma_b0 = 2` in `listPriors` widens that
+range to about 2% to 98%. This option is **experimental**. In a
+[simulation study](../dev/simstudy/occupancy-intercept-prior/REPORT.md),
+wider values reduced the overestimation of low occupancy probabilities
+in pure JSDM fits to binary data (one presence/absence record per site
+and species, like this lesson’s perfect-observation fit), clearly in
+spatial fits and only slightly in non-spatial ones. In two-stage (eDNA)
+fits such as this lesson’s PCR fit, they made the MCMC mix worse.
+One-stage occupancy and continuous fits were not tested. Keep the
+default for one-stage occupancy and two-stage data; if you try a larger
+value for pure JSDM fits to binary data, check chain convergence. The
+`listPriors` entry in `?runOccJSDM` gives the details.
 
 ## Four examples: inspect the observations first
 
