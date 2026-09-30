@@ -699,6 +699,7 @@ impact_main <- function(args) {
   hashed <- c(file.path(IMPACT_DIR,c('impact.R','test-impact.R','anatomy.R')),file.path(IP_DIR,IP_SCRIPTS),
     file.path(RECHECK_DIR,c('helpers.R','summarise.R','chain-sensitivity.R')),
     file.path(REPO,c(ctx$ip$B_METRIC_FILES)))
+  hashed <- unique(hashed)
   write_csv(data.frame(file=sub(paste0('^',REPO,'/'),'',hashed),md5=unname(tools::md5sum(hashed))),out,'source-hashes.csv')
   rel <- function(f) sub(paste0('^',ARCHIVES,'/'),'',f)
   prov <- rbind(data.frame(source='pr11_pooled',chain=NA_integer_,fit_file=rel(p$fit_file),fit_md5=p$fit_md5,draws=p$sources$pr11_pooled$draws,
