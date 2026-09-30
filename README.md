@@ -4,7 +4,7 @@ An R package for fitting a combined occupancy and joint species distribution mod
 
 #### **N.B. This is beta software, and we are still in bugfixing mode.** 
 
-Validation is still in progress. In the tested non-spatial designs with limited replication, estimates pull low occupancy probabilities upwards and high probabilities downwards, even when the overall average is close to the truth. Stronger collection priors can hide real collection effects. See the [current-code comparison](dev/simstudy/current-main-recheck/REPORT.md) and the [archived bias recheck and prior comparisons](dev/simstudy/nonspatial-bias-recheck.md). Nominal interval coverage has not been established across supported designs.
+Validation is still in progress. Read the [Known limitations](#known-limitations) before relying on the results.
 
 ## Installation
 
@@ -40,6 +40,16 @@ The quickstart guide and simulator reference are also available:
 vignette("occJSDM", package = "occJSDM")
 vignette("simulateOccJSDMData", package = "occJSDM")
 ```
+
+## Known limitations
+
+occJSDM is beta software and validation is still in progress. These limitations come from simulation studies of particular designs, so treat the numbers as examples rather than as the errors to expect in your own survey.
+
+- **Occupancy probabilities are pulled towards the middle.** Low probabilities are estimated too high and high ones too low. The bias is strongest with limited replication, and it appears even when the overall average is close to the truth. In non-spatial two-stage (eDNA) simulations at 100 sites (two field samples per site, six PCR replicates per primer), true probabilities below 20% were overestimated on average by about 17 to 20 percentage points and those above 80% underestimated by about 20 to 25, depending on contamination; more field samples or sites reduced this without removing it, and perfect presence/absence data still left about 10 points at both extremes. See the [current-code comparison](dev/simstudy/current-main-recheck/REPORT.md) and its [summary table](dev/simstudy/current-main-recheck/results/paired-summary.csv).
+- **Widening the occupancy-baseline prior is not a general fix.** The experimental `listPriors$sigma_b0` option sets the prior standard deviation (SD) of each species' baseline occupancy on the logit scale; the default is 1 and larger values widen the prior. In simulations, SD 2, 3 and 5 reduced the overestimation of low probabilities, clearly in spatial binary presence/absence fits, slightly in non-spatial binary fits and by up to about 3 points in two-stage (eDNA) fits. In two-stage fits, however, they made the MCMC chains mix worse and increased the bias of probabilities between 20% and 80%, by under a point at SD 2 and by more at 3 and 5, so the default is unchanged. Occupancy-only and continuous fits were not tested. See the [study report](dev/simstudy/occupancy-intercept-prior/REPORT.md) and `?runOccJSDM`.
+- **Stronger collection priors can hide real collection effects.** Tightening the prior on collection-covariate slopes below its default variance of 2 weakened real collection effects without fixing the occupancy bias. See the [archived bias recheck and prior comparisons](dev/simstudy/nonspatial-bias-recheck.md).
+- **Interval coverage has not been established.** 95% posterior intervals for site-level occupancy probabilities can contain the truth less often than 95% of the time. With the default prior in the [occupancy-baseline prior study](dev/simstudy/occupancy-intercept-prior/REPORT.md), two-stage (eDNA) fits did so about 72% to 79% of the time for true probabilities below 20% or above 80% and 90% to 93% in between; in spatial binary fits the figures were about 45% to 47% and 68%. Earlier checks on older code recorded intervals that were mostly too wide for the field false-positive rate `theta0` and too narrow for `B0` in continuous-response models. A full interval-calibration study is planned after the beta; see [Interval calibration](TODO.md#interval-calibration) in the to-do list.
+- **Spatial fields are poorly recovered when sites are far apart relative to the spatial range.** In nine simulated spatial binary communities at 100 sites, the fitted fields were nearly flat: each site gave one presence/absence record per species, at the shortest range most sites had no neighbour with correlation above 0.5, and even a check given the true amplitude, range and coefficients reduced field error only about 6% below that of a flat field. Rare species were hardest, and the experimental half-Cauchy amplitude prior (`sigma_bs_prior`) did not help. See the [spatial-amplitude comparison](dev/simstudy/spatial-amplitude-prior/README.md) and its [diagnosis](dev/simstudy/spatial-amplitude-prior/diagnosis/REPORT.md).
 
 ## How to cite
 
