@@ -1,0 +1,188 @@
+#!/usr/bin/env Rscript
+# Setup and verification for the Task 3 diagnostic fits (README.md in this
+# directory). run.R neither sources nor hashes this file.
+#
+#   Rscript verify.R --mode=MODE --repo=REPO --study=ARCHIVE [--inputs-root=DIR]
+#     [--archives=DIR] [--side=pr11|study]
+#
+# Modes:
+#   fingerprint     write results/library-fingerprint.csv for ARCHIVE's build
+#                   (revision, exported source and installed library md5s);
+#   clone-archive   write results/fixed-theta0/ (the installed sample_theta0,
+#                   the clone and their md5s);
+#   equivalence     fit a short default fit of community 5 with the pr11
+#                   library and with the study library, each in its own
+#                   process (equivalence-fit --side=...), then compare
+#                   (equivalence-compare); exit 1 unless every check passes;
+#   pilot-checks    check the four pilot fits under ARCHIVE/fits/pilot/ and
+#                   write results/pilot-checks.csv; exit 1 unless all pass.
+# Pilot fits are plumbing checks only and are never analysed.
+
+args <- commandArgs(trailingOnly=TRUE)
+here <- dirname(normalizePath(sub('^--file=','',grep('^--file=',commandArgs(FALSE),value=TRUE)[1])))
+source(file.path(here,'run.R'))
+PR11$extract_functions(file.path(SCRIPT_REPO,'dev/simstudy/occupancy-intercept-prior/verify-helpers.R'),
+  c('installed_library_files','max_abs_difference','count_numeric','write_library_fingerprint'),environment())
+
+o <- parse_options(args,known=c('mode','repo','study','inputs-root','archives','side'),required=c('mode','repo','study'))
+repo <- normalizePath(o$repo,mustWork=TRUE);study <- normalizePath(o$study,mustWork=TRUE)
+if(!identical(repo,SCRIPT_REPO)) stop('--repo is not the checkout holding this verify.R')
+archives <- normalizePath(o$archives %||% dirname(study),mustWork=TRUE)
+inputs_root <- o$`inputs-root` %||% file.path(archives,'intercept-prior-inputs')
+results <- file.path(repo,STUDY_REL,'results')
+TOLERANCE <- 1e-12
+EQ_DIR <- file.path(study,'equivalence')
+
+# ---- Equivalence -------------------------------------------------------------------
+
+# The pr11 initial schedule shortened to 50 burn-in and 50 retained draws,
+# keeping its storage types (2 chains, nthin 1).
+equivalence_mcmc <- function() {
+  m <- readRDS(file.path(archives,PR11_SETTINGS[1]))$mcmc
+  stopifnot(identical(names(m),c('nchain','nburn','niter','nthin')),all(unlist(m)==c(2,3000,5000,1)))
+  m$nburn <- as.vector(50,mode=typeof(m$nburn));m$niter <- as.vector(50,mode=typeof(m$niter))
+  m
+}
+
+equivalence_fit <- function(side) {
+  if(side=='study') {
+    revision <- check_library_fingerprint(study,file.path(repo,FINGERPRINT_FILE))
+    pkg <- load_study_library(study)
+  } else if(side=='pr11') {
+    lib <- file.path(archives,PR11_ARCHIVE,'library')
+    Sys.setenv(RCPP_PARALLEL_NUM_THREADS='1',OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',VECLIB_MAXIMUM_THREADS='1')
+    .libPaths(c(lib,.libPaths()))
+    suppressPackageStartupMessages(library(occJSDM))
+    pkg <- normalizePath(find.package('occJSDM'))
+    stopifnot(identical(pkg,normalizePath(file.path(lib,'occJSDM'))))
+    RcppParallel::setThreadOptions(numThreads=1)
+    revision <- readLines(file.path(archives,PR11_ARCHIVE,'source-revision.txt'))
+  } else stop('--side must be pr11 or study')
+  runner <- pr11_runner(repo,archives);src <- pr11_job(archives,inputs_root)
+  checked_input(src$input_file,src$input_md5);input <- readRDS(src$input_file)
+  recorder <- new.env()
+  if(side=='pr11') {expr <- runner$expr;bindings <- list()} else {
+    # The extended run's own path: run.R's statement and fitter.
+    expr <- with_intercept_prior(runner$expr)
+    bindings <- list(.fitter=make_run_fitter('extended',input,recorder))
+  }
+  mcmc <- equivalence_mcmc()
+  result <- evaluate_seeded(expr,input,src$job,mcmc,bindings=bindings,seed='input')
+  saved <- c(list(side=side,library=pkg,revision=revision,library_hashes=tools::md5sum(installed_library_files(pkg)),
+    runner=runner[c('file','md5')],expression=deparse(expr,width.cutoff=500L),mcmc=mcmc,input_file=src$input_file,
+    input_md5_before=src$input_md5,input_md5_after=unname(tools::md5sum(src$input_file)),
+    listPriors_used=recorder$listPriors,job_priors=src$job$priors),result,
+    list(elapsed_seconds=as.numeric(difftime(result$finished,result$started,units='secs'))))
+  dir.create(EQ_DIR,showWarnings=FALSE)
+  atomic_save(saved,file.path(EQ_DIR,paste0(side,'.rds')))
+  cat(side,'saved;',round(saved$elapsed_seconds,1),'seconds;',length(saved$warnings),'warnings\n')
+}
+
+equivalence_compare <- function() {
+  a <- readRDS(file.path(EQ_DIR,'pr11.rds'));b <- readRDS(file.path(EQ_DIR,'study.rds'))
+  rest <- setdiff(union(names(a$fit),names(b$fit)),c('results_output','infos'))
+  fields <- union(names(a$fit$infos),names(b$fit$infos))
+  differ <- fields[!vapply(fields,function(f) identical(a$fit$infos[[f]],b$fit$infos[[f]]),logical(1))]
+  infos <- paste0(differ,ifelse(differ %in% names(a$fit$infos),'(changed)','(added)'),collapse=';')
+  so <- function(x) unname(x$library_hashes[endsWith(names(x$library_hashes),'libs/occJSDM.so')])
+  row <- data.frame(key=KEY,comparison='pr11 library vs study library, default short fit, saved input RNG state',
+    pr11_revision=a$revision,pr11_so_md5=so(a),study_revision=b$revision,study_so_md5=so(b),
+    mcmc=paste(unlist(b$mcmc),collapse='/'),numeric_values=count_numeric(b$fit$results_output),
+    max_abs_diff=max_abs_difference(a$fit$results_output,b$fit$results_output),
+    bitwise_identical=identical(a$fit$results_output,b$fit$results_output),
+    other_components_identical=identical(a$fit[rest],b$fit[rest]),infos_differences=infos,
+    warnings_pr11=length(a$warnings),warnings_study=length(b$warnings),warnings_identical=identical(a$warnings,b$warnings),
+    rng_initial_identical=identical(a$rng_initial,b$rng_initial),rng_final_identical=identical(a$rng_final,b$rng_final),
+    study_listPriors_as_archived=identical(b$listPriors_used,b$job_priors),
+    inputs_unchanged=all(c(a$input_md5_after,b$input_md5_after)==b$input_md5_before),
+    pr11_seconds=round(a$elapsed_seconds,2),study_seconds=round(b$elapsed_seconds,2),stringsAsFactors=FALSE)
+  row$pass <- row$max_abs_diff<=TOLERANCE && row$other_components_identical &&
+    (!nzchar(infos) || all(strsplit(infos,';',fixed=TRUE)[[1]] %in% 'intercept_prior(added)')) &&
+    row$warnings_identical && row$rng_initial_identical && row$rng_final_identical &&
+    row$study_listPriors_as_archived && row$inputs_unchanged
+  utils::write.csv(row,file.path(EQ_DIR,'equivalence.csv'),row.names=FALSE)
+  utils::write.csv(row,file.path(results,'equivalence.csv'),row.names=FALSE)
+  print(t(row))
+  row$pass
+}
+
+# ---- Pilot checks ---------------------------------------------------------------------
+
+pilot_checks <- function() {
+  pkg <- load_study_library(study)
+  src <- pr11_job(archives,inputs_root);input <- readRDS(checked_input(src$input_file,src$input_md5))
+  v6 <- fixed_theta0_value(input)
+  rows <- lapply(VARIANTS,function(v) {
+    spec <- run_spec('pilot',v,1L);f <- fit_file(study,spec)
+    if(!file.exists(f)) return(data.frame(variant=v,check='fit exists',pass=FALSE,value='missing',stringsAsFactors=FALSE))
+    s <- readRDS(f);ro <- s$fit$results_output;th <- ro$theta0_output
+    S <- dim(th)[1];species <- s$fit$infos$speciesNames
+    ck <- list()
+    add <- function(check,pass,value) ck[[length(ck)+1L]] <<- data.frame(variant=v,check=check,pass=isTRUE(pass),
+      value=paste(value,collapse=' '),stringsAsFactors=FALSE)
+    add('schedule is the pilot schedule',identical(s$mcmc,SCHEDULES$pilot),paste(names(s$mcmc),unlist(s$mcmc),collapse=' '))
+    add('one chain of niter retained draws',identical(dim(th)[2:3],c(200L,1L)),paste(dim(th),collapse='x'))
+    add('seed is 20261001 + chain',identical(s$seed,chain_seed(1L)),s$seed)
+    add('rng state is the seeded Mersenne-Twister state',{set.seed(s$seed,kind='Mersenne-Twister',normal.kind='Inversion',
+      sample.kind='Rejection');identical(s$rng_initial,.Random.seed)},s$rng_initial[1])
+    add('library fingerprint revision recorded',identical(s$source_revision,readLines(file.path(study,'source-revision.txt'))),s$source_revision)
+    add('fit hashes match the installed library',identical(s$fit_hashes,hash_files(production_files(study,pkg),study)),length(s$fit_hashes))
+    add('script hashes include run.R and fixed-theta0.R',all(c(RUN_SCRIPT,FIXED_THETA0_SCRIPT) %in% names(s$script_hashes)),length(s$script_hashes))
+    expected_priors <- c(src$job$priors,if(v=='a') VARIANT_A_PRIORS else list())
+    add('listPriors passed as the variant states',identical(s$listPriors_used,expected_priors),
+      paste(names(s$listPriors_used),unlist(s$listPriors_used),sep='=',collapse=','))
+    if(v=='a') add('tighter theta0 prior recorded in the variant definition',
+      identical(s$variant_definition$listPriors_added,list(a_theta0=1,b_theta0=100)),'a_theta0=1,b_theta0=100')
+    if(v=='b') {
+      add('species 6 theta0 constant at the generating value',all(th[6,,1]==v6),
+        sprintf('%.10g (unique draws %d)',v6,length(unique(th[6,,1]))))
+      add('other species theta0 vary',all(apply(th[-6,,1,drop=FALSE],1,function(x) length(unique(x))>1L)),S-1L)
+    } else add('every species theta0 varies',all(apply(th[,,1,drop=FALSE],1,function(x) length(unique(x))>1L)),S)
+    if(v=='c') {
+      add('species count is 9',S==9L && length(species)==9L,S)
+      add('OTU_6 absent',!'OTU_6' %in% species,paste(species,collapse=','))
+      add('fit input is the saved derived input',identical(s$input_md5,unname(tools::md5sum(file.path(study,DERIVED_INPUT)))),s$input_md5)
+    } else add('species count is 10',S==10L,S)
+    add('warnings captured as a character vector',is.character(s$warnings),length(s$warnings))
+    add('seconds per 1000 iterations',is.finite(s$seconds_per_1000_iterations),round(s$seconds_per_1000_iterations,2))
+    do.call(rbind,ck)
+  })
+  table <- do.call(rbind,rows)
+  utils::write.csv(table,file.path(results,'pilot-checks.csv'),row.names=FALSE)
+  print(table,row.names=FALSE)
+  all(table$pass)
+}
+
+# ---- Main --------------------------------------------------------------------------------
+
+status <- tryCatch({
+  if(o$mode=='fingerprint') {
+    revision <- readLines(file.path(study,'source-revision.txt'))
+    write_library_fingerprint(study,file.path(repo,FINGERPRINT_FILE))
+    stopifnot(identical(check_library_fingerprint(study,file.path(repo,FINGERPRINT_FILE)),revision))
+    cat('Wrote',FINGERPRINT_FILE,'for revision',revision,'\n');0L
+  } else if(o$mode=='clone-archive') {
+    revision <- check_library_fingerprint(study,file.path(repo,FINGERPRINT_FILE))
+    load_study_library(study)
+    write_fixed_theta0_archive(file.path(repo,CLONE_ARCHIVE_DIR),revision)
+    print(check_fixed_theta0_archive(file.path(repo,CLONE_ARCHIVE_DIR)));0L
+  } else if(o$mode=='equivalence-fit') {
+    equivalence_fit(o$side %||% stop('--side is required'));0L
+  } else if(o$mode=='equivalence-compare') {
+    if(equivalence_compare()) 0L else 1L
+  } else if(o$mode=='equivalence') {
+    dir.create(EQ_DIR,showWarnings=FALSE)
+    unlink(file.path(EQ_DIR,c('pr11.rds','study.rds')))
+    for(side in c('pr11','study')) {
+      code <- system2(file.path(R.home('bin'),'Rscript'),shQuote(c(file.path(here,'verify.R'),'--mode=equivalence-fit',
+        paste0('--side=',side),paste0('--repo=',repo),paste0('--study=',study),paste0('--archives=',archives),
+        paste0('--inputs-root=',inputs_root))),stdout=file.path(EQ_DIR,paste0(side,'.log')),stderr=file.path(EQ_DIR,paste0(side,'.log')))
+      cat(side,'fit exit',code,'\n')
+      if(code!=0L) stop('Equivalence fit ',side,' failed; see ',file.path(EQ_DIR,paste0(side,'.log')))
+    }
+    if(equivalence_compare()) {cat('Equivalence PASSES\n');0L} else {cat('Equivalence FAILS\n');1L}
+  } else if(o$mode=='pilot-checks') {
+    if(pilot_checks()) {cat('All pilot checks pass\n');0L} else {cat('Pilot checks FAIL\n');1L}
+  } else stop('Unknown --mode: ',o$mode)
+},error=function(e) {cat('ERROR:',conditionMessage(e),'\n');1L})
+quit(save='no',status=status)
