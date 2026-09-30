@@ -1,0 +1,5 @@
+"phase","stratum","sd","role","selected_fits","selected_flagged","first_flagged","long_repeats"
+"B","all",1,"control",20,4,NA,NA
+"B","all",2,"new",20,7,12,8
+"B","all",3,"new",20,16,18,8
+"B","all",5,"new",20,19,19,8
