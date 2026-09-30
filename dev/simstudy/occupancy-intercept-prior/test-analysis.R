@@ -1204,3 +1204,26 @@ test_that('verify.R audits the final decision table from its own phase A and pha
   a2 <- transform(a,result=c('FAIL','PASS','PASS'));b2 <- data.frame(sd=c(3,5),result=c('FAIL','PASS'),stringsAsFactors=FALSE)
   mine <- ve$audit_decision(a2,b2);expect_identical(mine$phase_b_result,c('NOT RUN','FAIL','PASS'));expect_identical(mine$recommended,c(FALSE,FALSE,TRUE))
 })
+
+test_that('verify.R --phase=final audits decision.csv end to end from the passed phase A and phase B audits', {
+  st <- tempfile('study');out <- file.path(st,'verify');sm <- file.path(st,'summary')
+  audit <- function(phase,tag,result) {d <- file.path(out,phase);dir.create(d,recursive=TRUE,showWarnings=FALSE)
+    utils::write.csv(data.frame(criterion='c1',sd=c(2,3,5),result=result),file.path(d,paste0('gate-audit-arms-',tag,'.csv')),row.names=FALSE)
+    utils::write.csv(data.frame(key='k',pass=TRUE),file.path(d,paste0('verify-arms-',tag,'.csv')),row.names=FALSE)
+    utils::write.csv(data.frame(table='t',pass=TRUE),file.path(d,paste0('tables-arms-',tag,'.csv')),row.names=FALSE)}
+  audit('A1','1-2-3-5',c('PASS','PASS','PASS'));audit('A2','1-2-3-5',c('PASS','PASS','PASS'));audit('B','1-2-3-5',c('FAIL','PASS','PASS'))
+  dir.create(file.path(out,'A'));utils::write.csv(data.frame(table='A/gate.csv',pass=TRUE),file.path(out,'A','verify-phase-a.csv'),row.names=FALSE)
+  d <- final_decision(data.frame(sd=c(2,3,5),result='PASS'),data.frame(sd=c(2,3,5),result=c('FAIL','PASS','PASS')))
+  dir.create(file.path(sm,'final'),recursive=TRUE);utils::write.csv(d,file.path(sm,'final','decision.csv'),row.names=FALSE)
+  args <- c(paste0('--repo=',repo),paste0('--study=',st),'--phase=final')
+  r <- run_cli('verify.R',args);expect_identical(r$status,0L);expect_match(r$output,'checks agree')
+  chk <- utils::read.csv(file.path(out,'final','verify-final.csv'));expect_true(all(chk$pass));expect_gt(nrow(chk),10L)
+  expect_true(file.exists(file.path(out,'final','audit-source.csv')))
+  # a decision that marks the wrong SD is caught
+  d$recommended <- c(FALSE,FALSE,TRUE);utils::write.csv(d,file.path(sm,'final','decision.csv'),row.names=FALSE)
+  expect_identical(run_cli('verify.R',args)$status,1L)
+  # it refuses while the phase B audit has not passed
+  utils::write.csv(d,file.path(sm,'final','decision.csv'),row.names=FALSE)
+  utils::write.csv(data.frame(key='k',pass=FALSE),file.path(out,'B','verify-arms-1-2-3-5.csv'),row.names=FALSE)
+  r <- run_cli('verify.R',args);expect_identical(r$status,1L);expect_match(r$output,'did not pass')
+})
