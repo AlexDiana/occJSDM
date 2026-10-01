@@ -712,7 +712,8 @@ Normal(0, 1). That puts about 95% of the prior on baseline occupancies
 between 12% and 88%, so very rare or very common species can be pulled
 towards the middle. Setting `sigma_b0 = 2` in `listPriors` widens that
 range to about 2% to 98%. This option is **experimental**. In a
-[simulation study](../dev/simstudy/occupancy-intercept-prior/REPORT.md),
+[simulation
+study](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/occupancy-intercept-prior/REPORT.md),
 wider values reduced the overestimation of low occupancy probabilities
 in pure JSDM fits to binary data (one presence/absence record per site
 and species, like this lesson’s perfect-observation fit), clearly in
@@ -1471,8 +1472,8 @@ The fitted code is revision **b53048a**. The simulation seed is
 in `lesson$manifests[["default"]]$session` (and likewise for the other
 fits). Instructions for regenerating the full fits and this compact
 bundle are in [the lesson build
-README](../dev/simstudy/vignette-lesson/README.md). The compact bundle
-is
+README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md).
+The compact bundle is
 [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds).
 All figure code is displayed above and is also available in this
 vignette’s `.Rmd` source.
