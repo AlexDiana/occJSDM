@@ -117,4 +117,5 @@ Every script refuses to overwrite a completed output.
 
 ## Amendments
 
-None yet. The production revision used for the full fits will be appended here before the first fit.
+- **1 October 2026, amendment 1, before any simulation.** The fitter standardises each coordinate axis by its own standard deviation, so a field that is isotropic in raw coordinates is represented with a slightly anisotropic kernel whenever the two axes of an arrangement have unequal spreads. To keep this mismatch small and equal across designs, the arrangement generator rejects and redraws a spread design or a set of cluster centres whose 100 sites have axis standard deviations differing by more than 10 percent, counting the rejections. The grid is exact. The design table records the ratio of axis standard deviations for every arrangement, and the oracle uses the true isotropic kernel at the sites, so the oracle-versus-binary-control contrast includes this representational difference alongside parameter estimation.
+- The production revision used for the full fits will be appended here by the freeze step before the first fit.
