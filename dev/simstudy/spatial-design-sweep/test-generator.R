@@ -41,6 +41,13 @@ test_that("cluster centres are separated and points lie within 0.02 of a centre"
   }
 })
 
+test_that("the derived pairs design is also within the axis-ratio band on every seed", {
+  for (seed in 1:50) {
+    a <- make_arrangements(seed)
+    expect_true(abs(sd(a$pairs[, 1]) / sd(a$pairs[, 2]) - 1) <= 0.1)
+  }
+})
+
 test_that("the grid is the exact 10 by 10 lattice", {
   a <- make_arrangements(1L)
   g <- (1:10 - 0.5) / 10

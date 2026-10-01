@@ -37,21 +37,22 @@ make_arrangements <- function(seed, n = 100L, pair_distance = 0.01, cluster_radi
   rejections <- 0L
   repeat {
     spread <- matrix(runif(2 * n), n, 2)
-    if (abs(axis_sd_ratio(spread) - 1) <= max_ratio) break
+    base <- spread[1:80, , drop = FALSE]
+    partner_of <- sample(80L, 20L)
+    partner <- matrix(NA_real_, 20L, 2L)
+    for (i in 1:20) {
+      repeat {
+        angle <- runif(1, 0, 2 * pi)
+        p <- base[partner_of[i], ] + pair_distance * c(cos(angle), sin(angle))
+        if (all(p >= 0 & p <= 1)) break
+      }
+      partner[i, ] <- p
+    }
+    pairs <- rbind(base, partner)
+    if (abs(axis_sd_ratio(spread) - 1) <= max_ratio &&
+        abs(axis_sd_ratio(pairs) - 1) <= max_ratio) break
     rejections <- rejections + 1L
   }
-  base <- spread[1:80, , drop = FALSE]
-  partner_of <- sample(80L, 20L)
-  partner <- matrix(NA_real_, 20L, 2L)
-  for (i in 1:20) {
-    repeat {
-      angle <- runif(1, 0, 2 * pi)
-      p <- base[partner_of[i], ] + pair_distance * c(cos(angle), sin(angle))
-      if (all(p >= 0 & p <= 1)) break
-    }
-    partner[i, ] <- p
-  }
-  pairs <- rbind(base, partner)
   repeat {
     centres <- draw_separated_centres(10L, centre_separation)
     clustered <- do.call(rbind, lapply(1:10, function(k) {
