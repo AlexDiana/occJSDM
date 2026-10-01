@@ -115,4 +115,81 @@ if (mode == "oracle") {
   say("oracle finished; 96 posteriors;", sum(table$flag_count > 0), "still flagged after the doubled rerun")
   quit(status = 0)
 }
-stop("Mode ", mode, " is added in Task 3")
+# ---- freeze ---------------------------------------------------------------
+if (mode == "freeze") {
+  stopifnot(!dir.exists(file.path(study, "library")))
+  dirty <- system2("git", c("-C", shQuote(repo), "status", "--porcelain", "--", "R", "src", "DESCRIPTION", "NAMESPACE"), stdout = TRUE)
+  stopifnot(length(dirty) == 0L)
+  rev <- system2("git", c("-C", shQuote(repo), "rev-parse", "HEAD"), stdout = TRUE)
+  src <- file.path(study, "source-main"); dir.create(src)
+  for (d in c("R", "src", "man", "data", "inst")) if (dir.exists(file.path(repo, d))) file.copy(file.path(repo, d), src, recursive = TRUE)
+  file.copy(file.path(repo, c("DESCRIPTION", "NAMESPACE")), src)
+  unlink(list.files(file.path(src, "src"), pattern = "\\.(o|so|dll)$", full.names = TRUE))
+  dir.create(file.path(study, "library"))
+  status <- system2("R", c("CMD", "INSTALL", "--preclean", paste0("--library=", shQuote(file.path(study, "library"))), shQuote(src)),
+                    stdout = file.path(study, "install.log"), stderr = file.path(study, "install.log"))
+  stopifnot(status == 0L)
+  writeLines(rev, file.path(study, "source-revision.txt"))
+  cat(sprintf("- **%s, amendment 2.** Production code frozen at main revision `%s` and installed into the study library before the first full fit.\n",
+              format(Sys.Date(), "%d %B %Y"), rev), file = file.path(scripts, "PLAN.md"), append = TRUE)
+  say("Frozen revision", rev, "installed into", file.path(study, "library"))
+  quit(status = 0)
+}
+
+# ---- fits -----------------------------------------------------------------
+.libPaths(c(file.path(study, "library"), .libPaths()))
+suppressPackageStartupMessages(library(occJSDM))
+stopifnot(normalizePath(find.package("occJSDM")) == normalizePath(file.path(study, "library/occJSDM")))
+RcppParallel::setThreadOptions(numThreads = 1)
+source(file.path(scripts, "score.R"))
+production <- c(file.path(study, "source-main", c("DESCRIPTION", "NAMESPACE")),
+                list.files(file.path(study, "source-main/R"), pattern = "\\.R$", full.names = TRUE),
+                list.files(file.path(study, "source-main/src"), pattern = "\\.(cpp|h)$|^Makevars", full.names = TRUE),
+                file.path(find.package("occJSDM"), "libs/occJSDM.so"))
+fit_hashes <- tools::md5sum(c(production, file.path(scripts, c("generator.R", "run.R"))))
+score_hash <- score_source_hashes(repo)
+jobs <- split(manifest, manifest$key)[manifest$key]
+keys <- option("keys", "")
+if (nzchar(keys)) { keys <- strsplit(keys, ",", fixed = TRUE)[[1]]; stopifnot(all(keys %in% names(jobs))); jobs <- jobs[keys] } else
+if (mode == "pilot") jobs <- jobs["rep01-clustered-two_stage"] else
+if (mode == "long") stop("Long runs require explicit --keys from summarise.R --mode=select")
+mcmc <- switch(mode, pilot = list(nchain = 2L, nburn = 40L, niter = 60L, nthin = 1L),
+               initial = list(nchain = 2L, nburn = 3000L, niter = 5000L, nthin = 1L),
+               long = list(nchain = 4L, nburn = 6000L, niter = 12000L, nthin = 1L))
+out <- file.path(study, mode); dir.create(out, showWarnings = FALSE)
+settings <- list(revision = readLines(file.path(study, "source-revision.txt")), fit_hashes = fit_hashes,
+                 score_hash = score_hash, mcmc = mcmc, mode = mode, workers = workers, threads_per_fit = 1L,
+                 priors = "Unchanged defaults", session = sessionInfo())
+settings_file <- file.path(out, "settings.rds")
+if (file.exists(settings_file)) { old <- readRDS(settings_file)
+  stopifnot(identical(old$fit_hashes, fit_hashes), identical(old$mcmc, mcmc), identical(old$score_hash, score_hash)) } else atomic(settings, settings_file)
+run_job <- function(job) {
+  input_file <- inputs[job$community]
+  stopifnot(identical(unname(tools::md5sum(input_file)), job$input_md5))
+  dest <- file.path(out, paste0(job$key, "-result.rds")); fitfile <- file.path(out, paste0(job$key, "-fit.rds"))
+  if (file.exists(dest)) { old <- readRDS(dest); stopifnot(identical(old$job, job), identical(old$mcmc, mcmc)); return(job$key) }
+  input <- readRDS(input_file); data <- input$surveys[[job$arrangement]][[job$arm]]
+  say(job$key, "started")
+  if (file.exists(fitfile)) { saved <- readRDS(fitfile); stopifnot(identical(saved$job, job), identical(saved$mcmc, mcmc))
+    fit <- saved$fit; warnings <- saved$warnings; started <- saved$started; finished <- saved$finished } else {
+    set.seed(job$fit_seed); warnings <- character(); started <- Sys.time()
+    fit <- withCallingHandlers(suppressMessages(occJSDM::runOccJSDM(data,
+      listParams = list(n_factors = 0L, n_lattrait = 0L, n_supportpoints = 100L), listPriors = list(), threshold = 1,
+      occCovariates = "environment", collCovariates = if (job$arm == "binary") NULL else "collection",
+      spatCovariates = c("longitude", "latitude"), MCMCparams = mcmc)),
+      warning = function(w) { warnings <<- c(warnings, conditionMessage(w)); invokeRestart("muffleWarning") })
+    finished <- Sys.time()
+    atomic(list(fit = fit, job = job, mcmc = mcmc, fit_hashes = fit_hashes, warnings = warnings, started = started, finished = finished), fitfile)
+  }
+  scores <- score_sweep_fit(fit, input, job$arrangement, job$arm)
+  atomic(c(list(job = job, mcmc = mcmc, fit_hashes = fit_hashes, score_hash = score_hash, warnings = warnings,
+                started = started, finished = finished), scores), dest)
+  say(job$key, "complete; fit seconds", round(as.numeric(difftime(finished, started, units = "secs"))),
+      "; warnings", length(warnings), "; max group Rhat", round(max(scores$groups$rhat, na.rm = TRUE), 3))
+  job$key
+}
+work <- function(job) tryCatch(run_job(job), error = function(e) { say(job$key, "ERROR:", conditionMessage(e)); list(key = job$key, error = conditionMessage(e)) })
+status <- if (workers == 1L) lapply(jobs, work) else parallel::mclapply(jobs, work, mc.cores = workers, mc.preschedule = FALSE, mc.set.seed = FALSE)
+atomic(status, file.path(out, paste0("status-", format(Sys.time(), "%Y%m%d%H%M%S"), ".rds")))
+stopifnot(all(vapply(status, is.character, logical(1))))
+say("Completed", length(status), mode, "fits.")
