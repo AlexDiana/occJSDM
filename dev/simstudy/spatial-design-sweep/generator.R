@@ -140,7 +140,7 @@ make_survey <- function(land, arrangement, replicate, det, M = 2L, P = 2L, K = 6
 arrangement_statistics <- function(xy, range, environment_sites, environment_lattice) {
   d <- as.matrix(dist(xy)); diag(d) <- Inf
   nn <- apply(d, 1, min)
-  threshold <- range * sqrt(2 * log(2))
+  threshold <- range * sqrt(2 * base::log(2))
   K <- sq_exp(xy, xy, range)
   sx <- range / sd(xy[, 1]); sy <- range / sd(xy[, 2])
   data.frame(mean_nearest_neighbour = mean(nn),
