@@ -1,28 +1,40 @@
 ---
-title: "Lesson 2: Spatial landscapes and dispersal (planned)"
+title: "Lesson 2: Spatial landscapes and survey design"
 output:
   rmarkdown::html_vignette:
     toc: true
     css: teaching.css
+    fig_width: 8
+    fig_height: 5
 vignette: >
-  %\VignetteIndexEntry{Lesson 2: Spatial landscapes and dispersal (planned)}
+  %\VignetteIndexEntry{Lesson 2: Spatial landscapes and survey design}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
-```{r document-links, include=FALSE}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, collapse = FALSE, comment = "#>",
+  fig.width = 8, fig.height = 5, dpi = 150, dev = "png",
+  # HTML builds write temporary figures, so they never overwrite the tracked Markdown figures.
+  fig.path = if (knitr::is_html_output(excludes = c("markdown", "gfm"))) {
+    "occJSDM-lesson-2_files/figure-html/"
+  } else {
+    "teaching-data/lesson-2-"
+  }
+)
 source("lesson-links.R")
 ```
 
-## What this lesson will add
+## What this lesson adds
 
-**The concepts are written; the worked spatial analysis is not.** The first section below explains what the spatial field learns and how to design a survey for it. Simulations and matching model results will follow the review of the spatial correction in PR #8. [Lesson 0](occJSDM-lesson-0.md) and [Lesson 1](occJSDM-lesson-1.md) already use a verified non-spatial example and do not depend on that pending work.
+**The concepts come first; the worked sections below test them on a controlled simulation.** The sweep behind them fixed its design before any fit; the protocol and audited results are in the repository's development folder. Dispersal and same-scale environmental confounding are not simulated here; the closing section says what remains.
 
-The central ecological question will be: **if a site offers suitable conditions, why might a species still be absent, and what can spatial information tell us?** We will use smooth environmental gradients and species with contrasting dispersal abilities. These ingredients will be introduced in separate sublessons so their effects are visible.
+The central ecological question is: **if a site offers suitable conditions, why might a species still be absent, and what can spatial information tell us?** The worked sections use one broad environmental gradient and one short-range spatial field per species; contrasts between species with different dispersal abilities are deferred.
 
 ## Spatial effects, inference and sampling design
 
-This section explains what the spatial component contributes to species distribution predictions and how that affects survey design. It is written so that a study can be planned before the worked spatial example below exists. [Lesson 3](occJSDM-lesson-3.md#predict-occupancy-at-genuinely-new-sites) shows the non-spatial prediction call in R.
+This section explains what the spatial component contributes to species distribution predictions and how that affects survey design. It can be read on its own, before the worked sections. [Lesson 3](occJSDM-lesson-3.md#predict-occupancy-at-genuinely-new-sites) shows the non-spatial prediction call in R.
 
 ### What the spatial component learns
 
@@ -40,7 +52,7 @@ At a new location, `predictNewSites()` combines its environmental covariates wit
 
 The field can be particularly useful for filling gaps within a surveyed landscape, where nearby observations provide information about local departures from the environmental relationship. Far from the sampled landscape, the learned spatial adjustment supplies progressively less information. It cannot reveal the hunting history or unmeasured habitat conditions of a distant region. A smooth prediction map, or a narrow uncertainty interval from the spatial approximation, is not evidence that such extrapolation is reliable. Interval coverage remains a separate beta-validation limitation.
 
-The model represents the field using **support points**, also called knots. These are computational anchors, not extra observations. Too few can prevent the model from representing detailed spatial patterns. More allow greater flexibility at greater computational cost. Set their number with `n_supportpoints` in `listParams`; the default is approximately 20% of the unique observed locations. The current implementation caps this count at one fewer than the number of unique locations. Using every unique location as a support point requires the corrected implementation proposed in [PR #8](https://github.com/AlexDiana/occJSDM/pull/8), which is still awaiting review. Check sensitivity by increasing this number and comparing the predicted probabilities and strength of the spatial field. More support points cannot replace missing field observations.
+The model represents the field using **support points**, also called knots. These are computational anchors, not extra observations. Too few can prevent the model from representing detailed spatial patterns. More allow greater flexibility at greater computational cost. Set their number with `n_supportpoints` in `listParams`; the default is approximately 20% of the unique observed locations. Using every unique location as a support point has been possible since [PR #8](https://github.com/AlexDiana/occJSDM/pull/8) was merged on 27 September 2026, and the sweep below does so, with 100 support points for 100 sites. Check sensitivity by increasing this number and comparing the predicted probabilities and strength of the spatial field. More support points cannot replace missing field observations.
 
 ### Prediction, association and causal inference
 
@@ -78,44 +90,356 @@ Withholding isolated sites among nearby sampled sites assesses interpolation wit
 
 Spatial blocking can reveal overoptimistic assessments from random validation, but large blocks can also turn an interpolation test into an extrapolation test. Match the design to the scientific question rather than assuming that the largest possible blocks are always best ([Roberts et al., 2017](https://doi.org/10.1111/ecog.02881)). For eDNA surveys, held-out detections still contain observation error: evaluate their predictions through the detection model, and use known simulated occupancy or suitable independent reference information when directly assessing occupancy-probability accuracy. A held-out non-detection is not automatically a true absence.
 
-## 2A. Smooth environmental gradients shape species distributions
+```{r lesson-2-load, message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ggplot2)
+library(patchwork)
 
-Create a landscape with smoothly changing environmental conditions, such as an illustrative moisture gradient and a second broad environmental feature. Declare the arbitrary distance and environmental units. Define the environmental surfaces over the landscape before generating species probabilities and observations; do not attach new covariates to already simulated outcomes.
+sweep <- readRDS("teaching-data/spatial-lesson.rds")
 
-First let the environmental relationships explain the geographic pattern, without an additional spatial field or dispersal restriction. Species with different environmental preferences can then have different distributions even though dispersal is not limiting them in this simulation.
+arrangement_order <- c("spread", "pairs", "clustered", "grid")
+arrangement_labels <- c(spread = "Spread at random", pairs = "Spread plus close pairs",
+                        clustered = "Ten clusters of ten", grid = "Regular grid (control)")
+arm_labels <- c(oracle = "Oracle: true states, known parameters",
+                binary = "occJSDM: true states", two_stage = "occJSDM: eDNA survey")
+group_labels <- c(prevalence_5pct = "5% species", prevalence_25pct = "25% species",
+                  prevalence_75pct = "75% species")
 
-Show the environmental surfaces, sampled sites, species' true occupancy probabilities, actual presence/absence and PCR observations. Put estimates beside their matching true values. This establishes an important distinction: a geographically structured distribution does not, by itself, establish an additional spatial process.
+# Helpers for the numbers quoted in the text.
+fixed <- function(x, digits = 2) formatC(x, format = "f", digits = digits)
+percent <- function(x) paste0(fixed(100 * x, 1), "%")
+span <- function(x, digits = 2) paste(fixed(min(x), digits), "to", fixed(max(x), digits))
 
-## 2B. Spatial structure remains after accounting for the environment
+theme_set(theme_bw(base_size = 12))
+```
 
-Add a known spatial contribution representing geographically patterned conditions that were not included among the measured covariates. Fit comparable models with and without the spatial submodel, keeping their observations and other settings the same.
+## 2A. One landscape, four surveys
 
-Show true, estimated and difference maps for total occupancy probabilities and for the spatial contribution itself, on explicitly matched scales. Use variation partitioning to compare the generating environmental, spatial and residual contributions with their fitted counterparts. Explain that the fitted fractions describe associations under the model, not proof of separate causal mechanisms.
+Everything in the worked sections comes from a simulation designed to isolate one question: with the budget fixed at 100 sites in a fixed study area, how does the arrangement of those sites change what the spatial submodel can learn? The landscape has a single broad environmental gradient, which every arrangement samples, and one independent spatial field per species with a short range, 3% of the side of the area, on which the arrangements differ. All species share that range and a field standard deviation of 1 on the log-odds scale, which is what occJSDM assumes, so the sweep tests information, not model mismatch. Three independent communities were generated; the maps below show the first.
 
-This is the example for teaching how the spatial submodel works on a simulation constructed to match its assumptions. A spatial correlation range describes how similarity declines with distance. It is not automatically a dispersal distance.
+```{r landscape-maps, fig.height=4.2}
+lat <- sweep$landscape$index$lattice
+landscape_cells <- tibble(
+  x = sweep$landscape$points[lat, 1], y = sweep$landscape$points[lat, 2],
+  environment = sweep$landscape$environment[lat],
+  field = sweep$landscape$field[lat, "species06"],
+  probability = sweep$landscape$psi[lat, "species06"]
+) |>
+  pivot_longer(-c(x, y), names_to = "layer", values_to = "value") |>
+  mutate(layer = factor(layer, c("environment", "field", "probability"),
+                        c("Environment", "Field, species 6", "Probability, species 6")))
 
-## 2C. Species differ in their ability to reach suitable habitat
+# Each layer has its own units, so each map gets its own colour scale.
+layer_maps <- lapply(levels(landscape_cells$layer), function(this_layer)
+  ggplot(filter(landscape_cells, layer == this_layer), aes(x, y, fill = value)) +
+    geom_raster() +
+    scale_fill_viridis_c() +
+    coord_equal() +
+    labs(x = NULL, y = NULL, fill = NULL, subtitle = this_layer) +
+    theme(legend.position = "bottom"))
 
-Use a separate, explicitly specified dispersal simulation. A possible teaching design is colonisation from declared starting locations over a fixed number of steps, with short, intermediate and long movement kernels. Keep environmental suitability and the observation process fixed across matched comparisons while changing the movement parameter. This makes the cause of each difference known in the simulation. More dispersal need not always imply higher occupancy: that depends on the chosen colonisation, establishment and extinction rules, which must be stated.
+wrap_plots(layer_maps, nrow = 1) + plot_annotation(title = "One simulated landscape, community 1")
+```
 
-Map suitable habitat, starting locations, the generated distribution, the observed detections and the fitted distribution. Ask whether suitable but unoccupied areas reflect a known simulated dispersal limitation, and whether occJSDM can predict their occupancy. Compare the models against the probabilities implied by the stated generating process. If those probabilities are unavailable analytically, estimate them using many independent realizations with the same declared conditions, report Monte Carlo uncertainty, and keep the single realized occupancy state separate.
+The gradient alone, with its site-to-site noise, would give species 6 a broad trend across the area. The field adds patches a few percent of the side wide, and the probability map is their sum on the log-odds scale. A geographically structured distribution is therefore expected even where no spatial process acts, and the spatial submodel's job is only the patches.
 
-**This requires additional simulator work; it is not already provided by the spatial Gaussian process.** The PR #8 branch inspected while planning this lesson uses a shared spatial range. Its simulator can generate correlated species fields, but does not track movement or colonisation and does not provide species-specific dispersal parameters. Changing the shared range or a species' spatial coefficient would not by itself implement this dispersal experiment.
+```{r arrangement-maps, fig.height=3.2}
+sites <- sweep$arrangements |>
+  filter(community == "rep01") |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels))
 
-Consequently, this sublesson may expose limitations of fitting a common spatial scale to species generated by different processes. Report those limitations rather than selecting only examples that the model recovers well. The known dispersal parameters belong to the simulator. Unless a future model explicitly estimates them, do not label a fitted spatial range or variation-partitioning fraction as a recovered dispersal rate.
+ggplot(sites, aes(x, y)) +
+  geom_point(size = 1.1, colour = "#0072B2") +
+  facet_wrap(~ arrangement, nrow = 1) +
+  coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = NULL, y = NULL, title = "Four ways to place 100 sites")
+```
 
-## 2D. Predict beyond the sampled sites
+The design table records what each arrangement gives the model. Each site's own occupancy state says a little about the field where it stands. To see the shape of a patch, the model also needs other sites within about one range, where field values are correlated above 0.5.
 
-Hold out sites before fitting, including spatial blocks at different distances from the training sites. Keep held-out observations out of both model fitting and preprocessing. Compare predictions with truth appropriate to what is known at each new site; averaging over unknown site effects changes the probability target.
+```{r design-table}
+sweep$statistics |>
+  group_by(arrangement) |>
+  summarise(nearest_neighbour = mean(mean_nearest_neighbour),
+            with_correlated_neighbour = mean(fraction_with_half_neighbour),
+            standardised_range = mean((standardised_range_x + standardised_range_y) / 2),
+            axis_ratio = mean(axis_sd_ratio), .groups = "drop") |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels)) |>
+  arrange(arrangement) |>
+  knitr::kable(digits = c(0, 3, 2, 3, 2),
+               col.names = c("Arrangement", "Mean nearest-neighbour distance", "Fraction of sites with a correlated neighbour",
+                             "Range on the fitter's standardised scale", "Ratio of axis spreads"),
+               caption = "Means over three communities; the study area has side 1 and the field range is 0.03")
+```
 
-Show where prediction improves, where it remains uncertain and how results differ among the simulated dispersal types. Contrast interpolation between sampled sites with extrapolation into different environments or more distant locations. This will connect the model to decisions about sampling extent and spacing.
+One trap is worth naming. occJSDM standardises each coordinate axis before fitting, so shrinking the whole study area changes nothing: the standardised range column is about 0.10 for every arrangement, inside the fitter's grid of 0.01 to 0.30. Closer spacing means more sites within one range of each other, which at a fixed budget means clustering some of them. The grid is the extreme case: its spacing of 0.1 is more than three ranges, so no site on it has a correlated neighbour.
 
-## What will stay consistent across the lessons
+## 2B. What the survey data contain
 
-- Keep at most six PCR replicates per primer per field sample.
-- Show readable R code and explain the meaning of each table before using it.
-- Show the matching simulated truth beside every ecological result; diagnostics such as Rhat have no corresponding biological truth parameter.
-- Distinguish occupancy probability, actual site presence, DNA in a sample and PCR detection.
-- Use common colour scales for comparable maps, and separate error scales centred on zero.
-- Declare settings and case-selection rules before examining fitted recovery; retain examples where the model struggles.
-- Record the reviewed source revision, seeds, inputs, fit settings and convergence checks. A successful PR merge alone does not validate a new simulation or its results.
+Before asking what occJSDM recovers, ask what the data allow. An oracle sampler was handed the true occupied states, intercept, slope, range and amplitude and asked only for the field. Nothing can do better from the same states. Its error is compared with the error of assuming a flat field.
+
+```{r oracle-recovery, fig.height=4.8}
+cells <- sweep$aggregate |>
+  mutate(reduction = 1 - centred_rmse / zero_field_rmse)
+recovery <- cells |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels),
+         arm = factor(arm, names(arm_labels), arm_labels),
+         group = factor(group, names(group_labels), group_labels))
+
+# Each community's reduction, for the bars: errors are averaged over the group's species first.
+oracle_communities <- sweep$oracle |>
+  group_by(community, arrangement, group) |>
+  summarise(reduction = 1 - mean(centred_rmse) / mean(zero_field_rmse),
+            correlation = mean(centred_correlation), .groups = "drop")
+oracle_bars <- oracle_communities |>
+  group_by(arrangement, group) |>
+  summarise(low = min(reduction), high = max(reduction), .groups = "drop") |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels),
+         group = factor(group, names(group_labels), group_labels))
+
+ggplot(filter(recovery, arm == arm_labels["oracle"]), aes(arrangement, reduction)) +
+  geom_hline(yintercept = 0, colour = "grey50") +
+  geom_linerange(data = oracle_bars, aes(arrangement, ymin = low, ymax = high), inherit.aes = FALSE, colour = "#0072B2") +
+  geom_point(colour = "#0072B2", size = 2.6) +
+  facet_wrap(~ group) +
+  labs(x = NULL, y = "Field error reduction relative to a flat field",
+       title = "The ceiling: what the occupancy states contain about the field",
+       caption = "Point: mean of three communities. Bar: their range. Zero means the states say nothing about the field.") +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1), plot.margin = margin(5.5, 5.5, 5.5, 30))
+```
+
+```{r oracle-ceiling}
+oracle_cells <- filter(cells, arm == "oracle")
+common <- filter(oracle_cells, group != "prevalence_5pct")
+rare <- filter(oracle_cells, group == "prevalence_5pct")
+clustered_25 <- filter(oracle_communities, arrangement == "clustered", group == "prevalence_25pct")
+clustered_75 <- filter(oracle_communities, arrangement == "clustered", group == "prevalence_75pct")
+clustered_5 <- filter(oracle_communities, arrangement == "clustered", group == "prevalence_5pct")
+passes <- function(d) sum(d$reduction >= .2 & d$correlation >= .5)
+```
+
+The ceiling is low for every arrangement except one. With sites spread at random, in pairs or on the grid, the oracle, knowing everything except the field, removes only `r span(100 * common$reduction[common$arrangement != "clustered"], 1)`% of the flat-field error for the common species, and almost nothing for the rare ones. Clustering changes that for the common species. For the 25% species the oracle clears both informative thresholds in `r passes(clustered_25)` of 3 communities, with reductions of `r span(100 * clustered_25$reduction, 1)`% and correlations of `r span(clustered_25$correlation)`; for the 75% species it clears them in `r passes(clustered_75)` of 3. For the rare species even clustered sites leave the oracle at `r span(100 * clustered_5$reduction, 1)`%. So for most arrangements 100 occupancy states hold little information about a field whose range is 3% of the area's side; clustered sites hold enough for the common species, and the next section asks whether occJSDM extracts it.
+
+```{r reading-labels}
+sweep$reading |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels),
+         group = factor(group, names(group_labels), group_labels)) |>
+  arrange(group, arrangement) |>
+  select(group, arrangement, label, min_reduction, min_correlation) |>
+  knitr::kable(digits = 2, col.names = c("Species group", "Arrangement", "Reading", "Smallest error reduction", "Smallest correlation"),
+               caption = "Reading rules fixed before fitting, applied to occJSDM's true-state fits across all three communities")
+```
+
+The reading labels were defined before any result existed: informative means at least a 20% error reduction and a correlation of at least 0.5 in every community, uninformative means under 10% or under 0.3 in every community, and anything else is intermediate. Read the table rather than the prose for the result; the prose below describes the pattern the table shows.
+
+`r if (all(sweep$reading$label[sweep$reading$arrangement == "spread"] != "informative")) "With sites spread at random, the field is not recoverable for any species group." else "Spread sites are informative for at least one species group in this landscape, which was not expected from the September studies; the table and the maps below show how far."` `r if (any(sweep$reading$label[sweep$reading$arrangement %in% c("clustered", "pairs")] == "informative")) "Placing sites within one range of each other changes that for the common species." else "Even the clustered and paired designs do not reach the informative threshold for any species group in all three communities."` In all, `r sum(sweep$reading$label == "uninformative")` of the 12 cells are uninformative. The exception is the clustered design for the 25% species, which is intermediate; exercise 3 below asks why. The clustered design for the 75% species has correlations of at least `r fixed(sweep$reading$min_correlation[sweep$reading$arrangement == "clustered" & sweep$reading$group == "prevalence_75pct"])` in every community, but its error reductions are all below 10%, so it is uninformative. Rarity is a separate limit: a species at 5% occupancy has about five occupied sites among 100, too few to reveal where its patches are, however the sites are arranged.
+
+## 2C. What occJSDM delivers
+
+The full model must also estimate the intercepts, slopes, range and amplitude, and in the survey arm it must see the field through two field samples, two primers and six PCRs per primer per sample, 12 PCRs per sample. The oracle-to-true-state gap is the cost of estimation; the true-state-to-survey gap is the cost of detection.
+
+```{r fit-recovery, fig.height=5}
+ggplot(recovery, aes(arrangement, reduction, colour = arm)) +
+  geom_hline(yintercept = 0, colour = "grey50") +
+  geom_point(position = position_dodge(.5), size = 2.4) +
+  facet_wrap(~ group) +
+  scale_colour_manual(values = c("#0072B2", "#D55E00", "#7B3294")) +
+  labs(x = NULL, y = "Field error reduction relative to a flat field", colour = NULL,
+       title = "Oracle ceiling, true-state fit and eDNA-survey fit",
+       caption = "Means of three communities. Each point's community range is in the saved tables.") +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1), legend.position = "bottom", plot.margin = margin(5.5, 5.5, 5.5, 30))
+```
+
+```{r costs}
+survey_communities <- sweep$fits$field |>
+  filter(arm == "two_stage") |>
+  group_by(community, arrangement, target) |>
+  summarise(reduction = 1 - mean(centred_rmse) / mean(zero_field_rmse), .groups = "drop")
+
+sweep$paired |>
+  group_by(arrangement) |>
+  summarise(estimation = mean(estimation_cost), detection = mean(detection_cost), .groups = "drop") |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels)) |>
+  arrange(arrangement) |>
+  knitr::kable(digits = 3, col.names = c("Arrangement", "Estimation cost", "Detection cost"),
+               caption = "Increase in field RMSE on the log-odds scale, mean of three communities and three species groups")
+```
+
+Both gaps are real. Estimation adds `r fixed(mean(sweep$paired$estimation_cost), 3)` to the field error on average and adds to it in `r sum(sweep$paired$estimation_cost > 0)` of the 36 community, arrangement and group cells. Detection adds a further `r fixed(mean(sweep$paired$detection_cost), 3)` on average and adds to it in `r sum(sweep$paired$detection_cost > 0)` of 36. The clustered design, which has the highest ceiling, carries the largest of both. The eDNA-survey fits remove at most `r percent(max(cells$reduction[cells$arm == "two_stage"]))` of the flat-field error in any cell when averaged over communities, and at most `r percent(max(survey_communities$reduction))` in any single community.
+
+```{r clustered-cells}
+cells |>
+  filter(arrangement == "clustered", group != "prevalence_5pct", arm != "two_stage") |>
+  mutate(arm = factor(arm, names(arm_labels), arm_labels),
+         group = factor(group, names(group_labels), group_labels)) |>
+  arrange(group, arm) |>
+  select(group, arm, reduction, correlation) |>
+  knitr::kable(digits = 2, col.names = c("Species group", "Arm", "Error reduction", "Correlation with the true field"),
+               caption = "The clustered design for the common species, mean of three communities")
+```
+
+In the clustered design the fit places the patches about as well as the oracle does, but not their strength. For the common species the true-state fit's correlation with the true field is as high as the oracle's, yet it removes less than half as much of the error. Correlation ignores scale and the error does not: the fit shrinks the field towards zero. Its posterior median for the field's standard deviation is `r span(sweep$fits$amplitude$median)` against a true value of 1, and the upper end of its 95% interval is at most `r fixed(max(sweep$fits$amplitude$upper))` in any fit. So where the data do hold the field, the fit falls short of the ceiling through that shrinkage: for the 25% species in the clustered design it removes `r percent(cells$reduction[cells$arm == "binary" & cells$arrangement == "clustered" & cells$group == "prevalence_25pct"])` of the error against the oracle's `r percent(cells$reduction[cells$arm == "oracle" & cells$arrangement == "clustered" & cells$group == "prevalence_25pct"])`. In the maps below, on one colour scale, the fitted fields are much paler than the truth.
+
+```{r field-maps, fig.height=4.6}
+maps <- sweep$field_maps |>
+  filter(community == "rep01", species == "species06", arrangement %in% c("spread", "clustered")) |>
+  left_join(filter(sweep$arrangements, community == "rep01"), by = c("community", "arrangement", "site")) |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels),
+         source = factor(source, c("truth", "oracle", "binary", "two_stage"),
+                         c("Truth", "Oracle", "True-state fit", "eDNA-survey fit")))
+
+ggplot(maps, aes(x, y, colour = value)) +
+  geom_point(size = 1.8) +
+  facet_grid(arrangement ~ source) +
+  scale_colour_gradient2(low = "#2166AC", mid = "white", high = "#B2182B", midpoint = 0) +
+  coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = NULL, y = NULL, colour = "Field (log-odds)",
+       title = "Species 6, community 1: the field at the surveyed sites",
+       caption = "Fitted values are posterior medians. Compare the fitted maps with the truth column in each row.")
+```
+
+The fit does not find the range either. By the prespecified rule, the range is recovered when at least half of its posterior mass lies within one grid step of the truth in every community. That mass is `r span(sweep$fits$range$mass_within_one_step)` across the 24 fits, so the rule finds the range recovered in `r sum(sweep$range_reading$range_recovered)` of the 8 arrangement and arm combinations. The posterior mean range is `r span(sweep$fits$range$posterior_mean)` on the standardised scale, against a truth of `r span(sweep$fits$range$standardised_truth, 3)`: the fits prefer a longer, smoother field than the one simulated.
+
+```{r range-amplitude, fig.height=4.2}
+sweep$fits$range |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels),
+         arm = factor(arm, names(arm_labels)[-1], arm_labels[-1])) |>
+  ggplot(aes(arrangement, mass_within_one_step, colour = arm)) +
+  geom_hline(yintercept = .5, linetype = "dashed") +
+  geom_point(position = position_dodge(.4), size = 2.4) +
+  scale_colour_manual(values = c("#D55E00", "#7B3294")) +
+  ylim(0, 1) +
+  labs(x = NULL, y = "Posterior mass near the true range", colour = NULL,
+       title = "Does the fit find the range?", caption = "Mass within one grid step of the true range. One point per community. Dashed line: the reading rule.") +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1), legend.position = "bottom")
+```
+
+```{r occupancy-bands}
+sweep$fits$groups |>
+  filter(metric == "occupancy", group %in% c("low", "medium", "high")) |>
+  group_by(arrangement, arm, group) |>
+  summarise(signed = 100 * mean(bias), absolute = 100 * mean(mae), .groups = "drop") |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels),
+         arm = factor(arm, names(arm_labels)[-1], arm_labels[-1]),
+         group = factor(group, c("low", "medium", "high"), c("Below 20%", "20% to 80%", "Above 80%"))) |>
+  arrange(arm, arrangement, group) |>
+  knitr::kable(digits = 1, col.names = c("Arrangement", "Arm", "True probability", "Signed error (points)", "Absolute error (points)"),
+               caption = "Occupancy error at the surveyed sites, mean of three communities")
+```
+
+At the surveyed sites the fits pull occupancy probabilities towards the middle: in every arrangement they overestimate the lowest band and underestimate the highest, and the eDNA-survey fits do so much more strongly.
+
+```{r convergence}
+sweep$selected_fits |>
+  filter(needs_long) |>
+  select(key, initial_reasons, phase) |>
+  knitr::kable(col.names = c("Fit", "Reasons for the longer run", "Fit used"),
+               caption = "Initial fits that met the prespecified rule for a longer run")
+
+amplitude_ess <- filter(sweep$fits$groups, metric == "spatial_sd")$ess_mean
+amplitude_rhat <- filter(sweep$fits$groups, metric == "spatial_sd")$rhat
+```
+
+Convergence qualifications are part of the result. `r sum(sweep$selected_fits$needs_long)` of the 24 initial fits met the prespecified rule for a longer run; the longer run replaces the initial fit in every table, and `r sum(nzchar(sweep$selected_fits$selected_reasons))` selected fits retain a flag after it. The rule's Rhat check covers every occupancy probability and model parameter, including the spatial amplitude, whose Rhat is `r span(amplitude_rhat, 3)`, but its effective-sample-size threshold covers occupancy only. The site field values and the lattice predictions are outside the rule; recomputed from the saved draws, the field values at the sites have an Rhat of at most `r fixed(max(sweep$field_convergence$max_rhat), 3)` and a bulk effective sample size of at least `r round(min(sweep$field_convergence$min_ess_bulk))` across the 24 selected fits (`results/field-convergence.csv`). The amplitude mixes slowly: `r sum(amplitude_ess < 100)` of the 24 selected fits have an amplitude effective sample size below 100, the lowest `r fixed(min(amplitude_ess), 1)`. Their amplitude interval endpoints are therefore imprecisely estimated, although every interval lies far below the true value.
+
+## 2D. Predicting unsurveyed locations
+
+Clustering buys neighbours and spends coverage. The lattice of 1,600 unsurveyed locations tests whether that trade shows in prediction. Prediction error is plotted against the distance from each location to its nearest surveyed site, with and without the spatial term.
+
+```{r lattice-prediction, fig.height=6}
+lattice_means <- sweep$fits$lattice |>
+  filter(bin != "all", n > 0) |>
+  group_by(arrangement, arm, spatial_term, bin) |>
+  summarise(mae = 100 * mean(mae), bias = 100 * mean(bias), .groups = "drop")
+
+lattice_means |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels),
+         arm = factor(arm, names(arm_labels)[-1], arm_labels[-1]),
+         bin = factor(bin, c("up to 0.02", "0.02 to 0.05", "0.05 to 0.1", "above 0.1")),
+         spatial_term = factor(spatial_term, c("with", "without"), c("Environment and field", "Environment only"))) |>
+  ggplot(aes(bin, mae, colour = spatial_term, group = spatial_term)) +
+  geom_line() + geom_point() +
+  facet_grid(arm ~ arrangement) +
+  scale_colour_manual(values = c("#0072B2", "grey45")) +
+  labs(x = "Distance from the nearest surveyed site", y = "Mean absolute error (points)", colour = NULL,
+       title = "Prediction error at unsurveyed locations",
+       caption = "Means of three communities. Where the two lines coincide, the field adds nothing. The grid leaves no location beyond 0.1.") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1), legend.position = "bottom")
+```
+
+```{r lattice-differences}
+spatial_gain <- lattice_means |>
+  filter(arm == "binary") |>
+  select(arrangement, bin, spatial_term, mae) |>
+  pivot_wider(names_from = spatial_term, values_from = mae) |>
+  mutate(gain = without - with)
+near_clusters <- spatial_gain$arrangement == "clustered" & spatial_gain$bin == "up to 0.02"
+survey <- filter(lattice_means, arm == "two_stage")
+# The oracle's own lattice prediction, and the environment-only prediction from the true parameters.
+oracle_lattice <- sweep$oracle_lattice |>
+  filter(bin != "all", n > 0) |>
+  group_by(arrangement, spatial_term, bin) |>
+  summarise(mae = 100 * mean(mae), .groups = "drop") |>
+  pivot_wider(names_from = spatial_term, values_from = mae)
+oracle_near <- oracle_lattice$arrangement == "clustered" & oracle_lattice$bin == "up to 0.02"
+```
+
+The lines are nearly flat and nearly coincide. With the spatial term, the true-state fits miss the true occupancy probability by `r span(spatial_gain$with[!near_clusters], 1)` points at every distance and in every arrangement, except within 0.02 of a site in the clustered design, at `r fixed(spatial_gain$with[near_clusters], 1)`. Dropping the spatial term changes the error by at most `r fixed(max(abs(spatial_gain$gain[!near_clusters])))` points, except in that same bin, where it adds `r fixed(spatial_gain$gain[near_clusters])`. Outside the clustered design the error barely changes with distance from the survey. In the clustered design it rises from `r fixed(spatial_gain$with[near_clusters], 1)` to `r fixed(max(spatial_gain$with[spatial_gain$arrangement == "clustered"]), 1)` points, and the spatial term accounts for at most `r fixed(spatial_gain$gain[near_clusters])` of that. The fitted field is too weak to matter beyond the nearest bin: the environment term carries the prediction. The eDNA-survey fits miss by `r span(survey$mae, 1)` points, with a positive bias of `r span(survey$bias, 1)` points, so detection costs far more here than the arrangement does. The oracle, which knows every parameter, sets the ceiling: with its field it misses by `r fixed(oracle_lattice$with[oracle_near], 1)` points within 0.02 of a site in the clustered design and by `r span(oracle_lattice$with[!oracle_near], 1)` points in every other bin and arrangement, against `r span(oracle_lattice$without, 1)` points for an environment-only prediction from the true parameters, so at this range even known parameters predict little better than the environment away from the sites.
+
+```{r lattice-maps, fig.height=4.5}
+sweep$lattice_maps |>
+  filter(source == "binary", arrangement %in% c("spread", "clustered")) |>
+  mutate(error = 100 * (with - truth),
+         arrangement = factor(arrangement, arrangement_order, arrangement_labels)) |>
+  ggplot(aes(x, y, fill = error)) +
+  geom_raster() +
+  geom_point(data = filter(sweep$arrangements, community == "rep01", arrangement %in% c("spread", "clustered")) |>
+               mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels)),
+             aes(x, y), inherit.aes = FALSE, size = .6, colour = "black") +
+  facet_wrap(~ arrangement) +
+  scale_fill_gradient2(low = "#2166AC", mid = "white", high = "#B2182B", midpoint = 0) +
+  coord_equal() +
+  labs(x = NULL, y = NULL, fill = "Error (points)",
+       title = "Species 6, community 1: prediction error over the area from true-state fits",
+       caption = "Black dots are the surveyed sites.")
+```
+
+```{r lattice-map-bias}
+true_field <- sweep$landscape$field[sweep$landscape$index$lattice, "species06"]
+map_bias <- sweep$lattice_maps |>
+  filter(source == "binary") |>
+  group_by(arrangement) |>
+  summarise(signed = 100 * mean(with - truth), under = mean(with < truth),
+            field_correlation = cor(with - truth, true_field))
+```
+
+In both maps the errors mirror the true field, with a correlation of `r span(map_bias$field_correlation[map_bias$arrangement %in% c("spread", "clustered")])` between the error and the field: where the field raises occupancy the fit underpredicts, and where it lowers occupancy the fit overpredicts, because the fit has not learned the field. With clustered sites species 6 is also broadly underpredicted, by `r fixed(-map_bias$signed[map_bias$arrangement == "clustered"], 1)` points on average and in `r percent(map_bias$under[map_bias$arrangement == "clustered"])` of the cells. This is one species in one community, so it shows what a single map can look like, not a property of clustering.
+
+The conceptual section described clustering as trading coverage for neighbours, with close pairs as a hedge between the two. At this budget and range neither side of the trade shows in prediction. The field the fits learn is too weak to carry information away from the sites, so the coverage that clustering gives up costs nothing measurable, and the neighbours it buys help by less than a point, almost all of it within 0.02 of a site. Adding close pairs to a spread design raised the oracle ceiling for the common species, but the true-state fits still removed about 3% of the error or less. Whether the trade appears with a longer range, a stronger field or a larger budget is not tested here.
+
+## What this establishes, and what it does not
+
+The sweep is a controlled, model-matched simulation: one broad gradient, one field range shared by all species, no dispersal, no species-specific ranges, and no environmental covariate at the field's scale. Within that, three communities support the reading labels above, not confidence intervals.
+
+At this budget, no arrangement of 100 sites lets occJSDM recover a field with a range of 3% of the area's side. For most arrangements the information is not in the data: even the oracle ceiling is low. The exception is clustering for the common species, where the oracle clears the informative thresholds for the 25% species in every community; there occJSDM falls short of the ceiling, because it shrinks the field's amplitude and prefers longer ranges than the truth. Clustering raises the field correlation to the oracle's level for the common species but barely improves the map. Prediction at unsurveyed locations is carried almost entirely by the environment term, so the coverage that clustering gives up costs nothing measurable here, and the neighbours it gains buy almost nothing. Rare species are unrecoverable in every arrangement. The two-stage survey adds a detection cost on top of the cost of estimation.
+
+Nothing here validates spatial prediction on real data, establishes interval coverage, or shows what happens when species disperse at different scales; those are the separate contrasts still to come, with same-scale environmental confounding the first candidate.
+
+Try these with the saved tables, without refitting:
+
+1. Using the coordinates in `sweep$arrangements` as a template, compute for a design of your own the fraction of sites whose nearest neighbour is closer than 1.18 ranges, where a squared-exponential field's correlation falls to 0.5, and compare it with `sweep$statistics`. Use a range that is plausible for your system.
+2. `sweep$lattice_maps` has every lattice cell for community 1 with its distance to the nearest site. Recompute the distance bins at 0.01, 0.03 and 0.06 and redraw the prediction-error figure for the four arrangements and two arms it contains.
+3. The clustered design for the 25% species is the one intermediate cell. From `sweep$fits$field`, compute its error reduction and correlation in each community, then say which part of the informative rule it fails and what keeps it out of the uninformative label.
+
+## Reproduction record
+
+The protocol, scripts, compact results, audit and figures are under `dev/simstudy/spatial-design-sweep/` in the source repository, and its README gives the full reproduction commands. The fits used occJSDM at revision `r substr(sweep$provenance$revision, 1, 7)`, whose package code equals main at 1526c26, frozen before the first fit and recorded in the protocol's amendments. The compact bundle `teaching-data/spatial-lesson.rds` carries everything this lesson renders. From the repository root, with `STUDY` set as in that README, the first command below rebuilds the bundle from the raw archive and the second checks it against the committed results without the archive. No fit is rerun while knitting.
+
+```{bash, eval=FALSE}
+Rscript dev/simstudy/spatial-design-sweep/export-teaching.R --repo=. --study=$STUDY
+Rscript dev/simstudy/spatial-design-sweep/verify-lesson.R .
+```
+
+Return to the [Quickstart and lesson guide](occJSDM.md), [Lesson 1](occJSDM-lesson-1.md) or [Lesson 3](occJSDM-lesson-3.md).

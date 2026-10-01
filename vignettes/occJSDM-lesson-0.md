@@ -3,7 +3,7 @@ Lesson 0 (optional): Create and explore a simulated survey
 
 ## Where this lesson fits
 
-We will learn occJSDM using a community whose true distribution is known. **Lesson 0 creates and explores the survey. [Lesson 1 fits the model and checks its answers](occJSDM-lesson-1.md). [Lesson 2 will introduce spatial landscapes and species that differ in dispersal](occJSDM-lesson-2.md).** Lesson 2 is a plan, pending review of the spatial submodel in PR \#8; it does not yet contain fitted results.
+We will learn occJSDM using a community whose true distribution is known. **Lesson 0 creates and explores the survey. [Lesson 1 fits the model and checks its answers](occJSDM-lesson-1.md). [Lesson 2 introduces spatial landscapes and survey design](occJSDM-lesson-2.md).** Lesson 2 now contains a worked site-arrangement sweep (four arrangements of 100 sites, an oracle ceiling, fits to true states and to an eDNA survey, and prediction at unsurveyed locations); its spatial variation partitioning and held-out validation remain future work, and contrasts between species that differ in dispersal are deferred.
 
 You can skip Lesson 0 and start Lesson 1 with the supplied dataset. Read this lesson if you want to understand where that dataset came from, change the simulation settings, or learn how to prepare the tables and figures yourself.
 
@@ -531,6 +531,6 @@ A lost sample is represented by **absent rows**. It is not an observed sample wi
 
 The main two-stage fit receives **`survey_data` only**; the unbalanced extension receives **`unbalanced_data` only**. It does not receive the true occupancy probabilities, presence states, sample states or source labels. Lesson 1 also includes a deliberately labelled perfect-observation control that receives the true presence/absence matrix. That control still has to estimate the probabilities that generated those binary states.
 
-Our later spatial lesson will keep the observation process recognisable while changing the ecological simulation. Smooth environmental gradients will be one ingredient. Species’ different dispersal abilities will be another, introduced separately so that students can see what each changes. A spatial pattern alone is not a measurement of dispersal. See the [Lesson 2 outline](occJSDM-lesson-2.md) for that distinction and the planned comparisons.
+Our spatial lesson keeps the observation process recognisable while changing the ecological simulation. A smooth environmental gradient is one ingredient. Contrasts between species with different dispersal abilities are deferred to later work, where they will be introduced separately so that students can see what each changes. A spatial pattern alone is not a measurement of dispersal. See [Lesson 2](occJSDM-lesson-2.md) for that distinction and the site-arrangement sweep.
 
 Continue to [Lesson 1: Fit the model and compare its answers with truth](occJSDM-lesson-1.md).

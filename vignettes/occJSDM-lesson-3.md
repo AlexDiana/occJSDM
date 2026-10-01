@@ -5,7 +5,7 @@ Lesson 3: Understand the model’s outputs by comparing them with truth
 
 An environmental effect can be real in the simulation and still be estimated imprecisely. A fitted curve can look convincing and still miss the truth. This lesson shows how to distinguish those situations.
 
-It replaces the output tour in the original occJSDM vignette. Start with [Lesson 1](occJSDM-lesson-1.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. You do not need the planned spatial Lesson 2 first. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, two field samples per site, two primers and six PCR replicates per primer.
+It replaces the output tour in the original occJSDM vignette. Start with [Lesson 1](occJSDM-lesson-1.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. You do not need the spatial Lesson 2 first. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, two field samples per site, two primers and six PCR replicates per primer.
 
 We compare two existing fits of that community: one given the actual presence/absence matrix (**perfect observation**) and one given the PCR observations. The diagnostics section also revisits Lesson 1’s longer alternative-prior fit. This is not a before/after comparison of software versions. The fits use the verified model source recorded in Lesson 1; that source matches the code on main when this lesson was prepared. Most examples reuse these fits. The new-site comparison below adds one fit to the same PCR observations, changing only the number of hidden site factors from two to one.
 
@@ -2217,7 +2217,7 @@ These exporters preserve all posterior draws for their summaries. They do not re
 | What happened at a particular site/sample? | `computeConditionalOccupancyProbs()`, `computeConditionalSamplePresenceProbs()`, `computePredictiveOccupancyProbs()`, `returnLatentPresences()`, `plotLatentPresences()` | Native tables above, with matching states and probabilities |
 | Can I trust the computation? | `computeDiagnostics()`, `returnConvergenceDiagnostics()`, `plotTraceplot()`, `extractWAIC()` | Diagnostics above; these have no single simulated true value |
 | How well does it predict unsurveyed sites? | `predictNewSites()` | 300 independent non-spatial sites above, with clearly distinguished probability targets |
-| What about spatial prediction? | Spatial model outputs | Planned Lesson 2; not validated by this lesson |
+| What about spatial prediction? | Spatial model outputs | Lesson 2, a worked site-arrangement sweep; not validated by this lesson |
 
 ## References and further reading
 
