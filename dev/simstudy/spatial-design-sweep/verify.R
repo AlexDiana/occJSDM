@@ -1,6 +1,18 @@
 #!/usr/bin/env Rscript
-# Independent audit: rebuild probabilities, field medians, range table and lattice
-# predictions from saved draws and compare with the scored values.
+# Audit of every selected fit against its scored values, from the saved draws.
+# Independent rebuilds, computed in this script rather than by score.R:
+#   probability       posterior-mean site probabilities, from the saved coefficients and the
+#                     kernel-built site bases of independent_bases (September helper, shared with
+#                     score.R but separate from the package's basis code);
+#   range             chain-by-grid range frequencies, tabulated from idx_ls_output;
+#   range_mass, range_boundary
+#                     mass within one grid step of the true range and mass at either grid end,
+#                     recomputed from idx_ls_output and the recorded true standardised range;
+#   independent_basis whitened lattice basis built from the kernel alone (see below).
+# Reproducibility checks, which call score.R's own reconstruct_field_draws() and
+# reconstruct_lattice_draws() and so confirm that scoring is deterministic and was saved
+# faithfully, not that its method is right:
+#   field_median, lattice, and native_lattice and basis (stored by score.R at scoring time).
 args <- commandArgs(trailingOnly = TRUE)
 option <- function(name, default = NULL) { hit <- args[startsWith(args, paste0("--", name, "="))]
   if (!length(hit)) { if (is.null(default)) stop("Missing --", name); return(default) }; substring(hit, nchar(name) + 4L) }
@@ -48,11 +60,15 @@ for (i in seq_len(nrow(sel))) {
   land <- input$landscape; li <- land$index$lattice
   lat <- reconstruct_lattice_draws(fit, land$environment[li], land$points[li, ], thin = 4L)
   lattice_diff <- max(abs(lat$with - r$lattice_mean), abs(lat$without - r$lattice_mean_nospatial))
+  nearest <- which.min(abs(grid - r$range_summary$standardised_truth))
+  range_mass_diff <- abs(mean(abs(js$idx_ls_output - nearest) <= 1L) - r$range_summary$mass_within_one_step)
+  range_boundary_diff <- abs(mean(js$idx_ls_output %in% c(1L, length(grid))) - r$range_summary$mass_at_boundary)
   basis_diff <- independent_lattice_basis_difference(fit, input$surveys[[r$job$arrangement]]$truth$xy, land$points[li, ])
   rows[[i]] <- data.frame(key = sel$key[i], phase = sel$phase[i], probability = prob_diff, field_median = field_diff,
-    range = range_diff, lattice = lattice_diff, independent_basis = basis_diff,
+    range = range_diff, range_mass = range_mass_diff, range_boundary = range_boundary_diff,
+    lattice = lattice_diff, independent_basis = basis_diff,
     native_lattice = r$verification$lattice, basis = r$verification$basis,
-    passed = prob_diff < 1e-10 & field_diff < 1e-10 & range_diff < 1e-12 & lattice_diff < 1e-10 &
+    passed = prob_diff < 1e-10 & field_diff < 1e-10 & range_diff < 1e-12 & range_mass_diff < 1e-12 & range_boundary_diff < 1e-12 & lattice_diff < 1e-10 &
       basis_diff < 1e-8 & r$verification$lattice < 1e-8)
   cat(sel$key[i], if (rows[[i]]$passed) "ok" else "MISMATCH", "\n")
 }
@@ -62,4 +78,4 @@ audit <- do.call(rbind, rows); dir.create(file.path(study, "audit"), showWarning
 write.csv(audit, file.path(study, "audit/audit.csv"), row.names = FALSE)
 writeLines(c(paste("oracle result hashes match:", oracle_ok), paste("fits passed:", sum(audit$passed), "of", nrow(audit))),
            file.path(study, "audit/summary.txt"))
-stopifnot(oracle_ok, all(audit$passed)); cat("Audit passed for", nrow(audit), "fits and 96 oracle results.\n")
+stopifnot(nrow(oracle) == 96L, oracle_ok, all(audit$passed)); cat("Audit passed for", nrow(audit), "fits and 96 oracle results.\n")

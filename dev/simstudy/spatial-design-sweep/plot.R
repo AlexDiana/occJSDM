@@ -9,6 +9,14 @@ summary <- file.path(study, "summary-final")
 for (f in c("aggregate.csv", "reading.csv", "range-reading.csv", "paired.csv", "selected-fits.csv", "groups.csv",
             "species.csv", "field.csv", "range.csv", "amplitude.csv", "lattice.csv", "oracle.csv", "long-run-sensitivity.csv"))
   stopifnot(file.copy(file.path(summary, f), out, overwrite = TRUE))
+# The committed copies of the two file-listing tables carry paths relative to the study directory;
+# verify.R reads the study copies, which keep the absolute paths.
+relative_to_study <- function(path) { prefix <- paste0(study, "/")
+  stopifnot(startsWith(path, prefix)); substring(path, nchar(prefix) + 1L) }
+for (spec in list(c("selected-fits.csv", "selected_file"), c("oracle.csv", "file"))) {
+  d <- read.csv(file.path(out, spec[1])); d[[spec[2]]] <- relative_to_study(d[[spec[2]]])
+  write.csv(d, file.path(out, spec[1]), row.names = FALSE)
+}
 stopifnot(file.copy(file.path(study, "design-statistics.csv"), out, overwrite = TRUE))
 stopifnot(file.copy(file.path(study, "audit/audit.csv"), file.path(out, "audit.csv"), overwrite = TRUE))
 order_arr <- c("spread", "pairs", "clustered", "grid")
