@@ -17,7 +17,7 @@ read_selected <- function(path) {
 }
 # The tables carried by the bundle are the committed compact copies; check they match the study's own.
 for (f in c("groups.csv", "species.csv", "field.csv", "range.csv", "amplitude.csv", "lattice.csv",
-            "aggregate.csv", "reading.csv", "range-reading.csv", "paired.csv"))
+            "aggregate.csv", "reading.csv", "range-reading.csv", "paired.csv", "oracle-lattice.csv"))
   stopifnot(unname(tools::md5sum(file.path(results, f))) == unname(tools::md5sum(file.path(summary, f))))
 stopifnot(unname(tools::md5sum(file.path(results, "design-statistics.csv"))) == unname(tools::md5sum(file.path(study, "design-statistics.csv"))),
           unname(tools::md5sum(file.path(results, "audit.csv"))) == unname(tools::md5sum(file.path(study, "audit/audit.csv"))))
@@ -55,7 +55,7 @@ bundle <- list(
                    range = land$range, env_range = land$env_range, species = land$species, prevalence = land$prevalence,
                    B0 = land$B0, B = land$B, cluster_centres = land$cluster_centres),
   arrangements = arrangements, statistics = read("design-statistics.csv"),
-  oracle = read("oracle.csv"), fits = list(groups = read("groups.csv"), species = read("species.csv"), field = read("field.csv"),
+  oracle = read("oracle.csv"), oracle_lattice = read("oracle-lattice.csv"), fits = list(groups = read("groups.csv"), species = read("species.csv"), field = read("field.csv"),
     range = read("range.csv"), amplitude = read("amplitude.csv"), lattice = read("lattice.csv")),
   aggregate = read("aggregate.csv"), reading = read("reading.csv"), range_reading = read("range-reading.csv"),
   paired = read("paired.csv"), field_maps = do.call(rbind, field_maps), lattice_maps = do.call(rbind, lattice_maps),

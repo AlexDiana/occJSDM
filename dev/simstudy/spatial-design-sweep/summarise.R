@@ -80,6 +80,30 @@ for (t in names(tables)) write.csv(tables[[t]], file.path(out, paste0(t, ".csv")
 oracle <- read.csv(file.path(study, "oracle/oracle-selected.csv"))
 oracle$group <- paste0("prevalence_", c(5, 5, 25, 25, 25, 75, 75, 75)[oracle$species], "pct")
 write.csv(oracle, file.path(out, "oracle.csv"), row.names = FALSE)
+# Oracle lattice prediction (outcome 4 for the oracle), tabulated from the stored oracle results with the
+# distance bins of score.R. "with" is the oracle's posterior mean probability; "without" is the
+# environment-only probability from the true parameters, plogis(B0 + B * environment).
+source(file.path(repo, "dev/simstudy/spatial-design-sweep/score.R"))
+error_rows <- function(err, bins) rbind(
+  data.frame(bin = "all", n = length(err), bias = mean(err), mae = mean(abs(err)), rmse = sqrt(mean(err^2))),
+  do.call(rbind, lapply(levels(bins$bin), function(b) { e <- err[bins$bin == b]
+    data.frame(bin = b, n = length(e), bias = mean(e), mae = mean(abs(e)), rmse = sqrt(mean(e^2))) })))
+oracle_lattice <- do.call(rbind, lapply(seq_len(nrow(oracle)), function(i) {
+  o <- oracle[i, ]; res <- readRDS(o$file)
+  stopifnot(unname(tools::md5sum(o$file)) == o$result_md5, res$job$community == o$community,
+            res$job$arrangement == o$arrangement, res$job$species == o$species)
+  input_file <- file.path(study, "inputs", paste0(o$community, ".rds"))
+  stopifnot(unname(tools::md5sum(input_file)) == res$input_md5)
+  input <- readRDS(input_file); land <- input$landscape; li <- land$index$lattice; s <- o$species
+  sites <- input$surveys[[o$arrangement]]$truth$xy
+  bins <- distance_bins(land$points[li, ], sites); truth <- land$psi[li, s]
+  with <- res$lattice$probability_mean; without <- plogis(land$B0[s] + land$B[s] * land$environment[li])
+  stopifnot(length(with) == length(li), all(is.finite(with)))
+  data.frame(community = o$community, arrangement = o$arrangement, species = s, group = o$group,
+             rbind(data.frame(spatial_term = "with", error_rows(with - truth, bins)),
+                   data.frame(spatial_term = "without", error_rows(without - truth, bins))))
+}))
+write.csv(oracle_lattice, file.path(out, "oracle-lattice.csv"), row.names = FALSE)
 field <- tables$field; field$group <- paste0("prevalence_", field$target * 100, "pct")
 field_cells <- aggregate(cbind(centred_rmse, centred_correlation, zero_field_rmse) ~ community + arrangement + arm + group, field, mean)
 oracle_cells <- aggregate(cbind(centred_rmse, centred_correlation, zero_field_rmse) ~ community + arrangement + group, oracle, mean)

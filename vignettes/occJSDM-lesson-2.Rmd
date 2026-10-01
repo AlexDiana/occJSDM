@@ -26,11 +26,11 @@ knitr::opts_chunk$set(
 source("lesson-links.R")
 ```
 
-## What this lesson will add
+## What this lesson adds
 
 **The concepts come first; the worked sections below test them on a controlled simulation.** The sweep behind them fixed its design before any fit; the protocol and audited results are in the repository's development folder. Dispersal and same-scale environmental confounding are not simulated here; the closing section says what remains.
 
-The central ecological question will be: **if a site offers suitable conditions, why might a species still be absent, and what can spatial information tell us?** The worked sections use one broad environmental gradient and one short-range spatial field per species; contrasts between species with different dispersal abilities are deferred, and the closing section says what remains.
+The central ecological question is: **if a site offers suitable conditions, why might a species still be absent, and what can spatial information tell us?** The worked sections use one broad environmental gradient and one short-range spatial field per species; contrasts between species with different dispersal abilities are deferred.
 
 ## Spatial effects, inference and sampling design
 
@@ -342,7 +342,7 @@ amplitude_ess <- filter(sweep$fits$groups, metric == "spatial_sd")$ess_mean
 amplitude_rhat <- filter(sweep$fits$groups, metric == "spatial_sd")$rhat
 ```
 
-Convergence qualifications are part of the result. `r sum(sweep$selected_fits$needs_long)` of the 24 initial fits met the prespecified rule for a longer run; the longer run replaces the initial fit in every table, and `r sum(nzchar(sweep$selected_fits$selected_reasons))` selected fits retain a flag after it. The rule's Rhat check covers every scored quantity, including the spatial amplitude, whose Rhat is `r span(amplitude_rhat, 3)`, but its effective-sample-size threshold covers occupancy only. The amplitude mixes slowly: `r sum(amplitude_ess < 100)` of the 24 selected fits have an amplitude effective sample size below 100, the lowest `r fixed(min(amplitude_ess), 1)`. Their amplitude interval endpoints are therefore imprecisely estimated, although every interval lies far below the true value.
+Convergence qualifications are part of the result. `r sum(sweep$selected_fits$needs_long)` of the 24 initial fits met the prespecified rule for a longer run; the longer run replaces the initial fit in every table, and `r sum(nzchar(sweep$selected_fits$selected_reasons))` selected fits retain a flag after it. The rule's Rhat check covers every occupancy probability and model parameter, including the spatial amplitude, whose Rhat is `r span(amplitude_rhat, 3)`, but its effective-sample-size threshold covers occupancy only. The site field values and the lattice predictions are outside the rule; recomputed from the saved draws, the field values at the sites have an Rhat of at most 1.007 and a bulk effective sample size of at least 272 across the 24 selected fits. The amplitude mixes slowly: `r sum(amplitude_ess < 100)` of the 24 selected fits have an amplitude effective sample size below 100, the lowest `r fixed(min(amplitude_ess), 1)`. Their amplitude interval endpoints are therefore imprecisely estimated, although every interval lies far below the true value.
 
 ## 2D. Predicting unsurveyed locations
 
@@ -377,9 +377,16 @@ spatial_gain <- lattice_means |>
   mutate(gain = without - with)
 near_clusters <- spatial_gain$arrangement == "clustered" & spatial_gain$bin == "up to 0.02"
 survey <- filter(lattice_means, arm == "two_stage")
+# The oracle's own lattice prediction, and the environment-only prediction from the true parameters.
+oracle_lattice <- sweep$oracle_lattice |>
+  filter(bin != "all", n > 0) |>
+  group_by(arrangement, spatial_term, bin) |>
+  summarise(mae = 100 * mean(mae), .groups = "drop") |>
+  pivot_wider(names_from = spatial_term, values_from = mae)
+oracle_near <- oracle_lattice$arrangement == "clustered" & oracle_lattice$bin == "up to 0.02"
 ```
 
-The lines are nearly flat and nearly coincide. With the spatial term, the true-state fits miss the true occupancy probability by `r span(spatial_gain$with[!near_clusters], 1)` points at every distance and in every arrangement, except within 0.02 of a site in the clustered design, at `r fixed(spatial_gain$with[near_clusters], 1)`. Dropping the spatial term changes the error by at most `r fixed(max(abs(spatial_gain$gain[!near_clusters])))` points, except in that same bin, where it adds `r fixed(spatial_gain$gain[near_clusters])`. Outside the clustered design the error barely changes with distance from the survey. In the clustered design it rises from `r fixed(spatial_gain$with[near_clusters], 1)` to `r fixed(max(spatial_gain$with[spatial_gain$arrangement == "clustered"]), 1)` points, and the spatial term accounts for at most `r fixed(spatial_gain$gain[near_clusters])` of that. The fitted field is too weak to matter at any distance: the environment term carries the prediction. The eDNA-survey fits miss by `r span(survey$mae, 1)` points, with a positive bias of `r span(survey$bias, 1)` points, so detection costs far more here than the arrangement does.
+The lines are nearly flat and nearly coincide. With the spatial term, the true-state fits miss the true occupancy probability by `r span(spatial_gain$with[!near_clusters], 1)` points at every distance and in every arrangement, except within 0.02 of a site in the clustered design, at `r fixed(spatial_gain$with[near_clusters], 1)`. Dropping the spatial term changes the error by at most `r fixed(max(abs(spatial_gain$gain[!near_clusters])))` points, except in that same bin, where it adds `r fixed(spatial_gain$gain[near_clusters])`. Outside the clustered design the error barely changes with distance from the survey. In the clustered design it rises from `r fixed(spatial_gain$with[near_clusters], 1)` to `r fixed(max(spatial_gain$with[spatial_gain$arrangement == "clustered"]), 1)` points, and the spatial term accounts for at most `r fixed(spatial_gain$gain[near_clusters])` of that. The fitted field is too weak to matter beyond the nearest bin: the environment term carries the prediction. The eDNA-survey fits miss by `r span(survey$mae, 1)` points, with a positive bias of `r span(survey$bias, 1)` points, so detection costs far more here than the arrangement does. The oracle, which knows every parameter, sets the ceiling: with its field it misses by `r fixed(oracle_lattice$with[oracle_near], 1)` points within 0.02 of a site in the clustered design and by `r span(oracle_lattice$with[!oracle_near], 1)` points in every other bin and arrangement, against `r span(oracle_lattice$without, 1)` points for an environment-only prediction from the true parameters, so at this range even known parameters predict little better than the environment away from the sites.
 
 ```{r lattice-maps, fig.height=4.5}
 sweep$lattice_maps |>
@@ -428,7 +435,7 @@ Try these with the saved tables, without refitting:
 
 ## Reproduction record
 
-The protocol, scripts, compact results, audit and figures are under `dev/simstudy/spatial-design-sweep/` in the source repository, and its README gives the full reproduction commands. The fits used occJSDM at main revision `r substr(sweep$provenance$revision, 1, 7)`, frozen before the first fit and recorded in the protocol's amendments. The compact bundle `teaching-data/spatial-lesson.rds` carries everything this lesson renders. From the repository root, with `STUDY` set as in that README, the first command below rebuilds the bundle from the raw archive and the second checks it against the committed results without the archive. No fit is rerun while knitting.
+The protocol, scripts, compact results, audit and figures are under `dev/simstudy/spatial-design-sweep/` in the source repository, and its README gives the full reproduction commands. The fits used occJSDM at revision `r substr(sweep$provenance$revision, 1, 7)`, whose package code equals main at 1526c26, frozen before the first fit and recorded in the protocol's amendments. The compact bundle `teaching-data/spatial-lesson.rds` carries everything this lesson renders. From the repository root, with `STUDY` set as in that README, the first command below rebuilds the bundle from the raw archive and the second checks it against the committed results without the archive. No fit is rerun while knitting.
 
 ```{bash, eval=FALSE}
 Rscript dev/simstudy/spatial-design-sweep/export-teaching.R --repo=. --study=$STUDY

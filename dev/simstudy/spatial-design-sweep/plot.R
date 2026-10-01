@@ -7,7 +7,7 @@ suppressPackageStartupMessages({ library(dplyr); library(ggplot2); library(tidyr
 out <- file.path(repo, "dev/simstudy/spatial-design-sweep/results"); dir.create(out, showWarnings = FALSE)
 summary <- file.path(study, "summary-final")
 for (f in c("aggregate.csv", "reading.csv", "range-reading.csv", "paired.csv", "selected-fits.csv", "groups.csv",
-            "species.csv", "field.csv", "range.csv", "amplitude.csv", "lattice.csv", "oracle.csv", "long-run-sensitivity.csv"))
+            "species.csv", "field.csv", "range.csv", "amplitude.csv", "lattice.csv", "oracle.csv", "oracle-lattice.csv", "long-run-sensitivity.csv"))
   stopifnot(file.copy(file.path(summary, f), out, overwrite = TRUE))
 # The committed copies of the two file-listing tables carry paths relative to the study directory;
 # verify.R reads the study copies, which keep the absolute paths.

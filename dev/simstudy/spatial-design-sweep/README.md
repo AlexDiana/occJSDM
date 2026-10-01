@@ -14,7 +14,7 @@ Range recovery fails in every arrangement and both arms. The posterior mass with
 
 Estimation cost, the centred field RMSE of the binary control minus the oracle's, averages 0.070 on the log-odds scale and is positive in 30 of the 36 community, arrangement and group cells. By arrangement it is 0.049 for spread, 0.069 for pairs, 0.117 for clustered and 0.044 for the grid, and by group 0.017, 0.102 and 0.089 for the 5%, 25% and 75% species. Detection cost, the two-stage RMSE minus the binary control's, averages 0.022 and is positive in 35 of 36 cells: 0.011 for spread, 0.015 for pairs, 0.051 for clustered and 0.009 for the grid. Imperfect parameter estimation therefore costs about three times as much field accuracy as imperfect detection, and the eDNA survey recovers at most 2.7% of the field RMSE in any cell, with median-field correlations of 0.41 or lower.
 
-Prediction at the 1,600 unsurveyed lattice locations, mean absolute error in probability points by distance to the nearest surveyed site (up to 0.02, 0.02 to 0.05, 0.05 to 0.1, above 0.1), using the spatial term. Binary control, spread: 11.68, 11.65, 11.69, 11.98. Pairs: 11.78, 11.71, 11.86, 12.01. Clustered: 9.96, 11.08, 11.40, 11.51. Grid: 11.75, 11.69, 11.61, and no cells above 0.1 because the 10 by 10 grid leaves no location further than 0.071 from a site. Removing the spatial term changes the error by at most 0.17 points for spread, pairs and grid; for the clustered design it adds 0.73 points in the nearest bin and 0.11 in the next, and nothing beyond. Error does not grow with distance from the survey in any design, because the fitted field is too weak to be informative at any distance. The two-stage fits have mean absolute errors of 18.7 to 21.6 points in every bin and a positive bias of 5.7 to 8.5 points; removing their spatial term changes the error by under 0.1 points.
+Prediction at the 1,600 unsurveyed lattice locations, mean absolute error in probability points by distance to the nearest surveyed site (up to 0.02, 0.02 to 0.05, 0.05 to 0.1, above 0.1), using the spatial term. Binary control, spread: 11.68, 11.65, 11.69, 11.98. Pairs: 11.78, 11.71, 11.86, 12.01. Clustered: 9.96, 11.08, 11.40, 11.51. Grid: 11.75, 11.69, 11.61, and no cells above 0.1 because the 10 by 10 grid leaves no location further than 0.071 from a site. Removing the spatial term changes the error by at most 0.17 points for spread, pairs and grid; for the clustered design it adds 0.73 points in the nearest bin and 0.11 in the next, and nothing beyond. Outside the clustered design the error barely changes with distance from the survey. In the clustered design it rises from 9.96 to 11.51 points, and the spatial term accounts for at most 0.73 of that, because the fitted field is too weak to be informative beyond the nearest bin. The oracle, which knows every parameter, misses by 8.26 points within 0.02 of a site in the clustered design and by 10.04 to 10.88 points in every other bin and arrangement (`results/oracle-lattice.csv`), against 10.03 to 10.71 points for an environment-only prediction from the true parameters, so at this range even known parameters predict little better than the environment away from the sites. The two-stage fits have mean absolute errors of 18.7 to 21.6 points in every bin and a positive bias of 5.7 to 8.5 points; removing their spatial term changes the error by under 0.1 points.
 
 ## Convergence
 
@@ -40,9 +40,10 @@ Rscript dev/simstudy/spatial-design-sweep/summarise.R --repo=. --study=$STUDY --
 Rscript dev/simstudy/spatial-design-sweep/verify.R --repo=. --study=$STUDY
 Rscript dev/simstudy/spatial-design-sweep/plot.R --repo=. --study=$STUDY
 Rscript dev/simstudy/spatial-design-sweep/export-teaching.R --repo=. --study=$STUDY
+Rscript dev/simstudy/spatial-design-sweep/verify-lesson.R .
 ```
 
-Each `nohup` step must finish before the next command starts (the logs end with a completion line). `export-teaching.R` is listed in `PLAN.md` as the last step and is added by the lesson task, not by this study. `run.R` never overwrites an existing input, result or fit (it checks that the saved one matches and reuses it), and `summarise.R --mode=final` refuses a non-empty output directory; `verify.R` and `plot.R` rewrite `audit/` and `results/` on each run.
+Each `nohup` step must finish before the next command starts (the logs end with a completion line). `export-teaching.R`, the last step in `PLAN.md`, writes the Lesson 2 bundle, and `verify-lesson.R` checks that bundle against the committed results without the raw archive. `run.R --mode=freeze` appends an amendment line recording the frozen revision to the committed `PLAN.md`; a reproducer should not commit that line. `run.R` never overwrites an existing input, result or fit (it checks that the saved one matches and reuses it), and `summarise.R --mode=final` refuses a non-empty output directory; `verify.R` and `plot.R` rewrite `audit/` and `results/` on each run.
 
 ## Files
 
@@ -56,6 +57,8 @@ Scripts:
 - `summarise.R`: selects the fits needing longer runs (`--mode=select`) and builds the final tables (`--mode=final`); also defines `diagnostic_reasons()`, `read_sweep_selection()` and `reading_labels()`.
 - `verify.R`: the independent audit of every selected fit and of the oracle result hashes, including the fully independent lattice-basis check.
 - `plot.R`: copies the compact results into `results/` and draws the three figures.
+- `export-teaching.R`: writes `vignettes/teaching-data/spatial-lesson.rds`, the compact bundle Lesson 2 renders from, from the compact results and the raw archive.
+- `verify-lesson.R`: checks the Lesson 2 bundle against the committed compact results, without the raw archive.
 - `test-generator.R`, `test-oracle.R`, `test-score.R`: the numerical validation tests listed in `PLAN.md`.
 
 Compact results in `results/`:
@@ -68,6 +71,7 @@ Compact results in `results/`:
 - `field.csv`, `oracle.csv`: field recovery per species for the full fits and for the oracle.
 - `range.csv`, `amplitude.csv`: posterior range and amplitude summaries for each fit.
 - `lattice.csv`: prediction error at the unsurveyed lattice, overall and by distance bin, with and without the spatial term.
+- `oracle-lattice.csv`: the same lattice error for the oracle, per species, with its field (`with`) and for the environment-only prediction from the true parameters (`without`).
 - `selected-fits.csv`, `long-run-sensitivity.csv`: which result file represents each fit, the reasons for any longer run, and how the longer runs changed the group results.
 - `design-statistics.csv`: nearest-neighbour distance, neighbour counts, effective rank and standardised ranges for each arrangement.
 - `audit.csv`: the audit differences for each selected fit and whether it passed.

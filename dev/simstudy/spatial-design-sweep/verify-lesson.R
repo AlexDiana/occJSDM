@@ -15,7 +15,8 @@ stopifnot(identical(setNames(unname(tools::md5sum(files)), basename(files)), b$p
 for (t in c("groups", "species", "field", "range", "amplitude", "lattice"))
   stopifnot(identical(b$fits[[t]], read.csv(file.path(results, paste0(t, ".csv")))))
 for (t in list(c("aggregate", "aggregate.csv"), c("reading", "reading.csv"), c("range_reading", "range-reading.csv"),
-               c("paired", "paired.csv"), c("oracle", "oracle.csv"), c("statistics", "design-statistics.csv"),
+               c("paired", "paired.csv"), c("oracle", "oracle.csv"), c("oracle_lattice", "oracle-lattice.csv"),
+               c("statistics", "design-statistics.csv"),
                c("audit", "audit.csv")))
   stopifnot(identical(b[[t[1]]], read.csv(file.path(results, t[2]))))
 stopifnot(identical(b$selected_fits, read_selected(file.path(results, "selected-fits.csv"))))
@@ -36,4 +37,10 @@ lat <- b$landscape$index$lattice
 stopifnot(nrow(b$lattice_maps) == 8L * length(lat),
           all(abs(b$lattice_maps$truth - rep(b$landscape$psi[lat, "species06"], 8L)) < 1e-12),
           nrow(truth) == 800L, all(table(b$field_maps$source) == 2400L))
+for (arr in unique(truth$arrangement)) for (sp in unique(truth$species)) {
+  d <- truth[truth$arrangement == arr & truth$species == sp, ]
+  stopifnot(nrow(d) == 100L, identical(d$site, 1:100),
+            max(abs(d$value - unname(b$landscape$field[b$landscape$index[[arr]], sp]))) < 1e-12) }
+stopifnot(identical(sort(unique(truth$arrangement)), sort(c("spread", "pairs", "clustered", "grid"))),
+          identical(sort(unique(truth$species)), c("species02", "species06")))
 cat("Lesson 2 bundle verified against the committed results.\n")

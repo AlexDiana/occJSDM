@@ -1,11 +1,11 @@
 Lesson 2: Spatial landscapes and survey design
 ================
 
-## What this lesson will add
+## What this lesson adds
 
 **The concepts come first; the worked sections below test them on a controlled simulation.** The sweep behind them fixed its design before any fit; the protocol and audited results are in the repository’s development folder. Dispersal and same-scale environmental confounding are not simulated here; the closing section says what remains.
 
-The central ecological question will be: **if a site offers suitable conditions, why might a species still be absent, and what can spatial information tell us?** The worked sections use one broad environmental gradient and one short-range spatial field per species; contrasts between species with different dispersal abilities are deferred, and the closing section says what remains.
+The central ecological question is: **if a site offers suitable conditions, why might a species still be absent, and what can spatial information tell us?** The worked sections use one broad environmental gradient and one short-range spatial field per species; contrasts between species with different dispersal abilities are deferred.
 
 ## Spatial effects, inference and sampling design
 
@@ -412,7 +412,7 @@ amplitude_ess <- filter(sweep$fits$groups, metric == "spatial_sd")$ess_mean
 amplitude_rhat <- filter(sweep$fits$groups, metric == "spatial_sd")$rhat
 ```
 
-Convergence qualifications are part of the result. 3 of the 24 initial fits met the prespecified rule for a longer run; the longer run replaces the initial fit in every table, and 0 selected fits retain a flag after it. The rule’s Rhat check covers every scored quantity, including the spatial amplitude, whose Rhat is 1.003 to 1.033, but its effective-sample-size threshold covers occupancy only. The amplitude mixes slowly: 10 of the 24 selected fits have an amplitude effective sample size below 100, the lowest 49.5. Their amplitude interval endpoints are therefore imprecisely estimated, although every interval lies far below the true value.
+Convergence qualifications are part of the result. 3 of the 24 initial fits met the prespecified rule for a longer run; the longer run replaces the initial fit in every table, and 0 selected fits retain a flag after it. The rule’s Rhat check covers every occupancy probability and model parameter, including the spatial amplitude, whose Rhat is 1.003 to 1.033, but its effective-sample-size threshold covers occupancy only. The site field values and the lattice predictions are outside the rule; recomputed from the saved draws, the field values at the sites have an Rhat of at most 1.007 and a bulk effective sample size of at least 272 across the 24 selected fits. The amplitude mixes slowly: 10 of the 24 selected fits have an amplitude effective sample size below 100, the lowest 49.5. Their amplitude interval endpoints are therefore imprecisely estimated, although every interval lies far below the true value.
 
 ## 2D. Predicting unsurveyed locations
 
@@ -449,9 +449,16 @@ spatial_gain <- lattice_means |>
   mutate(gain = without - with)
 near_clusters <- spatial_gain$arrangement == "clustered" & spatial_gain$bin == "up to 0.02"
 survey <- filter(lattice_means, arm == "two_stage")
+# The oracle's own lattice prediction, and the environment-only prediction from the true parameters.
+oracle_lattice <- sweep$oracle_lattice |>
+  filter(bin != "all", n > 0) |>
+  group_by(arrangement, spatial_term, bin) |>
+  summarise(mae = 100 * mean(mae), .groups = "drop") |>
+  pivot_wider(names_from = spatial_term, values_from = mae)
+oracle_near <- oracle_lattice$arrangement == "clustered" & oracle_lattice$bin == "up to 0.02"
 ```
 
-The lines are nearly flat and nearly coincide. With the spatial term, the true-state fits miss the true occupancy probability by 11.1 to 12.0 points at every distance and in every arrangement, except within 0.02 of a site in the clustered design, at 10.0. Dropping the spatial term changes the error by at most 0.17 points, except in that same bin, where it adds 0.73. Outside the clustered design the error barely changes with distance from the survey. In the clustered design it rises from 10.0 to 11.5 points, and the spatial term accounts for at most 0.73 of that. The fitted field is too weak to matter at any distance: the environment term carries the prediction. The eDNA-survey fits miss by 18.7 to 21.6 points, with a positive bias of 5.7 to 8.5 points, so detection costs far more here than the arrangement does.
+The lines are nearly flat and nearly coincide. With the spatial term, the true-state fits miss the true occupancy probability by 11.1 to 12.0 points at every distance and in every arrangement, except within 0.02 of a site in the clustered design, at 10.0. Dropping the spatial term changes the error by at most 0.17 points, except in that same bin, where it adds 0.73. Outside the clustered design the error barely changes with distance from the survey. In the clustered design it rises from 10.0 to 11.5 points, and the spatial term accounts for at most 0.73 of that. The fitted field is too weak to matter beyond the nearest bin: the environment term carries the prediction. The eDNA-survey fits miss by 18.7 to 21.6 points, with a positive bias of 5.7 to 8.5 points, so detection costs far more here than the arrangement does. The oracle, which knows every parameter, sets the ceiling: with its field it misses by 8.3 points within 0.02 of a site in the clustered design and by 10.0 to 10.9 points in every other bin and arrangement, against 10.0 to 10.7 points for an environment-only prediction from the true parameters, so at this range even known parameters predict little better than the environment away from the sites.
 
 ``` r
 sweep$lattice_maps |>
@@ -502,7 +509,7 @@ Try these with the saved tables, without refitting:
 
 ## Reproduction record
 
-The protocol, scripts, compact results, audit and figures are under `dev/simstudy/spatial-design-sweep/` in the source repository, and its README gives the full reproduction commands. The fits used occJSDM at main revision 9af8597, frozen before the first fit and recorded in the protocol’s amendments. The compact bundle `teaching-data/spatial-lesson.rds` carries everything this lesson renders. From the repository root, with `STUDY` set as in that README, the first command below rebuilds the bundle from the raw archive and the second checks it against the committed results without the archive. No fit is rerun while knitting.
+The protocol, scripts, compact results, audit and figures are under `dev/simstudy/spatial-design-sweep/` in the source repository, and its README gives the full reproduction commands. The fits used occJSDM at revision 9af8597, whose package code equals main at 1526c26, frozen before the first fit and recorded in the protocol’s amendments. The compact bundle `teaching-data/spatial-lesson.rds` carries everything this lesson renders. From the repository root, with `STUDY` set as in that README, the first command below rebuilds the bundle from the raw archive and the second checks it against the committed results without the archive. No fit is rerun while knitting.
 
 ``` bash
 Rscript dev/simstudy/spatial-design-sweep/export-teaching.R --repo=. --study=$STUDY
