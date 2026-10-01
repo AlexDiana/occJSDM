@@ -20,7 +20,8 @@ for (f in c("groups.csv", "species.csv", "field.csv", "range.csv", "amplitude.cs
             "aggregate.csv", "reading.csv", "range-reading.csv", "paired.csv", "oracle-lattice.csv"))
   stopifnot(unname(tools::md5sum(file.path(results, f))) == unname(tools::md5sum(file.path(summary, f))))
 stopifnot(unname(tools::md5sum(file.path(results, "design-statistics.csv"))) == unname(tools::md5sum(file.path(study, "design-statistics.csv"))),
-          unname(tools::md5sum(file.path(results, "audit.csv"))) == unname(tools::md5sum(file.path(study, "audit/audit.csv"))))
+          unname(tools::md5sum(file.path(results, "audit.csv"))) == unname(tools::md5sum(file.path(study, "audit/audit.csv"))),
+          unname(tools::md5sum(file.path(results, "field-convergence.csv"))) == unname(tools::md5sum(file.path(study, "audit/field-convergence.csv"))))
 input1 <- readRDS(file.path(study, "inputs/rep01.rds")); land <- input1$landscape
 arrangements <- do.call(rbind, lapply(1:3, function(r) { inp <- readRDS(file.path(study, "inputs", sprintf("rep%02d.rds", r)))
   do.call(rbind, lapply(names(inp$surveys), function(a) data.frame(community = sprintf("rep%02d", r), arrangement = a,
@@ -60,6 +61,7 @@ bundle <- list(
   aggregate = read("aggregate.csv"), reading = read("reading.csv"), range_reading = read("range-reading.csv"),
   paired = read("paired.csv"), field_maps = do.call(rbind, field_maps), lattice_maps = do.call(rbind, lattice_maps),
   selected_fits = read_selected(file.path(results, "selected-fits.csv")), audit = read("audit.csv"),
+  field_convergence = read("field-convergence.csv"),
   provenance = list(revision = readLines(file.path(study, "source-revision.txt")),
     compact_hashes = named_md5(list.files(results, full.names = TRUE)),
     script_hashes = named_md5(list.files(file.path(repo, "dev/simstudy/spatial-design-sweep"), pattern = "\\.R$", full.names = TRUE)),

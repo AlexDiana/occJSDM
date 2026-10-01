@@ -38,12 +38,13 @@ KEYS=$(paste -sd, $STUDY/long-keys.txt)
 nohup Rscript dev/simstudy/spatial-design-sweep/run.R --repo=. --study=$STUDY --mode=long --workers=8 --keys=$KEYS > $STUDY/long.log 2>&1 &
 Rscript dev/simstudy/spatial-design-sweep/summarise.R --repo=. --study=$STUDY --mode=final
 Rscript dev/simstudy/spatial-design-sweep/verify.R --repo=. --study=$STUDY
+Rscript dev/simstudy/spatial-design-sweep/field-convergence.R --repo=. --study=$STUDY
 Rscript dev/simstudy/spatial-design-sweep/plot.R --repo=. --study=$STUDY
 Rscript dev/simstudy/spatial-design-sweep/export-teaching.R --repo=. --study=$STUDY
 Rscript dev/simstudy/spatial-design-sweep/verify-lesson.R .
 ```
 
-Each `nohup` step must finish before the next command starts (the logs end with a completion line). `export-teaching.R`, the last step in `PLAN.md`, writes the Lesson 2 bundle, and `verify-lesson.R` checks that bundle against the committed results without the raw archive. `run.R --mode=freeze` appends an amendment line recording the frozen revision to the committed `PLAN.md`; a reproducer should not commit that line. `run.R` never overwrites an existing input, result or fit (it checks that the saved one matches and reuses it), and `summarise.R --mode=final` refuses a non-empty output directory; `verify.R` and `plot.R` rewrite `audit/` and `results/` on each run.
+Each `nohup` step must finish before the next command starts (the logs end with a completion line). `export-teaching.R`, the last step in `PLAN.md`, writes the Lesson 2 bundle, and `verify-lesson.R` checks that bundle against the committed results without the raw archive. `run.R --mode=freeze` appends an amendment line recording the frozen revision to the committed `PLAN.md`; a reproducer should not commit that line. `run.R` never overwrites an existing input, result or fit (it checks that the saved one matches and reuses it), and `summarise.R --mode=final` refuses a non-empty output directory; `verify.R` and `plot.R` rewrite `audit/` and `results/` on each run. `field-convergence.R` is run after `verify.R` and before `plot.R`; it needs the raw draws, takes a few minutes on one core and writes `audit/field-convergence.csv`, which `plot.R` then copies into `results/`.
 
 ## Files
 
@@ -56,6 +57,7 @@ Scripts:
 - `run.R`: the driver, with modes prepare, oracle, freeze, pilot, initial and long.
 - `summarise.R`: selects the fits needing longer runs (`--mode=select`) and builds the final tables (`--mode=final`); also defines `diagnostic_reasons()`, `read_sweep_selection()` and `reading_labels()`.
 - `verify.R`: the independent audit of every selected fit and of the oracle result hashes, including the fully independent lattice-basis check.
+- `field-convergence.R`: the Rhat and effective sample sizes of the 800 site field values per selected fit, from the saved draws.
 - `plot.R`: copies the compact results into `results/` and draws the three figures.
 - `export-teaching.R`: writes `vignettes/teaching-data/spatial-lesson.rds`, the compact bundle Lesson 2 renders from, from the compact results and the raw archive.
 - `verify-lesson.R`: checks the Lesson 2 bundle against the committed compact results, without the raw archive.
@@ -75,6 +77,7 @@ Compact results in `results/`:
 - `selected-fits.csv`, `long-run-sensitivity.csv`: which result file represents each fit, the reasons for any longer run, and how the longer runs changed the group results.
 - `design-statistics.csv`: nearest-neighbour distance, neighbour counts, effective rank and standardised ranges for each arrangement.
 - `audit.csv`: the audit differences for each selected fit and whether it passed.
+- `field-convergence.csv`: for each selected fit, the maximum Rhat, the minimum bulk and mean effective sample sizes and the number of Rhat values above 1.05 among the site field values, which the convergence rule does not cover.
 - `field-recovery.png`, `lattice-prediction.png`, `range-recovery.png`: the three figures.
 
 The raw archive (fits, draws, inputs, the frozen package library and logs) lives at `dev/simstudy/results/spatial-design-20261001/`. It is gitignored and is needed only for re-auditing the draws; everything quoted above is in the compact results.

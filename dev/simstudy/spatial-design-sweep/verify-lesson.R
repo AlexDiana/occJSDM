@@ -17,7 +17,7 @@ for (t in c("groups", "species", "field", "range", "amplitude", "lattice"))
 for (t in list(c("aggregate", "aggregate.csv"), c("reading", "reading.csv"), c("range_reading", "range-reading.csv"),
                c("paired", "paired.csv"), c("oracle", "oracle.csv"), c("oracle_lattice", "oracle-lattice.csv"),
                c("statistics", "design-statistics.csv"),
-               c("audit", "audit.csv")))
+               c("audit", "audit.csv"), c("field_convergence", "field-convergence.csv")))
   stopifnot(identical(b[[t[1]]], read.csv(file.path(results, t[2]))))
 stopifnot(identical(b$selected_fits, read_selected(file.path(results, "selected-fits.csv"))))
 f <- b$fits$field; f$group <- paste0("prevalence_", f$target * 100, "pct"); f <- f[f$arm == "binary", ]
@@ -29,7 +29,7 @@ for (i in seq_len(nrow(b$reading))) { d <- cells[cells$arrangement == b$reading$
            if (all(d$reduction < .1 | d$centred_correlation < .3)) "uninformative" else "intermediate"
   stopifnot(identical(label, b$reading$label[i])) }
 stopifnot(all(abs(colMeans(b$landscape$psi[b$landscape$index$lattice, ]) - b$landscape$prevalence) < 1e-6),
-          all(b$audit$passed), nrow(b$selected_fits) == 24L, sum(b$selected_fits$needs_long) == 3L,
+          all(b$audit$passed), max(b$field_convergence$max_rhat) < 1.05, nrow(b$field_convergence) == 24L, nrow(b$selected_fits) == 24L, sum(b$selected_fits$needs_long) == 3L,
           !any(nzchar(b$selected_fits$selected_reasons)), !any(nzchar(b$selected_fits$warnings)))
 # The maps' truth must be the landscape's own field at the surveyed sites, and the lattice map's truth its psi.
 truth <- b$field_maps[b$field_maps$source == "truth" & b$field_maps$community == "rep01", ]

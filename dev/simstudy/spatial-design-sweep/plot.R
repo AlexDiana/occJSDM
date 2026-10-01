@@ -19,6 +19,7 @@ for (spec in list(c("selected-fits.csv", "selected_file"), c("oracle.csv", "file
 }
 stopifnot(file.copy(file.path(study, "design-statistics.csv"), out, overwrite = TRUE))
 stopifnot(file.copy(file.path(study, "audit/audit.csv"), file.path(out, "audit.csv"), overwrite = TRUE))
+stopifnot(file.copy(file.path(study, "audit/field-convergence.csv"), file.path(out, "field-convergence.csv"), overwrite = TRUE))
 order_arr <- c("spread", "pairs", "clustered", "grid")
 agg <- read.csv(file.path(out, "aggregate.csv")) |> mutate(arrangement = factor(arrangement, order_arr),
   arm = factor(arm, c("oracle", "binary", "two_stage"), c("Oracle: true states, known parameters", "occJSDM: true states", "occJSDM: eDNA survey")),
