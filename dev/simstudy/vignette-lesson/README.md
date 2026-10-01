@@ -40,12 +40,12 @@ The small RDS is tracked so a fresh checkout can render immediately. These comma
 
 ```sh
 Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-1.Rmd", output_format="rmarkdown::html_vignette")'
-Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-1.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE))'
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-1.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
 ```
 
 Use the same commands with `occJSDM-lesson-0.Rmd` and `occJSDM-lesson-2.Rmd` to render the optional introduction and planned spatial outline. Render each in a fresh R environment when checking standalone execution. Teaching chunks are visible by default; only document-formatting setup is hidden. Simulation and MCMC examples marked `eval=FALSE` are displayed but do not run while knitting. The Lesson 0 simulator call reproduces the existing settings without calling the build helper; the helper remains unchanged to preserve its recorded provenance.
 
-The GitHub Markdown and its PNGs are tracked as readable review artifacts. The HTML is generated locally. The R Markdown source remains canonical. Neither render loads full MCMC fits or starts fitting. To reproduce the original numerical results exactly, use the recorded source revision and R/package versions; different platforms can still introduce small numerical differences.
+The GitHub Markdown and its PNGs are tracked as readable review artifacts. The HTML is generated locally. The R Markdown source remains canonical. Neither render loads full MCMC fits or starts fitting. To reproduce the original numerical results exactly, use the recorded source revision and R/package versions; different platforms can still introduce small numerical differences. If `library()` warns that a package was built under a newer version of R, knitr writes that warning into the lesson. R only checks this when a package is first attached, so attaching dplyr, tidyr, tibble and ggplot2 quietly before calling `rmarkdown::render()` in the same R session keeps the warnings out.
 
 ### Editing links in RStudio
 
@@ -53,13 +53,15 @@ Write links between lessons as ordinary Markdown, for example `[Lesson 1](occJSD
 
 Each of the five teaching documents sources `vignettes/lesson-links.R` in its hidden setup chunk. This shared document hook changes recognised lesson destinations from `.md` to `.html` only in HTML output. It preserves section anchors, external links, other documents and code examples. It does not edit the `.Rmd` source. When adding a lesson, add its filename stem to the helper's explicit list and source the helper in that lesson's setup. The helper is tracked and included in the source package; `ORIG_occJSDM.Rmd` remains unchanged and excluded.
 
+The GitHub Pages site needs one more thing. Pages builds the lessons from the tracked `.md` files and converts their lesson links to `.html` with the jekyll-relative-links plugin, which only recognises a link whose text sits on a single line. pandoc wraps Markdown at 72 columns by default, and a link whose text crossed a line break was left pointing at the `.md` file, which the site serves as raw Markdown: 15 lesson links were broken this way on the live site on 1 October 2026. So always render the GitHub Markdown with `pandoc_args = "--wrap=none"`, as the commands in this README do, which writes each paragraph on one line. On GitHub itself the `.md` links work either way.
+
 Run the focused regression check from the repository root:
 
 ```sh
 Rscript dev/simstudy/vignette-lesson/test_lesson_links.R
 ```
 
-The check renders a small fixture to HTML, Markdown and HTML again in one R session. It verifies the destinations and anchors, preserves literal examples and unrelated links, and rejects dynamic or encoded lesson destinations in the five lesson sources. No MCMC is run. When changing the link convention, also edit and save disposable copies in RStudio Visual mode and render those copies to both formats; a normal command-line render alone does not exercise the editor's Markdown rewriting.
+The check renders a small fixture to HTML, Markdown and HTML again in one R session. It verifies the destinations and anchors, preserves literal examples and unrelated links, and rejects dynamic or encoded lesson destinations in the five lesson sources. It also reads the six committed `.md` files and fails if the text of any lesson link wraps onto a second line. No MCMC is run. When changing the link convention, also edit and save disposable copies in RStudio Visual mode and render those copies to both formats; a normal command-line render alone does not exercise the editor's Markdown rewriting.
 
 Validation on 21 September 2026: all five documents rendered to HTML and Markdown. Copies of all five were then opened, edited and saved in the installed RStudio Visual editor and rendered again to both formats. All 19 lesson links retained the correct destinations, and the diagnostic section anchor was present. The focused regression check passed. A source-package build included the helper, excluded the archived original and successfully rendered the Quickstart after unpacking. The existing generated Markdown and figures were unchanged; no model code, simulated data or fits changed.
 
@@ -91,7 +93,7 @@ The new lesson reuses the complete `perfect-fit.rds` and `default-fit.rds` from 
 Rscript dev/simstudy/vignette-lesson/summarise_outputs.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/verify_outputs.R /path/to/full-fits
 Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-3.Rmd", output_format="rmarkdown::html_vignette")'
-Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-3.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE))'
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-3.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
 ```
 
 The exporter writes `vignettes/teaching-data/output-lesson.rds`, including the original fit manifests and hashes of its source, the original compact bundle and the legacy saved example used for the historical interval-count check. It checks actual training observations and reconstructs the full true predictor to establish the environmental scale. True trait effects are converted using trait standard deviations; the simulator standardizes its environmental predictors but not its traits. Changing exporter code requires re-exporting and re-verifying the compact bundle.

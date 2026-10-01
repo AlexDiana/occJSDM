@@ -3,50 +3,23 @@ Lesson 4: Compare four JSDMs with a community whose truth we know
 
 ## What are we comparing?
 
-Suppose we know with certainty which species occupy each surveyed site.
-Can a joint species distribution model recover the underlying
-probabilities, and can it predict occurrence at sites we have not
-surveyed?
+Suppose we know with certainty which species occupy each surveyed site. Can a joint species distribution model recover the underlying probabilities, and can it predict occurrence at sites we have not surveyed?
 
-We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated
-observations**. This lesson uses the pure JSDM portion of occJSDM: there
-is no DNA collection failure, PCR detection error or false positive.
-Those processes matter in [Lesson 1](occJSDM-lesson-1.md), but here we
-remove them to examine the ecological model itself. You do not need the
-spatial lesson first.
+We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated observations**. This lesson uses the pure JSDM portion of occJSDM: there is no DNA collection failure, PCR detection error or false positive. Those processes matter in [Lesson 1](occJSDM-lesson-1.md), but here we remove them to examine the ecological model itself. You do not need the spatial lesson first.
 
-Sections 1-11 introduce a **worked pilot using one community**. Sections
-12-15 extend it to ten independent communities, compare ecological and
-trait scenarios, and examine bias and interval coverage. These
-experiments do not establish a general ranking of the packages. All
-numbers below come from saved fits. In the first version of this lesson,
-sjSDM was labelled provisional because repeated optimisation runs
-disagreed. A follow-up found that its fitting problem has two genuine
-local optima, reproduced the better one from independent starts, and
-recorded the selection before any truth was read. The lesson now uses
-that checked fit and, in section 5, teaches what the two optima mean.
+Sections 1-11 introduce a **worked pilot using one community**. Sections 12-15 extend it to ten independent communities, compare ecological and trait scenarios, and examine bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits. In the first version of this lesson, sjSDM was labelled provisional because repeated optimisation runs disagreed. A follow-up found that its fitting problem has two genuine local optima, reproduced the better one from independent starts, and recorded the selection before any truth was read. The lesson now uses that checked fit and, in section 5, teaches what the two optima mean.
 
 You will learn to:
 
-1.  Distinguish a known presence or absence from a known occurrence
-    probability.
+1.  Distinguish a known presence or absence from a known occurrence probability.
 2.  Ask the same prediction question of different packages.
-3.  Measure both the direction and the size of errors against simulation
-    truth.
+3.  Measure both the direction and the size of errors against simulation truth.
 4.  Compare environmental responses on the probability scale.
 5.  Separate reliable computation from accurate ecological estimation.
-6.  Explain what makes the model joint, and use that to predict one
-    species from another.
-7.  Distinguish bias from error size, and assess interval coverage
-    alongside interval width.
+6.  Explain what makes the model joint, and use that to predict one species from another.
+7.  Distinguish bias from error size, and assess interval coverage alongside interval width.
 
-The code is visible in the worked lesson; sections 14-15 present the
-saved results as a report, with the rendering code in this R Markdown
-source. Knit this file, or run its chunks with `vignettes` as the
-working directory. Rendering reads a compact results bundle and does
-**not** fit any models. The optional simulation and fitting chunks are
-shown with `eval=FALSE`; run them deliberately if you want to repeat the
-experiment.
+The code is visible in the worked lesson; sections 14-15 present the saved results as a report, with the rendering code in this R Markdown source. Knit this file, or run its chunks with `vignettes` as the working directory. Rendering reads a compact results bundle and does **not** fit any models. The optional simulation and fitting chunks are shown with `eval=FALSE`; run them deliberately if you want to repeat the experiment.
 
 ``` r
 library(dplyr)
@@ -87,21 +60,11 @@ theme_set(ggtern::theme_bw(base_size = 12))
 
 ## 1. What the models receive, and what we keep secret
 
-There are **100 training sites, 300 independent test sites, 10 species,
-two measured environmental gradients and two hidden site factors**. The
-test sites were set aside before fitting. All sites are non-spatial and
-independently generated.
+There are **100 training sites, 300 independent test sites, 10 species, two measured environmental gradients and two hidden site factors**. The test sites were set aside before fitting. All sites are non-spatial and independently generated.
 
-A hidden factor represents a pattern of unmeasured conditions shared by
-several species. For example, several species might respond to an
-unmeasured soil property. The simulation gives us the actual hidden
-conditions; the fitters never receive them. A factor need not represent
-a single identifiable ecological cause, and shared responses do not
-establish species interactions.
+A hidden factor represents a pattern of unmeasured conditions shared by several species. For example, several species might respond to an unmeasured soil property. The simulation gives us the actual hidden conditions; the fitters never receive them. A factor need not represent a single identifiable ecological cause, and shared responses do not establish species interactions.
 
-The fitter receives an environmental table and a matching
-presence/absence matrix. The rows must refer to the same sites in the
-same order.
+The fitter receives an environmental table and a matching presence/absence matrix. The rows must refer to the same sites in the same order.
 
 ``` r
 # Environmental measurements are already standardised from the training sites.
@@ -134,16 +97,9 @@ knitr::kable(training$y[1:5, 1:5],
 
 Perfectly observed presence (1) and absence (0)
 
-**Perfect observation does not mean perfect knowledge of probability.**
-If a species has a 20% chance of occurring, a survey still records
-either 0 or 1. It does not record 0.20. The model must learn the
-probability from patterns across sites and species.
+**Perfect observation does not mean perfect knowledge of probability.** If a species has a 20% chance of occurring, a survey still records either 0 or 1. It does not record 0.20. The model must learn the probability from patterns across sites and species.
 
-The next figure shows both kinds of truth for the first ten sites and
-first five species, chosen by their order, not by how well they were
-fitted. The background colour is the generating probability. The printed
-number is the actual presence or absence, which is what the models
-receive.
+The next figure shows both kinds of truth for the first ten sites and first five species, chosen by their order, not by how well they were fitted. The background colour is the generating probability. The printed number is the actual presence or absence, which is what the models receive.
 
 ``` r
 example_truth <- as_tibble(
@@ -173,11 +129,7 @@ ggplot(example_cells, aes(site, species, fill = probability)) +
 
 ### Optional: reproduce this community
 
-These coefficients were fixed before fitting. Positive environmental
-slopes favour a species as that gradient increases; negative slopes do
-the opposite. The values are on the **logit scale**, so a slope of 1
-does not mean a one-percentage-point change. We will use probability
-curves to understand their ecological meaning.
+These coefficients were fixed before fitting. Positive environmental slopes favour a species as that gradient increases; negative slopes do the opposite. The values are on the **logit scale**, so a slope of 1 does not mean a one-percentage-point change. We will use probability curves to understand their ecological meaning.
 
 ``` r
 knitr::kable(known_truth$parameters, digits = 1,
@@ -197,12 +149,9 @@ knitr::kable(known_truth$parameters, digits = 1,
 | species_09 |       1.3 |           1.0 |          -0.7 |      0.5 |     -0.8 |
 | species_10 |       1.8 |          -1.2 |           0.5 |     -0.6 |      0.7 |
 
-The complete generating parameter table, before environmental
-standardisation
+The complete generating parameter table, before environmental standardisation
 
-The following code reproduces the saved community. Matrix multiplication
-adds each species’ environmental and hidden contributions efficiently.
-The rest of the lesson uses tidy tables for plotting and summarising.
+The following code reproduces the saved community. Matrix multiplication adds each species’ environmental and hidden contributions efficiently. The rest of the lesson uses tidy tables for plotting and summarising.
 
 ``` r
 parameters <- known_truth$parameters
@@ -259,19 +208,11 @@ training_data <- list(
 test_environment <- as.data.frame(standardised_environment[101:400, ])
 ```
 
-We keep the last 300 observations, all hidden conditions and all
-generating probabilities out of fitting and tuning. Standardisation puts
-zero at the training mean and one unit at one training standard
-deviation. Test sites use the **same** transformation; calculating a new
-test-site mean would change the meaning of a fitted coefficient.
+We keep the last 300 observations, all hidden conditions and all generating probabilities out of fitting and tuning. Standardisation puts zero at the training mean and one unit at one training standard deviation. Test sites use the **same** transformation; calculating a new test-site mean would change the meaning of a fitted coefficient.
 
 ## 2. How similar are the four models?
 
-All four receive the same information, linear environmental predictors
-and two hidden factors. We exclude traits, phylogeny, space and
-observation error from this comparison. The number of factors is fixed
-at the known generating count; **this lesson does not choose the count
-using WAIC**.
+All four receive the same information, linear environmental predictors and two hidden factors. We exclude traits, phylogeny, space and observation error from this comparison. The number of factors is fixed at the known generating count; **this lesson does not choose the count using WAIC**.
 
 | Package | This pilot’s model | How it is fitted |
 |----|----|----|
@@ -280,94 +221,27 @@ using WAIC**.
 | sjSDM 1.0.7 | Binary logit; linear environment; covariance factor dimension two | PyTorch CPU optimisation with the optimiser’s default weak penalty (weight decay 0.0001); twelve independent starts, each with a low-step continuation |
 | Hmsc 3.3-7 | Binary probit; one independent site level with exactly two factors | Bayesian sampling, retaining its community and factor priors |
 
-Hmsc uses **probit**, whereas the other three use **logit**, as does
-this simulator. Both turn an ecological score into a probability, but
-their curves differ. This is why we compare probabilities rather than
-raw coefficient sizes. The priors and fitting approximations also
-differ: this is a comparison of these configurations with equal data,
-not an experiment changing only the package name.
+Hmsc uses **probit**, whereas the other three use **logit**, as does this simulator. Both turn an ecological score into a probability, but their curves differ. This is why we compare probabilities rather than raw coefficient sizes. The priors and fitting approximations also differ: this is a comparison of these configurations with equal data, not an experiment changing only the package name.
 
-The sjSDM R version is 1.0.7 inside Doug’s fork release **v0.2.1**. The
-release also has an optional Mojo path, but this experiment explicitly
-used PyTorch. Mojo was neither used nor upgraded.
+The sjSDM R version is 1.0.7 inside Doug’s fork release **v0.2.1**. The release also has an optional Mojo path, but this experiment explicitly used PyTorch. Mojo was neither used nor upgraded.
 
 ## 3. What a joint model adds to factoring a matrix
 
-Hidden factors are a familiar idea outside ecology. A recommender system
-takes a table of viewers by films, with a 1 where a viewer liked a film,
-and finds two small tables whose product reproduces it: a score for each
-viewer on a few hidden dimensions, and a position for each film on the
-same dimensions. The dimensions turn out to be genres that nobody
-labelled, and multiplying the two tables fills in the films a viewer has
-not yet seen. Replace viewers by sites and films by species, and the
-same arithmetic recovers unmeasured habitat axes from co-occurrence
-alone. That is where the hidden factors in section 1 come from, and it
-is a good way to build intuition for them.
+Hidden factors are a familiar idea outside ecology. A recommender system takes a table of viewers by films, with a 1 where a viewer liked a film, and finds two small tables whose product reproduces it: a score for each viewer on a few hidden dimensions, and a position for each film on the same dimensions. The dimensions turn out to be genres that nobody labelled, and multiplying the two tables fills in the films a viewer has not yet seen. Replace viewers by sites and films by species, and the same arithmetic recovers unmeasured habitat axes from co-occurrence alone. That is where the hidden factors in section 1 come from, and it is a good way to build intuition for them.
 
-A JSDM uses that low-rank idea, but it is not a factorisation of your
-data matrix, and the difference is worth stating plainly. **A
-factorisation describes the table you have. A JSDM estimates how species
-covary, so that it can reason about tables you do not have.** Three
-additions make the difference.
+A JSDM uses that low-rank idea, but it is not a factorisation of your data matrix, and the difference is worth stating plainly. **A factorisation describes the table you have. A JSDM estimates how species covary, so that it can reason about tables you do not have.** Three additions make the difference.
 
-- **It factors the residual, not the data.** The measured environment
-  enters first as an ordinary regression, one coefficient vector per
-  species. The hidden factors are then asked to explain only what the
-  environment left over. That is why the output is called a *residual*
-  correlation. If you measure a gradient that the factors had been
-  standing in for and add it as a covariate, the association it produced
-  shrinks. That is the model working as intended, not a contradiction.
-- **It is a probability model of a presence or absence.** A recommender
-  regresses 1s and 0s as if they were continuous scores and reports a
-  fitted number per cell. A JSDM treats each cell as a Bernoulli outcome
-  whose probability is a logit or probit transform of the linear
-  predictor. That gives a likelihood, and with it uncertainty for every
-  parameter, sensible behaviour for rare species, and a basis for
-  comparing models.
-- **It treats the site scores as random and averages over them.** In a
-  recommender, each viewer’s score vector is a parameter, because
-  recommending to that viewer needs it. In a JSDM, a site’s hidden
-  scores are assumed to be drawn from a standard normal distribution.
-  The optimised packages here average over every value the scores could
-  take and keep only the species loadings; the Bayesian packages sample
-  the scores for the fitted sites but likewise average over them at new
-  sites. Because the scores are independent standard normals, the
-  covariance between two species’ residuals at a site is the dot product
-  of their two loading rows. That holds at any site, sampled or not. The
-  loading matrix therefore describes the community rather than the
-  particular sites surveyed, and the species-by-species matrix built
-  from it is what the packages report as the residual covariance or
-  association matrix.
+- **It factors the residual, not the data.** The measured environment enters first as an ordinary regression, one coefficient vector per species. The hidden factors are then asked to explain only what the environment left over. That is why the output is called a *residual* correlation. If you measure a gradient that the factors had been standing in for and add it as a covariate, the association it produced shrinks. That is the model working as intended, not a contradiction.
+- **It is a probability model of a presence or absence.** A recommender regresses 1s and 0s as if they were continuous scores and reports a fitted number per cell. A JSDM treats each cell as a Bernoulli outcome whose probability is a logit or probit transform of the linear predictor. That gives a likelihood, and with it uncertainty for every parameter, sensible behaviour for rare species, and a basis for comparing models.
+- **It treats the site scores as random and averages over them.** In a recommender, each viewer’s score vector is a parameter, because recommending to that viewer needs it. In a JSDM, a site’s hidden scores are assumed to be drawn from a standard normal distribution. The optimised packages here average over every value the scores could take and keep only the species loadings; the Bayesian packages sample the scores for the fitted sites but likewise average over them at new sites. Because the scores are independent standard normals, the covariance between two species’ residuals at a site is the dot product of their two loading rows. That holds at any site, sampled or not. The loading matrix therefore describes the community rather than the particular sites surveyed, and the species-by-species matrix built from it is what the packages report as the residual covariance or association matrix.
 
-Put together, these define the **joint probability distribution of the
-whole species vector at a site**. That is the sense in which the model
-is joint. Two things follow that no factorisation offers. First,
-recording one species at a site tells you something about the others,
-because it is evidence about that site’s hidden scores. Second, the same
-model answers two different prediction questions, depending on whether
-such evidence is available. The next section makes that distinction
-precise; the exercise below shows the first consequence in numbers.
+Put together, these define the **joint probability distribution of the whole species vector at a site**. That is the sense in which the model is joint. Two things follow that no factorisation offers. First, recording one species at a site tells you something about the others, because it is evidence about that site’s hidden scores. Second, the same model answers two different prediction questions, depending on whether such evidence is available. The next section makes that distinction precise; the exercise below shows the first consequence in numbers.
 
 ### Exercise: predict one species given another
 
-Suppose a survey at a new site has recorded species_03 as present and we
-want the probability that species_10 is also there. A stacked model, one
-species at a time, would give the same answer whether or not species_03
-was seen: it assumes independence once the environment is known. A JSDM
-does not. Species_03’s presence shifts the plausible values of the
-site’s hidden scores, and species_10’s loadings translate that shift
-into a changed probability.
+Suppose a survey at a new site has recorded species_03 as present and we want the probability that species_10 is also there. A stacked model, one species at a time, would give the same answer whether or not species_03 was seen: it assumes independence once the environment is known. A JSDM does not. Species_03’s presence shifts the plausible values of the site’s hidden scores, and species_10’s loadings translate that shift into a changed probability.
 
-The calculation averages over the hidden scores. We draw many
-standard-normal score pairs, compute both species’ probabilities at each
-draw, and average. The probability of species_10 alone is the plain
-average. Its probability given species_03 present weights each draw by
-how likely species_03 was to be present there, and given species_03
-absent weights by the complement. We use the same gllvm parameters as
-the marginal example above, and the generating parameters for
-comparison. The environment is set to the training mean, and then to one
-standard deviation above it on gradient 1, because conditional
-information matters most where a species is not already near certain.
+The calculation averages over the hidden scores. We draw many standard-normal score pairs, compute both species’ probabilities at each draw, and average. The probability of species_10 alone is the plain average. Its probability given species_03 present weights each draw by how likely species_03 was to be present there, and given species_03 absent weights by the complement. We use the same gllvm parameters as the marginal example above, and the generating parameters for comparison. The environment is set to the training mean, and then to one standard deviation above it on gradient 1, because conditional information matters most where a species is not already near certain.
 
 ``` r
 conditional_probabilities <- function(parameters, given, target,
@@ -424,21 +298,9 @@ knitr::kable(
 
 Occurrence probability of species_10 at a new site, in percent
 
-Read across a row. A stacked model would put the same number in all
-three columns. Here the middle column is higher and the right column
-lower, in the fitted model and in the truth, because species_03 and
-species_10 respond to the same hidden factors. The gap widens when
-species_10 is less certain to begin with. The fitted gap is somewhat
-smaller than the true gap in this community; the fitted residual spread
-for these two species is below its generating value, which is one of the
-errors the response curves in section 8 also show. With 200,000 draws
-the Monte Carlo error is in the second decimal place; change the seed to
-check.
+Read across a row. A stacked model would put the same number in all three columns. Here the middle column is higher and the right column lower, in the fitted model and in the truth, because species_03 and species_10 respond to the same hidden factors. The gap widens when species_10 is less certain to begin with. The fitted gap is somewhat smaller than the true gap in this community; the fitted residual spread for these two species is below its generating value, which is one of the errors the response curves in section 8 also show. With 200,000 draws the Monte Carlo error is in the second decimal place; change the seed to check.
 
-This is only a demonstration on a single pair chosen for its strong
-fitted association, not a validated conditional-prediction test. A real
-test would hold out species records at independent sites and score the
-conditional predictions against them.
+This is only a demonstration on a single pair chosen for its strong fitted association, not a validated conditional-prediction test. A real test would hold out species records at independent sites and score the conditional predictions against them.
 
 ## 4. Two probability questions that must not be mixed
 
@@ -447,28 +309,15 @@ conditional predictions against them.
 | Reconstruct a sampled site | Its environment and the observed community used for fitting | Probability including that site’s actual hidden conditions |
 | Predict a new, unsurveyed site | Its environment, with no species observations there | Probability averaged over possible hidden conditions |
 
-At a sampled site, the community helps the model infer whether the
-unmeasured conditions favour a species. We compare its fitted
-probability with the probability that generated that particular site.
-This is **reconstruction**, not a held-out prediction test.
+At a sampled site, the community helps the model infer whether the unmeasured conditions favour a species. We compare its fitted probability with the probability that generated that particular site. This is **reconstruction**, not a held-out prediction test.
 
-At an unsurveyed site, we do not know its hidden conditions. We average
-over their possible values. This is called a **marginal probability**.
-To evaluate that answer fairly, the simulation truth must average over
-hidden conditions too.
+At an unsurveyed site, we do not know its hidden conditions. We average over their possible values. This is called a **marginal probability**. To evaluate that answer fairly, the simulation truth must average over hidden conditions too.
 
-For an explicitly hypothetical example, measured habitat might imply a
-40% average chance of occurrence, while favourable unmeasured conditions
-at a particular site raise its actual probability to 70%. A prediction
-of 40% can correctly describe the average for that habitat without
-discovering that site’s particular 70%. Neither number is the actual 0
-or 1 recorded by a survey.
+For an explicitly hypothetical example, measured habitat might imply a 40% average chance of occurrence, while favourable unmeasured conditions at a particular site raise its actual probability to 70%. A prediction of 40% can correctly describe the average for that habitat without discovering that site’s particular 70%. Neither number is the actual 0 or 1 recorded by a survey.
 
 ### Averaging is different from setting hidden conditions to zero
 
-Because the conversion to probability is curved, converting an average
-score need not equal averaging the converted probabilities. Here is a
-reproducible numerical illustration, separate from the fitted results:
+Because the conversion to probability is curved, converting an average score need not equal averaging the converted probabilities. Here is a reproducible numerical illustration, separate from the fitted results:
 
 ``` r
 environmental_score <- -2
@@ -497,25 +346,11 @@ tibble(
 | Set hidden contribution to zero |                11.9 |
 | Average over hidden conditions  |                22.5 |
 
-The comparison therefore does not simply call four functions named
-`predict()` and assume their outputs mean the same thing. For example,
-gllvm’s level-zero prediction sets hidden scores to zero. The inspected
-sjSDM environmental prediction does too. Our saved new-site predictions
-integrate over fitted hidden variation.
+The comparison therefore does not simply call four functions named `predict()` and assume their outputs mean the same thing. For example, gllvm’s level-zero prediction sets hidden scores to zero. The inspected sjSDM environmental prediction does too. Our saved new-site predictions integrate over fitted hidden variation.
 
-For the Bayesian models, that integration happens separately for each
-parameter draw, then the probabilities are averaged. For gllvm and
-sjSDM, we hold their estimated global parameters fixed and integrate
-over hidden variation. For sampled sites, we condition on the observed
-community: Bayesian fits already include that information in their joint
-draws; the other two use a checked study calculation. We do not
-condition on the test observations or multiply their likelihood into
-predictions.
+For the Bayesian models, that integration happens separately for each parameter draw, then the probabilities are averaged. For gllvm and sjSDM, we hold their estimated global parameters fixed and integrate over hidden variation. For sampled sites, we condition on the observed community: Bayesian fits already include that information in their joint draws; the other two use a checked study calculation. We do not condition on the test observations or multiply their likelihood into predictions.
 
-The following code shows the marginal calculation for one species with
-fixed logit coefficients. A nonzero residual spread flattens the average
-environmental response because otherwise similar sites have different
-hidden conditions.
+The following code shows the marginal calculation for one species with fixed logit coefficients. A nonzero residual spread flattens the average environmental response because otherwise similar sites have different hidden conditions.
 
 ``` r
 # Calculate an actual gllvm prediction for species_01 at mean environment.
@@ -555,22 +390,11 @@ tibble(
 |:-----------|------------------:|-------------:|
 | species_01 |              14.6 |         16.1 |
 
-Here `beta` contains the intercept and two environmental slopes;
-`loading` contains the two hidden-factor effects. Their squared sum is
-the variance of this species’ hidden contribution. For Hmsc’s
-normal-probit model, the corresponding average has the exact expression
-`pnorm(environmental_score / sqrt(1 + residual_sd^2))`. Bayesian
-averaging still applies this within each parameter draw. The full
-checked extraction scripts are recorded in the reproduction notes below.
+Here `beta` contains the intercept and two environmental slopes; `loading` contains the two hidden-factor effects. Their squared sum is the variance of this species’ hidden contribution. For Hmsc’s normal-probit model, the corresponding average has the exact expression `pnorm(environmental_score / sqrt(1 + residual_sd^2))`. Bayesian averaging still applies this within each parameter draw. The full checked extraction scripts are recorded in the reproduction notes below.
 
 ## 5. Check the computation before interpreting the ecology
 
-For occJSDM and Hmsc we used four chains, each with 2,000 warm-up and
-4,000 retained iterations. Chains should agree, and enough effectively
-independent draws should remain to estimate the quantities we report.
-Rhat near 1 measures agreement; effective sample size (ESS) measures the
-usable information in correlated draws. Neither measures ecological
-accuracy.
+For occJSDM and Hmsc we used four chains, each with 2,000 warm-up and 4,000 retained iterations. Chains should agree, and enough effectively independent draws should remain to estimate the quantities we report. Rhat near 1 measures agreement; effective sample size (ESS) measures the usable information in correlated draws. Neither measures ecological accuracy.
 
 ``` r
 diagnostic_summary <- comparison$diagnostics |>
@@ -594,38 +418,17 @@ knitr::kable(
 | Hmsc    |       1135 |       1.0048 |              1051 |               516 |
 | occJSDM |       1135 |       1.0015 |              3674 |              4894 |
 
-Both passed our checks of Rhat at most 1.01 and bulk/tail ESS at least
-400 for all 1,135 monitored quantities. These include environmental
-coefficients, residual covariance and reported probabilities. We monitor
-covariance rather than separate factor axes because axes can rotate or
-reverse sign without changing the model.
+Both passed our checks of Rhat at most 1.01 and bulk/tail ESS at least 400 for all 1,135 monitored quantities. These include environmental coefficients, residual covariance and reported probabilities. We monitor covariance rather than separate factor axes because axes can rotate or reverse sign without changing the model.
 
-For optimised fits, we also compare different starting points. gllvm’s
-initial EVA fits reported convergence but gave extreme effects and
-inconsistent objectives. We rejected them. The selected VA solution was
-reproduced from separate starts. A message saying “converged” is not
-enough by itself.
+For optimised fits, we also compare different starting points. gllvm’s initial EVA fits reported convergence but gave extreme effects and inconsistent objectives. We rejected them. The selected VA solution was reproduced from separate starts. A message saying “converged” is not enough by itself.
 
-sjSDM’s original longer starts, fitted with no penalty at all, differed
-by 0.2115 in accurately calculated training log likelihood, exceeding
-our declared 0.1 stability check. Smaller optimisation steps did not
-close the gap. The reason turned out to be a property of the fitting
-problem, not of the optimiser, and it is worth understanding.
+sjSDM’s original longer starts, fitted with no penalty at all, differed by 0.2115 in accurately calculated training log likelihood, exceeding our declared 0.1 stability check. Smaller optimisation steps did not close the gap. The reason turned out to be a property of the fitting problem, not of the optimiser, and it is worth understanding.
 
 ### Two local optima in the sjSDM fit
 
-We restored the optimiser’s usual weak penalty (weight decay 0.0001) so
-that coefficients cannot grow without limit, then refined three saved
-fits with an exact, deterministic optimiser. They stopped at two
-different stationary solutions. A curvature check at each solution found
-exactly one flat direction, which is the rotation of the two hidden
-factors and changes nothing about the model, and all other directions
-curving downwards. Both solutions are therefore genuine local maxima of
-the penalised training fit, and the penalised score dips between them.
-The fitting surface has two hills.
+We restored the optimiser’s usual weak penalty (weight decay 0.0001) so that coefficients cannot grow without limit, then refined three saved fits with an exact, deterministic optimiser. They stopped at two different stationary solutions. A curvature check at each solution found exactly one flat direction, which is the rotation of the two hidden factors and changes nothing about the model, and all other directions curving downwards. Both solutions are therefore genuine local maxima of the penalised training fit, and the penalised score dips between them. The fitting surface has two hills.
 
-We then ran nine more native sjSDM starts with fresh random seeds,
-twelve in all, and classified each endpoint by which hill it climbed.
+We then ran nine more native sjSDM starts with fresh random seeds, twelve in all, and classified each endpoint by which hill it climbed.
 
 ``` r
 as_tibble(comparison$sjsdm_revision$basins) |>
@@ -645,20 +448,11 @@ as_tibble(comparison$sjsdm_revision$basins) |>
 | A | 4 | 3 | -484.304 | 0.0064 | 0.078 |
 | B | 8 | 6 | -484.431 | 0.0025 | 0.096 |
 
-Twelve independent native sjSDM starts; higher scores fit the training
-data better
+Twelve independent native sjSDM starts; higher scores fit the training data better
 
-Within each hill the starts agree closely: penalised scores within 0.01
-and fixed-grid predictions within 0.1 percentage points, well inside our
-checks. Between the hills the scores differ by about 0.13. The declared
-selection rule was the native fit with the highest penalised training
-score, accepted only if its hill was reached by at least two independent
-starts and the within-hill checks passed. Four of the twelve starts
-reached the better hill, and start 11 was selected. This was recorded
-before any truth was read.
+Within each hill the starts agree closely: penalised scores within 0.01 and fixed-grid predictions within 0.1 percentage points, well inside our checks. Between the hills the scores differ by about 0.13. The declared selection rule was the native fit with the highest penalised training score, accepted only if its hill was reached by at least two independent starts and the within-hill checks passed. Four of the twelve starts reached the better hill, and start 11 was selected. This was recorded before any truth was read.
 
-What distinguishes the two solutions? Almost everything is shared. They
-differ in which of two species carries a large hidden-factor loading.
+What distinguishes the two solutions? Almost everything is shared. They differ in which of two species carries a large hidden-factor loading.
 
 ``` r
 comparison$sjsdm_revision$species_differences |>
@@ -685,13 +479,7 @@ comparison$sjsdm_revision$species_differences |>
 
 Where the two local maxima disagree: species 2 and species 9 swap roles
 
-In the selected solution, species 2 has a large residual spread and
-species 9 a small one; in the other solution it is the reverse. With 100
-sites, the data cannot firmly decide which species’ unexplained
-variation is large, so two explanations fit almost equally well. The
-next table shows that the choice barely matters for new-site prediction
-but matters for some sampled-site reconstructions, because those depend
-on the inferred hidden conditions.
+In the selected solution, species 2 has a large residual spread and species 9 a small one; in the other solution it is the reverse. With 100 sites, the data cannot firmly decide which species’ unexplained variation is large, so two explanations fit almost equally well. The next table shows that the choice barely matters for new-site prediction but matters for some sampled-site reconstructions, because those depend on the inferred hidden conditions.
 
 ``` r
 comparison$sjsdm_revision$comparison |>
@@ -733,24 +521,13 @@ comparison$sjsdm_revision$prediction_differences |>
 
 Differences between sjSDM predictions, in percentage points
 
-The average errors of the two local maxima are almost identical, and the
-original unpenalised fit was within 0.4 points of the revised fit at
-every new site. Some sampled-site probabilities differ by tens of points
-between the two maxima, mostly for species 2 and 9. This is the teaching
-point: a converged optimiser is not the same as a unique answer, and
-agreement of average errors does not mean the models agree about every
-site.
+The average errors of the two local maxima are almost identical, and the original unpenalised fit was within 0.4 points of the revised fit at every new site. Some sampled-site probabilities differ by tens of points between the two maxima, mostly for species 2 and 9. This is the teaching point: a converged optimiser is not the same as a unique answer, and agreement of average errors does not mean the models agree about every site.
 
-We select starts by the training fitting criterion, never by similarity
-to truth. Fitting criteria from different packages are not directly
-comparable here, so a larger numerical likelihood is not a cross-package
-score.
+We select starts by the training fitting criterion, never by similarity to truth. Fitting criteria from different packages are not directly comparable here, so a larger numerical likelihood is not a cross-package score.
 
 ## 6. Put the estimated probabilities beside truth
 
-In each panel, a point is one species at one site. On the diagonal,
-estimate and truth agree. Above it, the model overestimates; below it,
-it underestimates. Both axes always span 0% to 100%.
+In each panel, a point is one species at one site. On the diagonal, estimate and truth agree. Above it, the model overestimates; below it, it underestimates. Both axes always span 0% to 100%.
 
 ``` r
 new_site_predictions <- predictions |>
@@ -772,9 +549,7 @@ ggplot(new_site_predictions, aes(truth, estimate)) +
 
 ![](teaching-data/lesson-4-new-site-probabilities-1.png)<!-- -->
 
-These are genuine predictions at new sites. The target is the average
-over possible hidden conditions, not the unknowable particular condition
-of each test site.
+These are genuine predictions at new sites. The target is the average over possible hidden conditions, not the unknowable particular condition of each test site.
 
 ``` r
 sampled_site_predictions <- predictions |>
@@ -796,30 +571,18 @@ ggplot(sampled_site_predictions, aes(truth, estimate)) +
 
 ![](teaching-data/lesson-4-sampled-site-probabilities-1.png)<!-- -->
 
-The sampled-site plot is more scattered. Even knowing all ten species’
-presences does not tell us the hidden conditions perfectly. Do not
-interpret this contrast as “models predict better when deprived of
-observations”: the two figures have **different targets**. Averaging
-over hidden conditions removes variation that the sampled-site exercise
-asks the model to reconstruct.
+The sampled-site plot is more scattered. Even knowing all ten species’ presences does not tell us the hidden conditions perfectly. Do not interpret this contrast as “models predict better when deprived of observations”: the two figures have **different targets**. Averaging over hidden conditions removes variation that the sampled-site exercise asks the model to reconstruct.
 
 ## 7. How far wrong, and in which direction?
 
 We calculate an error for every species at every site:
 
-- **Signed error** is estimate minus truth. Positive means too high;
-  negative means too low.
-- **Absolute error** ignores the direction. It measures the distance
-  from truth.
+- **Signed error** is estimate minus truth. Positive means too high; negative means too low.
+- **Absolute error** ignores the direction. It measures the distance from truth.
 
-Multiplying a probability difference by 100 expresses it in **percentage
-points**. Estimating 30% when truth is 20% is a +10-point error. It is
-not a 10% relative error.
+Multiplying a probability difference by 100 expresses it in **percentage points**. Estimating 30% when truth is 20% is a +10-point error. It is not a 10% relative error.
 
-As an explicitly hypothetical example, errors of +10 and -10 points
-average to zero signed error. Their average absolute error is still 10
-points. Consequently, a small signed average can coexist with
-substantial mistakes.
+As an explicitly hypothetical example, errors of +10 and -10 points average to zero signed error. Their average absolute error is still 10 points. Consequently, a small signed average can coexist with substantial mistakes.
 
 ``` r
 overall_errors <- predictions |>
@@ -865,37 +628,15 @@ ggplot(overall_errors, aes(package, average_absolute_error_pp, fill = package)) 
 
 ![](teaching-data/lesson-4-absolute-error-comparison-1.png)<!-- -->
 
-At new sites, the average absolute errors are about **6.1, 7.1, 7.1 and
-6.3 points**, in package order. At sampled sites they are about **12.1,
-11.9, 13.3 and 12.2 points**. These are measured results, not notional
-examples, and they are not the older occJSDM-only sample-size
-experiment.
+At new sites, the average absolute errors are about **6.1, 7.1, 7.1 and 6.3 points**, in package order. At sampled sites they are about **12.1, 11.9, 13.3 and 12.2 points**. These are measured results, not notional examples, and they are not the older occJSDM-only sample-size experiment.
 
-Why are the new-site errors lower here, even though sampled sites supply
-more observations? The targets differ. At a new site, the score asks for
-the occurrence probability **averaged over possible hidden site
-conditions**, not the probability under some “average” hidden condition.
-At a sampled site, it asks for the probability under that site’s
-particular hidden conditions. The ten observed presences and absences
-help infer those conditions, but do not reveal them exactly. If the
-generating distribution and global model parameters were known
-perfectly, the new-site average could be calculated exactly, while the
-sampled-site probability would still be uncertain. The lower new-site
-error therefore does not show that withholding observations helps; it
-reflects an easier, averaged target in this comparison.
+Why are the new-site errors lower here, even though sampled sites supply more observations? The targets differ. At a new site, the score asks for the occurrence probability **averaged over possible hidden site conditions**, not the probability under some “average” hidden condition. At a sampled site, it asks for the probability under that site’s particular hidden conditions. The ten observed presences and absences help infer those conditions, but do not reveal them exactly. If the generating distribution and global model parameters were known perfectly, the new-site average could be calculated exactly, while the sampled-site probability would still be uncertain. The lower new-site error therefore does not show that withholding observations helps; it reflects an easier, averaged target in this comparison.
 
-The signed averages are only about +1 point, because overestimates and
-underestimates largely cancel. An average absolute error of 6.1 points
-means the predictions miss by 6.1 points on average when direction is
-ignored. It does not mean every prediction is 6.1 points wrong, or that
-6.1% of species are incorrectly classified.
+The signed averages are only about +1 point, because overestimates and underestimates largely cancel. An average absolute error of 6.1 points means the predictions miss by 6.1 points on average when direction is ignored. It does not mean every prediction is 6.1 points wrong, or that 6.1% of species are incorrectly classified.
 
 ### Does performance differ for rare and common occurrences?
 
-The bands below refer to each **species-by-site probability**, not a
-permanent classification of the species. The same species can have low
-probability at one site and high probability at another. The middle band
-includes 20% and excludes 80%; the upper band starts at 80%.
+The bands below refer to each **species-by-site probability**, not a permanent classification of the species. The same species can have low probability at one site and high probability at another. The middle band includes 20% and excludes 80%; the upper band starts at 80%.
 
 ``` r
 band_errors <- predictions |>
@@ -960,13 +701,7 @@ knitr::kable(
 
 Sampled sites: direction and size of errors within each probability band
 
-Read the signed and absolute columns together. A positive signed value
-in the low band indicates overestimation on average there. A negative
-value in the high band indicates underestimation. A small middle-band
-signed average does not imply accurate middle-band predictions; check
-its absolute-error column. The counts indicate how much of this
-community each result describes. They are not numbers of independent
-simulation replicates.
+Read the signed and absolute columns together. A positive signed value in the low band indicates overestimation on average there. A negative value in the high band indicates underestimation. A small middle-band signed average does not imply accurate middle-band predictions; check its absolute-error column. The counts indicate how much of this community each result describes. They are not numbers of independent simulation replicates.
 
 ### Are the same species difficult for every package?
 
@@ -992,16 +727,9 @@ ggplot(species_errors, aes(absolute_error_pp, species, colour = package)) +
 
 ![](teaching-data/lesson-4-errors-by-species-1.png)<!-- -->
 
-Every plotted error is a distance from matching simulated truth. This
-figure helps identify which species deserve closer examination. It
-cannot by itself establish why a species is difficult or whether the
-same pattern recurs in other communities.
+Every plotted error is a distance from matching simulated truth. This figure helps identify which species deserve closer examination. It cannot by itself establish why a species is difficult or whether the same pattern recurs in other communities.
 
-To inspect a species in detail, filter the same table. Here is
-species_01, the first species in the input order. Change that name to
-examine another species. The [complete species error
-table](teaching-data/lesson-4-species-errors.csv) contains both error
-measures and counts for every species, package and question.
+To inspect a species in detail, filter the same table. Here is species_01, the first species in the input order. Change that name to examine another species. The [complete species error table](teaching-data/lesson-4-species-errors.csv) contains both error measures and counts for every species, package and question.
 
 ``` r
 species_errors |>
@@ -1030,17 +758,9 @@ Species_01: actual error against truth
 
 ## 8. What environmental response does each model recover?
 
-We now move along one gradient while keeping the other at its training
-mean. The horizontal axis runs from two training standard deviations
-below the mean to two above it. All curves **average over hidden
-conditions**, matching the new-site question.
+We now move along one gradient while keeping the other at its training mean. The horizontal axis runs from two training standard deviations below the mean to two above it. All curves **average over hidden conditions**, matching the new-site question.
 
-Each black dashed line is the true response. Each coloured line is a
-model’s estimated response. We show all ten species, rather than
-selecting the most attractive examples. The curves are point summaries;
-no common uncertainty interval was calculated across all four fitting
-methods. Their agreement or separation is not a test of a statistically
-significant difference between packages.
+Each black dashed line is the true response. Each coloured line is a model’s estimated response. We show all ten species, rather than selecting the most attractive examples. The curves are point summaries; no common uncertainty interval was calculated across all four fitting methods. Their agreement or separation is not a test of a statistically significant difference between packages.
 
 ``` r
 response_curves <- as_tibble(comparison$curves) |>
@@ -1090,33 +810,13 @@ ggplot(filter(response_curves, gradient == "environment_2"),
 
 ![](teaching-data/lesson-4-environmental-gradient-2-1.png)<!-- -->
 
-Look for three different kinds of disagreement: a curve that is
-generally too high or low, one that changes too steeply or too weakly,
-and one that changes in the wrong direction. Their ecological
-implications differ, even if their overall average errors happen to be
-similar. For example, species_03’s gradient-1 curves follow truth
-closely, while species_04’s gradient-1 curves are too flat. Along
-gradient 2, species_03’s fitted responses are much flatter than its true
-response. These examples are visible in the full set of panels; they
-illustrate how to read a curve, rather than determining which results we
-include.
+Look for three different kinds of disagreement: a curve that is generally too high or low, one that changes too steeply or too weakly, and one that changes in the wrong direction. Their ecological implications differ, even if their overall average errors happen to be similar. For example, species_03’s gradient-1 curves follow truth closely, while species_04’s gradient-1 curves are too flat. Along gradient 2, species_03’s fitted responses are much flatter than its true response. These examples are visible in the full set of panels; they illustrate how to read a curve, rather than determining which results we include.
 
-These are observational responses within this simulated model, with
-other measured conditions fixed and unmeasured conditions averaged over.
-For a real dataset, a fitted environmental association does not by
-itself establish a causal effect. Also, these curves differ from the
-zero-factor occupancy-gradient profiles taught in [Lesson
-3](occJSDM-lesson-3.md): here we deliberately average over hidden
-variation.
+These are observational responses within this simulated model, with other measured conditions fixed and unmeasured conditions averaged over. For a real dataset, a fitted environmental association does not by itself establish a causal effect. Also, these curves differ from the zero-factor occupancy-gradient profiles taught in [Lesson 3](occJSDM-lesson-3.md): here we deliberately average over hidden variation.
 
 ## 9. If we did not know truth, how would we score predictions?
 
-In real field data we observe 0s and 1s, not the probabilities that
-generated them. Held-out outcomes can still score probabilistic
-predictions. A **Brier score** averages the squared difference between
-predicted probability and the observed 0 or 1. A **negative log score**
-penalises assigning low probability to what actually occurred. Lower is
-better for both. Neither is measured in percentage points.
+In real field data we observe 0s and 1s, not the probabilities that generated them. Held-out outcomes can still score probabilistic predictions. A **Brier score** averages the squared difference between predicted probability and the observed 0 or 1. A **negative log score** penalises assigning low probability to what actually occurred. Lower is better for both. Neither is measured in percentage points.
 
 ``` r
 outcome_scores <- new_site_predictions |>
@@ -1142,28 +842,15 @@ knitr::kable(outcome_scores, digits = 4,
 
 Scores for 3,000 held-out binary outcomes
 
-The scores are close in this pilot. Even the true probability will
-sometimes give substantial error against a random binary outcome: a
-species predicted with 80% probability is still absent about one time in
-five. This is why the probability-error tables and the outcome-score
-table measure different things. We do not use sampled-site outcome
-scores to claim independent prediction skill, because those observations
-helped fit the models.
+The scores are close in this pilot. Even the true probability will sometimes give substantial error against a random binary outcome: a species predicted with 80% probability is still absent about one time in five. This is why the probability-error tables and the outcome-score table measure different things. We do not use sampled-site outcome scores to claim independent prediction skill, because those observations helped fit the models.
 
 ## 10. Optional: fit the same configurations yourself
 
-Run each package’s fitting example in a **fresh R session** with its
-recorded dependencies available. Load `comparison` and `training` as
-above first. The examples show the selected configuration; they do not
-replace the multiple-start and diagnostic checks. Bayesian defaults and
-numerical results can change with package versions.
+Run each package’s fitting example in a **fresh R session** with its recorded dependencies available. Load `comparison` and `training` as above first. The examples show the selected configuration; they do not replace the multiple-start and diagnostic checks. Bayesian defaults and numerical results can change with package versions.
 
 ### occJSDM: directly observed binary data
 
-There are no repeated `Site`, `Sample` or `Primer` identifiers in this
-input. occJSDM infers binary JSDM mode. `n_lattrait = 0` removes latent
-species-trait structure; `n_factors = 2` retains the two hidden site
-factors.
+There are no repeated `Site`, `Sample` or `Primer` identifiers in this input. occJSDM infers binary JSDM mode. `n_lattrait = 0` removes latent species-trait structure; `n_factors = 2` retains the two hidden site factors.
 
 ``` r
 library(occJSDM)
@@ -1180,9 +867,7 @@ fit_occJSDM <- runOccJSDM(
 
 ### gllvm: the checked VA configuration
 
-We show the residual-based initialisation that reproduced the best VA
-solution. The full pilot also tried other seeds and starting methods. A
-single call cannot demonstrate stability across starts.
+We show the residual-based initialisation that reproduced the best VA solution. The full pilot also tried other seeds and starting methods. A single call cannot demonstrate stability across starts.
 
 ``` r
 library(gllvm)
@@ -1203,11 +888,7 @@ fit_gllvm <- gllvm(
 
 ### sjSDM: the selected weak-penalty configuration
 
-Select the Python environment appropriate for your machine before
-loading reticulate or sjSDM. This switch explicitly disables Mojo in the
-recorded fork. `df = 2` sets the covariance factor dimension; the
-environmental response is linear, not a neural network. The seed below
-is the selected start; the pilot ran twelve.
+Select the Python environment appropriate for your machine before loading reticulate or sjSDM. This switch explicitly disables Mojo in the recorded fork. `df = 2` sets the covariance factor dimension; the environmental response is linear, not a neural network. The seed below is the selected start; the pilot ran twelve.
 
 ``` r
 Sys.setenv(SJSDM_MOJO_BACKEND = "0")
@@ -1237,25 +918,11 @@ fit_sjSDM <- sjSDM(
 )
 ```
 
-Weight decay 0.0001 is the optimiser’s usual default in this sjSDM
-release. The original pilot set it to zero, which allowed coefficients
-to grow without limit and left repeated starts disagreeing; the weak
-penalty is what made the two local maxima identifiable. After the call
-above, the selected fit continued for another 1,000 epochs at learning
-rate 0.0002 with a fresh optimiser, using the package’s own model
-object. The exact continuation code is in
-`dev/simstudy/jsdm-package-comparison/sjsdm-multistart.R`. A single call
-cannot show which local maximum a start will reach, so repeat it with
-several seeds and compare their training objectives. sjSDM’s live Python
-model cannot simply be saved and restored as an ordinary R object; the
-study archives verified numeric parameters separately.
+Weight decay 0.0001 is the optimiser’s usual default in this sjSDM release. The original pilot set it to zero, which allowed coefficients to grow without limit and left repeated starts disagreeing; the weak penalty is what made the two local maxima identifiable. After the call above, the selected fit continued for another 1,000 epochs at learning rate 0.0002 with a fresh optimiser, using the package’s own model object. The exact continuation code is in `dev/simstudy/jsdm-package-comparison/sjsdm-multistart.R`. A single call cannot show which local maximum a start will reach, so repeat it with several seeds and compare their training objectives. sjSDM’s live Python model cannot simply be saved and restored as an ordinary R object; the study archives verified numeric parameters separately.
 
 ### Hmsc: a site level without spatial information
 
-Every training site has its own independent random level. Fixing both
-the minimum and maximum to two prevents the factor count from changing
-during this comparison. `XScale = FALSE` avoids changing our already
-standardised predictors again.
+Every training site has its own independent random level. Fixing both the minimum and maximum to two prevents the factor count from changing during this comparison. `XScale = FALSE` avoids changing our already standardised predictors again.
 
 ``` r
 library(Hmsc)
@@ -1292,14 +959,7 @@ fit_Hmsc <- sampleMcmc(
 
 ### What did these runs cost?
 
-The table separates time for the selected fit from time spent on all
-attempts. For sjSDM the attempts include the six original unpenalised
-starts and the twelve weak-penalty starts with their continuations; the
-selected fit’s time covers both its stages. Times are elapsed wall time
-measured on one Apple Silicon machine; some processes ran concurrently.
-Summing them is an accounting of fit effort, not the elapsed duration of
-the project or a controlled speed benchmark. It excludes setup,
-checking, exports and the deterministic diagnostic calculations.
+The table separates time for the selected fit from time spent on all attempts. For sjSDM the attempts include the six original unpenalised starts and the twelve weak-penalty starts with their continuations; the selected fit’s time covers both its stages. Times are elapsed wall time measured on one Apple Silicon machine; some processes ran concurrently. Summing them is an accounting of fit effort, not the elapsed duration of the project or a controlled speed benchmark. It excludes setup, checking, exports and the deterministic diagnostic calculations.
 
 ``` r
 selected_runs <- tibble(
@@ -1333,82 +993,35 @@ knitr::kable(
 | occJSDM |        1 |                18.6 |                 18.6 |
 | sjSDM   |       18 |              7971.7 |                664.4 |
 
-The original longer sjSDM workers saved complete numeric fits but
-subsequently exited with a parser error because their driver file was
-edited while running. The saved fits were checked in fresh processes
-against the input hashes and native predictions; the execution error
-remains in the record. Later runs used immutable driver snapshots.
-Numerical probability integration was independently checked at finer
-resolution, with differences much smaller than the ecological errors
-shown here.
+The original longer sjSDM workers saved complete numeric fits but subsequently exited with a parser error because their driver file was edited while running. The saved fits were checked in fresh processes against the input hashes and native predictions; the execution error remains in the record. Later runs used immutable driver snapshots. Numerical probability integration was independently checked at finer resolution, with differences much smaller than the ecological errors shown here.
 
 ## 11. What this lesson establishes, and what remains open
 
-The four packages can be compared on the same perfectly observed
-community **when their prediction targets are explicitly matched**.
-Perfect observation still leaves appreciable probability error. Across
-this one community, the differences among new-site scores are small,
-while errors vary among species and probability bands.
+The four packages can be compared on the same perfectly observed community **when their prediction targets are explicitly matched**. Perfect observation still leaves appreciable probability error. Across this one community, the differences among new-site scores are small, while errors vary among species and probability bands.
 
-This does not establish a generally superior package, prove that any
-fitted optimum is global, or demonstrate systematic bias across repeated
-communities. Sections 12-15 add independent simulated communities and
-sample-size comparisons. A broader study still needs both logit- and
-probit-generating scenarios and sensitivity to priors. Section 13 adds a
-matched trait example. Spatial effects, residual-correlation comparisons
-and variation partitioning require their own matched experiments; they
-are not included in this pilot.
+This does not establish a generally superior package, prove that any fitted optimum is global, or demonstrate systematic bias across repeated communities. Sections 12-15 add independent simulated communities and sample-size comparisons. A broader study still needs both logit- and probit-generating scenarios and sensitivity to priors. Section 13 adds a matched trait example. Spatial effects, residual-correlation comparisons and variation partitioning require their own matched experiments; they are not included in this pilot.
 
 Try these exercises with the saved tables, without refitting:
 
-1.  Choose a species **before** examining its error. Compare its signed
-    and absolute errors across packages and explain why the numbers
-    differ.
-2.  Find a probability band with a small signed error but a larger
-    absolute error. Explain what averaging has hidden.
-3.  Pick an environmental curve that misses truth. Describe whether its
-    baseline, direction or steepness is wrong.
-4.  Explain why the two sampled-site and new-site figures cannot be used
-    as an ordinary training-versus-test overfitting comparison.
-5.  Rerun the conditional-prediction example with
-    `comparison$point_parameters$sjSDM` in place of the gllvm
-    parameters. The two fits agree closely on species_10 alone but not
-    on how much species_03 changes it. Explain from their loadings why.
+1.  Choose a species **before** examining its error. Compare its signed and absolute errors across packages and explain why the numbers differ.
+2.  Find a probability band with a small signed error but a larger absolute error. Explain what averaging has hidden.
+3.  Pick an environmental curve that misses truth. Describe whether its baseline, direction or steepness is wrong.
+4.  Explain why the two sampled-site and new-site figures cannot be used as an ordinary training-versus-test overfitting comparison.
+5.  Rerun the conditional-prediction example with `comparison$point_parameters$sjSDM` in place of the gllvm parameters. The two fits agree closely on species_10 alone but not on how much species_03 changes it. Explain from their loadings why.
 
 ## Reproduction record
 
-The compact bundle records seed 26092201, complete generating truth, fit
-selection, input/source hashes, diagnostics and unrounded estimates. It
-also keeps the original provisional sjSDM selection, the twelve-start
-classification, the curvature summary and the three-way sjSDM comparison
-shown in section 5. The occJSDM snapshot is `3a97267`; Doug’s sjSDM fork
-snapshot is `d2ca508`. The examples use gllvm 2.0.15 and Hmsc 3.3-7. No
-fit is rerun while knitting, and the lesson needs no Python or full MCMC
-files to render.
+The compact bundle records seed 26092201, complete generating truth, fit selection, input/source hashes, diagnostics and unrounded estimates. It also keeps the original provisional sjSDM selection, the twelve-start classification, the curvature summary and the three-way sjSDM comparison shown in section 5. The occJSDM snapshot is `3a97267`; Doug’s sjSDM fork snapshot is `d2ca508`. The examples use gllvm 2.0.15 and Hmsc 3.3-7. No fit is rerun while knitting, and the lesson needs no Python or full MCMC files to render.
 
-For the full fitting, selection, numerical extraction and validation
-commands, see `dev/simstudy/jsdm-package-comparison/README.md` in the
-source repository. The development reports retain failed attempts,
-optimisation follow-ups and environment limitations; that directory is
-deliberately excluded from the built package. The compact teaching
-bundle and this lesson are included.
+For the full fitting, selection, numerical extraction and validation commands, see `dev/simstudy/jsdm-package-comparison/README.md` in the source repository. The development reports retain failed attempts, optimisation follow-ups and environment limitations; that directory is deliberately excluded from the built package. The compact teaching bundle and this lesson are included.
 
-Return to the [Quickstart and lesson guide](occJSDM.md), [Lesson
-1](occJSDM-lesson-1.md) or [Lesson 3](occJSDM-lesson-3.md).
+Return to the [Quickstart and lesson guide](occJSDM.md), [Lesson 1](occJSDM-lesson-1.md) or [Lesson 3](occJSDM-lesson-3.md).
 
 ## 12. Does more data help when ecology becomes harder?
 
-The original example above used one small community. The extension below
-repeats the experiment across **ten independently simulated
-communities**, so we can see how much the answer varies between
-datasets. Within each community, the 100 training sites are part of the
-300 training sites. Both fits predict the same 300 independent test
-sites.
+The original example above used one small community. The extension below repeats the experiment across **ten independently simulated communities**, so we can see how much the answer varies between datasets. Within each community, the 100 training sites are part of the 300 training sites. Both fits predict the same 300 independent test sites.
 
-We change one ecological feature at a time. All four packages receive
-the same observations. The extension still assumes perfect observation
-and independent sites; field collection, PCR and spatial effects are not
-involved.
+We change one ecological feature at a time. All four packages receive the same observations. The extension still assumes perfect observation and independent sites; field collection, PCR and spatial effects are not involved.
 
 | Simulation | What changes | What we want to learn |
 |----|----|----|
@@ -1419,13 +1032,7 @@ involved.
 
 ### Which fits passed, remained flagged or failed?
 
-The complete experiment has **640 package/dataset/model combinations**,
-before optimisation restarts: 400 ecological comparisons and 240 trait
-comparisons. Each counted fit represents one combination, even if
-fitting it required several starts or a longer MCMC run. All 640 were
-attempted. The table is calculated from the saved results, so
-unsuccessful combinations remain visible alongside the estimates we can
-score.
+The complete experiment has **640 package/dataset/model combinations**, before optimisation restarts: 400 ecological comparisons and 240 trait comparisons. Each counted fit represents one combination, even if fitting it required several starts or a longer MCMC run. All 640 were attempted. The table is calculated from the saved results, so unsuccessful combinations remain visible alongside the estimates we can score.
 
 ``` r
 extension <- readRDS("teaching-data/lesson-4-extension.rds")
@@ -1462,62 +1069,19 @@ knitr::kable(
 | sjSDM   |       100 |     98 |       2 |      0 |    100 |
 | Total   |       640 |    505 |     121 |     14 |    626 |
 
-**Run status:** All planned fitting combinations have been attempted.
-Check the diagnostic and scoring counts before interpreting the
-comparisons.
+**Run status:** All planned fitting combinations have been attempted. Check the diagnostic and scoring counts before interpreting the comparisons.
 
-**Passed**, **flagged** and **failed** are mutually exclusive outcomes.
-A passed fit produced estimates and met the declared diagnostics. A
-flagged fit produced estimates that could be scored, but an unresolved
-diagnostic means we should treat them as provisional. A failed
-combination supplied no estimate accepted for scoring within the fixed
-fitting budget. Here, 505 passed plus 121 flagged fits give 626 scored
-fits; the remaining 14 failed combinations have no prediction-error
-score.
+**Passed**, **flagged** and **failed** are mutually exclusive outcomes. A passed fit produced estimates and met the declared diagnostics. A flagged fit produced estimates that could be scored, but an unresolved diagnostic means we should treat them as provisional. A failed combination supplied no estimate accepted for scoring within the fixed fitting budget. Here, 505 passed plus 121 flagged fits give 626 scored fits; the remaining 14 failed combinations have no prediction-error score.
 
-For **occJSDM and Hmsc**, we checked agreement among four MCMC chains
-and their effective sample sizes: Rhat at most 1.01 and bulk/tail ESS at
-least 400 for all monitored coefficients, residual covariances,
-fixed-grid probabilities and applicable trait effects. We also checked
-the numerical integration used for those probabilities. One longer
-fitting attempt was allowed if the initial checks failed. All 180
-occJSDM fits passed the final checks in this experiment. The 86 flagged
-Hmsc fits still failed at least one Rhat/ESS criterion after the longer
-attempt; having posterior draws available did not make those diagnostics
-satisfactory.
+For **occJSDM and Hmsc**, we checked agreement among four MCMC chains and their effective sample sizes: Rhat at most 1.01 and bulk/tail ESS at least 400 for all monitored coefficients, residual covariances, fixed-grid probabilities and applicable trait effects. We also checked the numerical integration used for those probabilities. One longer fitting attempt was allowed if the initial checks failed. All 180 occJSDM fits passed the final checks in this experiment. The 86 flagged Hmsc fits still failed at least one Rhat/ESS criterion after the longer attempt; having posterior draws available did not make those diagnostics satisfactory.
 
-For **gllvm and sjSDM**, we allowed up to six independent starts and
-asked whether another acceptable start reproduced the best solution:
-objective scores within 0.1 units and marginal probabilities within one
-percentage point on a fixed training grid. gllvm used its fitted
-log-likelihood and sjSDM its checked penalised training log-likelihood.
-The 33 flagged gllvm fits and two flagged sjSDM fits had an acceptable
-selected estimate but did not meet this agreement check. In each of the
-14 failed gllvm combinations, no start met the numerical acceptance
-rules, which required reported convergence, finite gradients and a
-maximum absolute gradient below 0.01. Thus, “failed” here does not
-necessarily mean that the software crashed; it means that none of its
-attempts supplied an estimate we could accept under the declared rules.
+For **gllvm and sjSDM**, we allowed up to six independent starts and asked whether another acceptable start reproduced the best solution: objective scores within 0.1 units and marginal probabilities within one percentage point on a fixed training grid. gllvm used its fitted log-likelihood and sjSDM its checked penalised training log-likelihood. The 33 flagged gllvm fits and two flagged sjSDM fits had an acceptable selected estimate but did not meet this agreement check. In each of the 14 failed gllvm combinations, no start met the numerical acceptance rules, which required reported convergence, finite gradients and a maximum absolute gradient below 0.01. Thus, “failed” here does not necessarily mean that the software crashed; it means that none of its attempts supplied an estimate we could accept under the declared rules.
 
-All **121 flagged fits remain in the scored results** and are marked as
-unresolved in the comparisons below. Failed combinations remain in the
-counts and archive but cannot contribute a prediction error; paired
-comparisons require estimates at both settings. Read the number of
-available communities and their diagnostic status alongside each
-average, because leaving out difficult failed cases can affect that
-average. We did not keep refitting until favourable results appeared, or
-use the known truth to choose a start. sjSDM has fewer attempted
-combinations because it did not enter the trait experiment. These counts
-describe the specified datasets, settings and budgets; passing
-diagnostics does not establish ecological accuracy or a general ranking
-of the packages.
+All **121 flagged fits remain in the scored results** and are marked as unresolved in the comparisons below. Failed combinations remain in the counts and archive but cannot contribute a prediction error; paired comparisons require estimates at both settings. Read the number of available communities and their diagnostic status alongside each average, because leaving out difficult failed cases can affect that average. We did not keep refitting until favourable results appeared, or use the known truth to choose a start. sjSDM has fewer attempted combinations because it did not enter the trait experiment. These counts describe the specified datasets, settings and budgets; passing diagnostics does not establish ecological accuracy or a general ranking of the packages.
 
 ### What ecological changes did we simulate?
 
-These are the **true generating curves** for the first species in the
-first simulated community. They show what the ecological changes mean.
-They are not fitted results. The other environmental predictor is held
-at zero, and hidden site conditions are averaged over.
+These are the **true generating curves** for the first species in the first simulated community. They show what the ecological changes mean. They are not fitted results. The other environmental predictor is held at zero, and hidden site conditions are averaged over.
 
 ``` r
 extension$generating_curves |>
@@ -1537,13 +1101,7 @@ extension$generating_curves |>
 
 ![](teaching-data/lesson-4-extension-generating-curves-1.png)<!-- -->
 
-The curved example has a preferred environmental value. Giving a
-straight-response model more sites cannot make it express that shape. We
-therefore fit the curved datasets twice: once with the two ordinary
-predictors, and once with an additional squared-gradient predictor. Each
-package receives the same set of predictors in each comparison. This
-separates **too little information** from **an unsuitable response
-shape**.
+The curved example has a preferred environmental value. Giving a straight-response model more sites cannot make it express that shape. We therefore fit the curved datasets twice: once with the two ordinary predictors, and once with an additional squared-gradient predictor. Each package receives the same set of predictors in each comparison. This separates **too little information** from **an unsuitable response shape**.
 
 ``` r
 # Construct the curve before learning centring and scaling from training sites.
@@ -1555,12 +1113,7 @@ test_predictors <- as_tibble(extension$curve_test_raw) |>
   mutate(environment_1_squared = environment_1^2)
 ```
 
-A pair of strongly correlated environmental measurements creates a
-different difficulty. If warm sites are nearly always dry, their
-observations provide little information about whether warmth or dryness
-explains a species’ response. Predictions within that same setting can
-look reasonable even when the individual environmental effects remain
-uncertain.
+A pair of strongly correlated environmental measurements creates a different difficulty. If warm sites are nearly always dry, their observations provide little information about whether warmth or dryness explains a species’ response. Predictions within that same setting can look reasonable even when the individual environmental effects remain uncertain.
 
 ``` r
 extension$correlated_environment |>
@@ -1579,17 +1132,9 @@ extension$correlated_environment |>
 
 ### Compare errors one community at a time
 
-The vertical axis below is the average absolute difference between
-estimated and true new-site probabilities, in percentage points. Zero
-means perfect recovery of the probability. Each connected pair
-represents the **same simulated community**, fitted at the two sample
-sizes. A downward line means that adding sites reduced error in that
-community. Differences among the ten lines show how much the answer
-depends on the dataset.
+The vertical axis below is the average absolute difference between estimated and true new-site probabilities, in percentage points. Zero means perfect recovery of the probability. Each connected pair represents the **same simulated community**, fitted at the two sample sizes. A downward line means that adding sites reduced error in that community. Differences among the ten lines show how much the answer depends on the dataset.
 
-A fit whose diagnostics remain unresolved is marked separately. An
-unsuccessful fit has no error estimate and stays in the status table.
-Neither kind of difficulty should disappear from a package comparison.
+A fit whose diagnostics remain unresolved is marked separately. An unsuccessful fit has no error estimate and stays in the status table. Neither kind of difficulty should disappear from a package comparison.
 
 ``` r
 if (nrow(extension$overall) > 0) {
@@ -1669,11 +1214,7 @@ if (nrow(extension$overall) > 0) {
 | sjSDM | curved | quadratic | 10 | 0 | 6.30 | 3.62 | -2.68 |
 | sjSDM | rare | linear | 10 | 2 | 4.68 | 2.65 | -2.03 |
 
-A negative change means lower error with 300 sites. These averages use
-only communities with estimates at both site counts, including any
-marked unresolved fits. Read the number of paired communities and the
-diagnostic counts alongside every average. An omitted failed fit is not
-evidence that its prediction error was zero.
+A negative change means lower error with 300 sites. These averages use only communities with estimates at both site counts, including any marked unresolved fits. Read the number of paired communities and the diagnostic counts alongside every average. An omitted failed fit is not evidence that its prediction error was zero.
 
 ``` r
 if (nrow(extension$fitted_curves) > 0) {
@@ -1696,42 +1237,22 @@ if (nrow(extension$fitted_curves) > 0) {
 
 ![](teaching-data/lesson-4-extension-fitted-curves-1.png)<!-- -->
 
-Do not treat the thousands of species-by-site predictions as thousands
-of independent experimental repetitions. The replication unit here is a
-simulated community. For a formal sample-size summary we need matched
-completed fits at both site counts and must report which communities, if
-any, could not be compared.
+Do not treat the thousands of species-by-site predictions as thousands of independent experimental repetitions. The replication unit here is a simulated community. For a formal sample-size summary we need matched completed fits at both site counts and must report which communities, if any, could not be compared.
 
 ## 13. Do traits explain species responses, and do they improve prediction?
 
-A species’ environmental effect describes how its distribution changes
-along a gradient. A **trait effect** asks why those environmental
-responses differ among species. For example, do drought-tolerant species
-respond less negatively to increasingly dry conditions?
+A species’ environmental effect describes how its distribution changes along a gradient. A **trait effect** asks why those environmental responses differ among species. For example, do drought-tolerant species respond less negatively to increasingly dry conditions?
 
-This experiment contains two measured traits. The first truly changes
-the environmental responses. The second has **no generating effect**.
-Individual species also differ for reasons that these measured traits do
-not explain. Knowing the simulation truth lets us distinguish missing a
-real effect from finding an apparent effect for an irrelevant trait.
+This experiment contains two measured traits. The first truly changes the environmental responses. The second has **no generating effect**. Individual species also differ for reasons that these measured traits do not explain. Knowing the simulation truth lets us distinguish missing a real effect from finding an apparent effect for an irrelevant trait.
 
 There are two separate ways to collect more information:
 
-- **More sites, 100 versus 300:** better observations of each species’
-  environmental response.
-- **More species, 10 versus 30:** more species with which to estimate
-  the relationship between traits and environmental responses.
+- **More sites, 100 versus 300:** better observations of each species’ environmental response.
+- **More species, 10 versus 30:** more species with which to estimate the relationship between traits and environmental responses.
 
-The larger community contains the original ten species. Both site counts
-are used at both species counts. For every dataset, we fit models **with
-and without the measured traits**. In gllvm we retain species random
-slopes in both arms, so the comparison does not also switch on an extra
-allowance for unexplained species differences.
+The larger community contains the original ten species. Both site counts are used at both species counts. For every dataset, we fit models **with and without the measured traits**. In gllvm we retain species random slopes in both arms, so the comparison does not also switch on an extra allowance for unexplained species differences.
 
-occJSDM, gllvm and Hmsc have suitable trait-model interfaces. The
-inspected sjSDM fork does not have an equivalent trait-fitting
-interface, so its absence from this part is not a failed trait-recovery
-result.
+occJSDM, gllvm and Hmsc have suitable trait-model interfaces. The inspected sjSDM fork does not have an equivalent trait-fitting interface, so its absence from this part is not a failed trait-recovery result.
 
 ``` r
 if (nrow(extension$overall) > 0) {
@@ -1761,20 +1282,9 @@ if (nrow(extension$overall) > 0) {
 
 ![](teaching-data/lesson-4-extension-trait-prediction-errors-1.png)<!-- -->
 
-Improved prediction and clear evidence of a trait relationship are
-different outcomes. A model can predict reasonably while remaining
-uncertain about why species differ. Conversely, a detectable trait
-relationship need not greatly improve predictions when each species
-already has plenty of observations.
+Improved prediction and clear evidence of a trait relationship are different outcomes. A model can predict reasonably while remaining uncertain about why species differ. Conversely, a detectable trait relationship need not greatly improve predictions when each species already has plenty of observations.
 
-The next figure subtracts the known true trait effect from each
-estimate. The dashed black line therefore means **accurate estimation**,
-not necessarily **no trait effect**. The dotted red line means an
-estimated effect of zero. For the irrelevant trait, those references
-coincide because its true effect is zero. An interval crossing the black
-line includes the truth; an interval crossing the red line includes no
-effect. These are different questions for a trait whose generating
-effect is nonzero.
+The next figure subtracts the known true trait effect from each estimate. The dashed black line therefore means **accurate estimation**, not necessarily **no trait effect**. The dotted red line means an estimated effect of zero. For the irrelevant trait, those references coincide because its true effect is zero. An interval crossing the black line includes the truth; an interval crossing the red line includes no effect. These are different questions for a trait whose generating effect is nonzero.
 
 ``` r
 if (nrow(extension$traits) > 0) {
@@ -1816,65 +1326,33 @@ if (nrow(extension$traits) > 0) {
 
 ![](teaching-data/lesson-4-extension-trait-coefficient-recovery-1.png)<!-- -->
 
-These coefficient comparisons undo both environmental and trait
-standardisation. Hmsc’s probit coefficients have different units from
-the simulation’s logit coefficients, so they are not overlaid on the
-same numerical truth here. Hmsc remains in the probability comparison
-above, where estimates and truth share the same meaning. gllvm’s saved
-records retain its standard-error warnings; passing the objective and
-gradient checks does not establish that every uncertainty estimate is
-reliable. Its coefficient table records the true direction or absence of
-each relationship and explicitly identifies the different link scale.
+These coefficient comparisons undo both environmental and trait standardisation. Hmsc’s probit coefficients have different units from the simulation’s logit coefficients, so they are not overlaid on the same numerical truth here. Hmsc remains in the probability comparison above, where estimates and truth share the same meaning. gllvm’s saved records retain its standard-error warnings; passing the objective and gradient checks does not establish that every uncertainty estimate is reliable. Its coefficient table records the true direction or absence of each relationship and explicitly identifies the different link scale.
 
-Ten independent communities are useful for an exploratory teaching
-comparison. They do not provide precise estimates of how often an
-interval misses a true effect or incorrectly excludes zero for an
-irrelevant trait. We retain the individual results and the diagnostic
-failures instead of turning a small experiment into a claim that one
-package is generally best.
+Ten independent communities are useful for an exploratory teaching comparison. They do not provide precise estimates of how often an interval misses a true effect or incorrectly excludes zero for an irrelevant trait. We retain the individual results and the diagnostic failures instead of turning a small experiment into a claim that one package is generally best.
 
 ## 14. Across communities, are estimates biased?
 
 <div class="calibration-lead">
 
-The four packages give similar occurrence predictions in the baseline
-scenario. Their uncertainty intervals are less consistent. Getting the
-estimate close and getting its uncertainty right are separate
-achievements.
+The four packages give similar occurrence predictions in the baseline scenario. Their uncertainty intervals are less consistent. Getting the estimate close and getting its uncertainty right are separate achievements.
 
 </div>
 
-We simulated communities whose true probabilities and environmental
-effects are known, gave the packages the same observations, and checked
-their answers. These are the September results: ten independent
-communities, fitted with either 100 or 300 training sites. The older
-occJSDM-only validation study is a separate experiment and is not pooled
-here.
+We simulated communities whose true probabilities and environmental effects are known, gave the packages the same observations, and checked their answers. These are the September results: ten independent communities, fitted with either 100 or 300 training sites. The older occJSDM-only validation study is a separate experiment and is not pooled here.
 
 <div class="calibration-finding">
 
 **What the comparison says**
 
-- **Predictions:** average bias is small in the baseline for all four
-  packages. More training sites reduce prediction error substantially.
-- **Uncertainty:** baseline probability coverage is close to 95% for
-  occJSDM and Hmsc. Coefficient coverage is more variable for occJSDM,
-  gllvm and sjSDM.
-- **Harder conditions:** rare species, correlated predictors and an
-  unsuitable response shape can change the answer. Diagnostic warnings
-  and the small number of independent communities prevent a confident
-  overall ranking.
+- **Predictions:** average bias is small in the baseline for all four packages. More training sites reduce prediction error substantially.
+- **Uncertainty:** baseline probability coverage is close to 95% for occJSDM and Hmsc. Coefficient coverage is more variable for occJSDM, gllvm and sjSDM.
+- **Harder conditions:** rare species, correlated predictors and an unsuitable response shape can change the answer. Diagnostic warnings and the small number of independent communities prevent a confident overall ranking.
 
 </div>
 
 ### How close are the predictions?
 
-**Bias** is the average signed error: positive means overestimation,
-negative means underestimation, and zero means neither direction
-dominates. Errors can cancel. **RMSE** measures their size, giving
-larger errors more weight; smaller is better. Both are in percentage
-points here, so an estimate of 45% for a true probability of 40% has an
-error of +5 points.
+**Bias** is the average signed error: positive means overestimation, negative means underestimation, and zero means neither direction dominates. Errors can cancel. **RMSE** measures their size, giving larger errors more weight; smaller is better. Both are in percentage points here, so an estimate of 45% for a true probability of 40% has an error of +5 points.
 
 | Package | 100 sites: Bias | 100 sites: RMSE | 300 sites: Bias | 300 sites: RMSE |
 |:--------|:----------------|:----------------|:----------------|:----------------|
@@ -1883,38 +1361,21 @@ error of +5 points.
 | sjSDM   | +0.35           | 7.31            | +0.30           | 3.93            |
 | Hmsc    | +0.30           | 7.13            | +0.30           | 4.00            |
 
-Baseline predictions at 300 independent test sites. Each package has ten
-scored communities at each training size; flagged fits are included.
+Baseline predictions at 300 independent test sites. Each package has ten scored communities at each training size; flagged fits are included.
 
-**Read this as:** all four packages have average baseline bias below one
-percentage point. Their RMSE is about 7.1 to 7.4 points with 100
-training sites and 3.9 to 4.1 with 300. Small differences between
-packages are much less convincing than the improvement from adding
-sites.
+**Read this as:** all four packages have average baseline bias below one percentage point. Their RMSE is about 7.1 to 7.4 points with 100 training sites and 3.9 to 4.1 with 300. Small differences between packages are much less convincing than the improvement from adding sites.
 
 ### Does that hold when ecology gets harder?
 
 <img src="teaching-data/lesson-4-calibration-report-bias-1.png" alt="Average prediction bias by package and ecological scenario, with one community-based Monte Carlo standard error and a zero-bias reference line."  />
 
-The dots show average bias, and the bars show **one Monte Carlo standard
-error (MCSE)**. This measures uncertainty from having only ten simulated
-communities; it is not the uncertainty of an individual species
-estimate. The same convention is used in the coverage plots below.
-Species and test sites are not counted as independent simulation
-repetitions.
+The dots show average bias, and the bars show **one Monte Carlo standard error (MCSE)**. This measures uncertainty from having only ten simulated communities; it is not the uncertainty of an individual species estimate. The same convention is used in the coverage plots below. Species and test sites are not counted as independent simulation repetitions.
 
-The rare-species scenario produces more overestimation, especially for
-occJSDM with 100 sites. Bias alone still misses an important problem: a
-package can make positive and negative errors that cancel. The full
-community-level RMSE results are retained in the expandable section
-below.
+The rare-species scenario produces more overestimation, especially for occJSDM with 100 sites. Bias alone still misses an important problem: a package can make positive and negative errors that cancel. The full community-level RMSE results are retained in the expandable section below.
 
 ### How close are the environmental effects?
 
-These coefficients describe a species’ baseline tendency to occur and
-its response to each measured environment. Their units differ from
-probability points. Hmsc uses a probit link, so its coefficient values
-cannot be checked against the same logit coefficient truth.
+These coefficients describe a species’ baseline tendency to occur and its response to each measured environment. Their units differ from probability points. Hmsc uses a probit link, so its coefficient values cannot be checked against the same logit coefficient truth.
 
 | Target | occJSDM | gllvm | sjSDM | Hmsc |
 |:---|:---|:---|:---|:---|
@@ -1922,30 +1383,17 @@ cannot be checked against the same logit coefficient truth.
 | Environment 1 effect | 0.025 +/- 0.016 | 0.026 +/- 0.024 | 0.030 +/- 0.072 | Different link |
 | Environment 2 effect | -0.017 +/- 0.017 | 0.002 +/- 0.021 | -0.033 +/- 0.049 | Different link |
 
-Baseline, 100 training sites: coefficient bias +/- one MCSE, in original
-coefficient units. The full results also show 300 sites, RMSE and
-interval widths.
+Baseline, 100 training sites: coefficient bias +/- one MCSE, in original coefficient units. The full results also show 300 sites, RMSE and interval widths.
 
-Average coefficient bias is also modest in this baseline. That does not
-establish that every species’ effect is recovered accurately, or that
-its interval is reliable. The next question checks the intervals
-directly.
+Average coefficient bias is also modest in this baseline. That does not establish that every species’ effect is recovered accurately, or that its interval is reliable. The next question checks the intervals directly.
 
 ## 15. Do 95% intervals contain the truth?
 
-A 95% interval is useful only if it contains the truth often enough
-**and** is narrow enough to say something. Coverage is the percentage of
-intervals that contain the known truth across repeated datasets. The
-reference is 95%. A value far below that signals too many misses; a
-value above it can reflect unnecessarily wide intervals.
+A 95% interval is useful only if it contains the truth often enough **and** is narrow enough to say something. Coverage is the percentage of intervals that contain the known truth across repeated datasets. The reference is 95%. A value far below that signals too many misses; a value above it can reflect unnecessarily wide intervals.
 
 ### All four packages together
 
-This table separates **occurrence probabilities** from **environmental
-coefficients**. Probability intervals are evaluated at five fixed
-environmental settings shared by all packages, rather than the 300 test
-sites used for prediction errors above. Coefficients are checked on
-their original logit scale. The two targets are never averaged together.
+This table separates **occurrence probabilities** from **environmental coefficients**. Probability intervals are evaluated at five fixed environmental settings shared by all packages, rather than the 300 test sites used for prediction errors above. Coefficients are checked on their original logit scale. The two targets are never averaged together.
 
 | Target | Sites | occJSDM | gllvm | sjSDM | Hmsc |
 |:---|---:|:---|:---|:---|:---|
@@ -1958,90 +1406,44 @@ their original logit scale. The two targets are never averaged together.
 | Environment 1 effect | 300 | 89.0 +/- 2.8 | 89.0 +/- 2.8 | 92.0 +/- 2.5 | Different link |
 | Environment 2 effect | 300 | 100.0 +/- 0.0 | 98.0 +/- 1.3 | 97.0 +/- 1.5 | Different link |
 
-Baseline coverage (%) +/- one MCSE. The reference is 95%; every
-available result here uses ten communities. Flagged fits remain
-included.
+Baseline coverage (%) +/- one MCSE. The reference is 95%; every available result here uses ten communities. Flagged fits remain included.
 
 <div class="calibration-finding">
 
 **How to read the baseline**
 
-- **occJSDM:** probability coverage is close to 95%, but the first
-  environmental effect is covered less often: 82.0% at 100 sites and
-  89.0% at 300.
-- **gllvm:** at 100 sites, coverage for the first environmental effect
-  is 94.0%. Its uncertainty calculations have numerical warnings,
-  discussed below.
-- **sjSDM:** coverage for that effect rises from 82.0% to 92.0%. Its
-  native intervals account for only part of the fitted model’s
-  uncertainty.
-- **Hmsc:** probability coverage is close to 95%, but convergence
-  warnings limit how much confidence to place in that result.
+- **occJSDM:** probability coverage is close to 95%, but the first environmental effect is covered less often: 82.0% at 100 sites and 89.0% at 300.
+- **gllvm:** at 100 sites, coverage for the first environmental effect is 94.0%. Its uncertainty calculations have numerical warnings, discussed below.
+- **sjSDM:** coverage for that effect rises from 82.0% to 92.0%. Its native intervals account for only part of the fitted model’s uncertainty.
+- **Hmsc:** probability coverage is close to 95%, but convergence warnings limit how much confidence to place in that result.
 
 </div>
 
-**The missing entries have different meanings.** `Unavailable` means we
-have not calculated probability intervals for gllvm or sjSDM.
-`Different link` means Hmsc’s coefficients lack a matching numerical
-truth in this logit-generated experiment. Neither means zero coverage or
-a failed comparison of predictions: all four packages appear in the
-prediction checks.
+**The missing entries have different meanings.** `Unavailable` means we have not calculated probability intervals for gllvm or sjSDM. `Different link` means Hmsc’s coefficients lack a matching numerical truth in this logit-generated experiment. Neither means zero coverage or a failed comparison of predictions: all four packages appear in the prediction checks.
 
 ### Probability coverage across the scenarios
 
 <img src="teaching-data/lesson-4-calibration-report-probability-coverage-1.png" alt="Probability coverage for the five ecological conditions, with the 95 percent reference line. gllvm and sjSDM panels explicitly say no intervals."  />
 
-**occJSDM’s baseline is not the whole story.** At 100 sites its
-probability coverage falls to 81.6% with rare species and 86.4% with
-correlated predictors. Hmsc is closer to 95% in these scenarios, but
-unresolved MCMC diagnostics prevent treating that as evidence of a clear
-winner.
+**occJSDM’s baseline is not the whole story.** At 100 sites its probability coverage falls to 81.6% with rare species and 86.4% with correlated predictors. Hmsc is closer to 95% in these scenarios, but unresolved MCMC diagnostics prevent treating that as evidence of a clear winner.
 
-**The response shape matters for both packages.** With curved truth and
-300 sites, a straight-response fit gives coverage of 64.2% for occJSDM
-and 65.0% for Hmsc. Including the quadratic term raises those to 93.6%
-and 94.8%. More data cannot supply a curve that the fitted model leaves
-out.
+**The response shape matters for both packages.** With curved truth and 300 sites, a straight-response fit gives coverage of 64.2% for occJSDM and 65.0% for Hmsc. Including the quadratic term raises those to 93.6% and 94.8%. More data cannot supply a curve that the fitted model leaves out.
 
 ### Environmental-effect coverage across the scenarios
 
 <img src="teaching-data/lesson-4-calibration-report-coefficient-coverage-1.png" alt="Coverage of the first environmental coefficient by package and scenario; Hmsc is labelled different link."  />
 
-This figure follows the **first environmental effect**, not all
-coefficients pooled. The curved scenario is included only when the
-fitted model contains the quadratic term. Every point is an average over
-the available communities, with one MCSE shown. The full tables below
-retain the other effects and the interval widths. In particular, a
-flagged gllvm fit in the rare-species scenario produces exceptionally
-wide intervals; high coverage there is not evidence of useful precision.
+This figure follows the **first environmental effect**, not all coefficients pooled. The curved scenario is included only when the fitted model contains the quadratic term. Every point is an average over the available communities, with one MCSE shown. The full tables below retain the other effects and the interval widths. In particular, a flagged gllvm fit in the rare-species scenario produces exceptionally wide intervals; high coverage there is not evidence of useful precision.
 
 ### What limits the comparison?
 
-**Some fits or uncertainty calculations still have warnings.** Of the 79
-saved gllvm fits used for the native interval extension, 20 have a
-covariance-matrix warning. Hmsc has unresolved MCMC diagnostics in 9 of
-its 10 rare-species fits at 300 sites. The main results retain flagged
-fits; the full results also show the sensitivity to keeping only fits
-that pass the relevant checks.
+**Some fits or uncertainty calculations still have warnings.** Of the 79 saved gllvm fits used for the native interval extension, 20 have a covariance-matrix warning. Hmsc has unresolved MCMC diagnostics in 9 of its 10 rare-species fits at 300 sites. The main results retain flagged fits; the full results also show the sensitivity to keeping only fits that pass the relevant checks.
 
-**The intervals use different methods.** occJSDM and Hmsc use posterior
-draws. gllvm uses its native variational covariance calculation. sjSDM’s
-native coefficient intervals hold species associations and other
-species’ coefficients fixed, so they omit uncertainty in those fitted
-quantities. This is a limitation of the uncertainty calculation tested
-here, not a demonstrated explanation for every coverage shortfall.
+**The intervals use different methods.** occJSDM and Hmsc use posterior draws. gllvm uses its native variational covariance calculation. sjSDM’s native coefficient intervals hold species associations and other species’ coefficients fixed, so they omit uncertainty in those fitted quantities. This is a limitation of the uncertainty calculation tested here, not a demonstrated explanation for every coverage shortfall.
 
-**Ten independent communities give a preliminary comparison.** Many
-species or test sites do not substitute for more communities. These data
-support the patterns above; they do not establish an overall package
-ranking. The trait comparison is also narrower: occJSDM and gllvm have
-comparable trait-effect intervals, Hmsc uses a different coefficient
-scale, and sjSDM was not fitted in that experiment.
+**Ten independent communities give a preliminary comparison.** Many species or test sites do not substitute for more communities. These data support the patterns above; they do not establish an overall package ranking. The trait comparison is also narrower: occJSDM and gllvm have comparable trait-effect intervals, Hmsc uses a different coefficient scale, and sjSDM was not fitted in that experiment.
 
-The full results below keep probability bias at the five interval
-settings, coefficient and trait results, interval widths, diagnostic
-counts and methods together. All numbers are read from the saved results
-bundle when the lesson is rendered.
+The full results below keep probability bias at the five interval settings, coefficient and trait results, interval widths, diagnostic counts and methods together. All numbers are read from the saved results bundle when the lesson is rendered.
 
 <details>
 
@@ -2052,24 +1454,13 @@ Full results, interval widths and methods
 
 <div class="calibration-details">
 
-These detailed tables and community-level plots retain the full
-comparison, including interval widths and diagnostic sensitivity.
+These detailed tables and community-level plots retain the full comparison, including interval widths and diagnostic sensitivity.
 
 ### Detailed prediction errors
 
-The September fits can answer more questions through additional
-uncertainty calculations. We now use the same saved results to
-distinguish **bias**, **typical error** and **interval coverage**. All
-four packages remain in this comparison. These calculations extend the
-ten-community experiment; they do not add new simulated communities.
+The September fits can answer more questions through additional uncertainty calculations. We now use the same saved results to distinguish **bias**, **typical error** and **interval coverage**. All four packages remain in this comparison. These calculations extend the ten-community experiment; they do not add new simulated communities.
 
-An estimate’s **signed error** is its estimate minus truth. Averaging
-signed errors over independent simulated communities estimates bias:
-persistent overestimation is positive, and persistent underestimation is
-negative. Errors in opposite directions can cancel, so we also report
-**root mean squared error (RMSE)**. RMSE squares each error before
-averaging and then takes a square root. It describes error size and
-gives larger errors more weight than mean absolute error does.
+An estimate’s **signed error** is its estimate minus truth. Averaging signed errors over independent simulated communities estimates bias: persistent overestimation is positive, and persistent underestimation is negative. Errors in opposite directions can cancel, so we also report **root mean squared error (RMSE)**. RMSE squares each error before averaging and then takes a square root. It describes error size and gives larger errors more weight than mean absolute error does.
 
 | Package | Sites | Communities | Flagged | Bias (points) | Bias MCSE (points) | RMSE (points) |
 |:---|---:|---:|---:|---:|---:|---:|
@@ -2082,84 +1473,31 @@ gives larger errors more weight than mean absolute error does.
 | Hmsc | 100 | 10 | 2 | 0.30 | 0.44 | 7.13 |
 | Hmsc | 300 | 10 | 5 | 0.30 | 0.23 | 4.00 |
 
-Here the target is each species’ occurrence probability at the 300
-independent test sites, averaged over unknown hidden conditions. Each
-community receives equal weight. The **Monte Carlo standard error
-(MCSE)** describes how much the estimated average bias varies because we
-simulated only ten communities. It is not a species’ posterior standard
-error. The thousands of species-by-site cells do not turn this into
-thousands of independent repetitions. RMSE is the square root of the
-average community mean squared error, not the average of community
-RMSEs.
+Here the target is each species’ occurrence probability at the 300 independent test sites, averaged over unknown hidden conditions. Each community receives equal weight. The **Monte Carlo standard error (MCSE)** describes how much the estimated average bias varies because we simulated only ten communities. It is not a species’ posterior standard error. The thousands of species-by-site cells do not turn this into thousands of independent repetitions. RMSE is the square root of the average community mean squared error, not the average of community RMSEs.
 
 ![](teaching-data/lesson-4-calibration-error-comparison-1.png)<!-- -->
 
-Small signed errors alongside appreciable RMSE mean that errors cancel,
-not that individual estimates are precise. Compare the distributions of
-community results, rather than choosing a winner from a small difference
-between averages. The failure counts in section 12 still apply. Where a
-package failed on some communities, its average describes only the
-communities with a scored fit.
+Small signed errors alongside appreciable RMSE mean that errors cancel, not that individual estimates are precise. Compare the distributions of community results, rather than choosing a winner from a small difference between averages. The failure counts in section 12 still apply. Where a package failed on some communities, its average describes only the communities with a scored fit.
 
 ### Detailed interval comparisons
 
-**Coverage** asks how often an interval includes the generating truth
-across repeated datasets. For example, an interval from 0.2 to 0.5
-covers a true occurrence probability of 0.4 but misses a truth of 0.7. A
-narrow interval can be confidently wrong; a very wide interval can cover
-the truth while saying little. We therefore show **coverage and interval
-width together**.
+**Coverage** asks how often an interval includes the generating truth across repeated datasets. For example, an interval from 0.2 to 0.5 covers a true occurrence probability of 0.4 but misses a truth of 0.7. A narrow interval can be confidently wrong; a very wide interval can cover the truth while saying little. We therefore show **coverage and interval width together**.
 
-Bayesian credible intervals and approximate frequentist confidence
-intervals have different definitions. Repeated simulation lets us
-measure the coverage of either procedure. Bayesian intervals are not
-guaranteed to have exactly 95% coverage under the ecological truth
-distribution used here.
+Bayesian credible intervals and approximate frequentist confidence intervals have different definitions. Repeated simulation lets us measure the coverage of either procedure. Bayesian intervals are not guaranteed to have exactly 95% coverage under the ecological truth distribution used here.
 
 #### Which saved results support this calculation?
 
-- **All four packages:** point errors for test-site probabilities and
-  five shared environmental settings.
-- **occJSDM and Hmsc:** 95% equal-tailed intervals for marginal
-  occurrence probabilities, calculated from every saved global parameter
-  draw.
-- **occJSDM, gllvm and sjSDM:** intervals for environmental coefficients
-  in the ecological scenarios where the fitted response contains the
-  generating terms and the logit coefficient definitions match. occJSDM
-  uses posterior quantiles; gllvm and sjSDM use their native standard
-  errors with a normal approximation.
-- **occJSDM and gllvm:** existing intervals for the measured trait
-  effects on their matching logit scale.
-- **gllvm and sjSDM probability intervals:** remain unavailable. This
-  extension adds native coefficient intervals; it does not bootstrap
-  occurrence probabilities. Species-specific environmental intervals in
-  gllvm’s hierarchical trait models also remain unavailable; the
-  measured trait-effect intervals above are a different target. Missing
-  intervals are recorded as unavailable, not as zero coverage.
+- **All four packages:** point errors for test-site probabilities and five shared environmental settings.
+- **occJSDM and Hmsc:** 95% equal-tailed intervals for marginal occurrence probabilities, calculated from every saved global parameter draw.
+- **occJSDM, gllvm and sjSDM:** intervals for environmental coefficients in the ecological scenarios where the fitted response contains the generating terms and the logit coefficient definitions match. occJSDM uses posterior quantiles; gllvm and sjSDM use their native standard errors with a normal approximation.
+- **occJSDM and gllvm:** existing intervals for the measured trait effects on their matching logit scale.
+- **gllvm and sjSDM probability intervals:** remain unavailable. This extension adds native coefficient intervals; it does not bootstrap occurrence probabilities. Species-specific environmental intervals in gllvm’s hierarchical trait models also remain unavailable; the measured trait-effect intervals above are a different target. Missing intervals are recorded as unavailable, not as zero coverage.
 
-Hmsc fitted a probit model to logit-generated data. Its probabilities
-can be compared with the true probabilities, but its raw coefficients do
-not have the same numerical truth as the logit coefficients. For
-coefficient recovery we restrict the calculation to conditions where the
-fitted response includes the generating terms for every species. The
-straight-response fit to the curved scenario is therefore omitted from
-the coefficient tables as a whole, including the species whose
-generating responses remain straight. Its probability errors and
-coverage still include every species. This study measures performance
-under the existing logit-generating design. A probit-generating arm is
-still needed for a balanced comparison of that modelling choice.
+Hmsc fitted a probit model to logit-generated data. Its probabilities can be compared with the true probabilities, but its raw coefficients do not have the same numerical truth as the logit coefficients. For coefficient recovery we restrict the calculation to conditions where the fitted response includes the generating terms for every species. The straight-response fit to the curved scenario is therefore omitted from the coefficient tables as a whole, including the species whose generating responses remain straight. Its probability errors and coverage still include every species. This study measures performance under the existing logit-generating design. A probit-generating arm is still needed for a balanced comparison of that modelling choice.
 
 #### Probability intervals at five shared environments
 
-To keep the interval calculation inspectable, we evaluate five fixed
-settings: both environmental gradients at zero, then each gradient at -1
-and +1 while the other remains zero. These are original simulation
-units, before training-data standardisation. Every package and community
-uses the same settings. Hidden site conditions are integrated out
-**within each posterior draw**, and the interval is then calculated
-across those marginal-probability draws. These are intervals for the
-average probability given the measured environment, not intervals for a
-particular site’s hidden conditions or for a future binary observation.
+To keep the interval calculation inspectable, we evaluate five fixed settings: both environmental gradients at zero, then each gradient at -1 and +1 while the other remains zero. These are original simulation units, before training-data standardisation. Every package and community uses the same settings. Hidden site conditions are integrated out **within each posterior draw**, and the interval is then calculated across those marginal-probability draws. These are intervals for the average probability given the measured environment, not intervals for a particular site’s hidden conditions or for a future binary observation.
 
 |                  | environment_1 | environment_2 |
 |:-----------------|--------------:|--------------:|
@@ -2169,31 +1507,13 @@ particular site’s hidden conditions or for a future binary observation.
 | gradient 2 low   |             0 |            -1 |
 | gradient 2 high  |             0 |             1 |
 
-The probability coverage calculation therefore uses a different
-evaluation set from the 300-site point-error table above. Its mean,
-lower endpoint and upper endpoint were checked for numerical integration
-accuracy. It uses every archived draw, including all four chains. The
-original fitting diagnostics remain attached; post-processing cannot
-repair an unconverged chain.
+The probability coverage calculation therefore uses a different evaluation set from the 300-site point-error table above. Its mean, lower endpoint and upper endpoint were checked for numerical integration accuracy. It uses every archived draw, including all four chains. The original fitting diagnostics remain attached; post-processing cannot repair an unconverged chain.
 
 #### All four packages together
 
-The tables below use the same four package columns throughout. Each
-target is kept separate: **probability** means the five fixed
-environments above, while **intercept** and **slopes** are conditional
-logit coefficients on the original predictor scale. Probability bias,
-RMSE and interval width are in percentage points; coefficient bias, RMSE
-and width are in coefficient units. Coverage is always a percentage.
-These probability errors therefore use the same five settings as the
-intervals, unlike the 300-site prediction errors in section 14.
+The tables below use the same four package columns throughout. Each target is kept separate: **probability** means the five fixed environments above, while **intercept** and **slopes** are conditional logit coefficients on the original predictor scale. Probability bias, RMSE and interval width are in percentage points; coefficient bias, RMSE and width are in coefficient units. Coverage is always a percentage. These probability errors therefore use the same five settings as the intervals, unlike the 300-site prediction errors in section 14.
 
-`Unavailable` means an interval was not calculated. `Different link`
-means Hmsc’s probit coefficient cannot be compared numerically with the
-logit truth. `Not fitted` is reserved for the sjSDM trait experiment,
-which was not run. None of these is zero coverage. The community row
-reports scored communities followed by communities with intervals. MCSE
-comes from variation between independent communities, not from treating
-species or environmental settings as independent replicates.
+`Unavailable` means an interval was not calculated. `Different link` means Hmsc’s probit coefficient cannot be compared numerically with the logit truth. `Not fitted` is reserved for the sjSDM trait experiment, which was not run. None of these is zero coverage. The community row reports scored communities followed by communities with intervals. MCSE comes from variation between independent communities, not from treating species or environmental settings as independent replicates.
 
 **Baseline, 100 training sites**
 
@@ -2245,56 +1565,21 @@ species or environmental settings as independent replicates.
 | Coefficient: environment 2 | Mean interval width | 0.632 | 0.626 | 0.682 | Different link |
 | Coefficient: environment 2 | Communities: scored / intervals | 10 / 10 | 10 / 10 | 10 / 10 | Different link |
 
-Within each community, coverage and width are averaged over its eligible
-species and settings or coefficients; the community summaries then
-receive equal weight. With ten communities, these results are
-exploratory and the MCSE itself is uncertain. A wider interval can cover
-more truths without being more informative. The coefficient methods and
-additional numerical flags are explained below.
+Within each community, coverage and width are averaged over its eligible species and settings or coefficients; the community summaries then receive equal weight. With ten communities, these results are exploratory and the MCSE itself is uncertain. A wider interval can cover more truths without being more informative. The coefficient methods and additional numerical flags are explained below.
 
 ![](teaching-data/lesson-4-calibration-probability-intervals-1.png)<!-- -->
 
-The straight-response fits to curved truth illustrate why width matters.
-At 300 sites, their measured probability coverage is 64.2% for occJSDM
-and 65.0% for Hmsc. Including the quadratic term gives 93.6% and 94.8%,
-respectively. More data can narrow intervals around an unsuitable
-response shape; it does not supply the missing curve. These numbers
-describe the five settings and ten communities tested, including flagged
-fits.
+The straight-response fits to curved truth illustrate why width matters. At 300 sites, their measured probability coverage is 64.2% for occJSDM and 65.0% for Hmsc. Including the quadratic term gives 93.6% and 94.8%, respectively. More data can narrow intervals around an unsuitable response shape; it does not supply the missing curve. These numbers describe the five settings and ten communities tested, including flagged fits.
 
-The baseline is also not a substitute for checking difficult conditions.
-The rare-species and correlated-environment panels show lower occJSDM
-coverage than its baseline. This records a pattern to investigate with
-further replication and diagnostic work; it does not by itself identify
-a software defect or establish an overall package ranking.
+The baseline is also not a substitute for checking difficult conditions. The rare-species and correlated-environment panels show lower occJSDM coverage than its baseline. This records a pattern to investigate with further replication and diagnostic work; it does not by itself identify a software defect or establish an overall package ranking.
 
 #### Environmental coefficients and trait relationships
 
-For compatible coefficient targets we undo predictor scaling and
-centring. occJSDM’s intercept adjustment is made jointly with each
-draw’s slopes before taking quantiles. For gllvm and sjSDM, we transform
-the coefficient covariance matrix before constructing each estimate plus
-or minus 1.96 standard errors. Rescaling a marginal intercept interval
-alone would discard its dependence on the slopes.
+For compatible coefficient targets we undo predictor scaling and centring. occJSDM’s intercept adjustment is made jointly with each draw’s slopes before taking quantiles. For gllvm and sjSDM, we transform the coefficient covariance matrix before constructing each estimate plus or minus 1.96 standard errors. Rescaling a marginal intercept interval alone would discard its dependence on the slopes.
 
-**The native procedures account for different amounts of uncertainty.**
-gllvm uses its variational model’s coefficient covariance. Its selected
-start was replayed using the original frozen package, seed and inputs
-because the required fitting object had not been saved. The
-reconstruction must match the archived coefficients, loadings and log
-likelihood before its intervals are accepted. sjSDM’s saved weights can
-be restored directly, without optimisation. Its native standard errors
-hold species associations and other species’ coefficients fixed.
-Measuring their coverage tests that conditional approximation; these are
-not intervals that propagate all fitted-parameter uncertainty.
+**The native procedures account for different amounts of uncertainty.** gllvm uses its variational model’s coefficient covariance. Its selected start was replayed using the original frozen package, seed and inputs because the required fitting object had not been saved. The reconstruction must match the archived coefficients, loadings and log likelihood before its intervals are accepted. sjSDM’s saved weights can be restored directly, without optimisation. Its native standard errors hold species associations and other species’ coefficients fixed. Measuring their coverage tests that conditional approximation; these are not intervals that propagate all fitted-parameter uncertainty.
 
-sjSDM’s standard errors also use Monte Carlo integration. Two
-independent random streams are checked at 2,000 integration draws,
-increasing to 8,000 and then 32,000 if any standard error on the
-original predictor scale differs by more than 5%. This checks numerical
-stability, not whether coverage is good. Covariance problems and
-remaining integration instability are recorded separately from the
-original fit diagnostics.
+sjSDM’s standard errors also use Monte Carlo integration. Two independent random streams are checked at 2,000 integration draws, increasing to 8,000 and then 32,000 if any standard error on the original predictor scale differs by more than 5%. This checks numerical stability, not whether coverage is good. Covariance problems and remaining integration instability are recorded separately from the original fit diagnostics.
 
 | package | Planned | Fit passed | Fit flagged | Fit failed | Native interval flags |
 |:--------|--------:|-----------:|------------:|-----------:|:----------------------|
@@ -2303,21 +1588,9 @@ original fit diagnostics.
 | sjSDM   |      80 |         78 |           2 |          0 | 0                     |
 | Hmsc    |      80 |         46 |          34 |          0 | Not applicable        |
 
-This diagnostic table covers the same 80 planned ecological fits per
-package whose response specification supports coefficient recovery.
-Native interval flags are an additional check for gllvm and sjSDM and
-can overlap original fit flags; they are not extra fits. Bayesian
-intervals retain their original MCMC diagnostics. One gllvm fit failed
-originally, leaving 79 native gllvm calculations alongside 80 sjSDM
-calculations. All saved finite intervals remain in the main comparison;
-invalid species covariance blocks are unavailable.
+This diagnostic table covers the same 80 planned ecological fits per package whose response specification supports coefficient recovery. Native interval flags are an additional check for gllvm and sjSDM and can overlap original fit flags; they are not extra fits. Bayesian intervals retain their original MCMC diagnostics. One gllvm fit failed originally, leaving 79 native gllvm calculations alongside 80 sjSDM calculations. All saved finite intervals remain in the main comparison; invalid species covariance blocks are unavailable.
 
-The next figure follows the first environmental slope across all
-compatible ecological scenarios. Each point summarises that slope’s ten
-species within one community; colour distinguishes the training size.
-Coverage and width should be read together. The quadratic scenario
-includes the fitted square term even though this figure displays only
-its linear slope.
+The next figure follows the first environmental slope across all compatible ecological scenarios. Each point summarises that slope’s ten species within one community; colour distinguishes the training size. Coverage and width should be read together. The quadratic scenario includes the fitted square term even though this figure displays only its linear slope.
 
     #> Warning in geom_text(data = expand_grid(condition = c("baseline: linear", : All aesthetics have length 1, but the data has 8 rows.
     #> ℹ Please consider using `annotate()` or provide this layer with data containing
@@ -2325,21 +1598,11 @@ its linear slope.
 
 ![](teaching-data/lesson-4-calibration-native-coefficient-intervals-1.png)<!-- -->
 
-A flagged gllvm rare-species fit produces an exceptionally wide interval
-scale in the figure; its high coverage should not be read as a
-successful uncertainty calculation. Hmsc keeps its place on the axis,
-with its coefficient comparison labelled `Different link`.
+A flagged gllvm rare-species fit produces an exceptionally wide interval scale in the figure; its high coverage should not be read as a successful uncertainty calculation. Hmsc keeps its place on the axis, with its coefficient comparison labelled `Different link`.
 
 #### How much do the diagnostic flags matter?
 
-The following combined sensitivity view keeps only fits that pass the
-relevant checks. occJSDM and Hmsc retain their original MCMC criteria.
-For gllvm and sjSDM coefficient intervals, both original fitting checks
-and the additional native interval checks must pass. Probability results
-retain the original fitting checks; their missing intervals remain
-unavailable. This filter is applied separately by package, so the
-retained communities can differ. Excluding difficult fits is a
-sensitivity analysis, not a corrected ranking.
+The following combined sensitivity view keeps only fits that pass the relevant checks. occJSDM and Hmsc retain their original MCMC criteria. For gllvm and sjSDM coefficient intervals, both original fitting checks and the additional native interval checks must pass. Probability results retain the original fitting checks; their missing intervals remain unavailable. This filter is applied separately by package, so the retained communities can differ. Excluding difficult fits is a sensitivity analysis, not a corrected ranking.
 
 **Baseline, 100 training sites: passed relevant checks**
 
@@ -2388,20 +1651,9 @@ sensitivity analysis, not a corrected ranking.
 | Irrelevant trait: environment 2 | Mean interval width | 0.666 | 0.533 | Not fitted | Different link |
 | Irrelevant trait: environment 2 | Communities: scored / intervals | 10 / 10 | 6 / 6 | Not fitted | Different link |
 
-Hmsc trait coefficients are on the probit scale, and sjSDM was not
-included in the trait experiment. Their columns make those limits
-explicit. This displayed trait slice uses 100 sites and ten species; the
-saved summary also contains the 300-site and thirty-species cases. For
-the irrelevant trait, truth is zero, so an interval that misses truth
-also excludes zero incorrectly. For a genuinely nonzero effect, covering
-truth and excluding zero answer different questions. gllvm’s original
-standard-error warnings and unavailable fits still matter; these are
-approximate intervals from the selected fits, not a guarantee of
-calibration.
+Hmsc trait coefficients are on the probit scale, and sjSDM was not included in the trait experiment. Their columns make those limits explicit. This displayed trait slice uses 100 sites and ten species; the saved summary also contains the 300-site and thirty-species cases. For the irrelevant trait, truth is zero, so an interval that misses truth also excludes zero incorrectly. For a genuinely nonzero effect, covering truth and excluding zero answer different questions. gllvm’s original standard-error warnings and unavailable fits still matter; these are approximate intervals from the selected fits, not a guarantee of calibration.
 
-The compact bundle contains per-community summaries and individual
-grid/coefficient records, so these tables can be filtered without
-accessing the large fitting archive. For example:
+The compact bundle contains per-community summaries and individual grid/coefficient records, so these tables can be filtered without accessing the large fitting archive. For example:
 
     #> # A tibble: 10 × 6
     #>    replicate diagnostic_pass      bias   rmse coverage width
@@ -2417,16 +1669,7 @@ accessing the large fitting archive. For example:
     #>  9         9 TRUE             0.0206   0.0623     0.96 0.235
     #> 10        10 TRUE            -0.0223   0.0632     0.96 0.231
 
-The gllvm coefficient-interval calculation replays selected fits solely
-to recover their native uncertainty calculations; the saved point
-estimates are retained. sjSDM coefficient intervals require no refit. A
-larger coverage study should add independent communities, assess
-gllvm/sjSDM marginal-probability intervals, and include a
-probit-generating arm under a declared fitting and diagnostic protocol.
-Preserve these ten communities and their failures as the original
-experiment. The July/August occJSDM-only study predates model fixes and
-remains historical evidence; it is not pooled with these September
-results.
+The gllvm coefficient-interval calculation replays selected fits solely to recover their native uncertainty calculations; the saved point estimates are retained. sjSDM coefficient intervals require no refit. A larger coverage study should add independent communities, assess gllvm/sjSDM marginal-probability intervals, and include a probit-generating arm under a declared fitting and diagnostic protocol. Preserve these ten communities and their failures as the original experiment. The July/August occJSDM-only study predates model fixes and remains historical evidence; it is not pooled with these September results.
 
 </div>
 

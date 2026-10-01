@@ -3,31 +3,15 @@ Lesson 0 (optional): Create and explore a simulated survey
 
 ## Where this lesson fits
 
-We will learn occJSDM using a community whose true distribution is
-known. **Lesson 0 creates and explores the survey. [Lesson 1 fits the
-model and checks its answers](occJSDM-lesson-1.md). [Lesson 2 will
-introduce spatial landscapes and species that differ in
-dispersal](occJSDM-lesson-2.md).** Lesson 2 is a plan, pending review of
-the spatial submodel in PR \#8; it does not yet contain fitted results.
+We will learn occJSDM using a community whose true distribution is known. **Lesson 0 creates and explores the survey. [Lesson 1 fits the model and checks its answers](occJSDM-lesson-1.md). [Lesson 2 will introduce spatial landscapes and species that differ in dispersal](occJSDM-lesson-2.md).** Lesson 2 is a plan, pending review of the spatial submodel in PR \#8; it does not yet contain fitted results.
 
-You can skip Lesson 0 and start Lesson 1 with the supplied dataset. Read
-this lesson if you want to understand where that dataset came from,
-change the simulation settings, or learn how to prepare the tables and
-figures yourself.
+You can skip Lesson 0 and start Lesson 1 with the supplied dataset. Read this lesson if you want to understand where that dataset came from, change the simulation settings, or learn how to prepare the tables and figures yourself.
 
-We keep the existing non-spatial simulation as a starting point. Its
-coordinates give us a way to draw maps, but location does not generate
-its environmental values or enter its fitted model. The later spatial
-lesson will deliberately change that. Mapping data and fitting a spatial
-model are different things.
+We keep the existing non-spatial simulation as a starting point. Its coordinates give us a way to draw maps, but location does not generate its environmental values or enter its fitted model. The later spatial lesson will deliberately change that. Mapping data and fitting a spatial model are different things.
 
 ## Load the teaching data and the R tools
 
-Run the code with the repository’s `vignettes` directory as your working
-directory. Knitting this document uses that directory automatically. In
-RStudio, opening the `.Rmd` file and choosing **Session \> Set Working
-Directory \> To Source File Location** gives the same starting point for
-running chunks interactively.
+Run the code with the repository’s `vignettes` directory as your working directory. Knitting this document uses that directory automatically. In RStudio, opening the `.Rmd` file and choosing **Session \> Set Working Directory \> To Source File Location** gives the same starting point for running chunks interactively.
 
 ``` r
 library(dplyr)
@@ -42,21 +26,13 @@ survey_data <- simulation$data_list
 known_truth <- simulation$true_params
 ```
 
-`readRDS()` loads one saved R object. Here that object is a list: a
-named collection of other objects. The `$` operator selects one
-component. `survey_data` is what the two-stage model receives;
-`known_truth` contains the answers we use to assess it. The saved file
-also includes results from matching model fits, used in Lesson 1.
+`readRDS()` loads one saved R object. Here that object is a list: a named collection of other objects. The `$` operator selects one component. `survey_data` is what the two-stage model receives; `known_truth` contains the answers we use to assess it. The saved file also includes results from matching model fits, used in Lesson 1.
 
-Throughout these lessons, `|>` means “take the result so far and pass it
-to the next function”. We use tidyverse tools for tables and `ggplot2`
-for figures. Matrices remain useful where occJSDM expects a rectangular
-block of numbers.
+Throughout these lessons, `|>` means “take the result so far and pass it to the next function”. We use tidyverse tools for tables and `ggplot2` for figures. Matrices remain useful where occJSDM expects a rectangular block of numbers.
 
 ## Specify the survey, one decision at a time
 
-First give the sampling decisions meaningful names. These are the actual
-settings of the saved teaching dataset.
+First give the sampling decisions meaningful names. These are the actual settings of the saved teaching dataset.
 
 ``` r
 n_sites <- 100
@@ -82,14 +58,9 @@ tibble(
     #> 3 Field samples           200
     #> 4 PCR rows per species   2400
 
-There are 200 field samples and 2,400 PCR observations per species. Six
-PCR replicates means **six per primer per field sample**, not six
-divided between the two primers.
+There are 200 field samples and 2,400 PCR observations per species. Six PCR replicates means **six per primer per field sample**, not six divided between the two primers.
 
-The simulator uses shorter argument names. This list translates our
-decisions into its interface. `rep(value, times)` repeats a value, so
-`M` specifies the number of samples at each site and `K` the PCR count
-for each sample–primer combination.
+The simulator uses shorter argument names. This list translates our decisions into its interface. `rep(value, times)` repeats a value, so `M` specifies the number of samples at each site and `K` the PCR count for each sample–primer combination.
 
 ``` r
 survey_settings <- list(
@@ -106,12 +77,7 @@ survey_settings <- list(
 
 ## Decide how collection and PCR can fail
 
-We deliberately let species differ in how reliably they are collected
-and detected. `seq()` constructs evenly spaced values. For example,
-primer 1’s true-detection event probabilities increase from 0.35 to 0.85
-across the ten species. The second primer has somewhat higher
-probabilities. These are assigned simulation settings, not findings
-about real primers.
+We deliberately let species differ in how reliably they are collected and detected. `seq()` constructs evenly spaced values. For example, primer 1’s true-detection event probabilities increase from 0.35 to 0.85 across the ten species. The second primer has somewhat higher probabilities. These are assigned simulation settings, not findings about real primers.
 
 ``` r
 primer_1_detection <- seq(0.35, 0.85, length.out = n_species)
@@ -132,8 +98,7 @@ observation_settings <- list(
 )
 ```
 
-`rbind()` stacks the two primer vectors as rows of a matrix; its columns
-are species. The parameters have these meanings:
+`rbind()` stacks the two primer vectors as rows of a matrix; its columns are species. The parameters have these meanings:
 
 | Setting | What we are choosing |
 |----|----|
@@ -144,21 +109,11 @@ are species. The parameters have these meanings:
 | `mu1`, `sigma1` | Mean and standard deviation on the log-read scale for true laboratory detection events. |
 | `mu0`, `sigma0` | Corresponding log-read settings for laboratory false-positive events. |
 
-The simulator converts a log-read draw to a count with
-`round(exp(log_read) - 1)` and sets negative counts to zero. An event
-can therefore produce zero reads. The fitted model uses
-positive/negative counts at a threshold, so its `p` and `q` must be
-compared with the probability of a **threshold-positive result**, not
-simply with these event probabilities. Lesson 1 shows the conversion and
-the resulting truth comparisons.
+The simulator converts a log-read draw to a count with `round(exp(log_read) - 1)` and sets negative counts to zero. An event can therefore produce zero reads. The fitted model uses positive/negative counts at a threshold, so its `p` and `q` must be compared with the probability of a **threshold-positive result**, not simply with these event probabilities. Lesson 1 shows the conversion and the resulting truth comparisons.
 
 ## Specify the ecological model
 
-The ecological model combines environmental responses with additional
-site conditions shared among species. A hidden community factor is a
-simulated site characteristic that affects several species but is not
-supplied as a measured environmental column. It need not represent a
-particular biological mechanism.
+The ecological model combines environmental responses with additional site conditions shared among species. A hidden community factor is a simulated site characteristic that affects several species but is not supplied as a measured environmental column. It need not represent a particular biological mechanism.
 
 ``` r
 ecological_settings <- list(
@@ -176,24 +131,13 @@ ecological_settings <- list(
 )
 ```
 
-The most important choice for this lesson is `useSpatField = FALSE`.
-There is no simulated spatial field and no dispersal process. We include
-the unused spatial settings because the simulator accepts this common
-parameter list; those values do not create a spatial effect while the
-switch is off.
+The most important choice for this lesson is `useSpatField = FALSE`. There is no simulated spatial field and no dispersal process. We include the unused spatial settings because the simulator accepts this common parameter list; those values do not create a spatial effect while the switch is off.
 
-The simulator draws the environmental values, traits, coefficients and
-hidden factors using these settings. It then calculates occupancy
-probabilities and draws actual presence or absence from those
-probabilities. We do not choose the seed to obtain an especially
-successful fit.
+The simulator draws the environmental values, traits, coefficients and hidden factors using these settings. It then calculates occupancy probabilities and draws actual presence or absence from those probabilities. We do not choose the seed to obtain an especially successful fit.
 
 ## Recreate the dataset if you want to
 
-The following optional chunk shows the actual public simulator call. It
-is **displayed but not run when knitting**, because the figures use the
-already saved, verified simulation. To recreate the data yourself, run
-the chunk with occJSDM installed. It does not fit a model.
+The following optional chunk shows the actual public simulator call. It is **displayed but not run when knitting**, because the figures use the already saved, verified simulation. To recreate the data yourself, run the chunk with occJSDM installed. It does not fit a model.
 
 ``` r
 library(occJSDM)
@@ -220,12 +164,7 @@ dimnames(new_known_truth$w_true) <- list(sample_ids, species_ids)
 dimnames(new_known_truth$jsdmParams_true$eta) <- list(site_ids, species_ids)
 ```
 
-The original simulation used package revision b53048a. Exact
-reproduction requires the recorded code and software environment as well
-as the seed. If you change a setting, the old fitted results no longer
-belong to your new dataset: fit it again before comparing estimates with
-truth. Simply replacing a covariate column after simulation would also
-break the match between observations and their generating model.
+The original simulation used package revision b53048a. Exact reproduction requires the recorded code and software environment as well as the seed. If you change a setting, the old fitted results no longer belong to your new dataset: fit it again before comparing estimates with truth. Simply replacing a covariate column after simulation would also break the match between observations and their generating model.
 
 ## Understand the three input objects
 
@@ -291,23 +230,13 @@ species_traits |>
 | `OTU` | The same PCR observation in the same row order | One read-count column per species. OTU_1, for example, is a simulated species label. |
 | `traits` | One species | Two simulated trait measurements. |
 
-The first six rows are six PCRs from the same sample and primer. Site
-conditions repeat because several samples and PCRs belong to the same
-site. Collection conditions repeat across PCRs from the same field
-sample. `slice_head()` displays a few rows without changing the original
-data.
+The first six rows are six PCRs from the same sample and primer. Site conditions repeat because several samples and PCRs belong to the same site. Collection conditions repeat across PCRs from the same field sample. `slice_head()` displays a few rows without changing the original data.
 
-Rows of `info` and `OTU` must stay paired. Sorting either one on its own
-would associate read counts with the wrong sample. When we join other
-tables below, we use explicit site or species identifiers.
+Rows of `info` and `OTU` must stay paired. Sorting either one on its own would associate read counts with the wrong sample. When we join other tables below, we use explicit site or species identifiers.
 
 ## Follow the observations back to their known source
 
-To explore individual detections, make a table with one row per
-**species and PCR observation**. `bind_cols()` puts the already aligned
-information and read-count tables side by side. We number the PCR
-replicates within each sample and primer, then use `pivot_longer()` to
-put species names and their read counts into two columns.
+To explore individual detections, make a table with one row per **species and PCR observation**. `bind_cols()` puts the already aligned information and read-count tables side by side. We number the PCR replicates within each sample and primer, then use `pivot_longer()` to put species names and their read counts into two columns.
 
 ``` r
 observed_pcrs <- bind_cols(observation_info, read_counts) |>
@@ -326,15 +255,9 @@ observed_pcrs <- bind_cols(observation_info, read_counts) |>
   )
 ```
 
-The new table has 24,000 rows: 2,400 PCR observations for each of ten
-species. `positive` is one for at least one read and zero for no reads.
-A missing read count remains missing. Species are columns in the matrix
-used by the fitter and rows in this table used for exploration; these
-are two representations of the same observations.
+The new table has 24,000 rows: 2,400 PCR observations for each of ten species. `positive` is one for at least one read and zero for no reads. A missing read count remains missing. Species are columns in the matrix used by the fitter and rows in this table used for exploration; these are two representations of the same observations.
 
-Now turn the true site and sample states into tables. The saved matrices
-have site or sample IDs as row names and species IDs as column names.
-`rownames_to_column()` makes the row identifier an explicit column.
+Now turn the true site and sample states into tables. The saved matrices have site or sample IDs as row names and species IDs as column names. `rownames_to_column()` makes the row identifier an explicit column.
 
 ``` r
 presence_truth <- known_truth$z_true |>
@@ -381,26 +304,13 @@ observations_with_truth |>
 | 3    | 6      |      2 |   5 |     0 |        0 |        1 |             1 | No detection   |
 | 3    | 6      |      2 |   6 |     0 |        0 |        1 |             1 | No detection   |
 
-`left_join()` attaches matching values using the named identifiers.
-Sample IDs are unique across the whole survey in this dataset, so sample
-plus species identifies a sample state. The order of `case_when()`
-matters: a negative PCR has no positive source to classify; a positive
-in a sample without DNA is a laboratory false positive, even if the
-species happened to occupy the site. A positive from DNA in an
-unoccupied site’s sample is a field-stage false positive.
+`left_join()` attaches matching values using the named identifiers. Sample IDs are unique across the whole survey in this dataset, so sample plus species identifies a sample state. The order of `case_when()` matters: a negative PCR has no positive source to classify; a positive in a sample without DNA is a laboratory false positive, even if the species happened to occupy the site. A positive from DNA in an unoccupied site’s sample is a field-stage false positive.
 
-These are **known source labels supplied by the simulation**, not
-classifications produced by the model. We do not pass
-`observations_with_truth` to the fitter. Lesson 1 uses this displayed
-sample as its weak true-detection example and compares the fitted
-probabilities with these states.
+These are **known source labels supplied by the simulation**, not classifications produced by the model. We do not pass `observations_with_truth` to the fitter. Lesson 1 uses this displayed sample as its weak true-detection example and compares the fitted probabilities with these states.
 
 ## Put the sites and environmental conditions on a map
 
-`distinct()` keeps one copy of each site’s information. `transmute()`
-selects columns while giving them clearer names. For plotting, `east`
-and `north` are arbitrary coordinates between zero and one, not
-longitude, latitude or kilometres.
+`distinct()` keeps one copy of each site’s information. `transmute()` selects columns while giving them clearer names. For plotting, `east` and `north` are arbitrary coordinates between zero and one, not longitude, latitude or kilometres.
 
 ``` r
 site_covariates <- observation_info |>
@@ -443,17 +353,11 @@ ggplot(site_covariates, aes(x = east, y = north)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-0_files/figure-gfm/sampling-locations-1.png"
-alt="The 100 simulated sampling sites. The highlighted sites are the four detection examples used in Lesson 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities." />
-<figcaption aria-hidden="true">The 100 simulated sampling sites. The
-highlighted sites are the four detection examples used in Lesson 1. They
-were selected from known truth and observed detection patterns, before
-examining fitted probabilities.</figcaption>
+<img src="occJSDM-lesson-0_files/figure-gfm/sampling-locations-1.png" alt="The 100 simulated sampling sites. The highlighted sites are the four detection examples used in Lesson 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities." />
+<figcaption aria-hidden="true">The 100 simulated sampling sites. The highlighted sites are the four detection examples used in Lesson 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities.</figcaption>
 </figure>
 
-Next, `pivot_longer()` converts the two environmental columns into one
-value column and a label saying which covariate it belongs to.
-`facet_wrap()` then draws a separate panel for each label.
+Next, `pivot_longer()` converts the two environmental columns into one value column and a label saying which covariate it belongs to. `facet_wrap()` then draws a separate panel for each label.
 
 ``` r
 environment_long <- site_covariates |>
@@ -475,28 +379,15 @@ ggplot(environment_long, aes(x = east, y = north, colour = value)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-0_files/figure-gfm/environmental-maps-1.png"
-alt="Environmental values at the actual sampled sites. In this first dataset, neighbouring sites do not systematically share similar conditions. Both panels use the same arbitrary measurement scale; neither represents a real temperature or moisture measurement." />
-<figcaption aria-hidden="true">Environmental values at the actual
-sampled sites. In this first dataset, neighbouring sites do not
-systematically share similar conditions. Both panels use the same
-arbitrary measurement scale; neither represents a real temperature or
-moisture measurement.</figcaption>
+<img src="occJSDM-lesson-0_files/figure-gfm/environmental-maps-1.png" alt="Environmental values at the actual sampled sites. In this first dataset, neighbouring sites do not systematically share similar conditions. Both panels use the same arbitrary measurement scale; neither represents a real temperature or moisture measurement." />
+<figcaption aria-hidden="true">Environmental values at the actual sampled sites. In this first dataset, neighbouring sites do not systematically share similar conditions. Both panels use the same arbitrary measurement scale; neither represents a real temperature or moisture measurement.</figcaption>
 </figure>
 
-The patchiness is intentional in this existing dataset: the simulator
-drew environmental values independently of coordinates. We show points
-instead of interpolating a smooth surface that was never simulated.
-Lesson 2 will introduce smooth environmental gradients, so that
-geography becomes informative about habitat conditions.
+The patchiness is intentional in this existing dataset: the simulator drew environmental values independently of coordinates. We show points instead of interpolating a smooth surface that was never simulated. Lesson 2 will introduce smooth environmental gradients, so that geography becomes informative about habitat conditions.
 
 ## Map probability, actual occurrence and detection separately
 
-Consider OTU_1 and OTU_10, the species used in Lesson 1’s detection
-examples. The species are chosen to connect the lessons, not because
-their fitted maps look especially good. First calculate whether there
-was any positive PCR for each species at each site. This deliberately
-simple detection rule is an observation summary, not an occupancy model.
+Consider OTU_1 and OTU_10, the species used in Lesson 1’s detection examples. The species are chosen to connect the lessons, not because their fitted maps look especially good. First calculate whether there was any positive PCR for each species at each site. This deliberately simple detection rule is an observation summary, not an occupancy model.
 
 ``` r
 site_detections <- observations_with_truth |>
@@ -542,15 +433,7 @@ truth_map_data <- species_truth |>
   )
 ```
 
-`group_by()` tells `summarise()` to calculate one result for each site
-and species. The explicit missing-data check prevents an unobserved site
-from being treated as a negative. `plogis()` converts the generating
-model’s score, `eta`, to an occupancy probability. The saved matrices
-have site IDs as row names and species IDs as column names;
-`rownames_to_column()` and `pivot_longer()` make both explicit columns.
-`left_join()` attaches matching information using the named keys; it
-does not assume the tables have the same row order. `factor()` sets the
-order of panels.
+`group_by()` tells `summarise()` to calculate one result for each site and species. The explicit missing-data check prevents an unobserved site from being treated as a negative. `plogis()` converts the generating model’s score, `eta`, to an occupancy probability. The saved matrices have site IDs as row names and species IDs as column names; `rownames_to_column()` and `pivot_longer()` make both explicit columns. `left_join()` attaches matching information using the named keys; it does not assume the tables have the same row order. `factor()` sets the order of panels.
 
 ``` r
 ggplot(truth_map_data, aes(x = east, y = north, colour = value)) +
@@ -565,29 +448,15 @@ ggplot(truth_map_data, aes(x = east, y = north, colour = value)) +
 ```
 
 <figure>
-<img
-src="occJSDM-lesson-0_files/figure-gfm/truth-and-observation-maps-1.png"
-alt="Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the 24 PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here." />
-<figcaption aria-hidden="true">Left: generating occupancy probability.
-Middle: the actual presence/absence drawn using that probability. Right:
-whether any of the 24 PCRs at that site was positive. The middle and
-right panels contain only zeros and ones; their differences expose
-missed occurrences and false detections. All values come from the
-matching simulation; no fitted estimates are shown here.</figcaption>
+<img src="occJSDM-lesson-0_files/figure-gfm/truth-and-observation-maps-1.png" alt="Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the 24 PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here." />
+<figcaption aria-hidden="true">Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the 24 PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here.</figcaption>
 </figure>
 
-Read one row of maps from left to right. A high-probability site need
-not be occupied in this particular realization. An occupied site can
-have no positive PCRs. An unoccupied site can have a positive PCR
-because of contamination. Lesson 1 asks how much of this uncertainty the
-fitted model can resolve.
+Read one row of maps from left to right. A high-probability site need not be occupied in this particular realization. An occupied site can have no positive PCRs. An unoccupied site can have a positive PCR because of contamination. Lesson 1 asks how much of this uncertainty the fitted model can resolve.
 
 ## Unequal numbers of field samples
 
-Real surveys may lose a field sample. Here we remove one **whole field
-sample at each of three distinct sites**, keeping every PCR row of all
-remaining samples. The choice uses seed 3947, declared before fitting.
-It does not use the species’ states, PCR detections or model results.
+Real surveys may lose a field sample. Here we remove one **whole field sample at each of three distinct sites**, keeping every PCR row of all remaining samples. The choice uses seed 3947, declared before fitting. It does not use the species’ states, PCR detections or model results.
 
 ``` r
 sample_keys <- survey_data$info |>
@@ -613,15 +482,9 @@ removed_samples
     #> 2    31     61
     #> 3    52    103
 
-This removes Sample 24 from Site 12, Sample 61 from Site 31 and Sample
-103 from Site 52. `group_by(Site)` makes `slice_sample(n = 1)` choose
-exactly one sample within each selected site. We keep the original
-global sample IDs.
+This removes Sample 24 from Site 12, Sample 61 from Site 31 and Sample 103 from Site 52. `group_by(Site)` makes `slice_sample(n = 1)` choose exactly one sample within each selected site. We keep the original global sample IDs.
 
-The metadata and OTU matrix describe the same PCR rows. `anti_join()`
-drops metadata rows whose `(Site, Sample)` key is in the removal table.
-Keeping their original row numbers lets us apply **the identical
-selection to both tables**.
+The metadata and OTU matrix describe the same PCR rows. `anti_join()` drops metadata rows whose `(Site, Sample)` key is in the removal table. Keeping their original row numbers lets us apply **the identical selection to both tables**.
 
 ``` r
 retained_rows <- survey_data$info |>
@@ -660,38 +523,14 @@ samples_per_site |>
     #> 1       1     3
     #> 2       2    97
 
-There are 97 sites with two samples and three sites with one sample. We
-removed three samples and 36 PCR rows: 197 field samples and 2,364 PCR
-rows remain, still covering all 100 sites and ten species. Every
-retained sample has both primers and six PCRs per primer. No retained
-read count or covariate changes.
+There are 97 sites with two samples and three sites with one sample. We removed three samples and 36 PCR rows: 197 field samples and 2,364 PCR rows remain, still covering all 100 sites and ten species. Every retained sample has both primers and six PCRs per primer. No retained read count or covariate changes.
 
-A lost sample is represented by **absent rows**. It is not an observed
-sample with zero reads, and it is not a collection of `NA` PCR results.
-The original `known_truth` still describes all 100 sites, all ten
-species and all 200 simulated samples, including those we removed from
-the observed survey. Lesson 1 fits this reduced survey and compares the
-resulting probabilities with those same truths. This is an example of
-preparing unequal replication, not a replicated experiment measuring the
-effects of sample loss.
+A lost sample is represented by **absent rows**. It is not an observed sample with zero reads, and it is not a collection of `NA` PCR results. The original `known_truth` still describes all 100 sites, all ten species and all 200 simulated samples, including those we removed from the observed survey. Lesson 1 fits this reduced survey and compares the resulting probabilities with those same truths. This is an example of preparing unequal replication, not a replicated experiment measuring the effects of sample loss.
 
 ## Take the right objects into Lesson 1
 
-The main two-stage fit receives **`survey_data` only**; the unbalanced
-extension receives **`unbalanced_data` only**. It does not receive the
-true occupancy probabilities, presence states, sample states or source
-labels. Lesson 1 also includes a deliberately labelled
-perfect-observation control that receives the true presence/absence
-matrix. That control still has to estimate the probabilities that
-generated those binary states.
+The main two-stage fit receives **`survey_data` only**; the unbalanced extension receives **`unbalanced_data` only**. It does not receive the true occupancy probabilities, presence states, sample states or source labels. Lesson 1 also includes a deliberately labelled perfect-observation control that receives the true presence/absence matrix. That control still has to estimate the probabilities that generated those binary states.
 
-Our later spatial lesson will keep the observation process recognisable
-while changing the ecological simulation. Smooth environmental gradients
-will be one ingredient. Species’ different dispersal abilities will be
-another, introduced separately so that students can see what each
-changes. A spatial pattern alone is not a measurement of dispersal. See
-the [Lesson 2 outline](occJSDM-lesson-2.md) for that distinction and the
-planned comparisons.
+Our later spatial lesson will keep the observation process recognisable while changing the ecological simulation. Smooth environmental gradients will be one ingredient. Species’ different dispersal abilities will be another, introduced separately so that students can see what each changes. A spatial pattern alone is not a measurement of dispersal. See the [Lesson 2 outline](occJSDM-lesson-2.md) for that distinction and the planned comparisons.
 
-Continue to [Lesson 1: Fit the model and compare its answers with
-truth](occJSDM-lesson-1.md).
+Continue to [Lesson 1: Fit the model and compare its answers with truth](occJSDM-lesson-1.md).

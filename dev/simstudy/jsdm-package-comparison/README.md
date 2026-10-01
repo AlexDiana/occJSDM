@@ -74,7 +74,7 @@ Rscript "$code/verify-teaching.R" archive "$code"
 "$environment/run-r" dev/simstudy/vignette-lesson/test_lesson_links.R
 
 "$environment/run-r" -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd")'
-"$environment/run-r" -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE))'
+"$environment/run-r" -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
 ```
 
 The numerical verifier executes the exact displayed simulator and matches the saved community and scaled inputs, independently recomputes every overall/band/species error summary, checks all 1,020 true curve values against the raw generating parameters, and checks the fitted curves with direct normal integration or a finer quadrature. It also executes the displayed one-species marginal-prediction example. Change the exporter or mathematical helper only with a new export and verification; the bundle records their hashes. The hash manifest preserves the original absolute archive paths. If the archive moves, re-export from its new location before running the numerical verifier; ordinary lesson rendering is unaffected. When no run archive is available, pass `archive` as the first argument: the verifier then reads the committed `stability-resolution-archive/revised` results, performs every check those files support, and lists the checks it skipped (training/truth identity, the hash manifest, and the fitted-curve checks for the three packages whose parameter files are not committed). The source lesson remains canonical. Generated Markdown and seven figures are review artifacts; HTML is local and ignored by Git.

@@ -3,345 +3,106 @@ Lesson 2: Spatial landscapes and dispersal (planned)
 
 ## What this lesson will add
 
-**The concepts are written; the worked spatial analysis is not.** The
-first section below explains what the spatial field learns and how to
-design a survey for it. Simulations and matching model results will
-follow the review of the spatial correction in PR \#8. [Lesson
-0](occJSDM-lesson-0.md) and [Lesson 1](occJSDM-lesson-1.md) already use
-a verified non-spatial example and do not depend on that pending work.
+**The concepts are written; the worked spatial analysis is not.** The first section below explains what the spatial field learns and how to design a survey for it. Simulations and matching model results will follow the review of the spatial correction in PR \#8. [Lesson 0](occJSDM-lesson-0.md) and [Lesson 1](occJSDM-lesson-1.md) already use a verified non-spatial example and do not depend on that pending work.
 
-The central ecological question will be: **if a site offers suitable
-conditions, why might a species still be absent, and what can spatial
-information tell us?** We will use smooth environmental gradients and
-species with contrasting dispersal abilities. These ingredients will be
-introduced in separate sublessons so their effects are visible.
+The central ecological question will be: **if a site offers suitable conditions, why might a species still be absent, and what can spatial information tell us?** We will use smooth environmental gradients and species with contrasting dispersal abilities. These ingredients will be introduced in separate sublessons so their effects are visible.
 
 ## Spatial effects, inference and sampling design
 
-This section explains what the spatial component contributes to species
-distribution predictions and how that affects survey design. It is
-written so that a study can be planned before the worked spatial example
-below exists. [Lesson
-3](occJSDM-lesson-3.md#predict-occupancy-at-genuinely-new-sites) shows
-the non-spatial prediction call in R.
+This section explains what the spatial component contributes to species distribution predictions and how that affects survey design. It is written so that a study can be planned before the worked spatial example below exists. [Lesson 3](occJSDM-lesson-3.md#predict-occupancy-at-genuinely-new-sites) shows the non-spatial prediction call in R.
 
 ### What the spatial component learns
 
-The spatial submodel learns a map of where a species is more or less
-likely to occur than the measured environment alone would suggest.
-Imagine two forested valleys with similar elevation, rainfall and forest
-cover. Those environmental measurements might suggest 40% occupancy in
-both valleys, but the survey evidence may consistently support higher
-occupancy in one valley and lower occupancy in the other. A spatial
-adjustment could raise the prediction to 70% in the first and lower it
-to 20% in the second. These percentages are an illustration, not fitted
-results.
+The spatial submodel learns a map of where a species is more or less likely to occur than the measured environment alone would suggest. Imagine two forested valleys with similar elevation, rainfall and forest cover. Those environmental measurements might suggest 40% occupancy in both valleys, but the survey evidence may consistently support higher occupancy in one valley and lower occupancy in the other. A spatial adjustment could raise the prediction to 70% in the first and lower it to 20% in the second. These percentages are an illustration, not fitted results.
 
-This map of upward and downward adjustments is called a **spatial
-field**. Nearby sites are encouraged to have similar adjustments. Their
-final occupancy probabilities can still differ sharply if their measured
-habitats differ. Environmental effects, spatial effects and the other
-model components are estimated together. For occupancy data, the
-adjustments are added on the model’s log-odds scale and then converted
-to probabilities, keeping predictions between zero and one. In the
-two-stage model, field and laboratory detection errors are also
-considered during fitting; the spatial field is not simply a smoothed
-map of raw PCR detections.
+This map of upward and downward adjustments is called a **spatial field**. Nearby sites are encouraged to have similar adjustments. Their final occupancy probabilities can still differ sharply if their measured habitats differ. Environmental effects, spatial effects and the other model components are estimated together. For occupancy data, the adjustments are added on the model’s log-odds scale and then converted to probabilities, keeping predictions between zero and one. In the two-stage model, field and laboratory detection errors are also considered during fitting; the spatial field is not simply a smoothed map of raw PCR detections.
 
-Two properties help describe the field. Its **range** describes how
-quickly spatial similarity decreases with distance: shorter ranges allow
-smaller patches, and longer ranges give broader patterns. This is not
-the geographical extent of a species’ distribution. Its **strength**
-describes how large the spatial adjustments are. Species have their own
-fitted fields, but the current implementation shares one range parameter
-across species; it does not estimate a separate spatial range for each
-species.
+Two properties help describe the field. Its **range** describes how quickly spatial similarity decreases with distance: shorter ranges allow smaller patches, and longer ranges give broader patterns. This is not the geographical extent of a species’ distribution. Its **strength** describes how large the spatial adjustments are. Species have their own fitted fields, but the current implementation shares one range parameter across species; it does not estimate a separate spatial range for each species.
 
-Enable spatial fitting by supplying two coordinate columns through
-`spatCovariates`. The current model uses straight-line separation after
-separately standardising the two axes. It selects among ten range values
-from 0.01 to 0.30 on that transformed scale. These numbers are not
-kilometres, and equal transformed distances along the two axes need not
-correspond to equal physical distances. The model does not explicitly
-represent river connectivity, downstream DNA transport or movement
-barriers. Check that this distance model and its range grid can
-represent the spatial scales relevant to the study.
+Enable spatial fitting by supplying two coordinate columns through `spatCovariates`. The current model uses straight-line separation after separately standardising the two axes. It selects among ten range values from 0.01 to 0.30 on that transformed scale. These numbers are not kilometres, and equal transformed distances along the two axes need not correspond to equal physical distances. The model does not explicitly represent river connectivity, downstream DNA transport or movement barriers. Check that this distance model and its range grid can represent the spatial scales relevant to the study.
 
 ### How this helps prediction
 
-At a new location, `predictNewSites()` combines its environmental
-covariates with the fitted spatial field evaluated at its coordinates.
-Supply coordinates in the same units and coordinate system as the
-fitting data; the function applies the transformation recorded during
-fitting. Uncertainty in the fitted parameters and field contributes to
-the prediction summaries.
+At a new location, `predictNewSites()` combines its environmental covariates with the fitted spatial field evaluated at its coordinates. Supply coordinates in the same units and coordinate system as the fitting data; the function applies the transformation recorded during fitting. Uncertainty in the fitted parameters and field contributes to the prediction summaries.
 
-The field can be particularly useful for filling gaps within a surveyed
-landscape, where nearby observations provide information about local
-departures from the environmental relationship. Far from the sampled
-landscape, the learned spatial adjustment supplies progressively less
-information. It cannot reveal the hunting history or unmeasured habitat
-conditions of a distant region. A smooth prediction map, or a narrow
-uncertainty interval from the spatial approximation, is not evidence
-that such extrapolation is reliable. Interval coverage remains a
-separate beta-validation limitation.
+The field can be particularly useful for filling gaps within a surveyed landscape, where nearby observations provide information about local departures from the environmental relationship. Far from the sampled landscape, the learned spatial adjustment supplies progressively less information. It cannot reveal the hunting history or unmeasured habitat conditions of a distant region. A smooth prediction map, or a narrow uncertainty interval from the spatial approximation, is not evidence that such extrapolation is reliable. Interval coverage remains a separate beta-validation limitation.
 
-The model represents the field using **support points**, also called
-knots. These are computational anchors, not extra observations. Too few
-can prevent the model from representing detailed spatial patterns. More
-allow greater flexibility at greater computational cost. Set their
-number with `n_supportpoints` in `listParams`; the default is
-approximately 20% of the unique observed locations. The current
-implementation caps this count at one fewer than the number of unique
-locations. Using every unique location as a support point requires the
-corrected implementation proposed in [PR
-\#8](https://github.com/AlexDiana/occJSDM/pull/8), which is still
-awaiting review. Check sensitivity by increasing this number and
-comparing the predicted probabilities and strength of the spatial field.
-More support points cannot replace missing field observations.
+The model represents the field using **support points**, also called knots. These are computational anchors, not extra observations. Too few can prevent the model from representing detailed spatial patterns. More allow greater flexibility at greater computational cost. Set their number with `n_supportpoints` in `listParams`; the default is approximately 20% of the unique observed locations. The current implementation caps this count at one fewer than the number of unique locations. Using every unique location as a support point requires the corrected implementation proposed in [PR \#8](https://github.com/AlexDiana/occJSDM/pull/8), which is still awaiting review. Check sensitivity by increasing this number and comparing the predicted probabilities and strength of the spatial field. More support points cannot replace missing field observations.
 
 ### Prediction, association and causal inference
 
-The spatial component can help with prediction and with estimating
-ecological associations. It does not by itself establish the causes of a
-geographical pattern. For example, predicting where a species occurs,
-estimating whether occupancy is higher in protected forest, and
-estimating how much creating a protected area would increase occupancy
-are different questions. The last requires evidence that separates
-protection from other differences among places.
+The spatial component can help with prediction and with estimating ecological associations. It does not by itself establish the causes of a geographical pattern. For example, predicting where a species occurs, estimating whether occupancy is higher in protected forest, and estimating how much creating a protected area would increase occupancy are different questions. The last requires evidence that separates protection from other differences among places.
 
-If all protected sites are in one valley and all unprotected sites are
-in another, protection and valley identity are entangled. Adding a
-spatial field does not reveal how much of the difference is due to
-protection, hunting or habitat history. Environmental predictors and
-spatial effects can also explain overlapping patterns, making their
-separate contributions difficult to estimate. This is known as spatial
-confounding; its consequences depend on the scales of the measured and
-unmeasured variation ([Paciorek,
-2010](https://arxiv.org/abs/1011.1139)).
+If all protected sites are in one valley and all unprotected sites are in another, protection and valley identity are entangled. Adding a spatial field does not reveal how much of the difference is due to protection, hunting or habitat history. Environmental predictors and spatial effects can also explain overlapping patterns, making their separate contributions difficult to estimate. This is known as spatial confounding; its consequences depend on the scales of the measured and unmeasured variation ([Paciorek, 2010](https://arxiv.org/abs/1011.1139)).
 
-For inference about protection, repeat protected-versus-unprotected
-comparisons in several geographical areas, with overlapping habitat and
-elevation conditions. The same principle applies to other ecological
-contrasts. Repeating a contrast across areas usually provides more
-useful evidence about that contrast than intensively sampling only one
-pair of areas. Such replication strengthens inference, although it does
-not remove every possible source of confounding.
+For inference about protection, repeat protected-versus-unprotected comparisons in several geographical areas, with overlapping habitat and elevation conditions. The same principle applies to other ecological contrasts. Repeating a contrast across areas usually provides more useful evidence about that contrast than intensively sampling only one pair of areas. Such replication strengthens inference, although it does not remove every possible source of confounding.
 
-Interpret the spatial field as an unresolved geographical pattern. It
-could reflect unmeasured habitat, dispersal history, hunting or several
-processes together. The spatial fraction in a variance-partitioning plot
-is therefore not automatically the fraction caused by dispersal
-limitation. Likewise, residual species correlations do not on their own
-establish biotic interactions.
+Interpret the spatial field as an unresolved geographical pattern. It could reflect unmeasured habitat, dispersal history, hunting or several processes together. The spatial fraction in a variance-partitioning plot is therefore not automatically the fraction caused by dispersal limitation. Likewise, residual species correlations do not on their own establish biotic interactions.
 
 ### Choosing sample grain, spacing and extent
 
-**First define the area represented by a sample.** Occupancy might refer
-to a plot, a stream reach or another clearly defined ecological unit.
-For stream-water eDNA, the DNA source can extend upstream; a detection
-at a bridge does not automatically place an animal beside that bridge.
-Environmental covariates should describe the intended unit as closely as
-possible. Catchment-scale transport models illustrate why the sampling
-location and the organisms’ locations can differ ([Carraro et al.,
-2020](https://www.nature.com/articles/s41467-020-17337-8)). The current
-occJSDM spatial field does not resolve that transport process.
+**First define the area represented by a sample.** Occupancy might refer to a plot, a stream reach or another clearly defined ecological unit. For stream-water eDNA, the DNA source can extend upstream; a detection at a bridge does not automatically place an animal beside that bridge. Environmental covariates should describe the intended unit as closely as possible. Catchment-scale transport models illustrate why the sampling location and the organisms’ locations can differ ([Carraro et al., 2020](https://www.nature.com/articles/s41467-020-17337-8)). The current occJSDM spatial field does not resolve that transport process.
 
-**Spread the main sampling locations across the region to be mapped.**
-Include its main habitats, elevations and geographical subdivisions.
-Dense sampling in one accessible valley can give a good local picture
-while leaving the rest of the map weakly supported. A few widely
-separated sites across an enormous area can reveal broad patterns while
-missing local variation. At a fixed budget, expanding the extent reduces
-sampling density, so choose the study area and the intended map detail
-together.
+**Spread the main sampling locations across the region to be mapped.** Include its main habitats, elevations and geographical subdivisions. Dense sampling in one accessible valley can give a good local picture while leaving the rest of the map weakly supported. A few widely separated sites across an enormous area can reveal broad patterns while missing local variation. At a fixed budget, expanding the extent reduces sampling density, so choose the study area and the intended map detail together.
 
-**Supplement broad coverage with some deliberately close pairs.** Nearby
-locations reveal how quickly distributions change over short distances,
-while widely separated locations reveal broader differences. Vary the
-distances within the pairs, and spread them among habitats and areas.
-Spatial sampling research supports adding close pairs to a well-spread
-design when the spatial correlation structure also needs to be estimated
-([Chipeta et al.](https://arxiv.org/abs/1605.00104)).
+**Supplement broad coverage with some deliberately close pairs.** Nearby locations reveal how quickly distributions change over short distances, while widely separated locations reveal broader differences. Vary the distances within the pairs, and spread them among habitats and areas. Spatial sampling research supports adding close pairs to a well-spread design when the spatial correlation structure also needs to be estimated ([Chipeta et al.](https://arxiv.org/abs/1605.00104)).
 
-As an illustrative pilot allocation, a budget for 100 distinct sampling
-locations might place 80 across the region and use 20 as additional
-locations near selected ones. This is a candidate design to evaluate,
-not an established optimum or a sufficient sample-size recommendation
-for occJSDM. Distinct sampling locations must also make sense relative
-to the area each sample represents.
+As an illustrative pilot allocation, a budget for 100 distinct sampling locations might place 80 across the region and use 20 as additional locations near selected ones. This is a candidate design to evaluate, not an established optimum or a sufficient sample-size recommendation for occJSDM. Distinct sampling locations must also make sense relative to the area each sample represents.
 
-**Use a pilot to choose spacing in ecological and physical units.**
-Include separations shorter than, around and longer than the scales at
-which distributions are expected to change. If the remaining spatial
-pattern changes over a few kilometres, sampling only every 20 km will
-reveal little about that local pattern. Sampling every 100 m within one
-small area would reveal local variation but provide little geographical
-replication. Aim to observe changes within spatial patches and include
-several patches across the study extent. Check that the model’s
-coordinate transformation and candidate ranges can represent those
-scales before committing to a full survey.
+**Use a pilot to choose spacing in ecological and physical units.** Include separations shorter than, around and longer than the scales at which distributions are expected to change. If the remaining spatial pattern changes over a few kilometres, sampling only every 20 km will reveal little about that local pattern. Sampling every 100 m within one small area would reveal local variation but provide little geographical replication. Aim to observe changes within spatial patches and include several patches across the study extent. Check that the model’s coordinate transformation and candidate ranges can represent those scales before committing to a full survey.
 
 ### Field replication, laboratory replication and map resolution
 
-Additional locations help describe the distribution. Separate field
-samples at a location help estimate collection success. PCR replicates
-help estimate laboratory detection. These forms of replication
-complement one another: more PCRs cannot replace missing geographical
-coverage, and more locations with inadequate replication can leave
-detection and occupancy difficult to distinguish. Collect replicates
-within a period over which the intended site’s occupancy state can
-reasonably be treated as unchanged; widely separated seasons may
-represent ecological change rather than repeated attempts to detect the
-same state.
+Additional locations help describe the distribution. Separate field samples at a location help estimate collection success. PCR replicates help estimate laboratory detection. These forms of replication complement one another: more PCRs cannot replace missing geographical coverage, and more locations with inadequate replication can leave detection and occupancy difficult to distinguish. Collect replicates within a period over which the intended site’s occupancy state can reasonably be treated as unchanged; widely separated seasons may represent ecological change rather than repeated attempts to detect the same state.
 
-False-positive estimation also needs suitable calibration information or
-informative assumptions. Repetition alone does not remove every
-ambiguity between occupancy and detection errors ([Guillera-Arroita et
-al., 2017](https://doi.org/10.1111/2041-210X.12743)). Retain field and
-laboratory controls and use the information they provide to assess the
-assumptions about error rates. The appropriate allocation among
-locations, field samples and PCRs depends on detection rates, target
-species and costs, and should be checked using pilot data and
-simulations of the proposed design. Computational validation with many
-independent binary observations sharing coordinates is not a
-recommendation for that many field samples or PCR replicates at a real
-site.
+False-positive estimation also needs suitable calibration information or informative assumptions. Repetition alone does not remove every ambiguity between occupancy and detection errors ([Guillera-Arroita et al., 2017](https://doi.org/10.1111/2041-210X.12743)). Retain field and laboratory controls and use the information they provide to assess the assumptions about error rates. The appropriate allocation among locations, field samples and PCRs depends on detection rates, target species and costs, and should be checked using pilot data and simulations of the proposed design. Computational validation with many independent binary observations sharing coordinates is not a recommendation for that many field samples or PCR replicates at a real site.
 
-Map pixel size is not ecological resolution. The software can calculate
-predictions on a fine grid, but those pixels do not create information
-between widely spaced observations. Local detail may be supported by
-measured environmental covariates, spatial evidence or both; it needs
-validation at the scale where the map will be used. Increasing the
-number of support points only increases computational flexibility.
+Map pixel size is not ecological resolution. The software can calculate predictions on a fine grid, but those pixels do not create information between widely spaced observations. Local detail may be supported by measured environmental covariates, spatial evidence or both; it needs validation at the scale where the map will be used. Increasing the number of support points only increases computational flexibility.
 
 ### Validate the prediction task that matters
 
-Withholding isolated sites among nearby sampled sites assesses
-interpolation within the surveyed landscape. Withholding whole
-catchments or geographical blocks provides a more demanding assessment
-of prediction to unsurveyed areas. Choose the separation and block sizes
-to resemble the intended use of the map. Keep all field samples and PCR
-replicates from a held-out site together in the same fold, and refit
-without that site’s observations. Randomly splitting PCR rows would let
-information from the same site enter both fitting and validation.
+Withholding isolated sites among nearby sampled sites assesses interpolation within the surveyed landscape. Withholding whole catchments or geographical blocks provides a more demanding assessment of prediction to unsurveyed areas. Choose the separation and block sizes to resemble the intended use of the map. Keep all field samples and PCR replicates from a held-out site together in the same fold, and refit without that site’s observations. Randomly splitting PCR rows would let information from the same site enter both fitting and validation.
 
-Spatial blocking can reveal overoptimistic assessments from random
-validation, but large blocks can also turn an interpolation test into an
-extrapolation test. Match the design to the scientific question rather
-than assuming that the largest possible blocks are always best ([Roberts
-et al., 2017](https://doi.org/10.1111/ecog.02881)). For eDNA surveys,
-held-out detections still contain observation error: evaluate their
-predictions through the detection model, and use known simulated
-occupancy or suitable independent reference information when directly
-assessing occupancy-probability accuracy. A held-out non-detection is
-not automatically a true absence.
+Spatial blocking can reveal overoptimistic assessments from random validation, but large blocks can also turn an interpolation test into an extrapolation test. Match the design to the scientific question rather than assuming that the largest possible blocks are always best ([Roberts et al., 2017](https://doi.org/10.1111/ecog.02881)). For eDNA surveys, held-out detections still contain observation error: evaluate their predictions through the detection model, and use known simulated occupancy or suitable independent reference information when directly assessing occupancy-probability accuracy. A held-out non-detection is not automatically a true absence.
 
 ## 2A. Smooth environmental gradients shape species distributions
 
-Create a landscape with smoothly changing environmental conditions, such
-as an illustrative moisture gradient and a second broad environmental
-feature. Declare the arbitrary distance and environmental units. Define
-the environmental surfaces over the landscape before generating species
-probabilities and observations; do not attach new covariates to already
-simulated outcomes.
+Create a landscape with smoothly changing environmental conditions, such as an illustrative moisture gradient and a second broad environmental feature. Declare the arbitrary distance and environmental units. Define the environmental surfaces over the landscape before generating species probabilities and observations; do not attach new covariates to already simulated outcomes.
 
-First let the environmental relationships explain the geographic
-pattern, without an additional spatial field or dispersal restriction.
-Species with different environmental preferences can then have different
-distributions even though dispersal is not limiting them in this
-simulation.
+First let the environmental relationships explain the geographic pattern, without an additional spatial field or dispersal restriction. Species with different environmental preferences can then have different distributions even though dispersal is not limiting them in this simulation.
 
-Show the environmental surfaces, sampled sites, species’ true occupancy
-probabilities, actual presence/absence and PCR observations. Put
-estimates beside their matching true values. This establishes an
-important distinction: a geographically structured distribution does
-not, by itself, establish an additional spatial process.
+Show the environmental surfaces, sampled sites, species’ true occupancy probabilities, actual presence/absence and PCR observations. Put estimates beside their matching true values. This establishes an important distinction: a geographically structured distribution does not, by itself, establish an additional spatial process.
 
 ## 2B. Spatial structure remains after accounting for the environment
 
-Add a known spatial contribution representing geographically patterned
-conditions that were not included among the measured covariates. Fit
-comparable models with and without the spatial submodel, keeping their
-observations and other settings the same.
+Add a known spatial contribution representing geographically patterned conditions that were not included among the measured covariates. Fit comparable models with and without the spatial submodel, keeping their observations and other settings the same.
 
-Show true, estimated and difference maps for total occupancy
-probabilities and for the spatial contribution itself, on explicitly
-matched scales. Use variation partitioning to compare the generating
-environmental, spatial and residual contributions with their fitted
-counterparts. Explain that the fitted fractions describe associations
-under the model, not proof of separate causal mechanisms.
+Show true, estimated and difference maps for total occupancy probabilities and for the spatial contribution itself, on explicitly matched scales. Use variation partitioning to compare the generating environmental, spatial and residual contributions with their fitted counterparts. Explain that the fitted fractions describe associations under the model, not proof of separate causal mechanisms.
 
-This is the example for teaching how the spatial submodel works on a
-simulation constructed to match its assumptions. A spatial correlation
-range describes how similarity declines with distance. It is not
-automatically a dispersal distance.
+This is the example for teaching how the spatial submodel works on a simulation constructed to match its assumptions. A spatial correlation range describes how similarity declines with distance. It is not automatically a dispersal distance.
 
 ## 2C. Species differ in their ability to reach suitable habitat
 
-Use a separate, explicitly specified dispersal simulation. A possible
-teaching design is colonisation from declared starting locations over a
-fixed number of steps, with short, intermediate and long movement
-kernels. Keep environmental suitability and the observation process
-fixed across matched comparisons while changing the movement parameter.
-This makes the cause of each difference known in the simulation. More
-dispersal need not always imply higher occupancy: that depends on the
-chosen colonisation, establishment and extinction rules, which must be
-stated.
+Use a separate, explicitly specified dispersal simulation. A possible teaching design is colonisation from declared starting locations over a fixed number of steps, with short, intermediate and long movement kernels. Keep environmental suitability and the observation process fixed across matched comparisons while changing the movement parameter. This makes the cause of each difference known in the simulation. More dispersal need not always imply higher occupancy: that depends on the chosen colonisation, establishment and extinction rules, which must be stated.
 
-Map suitable habitat, starting locations, the generated distribution,
-the observed detections and the fitted distribution. Ask whether
-suitable but unoccupied areas reflect a known simulated dispersal
-limitation, and whether occJSDM can predict their occupancy. Compare the
-models against the probabilities implied by the stated generating
-process. If those probabilities are unavailable analytically, estimate
-them using many independent realizations with the same declared
-conditions, report Monte Carlo uncertainty, and keep the single realized
-occupancy state separate.
+Map suitable habitat, starting locations, the generated distribution, the observed detections and the fitted distribution. Ask whether suitable but unoccupied areas reflect a known simulated dispersal limitation, and whether occJSDM can predict their occupancy. Compare the models against the probabilities implied by the stated generating process. If those probabilities are unavailable analytically, estimate them using many independent realizations with the same declared conditions, report Monte Carlo uncertainty, and keep the single realized occupancy state separate.
 
-**This requires additional simulator work; it is not already provided by
-the spatial Gaussian process.** The PR \#8 branch inspected while
-planning this lesson uses a shared spatial range. Its simulator can
-generate correlated species fields, but does not track movement or
-colonisation and does not provide species-specific dispersal parameters.
-Changing the shared range or a species’ spatial coefficient would not by
-itself implement this dispersal experiment.
+**This requires additional simulator work; it is not already provided by the spatial Gaussian process.** The PR \#8 branch inspected while planning this lesson uses a shared spatial range. Its simulator can generate correlated species fields, but does not track movement or colonisation and does not provide species-specific dispersal parameters. Changing the shared range or a species’ spatial coefficient would not by itself implement this dispersal experiment.
 
-Consequently, this sublesson may expose limitations of fitting a common
-spatial scale to species generated by different processes. Report those
-limitations rather than selecting only examples that the model recovers
-well. The known dispersal parameters belong to the simulator. Unless a
-future model explicitly estimates them, do not label a fitted spatial
-range or variation-partitioning fraction as a recovered dispersal rate.
+Consequently, this sublesson may expose limitations of fitting a common spatial scale to species generated by different processes. Report those limitations rather than selecting only examples that the model recovers well. The known dispersal parameters belong to the simulator. Unless a future model explicitly estimates them, do not label a fitted spatial range or variation-partitioning fraction as a recovered dispersal rate.
 
 ## 2D. Predict beyond the sampled sites
 
-Hold out sites before fitting, including spatial blocks at different
-distances from the training sites. Keep held-out observations out of
-both model fitting and preprocessing. Compare predictions with truth
-appropriate to what is known at each new site; averaging over unknown
-site effects changes the probability target.
+Hold out sites before fitting, including spatial blocks at different distances from the training sites. Keep held-out observations out of both model fitting and preprocessing. Compare predictions with truth appropriate to what is known at each new site; averaging over unknown site effects changes the probability target.
 
-Show where prediction improves, where it remains uncertain and how
-results differ among the simulated dispersal types. Contrast
-interpolation between sampled sites with extrapolation into different
-environments or more distant locations. This will connect the model to
-decisions about sampling extent and spacing.
+Show where prediction improves, where it remains uncertain and how results differ among the simulated dispersal types. Contrast interpolation between sampled sites with extrapolation into different environments or more distant locations. This will connect the model to decisions about sampling extent and spacing.
 
 ## What will stay consistent across the lessons
 
 - Keep at most six PCR replicates per primer per field sample.
-- Show readable R code and explain the meaning of each table before
-  using it.
-- Show the matching simulated truth beside every ecological result;
-  diagnostics such as Rhat have no corresponding biological truth
-  parameter.
-- Distinguish occupancy probability, actual site presence, DNA in a
-  sample and PCR detection.
-- Use common colour scales for comparable maps, and separate error
-  scales centred on zero.
-- Declare settings and case-selection rules before examining fitted
-  recovery; retain examples where the model struggles.
-- Record the reviewed source revision, seeds, inputs, fit settings and
-  convergence checks. A successful PR merge alone does not validate a
-  new simulation or its results.
+- Show readable R code and explain the meaning of each table before using it.
+- Show the matching simulated truth beside every ecological result; diagnostics such as Rhat have no corresponding biological truth parameter.
+- Distinguish occupancy probability, actual site presence, DNA in a sample and PCR detection.
+- Use common colour scales for comparable maps, and separate error scales centred on zero.
+- Declare settings and case-selection rules before examining fitted recovery; retain examples where the model struggles.
+- Record the reviewed source revision, seeds, inputs, fit settings and convergence checks. A successful PR merge alone does not validate a new simulation or its results.

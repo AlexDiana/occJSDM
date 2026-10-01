@@ -28,7 +28,7 @@ Rscript "$calibration_code/export-calibration.R" "$study_archive" . "$calibratio
 Rscript "$calibration_code/verify-calibration.R" "$calibration_output/calibration.rds" "$study_archive" &&
   cp "$calibration_output/calibration.rds" vignettes/teaching-data/lesson-4-calibration.rds
 Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd")'
-Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE))'
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
 ```
 
 Always run the independent verifier successfully before copying, using or distributing a newly exported bundle; stop if any command fails. The exporter writes only to the analysis output directory. A new MD5 merely records what was read; it does not establish that a truth file is correct. The verifier reconstructs all 50 communities using the original frozen simulator, checks their complete truth objects, reconstructs each training input, and compares saved test observations and marginal truth with those communities. It separately recomputes all 626 point scores, fixed-grid truth, coefficient backtransformations and grouped summaries. It checks input/source hashes, unavailable intervals and the numerical refinement records. It never fits a model or changes the archive.

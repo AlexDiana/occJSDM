@@ -1,53 +1,25 @@
 occJSDM: quickstart and lesson guide
 ================
 
-occJSDM estimates species occurrence while allowing for imperfect field
-collection, PCR detection and false positives. It can also fit a JSDM to
-directly observed presence/absence data. The teaching lessons show the R
-code and compare the results with the truth used to simulate their data.
+occJSDM estimates species occurrence while allowing for imperfect field collection, PCR detection and false positives. It can also fit a JSDM to directly observed presence/absence data. The teaching lessons show the R code and compare the results with the truth used to simulate their data.
 
 ## Choose a lesson
 
-- [Lesson 0: Create and explore a simulated
-  survey](occJSDM-lesson-0.md). Optional preparation: sites, field
-  samples, primers, PCR replicates, environmental covariates, traits and
-  maps of the known truth.
+- [Lesson 0: Create and explore a simulated survey](occJSDM-lesson-0.md). Optional preparation: sites, field samples, primers, PCR replicates, environmental covariates, traits and maps of the known truth.
 
-- [Lesson 1: Fit the model and compare its answers with
-  truth](occJSDM-lesson-1.md). The main starting point: fit the model,
-  understand occupancy error, and inspect actual examples of weak true
-  detections, strong true detections and false positives.
+- [Lesson 1: Fit the model and compare its answers with truth](occJSDM-lesson-1.md). The main starting point: fit the model, understand occupancy error, and inspect actual examples of weak true detections, strong true detections and false positives.
 
-- [Lesson 2: Spatial landscapes and dispersal](occJSDM-lesson-2.md).
-  Explains what the spatial field learns, how range differs from
-  geographical extent, and how to choose sample spacing, extent and
-  replication. Its worked examples on smooth environmental gradients,
-  residual spatial structure and dispersal are still planned; it is not
-  yet a worked spatial validation.
+- [Lesson 2: Spatial landscapes and dispersal](occJSDM-lesson-2.md). Explains what the spatial field learns, how range differs from geographical extent, and how to choose sample spacing, extent and replication. Its worked examples on smooth environmental gradients, residual spatial structure and dispersal are still planned; it is not yet a worked spatial validation.
 
-- [Lesson 3: Understand the model’s outputs by comparing them with
-  truth](occJSDM-lesson-3.md). Environmental responses, trait effects,
-  species associations, ordination, variation partitioning and detection
-  effort. It includes a function index and explains why a real simulated
-  effect can remain uncertain.
+- [Lesson 3: Understand the model’s outputs by comparing them with truth](occJSDM-lesson-3.md). Environmental responses, trait effects, species associations, ordination, variation partitioning and detection effort. It includes a function index and explains why a real simulated effect can remain uncertain.
 
-- [Lesson 4: Compare four JSDMs](occJSDM-lesson-4.md). A worked
-  non-spatial pilot comparing occJSDM, gllvm, sjSDM and Hmsc on the same
-  perfectly observed community, with matching truth, explicit fitting
-  checks, and an example of a fit with two local optima.
+- [Lesson 4: Compare four JSDMs](occJSDM-lesson-4.md). A worked non-spatial pilot comparing occJSDM, gllvm, sjSDM and Hmsc on the same perfectly observed community, with matching truth, explicit fitting checks, and an example of a fit with two local optima.
 
-You can read Lesson 3 after Lesson 1; the spatial lesson is not a
-prerequisite. The earlier output tour has been replaced by Lesson 3. The
-old `sampledata` and `sampleresults` objects remain available, but their
-generating truth is not stored with them, so the lessons use a complete
-matching simulation and fit instead.
+You can read Lesson 3 after Lesson 1; the spatial lesson is not a prerequisite. The earlier output tour has been replaced by Lesson 3. The old `sampledata` and `sampleresults` objects remain available, but their generating truth is not stored with them, so the lessons use a complete matching simulation and fit instead.
 
 ## A minimal fitting example
 
-From the repository’s `vignettes` directory, the following optional code
-fits the same non-spatial survey used in the lessons. It is shown
-without running during knitting because MCMC takes time. Lessons 1 and 3
-render saved, checked results and show their matching truth.
+From the repository’s `vignettes` directory, the following optional code fits the same non-spatial survey used in the lessons. It is shown without running during knitting because MCMC takes time. Lessons 1 and 3 render saved, checked results and show their matching truth.
 
 ``` r
 library(occJSDM)
@@ -70,27 +42,12 @@ fitmodel <- runOccJSDM(
 )
 ```
 
-`survey_data` is what the model receives. `known_truth` is kept
-separately for evaluation. `n_factors` controls the hidden site factors,
-whereas `n_lattrait` controls the unmeasured species-trait structure.
-These are different parts of the model.
+`survey_data` is what the model receives. `known_truth` is kept separately for evaluation. `n_factors` controls the hidden site factors, whereas `n_lattrait` controls the unmeasured species-trait structure. These are different parts of the model.
 
-For reproduction with the original source and complete saved fits,
-follow `dev/simstudy/vignette-lesson/README.md`. Using the same seed
-with a different package revision does not guarantee the original
-results. The lessons record source and fit hashes and keep rendering
-separate from fitting.
+For reproduction with the original source and complete saved fits, follow `dev/simstudy/vignette-lesson/README.md`. Using the same seed with a different package revision does not guarantee the original results. The lessons record source and fit hashes and keep rendering separate from fitting.
 
 ## What to inspect next
 
-Start with the diagnostics and probability comparisons in Lesson 1, then
-the coefficient, trait and community-output figures in Lesson 3. An
-interval crossing zero does not demonstrate that an ecological effect is
-absent; an interval excluding zero does not demonstrate that its
-magnitude is accurate.
+Start with the diagnostics and probability comparisons in Lesson 1, then the coefficient, trait and community-output figures in Lesson 3. An interval crossing zero does not demonstrate that an ecological effect is absent; an interval excluding zero does not demonstrate that its magnitude is accurate.
 
-For a particular function, use the index at the end of Lesson 3 or the
-package’s R help. Lesson 3 includes independent-site prediction, and
-Lesson 4 provides a matched four-package pilot. Spatial validation
-remains separate work in Lesson 2. One pilot cannot establish a general
-package ranking.
+For a particular function, use the index at the end of Lesson 3 or the package’s R help. Lesson 3 includes independent-site prediction, and Lesson 4 provides a matched four-package pilot. Spatial validation remains separate work in Lesson 2. One pilot cannot establish a general package ranking.
