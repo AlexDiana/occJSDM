@@ -1164,27 +1164,17 @@ report_prediction_range <- function(sites, measure) {
 }
 ```
 
-```{r calibration-report-style, results='asis'}
-if (knitr::is_html_output(excludes = c("markdown", "gfm"))) {
-  cat("<style>\n", paste(readLines("lesson-4-calibration.css"), collapse = "\n"), "\n</style>\n", sep = "")
-}
-```
+## 14. Across communities, are estimates biased?
 
-## 14. Across communities, are estimates biased? {.lesson-calibration}
-
-::: {.calibration-lead}
 The four packages give similar occurrence predictions in the baseline scenario. Their uncertainty intervals are less consistent. Getting the estimate close and getting its uncertainty right are separate achievements.
-:::
 
 We simulated communities whose true probabilities and environmental effects are known, gave the packages the same observations, and checked their answers. These are the September results: ten independent communities, fitted with either 100 or 300 training sites. The older occJSDM-only validation study is a separate experiment and is not pooled here.
 
-::: {.calibration-finding}
 **What the comparison says**
 
 - **Predictions:** average bias is small in the baseline for all four packages. More training sites reduce prediction error substantially.
 - **Uncertainty:** baseline probability coverage is close to 95% for occJSDM and Hmsc. Coefficient coverage is more variable for occJSDM, gllvm and sjSDM.
 - **Harder conditions:** rare species, correlated predictors and an unsuitable response shape can change the answer. Diagnostic warnings and the small number of independent communities prevent a confident overall ranking.
-:::
 
 ### How close are the predictions?
 
@@ -1226,7 +1216,7 @@ calibration_comparison_table(filter(baseline_calibration, n_sites == 100),
 
 Average coefficient bias is also modest in this baseline. That does not establish that every species' effect is recovered accurately, or that its interval is reliable. The next question checks the intervals directly.
 
-## 15. Do 95% intervals contain the truth? {.lesson-calibration}
+## 15. Do 95% intervals contain the truth?
 
 A 95% interval is useful only if it contains the truth often enough **and** is narrow enough to say something. Coverage is the percentage of intervals that contain the known truth across repeated datasets. The reference is 95%. A value far below that signals too many misses; a value above it can reflect unnecessarily wide intervals.
 
@@ -1245,14 +1235,12 @@ calibration_report_table(report_coverage,
   "Baseline coverage (%) +/- one MCSE. The reference is 95%; every available result here uses ten communities. Flagged fits remain included.")
 ```
 
-::: {.calibration-finding}
 **How to read the baseline**
 
 - **occJSDM:** probability coverage is close to 95%, but the first environmental effect is covered less often: `r report_pct("occJSDM", "baseline", 100, "Environmental coefficient", "environment_1")` at 100 sites and `r report_pct("occJSDM", "baseline", 300, "Environmental coefficient", "environment_1")` at 300.
 - **gllvm:** at 100 sites, coverage for the first environmental effect is `r report_pct("gllvm", "baseline", 100, "Environmental coefficient", "environment_1")`. Its uncertainty calculations have numerical warnings, discussed below.
 - **sjSDM:** coverage for that effect rises from `r report_pct("sjSDM", "baseline", 100, "Environmental coefficient", "environment_1")` to `r report_pct("sjSDM", "baseline", 300, "Environmental coefficient", "environment_1")`. Its native intervals account for only part of the fitted model's uncertainty.
 - **Hmsc:** probability coverage is close to 95%, but convergence warnings limit how much confidence to place in that result.
-:::
 
 **The missing entries have different meanings.** `Unavailable` means we have not calculated probability intervals for gllvm or sjSDM. `Different link` means Hmsc's coefficients lack a matching numerical truth in this logit-generated experiment. Neither means zero coverage or a failed comparison of predictions: all four packages appear in the prediction checks.
 
@@ -1287,10 +1275,7 @@ This figure follows the **first environmental effect**, not all coefficients poo
 
 The full results below keep probability bias at the five interval settings, coefficient and trait results, interval widths, diagnostic counts and methods together. All numbers are read from the saved results bundle when the lesson is rendered.
 
-<details>
-<summary>Full results, interval widths and methods</summary>
-
-::: {.calibration-details}
+## Full results, interval widths and methods
 
 These detailed tables and community-level plots retain the full comparison, including interval widths and diagnostic sensitivity.
 
@@ -1545,7 +1530,3 @@ as_tibble(calibration$per_community) |>
 ```
 
 The gllvm coefficient-interval calculation replays selected fits solely to recover their native uncertainty calculations; the saved point estimates are retained. sjSDM coefficient intervals require no refit. A larger coverage study should add independent communities, assess gllvm/sjSDM marginal-probability intervals, and include a probit-generating arm under a declared fitting and diagnostic protocol. Preserve these ten communities and their failures as the original experiment. The July/August occJSDM-only study predates model fixes and remains historical evidence; it is not pooled with these September results.
-
-:::
-
-</details>
