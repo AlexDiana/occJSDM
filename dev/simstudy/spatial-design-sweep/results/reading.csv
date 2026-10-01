@@ -1,0 +1,13 @@
+"arrangement","group","label","min_reduction","min_correlation"
+"clustered","prevalence_25pct","intermediate",0.0928383389603211,0.639795344805641
+"grid","prevalence_25pct","uninformative",0.0150560397679556,0.375146003028151
+"pairs","prevalence_25pct","uninformative",0.0230503635212791,0.380627651223107
+"spread","prevalence_25pct","uninformative",0.0135123226745398,0.286217774327901
+"clustered","prevalence_5pct","uninformative",0.0240233821734213,0.378691331544005
+"grid","prevalence_5pct","uninformative",0.00194148388232518,0.101377694094732
+"pairs","prevalence_5pct","uninformative",0.000956645016888968,0.0357460092544289
+"spread","prevalence_5pct","uninformative",0.000366762641250573,0.0267595984547714
+"clustered","prevalence_75pct","uninformative",0.0793000171387147,0.524415759705924
+"grid","prevalence_75pct","uninformative",0.0144809440719208,0.331769858564741
+"pairs","prevalence_75pct","uninformative",0.0192012416370896,0.443662532330603
+"spread","prevalence_75pct","uninformative",0.0170092597281083,0.390162444072779
