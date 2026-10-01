@@ -21,11 +21,11 @@ The aim is to help an empirical ecologist understand what occJSDM does, read and
 | Unnumbered Quickstart | Built; merged in PR #12 | Short fitting example, lesson navigation and where to start. Replaces the old standalone output tour. | [occJSDM.Rmd](occJSDM.Rmd) |
 | Lesson 0: Create and explore a simulated survey | Built on main, including unbalanced-data extension | Optional introduction to sites, samples, primers, PCR replicates, covariates, traits and maps; removing whole samples while preserving paired rows. | [occJSDM-lesson-0.Rmd](occJSDM-lesson-0.Rmd) |
 | Lesson 1: Fit the model and compare its answers with truth | Built on main, including fitting reference and unbalanced fit | Perfect-observation and PCR fits, occupancy errors, false positives, prior sensitivity and unequal field replication. | [occJSDM-lesson-1.Rmd](occJSDM-lesson-1.Rmd) |
-| Lesson 2: Spatial landscapes and dispersal | Built: concept section plus the worked site-arrangement sweep; dispersal and confounding deferred | Smooth environmental gradients, additional spatial structure, contrasting dispersal and prediction away from sampled sites. | [occJSDM-lesson-2.Rmd](occJSDM-lesson-2.Rmd) |
+| Lesson 2: Spatial landscapes and survey design | Built: concept section plus the worked site-arrangement sweep; dispersal and confounding deferred | Smooth environmental gradients, additional spatial structure, contrasting dispersal and prediction away from sampled sites. | [occJSDM-lesson-2.Rmd](occJSDM-lesson-2.Rmd) |
 | Lesson 3: Understand the model's outputs | Built, including native plots and the independent-site prediction comparison | Environmental and trait effects, response curves, species associations, ordination, variation partitioning, collection effects and detection effort, all with matching truth. | [occJSDM-lesson-3.Rmd](occJSDM-lesson-3.Rmd) |
 | Lesson 4: Compare four JSDMs | Built from the four-package pilot and completed ten-community extension; failures and diagnostic flags retained | Compare the pure JSDM in occJSDM with gllvm, sjSDM and Hmsc using perfectly observed presence/absence, varying sample size, ecological conditions and supplied traits. | [occJSDM-lesson-4.Rmd](occJSDM-lesson-4.Rmd) |
 
-Read Lesson 0 if the data structure is unfamiliar, then Lesson 1 and Lesson 3. The unfinished spatial lesson is not a prerequisite for Lesson 3. Lesson N was renamed Lesson 4 on 23 September 2026 once its content was settled.
+Read Lesson 0 if the data structure is unfamiliar, then Lesson 1 and Lesson 3. The spatial lesson is not a prerequisite for Lesson 3. Lesson N was renamed Lesson 4 on 23 September 2026 once its content was settled.
 
 ## What has been built
 
@@ -45,11 +45,9 @@ The canonical lesson sources are the `.Rmd` files. Rendered `.md` files and figu
 
 ### Lesson 2: space, habitat and dispersal
 
-Implement the existing outline after the reviewed spatial correction is available and its source revision can be recorded. The outline was written while PR #8 was awaiting review; check its current status before starting. A merge by itself does not validate a new simulation or lesson.
-
 PR #8 merged on 27 September 2026, and on 1 October 2026 a prespecified site-arrangement sweep replaced the outline sublessons 2A to 2D. It places 100 sites in four arrangements, spread at random, spread with close pairs, ten clusters of ten, and a regular grid as a control, in three simulated communities of eight species that share one short field range. It compares an oracle that knows every parameter except the field with occJSDM fitted to the true occupancy states and to a simulated two-stage eDNA survey, and it labels each arrangement and species group informative, intermediate or uninformative by reading rules fixed before any fit. The protocol and audited results are in the [sweep README](../dev/simstudy/spatial-design-sweep/README.md). Dispersal, species-specific ranges and same-scale environmental confounding are the deferred contrasts.
 
-The detailed questions and constraints are already in the [Lesson 2 outline](occJSDM-lesson-2.Rmd). If the dispersal simulator cannot calculate probabilities directly, repeated independent simulations will be needed to estimate them, with their own Monte Carlo uncertainty shown separately.
+If the deferred dispersal contrast is built and its simulator cannot calculate probabilities directly, repeated independent simulations will be needed to estimate them, with their own Monte Carlo uncertainty shown separately.
 
 ### Lesson 4: occJSDM, gllvm, sjSDM and Hmsc
 

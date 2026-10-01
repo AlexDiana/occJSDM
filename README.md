@@ -30,6 +30,7 @@ After installing with vignettes, open the completed lessons in R:
 ``` r
 vignette("occJSDM-lesson-0", package = "occJSDM")
 vignette("occJSDM-lesson-1", package = "occJSDM")
+vignette("occJSDM-lesson-2", package = "occJSDM")
 vignette("occJSDM-lesson-3", package = "occJSDM")
 vignette("occJSDM-lesson-4", package = "occJSDM")
 ```

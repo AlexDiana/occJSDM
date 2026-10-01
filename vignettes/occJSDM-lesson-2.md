@@ -5,11 +5,11 @@ Lesson 2: Spatial landscapes and survey design
 
 **The concepts come first; the worked sections below test them on a controlled simulation.** The sweep behind them fixed its design before any fit; the protocol and audited results are in the repository’s development folder. Dispersal and same-scale environmental confounding are not simulated here; the closing section says what remains.
 
-The central ecological question will be: **if a site offers suitable conditions, why might a species still be absent, and what can spatial information tell us?** We will use smooth environmental gradients and species with contrasting dispersal abilities. These ingredients will be introduced in separate sublessons so their effects are visible.
+The central ecological question will be: **if a site offers suitable conditions, why might a species still be absent, and what can spatial information tell us?** The worked sections use one broad environmental gradient and one short-range spatial field per species; contrasts between species with different dispersal abilities are deferred, and the closing section says what remains.
 
 ## Spatial effects, inference and sampling design
 
-This section explains what the spatial component contributes to species distribution predictions and how that affects survey design. It is written so that a study can be planned before the worked spatial example below exists. [Lesson 3](occJSDM-lesson-3.md#predict-occupancy-at-genuinely-new-sites) shows the non-spatial prediction call in R.
+This section explains what the spatial component contributes to species distribution predictions and how that affects survey design. It can be read on its own, before the worked sections. [Lesson 3](occJSDM-lesson-3.md#predict-occupancy-at-genuinely-new-sites) shows the non-spatial prediction call in R.
 
 ### What the spatial component learns
 
@@ -176,10 +176,21 @@ recovery <- cells |>
          arm = factor(arm, names(arm_labels), arm_labels),
          group = factor(group, names(group_labels), group_labels))
 
+# Each community's reduction, for the bars: errors are averaged over the group's species first.
+oracle_communities <- sweep$oracle |>
+  group_by(community, arrangement, group) |>
+  summarise(reduction = 1 - mean(centred_rmse) / mean(zero_field_rmse),
+            correlation = mean(centred_correlation), .groups = "drop")
+oracle_bars <- oracle_communities |>
+  group_by(arrangement, group) |>
+  summarise(low = min(reduction), high = max(reduction), .groups = "drop") |>
+  mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels),
+         group = factor(group, names(group_labels), group_labels))
+
 ggplot(filter(recovery, arm == arm_labels["oracle"]), aes(arrangement, reduction)) +
   geom_hline(yintercept = 0, colour = "grey50") +
-  geom_pointrange(aes(ymin = 1 - centred_rmse_max / zero_field_rmse, ymax = 1 - centred_rmse_min / zero_field_rmse),
-                  colour = "#0072B2") +
+  geom_linerange(data = oracle_bars, aes(arrangement, ymin = low, ymax = high), inherit.aes = FALSE, colour = "#0072B2") +
+  geom_point(colour = "#0072B2", size = 2.6) +
   facet_wrap(~ group) +
   labs(x = NULL, y = "Field error reduction relative to a flat field",
        title = "The ceiling: what the occupancy states contain about the field",
@@ -193,9 +204,13 @@ ggplot(filter(recovery, arm == arm_labels["oracle"]), aes(arrangement, reduction
 oracle_cells <- filter(cells, arm == "oracle")
 common <- filter(oracle_cells, group != "prevalence_5pct")
 rare <- filter(oracle_cells, group == "prevalence_5pct")
+clustered_25 <- filter(oracle_communities, arrangement == "clustered", group == "prevalence_25pct")
+clustered_75 <- filter(oracle_communities, arrangement == "clustered", group == "prevalence_75pct")
+clustered_5 <- filter(oracle_communities, arrangement == "clustered", group == "prevalence_5pct")
+passes <- function(d) sum(d$reduction >= .2 & d$correlation >= .5)
 ```
 
-The ceiling is low. Knowing everything except the field, the oracle removes at most 27.9% of the flat-field error, for the 25% species in the clustered design. For the common species it removes 7.5 to 10.2% with sites spread at random or on the grid, and 13.2 to 13.4% once close pairs are added. For the rare species it removes 10.6% in the clustered design and almost nothing elsewhere. One hundred occupancy states hold little information about a field whose range is 3% of the area’s side, however the sites are arranged, so no fit to those states can do much better.
+The ceiling is low for every arrangement except one. With sites spread at random, in pairs or on the grid, the oracle, knowing everything except the field, removes only 7.5 to 13.4% of the flat-field error for the common species, and almost nothing for the rare ones. Clustering changes that for the common species. For the 25% species the oracle clears both informative thresholds in 3 of 3 communities, with reductions of 23.9 to 31.2% and correlations of 0.64 to 0.73; for the 75% species it clears them in 2 of 3. For the rare species even clustered sites leave the oracle at 8.8 to 11.9%. So for most arrangements 100 occupancy states hold little information about a field whose range is 3% of the area’s side; clustered sites hold enough for the common species, and the next section asks whether occJSDM extracts it.
 
 ``` r
 sweep$reading |>
@@ -230,7 +245,7 @@ With sites spread at random, the field is not recoverable for any species group.
 
 ## 2C. What occJSDM delivers
 
-The full model must also estimate the intercepts, slopes, range and amplitude, and in the survey arm it must see the field through two field samples, two primers and six PCRs per sample. The oracle-to-true-state gap is the cost of estimation; the true-state-to-survey gap is the cost of detection.
+The full model must also estimate the intercepts, slopes, range and amplitude, and in the survey arm it must see the field through two field samples, two primers and six PCRs per primer per sample, 12 PCRs per sample. The oracle-to-true-state gap is the cost of estimation; the true-state-to-survey gap is the cost of detection.
 
 ``` r
 ggplot(recovery, aes(arrangement, reduction, colour = arm)) +
@@ -247,6 +262,11 @@ ggplot(recovery, aes(arrangement, reduction, colour = arm)) +
 ![](teaching-data/lesson-2-fit-recovery-1.png)<!-- -->
 
 ``` r
+survey_communities <- sweep$fits$field |>
+  filter(arm == "two_stage") |>
+  group_by(community, arrangement, target) |>
+  summarise(reduction = 1 - mean(centred_rmse) / mean(zero_field_rmse), .groups = "drop")
+
 sweep$paired |>
   group_by(arrangement) |>
   summarise(estimation = mean(estimation_cost), detection = mean(detection_cost), .groups = "drop") |>
@@ -265,7 +285,7 @@ sweep$paired |>
 
 Increase in field RMSE on the log-odds scale, mean of three communities and three species groups
 
-Both gaps are real. Estimation adds 0.070 to the field error on average and adds to it in 30 of the 36 community, arrangement and group cells. Detection adds a further 0.022 on average and adds to it in 35 of 36. The clustered design, which has the highest ceiling, carries the largest of both. The eDNA-survey fits remove at most 2.7% of the flat-field error in any cell.
+Both gaps are real. Estimation adds 0.070 to the field error on average and adds to it in 30 of the 36 community, arrangement and group cells. Detection adds a further 0.022 on average and adds to it in 35 of 36. The clustered design, which has the highest ceiling, carries the largest of both. The eDNA-survey fits remove at most 2.7% of the flat-field error in any cell when averaged over communities, and at most 3.6% in any single community.
 
 ``` r
 cells |>
@@ -287,7 +307,7 @@ cells |>
 
 The clustered design for the common species, mean of three communities
 
-In the clustered design the fit places the patches about as well as the oracle does, but not their strength. For the common species the true-state fit’s correlation with the true field is as high as the oracle’s, yet it removes less than half as much of the error. Correlation ignores scale and the error does not: the fit shrinks the field towards zero. Its posterior median for the field’s standard deviation is 0.31 to 0.36 against a true value of 1, and the upper end of its 95% interval is at most 0.61 in any fit. In the maps below, on one colour scale, the fitted fields are much paler than the truth.
+In the clustered design the fit places the patches about as well as the oracle does, but not their strength. For the common species the true-state fit’s correlation with the true field is as high as the oracle’s, yet it removes less than half as much of the error. Correlation ignores scale and the error does not: the fit shrinks the field towards zero. Its posterior median for the field’s standard deviation is 0.31 to 0.36 against a true value of 1, and the upper end of its 95% interval is at most 0.61 in any fit. So where the data do hold the field, the fit falls short of the ceiling through that shrinkage: for the 25% species in the clustered design it removes 10.5% of the error against the oracle’s 27.9%. In the maps below, on one colour scale, the fitted fields are much paler than the truth.
 
 ``` r
 maps <- sweep$field_maps |>
@@ -389,9 +409,10 @@ Initial fits that met the prespecified rule for a longer run
 
 ``` r
 amplitude_ess <- filter(sweep$fits$groups, metric == "spatial_sd")$ess_mean
+amplitude_rhat <- filter(sweep$fits$groups, metric == "spatial_sd")$rhat
 ```
 
-Convergence qualifications are part of the result. 3 of the 24 initial fits met the prespecified rule for a longer run; the longer run replaces the initial fit in every table, and 0 selected fits retain a flag after it. The rule covers occupancy, not the spatial amplitude, which mixes slowly: 10 of the 24 selected fits have an amplitude effective sample size below 100, the lowest 49.5. Their amplitude intervals are therefore imprecise, although every one lies far below the true value.
+Convergence qualifications are part of the result. 3 of the 24 initial fits met the prespecified rule for a longer run; the longer run replaces the initial fit in every table, and 0 selected fits retain a flag after it. The rule’s Rhat check covers every scored quantity, including the spatial amplitude, whose Rhat is 1.003 to 1.033, but its effective-sample-size threshold covers occupancy only. The amplitude mixes slowly: 10 of the 24 selected fits have an amplitude effective sample size below 100, the lowest 49.5. Their amplitude interval endpoints are therefore imprecisely estimated, although every interval lies far below the true value.
 
 ## 2D. Predicting unsurveyed locations
 
@@ -430,7 +451,7 @@ near_clusters <- spatial_gain$arrangement == "clustered" & spatial_gain$bin == "
 survey <- filter(lattice_means, arm == "two_stage")
 ```
 
-The lines are nearly flat and nearly coincide. With the spatial term, the true-state fits miss the true occupancy probability by 11.1 to 12.0 points at every distance and in every arrangement, except within 0.02 of a site in the clustered design, at 10.0. Dropping the spatial term changes the error by at most 0.17 points, except in that same bin, where it adds 0.73. Error does not grow with distance from the survey, because the fitted field is too weak to matter at any distance: the environment term carries the prediction. The eDNA-survey fits miss by 18.7 to 21.6 points, with a positive bias of 5.7 to 8.5 points, so detection costs far more here than the arrangement does.
+The lines are nearly flat and nearly coincide. With the spatial term, the true-state fits miss the true occupancy probability by 11.1 to 12.0 points at every distance and in every arrangement, except within 0.02 of a site in the clustered design, at 10.0. Dropping the spatial term changes the error by at most 0.17 points, except in that same bin, where it adds 0.73. Outside the clustered design the error barely changes with distance from the survey. In the clustered design it rises from 10.0 to 11.5 points, and the spatial term accounts for at most 0.73 of that. The fitted field is too weak to matter at any distance: the environment term carries the prediction. The eDNA-survey fits miss by 18.7 to 21.6 points, with a positive bias of 5.7 to 8.5 points, so detection costs far more here than the arrangement does.
 
 ``` r
 sweep$lattice_maps |>
@@ -452,13 +473,24 @@ sweep$lattice_maps |>
 
 ![](teaching-data/lesson-2-lattice-maps-1.png)<!-- -->
 
+``` r
+true_field <- sweep$landscape$field[sweep$landscape$index$lattice, "species06"]
+map_bias <- sweep$lattice_maps |>
+  filter(source == "binary") |>
+  group_by(arrangement) |>
+  summarise(signed = 100 * mean(with - truth), under = mean(with < truth),
+            field_correlation = cor(with - truth, true_field))
+```
+
+In both maps the errors mirror the true field, with a correlation of -0.94 to -0.91 between the error and the field: where the field raises occupancy the fit underpredicts, and where it lowers occupancy the fit overpredicts, because the fit has not learned the field. With clustered sites species 6 is also broadly underpredicted, by 10.0 points on average and in 73.5% of the cells. This is one species in one community, so it shows what a single map can look like, not a property of clustering.
+
 The conceptual section described clustering as trading coverage for neighbours, with close pairs as a hedge between the two. At this budget and range neither side of the trade shows in prediction. The field the fits learn is too weak to carry information away from the sites, so the coverage that clustering gives up costs nothing measurable, and the neighbours it buys help by less than a point, almost all of it within 0.02 of a site. Adding close pairs to a spread design raised the oracle ceiling for the common species, but the true-state fits still removed about 3% of the error or less. Whether the trade appears with a longer range, a stronger field or a larger budget is not tested here.
 
 ## What this establishes, and what it does not
 
 The sweep is a controlled, model-matched simulation: one broad gradient, one field range shared by all species, no dispersal, no species-specific ranges, and no environmental covariate at the field’s scale. Within that, three communities support the reading labels above, not confidence intervals.
 
-At this budget, no arrangement of 100 sites makes a field with a range of 3% of the area’s side recoverable. The information is not in the data: even the oracle ceiling is low. occJSDM recovers less than that ceiling, because it shrinks the field’s amplitude and prefers longer ranges than the truth. Clustering raises the field correlation to the oracle’s level for the common species but barely improves the map. Prediction at unsurveyed locations is carried almost entirely by the environment term, so the coverage that clustering gives up costs nothing measurable here, and the neighbours it gains buy almost nothing. Rare species are unrecoverable in every arrangement. The two-stage survey adds a detection cost on top of the cost of estimation.
+At this budget, no arrangement of 100 sites lets occJSDM recover a field with a range of 3% of the area’s side. For most arrangements the information is not in the data: even the oracle ceiling is low. The exception is clustering for the common species, where the oracle clears the informative thresholds for the 25% species in every community; there occJSDM falls short of the ceiling, because it shrinks the field’s amplitude and prefers longer ranges than the truth. Clustering raises the field correlation to the oracle’s level for the common species but barely improves the map. Prediction at unsurveyed locations is carried almost entirely by the environment term, so the coverage that clustering gives up costs nothing measurable here, and the neighbours it gains buy almost nothing. Rare species are unrecoverable in every arrangement. The two-stage survey adds a detection cost on top of the cost of estimation.
 
 Nothing here validates spatial prediction on real data, establishes interval coverage, or shows what happens when species disperse at different scales; those are the separate contrasts still to come, with same-scale environmental confounding the first candidate.
 
