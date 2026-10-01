@@ -119,7 +119,7 @@ Every outstanding item from the previous TODO is accounted for below or in the r
 - **Repeat the complete simulation grid after fixes:** defer the comprehensive paper run. For a deliberate production-grid run, specify `base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated`; a bare runner invocation also selects additional experimental cells.
 - **Choose the paper's replicate count:** defer the R = 200-500 calibration study and any claim of nominal coverage. The existing R = 100 study remains a historical baseline.
 - **Simulation-study presentation:** already decided: regenerate the pkgdown validation article from `validation-data.rds`. No new presentation decision is required; update its data before quoting new results.
-- **Publish the pkgdown site:** defer as a beta dependency; the README and vignettes can serve beta users. The site scaffolding is built, but publication requires the manual workflow and Alex's Pages configuration change. Include current limitations wherever documentation is published.
+- **Publish the pkgdown site:** defer as a beta dependency; the README and vignettes can serve beta users. The site scaffolding is built, but publication requires the manual workflow and Alex's Pages configuration change. Include current limitations wherever documentation is published. When it replaces the Jekyll site, also remove the beta site's additions: `_includes/head-custom.html`, `assets/` and their two `.Rbuildignore` lines (see the [lesson site design](dev/simstudy/lesson-site/DESIGN.md)).
 
 ## Performance and parallelisation
 
