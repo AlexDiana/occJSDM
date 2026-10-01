@@ -48,17 +48,10 @@ calibration_checked_summary <- function(calibration) {
   dplyr::bind_rows(ordinary, native)
 }
 
-# Report styling follows the validation article; numbers still come from the
-# verified bundle. Markdown receives an ordinary table with the same cells.
+# Every output gets the same plain table, so the lesson looks like the others;
+# the numbers come from the verified bundle.
 calibration_report_table <- function(x, caption = NULL) {
-  if (knitr::is_html_output(excludes = c("markdown", "gfm"))) {
-    cat('<div class="calibration-scroller">\n')
-    print(knitr::kable(x, format = "html", row.names = FALSE, caption = caption,
-      table.attr = 'class="calibration-table"', escape = TRUE))
-    cat('\n</div>\n')
-  } else {
-    print(knitr::kable(x, row.names = FALSE, caption = caption))
-  }
+  print(knitr::kable(x, row.names = FALSE, caption = caption))
 }
 
 calibration_condition <- function(scenario, response) {

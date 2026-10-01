@@ -1332,23 +1332,15 @@ Ten independent communities are useful for an exploratory teaching comparison. T
 
 ## 14. Across communities, are estimates biased?
 
-<div class="calibration-lead">
-
 The four packages give similar occurrence predictions in the baseline scenario. Their uncertainty intervals are less consistent. Getting the estimate close and getting its uncertainty right are separate achievements.
 
-</div>
-
 We simulated communities whose true probabilities and environmental effects are known, gave the packages the same observations, and checked their answers. These are the September results: ten independent communities, fitted with either 100 or 300 training sites. The older occJSDM-only validation study is a separate experiment and is not pooled here.
-
-<div class="calibration-finding">
 
 **What the comparison says**
 
 - **Predictions:** average bias is small in the baseline for all four packages. More training sites reduce prediction error substantially.
 - **Uncertainty:** baseline probability coverage is close to 95% for occJSDM and Hmsc. Coefficient coverage is more variable for occJSDM, gllvm and sjSDM.
 - **Harder conditions:** rare species, correlated predictors and an unsuitable response shape can change the answer. Diagnostic warnings and the small number of independent communities prevent a confident overall ranking.
-
-</div>
 
 ### How close are the predictions?
 
@@ -1371,7 +1363,7 @@ Baseline predictions at 300 independent test sites. Each package has ten scored 
 
 The dots show average bias, and the bars show **one Monte Carlo standard error (MCSE)**. This measures uncertainty from having only ten simulated communities; it is not the uncertainty of an individual species estimate. The same convention is used in the coverage plots below. Species and test sites are not counted as independent simulation repetitions.
 
-The rare-species scenario produces more overestimation, especially for occJSDM with 100 sites. Bias alone still misses an important problem: a package can make positive and negative errors that cancel. The full community-level RMSE results are retained in the expandable section below.
+The rare-species scenario produces more overestimation, especially for occJSDM with 100 sites. Bias alone still misses an important problem: a package can make positive and negative errors that cancel. The full community-level RMSE results are retained in the full results section below.
 
 ### How close are the environmental effects?
 
@@ -1408,16 +1400,12 @@ This table separates **occurrence probabilities** from **environmental coefficie
 
 Baseline coverage (%) +/- one MCSE. The reference is 95%; every available result here uses ten communities. Flagged fits remain included.
 
-<div class="calibration-finding">
-
 **How to read the baseline**
 
 - **occJSDM:** probability coverage is close to 95%, but the first environmental effect is covered less often: 82.0% at 100 sites and 89.0% at 300.
 - **gllvm:** at 100 sites, coverage for the first environmental effect is 94.0%. Its uncertainty calculations have numerical warnings, discussed below.
 - **sjSDM:** coverage for that effect rises from 82.0% to 92.0%. Its native intervals account for only part of the fitted model’s uncertainty.
 - **Hmsc:** probability coverage is close to 95%, but convergence warnings limit how much confidence to place in that result.
-
-</div>
 
 **The missing entries have different meanings.** `Unavailable` means we have not calculated probability intervals for gllvm or sjSDM. `Different link` means Hmsc’s coefficients lack a matching numerical truth in this logit-generated experiment. Neither means zero coverage or a failed comparison of predictions: all four packages appear in the prediction checks.
 
@@ -1445,14 +1433,7 @@ This figure follows the **first environmental effect**, not all coefficients poo
 
 The full results below keep probability bias at the five interval settings, coefficient and trait results, interval widths, diagnostic counts and methods together. All numbers are read from the saved results bundle when the lesson is rendered.
 
-<details>
-
-<summary>
-
-Full results, interval widths and methods
-</summary>
-
-<div class="calibration-details">
+## Full results, interval widths and methods
 
 These detailed tables and community-level plots retain the full comparison, including interval widths and diagnostic sensitivity.
 
@@ -1670,7 +1651,3 @@ The compact bundle contains per-community summaries and individual grid/coeffici
     #> 10        10 TRUE            -0.0223   0.0632     0.96 0.231
 
 The gllvm coefficient-interval calculation replays selected fits solely to recover their native uncertainty calculations; the saved point estimates are retained. sjSDM coefficient intervals require no refit. A larger coverage study should add independent communities, assess gllvm/sjSDM marginal-probability intervals, and include a probit-generating arm under a declared fitting and diagnostic protocol. Preserve these ten communities and their failures as the original experiment. The July/August occJSDM-only study predates model fixes and remains historical evidence; it is not pooled with these September results.
-
-</div>
-
-</details>
