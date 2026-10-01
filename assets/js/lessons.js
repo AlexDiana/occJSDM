@@ -15,7 +15,7 @@
     { stem: "occJSDM", label: "Lesson guide", title: "occJSDM: quickstart and lesson guide" },
     { stem: "occJSDM-lesson-0", label: "Lesson 0", title: "Lesson 0 (optional): Create and explore a simulated survey" },
     { stem: "occJSDM-lesson-1", label: "Lesson 1", title: "Lesson 1: Fit the model and compare its answers with truth" },
-    { stem: "occJSDM-lesson-2", label: "Lesson 2", title: "Lesson 2: Spatial landscapes and dispersal (planned)" },
+    { stem: "occJSDM-lesson-2", label: "Lesson 2", title: "Lesson 2: Spatial landscapes and survey design" },
     { stem: "occJSDM-lesson-3", label: "Lesson 3", title: "Lesson 3: Understand the model's outputs by comparing them with truth" },
     { stem: "occJSDM-lesson-4", label: "Lesson 4", title: "Lesson 4: Compare four JSDMs with a community whose truth we know" }
   ];
