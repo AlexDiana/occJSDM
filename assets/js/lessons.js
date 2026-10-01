@@ -20,6 +20,10 @@
     { stem: "occJSDM-lesson-4", label: "Lesson 4", title: "Lesson 4: Compare four JSDMs with a community whose truth we know" }
   ];
 
+  // How far below the top of the window, in pixels, a heading must have
+  // scrolled for its section to count as the one being read.
+  var READING_LINE = 96;
+
   // Index in `lessons` of the page at `path`, or -1. Pages serves each lesson
   // at .../vignettes/<stem>.html and also without the extension.
   function lessonIndex(path, lessons) {
@@ -69,9 +73,117 @@
     return active;
   }
 
+  function element(doc, tag, className, text) {
+    var node = doc.createElement(tag);
+    if (className) node.className = className;
+    if (text) node.textContent = text;
+    return node;
+  }
+
+  function link(doc, text, href, className) {
+    var anchor = element(doc, "a", className, text);
+    anchor.href = href;
+    return anchor;
+  }
+
+  function contentsList(doc, entries) {
+    var list = element(doc, "ol");
+    entries.forEach(function (entry) {
+      var item = element(doc, "li");
+      item.appendChild(link(doc, entry.text, "#" + entry.id));
+      list.appendChild(item);
+    });
+    return list;
+  }
+
+  function addNavigation(doc, win) {
+    var index = lessonIndex(win.location.pathname, LESSONS);
+    if (index < 0) return;
+    var body = doc.querySelector(".markdown-body");
+    if (!body) return;
+    // Primer's first h1 is the site title; the lesson's own title is the second.
+    var titles = body.querySelectorAll("h1");
+    if (titles.length < 2) return;
+    var folder = win.location.pathname.replace(/[^\/]*$/, "");
+    var href = function (lesson) { return folder + lesson.stem + ".html"; };
+    var around = neighbours(index, LESSONS);
+
+    var bar = element(doc, "nav", "lesson-bar");
+    bar.setAttribute("aria-label", "Lessons");
+    if (index > 0) bar.appendChild(link(doc, LESSONS[0].label, href(LESSONS[0])));
+    var position = positionText(index, LESSONS);
+    if (position) bar.appendChild(element(doc, "span", "lesson-position", position));
+    if (around.next) {
+      bar.appendChild(link(doc, "Next: " + around.next.label + " →", href(around.next)));
+    }
+    titles[1].insertAdjacentElement("afterend", bar);
+
+    var headings = Array.prototype.slice.call(body.querySelectorAll("h2")).filter(function (h) {
+      return h.id;
+    });
+    var entries = contentsEntries(headings.map(function (h) {
+      return { id: h.id, text: h.textContent };
+    }));
+    if (entries.length >= 2) {
+      var inline = element(doc, "details", "lesson-contents lesson-contents-inline");
+      inline.appendChild(element(doc, "summary", null, "Contents"));
+      inline.appendChild(contentsList(doc, entries));
+      bar.insertAdjacentElement("afterend", inline);
+
+      var side = element(doc, "nav", "lesson-contents lesson-contents-side");
+      side.setAttribute("aria-label", "On this page");
+      var panel = element(doc, "div", "lesson-contents-panel");
+      panel.appendChild(element(doc, "div", "lesson-contents-title", "On this page"));
+      var sideList = contentsList(doc, entries);
+      panel.appendChild(sideList);
+      side.appendChild(panel);
+      body.appendChild(side);
+      doc.documentElement.classList.add("has-lesson-contents");
+
+      var items = sideList.querySelectorAll("li");
+      var current = -1;
+      var update = function () {
+        var tops = headings.map(function (h) { return h.getBoundingClientRect().top; });
+        var active = activeIndex(tops, READING_LINE);
+        if (active === current) return;
+        if (current >= 0) items[current].classList.remove("is-current");
+        if (active >= 0) items[active].classList.add("is-current");
+        current = active;
+      };
+      var scheduled = false;
+      win.addEventListener("scroll", function () {
+        if (scheduled) return;
+        scheduled = true;
+        win.requestAnimationFrame(function () { scheduled = false; update(); });
+      }, { passive: true });
+      update();
+    }
+
+    var pager = element(doc, "nav", "lesson-pager");
+    pager.setAttribute("aria-label", "Previous and next lessons");
+    [["previous", "Previous"], ["next", "Next"]].forEach(function (pair) {
+      var lesson = around[pair[0]];
+      if (!lesson) return;
+      var anchor = link(doc, "", href(lesson), "lesson-pager-" + pair[0]);
+      anchor.appendChild(element(doc, "small", null, pair[1]));
+      anchor.appendChild(doc.createTextNode(lesson.title));
+      pager.appendChild(anchor);
+    });
+    var footer = body.querySelector(".footer");
+    if (footer) body.insertBefore(pager, footer); else body.appendChild(pager);
+  }
+
   var api = {
     LESSONS: LESSONS, lessonIndex: lessonIndex, positionText: positionText,
     neighbours: neighbours, contentsEntries: contentsEntries, activeIndex: activeIndex
   };
   if (typeof module === "object" && module.exports) module.exports = api;
+
+  if (typeof document !== "undefined" && typeof window !== "undefined") {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function () { addNavigation(document, window); });
+    } else {
+      addNavigation(document, window);
+    }
+  }
 })();
