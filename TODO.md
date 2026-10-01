@@ -84,7 +84,7 @@ output: html_document
 >
 > Validation is still in progress. In our simulations, occupancy probabilities are pulled towards the middle (low ones too high, high ones too low); more field samples or sites reduced this without removing it. Widening the occupancy-baseline prior (experimental `listPriors$sigma_b0`) is not a general fix, so the default is unchanged, and stronger collection priors can hide real collection effects. Interval coverage has not been established, and spatial fields are poorly recovered when sites are far apart relative to the spatial range. See the README's Known limitations for details.
 >
-> The default priors assume false positives are uncommon. With much higher contamination, check prior sensitivity (Lesson 1) and compare results across chains (Lesson 3), which can then settle on two explanations of the same data.
+> The default priors assume false positives are uncommon. With much higher contamination, check prior sensitivity (Lesson 1) and compare results across chains (Lesson 3), since chains can then settle on two different explanations of the same data.
 >
 > Installation, lessons and examples: <https://github.com/AlexDiana/occJSDM>. Feedback and bug reports are welcome.
 
