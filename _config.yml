@@ -20,10 +20,17 @@
 # code kept for reference and already excluded from the package build via
 # .Rbuildignore. Excluding the directories also means a file added later is
 # covered by default rather than silently published.
+#
+# CLAUDE-HANDOVER.md and vignettes/LESSON-PLAN.md are also maintainer-facing
+# documents, so they are excluded by name. Links to any excluded file from a
+# published page would be a 404 on the site, so such links must point at the
+# file on GitHub instead.
 exclude:
   - TODO.md
   - AGENTS.md
   - CLAUDE.md
+  - CLAUDE-HANDOVER.md
+  - vignettes/LESSON-PLAN.md
   - dev/
   - PARALLELISATION/
   - deprecated/

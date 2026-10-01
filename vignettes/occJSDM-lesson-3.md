@@ -2355,8 +2355,8 @@ chains with a Beta(1, 100) prior on `theta0`, but none of the 16 fresh
 default-prior chains entered the mirror either, so the comparison could
 not show whether that prior prevents it; the prior also pulled that
 species’ `theta0` down to 0.011, against a truth of 0.038. The [study
-report](../dev/simstudy/convergence-flag-diagnosis/REPORT.md) gives the
-details and limitations.
+report](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/convergence-flag-diagnosis/REPORT.md)
+gives the details and limitations.
 
 ### Where to find other parameter draws
 
