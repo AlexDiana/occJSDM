@@ -53,7 +53,7 @@ Navigation appears on the six lesson pages only: the quickstart (`vignettes/occJ
 ## 4. Files
 
 - New: `_includes/head-custom.html`, `assets/css/site.css`, `assets/js/lessons.js`, and this design under `dev/simstudy/lesson-site/`, with the local preview script described below.
-- Changed: `.Rbuildignore` (adds `^_includes$` and `^assets$`), the Pages section of `AGENTS.md`, the "when adding a lesson" note in `dev/simstudy/vignette-lesson/README.md`, Lesson 4's `.Rmd` and `.md`, its table helper, the two development copies and `CALIBRATION.md`, and `TODO.md` (see Follow-ups).
+- Changed: `.Rbuildignore` (adds `^_includes$` and `^assets$`), `.gitignore` and `.claude/launch.json` (for the preview), the Pages section of `AGENTS.md`, the "when adding a lesson" note in `dev/simstudy/vignette-lesson/README.md`, Lesson 4's `.Rmd` and `.md`, its table helper, the two development copies and `CALIBRATION.md`, and `TODO.md` (see Follow-ups).
 - Deleted: `vignettes/lesson-4-calibration.css`.
 - `_config.yml` does not change: `dev/` is already excluded from the site.
 
