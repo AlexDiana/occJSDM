@@ -142,12 +142,28 @@
 
       var items = sideList.querySelectorAll("li");
       var current = -1;
+      // When the list is taller than the window, scroll the panel (never the
+      // page) so the current entry stays in view. On narrow screens the panel
+      // is hidden, its box is empty, and nothing moves.
+      var reveal = function (item) {
+        var box = panel.getBoundingClientRect();
+        var row = item.getBoundingClientRect();
+        if (row.top < box.top) panel.scrollTop -= box.top - row.top;
+        else if (row.bottom > box.bottom) panel.scrollTop += row.bottom - box.bottom;
+      };
       var update = function () {
         var tops = headings.map(function (h) { return h.getBoundingClientRect().top; });
         var active = activeIndex(tops, READING_LINE);
         if (active === current) return;
-        if (current >= 0) items[current].classList.remove("is-current");
-        if (active >= 0) items[active].classList.add("is-current");
+        if (current >= 0) {
+          items[current].classList.remove("is-current");
+          items[current].firstChild.removeAttribute("aria-current");
+        }
+        if (active >= 0) {
+          items[active].classList.add("is-current");
+          items[active].firstChild.setAttribute("aria-current", "location");
+          reveal(items[active]);
+        }
         current = active;
       };
       var scheduled = false;

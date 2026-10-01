@@ -224,8 +224,7 @@ Expected: `0`, `0`, `1`, and the same status as in Step 7 (the `.html` is ignore
 
 - [ ] **Step 10: Run the lesson link test**
 
-Run: `Rscript dev/simstudy/vignette-lesson/test_lesson_links.R 2>&1 | tail -2`
-Expected: `All six rendered lessons keep each lesson link on one line for GitHub Pages.` and `Shared lesson-link regression checks passed.`
+Run: `Rscript dev/simstudy/vignette-lesson/test_lesson_links.R 2>&1 | tail -2` Expected: `All six rendered lessons keep each lesson link on one line for GitHub Pages.` and `Shared lesson-link regression checks passed.`
 
 - [ ] **Step 11: Commit**
 
@@ -340,8 +339,7 @@ test("lists every lesson source, in order, with its YAML title", () => {
 
 - [ ] **Step 2: Run the tests to see them fail**
 
-Run: `node --test dev/simstudy/lesson-site/test_lessons.js 2>&1 | tail -5`
-Expected: FAIL, with `Cannot find module` for `assets/js/lessons.js`.
+Run: `node --test dev/simstudy/lesson-site/test_lessons.js 2>&1 | tail -5` Expected: FAIL, with `Cannot find module` for `assets/js/lessons.js`.
 
 - [ ] **Step 3: Write the lesson list and pure functions**
 
@@ -429,8 +427,7 @@ Create `assets/js/lessons.js`:
 
 - [ ] **Step 4: Run the tests to see them pass**
 
-Run: `node --test dev/simstudy/lesson-site/test_lessons.js 2>&1 | tail -8`
-Expected: `# pass 7` and `# fail 0`.
+Run: `node --test dev/simstudy/lesson-site/test_lessons.js 2>&1 | tail -8` Expected: `# pass 7` and `# fail 0`.
 
 - [ ] **Step 5: Commit**
 
@@ -518,8 +515,7 @@ In `.claude/launch.json`, add this object to the `configurations` array, after t
     }
 ```
 
-Check it parses: `python3 -c 'import json; print([c["name"] for c in json.load(open(".claude/launch.json"))["configurations"]])'`
-Expected: `['pkgdown-preview', 'lesson-site-preview']`.
+Check it parses: `python3 -c 'import json; print([c["name"] for c in json.load(open(".claude/launch.json"))["configurations"]])'` Expected: `['pkgdown-preview', 'lesson-site-preview']`.
 
 - [ ] **Step 4: Write the preview builder**
 
@@ -973,8 +969,7 @@ Append to `assets/css/site.css`:
 
 - [ ] **Step 3: Rerun the unit tests**
 
-Run: `node --test dev/simstudy/lesson-site/test_lessons.js 2>&1 | tail -8`
-Expected: `# pass 7`, `# fail 0`.
+Run: `node --test dev/simstudy/lesson-site/test_lessons.js 2>&1 | tail -8` Expected: `# pass 7`, `# fail 0`.
 
 - [ ] **Step 4: Check Lesson 1 on a wide screen**
 

@@ -37,6 +37,9 @@ body { background: #fbfaf7; color: #22303a; }
   border-radius: 6px;
 }
 .markdown-body pre code { background: transparent; }
+/* kramdown wraps highlighted blocks in div.highlight, which Primer gives its
+   own background; clear it so only the rounded block shows. */
+.markdown-body div.highlight { background: transparent; }
 
 /* Figures framed in white: images alone in a paragraph, and in <figure>. */
 .markdown-body p > img:only-child,
@@ -81,7 +84,7 @@ body { background: #fbfaf7; color: #22303a; }
 .markdown-body .lesson-bar a { color: #1f5f6b; border-bottom: 1px solid #d3d8d2; }
 
 .lesson-contents ol { list-style: none; margin: 8px 0 0; padding-left: 0; }
-.lesson-contents li {
+.markdown-body .lesson-contents li {
   margin: 0;
   padding: 3px 0 3px 10px;
   border-left: 2px solid transparent;
