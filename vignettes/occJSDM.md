@@ -9,7 +9,7 @@ occJSDM estimates species occurrence while allowing for imperfect field collecti
 
 - [Lesson 1: Fit the model and compare its answers with truth](occJSDM-lesson-1.md). The main starting point: fit the model, understand occupancy error, and inspect actual examples of weak true detections, strong true detections and false positives.
 
-- [Lesson 2: Spatial landscapes and dispersal](occJSDM-lesson-2.md). Explains what the spatial field learns, how range differs from geographical extent, and how to choose sample spacing, extent and replication. Its worked examples on smooth environmental gradients, residual spatial structure and dispersal are still planned; it is not yet a worked spatial validation.
+- [Lesson 2: Spatial landscapes and survey design](occJSDM-lesson-2.md). What the spatial field learns, and a worked sweep of four ways to place 100 sites, with an oracle ceiling, true-state and eDNA-survey fits, and prediction at unsurveyed locations.
 
 - [Lesson 3: Understand the model’s outputs by comparing them with truth](occJSDM-lesson-3.md). Environmental responses, trait effects, species associations, ordination, variation partitioning and detection effort. It includes a function index and explains why a real simulated effect can remain uncertain.
 
