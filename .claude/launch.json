@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "4507", "--directory", "docs"],
       "port": 4507
+    },
+    {
+      "name": "lesson-site-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4508", "--directory", "dev/simstudy/lesson-site/preview"],
+      "port": 4508
     }
   ]
 }

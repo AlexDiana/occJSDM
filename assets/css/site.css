@@ -1,0 +1,6 @@
+/*
+ * The "calm reading" look and the lesson navigation for the GitHub Pages site
+ * during the beta. Loaded after Primer's stylesheet by
+ * _includes/head-custom.html, and only overrides it. Remove it with the rest of
+ * assets/ when pkgdown replaces this site (dev/simstudy/lesson-site/DESIGN.md).
+ */
