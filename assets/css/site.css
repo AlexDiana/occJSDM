@@ -58,7 +58,7 @@ body { background: #fbfaf7; color: #22303a; }
 .markdown-body table th,
 .markdown-body table td { border-color: #e3e1da; }
 
-.markdown-body .footer { color: #4e5b62; border-top-color: #e3e1da !important; }
+.markdown-body .footer { color: #4e5b62 !important; border-top-color: #e3e1da !important; }
 
 /* Lesson navigation: only present where lessons.js has added it. */
 .lesson-bar {
