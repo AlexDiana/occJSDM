@@ -1363,7 +1363,7 @@ Baseline predictions at 300 independent test sites. Each package has ten scored 
 
 The dots show average bias, and the bars show **one Monte Carlo standard error (MCSE)**. This measures uncertainty from having only ten simulated communities; it is not the uncertainty of an individual species estimate. The same convention is used in the coverage plots below. Species and test sites are not counted as independent simulation repetitions.
 
-The rare-species scenario produces more overestimation, especially for occJSDM with 100 sites. Bias alone still misses an important problem: a package can make positive and negative errors that cancel. The full community-level RMSE results are retained in the expandable section below.
+The rare-species scenario produces more overestimation, especially for occJSDM with 100 sites. Bias alone still misses an important problem: a package can make positive and negative errors that cancel. The full community-level RMSE results are retained in the full results section below.
 
 ### How close are the environmental effects?
 
