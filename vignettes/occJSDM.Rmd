@@ -8,9 +8,6 @@ vignette: >
   %\VignetteIndexEntry{occJSDM: quickstart}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options:
-  markdown:
-    wrap: none
 ---
 
 ```{r setup, include=FALSE}
