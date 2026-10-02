@@ -19,7 +19,7 @@ removed_samples <- sample_keys |>
 removed_samples
 ```
 
-This removes Sample 24 from Site 12, Sample 61 from Site 31 and Sample 103 from Site 52. `group_by(Site)` makes `slice_sample(n = 1)` choose exactly one sample within each selected site. We keep the original global sample IDs.
+This removes Sample 36 from Site 12, Sample 91 from Site 31 and Sample 154 from Site 52. `group_by(Site)` makes `slice_sample(n = 1)` choose exactly one sample within each selected site. We keep the original global sample IDs.
 
 The metadata and OTU matrix describe the same PCR rows. `anti_join()` drops metadata rows whose `(Site, Sample)` key is in the removal table. Keeping their original row numbers lets us apply **the identical selection to both tables**.
 
@@ -56,6 +56,6 @@ samples_per_site |>
   count(samples, name = "sites")
 ```
 
-There are 97 sites with two samples and three sites with one sample. We removed three samples and 36 PCR rows: 197 field samples and 2,364 PCR rows remain, still covering all 100 sites and ten species. Every retained sample has both primers and six PCRs per primer. No retained read count or covariate changes.
+There are 97 sites with three samples and three sites with two samples. We removed three samples and 36 PCR rows: 297 field samples and 3,564 PCR rows remain, still covering all 100 sites and ten species. Every retained sample has both primers and six PCRs per primer. No retained read count or covariate changes.
 
-A lost sample is represented by **absent rows**. It is not an observed sample with zero reads, and it is not a collection of `NA` PCR results. The original `known_truth` still describes all 100 sites, all ten species and all 200 simulated samples, including those we removed from the observed survey. Lesson 1 fits this reduced survey and compares the resulting probabilities with those same truths. This is an example of preparing unequal replication, not a replicated experiment measuring the effects of sample loss.
+A lost sample is represented by **absent rows**. It is not an observed sample with zero reads, and it is not a collection of `NA` PCR results. The original `known_truth` still describes all 100 sites, all ten species and all 300 simulated samples, including those we removed from the observed survey. Lesson 1 fits this reduced survey and compares the resulting probabilities with those same truths. This is an example of preparing unequal replication, not a replicated experiment measuring the effects of sample loss.

@@ -70,7 +70,7 @@ tibble(
 )
 ```
 
-There are 200 field samples and 2,400 PCR observations per species. Six PCR replicates means **six per primer per field sample**, not six divided between the two primers.
+There are 300 field samples and 3,600 PCR observations per species. Six PCR replicates means **six per primer per field sample**, not six divided between the two primers.
 
 The simulator uses shorter argument names. This list translates our decisions into its interface. `rep(value, times)` repeats a value, so `M` specifies the number of samples at each site and `K` the PCR count for each sample–primer combination.
 
@@ -232,7 +232,7 @@ observed_pcrs <- bind_cols(observation_info, read_counts) |>
   )
 ```
 
-The new table has 24,000 rows: 2,400 PCR observations for each of ten species. `positive` is one for at least one read and zero for no reads. A missing read count remains missing. Species are columns in the matrix used by the fitter and rows in this table used for exploration; these are two representations of the same observations.
+The new table has 36,000 rows: 3,600 PCR observations for each of ten species. `positive` is one for at least one read and zero for no reads. A missing read count remains missing. Species are columns in the matrix used by the fitter and rows in this table used for exploration; these are two representations of the same observations.
 
 Now turn the true site and sample states into tables. The saved matrices have site or sample IDs as row names and species IDs as column names. `rownames_to_column()` makes the row identifier an explicit column.
 
@@ -260,15 +260,22 @@ observations_with_truth <- observed_pcrs |>
     )
   )
 
+weak_case <- lesson$cases |>
+  filter(case == "Weak true detection")
+
 observations_with_truth |>
-  filter(species == "OTU_1", Site == "3", Sample == "6") |>
+  filter(
+    species == weak_case$species,
+    Site == as.character(weak_case$Site),
+    Sample == as.character(weak_case$Sample)
+  ) |>
   select(Site, Sample, Primer, PCR, reads, positive, presence, dna_in_sample, source) |>
   knitr::kable()
 ```
 
 `left_join()` attaches matching values using the named identifiers. Sample IDs are unique across the whole survey in this dataset, so sample plus species identifies a sample state. The order of `case_when()` matters: a negative PCR has no positive source to classify; a positive in a sample without DNA is a laboratory false positive, even if the species happened to occupy the site. A positive from DNA in an unoccupied site's sample is a field-stage false positive.
 
-These are **known source labels supplied by the simulation**, not classifications produced by the model. We do not pass `observations_with_truth` to the fitter. Lesson 1 uses this displayed sample as its weak true-detection example and compares the fitted probabilities with these states.
+These are **known source labels supplied by the simulation**, not classifications produced by the model. We do not pass `observations_with_truth` to the fitter. `lesson$cases` records the four detection examples that Lesson 1 selected before fitting. Lesson 1 uses this displayed sample, `r weak_case$species` in Sample `r weak_case$Sample` at Site `r weak_case$Site`, as its weak true-detection example and compares the fitted probabilities with these states.
 
 ## Put the sites and environmental conditions on a map
 
@@ -290,7 +297,7 @@ site_covariates |>
   knitr::kable(digits = 3)
 ```
 
-```{r sampling-locations, fig.height=4.5, fig.cap="The 100 simulated sampling sites. The highlighted sites are the four detection examples used in Lesson 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities."}
+```{r sampling-locations, fig.height=4.5, fig.cap="The 100 simulated sampling sites. The highlighted sites hold the four detection examples used in Lesson 1; the laboratory false-positive and field-stage false-positive examples share Site 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities."}
 example_sites <- lesson$cases |>
   distinct(Site) |>
   mutate(Site = as.character(Site)) |>
@@ -378,7 +385,7 @@ truth_map_data <- species_truth |>
 
 `group_by()` tells `summarise()` to calculate one result for each site and species. The explicit missing-data check prevents an unobserved site from being treated as a negative. `plogis()` converts the generating model's score, `eta`, to an occupancy probability. The saved matrices have site IDs as row names and species IDs as column names; `rownames_to_column()` and `pivot_longer()` make both explicit columns. `left_join()` attaches matching information using the named keys; it does not assume the tables have the same row order. `factor()` sets the order of panels.
 
-```{r truth-and-observation-maps, fig.width=9, fig.height=6, fig.cap="Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the 24 PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here."}
+```{r truth-and-observation-maps, fig.width=9, fig.height=6, fig.cap="Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the 36 PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here."}
 ggplot(truth_map_data, aes(x = east, y = north, colour = value)) +
   geom_point(size = 2) +
   facet_grid(species ~ quantity) +
@@ -413,7 +420,7 @@ removed_samples <- sample_keys |>
 removed_samples
 ```
 
-This removes Sample 24 from Site 12, Sample 61 from Site 31 and Sample 103 from Site 52. `group_by(Site)` makes `slice_sample(n = 1)` choose exactly one sample within each selected site. We keep the original global sample IDs.
+This removes Sample 36 from Site 12, Sample 91 from Site 31 and Sample 154 from Site 52. `group_by(Site)` makes `slice_sample(n = 1)` choose exactly one sample within each selected site. We keep the original global sample IDs.
 
 The metadata and OTU matrix describe the same PCR rows. `anti_join()` drops metadata rows whose `(Site, Sample)` key is in the removal table. Keeping their original row numbers lets us apply **the identical selection to both tables**.
 
@@ -450,9 +457,9 @@ samples_per_site |>
   count(samples, name = "sites")
 ```
 
-There are 97 sites with two samples and three sites with one sample. We removed three samples and 36 PCR rows: 197 field samples and 2,364 PCR rows remain, still covering all 100 sites and ten species. Every retained sample has both primers and six PCRs per primer. No retained read count or covariate changes.
+There are 97 sites with three samples and three sites with two samples. We removed three samples and 36 PCR rows: 297 field samples and 3,564 PCR rows remain, still covering all 100 sites and ten species. Every retained sample has both primers and six PCRs per primer. No retained read count or covariate changes.
 
-A lost sample is represented by **absent rows**. It is not an observed sample with zero reads, and it is not a collection of `NA` PCR results. The original `known_truth` still describes all 100 sites, all ten species and all 200 simulated samples, including those we removed from the observed survey. Lesson 1 fits this reduced survey and compares the resulting probabilities with those same truths. This is an example of preparing unequal replication, not a replicated experiment measuring the effects of sample loss.
+A lost sample is represented by **absent rows**. It is not an observed sample with zero reads, and it is not a collection of `NA` PCR results. The original `known_truth` still describes all 100 sites, all ten species and all 300 simulated samples, including those we removed from the observed survey. Lesson 1 fits this reduced survey and compares the resulting probabilities with those same truths. This is an example of preparing unequal replication, not a replicated experiment measuring the effects of sample loss.
 
 ## Take the right objects into Lesson 1
 

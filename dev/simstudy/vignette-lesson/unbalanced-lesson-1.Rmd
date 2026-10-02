@@ -1,6 +1,6 @@
 ## Fit a survey with unequal replication
 
-Lesson 0 removes one whole field sample from each of Sites 12, 31 and 52, using a fixed random choice made before fitting. We keep all 100 sites and all ten species, with 197 samples and 2,364 PCR rows. The following code reconstructs that reduced dataset from the saved removal keys, so this section also works if you skipped Lesson 0.
+Lesson 0 removes one whole field sample from each of Sites 12, 31 and 52, using a fixed random choice made before fitting. We keep all 100 sites and all ten species, with 297 samples and 3,564 PCR rows. The following code reconstructs that reduced dataset from the saved removal keys, so this section also works if you skipped Lesson 0.
 
 ```{r unbalanced-load}
 unbalanced_lesson <- readRDS("teaching-data/unbalanced-lesson.rds")
@@ -89,7 +89,7 @@ selected_probabilities |>
         legend.position = "bottom")
 ```
 
-Calculate errors for both the complete community and the selected sites. Signed error is estimate minus truth; mean absolute error ignores the direction of each error. The `truth` and `estimate` columns remain probabilities, and the two error columns are percentage points.
+Calculate errors for both the complete community and the selected sites. Signed error is estimate minus truth; mean absolute error ignores the direction of each error. The `truth` and `estimate` columns remain probabilities, and the two error columns are percentage points. The error columns come first inside `summarise()` because each later line sees the averaged `truth` and `estimate`, not the original values.
 
 ```{r unbalanced-error-table}
 replication_errors <- bind_rows(
@@ -100,19 +100,19 @@ replication_errors <- bind_rows(
   group_by(scope, survey) |>
   summarise(
     cells = n(),
-    truth = mean(truth),
-    estimate = mean(estimate),
     signed_error_pp = 100 * mean(estimate - truth),
     mean_absolute_error_pp = 100 * mean(abs(estimate - truth)),
+    truth = mean(truth),
+    estimate = mean(estimate),
     .groups = "drop"
   )
 
 knitr::kable(replication_errors, digits = 3)
 ```
 
-The full-community mean absolute error is about 17 percentage points in both saved fits. **This single deletion and fit do not estimate the general effect of losing samples.** The two fits also use different MCMC seeds. Comparing their answers demonstrates a working input with unequal replication; a study of sample loss would repeat survey generation, deletion and fitting and assess Monte Carlo uncertainty.
+The full-community mean absolute error is `r formatC(replication_errors |> filter(scope == "All 100 sites", grepl("Original", survey)) |> pull(mean_absolute_error_pp), format = "f", digits = 1)` percentage points in the original fit and `r formatC(replication_errors |> filter(scope == "All 100 sites", grepl("Reduced", survey)) |> pull(mean_absolute_error_pp), format = "f", digits = 1)` in the reduced fit. **This single deletion and fit do not estimate the general effect of losing samples.** The two fits also use different MCMC seeds. Comparing their answers demonstrates a working input with unequal replication; a study of sample loss would repeat survey generation, deletion and fitting and assess Monte Carlo uncertainty.
 
-Check numerical diagnostics before drawing further conclusions. The public diagnostic table flags the environmental slope for OTU_3 (`X_psi.EnvCov.1`), with Rhat about 1.015. We retain that warning rather than choosing another seed or silently extending the fit. The saved call raised no R warning conditions; the diagnostic flag is a separate issue.
+Check numerical diagnostics before drawing further conclusions. In this fit the public diagnostic table flags no parameter, so the first table below is empty: none has Rhat above 1.01 or ESS below 400, and the largest parameter Rhat is `r formatC(max(unbalanced_lesson$diagnostics$rhat, na.rm = TRUE), format = "f", digits = 3)`. Had a parameter been flagged, we would report it rather than choose another seed or silently extend the fit. The saved call raised no R warning conditions.
 
 ```{r unbalanced-diagnostics}
 unbalanced_lesson$diagnostics |>
@@ -130,4 +130,4 @@ unbalanced_lesson$cells |>
   knitr::kable(digits = 3)
 ```
 
-The first table uses the public function's classical `coda` Rhat and ESS. The second uses `posterior` diagnostics on the reconstructed probability draws: all 1,000 pass these thresholds, with maximum Rhat about 1.008 and minimum ESS about 940. These measures ask how well chains explored their distributions. They do not establish accuracy against ecological truth, which is why the paired truth figures and error table remain necessary.
+The first table uses the public function's classical `coda` Rhat and ESS. The second uses `posterior` diagnostics on the reconstructed probability draws: all 1,000 pass these thresholds, with maximum Rhat about `r formatC(max(unbalanced_lesson$cells$rhat), format = "f", digits = 3)` and minimum ESS about `r round(min(unbalanced_lesson$cells$ess))`. These measures ask how well chains explored their distributions. They do not establish accuracy against ecological truth, which is why the paired truth figures and error table remain necessary.
