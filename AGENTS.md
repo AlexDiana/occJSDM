@@ -110,6 +110,18 @@ MarkdownWrap: None
 
 **The tradeoff, stated honestly.** Unwrapped paragraphs make git diffs paragraph-granular rather than line-granular. `git diff --word-diff` recovers most of the readability. This was accepted deliberately as the lesser cost against recurring phantom diffs.
 
+## Writing the vignettes and lessons
+
+**Write every vignette and lesson to teach, not only to describe.** Doug set this on 2 October 2026 after reviewing the rewritten quickstart (`vignettes/occJSDM.Rmd`), whose first draft was accurate but terse. His edits show what he wants, and he wants all the lessons written this way:
+
+- **Name the concepts the reader needs, in the reader's terms.** He replaced "imperfect field collection, imperfect PCR detection and false positives at both stages" with false negatives (from imperfect field collection, imperfect PCR detection or both) and false positives (from contamination in the field, in the lab or both).
+- **Answer the question the reader is about to ask.** Where the draft said only that `OTU` holds read counts, he added that users can supply their read counts without converting their OTU tables first, because `runOccJSDM()` does the conversion.
+- **Show every part of the data the reader will handle**, not just the first: he added `head(sampledata$OTU)` and `head(sampledata$traits)` beside `head(sampledata$info)`.
+- **Spell out the reasoning behind a choice**, such as why this dataset leads `runOccJSDM()` to fit the two-stage model: it has sample and PCR replicates.
+- **Give practical advice, and keep examples complete.** The fitting example keeps the `spatCovariates` line to show how the whole model is specified, and a note recommends leaving that line out of real fits because the beta's spatial model is very underpowered.
+
+**Then copyedit for clarity and accuracy, keeping the teaching.** Doug liked a copyedit that kept every one of these additions while splitting long sentences, replacing "and/or", fixing a missing full stop, removing an aside that repeated its sentence, and correcting one point of substance (with one row per site, `runOccJSDM()` skips the detection stages, not the occupancy model). Both passes matter: the teaching content first, then the polish. Doug reviews each lesson line by line before it is published (see the publishing item in `TODO.md`).
+
 ## Evidence behind the group B items, moved out of TODO
 
 `TODO.md` was trimmed on 30 July to be a to-do list rather than an investigation log. The reasoning that justified each conclusion lives here so the items themselves stay short. Do not re-investigate these.
