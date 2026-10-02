@@ -46,7 +46,7 @@ replication_results <- bind_rows(
 ) |>
   mutate(
     survey = factor(arm, levels = c("default", "unbalanced"),
-                    labels = c("Original: 200 samples", "Reduced: 197 samples")),
+                    labels = c("Original: 300 samples", "Reduced: 297 samples")),
     reduced_site = Site %in% as.character(removed_samples$Site),
     site_group = if_else(reduced_site, "Three selected sites", "Other 97 sites")
   )
