@@ -203,6 +203,8 @@ Rscript dev/simstudy/vignette-lesson/native-traits-verify.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/remaining-plots-diagnose-covariate.R /path/to/full-fits
 ```
 
+`remaining-plots-diagnose-covariate.R` reproduces the pre-PR #13 covariate-response bug against the old archive and package only; it cannot pass on code after PR #13, which removed `plotCovariateEffect_base()` and corrected the calculation, so it is not run in a rebuild from current main.
+
 The canonical snippets `ordination-examples.Rmd` and `remaining-plots-examples.Rmd` are copied into Lesson 3, not sourced as child documents. Their verifiers check that the displayed bodies exactly match the exported calculations. Keep them synchronized when editing. The compact RDS files and ten native PNGs are included in the source package. Neither rendering nor these plot exports reruns MCMC.
 
 Ordination uses draw-wise orthogonal Procrustes alignment against the known generating loadings, transforming scores and loadings jointly. It is a simulation-only aid, not a claim that an axis has been identified independently of truth. All 24,000 draws are retained. The verifier uses an independent analytic two-dimensional rotation/reflection calculation and checks unchanged score/loading products and Gram matrices, native marginal quantiles, identities, plotted coordinates, circle widths, arrow scaling and image hashes. The lesson explains that native circles summarize two marginal interval widths, not joint credible regions. All 100 sites appear in the biplot; ten sites chosen by original order have separate common-axis panels, and all ten species have loading panels.

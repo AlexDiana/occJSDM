@@ -12,6 +12,8 @@ R_LIBS='/Users/douglasyu/Documents/Codex/2026-09-10/fam/work/vignette-lesson-202
 R_LIBS='/Users/douglasyu/Documents/Codex/2026-09-10/fam/work/vignette-lesson-20260919/library' Rscript dev/simstudy/vignette-lesson/remaining-plots-diagnose-covariate.R /Users/douglasyu/Documents/Codex/2026-09-10/fam/work/vignette-lesson-20260919
 ```
 
+`remaining-plots-diagnose-covariate.R` reproduces the pre-PR #13 covariate-response bug against the old archive and package only; it cannot pass on code after PR #13, which removed `plotCovariateEffect_base()` and corrected the calculation, so it is not run in a rebuild from current main.
+
 The verifier also checks that Lesson 3 displays the exact exported plotting bodies. Keep the snippet and lesson synchronized when changing these examples.
 
 Verification independently reconstructs every gradient's 95% interval and median from all 24,000 matched draws. It checks the standardized design against the original site predictors and verifies the generating `B0 + X B + U L` identity before removing site factors for these curves. The native grid has 40 points from the 2nd to 98th percentiles. Other environmental predictors stay at observed medians; site factors equal zero. This target does not marginalize unknown site factors. The checker verifies all 800 truth points, native intervals, medians, rugs, and facet identities against their plotted coordinates.
