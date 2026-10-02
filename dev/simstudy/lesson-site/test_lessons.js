@@ -9,9 +9,10 @@ const nav = require(path.resolve("assets/js/lessons.js"));
 
 test("finds lesson pages, with or without .html", () => {
   assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM.html", nav.LESSONS), 0);
-  assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-lesson-1.html", nav.LESSONS), 2);
-  assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-lesson-1", nav.LESSONS), 2);
-  assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-lesson-4.html", nav.LESSONS), 5);
+  assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-lesson-intuition.html", nav.LESSONS), 1);
+  assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-lesson-1.html", nav.LESSONS), 3);
+  assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-lesson-1", nav.LESSONS), 3);
+  assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-lesson-4.html", nav.LESSONS), 6);
 });
 
 test("ignores pages that are not lessons", () => {
@@ -22,16 +23,19 @@ test("ignores pages that are not lessons", () => {
 });
 
 test("labels each lesson's position, but not the guide's", () => {
-  assert.equal(nav.positionText(0, nav.LESSONS), "");
-  assert.equal(nav.positionText(1, nav.LESSONS), "Lesson 0 of 0–4");
-  assert.equal(nav.positionText(2, nav.LESSONS), "Lesson 1 of 0–4");
-  assert.equal(nav.positionText(5, nav.LESSONS), "Lesson 4 of 0–4");
+  // The intuition lesson has no number until the renumbering after the beta,
+  // so the position labels are checked on the numbered lessons.
+  const numbered = nav.LESSONS.filter(l => l.label === "Quickstart" || /^Lesson \d+$/.test(l.label));
+  assert.equal(nav.positionText(0, numbered), "");
+  assert.equal(nav.positionText(1, numbered), "Lesson 0 of 0–4");
+  assert.equal(nav.positionText(2, numbered), "Lesson 1 of 0–4");
+  assert.equal(nav.positionText(5, numbered), "Lesson 4 of 0–4");
 });
 
 test("links to the neighbouring pages, with none beyond either end", () => {
   assert.deepEqual(nav.neighbours(0, nav.LESSONS), { previous: null, next: nav.LESSONS[1] });
   assert.deepEqual(nav.neighbours(3, nav.LESSONS), { previous: nav.LESSONS[2], next: nav.LESSONS[4] });
-  assert.deepEqual(nav.neighbours(5, nav.LESSONS), { previous: nav.LESSONS[4], next: null });
+  assert.deepEqual(nav.neighbours(6, nav.LESSONS), { previous: nav.LESSONS[5], next: null });
 });
 
 test("builds contents entries only for headings with ids, tidying their text", () => {
@@ -52,12 +56,12 @@ test("marks the last heading at or above the reading line as current", () => {
 
 test("lists every lesson source, in order, with its YAML title", () => {
   const stems = fs.readdirSync("vignettes")
-    .filter(f => /^occJSDM(-lesson-\d+)?\.Rmd$/.test(f))
+    .filter(f => /^occJSDM(-lesson-(\d+|intuition))?\.Rmd$/.test(f))
     .map(f => f.replace(/\.Rmd$/, ""))
     .sort();
   assert.deepEqual(nav.LESSONS.map(l => l.stem).slice().sort(), stems);
   assert.deepEqual(nav.LESSONS.map(l => l.label),
-    ["Quickstart", "Lesson 0", "Lesson 1", "Lesson 2", "Lesson 3", "Lesson 4"]);
+    ["Quickstart", "Intuition", "Lesson 0", "Lesson 1", "Lesson 2", "Lesson 3", "Lesson 4"]);
   for (const lesson of nav.LESSONS) {
     const rmd = fs.readFileSync(path.join("vignettes", lesson.stem + ".Rmd"), "utf8");
     assert.equal(lesson.title, /^title:\s*"(.*)"\s*$/m.exec(rmd)[1], lesson.stem);

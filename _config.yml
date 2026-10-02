@@ -41,11 +41,13 @@ exclude:
   - dev/
   - PARALLELISATION/
   - deprecated/
+  - vignettes/occJSDM-lesson-intuition.md
   - vignettes/occJSDM-lesson-0.md
   - vignettes/occJSDM-lesson-1.md
   - vignettes/occJSDM-lesson-2.md
   - vignettes/occJSDM-lesson-3.md
   - vignettes/occJSDM-lesson-4.md
+  - vignettes/occJSDM-lesson-intuition_files/
   - vignettes/occJSDM-lesson-0_files/
   - vignettes/occJSDM-lesson-1_files/
   - vignettes/occJSDM-lesson-3_files/

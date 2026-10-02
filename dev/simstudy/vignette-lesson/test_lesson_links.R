@@ -3,8 +3,9 @@
 # external links, the Visual editor's encoding of inline-R destinations, and
 # committed Markdown links that GitHub Pages cannot convert to .html.
 root <- normalizePath(".")
-lessons <- c("occJSDM", "occJSDM-lesson-0", "occJSDM-lesson-1",
-             "occJSDM-lesson-2", "occJSDM-lesson-3", "occJSDM-lesson-4")
+lessons <- c("occJSDM", "occJSDM-lesson-intuition", "occJSDM-lesson-0",
+             "occJSDM-lesson-1", "occJSDM-lesson-2", "occJSDM-lesson-3",
+             "occJSDM-lesson-4")
 quickstart <- readLines("vignettes/occJSDM.Rmd", warn = FALSE)
 start <- grep("^```\\{r setup,", quickstart)
 end <- which(seq_along(quickstart) > start & quickstart == "```")[1]
@@ -64,7 +65,7 @@ for (name in lessons) {
                 collapse = "\n")
   stopifnot(!grepl("%60r|%20lesson_link|`r lesson_link", text))
 }
-cat("All six lesson sources are free of dynamic or encoded link destinations.\n")
+cat("All", length(lessons), "lesson sources are free of dynamic or encoded link destinations.\n")
 
 # GitHub Pages turns .md lesson links into .html with jekyll-relative-links,
 # which only recognises a link whose text sits on one line. A link whose text
@@ -91,5 +92,5 @@ if (length(split_links)) {
        "\nRender the Markdown with github_document(html_preview = FALSE, ",
        "pandoc_args = \"--wrap=none\").", call. = FALSE)
 }
-cat("All six rendered lessons keep each lesson link on one line for GitHub Pages.\n")
+cat("All", length(lessons), "rendered lessons keep each lesson link on one line for GitHub Pages.\n")
 cat("Shared lesson-link regression checks passed.\n")
