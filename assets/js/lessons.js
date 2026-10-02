@@ -1,8 +1,8 @@
 /*
  * Lesson navigation for the GitHub Pages site during the beta.
  *
- * Loaded by _includes/head-custom.html. On the six lesson pages it adds a bar
- * under the lesson title, a contents list and previous/next links; on every
+ * Loaded by _includes/head-custom.html. On each published lesson page it adds
+ * a bar under the title, a contents list and previous/next links; on every
  * other page, and without JavaScript, it does nothing. Remove it with the rest
  * of assets/ when pkgdown replaces this site (dev/simstudy/lesson-site/DESIGN.md).
  */
@@ -11,13 +11,16 @@
 
   // The lesson sequence. Titles must match each .Rmd's YAML title, which
   // dev/simstudy/lesson-site/test_lessons.js checks. Add one entry per lesson.
+  // `published` must agree with _config.yml, which excludes the pages of
+  // unpublished lessons; the same test checks that. During the beta the
+  // lessons are withheld until Doug has reviewed them.
   var LESSONS = [
-    { stem: "occJSDM", label: "Lesson guide", title: "occJSDM: quickstart and lesson guide" },
-    { stem: "occJSDM-lesson-0", label: "Lesson 0", title: "Lesson 0 (optional): Create and explore a simulated survey" },
-    { stem: "occJSDM-lesson-1", label: "Lesson 1", title: "Lesson 1: Fit the model and compare its answers with truth" },
-    { stem: "occJSDM-lesson-2", label: "Lesson 2", title: "Lesson 2: Spatial landscapes and survey design" },
-    { stem: "occJSDM-lesson-3", label: "Lesson 3", title: "Lesson 3: Understand the model's outputs by comparing them with truth" },
-    { stem: "occJSDM-lesson-4", label: "Lesson 4", title: "Lesson 4: Compare four JSDMs with a community whose truth we know" }
+    { stem: "occJSDM", label: "Quickstart", title: "occJSDM: quickstart", published: true },
+    { stem: "occJSDM-lesson-0", label: "Lesson 0", title: "Lesson 0 (optional): Create and explore a simulated survey", published: false },
+    { stem: "occJSDM-lesson-1", label: "Lesson 1", title: "Lesson 1: Fit the model and compare its answers with truth", published: false },
+    { stem: "occJSDM-lesson-2", label: "Lesson 2", title: "Lesson 2: Spatial landscapes and survey design", published: false },
+    { stem: "occJSDM-lesson-3", label: "Lesson 3", title: "Lesson 3: Understand the model's outputs by comparing them with truth", published: false },
+    { stem: "occJSDM-lesson-4", label: "Lesson 4", title: "Lesson 4: Compare four JSDMs with a community whose truth we know", published: false }
   ];
 
   // How far below the top of the window, in pixels, a heading must have
@@ -36,12 +39,17 @@
   }
 
   // "Lesson 1 of 0-4" (with an en dash) for a numbered lesson; "" for the
-  // lesson guide, which is entry 0.
+  // quickstart, which is entry 0.
   function positionText(i, lessons) {
     if (i <= 0) return "";
     var number = function (lesson) { return lesson.label.replace(/^Lesson /, ""); };
     return lessons[i].label + " of " + number(lessons[1]) + "–" +
       number(lessons[lessons.length - 1]);
+  }
+
+  // The lessons readers can reach on the site; navigation links only these.
+  function publishedLessons(lessons) {
+    return lessons.filter(function (lesson) { return lesson.published; });
   }
 
   function neighbours(i, lessons) {
@@ -97,7 +105,8 @@
   }
 
   function addNavigation(doc, win) {
-    var index = lessonIndex(win.location.pathname, LESSONS);
+    var pages = publishedLessons(LESSONS);
+    var index = lessonIndex(win.location.pathname, pages);
     if (index < 0) return;
     var body = doc.querySelector(".markdown-body");
     if (!body) return;
@@ -106,17 +115,23 @@
     if (titles.length < 2) return;
     var folder = win.location.pathname.replace(/[^\/]*$/, "");
     var href = function (lesson) { return folder + lesson.stem + ".html"; };
-    var around = neighbours(index, LESSONS);
+    var around = neighbours(index, pages);
 
+    // With only one published page there is nothing to link, so the bar and
+    // the previous/next links are left out rather than added empty.
     var bar = element(doc, "nav", "lesson-bar");
     bar.setAttribute("aria-label", "Lessons");
-    if (index > 0) bar.appendChild(link(doc, LESSONS[0].label, href(LESSONS[0])));
-    var position = positionText(index, LESSONS);
+    if (index > 0) bar.appendChild(link(doc, pages[0].label, href(pages[0])));
+    var position = positionText(index, pages);
     if (position) bar.appendChild(element(doc, "span", "lesson-position", position));
     if (around.next) {
       bar.appendChild(link(doc, "Next: " + around.next.label + " →", href(around.next)));
     }
-    titles[1].insertAdjacentElement("afterend", bar);
+    var top = titles[1];
+    if (bar.firstChild) {
+      top.insertAdjacentElement("afterend", bar);
+      top = bar;
+    }
 
     var headings = Array.prototype.slice.call(body.querySelectorAll("h2")).filter(function (h) {
       return h.id;
@@ -128,7 +143,7 @@
       var inline = element(doc, "details", "lesson-contents lesson-contents-inline");
       inline.appendChild(element(doc, "summary", null, "Contents"));
       inline.appendChild(contentsList(doc, entries));
-      bar.insertAdjacentElement("afterend", inline);
+      top.insertAdjacentElement("afterend", inline);
 
       var side = element(doc, "nav", "lesson-contents lesson-contents-side");
       side.setAttribute("aria-label", "On this page");
@@ -185,13 +200,15 @@
       anchor.appendChild(doc.createTextNode(lesson.title));
       pager.appendChild(anchor);
     });
-    var footer = body.querySelector(".footer");
-    if (footer) body.insertBefore(pager, footer); else body.appendChild(pager);
+    if (pager.firstChild) {
+      var footer = body.querySelector(".footer");
+      if (footer) body.insertBefore(pager, footer); else body.appendChild(pager);
+    }
   }
 
   var api = {
     LESSONS: LESSONS, lessonIndex: lessonIndex, positionText: positionText,
-    neighbours: neighbours, contentsEntries: contentsEntries, activeIndex: activeIndex
+    publishedLessons: publishedLessons, neighbours: neighbours, contentsEntries: contentsEntries, activeIndex: activeIndex
   };
   if (typeof module === "object" && module.exports) module.exports = api;
 

@@ -17,30 +17,14 @@ Note the `build_vignettes = TRUE` -- without it, `remotes::install_github()` ski
 
 ## Getting started
 
-Start with the teaching lessons. They show readable R code alongside the simulated truth and matching results:
-
-- [Lesson 0 (optional): Create and explore a simulated survey](vignettes/occJSDM-lesson-0.md).
-- [Lesson 1: Fit the model and compare its answers with truth](vignettes/occJSDM-lesson-1.md).
-- [Lesson 2: Spatial landscapes and survey design](vignettes/occJSDM-lesson-2.md), a plain-language account of what the spatial field learns, how to choose sample spacing and extent, and how to validate spatial prediction. Its worked sections test four arrangements of 100 sites, spread, spread with close pairs, clustered, and a grid control, against an oracle ceiling and occJSDM fits on true states and on eDNA surveys, and test whether the coverage that clustering gives up costs anything when predicting unsurveyed locations.
-- [Lesson 3: Understand the model outputs](vignettes/occJSDM-lesson-3.md), with true and fitted environmental effects, trait effects, species associations, variation partitioning and detection-effort curves.
-- [Lesson 4: Compare four JSDMs](vignettes/occJSDM-lesson-4.md), a worked pure-JSDM pilot with occJSDM, gllvm, sjSDM and Hmsc, comparing probabilities and environmental responses with simulation truth. sjSDM turns out to have two local optima, which the lesson explains.
-
-After installing with vignettes, open the completed lessons in R:
-
-``` r
-vignette("occJSDM-lesson-0", package = "occJSDM")
-vignette("occJSDM-lesson-1", package = "occJSDM")
-vignette("occJSDM-lesson-2", package = "occJSDM")
-vignette("occJSDM-lesson-3", package = "occJSDM")
-vignette("occJSDM-lesson-4", package = "occJSDM")
-```
-
-The quickstart guide and simulator reference are also available:
+The [quickstart](vignettes/occJSDM.md) shows the input data, a fitting call and a first look at the output. The simulator guide shows how to simulate a survey whose truth you know. After installing with vignettes, open them in R:
 
 ``` r
 vignette("occJSDM", package = "occJSDM")
 vignette("simulateOccJSDMData", package = "occJSDM")
 ```
+
+Teaching lessons that compare every output with simulated truth are being reviewed and will be published after the beta.
 
 ## Known limitations
 

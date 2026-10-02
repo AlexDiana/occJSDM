@@ -57,9 +57,30 @@ test("lists every lesson source, in order, with its YAML title", () => {
     .sort();
   assert.deepEqual(nav.LESSONS.map(l => l.stem).slice().sort(), stems);
   assert.deepEqual(nav.LESSONS.map(l => l.label),
-    ["Lesson guide", "Lesson 0", "Lesson 1", "Lesson 2", "Lesson 3", "Lesson 4"]);
+    ["Quickstart", "Lesson 0", "Lesson 1", "Lesson 2", "Lesson 3", "Lesson 4"]);
   for (const lesson of nav.LESSONS) {
     const rmd = fs.readFileSync(path.join("vignettes", lesson.stem + ".Rmd"), "utf8");
     assert.equal(lesson.title, /^title:\s*"(.*)"\s*$/m.exec(rmd)[1], lesson.stem);
+  }
+});
+
+test("navigates only between published pages", () => {
+  for (const lesson of nav.LESSONS) assert.equal(typeof lesson.published, "boolean", lesson.stem);
+  const pages = nav.publishedLessons(nav.LESSONS);
+  assert.deepEqual(pages.map(l => l.stem), nav.LESSONS.filter(l => l.published).map(l => l.stem));
+  assert.deepEqual(nav.publishedLessons([{ stem: "a", published: false }, { stem: "b", published: true }]),
+    [{ stem: "b", published: true }]);
+});
+
+test("publishes a page exactly when _config.yml does, figures included", () => {
+  // Lessons withheld from the site are excluded by name in _config.yml; the
+  // flags here must agree, so publishing a lesson changes both together.
+  const config = fs.readFileSync("_config.yml", "utf8");
+  const excluded = new Set([...config.matchAll(/^\s*-\s+(\S+)\s*$/gm)].map(m => m[1]));
+  for (const lesson of nav.LESSONS) {
+    const page = "vignettes/" + lesson.stem + ".md";
+    assert.equal(lesson.published, !excluded.has(page), page);
+    const figures = "vignettes/" + lesson.stem + "_files";
+    if (fs.existsSync(figures)) assert.equal(lesson.published, !excluded.has(figures + "/"), figures);
   }
 });

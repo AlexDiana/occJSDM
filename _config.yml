@@ -25,6 +25,13 @@
 # documents, so they are excluded by name. Links to any excluded file from a
 # published page would be a 404 on the site, so such links must point at the
 # file on GitHub instead.
+#
+# During the beta the five teaching lessons are withheld until Doug has
+# reviewed them: their pages, figure folders and the teaching data are
+# excluded below, assets/js/lessons.js marks them unpublished (a Node test in
+# dev/simstudy/lesson-site/ checks that the two agree), and .Rbuildignore keeps
+# them out of the package (vignettes/.install_extras no longer copies their
+# teaching data). TODO.md lists the steps to publish a lesson.
 exclude:
   - TODO.md
   - AGENTS.md
@@ -34,3 +41,12 @@ exclude:
   - dev/
   - PARALLELISATION/
   - deprecated/
+  - vignettes/occJSDM-lesson-0.md
+  - vignettes/occJSDM-lesson-1.md
+  - vignettes/occJSDM-lesson-2.md
+  - vignettes/occJSDM-lesson-3.md
+  - vignettes/occJSDM-lesson-4.md
+  - vignettes/occJSDM-lesson-0_files/
+  - vignettes/occJSDM-lesson-1_files/
+  - vignettes/occJSDM-lesson-3_files/
+  - vignettes/teaching-data/

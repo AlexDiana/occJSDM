@@ -25,3 +25,7 @@
 ^CLAUDE-HANDOVER\.md$
 ^_includes$
 ^assets$
+^vignettes/occJSDM-lesson-[0-4]\.(Rmd|md)$
+^vignettes/occJSDM-lesson-[0-4]_files$
+^vignettes/teaching-data$
+^vignettes/lesson-4-calibration-tables\.R$
