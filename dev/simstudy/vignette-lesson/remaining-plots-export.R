@@ -51,7 +51,7 @@ sys.source("R/output.R", source_environment)
 sys.source("R/jsdmfun.R", source_environment)
 api_names <- c("returnOccupancyGradient", "plotOccupancyGradient", "plotSpeciesRates",
                "plotStage1FPRates", "plotStage2FPRates", "plotDetectionRates",
-               "plotCovariateEffect", "returnCovariateEffect_base", "plotCovariateEffect_base",
+               "plotCovariateEffect", "returnCovariateEffect_base", "returnCovariateEffect",
                "create_covariates_matrix")
 stopifnot(all(vapply(api_names, function(name) {
   identical(body(get(name, asNamespace("occJSDM"))), body(get(name, source_environment))) &&
