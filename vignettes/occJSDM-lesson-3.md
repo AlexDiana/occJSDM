@@ -5,7 +5,7 @@ Lesson 3: Understand the model’s outputs by comparing them with truth
 
 An environmental effect can be real in the simulation and still be estimated imprecisely. A fitted curve can look convincing and still miss the truth. This lesson shows how to distinguish those situations.
 
-It replaces the output tour in the original occJSDM vignette. Start with [Lesson 1](occJSDM-lesson-1.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. You do not need the spatial Lesson 2 first. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, two field samples per site, two primers and six PCR replicates per primer.
+It replaces the output tour in the original occJSDM vignette. Start with [Lesson 1](occJSDM-lesson-1.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. You do not need the spatial Lesson 2 first. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
 
 We compare two existing fits of that community: one given the actual presence/absence matrix (**perfect observation**) and one given the PCR observations. The diagnostics section also revisits Lesson 1’s longer alternative-prior fit. This is not a before/after comparison of software versions. The fits use the verified model source recorded in Lesson 1; that source matches the code on main when this lesson was prepared. Most examples reuse these fits. The new-site comparison below adds one fit to the same PCR observations, changing only the number of hidden site factors from two to one.
 
@@ -64,7 +64,7 @@ knitr::kable(effect_counts, caption = "How many 95% intervals exclude zero?")
 
 | fit                 | block       | effects | intervals_excluding_zero |
 |:--------------------|:------------|--------:|-------------------------:|
-| PCR observations    | Environment |      20 |                        8 |
+| PCR observations    | Environment |      20 |                        9 |
 | PCR observations    | Trait       |       4 |                        1 |
 | Perfect observation | Environment |      20 |                       12 |
 | Perfect observation | Trait       |       4 |                        1 |
@@ -196,16 +196,16 @@ outputs$baseline |>
 
 | species | truth | estimate | lower | upper |
 |:--------|:------|:---------|:------|:------|
-| OTU_1   | 91.3% | 76.6%    | 47.5% | 93.7% |
-| OTU_2   | 4.7%  | 28.7%    | 11.7% | 56.0% |
-| OTU_3   | 64.8% | 37.4%    | 17.4% | 63.3% |
-| OTU_4   | 56.2% | 50.8%    | 29.1% | 73.9% |
-| OTU_5   | 15.8% | 27.3%    | 8.4%  | 55.0% |
-| OTU_6   | 80.1% | 70.6%    | 40.7% | 89.1% |
-| OTU_7   | 80.2% | 69.0%    | 47.2% | 86.8% |
-| OTU_8   | 26.2% | 32.4%    | 18.8% | 49.3% |
-| OTU_9   | 34.8% | 34.7%    | 20.4% | 50.6% |
-| OTU_10  | 33.7% | 27.6%    | 10.7% | 50.2% |
+| OTU_1   | 91.3% | 79.8%    | 58.8% | 93.9% |
+| OTU_2   | 4.7%  | 21.6%    | 7.2%  | 45.3% |
+| OTU_3   | 64.8% | 47.3%    | 23.5% | 74.0% |
+| OTU_4   | 56.2% | 69.5%    | 47.6% | 86.6% |
+| OTU_5   | 15.8% | 34.4%    | 18.2% | 55.0% |
+| OTU_6   | 80.1% | 78.6%    | 57.4% | 91.2% |
+| OTU_7   | 80.2% | 71.9%    | 56.7% | 85.0% |
+| OTU_8   | 26.2% | 28.3%    | 15.8% | 43.2% |
+| OTU_9   | 34.8% | 41.2%    | 24.3% | 59.8% |
+| OTU_10  | 33.7% | 16.7%    | 6.6%  | 31.8% |
 
 Baseline probabilities: all predictor contributions set to zero.
 
@@ -559,16 +559,16 @@ ordination_examples$score_comparison |>
 
 | site | truth | estimate | lower | upper |
 |:-----|------:|---------:|------:|------:|
-| 1    |  0.12 |     0.03 | -0.64 |  0.69 |
-| 11   |  1.53 |     0.01 | -0.63 |  0.66 |
-| 21   |  0.99 |    -0.05 | -0.71 |  0.61 |
-| 31   | -0.50 |     0.00 | -0.67 |  0.65 |
-| 41   | -0.88 |    -0.07 | -0.76 |  0.59 |
-| 51   | -1.69 |    -0.04 | -0.70 |  0.59 |
-| 61   |  0.16 |     0.03 | -0.63 |  0.70 |
-| 71   |  1.47 |    -0.01 | -0.67 |  0.65 |
-| 81   | -1.05 |    -0.01 | -0.67 |  0.64 |
-| 91   |  0.66 |     0.02 | -0.62 |  0.69 |
+| 1    |  0.12 |     0.02 | -0.66 |  0.71 |
+| 11   |  1.53 |    -0.02 | -0.68 |  0.65 |
+| 21   |  0.99 |    -0.03 | -0.72 |  0.65 |
+| 31   | -0.50 |    -0.04 | -0.72 |  0.63 |
+| 41   | -0.88 |    -0.12 | -0.84 |  0.54 |
+| 51   | -1.69 |    -0.04 | -0.73 |  0.63 |
+| 61   |  0.16 |     0.03 | -0.66 |  0.76 |
+| 71   |  1.47 |    -0.06 | -0.77 |  0.62 |
+| 81   | -1.05 |     0.01 | -0.67 |  0.69 |
+| 91   |  0.66 |     0.05 | -0.59 |  0.74 |
 
 First aligned site coordinate: truth and posterior quantiles.
 
@@ -819,7 +819,7 @@ Genuine prediction at an unsurveyed site requires keeping its observations out o
 
 Imagine receiving habitat measurements from a second survey area before collecting any eDNA there. Can the fitted model predict which species are likely to occur? To answer this, we generated **300 new sites** from the same environmental distribution and the same ten-species community. Neither the new presence/absence observations nor the hidden site conditions were supplied to either fit.
 
-The original training survey is unchanged: 100 sites, two field samples per site, two primers and six PCR replicates per primer per sample. We compare its existing two-factor PCR fit with a new one-factor fit. Both use the same observations, environmental covariates, traits, priors and MCMC settings. The only model-setting change is the number of hidden site factors. The generating community has two factors, but that does not guarantee that two fitted factors will predict more accurately from this amount of data.
+The original training survey is unchanged: 100 sites, three field samples per site, two primers and six PCR replicates per primer per sample. We compare its existing two-factor PCR fit with a new one-factor fit. Both use the same observations, environmental covariates, traits, priors and MCMC settings. The only model-setting change is the number of hidden site factors. The generating community has two factors, but that does not guarantee that two fitted factors will predict more accurately from this amount of data.
 
 ``` r
 prediction_examples <- readRDS("teaching-data/prediction-lesson.rds")
@@ -1019,10 +1019,10 @@ prediction_cells |>
 
 | model | Signed error (percentage points) | Absolute error (percentage points) | RMSE (percentage points) |
 |:---|---:|---:|---:|
-| One hidden site factor | -3.81 | 9.93 | 12.56 |
-| Two hidden site factors | -3.83 | 10.02 | 12.61 |
+| One hidden site factor | 0.52 | 8.95 | 12.11 |
+| Two hidden site factors | 0.36 | 8.91 | 12.00 |
 
-Both models underestimate these probabilities by about **3.8 percentage points on average**, while their **average absolute error is about 10 percentage points**. Those are results from this simulation, not hypothetical examples. The difference between the two error measures means that errors in opposite directions partially cancel. An absolute error of ten points would be a prediction of 40% or 60% when truth is 50%; that last sentence is only an illustration of the unit, not a claim that all errors equal ten points.
+Both models overestimate these probabilities slightly on average, by **0.52 percentage points** with one factor and **0.36** with two, while their **average absolute error is about 8.9 percentage points**. Those are results from this simulation, not hypothetical examples. The difference between the two error measures means that errors in opposite directions partially cancel. An absolute error of ten points would be a prediction of 40% or 60% when truth is 50%; that last sentence is only an illustration of the unit, not a claim that all errors equal ten points.
 
 These new-site errors have a different target from Lesson 1’s errors in fitted-site probabilities. Here we average over unknown local conditions; there we check the probability for each surveyed site’s actual conditions. Comparing their magnitudes as if they measured the same task would be misleading.
 
@@ -1051,8 +1051,8 @@ observed_scores |>
 
 | model                   |   Brier | Negative log score |
 |:------------------------|--------:|-------------------:|
-| One hidden site factor  | 0.18468 |            0.54575 |
-| Two hidden site factors | 0.18482 |            0.54646 |
+| One hidden site factor  | 0.18717 |            0.55462 |
+| Two hidden site factors | 0.18684 |            0.55382 |
 
 Both models predict the **same new sites**, so compare their scores in pairs. Species at a site share hidden conditions; treating 3,000 species-site outcomes as independent would exaggerate the amount of independent evidence. We first average across the ten species within each site, then calculate differences across the 300 sites.
 
@@ -1073,11 +1073,11 @@ paired_sites |>
 
 | Mean Brier difference | Standard error across sites |
 |----------------------:|----------------------------:|
-|            -0.0001365 |                     6.7e-05 |
+|             0.0003306 |                    6.64e-05 |
 
-The difference is about **-0.00014 Brier units**, slightly favouring the one-factor fit in this particular experiment. The site-based standard error is about **0.000067**. It describes variation among new sites **conditional on these fitted predictions**. It excludes Monte Carlo error in the MCMC estimates, variation from repeating the original training survey, and changes to the simulated community. A site-only interval can therefore exclude zero without establishing a dependable model advantage.
+The difference, one factor minus two factors, is about **0.00033 Brier units**, slightly favouring the two-factor fit in this particular experiment. The site-based standard error is about **0.000066**. It describes variation among new sites **conditional on these fitted predictions**. It excludes Monte Carlo error in the MCMC estimates, variation from repeating the original training survey, and changes to the simulated community. A site-only interval can therefore exclude zero, as it does here, without establishing a dependable model advantage.
 
-An independent calculation from all retained posterior draws estimates the Monte Carlo standard error of that Brier-score difference at about **0.00025**, larger than the observed difference of 0.00014. This is numerical uncertainty from MCMC, a different source of uncertainty from the site-based standard error. It directly supports withholding a model ranking. The calculation uses a first-order approximation and is documented in the prediction verifier.
+An independent calculation from all retained posterior draws (`prediction-verify.R --score-mcse`, recorded in the build log) estimates the Monte Carlo standard error of that Brier-score difference at about **0.00026**, so the observed difference of 0.00033 is only about 1.3 Monte Carlo standard errors from zero. This is numerical uncertainty from MCMC, a different source of uncertainty from the site-based standard error. A difference this close to its numerical uncertainty supports withholding a model ranking. The calculation uses a first-order approximation and is documented in the prediction verifier.
 
 The broad result is that these two fits have nearly identical predictive performance here. We do not select a winning factor count from this tiny difference. Predicting each species’ marginal occurrence also does not test whether the model has recovered joint community structure or the correct number of hidden ecological drivers. A model can give useful single-species probabilities while describing species associations poorly.
 
@@ -1131,10 +1131,10 @@ prediction_examples$diagnostics |>
 
 | model | Parameter rows | Missing or flagged rows | Largest prediction Rhat | Smallest prediction ESS | Largest prediction MCSE (percentage points) |
 |:---|---:|---:|---:|---:|---:|
-| One hidden site factor | 100 | 0 | 1.005 | 745.985 | 0.379 |
-| Two hidden site factors | 100 | 0 | 1.009 | 865.625 | 0.389 |
+| One hidden site factor | 100 | 0 | 1.003 | 1218.026 | 0.254 |
+| Two hidden site factors | 100 | 0 | 1.007 | 1289.846 | 0.259 |
 
-There are no flagged rows under these checks. Nevertheless, the largest Monte Carlo standard error of a species’ average predicted probability is about 0.39 percentage points. This measures numerical uncertainty remaining in that posterior mean, not ecological prediction error. Passing the diagnostic thresholds does not make tiny differences between model scores exact.
+There are no flagged rows under these checks. Nevertheless, the largest Monte Carlo standard error of a species’ average predicted probability is about 0.26 percentage points. This measures numerical uncertainty remaining in that posterior mean, not ecological prediction error. Passing the diagnostic thresholds does not make tiny differences between model scores exact.
 
 The old walkthrough extracted WAIC to compare model specifications. Here is the current extraction syntax, followed by the values from these same-data fits:
 
@@ -1155,8 +1155,8 @@ tibble(
 
 | model                   | Current extractWAIC value |
 |:------------------------|--------------------------:|
-| Two hidden site factors |                  17253.43 |
-| One hidden site factor  |                  17255.98 |
+| Two hidden site factors |                  24495.31 |
+| One hidden site factor  |                  24501.00 |
 
 **Do not use this table to choose the better model for unsurveyed sites.** The current calculation combines likelihood terms for the sampled, unobserved site and collection states with terms for the PCR observations. Those hidden states are learned using the training observations. It does not average them out to evaluate the probability of new observations at a new site. Matching the training dataset is necessary for comparison, but does not by itself fix this difference in target. The independent-site scores above provide the worked predictive comparison. A validated observed-data WAIC or site-level cross-validation workflow remains separate work.
 
@@ -1181,13 +1181,20 @@ occJSDM::plotLatentPresences(
 )
 ```
 
-To keep knitting quick, the next chunk reads the exact tables exported from the saved default-prior fit. No estimates are recalculated or replaced with truth. We focus on OTU_1 at sites 2 and 3: the laboratory false-positive and weak true-detection cases selected in Lesson 1. Both field samples and both primers are retained at each site. The six PCRs within each sample/primer combination are numbered in their original observation order.
+To keep knitting quick, the next chunk reads the exact tables exported from the saved default-prior fit. No estimates are recalculated or replaced with truth. We focus on OTU_1 at sites 1 and 6: the laboratory false-positive and weak true-detection cases selected in Lesson 1, which `example_cases` takes from `lesson$cases`. All three field samples and both primers are retained at each site. The six PCRs within each sample/primer combination are numbered in their original observation order.
 
 ``` r
 native_tables <- readRDS("teaching-data/latent-presence-lesson.rds")
 
+example_cases <- lesson$cases |>
+  filter(case %in% c("Laboratory false positive", "Weak true detection")) |>
+  arrange(Site)
+
+lab_example <- filter(example_cases, case == "Laboratory false positive")
+weak_example <- filter(example_cases, case == "Weak true detection")
+
 latent_rows <- native_tables$tables |>
-  filter(species == "OTU_1", Site %in% c(2, 3)) |>
+  filter(species == "OTU_1", Site %in% example_cases$Site) |>
   arrange(Site, Sample, Primer, PCR)
 
 observed_truth <- lesson$observations |>
@@ -1235,58 +1242,82 @@ if (knitr::pandoc_to() %in% c("html", "html4", "html5")) {
 
 | Site | Sample | Primer | PCR | OTU | Source | TrueSite | CondOccProb | TrueSample | CondSampleProb |
 |---:|---:|---:|---:|---:|:---|---:|---:|---:|---:|
-| 2 | 3 | 1 | 1 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 1 | 2 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 1 | 3 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 1 | 4 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 1 | 5 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 1 | 6 | 1 | Laboratory false positive | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 2 | 1 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 2 | 2 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 2 | 3 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 2 | 4 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 2 | 5 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 3 | 2 | 6 | 0 | No detection | 1 | 0.706 | 0 | 0.009 |
-| 2 | 4 | 1 | 1 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 1 | 2 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 1 | 3 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 1 | 4 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 1 | 5 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 1 | 6 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 2 | 1 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 2 | 2 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 2 | 3 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 2 | 4 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 2 | 5 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 2 | 4 | 2 | 6 | 0 | No detection | 1 | 0.706 | 0 | 0.001 |
-| 3 | 5 | 1 | 1 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 1 | 2 | 72 | True detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 1 | 3 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 1 | 4 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 1 | 5 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 1 | 6 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 2 | 1 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 2 | 2 | 238 | True detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 2 | 3 | 68 | True detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 2 | 4 | 66 | True detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 2 | 5 | 139 | True detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 5 | 2 | 6 | 0 | No detection | 1 | 0.949 | 1 | 0.999 |
-| 3 | 6 | 1 | 1 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 1 | 2 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 1 | 3 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 1 | 4 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 1 | 5 | 466 | True detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 1 | 6 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 2 | 1 | 291 | True detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 2 | 2 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 2 | 3 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 2 | 4 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 2 | 5 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
-| 3 | 6 | 2 | 6 | 0 | No detection | 1 | 0.949 | 1 | 0.240 |
+| 1 | 1 | 1 | 1 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 1 | 2 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 1 | 3 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 1 | 4 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 1 | 5 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 1 | 6 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 2 | 1 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 2 | 2 | 1 | Laboratory false positive | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 2 | 3 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 2 | 4 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 2 | 5 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 1 | 2 | 6 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
+| 1 | 2 | 1 | 1 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 1 | 2 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 1 | 3 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 1 | 4 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 1 | 5 | 115 | True detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 1 | 6 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 2 | 1 | 517 | True detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 2 | 2 | 52 | True detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 2 | 3 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 2 | 4 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 2 | 5 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 2 | 2 | 6 | 89 | True detection | 1 | 0.987 | 1 | 0.986 |
+| 1 | 3 | 1 | 1 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 1 | 2 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 1 | 3 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 1 | 4 | 37 | True detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 1 | 5 | 81 | True detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 1 | 6 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 2 | 1 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 2 | 2 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 2 | 3 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 2 | 4 | 90 | True detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 2 | 5 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
+| 1 | 3 | 2 | 6 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
+| 6 | 16 | 1 | 1 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 1 | 2 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 1 | 3 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 1 | 4 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 1 | 5 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 1 | 6 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 2 | 1 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 2 | 2 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 2 | 3 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 2 | 4 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 2 | 5 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 16 | 2 | 6 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
+| 6 | 17 | 1 | 1 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 1 | 2 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 1 | 3 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 1 | 4 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 1 | 5 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 1 | 6 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 2 | 1 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 2 | 2 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 2 | 3 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 2 | 4 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 2 | 5 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 17 | 2 | 6 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
+| 6 | 18 | 1 | 1 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 1 | 2 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 1 | 3 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 1 | 4 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 1 | 5 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 1 | 6 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 2 | 1 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 2 | 2 | 105 | True detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 2 | 3 | 596 | True detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 2 | 4 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 2 | 5 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
+| 6 | 18 | 2 | 6 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
 
 In HTML, colours group the sites and shades group samples and primers. They do not indicate confidence or whether the model is correct. Markdown shows the same records as an ordinary table; its probabilities are decimals rather than percentages.
 
-At site 2, sample 3 has no OTU_1 DNA (`TrueSample = 0`), despite a positive PCR. OTU_1 nevertheless occupies the site (`TrueSite = 1`). This is a **laboratory false positive about the sample**, not evidence that the species must be absent from the entire site. At site 3, sample 6 genuinely contains DNA but gives only two positives across its twelve PCR observations. Read both samples together before judging the site’s inferred state.
+At site 1, sample 1 has no OTU_1 DNA (`TrueSample = 0`), despite a positive PCR. OTU_1 nevertheless occupies the site (`TrueSite = 1`). This is a **laboratory false positive about the sample**, not evidence that the species must be absent from the entire site. At site 6, sample 18 genuinely contains DNA but gives only 2 positives across its 12 PCR observations, and samples 16 and 17 contain none. Read all three samples together before judging the site’s inferred state.
 
 ### Keep generating probabilities separate from actual states
 
@@ -1354,16 +1385,20 @@ if (knitr::pandoc_to() %in% c("html", "html4", "html5")) {
 
 | Site | Sample | Primer | TrueOccupancy | PredOccProb | TrueCollection | CollectionProb | TrueDetection | DetectionProb |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 2 | 3 | 1 | 0.992 | 0.771 | 0.094 | 0.095 | 0.35 | 0.338 |
-| 2 | 3 | 2 | 0.992 | 0.771 | 0.094 | 0.095 | 0.45 | 0.453 |
-| 2 | 4 | 1 | 0.992 | 0.771 | 0.349 | 0.351 | 0.35 | 0.338 |
-| 2 | 4 | 2 | 0.992 | 0.771 | 0.349 | 0.351 | 0.45 | 0.453 |
-| 3 | 5 | 1 | 0.850 | 0.750 | 0.611 | 0.624 | 0.35 | 0.338 |
-| 3 | 5 | 2 | 0.850 | 0.750 | 0.611 | 0.624 | 0.45 | 0.453 |
-| 3 | 6 | 1 | 0.850 | 0.750 | 0.239 | 0.237 | 0.35 | 0.338 |
-| 3 | 6 | 2 | 0.850 | 0.750 | 0.239 | 0.237 | 0.45 | 0.453 |
+| 1 | 1 | 1 | 0.802 | 0.811 | 0.361 | 0.313 | 0.35 | 0.361 |
+| 1 | 1 | 2 | 0.802 | 0.811 | 0.361 | 0.313 | 0.45 | 0.459 |
+| 1 | 2 | 1 | 0.802 | 0.811 | 0.387 | 0.346 | 0.35 | 0.361 |
+| 1 | 2 | 2 | 0.802 | 0.811 | 0.387 | 0.346 | 0.45 | 0.459 |
+| 1 | 3 | 1 | 0.802 | 0.811 | 0.737 | 0.782 | 0.35 | 0.361 |
+| 1 | 3 | 2 | 0.802 | 0.811 | 0.737 | 0.782 | 0.45 | 0.459 |
+| 6 | 16 | 1 | 0.995 | 0.861 | 0.783 | 0.829 | 0.35 | 0.361 |
+| 6 | 16 | 2 | 0.995 | 0.861 | 0.783 | 0.829 | 0.45 | 0.459 |
+| 6 | 17 | 1 | 0.995 | 0.861 | 0.099 | 0.054 | 0.35 | 0.361 |
+| 6 | 17 | 2 | 0.995 | 0.861 | 0.099 | 0.054 | 0.45 | 0.459 |
+| 6 | 18 | 1 | 0.995 | 0.861 | 0.461 | 0.440 | 0.35 | 0.361 |
+| 6 | 18 | 2 | 0.995 | 0.861 | 0.461 | 0.440 | 0.45 | 0.459 |
 
-There are eight rows because these probabilities do not vary among repeated PCRs with the same site, sample and primer. Collection can vary between samples because `X_theta` varies. Detection varies by primer in this model. Inspecting the actual states in the first table and the generating probabilities in the second avoids treating a single success or failure as a probability estimate.
+There are twelve rows because these probabilities do not vary among repeated PCRs with the same site, sample and primer. Collection can vary between samples because `X_theta` varies. Detection varies by primer in this model. Inspecting the actual states in the first table and the generating probabilities in the second avoids treating a single success or failure as a probability estimate.
 
 ## Check computation as well as ecological recovery
 
@@ -1436,13 +1471,12 @@ flagged_alternative |>
   knitr::kable(digits = c(0, 0, 0, 4, 0, 0, 0, 0))
 ```
 
-| param      | label1         | label2 |   rhat |  ess | unavailable | high_rhat | low_ess |
-|:-----------|:---------------|:-------|-------:|-----:|:------------|:----------|:--------|
-| beta_theta | (Intercept)    | OTU_6  | 1.0143 |  482 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.1 | OTU_1  | 1.0103 | 1206 | FALSE       | TRUE      | FALSE   |
-| theta0     | OTU_6          | 1      | 1.0097 |  361 | FALSE       | FALSE     | TRUE    |
+| param    | label1         | label2 |   rhat |  ess | unavailable | high_rhat | low_ess |
+|:---------|:---------------|:-------|-------:|-----:|:------------|:----------|:--------|
+| beta_psi | X_psi.EnvCov.1 | OTU_6  | 1.0132 | 1273 | FALSE       | TRUE      | FALSE   |
+| theta0   | OTU_6          | 1      | 1.0074 |  397 | FALSE       | FALSE     | TRUE    |
 
-Here the rows identify the actual parameter to investigate. For example, `theta0` for OTU_6 has a low effective sample size even though its Rhat is just below 1.01. Looking at Rhat alone would miss that warning. The collection intercept for OTU_6 and the first environmental slope for OTU_1 are flagged for Rhat instead.
+Here the rows identify the actual parameter to investigate. For example, `theta0` for OTU_6 has a low effective sample size even though its Rhat is below 1.01. Looking at Rhat alone would miss that warning. The first environmental slope for OTU_6 is flagged for Rhat instead.
 
 These are screening rules, not sharp boundaries between trustworthy and untrustworthy results. In this package revision, `returnConvergenceDiagnostics()` uses the classical `coda` Rhat and effective sample size calculations. The newer `posterior` calculations below use rank-normalized split-chain Rhat and distinguish bulk from tail ESS. Their numbers can differ; do not relabel the public `ess` column as bulk or tail ESS. The [Stan diagnostics guide](https://mc-stan.org/learn-stan/diagnostics-warnings.html) explains the newer diagnostics and the commonly used 1.01 Rhat screen. Our legacy ESS screen of 400 is a prompt to inspect precision, not a guarantee about every posterior summary.
 
@@ -1590,7 +1624,7 @@ occJSDM::plotTraceplot(
 
 ![](occJSDM-lesson-3_files/figure-gfm/flagged-field-trace-1.png)<!-- -->
 
-There are 48,000 retained draws here, but their dependence means they carry much less independent information. The public ESS for this parameter is about 361. That is a numerical limitation on posterior summaries, not a count of field samples and not a claim that only that many iterations were run. This fit should not be described as having cleared every diagnostic simply because it was run for longer.
+There are 48,000 retained draws here, but their dependence means they carry much less independent information. The public ESS for this parameter is about 397. That is a numerical limitation on posterior summaries, not a count of field samples and not a claim that only that many iterations were run. This fit should not be described as having cleared every diagnostic simply because it was run for longer.
 
 The traces make this slow movement visible: each chain spends stretches at relatively high or low contamination rates. The true rate is 5.3%, near the bottom of the panels, but the fit also gives substantial weight to much higher rates. The example therefore raises two separate concerns: how precisely the sampler has estimated its posterior summaries, and how well that posterior recovers the ecological truth.
 
@@ -1723,7 +1757,7 @@ knitr::kable(diagnostic_summary, digits = 3)
 
 | fit                 | parameters | unavailable | maximum_Rhat | minimum_ESS |
 |:--------------------|-----------:|------------:|-------------:|------------:|
-| PCR observations    |        100 |           0 |        1.008 |     940.025 |
+| PCR observations    |        100 |           0 |        1.009 |     835.289 |
 | Perfect observation |         30 |           0 |        1.002 |    2096.978 |
 
 These are the saved parameter diagnostics, not a certification of unbiased inference. Good chain agreement does not resolve limited species information or separate overlapping ecological explanations. Use `returnConvergenceDiagnostics()` and `plotTraceplot()` on the full fit for parameter-level checks; a traceplot can include the corresponding true value as a reference.
@@ -1747,8 +1781,8 @@ outputs$coefficients |>
 
 | fit | block | maximum_Rhat | minimum_bulk_ESS | minimum_tail_ESS |
 |:---|:---|---:|---:|---:|
-| PCR observations | Environment | 1.005 | 978 | 1160 |
-| PCR observations | Trait | 1.004 | 1102 | 1971 |
+| PCR observations | Environment | 1.010 | 736 | 952 |
+| PCR observations | Trait | 1.002 | 941 | 1845 |
 | Perfect observation | Environment | 1.001 | 2141 | 3420 |
 | Perfect observation | Trait | 1.004 | 1000 | 1931 |
 
@@ -1939,7 +1973,7 @@ native_correlations
 
 ### Cumulative detections: compare survey outcomes with survey outcomes
 
-This function asks how many species would be detected if **all ten were present at the site**, the collection predictor were at its mean, and false positives were excluded. It pools both primers and varies field samples (`M`) and PCRs per primer per sample (`K`). It does not predict observed richness at an arbitrary site. Field replication up to four is prospective; the fitted data contained two field samples per site. PCR replication stays within the six-PCR design.
+This function asks how many species would be detected if **all ten were present at the site**, the collection predictor were at its mean, and false positives were excluded. It pools both primers and varies field samples (`M`) and PCRs per primer per sample (`K`). It does not predict observed richness at an arbitrary site. Field replication of four is prospective; the fitted data contained three field samples per site. PCR replication stays within the six-PCR design.
 
 Native bars include both fitted-parameter uncertainty and random collection/PCR outcomes. The routine selects 500 posterior draws to simulate surveys, so endpoints can vary with the seed. Orange bars are the exact 2.5% and 97.5% quantiles of the matching survey-count distribution under the generating parameters. Orange crosses mark its median. These truth intervals remain wide even when parameters are known.
 
@@ -2072,7 +2106,7 @@ remaining_gradient_2
 
 <img src="teaching-data/remaining-plots-gradient-2.png" alt="" width="100%" />
 
-The original walkthrough used `plotCovariateEffect()` here. Before the correction in [PR \#13](https://github.com/AlexDiana/occJSDM/pull/13), its numeric calculation added a log-odds intercept after the inverse-logit transformation and standardized predictors twice. The archived fit consequently gave impossible median probabilities of 1.772 to 1.815 for `OTU_1` along environmental gradient 1. The corrected helper applies the inverse-logit to the complete environmental linear predictor and reuses fitted scaling and encoding. Existing fits with the required covariate metadata need no refit.
+The original walkthrough used `plotCovariateEffect()` here. Before the correction in [PR \#13](https://github.com/AlexDiana/occJSDM/pull/13), its numeric calculation added a log-odds intercept after the inverse-logit transformation and standardized predictors twice. The archived fit of the earlier two-sample teaching survey consequently gave impossible median probabilities of 1.772 to 1.815 for `OTU_1` along environmental gradient 1. The corrected helper applies the inverse-logit to the complete environmental linear predictor and reuses fitted scaling and encoding. Existing fits with the required covariate metadata need no refit.
 
 The corrected `returnCovariateEffect()` and `plotCovariateEffect()` vary one predictor in original units, hold other numeric predictors at their medians and categories at their first fitted levels, and set spatial and latent site effects to zero. The numeric posterior-median column is now named `median`, replacing `mean`. The two `plotOccupancyGradient()` examples above already use the correct probability calculation; their differences from the simulated truth are not caused by this output bug.
 

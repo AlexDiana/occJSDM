@@ -37,7 +37,7 @@ First give the sampling decisions meaningful names. These are the actual setting
 ``` r
 n_sites <- 100
 n_species <- 10
-samples_per_site <- 2
+samples_per_site <- 3
 n_primers <- 2
 pcrs_per_primer <- 6
 
@@ -55,10 +55,10 @@ tibble(
     #>   <chr>                 <dbl>
     #> 1 Sites                   100
     #> 2 Species                  10
-    #> 3 Field samples           200
-    #> 4 PCR rows per species   2400
+    #> 3 Field samples           300
+    #> 4 PCR rows per species   3600
 
-There are 200 field samples and 2,400 PCR observations per species. Six PCR replicates means **six per primer per field sample**, not six divided between the two primers.
+There are 300 field samples and 3,600 PCR observations per species. Six PCR replicates means **six per primer per field sample**, not six divided between the two primers.
 
 The simulator uses shorter argument names. This list translates our decisions into its interface. `rep(value, times)` repeats a value, so `M` specifies the number of samples at each site and `K` the PCR count for each sample–primer combination.
 
@@ -164,7 +164,7 @@ dimnames(new_known_truth$w_true) <- list(sample_ids, species_ids)
 dimnames(new_known_truth$jsdmParams_true$eta) <- list(site_ids, species_ids)
 ```
 
-The original simulation used package revision b53048a. Exact reproduction requires the recorded code and software environment as well as the seed. If you change a setting, the old fitted results no longer belong to your new dataset: fit it again before comparing estimates with truth. Simply replacing a covariate column after simulation would also break the match between observations and their generating model.
+The original simulation used package revision eeb1675. Exact reproduction requires the recorded code and software environment as well as the seed. If you change a setting, the old fitted results no longer belong to your new dataset: fit it again before comparing estimates with truth. Simply replacing a covariate column after simulation would also break the match between observations and their generating model.
 
 ## Understand the three input objects
 
@@ -199,12 +199,12 @@ read_counts |>
 
 | OTU_1 | OTU_2 | OTU_3 | OTU_4 | OTU_5 | OTU_6 | OTU_7 | OTU_8 | OTU_9 | OTU_10 |
 |------:|------:|------:|------:|------:|------:|------:|------:|------:|-------:|
-|     0 |     0 |     0 |   235 |     0 |   343 |    65 |     0 |     0 |      0 |
-|     0 |     0 |     0 |     0 |     0 |    28 |    64 |     0 |     0 |      0 |
-|     0 |     0 |     0 |     0 |     0 |   273 |     0 |     0 |     0 |      0 |
+|     0 |     0 |   246 |     0 |     0 |     0 |   246 |     0 |     0 |      0 |
 |     0 |     0 |     0 |     0 |     0 |     0 |     0 |     0 |     0 |      0 |
-|     0 |     0 |     0 |   275 |     0 |   170 |     0 |     0 |     0 |      0 |
-|     0 |     0 |     0 |     0 |     0 |     0 |   153 |     0 |     0 |      0 |
+|     0 |     0 |     0 |     0 |   217 |     0 |  1256 |     0 |     0 |      0 |
+|     0 |     0 |    30 |     0 |   798 |     0 |   197 |    35 |     0 |      0 |
+|     0 |     0 |     0 |     0 |     0 |     0 |     0 |     0 |     0 |     10 |
+|     0 |     0 |     0 |     0 |   198 |     0 |     0 |     0 |     0 |      0 |
 
 ``` r
 species_traits |>
@@ -255,7 +255,7 @@ observed_pcrs <- bind_cols(observation_info, read_counts) |>
   )
 ```
 
-The new table has 24,000 rows: 2,400 PCR observations for each of ten species. `positive` is one for at least one read and zero for no reads. A missing read count remains missing. Species are columns in the matrix used by the fitter and rows in this table used for exploration; these are two representations of the same observations.
+The new table has 36,000 rows: 3,600 PCR observations for each of ten species. `positive` is one for at least one read and zero for no reads. A missing read count remains missing. Species are columns in the matrix used by the fitter and rows in this table used for exploration; these are two representations of the same observations.
 
 Now turn the true site and sample states into tables. The saved matrices have site or sample IDs as row names and species IDs as column names. `rownames_to_column()` makes the row identifier an explicit column.
 
@@ -283,30 +283,37 @@ observations_with_truth <- observed_pcrs |>
     )
   )
 
+weak_case <- lesson$cases |>
+  filter(case == "Weak true detection")
+
 observations_with_truth |>
-  filter(species == "OTU_1", Site == "3", Sample == "6") |>
+  filter(
+    species == weak_case$species,
+    Site == as.character(weak_case$Site),
+    Sample == as.character(weak_case$Sample)
+  ) |>
   select(Site, Sample, Primer, PCR, reads, positive, presence, dna_in_sample, source) |>
   knitr::kable()
 ```
 
 | Site | Sample | Primer | PCR | reads | positive | presence | dna_in_sample | source         |
 |:-----|:-------|-------:|----:|------:|---------:|---------:|--------------:|:---------------|
-| 3    | 6      |      1 |   1 |     0 |        0 |        1 |             1 | No detection   |
-| 3    | 6      |      1 |   2 |     0 |        0 |        1 |             1 | No detection   |
-| 3    | 6      |      1 |   3 |     0 |        0 |        1 |             1 | No detection   |
-| 3    | 6      |      1 |   4 |     0 |        0 |        1 |             1 | No detection   |
-| 3    | 6      |      1 |   5 |   466 |        1 |        1 |             1 | True detection |
-| 3    | 6      |      1 |   6 |     0 |        0 |        1 |             1 | No detection   |
-| 3    | 6      |      2 |   1 |   291 |        1 |        1 |             1 | True detection |
-| 3    | 6      |      2 |   2 |     0 |        0 |        1 |             1 | No detection   |
-| 3    | 6      |      2 |   3 |     0 |        0 |        1 |             1 | No detection   |
-| 3    | 6      |      2 |   4 |     0 |        0 |        1 |             1 | No detection   |
-| 3    | 6      |      2 |   5 |     0 |        0 |        1 |             1 | No detection   |
-| 3    | 6      |      2 |   6 |     0 |        0 |        1 |             1 | No detection   |
+| 6    | 18     |      1 |   1 |     0 |        0 |        1 |             1 | No detection   |
+| 6    | 18     |      1 |   2 |     0 |        0 |        1 |             1 | No detection   |
+| 6    | 18     |      1 |   3 |     0 |        0 |        1 |             1 | No detection   |
+| 6    | 18     |      1 |   4 |     0 |        0 |        1 |             1 | No detection   |
+| 6    | 18     |      1 |   5 |     0 |        0 |        1 |             1 | No detection   |
+| 6    | 18     |      1 |   6 |     0 |        0 |        1 |             1 | No detection   |
+| 6    | 18     |      2 |   1 |     0 |        0 |        1 |             1 | No detection   |
+| 6    | 18     |      2 |   2 |   105 |        1 |        1 |             1 | True detection |
+| 6    | 18     |      2 |   3 |   596 |        1 |        1 |             1 | True detection |
+| 6    | 18     |      2 |   4 |     0 |        0 |        1 |             1 | No detection   |
+| 6    | 18     |      2 |   5 |     0 |        0 |        1 |             1 | No detection   |
+| 6    | 18     |      2 |   6 |     0 |        0 |        1 |             1 | No detection   |
 
 `left_join()` attaches matching values using the named identifiers. Sample IDs are unique across the whole survey in this dataset, so sample plus species identifies a sample state. The order of `case_when()` matters: a negative PCR has no positive source to classify; a positive in a sample without DNA is a laboratory false positive, even if the species happened to occupy the site. A positive from DNA in an unoccupied site’s sample is a field-stage false positive.
 
-These are **known source labels supplied by the simulation**, not classifications produced by the model. We do not pass `observations_with_truth` to the fitter. Lesson 1 uses this displayed sample as its weak true-detection example and compares the fitted probabilities with these states.
+These are **known source labels supplied by the simulation**, not classifications produced by the model. We do not pass `observations_with_truth` to the fitter. `lesson$cases` records the four detection examples that Lesson 1 selected before fitting. Lesson 1 uses this displayed sample, OTU_1 in Sample 18 at Site 6, as its weak true-detection example and compares the fitted probabilities with these states.
 
 ## Put the sites and environmental conditions on a map
 
@@ -353,8 +360,8 @@ ggplot(site_covariates, aes(x = east, y = north)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-0_files/figure-gfm/sampling-locations-1.png" alt="The 100 simulated sampling sites. The highlighted sites are the four detection examples used in Lesson 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities." />
-<figcaption aria-hidden="true">The 100 simulated sampling sites. The highlighted sites are the four detection examples used in Lesson 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities.</figcaption>
+<img src="occJSDM-lesson-0_files/figure-gfm/sampling-locations-1.png" alt="The 100 simulated sampling sites. The highlighted sites hold the four detection examples used in Lesson 1; the laboratory false-positive and field-stage false-positive examples share Site 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities." />
+<figcaption aria-hidden="true">The 100 simulated sampling sites. The highlighted sites hold the four detection examples used in Lesson 1; the laboratory false-positive and field-stage false-positive examples share Site 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities.</figcaption>
 </figure>
 
 Next, `pivot_longer()` converts the two environmental columns into one value column and a label saying which covariate it belongs to. `facet_wrap()` then draws a separate panel for each label.
@@ -448,8 +455,8 @@ ggplot(truth_map_data, aes(x = east, y = north, colour = value)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-0_files/figure-gfm/truth-and-observation-maps-1.png" alt="Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the 24 PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here." />
-<figcaption aria-hidden="true">Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the 24 PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here.</figcaption>
+<img src="occJSDM-lesson-0_files/figure-gfm/truth-and-observation-maps-1.png" alt="Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the 36 PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here." />
+<figcaption aria-hidden="true">Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the 36 PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here.</figcaption>
 </figure>
 
 Read one row of maps from left to right. A high-probability site need not be occupied in this particular realization. An occupied site can have no positive PCRs. An unoccupied site can have a positive PCR because of contamination. Lesson 1 asks how much of this uncertainty the fitted model can resolve.
@@ -478,11 +485,11 @@ removed_samples
     #> # A tibble: 3 × 2
     #>    Site Sample
     #>   <dbl>  <dbl>
-    #> 1    12     24
-    #> 2    31     61
-    #> 3    52    103
+    #> 1    12     36
+    #> 2    31     91
+    #> 3    52    154
 
-This removes Sample 24 from Site 12, Sample 61 from Site 31 and Sample 103 from Site 52. `group_by(Site)` makes `slice_sample(n = 1)` choose exactly one sample within each selected site. We keep the original global sample IDs.
+This removes Sample 36 from Site 12, Sample 91 from Site 31 and Sample 154 from Site 52. `group_by(Site)` makes `slice_sample(n = 1)` choose exactly one sample within each selected site. We keep the original global sample IDs.
 
 The metadata and OTU matrix describe the same PCR rows. `anti_join()` drops metadata rows whose `(Site, Sample)` key is in the removal table. Keeping their original row numbers lets us apply **the identical selection to both tables**.
 
@@ -504,12 +511,12 @@ pcrs_per_primer <- unbalanced_data$info |>
   count(Site, Sample, Primer, name = "PCRs")
 
 stopifnot(
-  nrow(unbalanced_data$info) == 2364,
-  nrow(unbalanced_data$OTU) == 2364,
-  n_distinct(unbalanced_data$info$Sample) == 197,
+  nrow(unbalanced_data$info) == 3564,
+  nrow(unbalanced_data$OTU) == 3564,
+  n_distinct(unbalanced_data$info$Sample) == 297,
   nrow(samples_per_site) == 100,
   all(samples_per_site$samples >= 1),
-  nrow(pcrs_per_primer) == 197 * 2,
+  nrow(pcrs_per_primer) == 297 * 2,
   all(pcrs_per_primer$PCRs == 6),
   identical(colnames(unbalanced_data$OTU), colnames(survey_data$OTU)),
   identical(unbalanced_data$traits, survey_data$traits)
@@ -520,12 +527,12 @@ samples_per_site |>
 ```
 
     #>   samples sites
-    #> 1       1     3
-    #> 2       2    97
+    #> 1       2     3
+    #> 2       3    97
 
-There are 97 sites with two samples and three sites with one sample. We removed three samples and 36 PCR rows: 197 field samples and 2,364 PCR rows remain, still covering all 100 sites and ten species. Every retained sample has both primers and six PCRs per primer. No retained read count or covariate changes.
+There are 97 sites with three samples and three sites with two samples. We removed three samples and 36 PCR rows: 297 field samples and 3,564 PCR rows remain, still covering all 100 sites and ten species. Every retained sample has both primers and six PCRs per primer. No retained read count or covariate changes.
 
-A lost sample is represented by **absent rows**. It is not an observed sample with zero reads, and it is not a collection of `NA` PCR results. The original `known_truth` still describes all 100 sites, all ten species and all 200 simulated samples, including those we removed from the observed survey. Lesson 1 fits this reduced survey and compares the resulting probabilities with those same truths. This is an example of preparing unequal replication, not a replicated experiment measuring the effects of sample loss.
+A lost sample is represented by **absent rows**. It is not an observed sample with zero reads, and it is not a collection of `NA` PCR results. The original `known_truth` still describes all 100 sites, all ten species and all 300 simulated samples, including those we removed from the observed survey. Lesson 1 fits this reduced survey and compares the resulting probabilities with those same truths. This is an example of preparing unequal replication, not a replicated experiment measuring the effects of sample loss.
 
 ## Take the right objects into Lesson 1
 

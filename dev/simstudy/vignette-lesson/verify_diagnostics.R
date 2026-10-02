@@ -60,5 +60,5 @@ for (arm in names(x$fit_manifests)) {
 flags <- lesson$diagnostics$alternative
 field <- flags[flags$param == "theta0", ]
 stopifnot(x$traces$field_contamination$label1 == field$label1[which.min(field$ess)])
-stopifnot(sum(flags$rhat > 1.01 | flags$ess < 400) == 3L)
+stopifnot(sum(flags$rhat > 1.01 | flags$ess < 400) == 2L)
 cat("Diagnostic selection, fit hashes, source hashes and plotting identities verified.\n")

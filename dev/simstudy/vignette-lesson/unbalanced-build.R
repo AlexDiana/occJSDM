@@ -44,13 +44,13 @@ if (action == "prepare") {
     count(Site, Sample, Primer, name = "PCRs")
   stopifnot(nrow(removed_samples) == 3L,
             n_distinct(removed_samples$Site) == 3L,
-            length(retained_rows) == 2364L,
+            length(retained_rows) == 3564L,
             nrow(survey_data$info) - length(retained_rows) == 36L,
-            n_distinct(unbalanced_data$info$Sample) == 197L,
+            n_distinct(unbalanced_data$info$Sample) == 297L,
             nrow(samples_per_site) == 100L,
-            sum(samples_per_site$samples == 1L) == 3L,
-            sum(samples_per_site$samples == 2L) == 97L,
-            nrow(pcrs_per_primer) == 394L,
+            sum(samples_per_site$samples == 2L) == 3L,
+            sum(samples_per_site$samples == 3L) == 97L,
+            nrow(pcrs_per_primer) == 594L,
             all(pcrs_per_primer$PCRs == 6L),
             identical(sort(unique(unbalanced_data$info$Primer)), c(1L, 2L)),
             identical(colnames(unbalanced_data$OTU), colnames(survey_data$OTU)),
@@ -74,7 +74,7 @@ if (action == "prepare") {
             row.names = FALSE)
   print(removed_samples)
   print(count(samples_per_site, samples, name = "sites"))
-  cat("Retained 197 samples and 2364 PCR rows at all 100 sites, for all 10 species.\n")
+  cat("Retained 297 samples and 3564 PCR rows at all 100 sites, for all 10 species.\n")
 }
 
 if (action == "fit") {

@@ -78,11 +78,11 @@ The example has:
 
 - **100 sites and 10 species**, with two measured environmental gradients and two measured species traits;
 - two hidden community factors describing additional variation among sites;
-- **two independent field samples per site**;
+- **three independent field samples per site**;
 - **two primers and six PCR replicates per primer per sample**;
 - no spatial effects.
 
-That is 200 field samples and 2,400 PCR observations for each species. Environmental values are simulated quantities with arbitrary units. We do not give them a real-world interpretation such as degrees Celsius.
+That is 300 field samples and 3,600 PCR observations for each species. Environmental values are simulated quantities with arbitrary units. We do not give them a real-world interpretation such as degrees Celsius.
 
 ## Three questions, three different truths
 
@@ -302,7 +302,7 @@ error_summary <- bind_rows(overall_errors, errors_by_band) |>
 
 `abs()` removes the sign of an error. `case_when()` assigns each probability to a group, including exactly 20% and 80% in the middle group. `group_by()` makes `summarise()` calculate separate averages; `n()` counts the rows contributing to each average. Each row here is a species-site pair, so every pair receives equal weight. `bind_rows()` stacks the group and overall summaries. Missing fitted values should be investigated, not silently removed from these error calculations.
 
-With perfect observations, the **mean absolute error is 11.0 percentage points**. With PCR observations and default priors, it is **17.1 points**. Thus observation uncertainty adds error in this example, but does not explain all of it.
+With perfect observations, the **mean absolute error is 11.0 percentage points**. With PCR observations and default priors, it is **15.4 points**. Thus observation uncertainty adds error in this example, but does not explain all of it.
 
 To calculate absolute error, subtract truth from the estimate and ignore the sign. An estimate of 35% for a true probability of 20% has an absolute error of 15 percentage points. This is an arithmetic illustration; the reported averages come from the simulation. Signed error retains the sign, so positive and negative mistakes can cancel.
 
@@ -326,16 +326,16 @@ error_summary |>
 
 | Fit | True probability group | Species-site pairs | Mean truth | Mean estimate | Signed error (points) | Absolute error (points) |
 |:---|:---|---:|:---|:---|:---|:---|
-| PCR observations: default priors | All | 1000 | 51.2% | 47.5% | -3.8 | 17.1 |
-| PCR observations: default priors | Below 20% | 257 | 6.5% | 20.7% | 14.2 | 14.5 |
-| PCR observations: default priors | 20% to 80% | 469 | 52.4% | 49.3% | -3.1 | 15.7 |
-| PCR observations: default priors | Above 80% | 274 | 91.2% | 69.5% | -21.7 | 21.7 |
+| PCR observations: default priors | All | 1000 | 51.2% | 51.7% | 0.5 | 15.4 |
+| PCR observations: default priors | Below 20% | 257 | 6.5% | 18.3% | 11.8 | 13.1 |
+| PCR observations: default priors | 20% to 80% | 469 | 52.4% | 55.6% | 3.1 | 16.9 |
+| PCR observations: default priors | Above 80% | 274 | 91.2% | 76.5% | -14.7 | 15.1 |
 | Perfect observation | All | 1000 | 51.2% | 50.7% | -0.6 | 11.0 |
 | Perfect observation | Below 20% | 257 | 6.5% | 12.8% | 6.2 | 7.4 |
 | Perfect observation | 20% to 80% | 469 | 52.4% | 52.9% | 0.5 | 13.6 |
 | Perfect observation | Above 80% | 274 | 91.2% | 82.4% | -8.8 | 9.8 |
 
-For example, among low-probability cases, the true probabilities average 6.5%, whereas the default two-stage estimates average 20.7%. Among high-probability cases, the corresponding averages are 91.2% and 69.5%. Averaging all errors together hides much of this pattern.
+For example, among low-probability cases, the true probabilities average 6.5%, whereas the default two-stage estimates average 18.3%. Among high-probability cases, the corresponding averages are 91.2% and 76.5%. Averaging all errors together hides much of this pattern.
 
 The scatterplot omits intervals to remain readable. Here are intervals for the first 20 sites of OTU_1, selected by site number rather than fit quality:
 
@@ -513,9 +513,9 @@ The detection rates are not the only quantities with priors. Each species’ occ
 
 Each row below is one field sample. There are six PCR columns for each of two primers. Numbers are read counts; blue cells are positive. At threshold one, a count of 1 and a count of 1,000 both contribute a single positive result to this model. “Strong evidence” therefore refers to how detections recur across replicates, not how large an above-threshold count is.
 
-These four cases were selected from known truth and observed patterns **before looking at fitted probabilities**. Weak true cases have one or two positive PCRs in the focal sample; strong true cases have at least six in the focal sample and at least three genuine positives in each of two samples. For each category, the first case in species-name, numeric-site and numeric-sample order was selected. The headings name the teaching categories; the colours initially show only observed results.
+These four cases were selected from known truth and observed patterns **before looking at fitted probabilities**. Weak true cases have one or two positive PCRs in the focal sample; strong true cases have at least six in the focal sample and at least three genuine positives in each of at least two samples. For each category, the first case in species-name, numeric-site and numeric-sample order was selected. The headings name the teaching categories; the colours initially show only observed results.
 
-We now join the observation rows to the selected case IDs. `semi_join()` would keep matching rows without adding columns; here `inner_join()` both keeps the matching sites and adds the case label. The key is **species plus site** so that we keep both field samples, including the non-focal sample.
+We now join the observation rows to the selected case IDs. `semi_join()` would keep matching rows without adding columns; here `inner_join()` both keeps the matching sites and adds the case label. The key is **species plus site** so that we keep all three field samples, including the two non-focal samples.
 
 ``` r
 case_order <- lesson$cases$case
@@ -562,8 +562,8 @@ ggplot(case_observations, aes(x = PCR, y = sample_label, fill = observed_result)
 ```
 
 <figure>
-<img src="occJSDM-lesson-1_files/figure-gfm/observed-detection-cases-1.png" alt="These are actual rows from the simulated dataset. Both field samples at each selected site are shown, including the sample used to select the case. A positive PCR by itself does not reveal its source." />
-<figcaption aria-hidden="true">These are actual rows from the simulated dataset. Both field samples at each selected site are shown, including the sample used to select the case. A positive PCR by itself does not reveal its source.</figcaption>
+<img src="occJSDM-lesson-1_files/figure-gfm/observed-detection-cases-1.png" alt="These are actual rows from the simulated dataset. All three field samples at each selected site are shown, including the sample used to select the case. A positive PCR by itself does not reveal its source." />
+<figcaption aria-hidden="true">These are actual rows from the simulated dataset. All three field samples at each selected site are shown, including the sample used to select the case. A positive PCR by itself does not reveal its source.</figcaption>
 </figure>
 
 ``` r
@@ -577,10 +577,10 @@ lesson$cases |>
 
 | Case | Species | Site | Focal sample | Positive PCRs | PCRs observed | Eligible samples |
 |:---|:---|---:|---:|---:|---:|---:|
-| Weak true detection | OTU_1 | 3 | 6 | 2 | 12 | 11 |
-| Laboratory false positive | OTU_1 | 2 | 3 | 1 | 12 | 541 |
-| Strong true detection | OTU_1 | 25 | 49 | 6 | 12 | 260 |
-| Field-stage false positive | OTU_10 | 9 | 17 | 10 | 12 | 44 |
+| Weak true detection | OTU_1 | 6 | 18 | 2 | 12 | 11 |
+| Laboratory false positive | OTU_1 | 1 | 1 | 1 | 12 | 781 |
+| Strong true detection | OTU_1 | 22 | 66 | 8 | 12 | 528 |
+| Field-stage false positive | OTU_10 | 1 | 2 | 9 | 12 | 90 |
 
 ## Reveal the truth and compare it with the fit
 
@@ -647,24 +647,50 @@ case_results |>
 
 | Case | True site state | Estimated chance site was occupied | True focal sample state | Estimated chance DNA was in focal sample |
 |:---|:---|:---|:---|:---|
-| Weak true detection | Present | 94.9% | DNA present | 24.0% |
-| Laboratory false positive | Present | 70.6% | DNA absent | 0.9% |
-| Strong true detection | Present | 98.9% | DNA present | 100.0% |
-| Field-stage false positive | Absent | 94.9% | DNA present | 100.0% |
+| Weak true detection | Present | 54.9% | DNA present | 17.7% |
+| Laboratory false positive | Present | 98.7% | DNA absent | 1.7% |
+| Strong true detection | Present | 98.4% | DNA present | 100.0% |
+| Field-stage false positive | Absent | 0.7% | DNA present | 100.0% |
 
-**Weak true detection:** OTU_1 really occupied site 3 and its DNA was in sample 6, but only two of the twelve PCRs from that sample were positive. The model gives site presence 94.9% probability, but sample presence only 24.0%. It therefore retains the genuine site occurrence while tending to miss the DNA in this particular sample. This is a useful example of the two questions receiving different answers, not a wholly successful classification.
+The paragraphs below take each case’s identifiers from `lesson$cases` and count its site’s positive PCRs from `case_observations`, so they describe whichever cases the selection rule picked.
 
-**Laboratory false positive:** sample 3 at site 2 did not contain OTU_1 DNA, yet one PCR was positive. The model assigns sample presence only 0.9% probability. However, OTU_1 really was present at the site, and the model assigns site presence 70.6% probability. A false-positive PCR does not require the species to be absent from the entire site. Collection failure and a laboratory false positive can occur together.
+``` r
+weak <- "Weak true detection"
+lab_fp <- "Laboratory false positive"
+strong <- "Strong true detection"
+field_fp <- "Field-stage false positive"
 
-**Strong true detection:** OTU_1 really occupied site 25. Both field samples contain its DNA and repeated PCRs detect it. The fitted probability of site presence is 98.9%, and the probability of DNA in the focal sample is 100.0%. Here the strong evidence leads to the correct interpretation.
+case_field <- function(name, field) {
+  lesson$cases[[field]][lesson$cases$case == name]
+}
 
-**Field-stage false positive:** OTU_10 was absent from site 9, but the simulation contaminated both field samples with its DNA. Sample 17 has ten positive PCRs and sample 18 has twelve. The model correctly concludes that the samples contain DNA, but incorrectly assigns site presence 94.9% probability. Even independent low-probability contamination events can occasionally coincide. This case was selected by the stated rule, not because of the model’s mistake.
+# Every sample at each case's site, with its positive PCRs and true DNA state.
+case_site_samples <- case_observations |>
+  group_by(case, Sample) |>
+  summarise(positives = sum(positive, na.rm = TRUE), w = first(w), .groups = "drop")
+
+samples_of <- function(name, dna) {
+  case_site_samples |> filter(case == name, w == dna)
+}
+
+list_samples <- function(samples) {
+  paste(samples, collapse = " and ")
+}
+```
+
+**Weak true detection:** OTU_1 really occupied site 6 and its DNA was in sample 18, but only 2 of the 12 PCRs from that sample were positive. Its DNA did not enter the site’s other samples, 16 and 17, which have no positive PCRs. The model gives site presence 54.9% probability, but sample presence only 17.7%. It therefore leaves the genuine site occurrence uncertain while tending to miss the DNA in this particular sample. This is a useful example of the two questions receiving different answers, not a wholly successful classification.
+
+**Laboratory false positive:** sample 1 at site 1 did not contain OTU_1 DNA, yet 1 of its 12 PCRs was positive. The model assigns sample presence only 1.7% probability. However, OTU_1 really was present at the site, and the model assigns site presence 98.7% probability. A false-positive PCR does not require the species to be absent from the entire site. Collection failure and a laboratory false positive can occur together.
+
+**Strong true detection:** OTU_1 really occupied site 22. Its DNA entered samples 65 and 66, and repeated PCRs detect it in each (5 and 8 positive PCRs); sample 64 contains no DNA of the species and has no positive PCRs. The fitted probability of site presence is 98.4%, and the probability of DNA in the focal sample is 100.0%. Here the strong evidence leads to the correct interpretation.
+
+**Field-stage false positive:** OTU_10 was absent from site 1, but the simulation contaminated sample 2 with its DNA. That sample has 9 positive PCRs; samples 1 and 3 contain no DNA of the species, and have 2 laboratory false-positive PCRs between them. The model correctly concludes that sample 2 contains DNA (100.0%), and correctly assigns site presence only 0.7% probability. This case was selected by the stated rule, not because of the model’s answer; the table of all positive samples below shows that field-stage false positives are not always rejected this clearly.
 
 Thus, more PCRs can establish DNA presence in a tube, while independent field samples provide additional evidence about occurrence at a site. Neither type of replication guarantees a correct answer. Contamination shared across field samples or laboratory batches could be harder still if that dependence is not represented by the model.
 
-Do not confuse these conditional site-presence probabilities with the underlying occupancy probabilities. For OTU_10 at site 9, the generating occupancy probability was 31.7%, and the fitted underlying probability is 26.1%. The much higher conditional probability above answers a different question: after seeing this site’s PCR results, how likely is it that this particular site was occupied?
+Do not confuse these conditional site-presence probabilities with the underlying occupancy probabilities. For OTU_10 at site 1, the generating occupancy probability was 1.9%, and the fitted underlying probability is 1.9%. The conditional probability above, 0.7%, answers a different question: after seeing this site’s PCR results, how likely is it that this particular site was occupied?
 
-The model also considers **collection conditions**. Here is the sample-level evidence for both field samples in each case. The collection covariate is a simulated measurement in arbitrary units. The true collection probability is calculated from that sample’s covariate and the generating species coefficients, rather than substituted with an average rate.
+The model also considers **collection conditions**. Here is the sample-level evidence for all three field samples in each case. The collection covariate is a simulated measurement in arbitrary units. The true collection probability is calculated from that sample’s covariate and the generating species coefficients, rather than substituted with an average rate.
 
 ``` r
 collection_covariates <- survey_data$info |>
@@ -706,20 +732,24 @@ sample_context |>
 
 | Case | Sample | True DNA state | Fitted DNA probability | Collection covariate | True collection probability | Fitted collection probability |
 |:---|---:|:---|:---|---:|:---|:---|
-| Weak true detection | 5 | Present | 99.9% | -1.07 | 61.1% | 62.4% |
-| Weak true detection | 6 | Present | 24.0% | 0.54 | 23.9% | 23.7% |
-| Laboratory false positive | 3 | Absent | 0.9% | 1.65 | 9.4% | 9.5% |
-| Laboratory false positive | 4 | Absent | 0.1% | 0.01 | 34.9% | 35.1% |
-| Strong true detection | 49 | Present | 100.0% | -2.27 | 83.9% | 84.0% |
-| Strong true detection | 50 | Present | 100.0% | -0.67 | 51.2% | 52.3% |
-| Field-stage false positive | 17 | Present | 100.0% | -1.59 | 75.0% | 62.2% |
-| Field-stage false positive | 18 | Present | 100.0% | 0.46 | 75.0% | 60.5% |
+| Weak true detection | 16 | Absent | 0.8% | 1.90 | 78.3% | 82.9% |
+| Weak true detection | 17 | Absent | 0.0% | -1.59 | 9.9% | 5.4% |
+| Weak true detection | 18 | Present | 17.7% | 0.46 | 46.1% | 44.0% |
+| Laboratory false positive | 1 | Absent | 1.7% | 0.05 | 36.1% | 31.3% |
+| Laboratory false positive | 2 | Present | 98.6% | 0.16 | 38.7% | 34.6% |
+| Laboratory false positive | 3 | Present | 98.0% | 1.65 | 73.7% | 78.2% |
+| Strong true detection | 64 | Absent | 0.0% | -1.57 | 10.1% | 5.5% |
+| Strong true detection | 65 | Present | 100.0% | 1.51 | 71.0% | 75.2% |
+| Strong true detection | 66 | Present | 100.0% | 0.29 | 41.9% | 38.7% |
+| Field-stage false positive | 1 | Absent | 0.0% | 0.05 | 75.9% | 73.6% |
+| Field-stage false positive | 2 | Present | 100.0% | 0.16 | 77.9% | 75.1% |
+| Field-stage false positive | 3 | Absent | 0.0% | 1.65 | 94.0% | 88.6% |
 
 The last two columns answer: **if the species occupies the site, how likely is DNA to enter this sample?** They are different from the fitted probability that DNA actually entered the sample after considering its PCR results. For the field-contamination case, the site was absent, so the generating probability of DNA entering each sample was instead 8.0%, the field false-positive rate for OTU_10.
 
 In the code, `intercept + slope * covariate` is the generating collection score for a particular species and sample. `plogis()` converts that score to a probability between zero and one. The fitted collection probabilities in the final column come from the posterior summaries; they are not calculated using the true coefficients.
 
-For the weak true case, sample 5 has five positive PCRs and fitted DNA-presence probability 99.9%; sample 6 has only two positives and fitted DNA-presence probability 24.0%. The model can therefore remain confident about the site while discounting sample 6. This interpretation uses the other sample and the ecological model as well as the focal sample’s PCRs; the simulation reveals that discounting sample 6 was a mistake.
+For the weak true case, samples 16 and 17 have no positive PCRs, and the model gives each at most 0.8% probability of containing DNA; the simulation confirms that none did. Sample 18 has only 2 positives and fitted DNA-presence probability 17.7%. The site probability, 54.9%, is well below the fitted underlying occupancy probability at this site, 86.1%: three samples with only 2 positive PCRs between them count against presence. This interpretation uses the other samples and the ecological model as well as the focal sample’s PCRs; the simulation reveals that discounting sample 18 was a mistake.
 
 ## What changes if we are less confident about low contamination?
 
@@ -781,7 +811,7 @@ ggplot(case_comparison, aes(x = estimate, y = case, colour = arm)) +
 <figcaption aria-hidden="true">Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The two coloured points use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the generating occupancy probability.</figcaption>
 </figure>
 
-The field-stage false-positive case still receives 90.8% probability of site presence under the alternative priors. Allowing more contamination does not make this case unambiguous. Across all 1,000 species-site pairs, mean absolute occupancy error changes from 17.1 to 19.2 percentage points. The alternative priors therefore worsen overall recovery in this dataset. They were not tuned to get the desired answers.
+Under the alternative priors, the field-stage false-positive case receives 0.6% probability of site presence, close to its 0.7% under the default priors. Across all 1,000 species-site pairs, mean absolute occupancy error changes from 15.4 to 16.2 percentage points. The alternative priors therefore worsen overall recovery in this dataset. They were not tuned to get the desired answers.
 
 To put the four examples in perspective, the next table uses **every field sample with at least one positive PCR**, including both primers. Cases are grouped by their known source category. The estimated sample and site probabilities answer different questions, so their corresponding true frequencies are shown separately. Averages can still conceal errors in individual cases.
 
@@ -830,11 +860,90 @@ positive_sample_summary |>
 
 | Category | Samples | Actually contained DNA | Mean fitted DNA probability | Actually occupied sites | Mean fitted site probability |
 |:---|---:|:---|:---|:---|:---|
-| Field-stage false positive | 44 | 100.0% | 99.6% | 0.0% | 67.6% |
-| Laboratory false positive | 541 | 0.0% | 2.2% | 31.6% | 30.1% |
-| True detection | 536 | 100.0% | 97.2% | 100.0% | 91.2% |
+| Field-stage false positive | 90 | 100.0% | 97.2% | 0.0% | 47.4% |
+| Laboratory false positive | 781 | 0.0% | 1.4% | 34.1% | 34.7% |
+| True detection | 794 | 100.0% | 98.3% | 100.0% | 93.9% |
 
-This table counts species-sample pairs, so the same species-site can occur twice. It describes these simulated positive samples, not a universal false-positive rate for occJSDM. The simulation’s source labels also do not exhaust every contamination mechanism possible in a real survey.
+This table counts species-sample pairs, so the same species-site can occur up to three times. It describes these simulated positive samples, not a universal false-positive rate for occJSDM. The simulation’s source labels also do not exhaust every contamination mechanism possible in a real survey.
+
+The field-stage false-positive row needs a closer look. None of those sites was occupied, yet their mean fitted site probability is far from zero. The next chunk groups each field-stage false-positive sample by what the other two samples at its site show: no positive PCRs, a positive from field contamination as well, or only laboratory false positives.
+
+``` r
+default_samples <- lesson$samples |>
+  as_tibble() |>
+  filter(arm == "default") |>
+  inner_join(sample_counts, by = c("species", "Site", "Sample")) |>
+  mutate(
+    contaminated = positives > 0 & z == 0 & w == 1,
+    laboratory_only = positives > 0 & w == 0
+  )
+
+# Count, for each species and site, the positive samples of each source.
+site_sources <- default_samples |>
+  group_by(species, Site) |>
+  summarise(
+    contaminated_at_site = sum(contaminated),
+    laboratory_only_at_site = sum(laboratory_only),
+    .groups = "drop"
+  )
+
+field_stage_samples <- default_samples |>
+  filter(contaminated) |>
+  left_join(site_sources, by = c("species", "Site")) |>
+  mutate(
+    other_contaminated = contaminated_at_site - 1,
+    context = case_when(
+      other_contaminated == 0 & laboratory_only_at_site == 0 ~ "Every other sample negative",
+      other_contaminated == 0 ~ "Other samples have only laboratory false positives",
+      laboratory_only_at_site == 0 ~ "Another sample also contaminated",
+      TRUE ~ "One other sample contaminated, one with a laboratory false positive"
+    )
+  )
+
+field_stage_summary <- field_stage_samples |>
+  group_by(context) |>
+  summarise(
+    samples = n(),
+    fitted_dna_probability = mean(sample_probability),
+    fitted_occupancy_probability = mean(occupancy_estimate),
+    fitted_site_probability = mean(site_probability),
+    .groups = "drop"
+  ) |>
+  arrange(desc(samples))
+
+field_stage_summary |>
+  transmute(
+    `Other samples at the site` = context,
+    Samples = samples,
+    `Mean fitted DNA probability` = format_percent(fitted_dna_probability),
+    `Mean fitted occupancy probability` = format_percent(fitted_occupancy_probability),
+    `Mean fitted site probability` = format_percent(fitted_site_probability)
+  ) |>
+  knitr::kable()
+```
+
+| Other samples at the site | Samples | Mean fitted DNA probability | Mean fitted occupancy probability | Mean fitted site probability |
+|:---|---:|:---|:---|:---|
+| Other samples have only laboratory false positives | 42 | 98.0% | 35.5% | 38.7% |
+| Every other sample negative | 38 | 95.6% | 37.7% | 44.4% |
+| Another sample also contaminated | 6 | 100.0% | 50.5% | 96.1% |
+| One other sample contaminated, one with a laboratory false positive | 4 | 100.0% | 50.6% | 94.7% |
+
+``` r
+# The negative samples beside a lone contaminated sample.
+lone_contaminated <- field_stage_samples |>
+  filter(context == "Every other sample negative")
+
+negative_neighbours <- default_samples |>
+  semi_join(lone_contaminated, by = c("species", "Site")) |>
+  anti_join(lone_contaminated, by = c("species", "Site", "Sample"))
+
+# The lone contaminated samples in the poorest and the best habitat.
+poorest_habitat <- slice_min(lone_contaminated, occupancy_estimate, n = 1)
+best_habitat <- slice_max(lone_contaminated, occupancy_estimate, n = 1)
+```
+
+A lone contaminated sample beside negative samples leaves its site at a substantial probability on average: the 38 such samples average 44.4%, but they range from 0.7% to 89.7%. The contaminated sample genuinely contains the species’ DNA, and the model sees it (mean fitted DNA probability 95.6%). That DNA could have come from a species occupying the site or from field contamination, which the default prior expects to be uncommon (prior mean 4.8%). The negatives beside it count against occupancy, but only partly, because even at an occupied site DNA enters each sample only with the collection probability: for the 76 negative samples beside these contaminated ones, the fitted collection probability averages 59.1%. The model weighs the DNA and the negatives with three inputs: the fitted occupancy probability, which says how suitable the site’s habitat is from its environment and estimated hidden site conditions; the collection probability; and the contamination prior. Here the DNA and the negatives roughly cancel, so the site probability falls back near the fitted occupancy probability. That averages 37.7% for these species and sites, and each site probability is on average 12.4 percentage points from it. So a contaminated sample in poor habitat is rejected, and one in good habitat is not: for the species and site with the lowest fitted occupancy probability (0.3%) the lone contaminated sample leaves a site probability of 0.7%, and for the one with the highest (82.1%) it leaves 89.7%. The lesson’s own field-stage case is a contaminated sample in poor habitat: its fitted occupancy probability is 1.9% and its site probability 0.7%. When another sample at the site is also contaminated, the mean site probability is higher still (96.1% for 6 samples).
 
 When laboratory contamination is in fact far above what the default priors assume, a separate simulation study found one species’ chains settling on two different explanations of the same observations; [Lesson 3](occJSDM-lesson-3.md#when-chains-settle-on-two-different-explanations) shows how to check a fit for this.
 
@@ -872,17 +981,17 @@ parameter_diagnostics |>
 
 | Fit | Largest parameter Rhat | Smallest parameter ESS | Largest occupancy-probability Rhat | Parameters above Rhat 1.01 |
 |:---|---:|---:|---:|---:|
-| PCR observations: more permissive FP priors | 1.014 | 360.945 | 1.009 | 2 |
-| PCR observations: default priors | 1.008 | 940.025 | 1.007 | 0 |
+| PCR observations: more permissive FP priors | 1.013 | 396.906 | 1.007 | 1 |
+| PCR observations: default priors | 1.009 | 835.289 | 1.009 | 0 |
 | Perfect observation | 1.002 | 2096.978 | 1.002 | 0 |
 
-The parameter checks cover occupancy intercepts and slopes, collection coefficients and detection/error rates. The occupancy-probability checks also examine the combined contribution of the hidden factors. They do not establish convergence of every latent-factor coordinate or every possible derived quantity. Any remaining warnings must be considered alongside the results. The large recovery errors and the field-contamination mistake remain substantive lessons even when chains agree well.
+The parameter checks cover occupancy intercepts and slopes, collection coefficients and detection/error rates. The occupancy-probability checks also examine the combined contribution of the hidden factors. They do not establish convergence of every latent-factor coordinate or every possible derived quantity. Any remaining warnings must be considered alongside the results. The large recovery errors and the substantial site probabilities given to field-stage false positives remain substantive lessons even when chains agree well.
 
-After the extension, 2 parameters in the alternative-prior fit remain above the Rhat 1.01 screen, with a maximum of 1.014. The smallest parameter effective sample size is 361, below the commonly used screen of 400. Treat small differences under those alternative priors cautiously; we do not claim that every parameter has fully converged.
+After the extension, the number of parameters in the alternative-prior fit above the Rhat 1.01 screen is 1, with a maximum Rhat of 1.013. The smallest parameter effective sample size is 397, below the commonly used screen of 400. Treat small differences under those alternative priors cautiously; we do not claim that every parameter has fully converged.
 
 ## Fit a survey with unequal replication
 
-Lesson 0 removes one whole field sample from each of Sites 12, 31 and 52, using a fixed random choice made before fitting. We keep all 100 sites and all ten species, with 197 samples and 2,364 PCR rows. The following code reconstructs that reduced dataset from the saved removal keys, so this section also works if you skipped Lesson 0.
+Lesson 0 removes one whole field sample from each of Sites 12, 31 and 52, using a fixed random choice made before fitting. We keep all 100 sites and all ten species, with 297 samples and 3,564 PCR rows. The following code reconstructs that reduced dataset from the saved removal keys, so this section also works if you skipped Lesson 0.
 
 ``` r
 unbalanced_lesson <- readRDS("teaching-data/unbalanced-lesson.rds")
@@ -903,9 +1012,9 @@ removed_samples
     #> # A tibble: 3 × 2
     #>    Site Sample
     #>   <dbl>  <dbl>
-    #> 1    12     24
-    #> 2    31     61
-    #> 3    52    103
+    #> 1    12     36
+    #> 2    31     91
+    #> 3    52    154
 
 These samples are absent rows, not all-zero or `NA` PCR results. The remaining samples retain both primers and all six PCRs per primer. Original sample IDs and all simulated truths stay unchanged.
 
@@ -935,7 +1044,7 @@ replication_results <- bind_rows(
 ) |>
   mutate(
     survey = factor(arm, levels = c("default", "unbalanced"),
-                    labels = c("Original: 200 samples", "Reduced: 197 samples")),
+                    labels = c("Original: 300 samples", "Reduced: 297 samples")),
     reduced_site = Site %in% as.character(removed_samples$Site),
     site_group = if_else(reduced_site, "Three selected sites", "Other 97 sites")
   )
@@ -982,7 +1091,7 @@ selected_probabilities |>
 
 ![](occJSDM-lesson-1_files/figure-gfm/unbalanced-selected-sites-1.png)<!-- -->
 
-Calculate errors for both the complete community and the selected sites. Signed error is estimate minus truth; mean absolute error ignores the direction of each error. The `truth` and `estimate` columns remain probabilities, and the two error columns are percentage points.
+Calculate errors for both the complete community and the selected sites. Signed error is estimate minus truth; mean absolute error ignores the direction of each error. The `truth` and `estimate` columns remain probabilities, and the two error columns are percentage points. The error columns come first inside `summarise()` because each later line sees the averaged `truth` and `estimate`, not the original values.
 
 ``` r
 replication_errors <- bind_rows(
@@ -993,26 +1102,26 @@ replication_errors <- bind_rows(
   group_by(scope, survey) |>
   summarise(
     cells = n(),
-    truth = mean(truth),
-    estimate = mean(estimate),
     signed_error_pp = 100 * mean(estimate - truth),
     mean_absolute_error_pp = 100 * mean(abs(estimate - truth)),
+    truth = mean(truth),
+    estimate = mean(estimate),
     .groups = "drop"
   )
 
 knitr::kable(replication_errors, digits = 3)
 ```
 
-| scope | survey | cells | truth | estimate | signed_error_pp | mean_absolute_error_pp |
+| scope | survey | cells | signed_error_pp | mean_absolute_error_pp | truth | estimate |
 |:---|:---|---:|---:|---:|---:|---:|
-| All 100 sites | Original: 200 samples | 1000 | 0.512 | 0.475 | -3.771 | 3.771 |
-| All 100 sites | Reduced: 197 samples | 1000 | 0.512 | 0.476 | -3.678 | 3.678 |
-| Three sites with one sample removed | Original: 200 samples | 30 | 0.525 | 0.475 | -4.980 | 4.980 |
-| Three sites with one sample removed | Reduced: 197 samples | 30 | 0.525 | 0.478 | -4.745 | 4.745 |
+| All 100 sites | Original: 300 samples | 1000 | 0.470 | 15.435 | 0.512 | 0.517 |
+| All 100 sites | Reduced: 297 samples | 1000 | 0.509 | 15.404 | 0.512 | 0.518 |
+| Three sites with one sample removed | Original: 300 samples | 30 | -0.619 | 13.531 | 0.525 | 0.519 |
+| Three sites with one sample removed | Reduced: 297 samples | 30 | -0.622 | 13.338 | 0.525 | 0.519 |
 
-The full-community mean absolute error is about 17 percentage points in both saved fits. **This single deletion and fit do not estimate the general effect of losing samples.** The two fits also use different MCMC seeds. Comparing their answers demonstrates a working input with unequal replication; a study of sample loss would repeat survey generation, deletion and fitting and assess Monte Carlo uncertainty.
+The full-community mean absolute error is 15.4 percentage points in the original fit and 15.4 in the reduced fit. **This single deletion and fit do not estimate the general effect of losing samples.** The two fits also use different MCMC seeds. Comparing their answers demonstrates a working input with unequal replication; a study of sample loss would repeat survey generation, deletion and fitting and assess Monte Carlo uncertainty.
 
-Check numerical diagnostics before drawing further conclusions. The public diagnostic table flags the environmental slope for OTU_3 (`X_psi.EnvCov.1`), with Rhat about 1.015. We retain that warning rather than choosing another seed or silently extending the fit. The saved call raised no R warning conditions; the diagnostic flag is a separate issue.
+Check numerical diagnostics before drawing further conclusions. In this fit the public diagnostic table flags no parameter, so the first table below is empty: none has Rhat above 1.01 or ESS below 400, and the largest parameter Rhat is 1.004. Had a parameter been flagged, we would report it rather than choose another seed or silently extend the fit. The saved call raised no R warning conditions.
 
 ``` r
 unbalanced_lesson$diagnostics |>
@@ -1021,9 +1130,8 @@ unbalanced_lesson$diagnostics |>
   knitr::kable(digits = 3)
 ```
 
-| param    | label1         | label2 |  rhat |      ess |
-|:---------|:---------------|:-------|------:|---------:|
-| beta_psi | X_psi.EnvCov.1 | OTU_3  | 1.015 | 1601.138 |
+| param | label1 | label2 | rhat | ess |
+|:------|:-------|:-------|-----:|----:|
 
 ``` r
 unbalanced_lesson$cells |>
@@ -1036,11 +1144,11 @@ unbalanced_lesson$cells |>
   knitr::kable(digits = 3)
 ```
 
-| probabilities | max_Rhat | min_ESS | flagged |
-|--------------:|---------:|--------:|--------:|
-|          1000 |    1.008 | 940.211 |       0 |
+| probabilities | max_Rhat |  min_ESS | flagged |
+|--------------:|---------:|---------:|--------:|
+|          1000 |    1.008 | 1220.854 |       0 |
 
-The first table uses the public function’s classical `coda` Rhat and ESS. The second uses `posterior` diagnostics on the reconstructed probability draws: all 1,000 pass these thresholds, with maximum Rhat about 1.008 and minimum ESS about 940. These measures ask how well chains explored their distributions. They do not establish accuracy against ecological truth, which is why the paired truth figures and error table remain necessary.
+The first table uses the public function’s classical `coda` Rhat and ESS. The second uses `posterior` diagnostics on the reconstructed probability draws: all 1,000 pass these thresholds, with maximum Rhat about 1.008 and minimum ESS about 1221. These measures ask how well chains explored their distributions. They do not establish accuracy against ecological truth, which is why the paired truth figures and error table remain necessary.
 
 ## Reproduce the lesson and inspect its evidence
 
@@ -1069,6 +1177,6 @@ This truth join is valid for the unchanged teaching dataset. If you simulate new
 
 The figures are rendered from a compact saved bundle, not refitted while knitting the vignette. The bundle retains the complete simulation, generating inputs, case-selection rules, posterior summaries, source hashes, seeds, diagnostics and the hashes of the full fits. The original package examples `sampledata` and `sampleresults` are separate and are not used here.
 
-The fitted code is revision **b53048a**. The simulation seed is **20260919**. The recorded R version is **R version 4.5.0 (2025-04-11)**; the complete package versions for each fit are retained in `lesson$manifests[["default"]]$session` (and likewise for the other fits). Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above and is also available in this vignette’s `.Rmd` source.
+The fitted code is revision **eeb1675**. The simulation seed is **20260919**. The recorded R version is **R version 4.5.0 (2025-04-11)**; the complete package versions for each fit are retained in `lesson$manifests[["default"]]$session` (and likewise for the other fits). Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above and is also available in this vignette’s `.Rmd` source.
 
 This first lesson concerns non-spatial recovery at sampled sites and the interpretation of detections. It does not validate predictions at new sites, establish a beta-release error target, or implement a Paper2Agent interface. [Lesson 2](occJSDM-lesson-2.md) now contains a worked site-arrangement sweep (four arrangements of 100 sites, an oracle ceiling, fits to true states and to an eDNA survey, and prediction at unsurveyed locations); its spatial **variation partitioning** and held-out validation remain future work, and contrasts between species that differ in dispersal are deferred. Continue to [Lesson 3](occJSDM-lesson-3.md) for environmental and trait effects, species associations, ordination, variation partitioning and detection effort, each with matching truth comparisons. The [Quickstart and lesson guide](occJSDM.md) provides an overview of the teaching sequence.

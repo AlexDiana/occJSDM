@@ -28,7 +28,7 @@ source("lesson-links.R")
 
 An environmental effect can be real in the simulation and still be estimated imprecisely. A fitted curve can look convincing and still miss the truth. This lesson shows how to distinguish those situations.
 
-It replaces the output tour in the original occJSDM vignette. Start with [Lesson 1](occJSDM-lesson-1.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. You do not need the spatial Lesson 2 first. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, two field samples per site, two primers and six PCR replicates per primer.
+It replaces the output tour in the original occJSDM vignette. Start with [Lesson 1](occJSDM-lesson-1.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. You do not need the spatial Lesson 2 first. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
 
 We compare two existing fits of that community: one given the actual presence/absence matrix (**perfect observation**) and one given the PCR observations. The diagnostics section also revisits Lesson 1's longer alternative-prior fit. This is not a before/after comparison of software versions. The fits use the verified model source recorded in Lesson 1; that source matches the code on main when this lesson was prepared. Most examples reuse these fits. The new-site comparison below adds one fit to the same PCR observations, changing only the number of hidden site factors from two to one.
 
@@ -787,7 +787,7 @@ Genuine prediction at an unsurveyed site requires keeping its observations out o
 
 Imagine receiving habitat measurements from a second survey area before collecting any eDNA there. Can the fitted model predict which species are likely to occur? To answer this, we generated **300 new sites** from the same environmental distribution and the same ten-species community. Neither the new presence/absence observations nor the hidden site conditions were supplied to either fit.
 
-The original training survey is unchanged: 100 sites, two field samples per site, two primers and six PCR replicates per primer per sample. We compare its existing two-factor PCR fit with a new one-factor fit. Both use the same observations, environmental covariates, traits, priors and MCMC settings. The only model-setting change is the number of hidden site factors. The generating community has two factors, but that does not guarantee that two fitted factors will predict more accurately from this amount of data.
+The original training survey is unchanged: 100 sites, three field samples per site, two primers and six PCR replicates per primer per sample. We compare its existing two-factor PCR fit with a new one-factor fit. Both use the same observations, environmental covariates, traits, priors and MCMC settings. The only model-setting change is the number of hidden site factors. The generating community has two factors, but that does not guarantee that two fitted factors will predict more accurately from this amount of data.
 
 ```{r prediction-load}
 prediction_examples <- readRDS("teaching-data/prediction-lesson.rds")
@@ -963,7 +963,7 @@ prediction_cells |>
   knitr::kable(digits = 2)
 ```
 
-Both models underestimate these probabilities by about **3.8 percentage points on average**, while their **average absolute error is about 10 percentage points**. Those are results from this simulation, not hypothetical examples. The difference between the two error measures means that errors in opposite directions partially cancel. An absolute error of ten points would be a prediction of 40% or 60% when truth is 50%; that last sentence is only an illustration of the unit, not a claim that all errors equal ten points.
+Both models overestimate these probabilities slightly on average, by **`r formatC(100 * with(filter(prediction_cells, arm == "one_factor"), mean(estimate - truth)), format = "f", digits = 2)` percentage points** with one factor and **`r formatC(100 * with(filter(prediction_cells, arm == "two_factors"), mean(estimate - truth)), format = "f", digits = 2)`** with two, while their **average absolute error is about `r formatC(100 * mean(abs(prediction_cells$estimate - prediction_cells$truth)), format = "f", digits = 1)` percentage points**. Those are results from this simulation, not hypothetical examples. The difference between the two error measures means that errors in opposite directions partially cancel. An absolute error of ten points would be a prediction of 40% or 60% when truth is 50%; that last sentence is only an illustration of the unit, not a claim that all errors equal ten points.
 
 These new-site errors have a different target from Lesson 1's errors in fitted-site probabilities. Here we average over unknown local conditions; there we check the probability for each surveyed site's actual conditions. Comparing their magnitudes as if they measured the same task would be misleading.
 
@@ -1007,9 +1007,9 @@ paired_sites |>
   knitr::kable(digits = 7)
 ```
 
-The difference is about **-0.00014 Brier units**, slightly favouring the one-factor fit in this particular experiment. The site-based standard error is about **0.000067**. It describes variation among new sites **conditional on these fitted predictions**. It excludes Monte Carlo error in the MCMC estimates, variation from repeating the original training survey, and changes to the simulated community. A site-only interval can therefore exclude zero without establishing a dependable model advantage.
+The difference, one factor minus two factors, is about **`r formatC(mean(paired_sites$difference), format = "f", digits = 5)` Brier units**, slightly favouring the two-factor fit in this particular experiment. The site-based standard error is about **`r formatC(sd(paired_sites$difference) / sqrt(nrow(paired_sites)), format = "f", digits = 6)`**. It describes variation among new sites **conditional on these fitted predictions**. It excludes Monte Carlo error in the MCMC estimates, variation from repeating the original training survey, and changes to the simulated community. A site-only interval can therefore exclude zero, as it does here, without establishing a dependable model advantage.
 
-An independent calculation from all retained posterior draws estimates the Monte Carlo standard error of that Brier-score difference at about **0.00025**, larger than the observed difference of 0.00014. This is numerical uncertainty from MCMC, a different source of uncertainty from the site-based standard error. It directly supports withholding a model ranking. The calculation uses a first-order approximation and is documented in the prediction verifier.
+An independent calculation from all retained posterior draws (`prediction-verify.R --score-mcse`, recorded in the build log) estimates the Monte Carlo standard error of that Brier-score difference at about **0.00026**, so the observed difference of `r formatC(mean(paired_sites$difference), format = "f", digits = 5)` is only about 1.3 Monte Carlo standard errors from zero. This is numerical uncertainty from MCMC, a different source of uncertainty from the site-based standard error. A difference this close to its numerical uncertainty supports withholding a model ranking. The calculation uses a first-order approximation and is documented in the prediction verifier.
 
 The broad result is that these two fits have nearly identical predictive performance here. We do not select a winning factor count from this tiny difference. Predicting each species' marginal occurrence also does not test whether the model has recovered joint community structure or the correct number of hidden ecological drivers. A model can give useful single-species probabilities while describing species associations poorly.
 
@@ -1061,7 +1061,7 @@ prediction_examples$diagnostics |>
   knitr::kable(digits = 3)
 ```
 
-There are no flagged rows under these checks. Nevertheless, the largest Monte Carlo standard error of a species' average predicted probability is about 0.39 percentage points. This measures numerical uncertainty remaining in that posterior mean, not ecological prediction error. Passing the diagnostic thresholds does not make tiny differences between model scores exact.
+There are no flagged rows under these checks. Nevertheless, the largest Monte Carlo standard error of a species' average predicted probability is about `r formatC(100 * max(prediction_examples$probability_diagnostics$mcse), format = "f", digits = 2)` percentage points. This measures numerical uncertainty remaining in that posterior mean, not ecological prediction error. Passing the diagnostic thresholds does not make tiny differences between model scores exact.
 
 The old walkthrough extracted WAIC to compare model specifications. Here is the current extraction syntax, followed by the values from these same-data fits:
 
@@ -1104,13 +1104,20 @@ occJSDM::plotLatentPresences(
 )
 ```
 
-To keep knitting quick, the next chunk reads the exact tables exported from the saved default-prior fit. No estimates are recalculated or replaced with truth. We focus on OTU_1 at sites 2 and 3: the laboratory false-positive and weak true-detection cases selected in Lesson 1. Both field samples and both primers are retained at each site. The six PCRs within each sample/primer combination are numbered in their original observation order.
+To keep knitting quick, the next chunk reads the exact tables exported from the saved default-prior fit. No estimates are recalculated or replaced with truth. We focus on OTU_1 at sites `r paste(sort(lesson$cases$Site[lesson$cases$case %in% c("Laboratory false positive", "Weak true detection")]), collapse = " and ")`: the laboratory false-positive and weak true-detection cases selected in Lesson 1, which `example_cases` takes from `lesson$cases`. All three field samples and both primers are retained at each site. The six PCRs within each sample/primer combination are numbered in their original observation order.
 
 ```{r choose-native-table-rows}
 native_tables <- readRDS("teaching-data/latent-presence-lesson.rds")
 
+example_cases <- lesson$cases |>
+  filter(case %in% c("Laboratory false positive", "Weak true detection")) |>
+  arrange(Site)
+
+lab_example <- filter(example_cases, case == "Laboratory false positive")
+weak_example <- filter(example_cases, case == "Weak true detection")
+
 latent_rows <- native_tables$tables |>
-  filter(species == "OTU_1", Site %in% c(2, 3)) |>
+  filter(species == "OTU_1", Site %in% example_cases$Site) |>
   arrange(Site, Sample, Primer, PCR)
 
 observed_truth <- lesson$observations |>
@@ -1158,7 +1165,7 @@ if (knitr::pandoc_to() %in% c("html", "html4", "html5")) {
 
 In HTML, colours group the sites and shades group samples and primers. They do not indicate confidence or whether the model is correct. Markdown shows the same records as an ordinary table; its probabilities are decimals rather than percentages.
 
-At site 2, sample 3 has no OTU_1 DNA (`TrueSample = 0`), despite a positive PCR. OTU_1 nevertheless occupies the site (`TrueSite = 1`). This is a **laboratory false positive about the sample**, not evidence that the species must be absent from the entire site. At site 3, sample 6 genuinely contains DNA but gives only two positives across its twelve PCR observations. Read both samples together before judging the site's inferred state.
+At site `r lab_example$Site`, sample `r lab_example$Sample` has no OTU_1 DNA (`TrueSample = 0`), despite a positive PCR. OTU_1 nevertheless occupies the site (`TrueSite = 1`). This is a **laboratory false positive about the sample**, not evidence that the species must be absent from the entire site. At site `r weak_example$Site`, sample `r weak_example$Sample` genuinely contains DNA but gives only `r weak_example$positives` positives across its `r weak_example$observed` PCR observations, and samples `r paste(setdiff(unique(state_table$Sample[state_table$Site == weak_example$Site]), weak_example$Sample), collapse = " and ")` contain none. Read all three samples together before judging the site's inferred state.
 
 ### Keep generating probabilities separate from actual states
 
@@ -1224,7 +1231,7 @@ if (knitr::pandoc_to() %in% c("html", "html4", "html5")) {
 }
 ```
 
-There are eight rows because these probabilities do not vary among repeated PCRs with the same site, sample and primer. Collection can vary between samples because `X_theta` varies. Detection varies by primer in this model. Inspecting the actual states in the first table and the generating probabilities in the second avoids treating a single success or failure as a probability estimate.
+There are twelve rows because these probabilities do not vary among repeated PCRs with the same site, sample and primer. Collection can vary between samples because `X_theta` varies. Detection varies by primer in this model. Inspecting the actual states in the first table and the generating probabilities in the second avoids treating a single success or failure as a probability estimate.
 
 ## Check computation as well as ecological recovery
 
@@ -1295,7 +1302,7 @@ flagged_alternative |>
   knitr::kable(digits = c(0, 0, 0, 4, 0, 0, 0, 0))
 ```
 
-Here the rows identify the actual parameter to investigate. For example, `theta0` for OTU_6 has a low effective sample size even though its Rhat is just below 1.01. Looking at Rhat alone would miss that warning. The collection intercept for OTU_6 and the first environmental slope for OTU_1 are flagged for Rhat instead.
+Here the rows identify the actual parameter to investigate. For example, `theta0` for OTU_6 has a low effective sample size even though its Rhat is below 1.01. Looking at Rhat alone would miss that warning. The first environmental slope for OTU_6 is flagged for Rhat instead.
 
 These are screening rules, not sharp boundaries between trustworthy and untrustworthy results. In this package revision, `returnConvergenceDiagnostics()` uses the classical `coda` Rhat and effective sample size calculations. The newer `posterior` calculations below use rank-normalized split-chain Rhat and distinguish bulk from tail ESS. Their numbers can differ; do not relabel the public `ess` column as bulk or tail ESS. The [Stan diagnostics guide](https://mc-stan.org/learn-stan/diagnostics-warnings.html) explains the newer diagnostics and the commonly used 1.01 Rhat screen. Our legacy ESS screen of 400 is a prompt to inspect precision, not a guarantee about every posterior summary.
 
@@ -1784,7 +1791,7 @@ knitr::include_graphics("teaching-data/native-plot-correlations.png")
 
 ### Cumulative detections: compare survey outcomes with survey outcomes
 
-This function asks how many species would be detected if **all ten were present at the site**, the collection predictor were at its mean, and false positives were excluded. It pools both primers and varies field samples (`M`) and PCRs per primer per sample (`K`). It does not predict observed richness at an arbitrary site. Field replication up to four is prospective; the fitted data contained two field samples per site. PCR replication stays within the six-PCR design.
+This function asks how many species would be detected if **all ten were present at the site**, the collection predictor were at its mean, and false positives were excluded. It pools both primers and varies field samples (`M`) and PCRs per primer per sample (`K`). It does not predict observed richness at an arbitrary site. Field replication of four is prospective; the fitted data contained three field samples per site. PCR replication stays within the six-PCR design.
 
 Native bars include both fitted-parameter uncertainty and random collection/PCR outcomes. The routine selects 500 posterior draws to simulate surveys, so endpoints can vary with the seed. Orange bars are the exact 2.5% and 97.5% quantiles of the matching survey-count distribution under the generating parameters. Orange crosses mark its median. These truth intervals remain wide even when parameters are known.
 
@@ -1920,7 +1927,7 @@ remaining_gradient_2
 knitr::include_graphics("teaching-data/remaining-plots-gradient-2.png")
 ```
 
-The original walkthrough used `plotCovariateEffect()` here. Before the correction in [PR #13](https://github.com/AlexDiana/occJSDM/pull/13), its numeric calculation added a log-odds intercept after the inverse-logit transformation and standardized predictors twice. The archived fit consequently gave impossible median probabilities of 1.772 to 1.815 for `OTU_1` along environmental gradient 1. The corrected helper applies the inverse-logit to the complete environmental linear predictor and reuses fitted scaling and encoding. Existing fits with the required covariate metadata need no refit.
+The original walkthrough used `plotCovariateEffect()` here. Before the correction in [PR #13](https://github.com/AlexDiana/occJSDM/pull/13), its numeric calculation added a log-odds intercept after the inverse-logit transformation and standardized predictors twice. The archived fit of the earlier two-sample teaching survey consequently gave impossible median probabilities of 1.772 to 1.815 for `OTU_1` along environmental gradient 1. The corrected helper applies the inverse-logit to the complete environmental linear predictor and reuses fitted scaling and encoding. Existing fits with the required covariate metadata need no refit.
 
 The corrected `returnCovariateEffect()` and `plotCovariateEffect()` vary one predictor in original units, hold other numeric predictors at their medians and categories at their first fitted levels, and set spatial and latent site effects to zero. The numeric posterior-median column is now named `median`, replacing `mean`. The two `plotOccupancyGradient()` examples above already use the correct probability calculation; their differences from the simulated truth are not caused by this output bug.
 
