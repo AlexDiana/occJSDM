@@ -35,18 +35,18 @@ stopifnot(identical(which(keep), compact$removal$retained_rows),
           identical(dat$info, original$info[keep, , drop = FALSE]),
           identical(dat$OTU, original$OTU[keep, , drop = FALSE]),
           identical(dat$traits, original$traits),
-          sum(!keep) == 36L, sum(keep) == 2364L,
+          sum(!keep) == 36L, sum(keep) == 3564L,
           identical(as.numeric(removed$Site), c(12, 31, 52)),
-          identical(as.numeric(removed$Sample), c(24, 61, 103)),
-          nrow(unique(dat$info[c("Site", "Sample")])) == 197L,
+          identical(as.numeric(removed$Sample), c(36, 91, 154)),
+          nrow(unique(dat$info[c("Site", "Sample")])) == 297L,
           identical(sort(unique(dat$info$Site)), sort(unique(original$info$Site))),
           identical(colnames(dat$OTU), colnames(original$OTU)),
           all(table(interaction(dat$info$Site, dat$info$Sample,
                                 dat$info$Primer, drop = TRUE)) == 6L),
           !anyNA(dat$OTU))
 validate_lesson_fit_identity(fit, input)
-stopifnot(sum(fit$infos$M == 1L) == 3L, sum(fit$infos$M == 2L) == 97L,
-          length(fit$infos$K) == 394L, all(fit$infos$K == 6L),
+stopifnot(sum(fit$infos$M == 2L) == 3L, sum(fit$infos$M == 3L) == 97L,
+          length(fit$infos$K) == 594L, all(fit$infos$K == 6L),
           identical(as.character(fit$infos$siteNames),
                     rownames(input$sim$true_params$z_true)),
           fit$infos$ps == 0L, fit$infos$n_factors == 2L)
@@ -101,7 +101,7 @@ for (band in compact$groups$band) {
 stopifnot(isTRUE(all.equal(compact$diagnostics,
                           as.data.frame(occJSDM::returnConvergenceDiagnostics(fit)))),
           identical(compact$warnings, saved$warnings),
-          nrow(compact$samples) == 1970L,
+          nrow(compact$samples) == 2970L,
           !any(key(compact$samples) %in% key(removed)))
 samples <- compact$samples
 sample_truth_index <- cbind(match(as.character(samples$Sample), rownames(truth$w_true)),
