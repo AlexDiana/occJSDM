@@ -1077,7 +1077,7 @@ paired_sites |>
 
 The difference, one factor minus two factors, is about **0.00033 Brier units**, slightly favouring the two-factor fit in this particular experiment. The site-based standard error is about **0.000066**. It describes variation among new sites **conditional on these fitted predictions**. It excludes Monte Carlo error in the MCMC estimates, variation from repeating the original training survey, and changes to the simulated community. A site-only interval can therefore exclude zero, as it does here, without establishing a dependable model advantage.
 
-An independent calculation from all retained posterior draws estimates the Monte Carlo standard error of that Brier-score difference at about **0.00026**, so the observed difference of 0.00033 is only about 1.3 Monte Carlo standard errors from zero. This is numerical uncertainty from MCMC, a different source of uncertainty from the site-based standard error. A difference this close to its numerical uncertainty supports withholding a model ranking. The calculation uses a first-order approximation and is documented in the prediction verifier.
+An independent calculation from all retained posterior draws (`prediction-verify.R --score-mcse`, recorded in the build log) estimates the Monte Carlo standard error of that Brier-score difference at about **0.00026**, so the observed difference of 0.00033 is only about 1.3 Monte Carlo standard errors from zero. This is numerical uncertainty from MCMC, a different source of uncertainty from the site-based standard error. A difference this close to its numerical uncertainty supports withholding a model ranking. The calculation uses a first-order approximation and is documented in the prediction verifier.
 
 The broad result is that these two fits have nearly identical predictive performance here. We do not select a winning factor count from this tiny difference. Predicting each species’ marginal occurrence also does not test whether the model has recovered joint community structure or the correct number of hidden ecological drivers. A model can give useful single-species probabilities while describing species associations poorly.
 
@@ -1181,13 +1181,20 @@ occJSDM::plotLatentPresences(
 )
 ```
 
-To keep knitting quick, the next chunk reads the exact tables exported from the saved default-prior fit. No estimates are recalculated or replaced with truth. We focus on OTU_1 at sites 1 and 6: the laboratory false-positive and weak true-detection cases selected in Lesson 1. All three field samples and both primers are retained at each site. The six PCRs within each sample/primer combination are numbered in their original observation order.
+To keep knitting quick, the next chunk reads the exact tables exported from the saved default-prior fit. No estimates are recalculated or replaced with truth. We focus on OTU_1 at sites 1 and 6: the laboratory false-positive and weak true-detection cases selected in Lesson 1, which `example_cases` takes from `lesson$cases`. All three field samples and both primers are retained at each site. The six PCRs within each sample/primer combination are numbered in their original observation order.
 
 ``` r
 native_tables <- readRDS("teaching-data/latent-presence-lesson.rds")
 
+example_cases <- lesson$cases |>
+  filter(case %in% c("Laboratory false positive", "Weak true detection")) |>
+  arrange(Site)
+
+lab_example <- filter(example_cases, case == "Laboratory false positive")
+weak_example <- filter(example_cases, case == "Weak true detection")
+
 latent_rows <- native_tables$tables |>
-  filter(species == "OTU_1", Site %in% c(1, 6)) |>
+  filter(species == "OTU_1", Site %in% example_cases$Site) |>
   arrange(Site, Sample, Primer, PCR)
 
 observed_truth <- lesson$observations |>
@@ -1310,7 +1317,7 @@ if (knitr::pandoc_to() %in% c("html", "html4", "html5")) {
 
 In HTML, colours group the sites and shades group samples and primers. They do not indicate confidence or whether the model is correct. Markdown shows the same records as an ordinary table; its probabilities are decimals rather than percentages.
 
-At site 1, sample 1 has no OTU_1 DNA (`TrueSample = 0`), despite a positive PCR. OTU_1 nevertheless occupies the site (`TrueSite = 1`). This is a **laboratory false positive about the sample**, not evidence that the species must be absent from the entire site. At site 6, sample 18 genuinely contains DNA but gives only two positives across its twelve PCR observations, and samples 16 and 17 contain none. Read all three samples together before judging the site’s inferred state.
+At site 1, sample 1 has no OTU_1 DNA (`TrueSample = 0`), despite a positive PCR. OTU_1 nevertheless occupies the site (`TrueSite = 1`). This is a **laboratory false positive about the sample**, not evidence that the species must be absent from the entire site. At site 6, sample 18 genuinely contains DNA but gives only 2 positives across its 12 PCR observations, and samples 16 and 17 contain none. Read all three samples together before judging the site’s inferred state.
 
 ### Keep generating probabilities separate from actual states
 

@@ -598,17 +598,43 @@ case_results |>
   knitr::kable()
 ```
 
-**Weak true detection:** OTU_1 really occupied site 6 and its DNA was in sample 18, but only two of the twelve PCRs from that sample were positive. Its DNA did not enter the site's other two samples, which have no positive PCRs. The model gives site presence `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(site_probability)))` probability, but sample presence only `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(sample_probability)))`. It therefore leaves the genuine site occurrence uncertain while tending to miss the DNA in this particular sample. This is a useful example of the two questions receiving different answers, not a wholly successful classification.
+The paragraphs below take each case's identifiers from `lesson$cases` and count its site's positive PCRs from `case_observations`, so they describe whichever cases the selection rule picked.
 
-**Laboratory false positive:** sample 1 at site 1 did not contain OTU_1 DNA, yet one PCR was positive. The model assigns sample presence only `r format_percent((case_results |> filter(case == "Laboratory false positive", arm == "default") |> pull(sample_probability)))` probability. However, OTU_1 really was present at the site, and the model assigns site presence `r format_percent((case_results |> filter(case == "Laboratory false positive", arm == "default") |> pull(site_probability)))` probability. A false-positive PCR does not require the species to be absent from the entire site. Collection failure and a laboratory false positive can occur together.
+```{r case-lookup}
+weak <- "Weak true detection"
+lab_fp <- "Laboratory false positive"
+strong <- "Strong true detection"
+field_fp <- "Field-stage false positive"
 
-**Strong true detection:** OTU_1 really occupied site 22. Its DNA entered two of the three field samples, 65 and 66, and repeated PCRs detect it in both; sample 64 contains no OTU_1 DNA and has no positive PCRs. The fitted probability of site presence is `r format_percent((case_results |> filter(case == "Strong true detection", arm == "default") |> pull(site_probability)))`, and the probability of DNA in the focal sample is `r format_percent((case_results |> filter(case == "Strong true detection", arm == "default") |> pull(sample_probability)))`. Here the strong evidence leads to the correct interpretation.
+case_field <- function(name, field) {
+  lesson$cases[[field]][lesson$cases$case == name]
+}
 
-**Field-stage false positive:** OTU_10 was absent from site 1, but the simulation contaminated sample 2 with its DNA. Sample 2 has nine positive PCRs; samples 1 and 3 contain no OTU_10 DNA, and each has one laboratory false-positive PCR. The model correctly concludes that sample 2 contains DNA (`r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(sample_probability)))`), and correctly assigns site presence only `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(site_probability)))` probability. This case was selected by the stated rule, not because of the model's answer; the table of all positive samples below shows that field-stage false positives are not always rejected this clearly.
+# Every sample at each case's site, with its positive PCRs and true DNA state.
+case_site_samples <- case_observations |>
+  group_by(case, Sample) |>
+  summarise(positives = sum(positive, na.rm = TRUE), w = first(w), .groups = "drop")
+
+samples_of <- function(name, dna) {
+  case_site_samples |> filter(case == name, w == dna)
+}
+
+list_samples <- function(samples) {
+  paste(samples, collapse = " and ")
+}
+```
+
+**Weak true detection:** `r case_field(weak, "species")` really occupied site `r case_field(weak, "Site")` and its DNA was in sample `r case_field(weak, "Sample")`, but only `r case_field(weak, "positives")` of the `r case_field(weak, "observed")` PCRs from that sample were positive. Its DNA did not enter the site's other samples, `r list_samples(samples_of(weak, 0)$Sample)`, which have no positive PCRs. The model gives site presence `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(site_probability)))` probability, but sample presence only `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(sample_probability)))`. It therefore leaves the genuine site occurrence uncertain while tending to miss the DNA in this particular sample. This is a useful example of the two questions receiving different answers, not a wholly successful classification.
+
+**Laboratory false positive:** sample `r case_field(lab_fp, "Sample")` at site `r case_field(lab_fp, "Site")` did not contain `r case_field(lab_fp, "species")` DNA, yet `r case_field(lab_fp, "positives")` of its `r case_field(lab_fp, "observed")` PCRs was positive. The model assigns sample presence only `r format_percent((case_results |> filter(case == "Laboratory false positive", arm == "default") |> pull(sample_probability)))` probability. However, `r case_field(lab_fp, "species")` really was present at the site, and the model assigns site presence `r format_percent((case_results |> filter(case == "Laboratory false positive", arm == "default") |> pull(site_probability)))` probability. A false-positive PCR does not require the species to be absent from the entire site. Collection failure and a laboratory false positive can occur together.
+
+**Strong true detection:** `r case_field(strong, "species")` really occupied site `r case_field(strong, "Site")`. Its DNA entered samples `r list_samples(samples_of(strong, 1)$Sample)`, and repeated PCRs detect it in each (`r list_samples(samples_of(strong, 1)$positives)` positive PCRs); sample `r list_samples(samples_of(strong, 0)$Sample)` contains no DNA of the species and has no positive PCRs. The fitted probability of site presence is `r format_percent((case_results |> filter(case == "Strong true detection", arm == "default") |> pull(site_probability)))`, and the probability of DNA in the focal sample is `r format_percent((case_results |> filter(case == "Strong true detection", arm == "default") |> pull(sample_probability)))`. Here the strong evidence leads to the correct interpretation.
+
+**Field-stage false positive:** `r case_field(field_fp, "species")` was absent from site `r case_field(field_fp, "Site")`, but the simulation contaminated sample `r case_field(field_fp, "Sample")` with its DNA. That sample has `r case_field(field_fp, "positives")` positive PCRs; samples `r list_samples(samples_of(field_fp, 0)$Sample)` contain no DNA of the species, and have `r sum(samples_of(field_fp, 0)$positives)` laboratory false-positive PCRs between them. The model correctly concludes that sample `r case_field(field_fp, "Sample")` contains DNA (`r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(sample_probability)))`), and correctly assigns site presence only `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(site_probability)))` probability. This case was selected by the stated rule, not because of the model's answer; the table of all positive samples below shows that field-stage false positives are not always rejected this clearly.
 
 Thus, more PCRs can establish DNA presence in a tube, while independent field samples provide additional evidence about occurrence at a site. Neither type of replication guarantees a correct answer. Contamination shared across field samples or laboratory batches could be harder still if that dependence is not represented by the model.
 
-Do not confuse these conditional site-presence probabilities with the underlying occupancy probabilities. For OTU_10 at site 1, the generating occupancy probability was `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(occupancy_truth)))`, and the fitted underlying probability is `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(occupancy_estimate)))`. The conditional probability above, `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(site_probability)))`, answers a different question: after seeing this site's PCR results, how likely is it that this particular site was occupied?
+Do not confuse these conditional site-presence probabilities with the underlying occupancy probabilities. For `r case_field(field_fp, "species")` at site `r case_field(field_fp, "Site")`, the generating occupancy probability was `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(occupancy_truth)))`, and the fitted underlying probability is `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(occupancy_estimate)))`. The conditional probability above, `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(site_probability)))`, answers a different question: after seeing this site's PCR results, how likely is it that this particular site was occupied?
 
 The model also considers **collection conditions**. Here is the sample-level evidence for all three field samples in each case. The collection covariate is a simulated measurement in arbitrary units. The true collection probability is calculated from that sample's covariate and the generating species coefficients, rather than substituted with an average rate.
 
@@ -650,11 +676,11 @@ sample_context |>
   knitr::kable()
 ```
 
-The last two columns answer: **if the species occupies the site, how likely is DNA to enter this sample?** They are different from the fitted probability that DNA actually entered the sample after considering its PCR results. For the field-contamination case, the site was absent, so the generating probability of DNA entering each sample was instead `r format_percent(lesson$input$params$theta0[10])`, the field false-positive rate for OTU_10.
+The last two columns answer: **if the species occupies the site, how likely is DNA to enter this sample?** They are different from the fitted probability that DNA actually entered the sample after considering its PCR results. For the field-contamination case, the site was absent, so the generating probability of DNA entering each sample was instead `r format_percent(lesson$input$params$theta0[match(case_field(field_fp, "species"), colnames(survey_data$OTU))])`, the field false-positive rate for `r case_field(field_fp, "species")`.
 
 In the code, `intercept + slope * covariate` is the generating collection score for a particular species and sample. `plogis()` converts that score to a probability between zero and one. The fitted collection probabilities in the final column come from the posterior summaries; they are not calculated using the true coefficients.
 
-For the weak true case, samples 16 and 17 have no positive PCRs, and the model gives each at most `r format_percent(sample_context |> filter(case == "Weak true detection", Sample != 18) |> pull(sample_probability) |> max())` probability of containing DNA; the simulation confirms that neither did. Sample 18 has only two positives and fitted DNA-presence probability `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(sample_probability)))`. The site probability, `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(site_probability)))`, is well below the fitted underlying occupancy probability at this site, `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(occupancy_estimate)))`: three samples with only two positive PCRs between them count against presence. This interpretation uses the other samples and the ecological model as well as the focal sample's PCRs; the simulation reveals that discounting sample 18 was a mistake.
+For the weak true case, samples `r list_samples(samples_of(weak, 0)$Sample)` have no positive PCRs, and the model gives each at most `r format_percent(sample_context |> filter(case == weak, Sample %in% samples_of(weak, 0)$Sample) |> pull(sample_probability) |> max())` probability of containing DNA; the simulation confirms that none did. Sample `r case_field(weak, "Sample")` has only `r case_field(weak, "positives")` positives and fitted DNA-presence probability `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(sample_probability)))`. The site probability, `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(site_probability)))`, is well below the fitted underlying occupancy probability at this site, `r format_percent((case_results |> filter(case == "Weak true detection", arm == "default") |> pull(occupancy_estimate)))`: three samples with only `r sum(case_site_samples$positives[case_site_samples$case == weak])` positive PCRs between them count against presence. This interpretation uses the other samples and the ecological model as well as the focal sample's PCRs; the simulation reveals that discounting sample `r case_field(weak, "Sample")` was a mistake.
 
 ## What changes if we are less confident about low contamination?
 
@@ -788,7 +814,7 @@ field_stage_samples <- default_samples |>
     other_contaminated = contaminated_at_site - 1,
     context = case_when(
       other_contaminated == 0 & laboratory_only_at_site == 0 ~ "Every other sample negative",
-      other_contaminated == 0 ~ "Another sample has only a laboratory false positive",
+      other_contaminated == 0 ~ "Other samples have only laboratory false positives",
       laboratory_only_at_site == 0 ~ "Another sample also contaminated",
       TRUE ~ "One other sample contaminated, one with a laboratory false positive"
     )
@@ -799,6 +825,7 @@ field_stage_summary <- field_stage_samples |>
   summarise(
     samples = n(),
     fitted_dna_probability = mean(sample_probability),
+    fitted_occupancy_probability = mean(occupancy_estimate),
     fitted_site_probability = mean(site_probability),
     .groups = "drop"
   ) |>
@@ -809,6 +836,7 @@ field_stage_summary |>
     `Other samples at the site` = context,
     Samples = samples,
     `Mean fitted DNA probability` = format_percent(fitted_dna_probability),
+    `Mean fitted occupancy probability` = format_percent(fitted_occupancy_probability),
     `Mean fitted site probability` = format_percent(fitted_site_probability)
   ) |>
   knitr::kable()
@@ -820,9 +848,13 @@ lone_contaminated <- field_stage_samples |>
 negative_neighbours <- default_samples |>
   semi_join(lone_contaminated, by = c("species", "Site")) |>
   anti_join(lone_contaminated, by = c("species", "Site", "Sample"))
+
+# The lone contaminated samples in the poorest and the best habitat.
+poorest_habitat <- slice_min(lone_contaminated, occupancy_estimate, n = 1)
+best_habitat <- slice_max(lone_contaminated, occupancy_estimate, n = 1)
 ```
 
-A lone contaminated sample beside negative samples still leaves the site at a substantial probability: the `r nrow(lone_contaminated)` such samples average `r format_percent(mean(lone_contaminated$site_probability))`. The reason is that the sample genuinely contains the species' DNA, and the model sees it (mean fitted DNA probability `r format_percent(mean(lone_contaminated$sample_probability))`). That DNA could have come from a species occupying the site or from field contamination, which the default prior expects to be uncommon (prior mean 4.8%). The other samples' negatives count against occupancy, but only partly, because even at an occupied site DNA enters each sample only with the collection probability: for the `r nrow(negative_neighbours)` negative samples beside these contaminated ones, the fitted collection probability averages `r format_percent(mean(negative_neighbours$collection_probability))`. The model weighs those negatives against the collection probability and the contamination prior, and the answer stays in between. When another sample at the site is also contaminated, the mean site probability is higher still (`r format_percent(field_stage_summary |> filter(context == "Another sample also contaminated") |> pull(fitted_site_probability))` for `r field_stage_summary |> filter(context == "Another sample also contaminated") |> pull(samples)` samples).
+A lone contaminated sample beside negative samples leaves its site at a substantial probability on average: the `r nrow(lone_contaminated)` such samples average `r format_percent(mean(lone_contaminated$site_probability))`, but they range from `r format_percent(min(lone_contaminated$site_probability))` to `r format_percent(max(lone_contaminated$site_probability))`. The contaminated sample genuinely contains the species' DNA, and the model sees it (mean fitted DNA probability `r format_percent(mean(lone_contaminated$sample_probability))`). That DNA could have come from a species occupying the site or from field contamination, which the default prior expects to be uncommon (prior mean 4.8%). The negatives beside it count against occupancy, but only partly, because even at an occupied site DNA enters each sample only with the collection probability: for the `r nrow(negative_neighbours)` negative samples beside these contaminated ones, the fitted collection probability averages `r format_percent(mean(negative_neighbours$collection_probability))`. The model weighs the DNA and the negatives with three inputs: the fitted occupancy probability, which says how suitable the site's habitat is from its environment and estimated hidden site conditions; the collection probability; and the contamination prior. Here the DNA and the negatives roughly cancel, so the site probability falls back near the fitted occupancy probability. That averages `r format_percent(mean(lone_contaminated$occupancy_estimate))` for these species and sites, and each site probability is on average `r format_points(mean(abs(lone_contaminated$site_probability - lone_contaminated$occupancy_estimate)))` percentage points from it. So a contaminated sample in poor habitat is rejected, and one in good habitat is not: for the species and site with the lowest fitted occupancy probability (`r format_percent(poorest_habitat$occupancy_estimate)`) the lone contaminated sample leaves a site probability of `r format_percent(poorest_habitat$site_probability)`, and for the one with the highest (`r format_percent(best_habitat$occupancy_estimate)`) it leaves `r format_percent(best_habitat$site_probability)`. The lesson's own field-stage case is a contaminated sample in poor habitat: its fitted occupancy probability is `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(occupancy_estimate)))` and its site probability `r format_percent((case_results |> filter(case == "Field-stage false positive", arm == "default") |> pull(site_probability)))`. When another sample at the site is also contaminated, the mean site probability is higher still (`r format_percent(field_stage_summary |> filter(context == "Another sample also contaminated") |> pull(fitted_site_probability))` for `r field_stage_summary |> filter(context == "Another sample also contaminated") |> pull(samples)` samples).
 
 When laboratory contamination is in fact far above what the default priors assume, a separate simulation study found one species' chains settling on two different explanations of the same observations; [Lesson 3](occJSDM-lesson-3.md#when-chains-settle-on-two-different-explanations) shows how to check a fit for this.
 

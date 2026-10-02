@@ -652,13 +652,39 @@ case_results |>
 | Strong true detection | Present | 98.4% | DNA present | 100.0% |
 | Field-stage false positive | Absent | 0.7% | DNA present | 100.0% |
 
-**Weak true detection:** OTU_1 really occupied site 6 and its DNA was in sample 18, but only two of the twelve PCRs from that sample were positive. Its DNA did not enter the site’s other two samples, which have no positive PCRs. The model gives site presence 54.9% probability, but sample presence only 17.7%. It therefore leaves the genuine site occurrence uncertain while tending to miss the DNA in this particular sample. This is a useful example of the two questions receiving different answers, not a wholly successful classification.
+The paragraphs below take each case’s identifiers from `lesson$cases` and count its site’s positive PCRs from `case_observations`, so they describe whichever cases the selection rule picked.
 
-**Laboratory false positive:** sample 1 at site 1 did not contain OTU_1 DNA, yet one PCR was positive. The model assigns sample presence only 1.7% probability. However, OTU_1 really was present at the site, and the model assigns site presence 98.7% probability. A false-positive PCR does not require the species to be absent from the entire site. Collection failure and a laboratory false positive can occur together.
+``` r
+weak <- "Weak true detection"
+lab_fp <- "Laboratory false positive"
+strong <- "Strong true detection"
+field_fp <- "Field-stage false positive"
 
-**Strong true detection:** OTU_1 really occupied site 22. Its DNA entered two of the three field samples, 65 and 66, and repeated PCRs detect it in both; sample 64 contains no OTU_1 DNA and has no positive PCRs. The fitted probability of site presence is 98.4%, and the probability of DNA in the focal sample is 100.0%. Here the strong evidence leads to the correct interpretation.
+case_field <- function(name, field) {
+  lesson$cases[[field]][lesson$cases$case == name]
+}
 
-**Field-stage false positive:** OTU_10 was absent from site 1, but the simulation contaminated sample 2 with its DNA. Sample 2 has nine positive PCRs; samples 1 and 3 contain no OTU_10 DNA, and each has one laboratory false-positive PCR. The model correctly concludes that sample 2 contains DNA (100.0%), and correctly assigns site presence only 0.7% probability. This case was selected by the stated rule, not because of the model’s answer; the table of all positive samples below shows that field-stage false positives are not always rejected this clearly.
+# Every sample at each case's site, with its positive PCRs and true DNA state.
+case_site_samples <- case_observations |>
+  group_by(case, Sample) |>
+  summarise(positives = sum(positive, na.rm = TRUE), w = first(w), .groups = "drop")
+
+samples_of <- function(name, dna) {
+  case_site_samples |> filter(case == name, w == dna)
+}
+
+list_samples <- function(samples) {
+  paste(samples, collapse = " and ")
+}
+```
+
+**Weak true detection:** OTU_1 really occupied site 6 and its DNA was in sample 18, but only 2 of the 12 PCRs from that sample were positive. Its DNA did not enter the site’s other samples, 16 and 17, which have no positive PCRs. The model gives site presence 54.9% probability, but sample presence only 17.7%. It therefore leaves the genuine site occurrence uncertain while tending to miss the DNA in this particular sample. This is a useful example of the two questions receiving different answers, not a wholly successful classification.
+
+**Laboratory false positive:** sample 1 at site 1 did not contain OTU_1 DNA, yet 1 of its 12 PCRs was positive. The model assigns sample presence only 1.7% probability. However, OTU_1 really was present at the site, and the model assigns site presence 98.7% probability. A false-positive PCR does not require the species to be absent from the entire site. Collection failure and a laboratory false positive can occur together.
+
+**Strong true detection:** OTU_1 really occupied site 22. Its DNA entered samples 65 and 66, and repeated PCRs detect it in each (5 and 8 positive PCRs); sample 64 contains no DNA of the species and has no positive PCRs. The fitted probability of site presence is 98.4%, and the probability of DNA in the focal sample is 100.0%. Here the strong evidence leads to the correct interpretation.
+
+**Field-stage false positive:** OTU_10 was absent from site 1, but the simulation contaminated sample 2 with its DNA. That sample has 9 positive PCRs; samples 1 and 3 contain no DNA of the species, and have 2 laboratory false-positive PCRs between them. The model correctly concludes that sample 2 contains DNA (100.0%), and correctly assigns site presence only 0.7% probability. This case was selected by the stated rule, not because of the model’s answer; the table of all positive samples below shows that field-stage false positives are not always rejected this clearly.
 
 Thus, more PCRs can establish DNA presence in a tube, while independent field samples provide additional evidence about occurrence at a site. Neither type of replication guarantees a correct answer. Contamination shared across field samples or laboratory batches could be harder still if that dependence is not represented by the model.
 
@@ -723,7 +749,7 @@ The last two columns answer: **if the species occupies the site, how likely is D
 
 In the code, `intercept + slope * covariate` is the generating collection score for a particular species and sample. `plogis()` converts that score to a probability between zero and one. The fitted collection probabilities in the final column come from the posterior summaries; they are not calculated using the true coefficients.
 
-For the weak true case, samples 16 and 17 have no positive PCRs, and the model gives each at most 0.8% probability of containing DNA; the simulation confirms that neither did. Sample 18 has only two positives and fitted DNA-presence probability 17.7%. The site probability, 54.9%, is well below the fitted underlying occupancy probability at this site, 86.1%: three samples with only two positive PCRs between them count against presence. This interpretation uses the other samples and the ecological model as well as the focal sample’s PCRs; the simulation reveals that discounting sample 18 was a mistake.
+For the weak true case, samples 16 and 17 have no positive PCRs, and the model gives each at most 0.8% probability of containing DNA; the simulation confirms that none did. Sample 18 has only 2 positives and fitted DNA-presence probability 17.7%. The site probability, 54.9%, is well below the fitted underlying occupancy probability at this site, 86.1%: three samples with only 2 positive PCRs between them count against presence. This interpretation uses the other samples and the ecological model as well as the focal sample’s PCRs; the simulation reveals that discounting sample 18 was a mistake.
 
 ## What changes if we are less confident about low contamination?
 
@@ -868,7 +894,7 @@ field_stage_samples <- default_samples |>
     other_contaminated = contaminated_at_site - 1,
     context = case_when(
       other_contaminated == 0 & laboratory_only_at_site == 0 ~ "Every other sample negative",
-      other_contaminated == 0 ~ "Another sample has only a laboratory false positive",
+      other_contaminated == 0 ~ "Other samples have only laboratory false positives",
       laboratory_only_at_site == 0 ~ "Another sample also contaminated",
       TRUE ~ "One other sample contaminated, one with a laboratory false positive"
     )
@@ -879,6 +905,7 @@ field_stage_summary <- field_stage_samples |>
   summarise(
     samples = n(),
     fitted_dna_probability = mean(sample_probability),
+    fitted_occupancy_probability = mean(occupancy_estimate),
     fitted_site_probability = mean(site_probability),
     .groups = "drop"
   ) |>
@@ -889,17 +916,18 @@ field_stage_summary |>
     `Other samples at the site` = context,
     Samples = samples,
     `Mean fitted DNA probability` = format_percent(fitted_dna_probability),
+    `Mean fitted occupancy probability` = format_percent(fitted_occupancy_probability),
     `Mean fitted site probability` = format_percent(fitted_site_probability)
   ) |>
   knitr::kable()
 ```
 
-| Other samples at the site | Samples | Mean fitted DNA probability | Mean fitted site probability |
-|:---|---:|:---|:---|
-| Another sample has only a laboratory false positive | 42 | 98.0% | 38.7% |
-| Every other sample negative | 38 | 95.6% | 44.4% |
-| Another sample also contaminated | 6 | 100.0% | 96.1% |
-| One other sample contaminated, one with a laboratory false positive | 4 | 100.0% | 94.7% |
+| Other samples at the site | Samples | Mean fitted DNA probability | Mean fitted occupancy probability | Mean fitted site probability |
+|:---|---:|:---|:---|:---|
+| Other samples have only laboratory false positives | 42 | 98.0% | 35.5% | 38.7% |
+| Every other sample negative | 38 | 95.6% | 37.7% | 44.4% |
+| Another sample also contaminated | 6 | 100.0% | 50.5% | 96.1% |
+| One other sample contaminated, one with a laboratory false positive | 4 | 100.0% | 50.6% | 94.7% |
 
 ``` r
 # The negative samples beside a lone contaminated sample.
@@ -909,9 +937,13 @@ lone_contaminated <- field_stage_samples |>
 negative_neighbours <- default_samples |>
   semi_join(lone_contaminated, by = c("species", "Site")) |>
   anti_join(lone_contaminated, by = c("species", "Site", "Sample"))
+
+# The lone contaminated samples in the poorest and the best habitat.
+poorest_habitat <- slice_min(lone_contaminated, occupancy_estimate, n = 1)
+best_habitat <- slice_max(lone_contaminated, occupancy_estimate, n = 1)
 ```
 
-A lone contaminated sample beside negative samples still leaves the site at a substantial probability: the 38 such samples average 44.4%. The reason is that the sample genuinely contains the species’ DNA, and the model sees it (mean fitted DNA probability 95.6%). That DNA could have come from a species occupying the site or from field contamination, which the default prior expects to be uncommon (prior mean 4.8%). The other samples’ negatives count against occupancy, but only partly, because even at an occupied site DNA enters each sample only with the collection probability: for the 76 negative samples beside these contaminated ones, the fitted collection probability averages 59.1%. The model weighs those negatives against the collection probability and the contamination prior, and the answer stays in between. When another sample at the site is also contaminated, the mean site probability is higher still (96.1% for 6 samples).
+A lone contaminated sample beside negative samples leaves its site at a substantial probability on average: the 38 such samples average 44.4%, but they range from 0.7% to 89.7%. The contaminated sample genuinely contains the species’ DNA, and the model sees it (mean fitted DNA probability 95.6%). That DNA could have come from a species occupying the site or from field contamination, which the default prior expects to be uncommon (prior mean 4.8%). The negatives beside it count against occupancy, but only partly, because even at an occupied site DNA enters each sample only with the collection probability: for the 76 negative samples beside these contaminated ones, the fitted collection probability averages 59.1%. The model weighs the DNA and the negatives with three inputs: the fitted occupancy probability, which says how suitable the site’s habitat is from its environment and estimated hidden site conditions; the collection probability; and the contamination prior. Here the DNA and the negatives roughly cancel, so the site probability falls back near the fitted occupancy probability. That averages 37.7% for these species and sites, and each site probability is on average 12.4 percentage points from it. So a contaminated sample in poor habitat is rejected, and one in good habitat is not: for the species and site with the lowest fitted occupancy probability (0.3%) the lone contaminated sample leaves a site probability of 0.7%, and for the one with the highest (82.1%) it leaves 89.7%. The lesson’s own field-stage case is a contaminated sample in poor habitat: its fitted occupancy probability is 1.9% and its site probability 0.7%. When another sample at the site is also contaminated, the mean site probability is higher still (96.1% for 6 samples).
 
 When laboratory contamination is in fact far above what the default priors assume, a separate simulation study found one species’ chains settling on two different explanations of the same observations; [Lesson 3](occJSDM-lesson-3.md#when-chains-settle-on-two-different-explanations) shows how to check a fit for this.
 
