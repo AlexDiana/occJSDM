@@ -30,7 +30,7 @@ source("lesson-links.R")
 
 ## What this lesson adds
 
-[The four-JSDM comparison](occJSDM-lesson-4.md) gave occJSDM, gllvm, sjSDM and Hmsc the same perfectly observed community and compared their probabilities with truth. This lesson repeats that experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits.
+[Lesson 5](occJSDM-lesson-5.md) gave occJSDM, gllvm, sjSDM and Hmsc the same perfectly observed community and compared their probabilities with truth. This lesson repeats that experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits.
 
 You will learn to distinguish bias from error size, and to assess interval coverage alongside interval width.
 
@@ -50,7 +50,7 @@ theme_set(ggtern::theme_bw(base_size = 12))
 
 ## 1. Does more data help when ecology becomes harder?
 
-[The four-JSDM comparison](occJSDM-lesson-4.md) used one small community. The extension below repeats the experiment across **ten independently simulated communities**, so we can see how much the answer varies between datasets. Within each community, the 100 training sites are part of the 300 training sites. Both fits predict the same 300 independent test sites.
+[Lesson 5](occJSDM-lesson-5.md) used one small community. The extension below repeats the experiment across **ten independently simulated communities**, so we can see how much the answer varies between datasets. Within each community, the 100 training sites are part of the 300 training sites. Both fits predict the same 300 independent test sites.
 
 We change one ecological feature at a time. All four packages receive the same observations. The extension still assumes perfect observation and independent sites; field collection, PCR and spatial effects are not involved.
 

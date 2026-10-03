@@ -5,13 +5,13 @@ Lesson 3: Understand the model’s outputs by comparing them with truth
 
 An environmental effect can be real in the simulation and still be estimated imprecisely. A fitted curve can look convincing and still miss the truth. This lesson shows how to distinguish those situations.
 
-It replaces the output tour in the original occJSDM vignette. Start with [Lesson 1](occJSDM-lesson-1.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. You do not need [the spatial lesson](occJSDM-lesson-2.md) first. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
+It replaces the output tour in the original occJSDM vignette. Start with [Lesson 2](occJSDM-lesson-2.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. You do not need [the spatial lesson](occJSDM-lesson-7.md) first. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
 
-We compare two existing fits of that community: one given the actual presence/absence matrix (**perfect observation**) and one given the PCR observations. The diagnostics section also revisits Lesson 1’s longer alternative-prior fit. This is not a before/after comparison of software versions. The fits use the verified model source recorded in Lesson 1; that source matches the code on main when this lesson was prepared. Most examples reuse these fits. [The prediction lesson](occJSDM-lesson-prediction.md) adds one fit to the same PCR observations, changing only the number of hidden site factors from two to one.
+We compare two existing fits of that community: one given the actual presence/absence matrix (**perfect observation**) and one given the PCR observations. The diagnostics section also revisits Lesson 2’s longer alternative-prior fit. This is not a before/after comparison of software versions. The fits use the verified model source recorded in Lesson 2; that source matches the code on main when this lesson was prepared. Most examples reuse these fits. [Lesson 4](occJSDM-lesson-4.md), on prediction at new sites, adds one fit to the same PCR observations, changing only the number of hidden site factors from two to one.
 
 All teaching code is visible. Run chunks with `vignettes` as the working directory, or knit this file. Figures and tables use compact saved summaries. Optional chunks labelled `eval=FALSE` explain how to obtain the underlying outputs from a full fit, without starting a long fit while knitting.
 
-In those optional examples, `fitmodel` is the full object returned by `runOccJSDM()`. If you followed Lesson 1’s `fit <- runOccJSDM(...)` example, first set `fitmodel <- fit`. If you have the archived teaching fits, the [reproduction instructions](#reproduce-the-teaching-figures) show how to load one as `fitmodel`.
+In those optional examples, `fitmodel` is the full object returned by `runOccJSDM()`. If you followed Lesson 2’s `fit <- runOccJSDM(...)` example, first set `fitmodel <- fit`. If you have the archived teaching fits, the [reproduction instructions](#reproduce-the-teaching-figures) show how to load one as `fitmodel`.
 
 ``` r
 library(dplyr)
@@ -100,7 +100,7 @@ nrow(flagged_default)
 
 For this default-prior fit, 0 rows need attention under this screen. An empty list means that the listed parameters pass these checks; it is not a certificate that all quantities have converged or that the ecological estimates are accurate. Missing diagnostics are flagged too. A missing Rhat can arise from having only one chain or a chain that never moved, so silently dropping missing values would hide a possible problem.
 
-Now apply exactly the same screen to the **longer alternative-prior fit** from Lesson 1. That fit uses weaker low-contamination assumptions and has already been extended to four chains with 12,000 retained iterations each:
+Now apply exactly the same screen to the **longer alternative-prior fit** from Lesson 2. That fit uses weaker low-contamination assumptions and has already been extended to four chains with 12,000 retained iterations each:
 
 ``` r
 flagged_alternative <- as_tibble(lesson$diagnostics$alternative) |>
@@ -306,7 +306,7 @@ When a parameter is flagged, inspect its trace and consider which ecological con
 
 Keep `nthin = 1` unless storage is the limiting concern. Discarding additional draws does not make the sampler explore better or repair chains trapped in different regions. Never discard selected chains or tune priors just to make the examples pass a diagnostic threshold. In a real dataset the black truth lines are unavailable, so convergence checks, model checks and ecological judgment each have a separate role.
 
-WAIC is another calculated quantity with no generating parameter to overlay. The perfect-observation and PCR fits here have different response data, so their WAIC values must not be compared as if they were competing models of one dataset. Moreover, the current implementation includes likelihood terms for sampled, unobserved occupancy and collection states. Its scalar is not an observed-data criterion that averages over those states for prediction at new sites. [The prediction lesson](occJSDM-lesson-prediction.md#check-the-additional-fit-and-understand-the-waic-limitation) demonstrates extraction, explains this limitation, and compares two models using actual independent sites instead.
+WAIC is another calculated quantity with no generating parameter to overlay. The perfect-observation and PCR fits here have different response data, so their WAIC values must not be compared as if they were competing models of one dataset. Moreover, the current implementation includes likelihood terms for sampled, unobserved occupancy and collection states. Its scalar is not an observed-data criterion that averages over those states for prediction at new sites. [Lesson 4](occJSDM-lesson-4.md#check-the-additional-fit-and-understand-the-waic-limitation) demonstrates extraction, explains this limitation, and compares two models using actual independent sites instead.
 
 ## How many effects does each fit resolve?
 
@@ -957,7 +957,7 @@ quantile(collection_draws[, "X_theta", "OTU_1"], probs = c(0.025, 0.975))
 
 Replace `X_theta` and `OTU_1` with names from your own fit. An interval spanning zero means the direction remains uncertain under this interval criterion. These pooled draws support posterior summaries; use the separate chain arrays, as the [diagnostics section](#check-computation-as-well-as-ecological-recovery) at the start of this lesson does, for convergence checks.
 
-Two related helpers answer different questions about collection. `plotCollectionRates()` shows each species’ collection probability with the covariates fixed at their mean, one value per species. `computeAverageCollectionProbs()` instead returns a sample-by-species matrix of posterior mean collection probabilities using each field sample’s actual covariate values, which is the quantity to use when asking which samples were poorly collected. [Lesson 1](occJSDM-lesson-1.md) compares true and estimated PCR detection, laboratory false-positive and field-contamination probabilities, and shows why their values alone cannot classify every positive detection correctly. Its truth accounts for whether simulated reads actually pass the fitted threshold.
+Two related helpers answer different questions about collection. `plotCollectionRates()` shows each species’ collection probability with the covariates fixed at their mean, one value per species. `computeAverageCollectionProbs()` instead returns a sample-by-species matrix of posterior mean collection probabilities using each field sample’s actual covariate values, which is the quantity to use when asking which samples were poorly collected. [Lesson 2](occJSDM-lesson-2.md) compares true and estimated PCR detection, laboratory false-positive and field-contamination probabilities, and shows why their values alone cannot classify every positive detection correctly. Its truth accounts for whether simulated reads actually pass the fitted threshold.
 
 Baseline collection is conditional on presence and sets the standardized collection predictor to zero, meaning its observed raw-scale mean. Its truth is `plogis(raw_intercept + raw_slope * predictor_mean)`, not `plogis(raw_intercept)`.
 
@@ -1202,13 +1202,13 @@ conditional_occupancy[, "OTU_1"]
 
 Use this matrix to map inferred presence at surveyed sites or examine sites with uncertain occupancy; match its row names to site identifiers when joining other data. It contains posterior probabilities rather than individual draws or credible limits. Its appropriate simulation check is the realized 0/1 state, not the generating probability. These are estimates at surveyed sites; use `predictNewSites()` for unsurveyed sites.
 
-Its sample-level counterpart, `computeConditionalSamplePresenceProbs()`, returns a sample-by-species matrix of posterior probabilities that the species’ DNA was in each field sample; the latent presence table below shows the same quantity in its `CondSampleProb` column, beside the PCR results that produced it. [Lesson 1](occJSDM-lesson-1.md) puts these quantities alongside the actual simulated detection cases, with maps in Lesson 0.
+Its sample-level counterpart, `computeConditionalSamplePresenceProbs()`, returns a sample-by-species matrix of posterior probabilities that the species’ DNA was in each field sample; the latent presence table below shows the same quantity in its `CondSampleProb` column, beside the PCR results that produced it. [Lesson 2](occJSDM-lesson-2.md) puts these quantities alongside the actual simulated detection cases, with maps in Lesson 0.
 
-Which one should a study report? [Ji et al. (2025)](#references-and-further-reading) reported the predictive probabilities, because they are estimated from the environmental relationships learned across all sites and are therefore less sensitive to the handful of detections at any one site. The conditional probability moves with that site’s own PCR results, so a single contaminated or failed sample can shift it substantially. The two are most useful together: a site where the conditional probability is high but the predictive probability is low is one where weak positive evidence overrode unfavourable covariates, and the reverse pattern marks a site the model believes occupied despite few detections. Their Supplementary Information 12 works through such cases; Lesson 1’s worked detections do the same on this simulation.
+Which one should a study report? [Ji et al. (2025)](#references-and-further-reading) reported the predictive probabilities, because they are estimated from the environmental relationships learned across all sites and are therefore less sensitive to the handful of detections at any one site. The conditional probability moves with that site’s own PCR results, so a single contaminated or failed sample can shift it substantially. The two are most useful together: a site where the conditional probability is high but the predictive probability is low is one where weak positive evidence overrode unfavourable covariates, and the reverse pattern marks a site the model believes occupied despite few detections. Their Supplementary Information 12 works through such cases; Lesson 2’s worked detections do the same on this simulation.
 
 `returnLatentPresences()` and `plotLatentPresences()` collect those fitted quantities by site, sample and primer. The next section demonstrates them on this lesson’s own simulation, so the observations, estimates and truth all refer to the same records.
 
-Prediction at unsurveyed sites, and comparing models by what they predict there, are the subject of [the prediction lesson](occJSDM-lesson-prediction.md).
+Prediction at unsurveyed sites, and comparing models by what they predict there, are the subject of [Lesson 4](occJSDM-lesson-4.md).
 
 ## Put the observations, inferred states and truth in one table
 
@@ -1231,7 +1231,7 @@ occJSDM::plotLatentPresences(
 )
 ```
 
-To keep knitting quick, the next chunk reads the exact tables exported from the saved default-prior fit. No estimates are recalculated or replaced with truth. We focus on OTU_1 at sites 1 and 6: the laboratory false-positive and weak true-detection cases selected in Lesson 1, which `example_cases` takes from `lesson$cases`. All three field samples and both primers are retained at each site. The six PCRs within each sample/primer combination are numbered in their original observation order.
+To keep knitting quick, the next chunk reads the exact tables exported from the saved default-prior fit. No estimates are recalculated or replaced with truth. We focus on OTU_1 at sites 1 and 6: the laboratory false-positive and weak true-detection cases selected in Lesson 2, which `example_cases` takes from `lesson$cases`. All three field samples and both primers are retained at each site. The six PCRs within each sample/primer combination are numbered in their original observation order.
 
 ``` r
 native_tables <- readRDS("teaching-data/latent-presence-lesson.rds")
@@ -1373,7 +1373,7 @@ At site 1, sample 1 has no OTU_1 DNA (`TrueSample = 0`), despite a positive PCR.
 
 The table’s other three probabilities answer different questions. `PredOccProb` estimates the generating occupancy probability at a fitted site, including its learned hidden site contribution. `CollectionProb` estimates collection success **if the species is present at the site**. `DetectionProb` estimates a threshold-positive PCR **if its DNA is in the sample**. Neither collection nor detection probability is an unconditional prediction that an arbitrary PCR will be positive.
 
-For these columns, compare probabilities with probabilities. The true site probabilities are already in the checked occupancy summaries. The true collection probability comes from the raw collection covariate and the simulator’s collection intercept and slope. The true PCR probabilities below include the read-threshold adjustment explained in Lesson 1.
+For these columns, compare probabilities with probabilities. The true site probabilities are already in the checked occupancy summaries. The true collection probability comes from the raw collection covariate and the simulator’s collection intercept and slope. The true PCR probabilities below include the read-threshold adjustment explained in Lesson 2.
 
 ``` r
 site_truth <- lesson$cells |>
@@ -1454,23 +1454,23 @@ There are twelve rows because these probabilities do not vary among repeated PCR
 
 Each question names the functions that answer it and where these lessons check the answer against truth.
 
-- **How do I prepare and fit data?** `simulateOccJSDMData()`, `runOccJSDM()`. Truth check: Lessons 0 and 1.
+- **How do I prepare and fit data?** `simulateOccJSDMData()`, `runOccJSDM()`. Truth check: Lessons 0 and 2.
 - **How does each species respond to the environment?** `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()`. Truth check: the coefficient plots above, for both fits, and the response-curve plots above.
 - **What is baseline occupancy?** `returnOccupancyRates()`, `plotOccupancyRates()`. Truth check: the baseline table and package plot above.
 - **Do traits explain species responses?** `returnTraitsCoeff()`, `plotTraitsCoefficients()`. Truth check: the package trait plots and the two-fit comparison above, with standardized truth; the cancellation diagnostic in the appendix.
 - **Which species share unmeasured site responses?** `returnResidualCorrelationMatrix()`, `plotResidualCorrelationMatrix()`. Truth check: the package heat map with true correlations above.
 - **What do ordination axes represent?** `returnOrdinationScores()`, `returnFactorLoadings()`, `plotOrdinationScores()`, `plotFactorLoadings()`, `plotBiplot()`. Truth check: the combined contribution above; truth-aligned scores, loadings and biplot in the appendix.
-- **What affects collection?** `returnCollectionCovariates()`, `plotCollectionCovariates()`, `plotCollectionRates()`, `computeAverageCollectionProbs()`. Truth check: the collection plots above; observation process in Lesson 1.
-- **What about PCR failures and contamination?** `plotDetectionRates()`, `plotStage1FPRates()`, `plotStage2FPRates()`. Truth check: combined and separate rate plots above; actual cases in Lesson 1.
+- **What affects collection?** `returnCollectionCovariates()`, `plotCollectionCovariates()`, `plotCollectionRates()`, `computeAverageCollectionProbs()`. Truth check: the collection plots above; observation process in Lesson 2.
+- **What about PCR failures and contamination?** `plotDetectionRates()`, `plotStage1FPRates()`, `plotStage2FPRates()`. Truth check: combined and separate rate plots above; actual cases in Lesson 2.
 - **How does sampling effort affect detection?** `plotCumulativeSpeciesDetections()`. Truth check: package survey-outcome intervals with exact true ranges above.
 - **What happened at a particular site or sample?** `computeConditionalOccupancyProbs()`, `computeConditionalSamplePresenceProbs()`, `computePredictiveOccupancyProbs()`, `returnLatentPresences()`, `plotLatentPresences()`. Truth check: package tables above, with matching states and probabilities.
 - **Can I trust the computation?** `computeDiagnostics()`, `returnConvergenceDiagnostics()`, `plotTraceplot()`, `extractWAIC()`. Truth check: diagnostics at the start of this lesson; these have no single simulated true value.
-- **How well does it predict unsurveyed sites?** `predictNewSites()`. Truth check: [the prediction lesson](occJSDM-lesson-prediction.md): 300 independent non-spatial sites, with clearly distinguished probability targets.
-- **What about spatial prediction?** Spatial model outputs. [The spatial lesson](occJSDM-lesson-2.md) works through a site-arrangement sweep; this lesson does not validate spatial outputs.
+- **How well does it predict unsurveyed sites?** `predictNewSites()`. Truth check: [Lesson 4](occJSDM-lesson-4.md): 300 independent non-spatial sites, with clearly distinguished probability targets.
+- **What about spatial prediction?** Spatial model outputs. [The spatial lesson](occJSDM-lesson-7.md) works through a site-arrangement sweep; this lesson does not validate spatial outputs.
 
 ## Where to go next
 
-[The prediction lesson](occJSDM-lesson-prediction.md) predicts occupancy at 300 new sites and compares two models by what actually occurred there. The appendix below holds the evidence that needs the simulation’s truth or the full fits: the trait cancellation, the truth-aligned ordination plots, the mirror-labelling study, reading trace draws from the fit object, the corrected response-curve helper, and the commands that reproduce the teaching figures.
+[Lesson 4](occJSDM-lesson-4.md) predicts occupancy at 300 new sites and compares two models by what actually occurred there. The appendix below holds the evidence that needs the simulation’s truth or the full fits: the trait cancellation, the truth-aligned ordination plots, the mirror-labelling study, reading trace draws from the fit object, the corrected response-curve helper, and the commands that reproduce the teaching figures.
 
 ## References and further reading
 
@@ -1557,7 +1557,7 @@ These plots use the PCR-observation fit, including all 6,000 retained iterations
 ordination_examples <- readRDS("teaching-data/ordination-examples.rds")
 ```
 
-With the full `fitmodel` from Lesson 1, run this simulation comparison preparation once. `known_truth` is the generating parameter list loaded at the start of this lesson.
+With the full `fitmodel` from Lesson 2, run this simulation comparison preparation once. `known_truth` is the generating parameter list loaded at the start of this lesson.
 
 ``` r
 true_factors <- known_truth$jsdmParams_true

@@ -1,6 +1,6 @@
 # Lesson 4 pilot: fitting four comparable JSDMs
 
-Run on 22 September 2026. This report records actual fits, not installation tests. This development report supports the [student-facing Lesson 4](../../../vignettes/occJSDM-lesson-4.md).
+Run on 22 September 2026. This report records actual fits, not installation tests. This development report supports the [student-facing Lesson 4](../../../vignettes/occJSDM-lesson-5.md).
 
 All four packages receive the same 100 sites, ten species and two environmental measurements. Each species is recorded as present or absent without observation error. Every model has room for two hidden site factors. A separate set of 300 sites is reserved for prediction. The simulator, complete ecological parameter table and all fitting attempts are saved.
 

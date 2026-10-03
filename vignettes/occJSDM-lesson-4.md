@@ -3,7 +3,7 @@ Lesson 4: Predict occupancy at new sites and compare models
 
 ## What this lesson answers
 
-Genuine prediction at an unsurveyed site requires keeping its observations out of fitting and averaging appropriately over its unknown conditions. Reusing the fitting sites’ covariates is not an independent prediction test. This lesson supplies 300 independently generated sites that neither model has seen, predicts occupancy there with the package’s new-site function, and compares two models by how well they predict what actually occurred. Spatial prediction is in [the spatial lesson](occJSDM-lesson-2.md).
+Genuine prediction at an unsurveyed site requires keeping its observations out of fitting and averaging appropriately over its unknown conditions. Reusing the fitting sites’ covariates is not an independent prediction test. This lesson supplies 300 independently generated sites that neither model has seen, predicts occupancy there with the package’s new-site function, and compares two models by how well they predict what actually occurred. Spatial prediction is in [the spatial lesson](occJSDM-lesson-7.md).
 
 It continues [Lesson 3](occJSDM-lesson-3.md), which reads the same fits’ outputs against truth, and uses the same non-spatial community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
 
@@ -234,7 +234,7 @@ prediction_cells |>
 
 Both models overestimate these probabilities slightly on average, by **0.52 percentage points** with one factor and **0.36** with two, while their **average absolute error is about 8.9 percentage points**. Those are results from this simulation, not hypothetical examples. The difference between the two error measures means that errors in opposite directions partially cancel. An absolute error of ten points would be a prediction of 40% or 60% when truth is 50%; that last sentence is only an illustration of the unit, not a claim that all errors equal ten points.
 
-These new-site errors have a different target from Lesson 1’s errors in fitted-site probabilities. Here we average over unknown local conditions; there we check the probability for each surveyed site’s actual conditions. Comparing their magnitudes as if they measured the same task would be misleading.
+These new-site errors have a different target from Lesson 2’s errors in fitted-site probabilities. Here we average over unknown local conditions; there we check the probability for each surveyed site’s actual conditions. Comparing their magnitudes as if they measured the same task would be misleading.
 
 ### Compare models using what actually occurred
 
@@ -374,7 +374,7 @@ tibble(
 
 ## Where to go next
 
-[Lesson 3](occJSDM-lesson-3.md) reads the fitted outputs at the surveyed sites. [The four-JSDM comparison](occJSDM-lesson-4.md) asks the same two prediction questions of four packages on a perfectly observed community. The appendix below holds the commands that rebuild this lesson’s comparison.
+[Lesson 3](occJSDM-lesson-3.md) reads the fitted outputs at the surveyed sites. [Lesson 5](occJSDM-lesson-5.md) asks the same two prediction questions of four packages on a perfectly observed community. The appendix below holds the commands that rebuild this lesson’s comparison.
 
 ## Appendix: evidence and reproduction
 

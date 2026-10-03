@@ -1,6 +1,6 @@
 # Saved-fit bias and interval coverage
 
-Doug approved this Lesson 4 extension on 25 September 2026, including occJSDM, gllvm, Hmsc and sjSDM. It reanalyses the completed September experiment. The original package code, fitting settings, selected starts, datasets and diagnostics are retained. The initial posterior extraction required no refits. The native coefficient extension subsequently replays selected gllvm fits to recover their fitting objects and computes sjSDM uncertainty directly from its saved weights, as described below.
+Doug approved this extension (now Lesson 6) on 25 September 2026, including occJSDM, gllvm, Hmsc and sjSDM. It reanalyses the completed September experiment. The original package code, fitting settings, selected starts, datasets and diagnostics are retained. The initial posterior extraction required no refits. The native coefficient extension subsequently replays selected gllvm fits to recover their fitting objects and computes sjSDM uncertainty directly from its saved weights, as described below.
 
 ## What is measured
 
@@ -27,8 +27,8 @@ Rscript "$calibration_code/test-calibration.R" "$calibration_code"
 Rscript "$calibration_code/export-calibration.R" "$study_archive" . "$calibration_output"
 Rscript "$calibration_code/verify-calibration.R" "$calibration_output/calibration.rds" "$study_archive" &&
   cp "$calibration_output/calibration.rds" vignettes/teaching-data/lesson-4-calibration.rds
-Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd")'
-Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-6.Rmd")'
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-6.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
 ```
 
 Always run the independent verifier successfully before copying, using or distributing a newly exported bundle; stop if any command fails. The exporter writes only to the analysis output directory. A new MD5 merely records what was read; it does not establish that a truth file is correct. The verifier reconstructs all 50 communities using the original frozen simulator, checks their complete truth objects, reconstructs each training input, and compares saved test observations and marginal truth with those communities. It separately recomputes all 626 point scores, fixed-grid truth, coefficient backtransformations and grouped summaries. It checks input/source hashes, unavailable intervals and the numerical refinement records. It never fits a model or changes the archive.
@@ -97,7 +97,7 @@ The presentation helper is `vignettes/lesson-4-calibration-tables.R`. This revis
 
 ## Presentation following the validation article
 
-Sections 14-15 use plain Markdown, like the rest of the lessons: a plain-language findings summary, separate compact tables for prediction error, coefficient bias and interval coverage, neutral horizontal plots with zero-bias or 95% reference lines, and a final section with all previous detailed results, widths and methods. Until 1 October 2026 they had their own report styling, adapted from the validation article: a scoped stylesheet, `vignettes/lesson-4-calibration.css`, with a tinted panel, findings boxes and a collapsible full-results section. It was removed because it existed only in the HTML vignette, and the GitHub Pages site showed the Markdown inside its HTML blocks as raw text. HTML and GitHub Markdown show the same data; the rendering code stays in the R Markdown source.
+Lesson 6 sections 3 and 4 use plain Markdown, like the rest of the lessons: a plain-language findings summary, separate compact tables for prediction error, coefficient bias and interval coverage, neutral horizontal plots with zero-bias or 95% reference lines, and a final section with all previous detailed results, widths and methods. Until 1 October 2026 they had their own report styling, adapted from the validation article: a scoped stylesheet, `vignettes/lesson-4-calibration.css`, with a tinted panel, findings boxes and a collapsible full-results section. It was removed because it existed only in the HTML vignette, and the GitHub Pages site showed the Markdown inside its HTML blocks as raw text. HTML and GitHub Markdown show the same data; the rendering code stays in the R Markdown source.
 
 The summary plots show one MCSE on either side of the community average, calculated from independent community summaries. They do not reuse the older validation article's binomial error bars based on individual interval decisions. Missing package intervals retain labelled panels. The baseline probability errors still use 300 test sites; probability coverage still uses five fixed environmental settings. Coefficient targets remain separate, and all main summaries retain diagnostic flags.
 

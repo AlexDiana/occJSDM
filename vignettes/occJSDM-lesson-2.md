@@ -3,7 +3,7 @@ Lesson 2: Fit the model and compare its answers with truth
 
 ## Before you start
 
-This is **Lesson 1**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we simulated the survey used here and maps its environmental values, true occurrences and detections. You can start here with the supplied data. This lesson is non-spatial. The spatial lesson, [Lesson 2](occJSDM-lesson-2.md), covers how sites are arranged in space. If occupancy models or joint species distribution models are new to you, read [the intuition lesson](occJSDM-lesson-intuition.md) first: it works through both by hand, without fitting a model.
+This is **Lesson 2**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we simulated the survey used here and maps its environmental values, true occurrences and detections. You can start here with the supplied data. This lesson is non-spatial. The spatial lesson, [Lesson 7](occJSDM-lesson-7.md), covers how sites are arranged in space. If occupancy models or joint species distribution models are new to you, read [Lesson 1](occJSDM-lesson-1.md) first: it works through both by hand, without fitting a model.
 
 All teaching code is shown. Run the chunks in order with the repository’s `vignettes` directory as the working directory; knitting handles this automatically. In RStudio, use **Session \> Set Working Directory \> To Source File Location** with this file open.
 
@@ -618,7 +618,7 @@ ggplot(map_errors, aes(x = east, y = north, colour = error_pp)) +
 <figcaption aria-hidden="true">Orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state.</figcaption>
 </figure>
 
-OTU_1 is common, and 81% of its sites are blue: the pull towards the middle again, underestimating its high probabilities. Neither map shows errors gathered in one part of the survey area; large overestimates and underestimates sit next to each other. That is what this simulation should produce, because its environmental values and hidden site factors were generated independently of coordinates. Smoothing these points would invent a surface that this simulation never generated. The spatial lesson, [Lesson 2](occJSDM-lesson-2.md), introduces a smooth habitat gradient and spatial structure.
+OTU_1 is common, and 81% of its sites are blue: the pull towards the middle again, underestimating its high probabilities. Neither map shows errors gathered in one part of the survey area; large overestimates and underestimates sit next to each other. That is what this simulation should produce, because its environmental values and hidden site factors were generated independently of coordinates. Smoothing these points would invent a surface that this simulation never generated. The spatial lesson, [Lesson 7](occJSDM-lesson-7.md), introduces a smooth habitat gradient and spatial structure.
 
 ## How does good practice enter the model?
 

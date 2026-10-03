@@ -5,9 +5,9 @@ Lesson 5: Compare four JSDMs with a community whose truth we know
 
 Suppose we know with certainty which species occupy each surveyed site. Can a joint species distribution model recover the underlying probabilities, and can it predict occurrence at sites we have not surveyed?
 
-We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated observations**. This lesson uses the pure JSDM portion of occJSDM: there is no DNA collection failure, PCR detection error or false positive. Those processes matter in [Lesson 1](occJSDM-lesson-1.md), but here we remove them to examine the ecological model itself. You do not need the spatial lesson first.
+We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated observations**. This lesson uses the pure JSDM portion of occJSDM: there is no DNA collection failure, PCR detection error or false positive. Those processes matter in [Lesson 2](occJSDM-lesson-2.md), but here we remove them to examine the ecological model itself. You do not need the spatial lesson first.
 
-This lesson works through **one community**. [The ten-community lesson](occJSDM-lesson-extension.md) repeats the experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits. In the first version of this lesson, sjSDM was labelled provisional because repeated optimisation runs disagreed. A follow-up found that its fitting problem has two genuine local optima, reproduced the better one from independent starts, and recorded the selection before any truth was read. The lesson now uses that checked fit and, in section 5, teaches what the two optima mean.
+This lesson works through **one community**. [Lesson 6](occJSDM-lesson-6.md) repeats the experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits. In the first version of this lesson, sjSDM was labelled provisional because repeated optimisation runs disagreed. A follow-up found that its fitting problem has two genuine local optima, reproduced the better one from independent starts, and recorded the selection before any truth was read. The lesson now uses that checked fit and, in section 5, teaches what the two optima mean.
 
 You will learn to:
 
@@ -224,7 +224,7 @@ The sjSDM R version is 1.0.7 inside Doug’s fork release **v0.2.1**. The releas
 
 ## 3. What a joint model adds to factoring a matrix
 
-A JSDM explains what the measured environment leaves over with hidden site factors and species loadings, so it defines the joint probability of the whole species list at a site; [the intuition lesson](occJSDM-lesson-intuition.md#what-a-joint-model-adds-to-a-factorisation) builds this up from a recommender’s viewer-by-film table. Two consequences matter here: recording one species at a site is evidence about the others, and the same model answers two different prediction questions, which the next section separates.
+A JSDM explains what the measured environment leaves over with hidden site factors and species loadings, so it defines the joint probability of the whole species list at a site; [Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-adds-to-a-factorisation) builds this up from a recommender’s viewer-by-film table. Two consequences matter here: recording one species at a site is evidence about the others, and the same model answers two different prediction questions, which the next section separates.
 
 ## 4. Two probability questions that must not be mixed
 
@@ -746,7 +746,7 @@ The scores are close in this pilot. Even the true probability will sometimes giv
 
 The four packages can be compared on the same perfectly observed community **when their prediction targets are explicitly matched**. Perfect observation still leaves appreciable probability error. Across this one community, the differences among new-site scores are small, while errors vary among species and probability bands.
 
-This does not establish a generally superior package, prove that any fitted optimum is global, or demonstrate systematic bias across repeated communities. [The ten-community lesson](occJSDM-lesson-extension.md) adds independent simulated communities, sample-size comparisons and a matched trait example. A broader study still needs both logit- and probit-generating scenarios and sensitivity to priors. Spatial effects, residual-correlation comparisons and variation partitioning require their own matched experiments; they are not included in this pilot.
+This does not establish a generally superior package, prove that any fitted optimum is global, or demonstrate systematic bias across repeated communities. [Lesson 6](occJSDM-lesson-6.md) adds independent simulated communities, sample-size comparisons and a matched trait example. A broader study still needs both logit- and probit-generating scenarios and sensitivity to priors. Spatial effects, residual-correlation comparisons and variation partitioning require their own matched experiments; they are not included in this pilot.
 
 Try these exercises with the saved tables, without refitting:
 
@@ -758,7 +758,7 @@ Try these exercises with the saved tables, without refitting:
 
 The appendix below holds each package’s fitting call and what the runs cost, the evidence for the two sjSDM optima, and the reproduction record.
 
-Return to the [Quickstart and lesson guide](occJSDM.md), [Lesson 1](occJSDM-lesson-1.md) or [Lesson 3](occJSDM-lesson-3.md).
+Return to the [Quickstart and lesson guide](occJSDM.md), [Lesson 2](occJSDM-lesson-2.md) or [Lesson 3](occJSDM-lesson-3.md).
 
 ## Appendix: evidence and reproduction
 
