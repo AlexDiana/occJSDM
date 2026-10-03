@@ -22,14 +22,29 @@ test("ignores pages that are not lessons", () => {
   }
 });
 
+test("publishes only the quickstart and numbered lessons", () => {
+  // positionText() reads the range from the first and last labels, so a
+  // published page without a number (the intuition lesson, until the
+  // renumbering after the beta) would make the bar read "Lesson 1 of Intuition-4".
+  for (const lesson of nav.publishedLessons(nav.LESSONS)) {
+    assert.match(lesson.label, /^(Quickstart|Lesson \d+)$/, lesson.stem);
+  }
+});
+
 test("labels each lesson's position, but not the guide's", () => {
-  // The intuition lesson has no number until the renumbering after the beta,
-  // so the position labels are checked on the numbered lessons.
-  const numbered = nav.LESSONS.filter(l => l.label === "Quickstart" || /^Lesson \d+$/.test(l.label));
-  assert.equal(nav.positionText(0, numbered), "");
-  assert.equal(nav.positionText(1, numbered), "Lesson 0 of 0–4");
-  assert.equal(nav.positionText(2, numbered), "Lesson 1 of 0–4");
-  assert.equal(nav.positionText(5, numbered), "Lesson 4 of 0–4");
+  // The site labels positions within the published lessons, as addNavigation() does.
+  const site = nav.publishedLessons(nav.LESSONS);
+  assert.equal(nav.positionText(0, site), "");
+  for (let i = 1; i < site.length; i++) {
+    assert.match(nav.positionText(i, site), /^Lesson \d+ of \d+–\d+$/, site[i].stem);
+  }
+  // The same list once every numbered lesson is published, as after Doug's review.
+  const pages = nav.publishedLessons(nav.LESSONS.map(l =>
+    Object.assign({}, l, { published: l.published || /^Lesson \d+$/.test(l.label) })));
+  assert.equal(nav.positionText(0, pages), "");
+  assert.equal(nav.positionText(1, pages), "Lesson 0 of 0–4");
+  assert.equal(nav.positionText(2, pages), "Lesson 1 of 0–4");
+  assert.equal(nav.positionText(5, pages), "Lesson 4 of 0–4");
 });
 
 test("links to the neighbouring pages, with none beyond either end", () => {

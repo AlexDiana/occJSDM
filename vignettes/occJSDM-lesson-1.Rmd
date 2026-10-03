@@ -23,7 +23,7 @@ source("lesson-links.R")
 
 ## Before you start
 
-This is **Lesson 1**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we simulated the survey used here and maps its environmental values, true occurrences and detections. You can start here with the supplied data. This lesson is non-spatial. The spatial lesson, [Lesson 2](occJSDM-lesson-2.md), covers how sites are arranged in space.
+This is **Lesson 1**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we simulated the survey used here and maps its environmental values, true occurrences and detections. You can start here with the supplied data. This lesson is non-spatial. The spatial lesson, [Lesson 2](occJSDM-lesson-2.md), covers how sites are arranged in space. If occupancy models or joint species distribution models are new to you, read [the intuition lesson](occJSDM-lesson-intuition.md) first: it works through both by hand, without fitting a model.
 
 All teaching code is shown. Run the chunks in order with the repository's `vignettes` directory as the working directory; knitting handles this automatically. In RStudio, use **Session \> Set Working Directory \> To Source File Location** with this file open.
 
@@ -33,7 +33,7 @@ We use saved results so that reading or knitting the lesson does not start a lon
 
 - `select()` and `pull()` to choose columns, or to take one column out as a vector.
 - `filter()`, `distinct()`, `arrange()`, `slice_head()`, `slice_min()` and `slice_max()` to keep, deduplicate, order and pick rows, including those with the smallest or largest value.
-- `mutate()`, `transmute()`, `case_when()` and `if_else()` to add or recode columns (`transmute()` keeps only the new ones), and `group_by()` and `summarise()` to summarise by group.
+- `mutate()`, `transmute()`, `case_when()`, `if_else()` and `recode()` to add or recode columns (`transmute()` keeps only the new ones), and `group_by()` and `summarise()` to summarise by group.
 - `bind_rows()` to stack tables, and `left_join()`, `inner_join()`, `semi_join()` and `anti_join()` to combine tables on shared identifiers, or to keep or drop the rows that match.
 - `pivot_longer()` to move from one column per measurement to one row per measurement.
 
@@ -124,7 +124,7 @@ We use a simulated community so that we can reveal the answers. Truth is used to
 The example has:
 
 - **100 sites and 10 species**, with two measured environmental gradients and two measured species traits;
-- two hidden community factors, which let species occur together more or less often than the measured environment predicts;
+- two hidden site factors, which let species occur together more or less often than the measured environment predicts;
 - **three independent field samples per site**;
 - **two primers and six PCR replicates per primer per sample**;
 - no spatial effects.
@@ -199,7 +199,7 @@ perfect_data <- list(
 
 **The following fitting chunk is optional and is not run when knitting.** The simulator settings and seed are shown in Lesson 0, and the code here uses that same saved dataset.
 
-The call has no `collCovariates` and no `threshold`: with one row per site there are no detection stages, so neither applies. `n_factors = 2` asks for the two hidden community factors. `n_lattrait = 1` adds one unmeasured trait: a way in which species resemble each other in their responses to the environment that the two measured traits do not capture. Both settings match the simulation.
+The call has no `collCovariates` and no `threshold`: with one row per site there are no detection stages, so neither applies. `n_factors = 2` asks for the two hidden site factors, which the quickstart calls latent factors. `n_lattrait = 1` adds one unmeasured trait: a way in which species resemble each other in their responses to the environment that the two measured traits do not capture. Both settings match the simulation.
 
 `MCMCparams` sets how long the sampler runs. The fit is made by MCMC, which produces the draws described above. A **chain** is one independent run of the sampler from its own starting point, and the convergence section checks that the chains agree. `nchain = 4` runs four chains. `nburn = 3000` discards each chain's first 3,000 iterations while it settles, and `niter = 6000` keeps the next 6,000 iterations of each chain. `nthin = 1` retains every one of those iterations. The quickstart uses the package default of two chains, each with 5,000 burn-in and 5,000 kept iterations. Four chains give the convergence check more independent runs to compare, and the convergence section shows that these lengths were enough for the perfect-observation and default-prior fits.
 
@@ -356,7 +356,7 @@ ggplot(comparison_results, aes(x = truth, y = estimate, colour = arm)) +
   labs(x = "True occupancy probability", y = "Estimated occupancy probability")
 ```
 
-The true probabilities were not supplied to either fit. In both panels, estimates are **pulled towards the middle**. At the left, where true probabilities are low, most points sit above the diagonal, so low probabilities are overestimated. At the right, most sit below it, so high probabilities are underestimated. The pull is stronger in the PCR fit. In that fit, the model does this because a site with few detections cannot be told apart from a site with a low probability. With so little to go on, its estimate hedges towards the middle. The perfect-observation fit has no detection problem, so its pull has a different cause, given after the error table below. The table measures the pull.
+The true probabilities were not supplied to either fit. In both panels, estimates are **pulled towards the middle**. At the left, where true probabilities are low, most points sit above the diagonal, so low probabilities are overestimated. At the right, most sit below it, so high probabilities are underestimated. The pull is stronger in the PCR fit. In that fit, the model does this because a site with few detections cannot be told apart from a site with a low probability. With so little to go on, its estimate hedges towards the middle. The perfect-observation fit has no detection problem, so its pull has a different cause, given just before the error table below. The table measures the pull.
 
 To calculate absolute error, subtract truth from the estimate and ignore the sign. An estimate of 35% for a true probability of 20% has an absolute error of 15 percentage points. Signed error retains the sign, so positive and negative mistakes can cancel. We also group the true probabilities as below 20%, 20% to 80% (including exactly 20% and 80%) and above 80%. These cut points separate rare and near-certain occupancy from the rest, which is where a pull towards the middle would show.
 
@@ -1134,7 +1134,7 @@ The first table comes from the package's `returnConvergenceDiagnostics()`, which
 
 ### Why the survey has three field samples per site
 
-The lesson plan's decisions log ([`vignettes/LESSON-PLAN.md`](https://github.com/AlexDiana/occJSDM/blob/main/vignettes/LESSON-PLAN.md), entry of 2 October 2026) records the reason. An earlier version of this survey had two field samples per site, and with two samples "the field-stage false-positive explanation did not hold (of 44 field-stage false-positive samples, the other sample was negative for only 17), and the first goal of the lessons is to show occJSDM working successfully."
+The lesson plan's decisions log ([`vignettes/LESSON-PLAN.md`](https://github.com/AlexDiana/occJSDM/blob/main/vignettes/LESSON-PLAN.md), entry "three field samples per site" of 2 October 2026) records the change. An earlier version of this survey had two field samples per site, and with two samples "the field-stage false-positive explanation did not hold (of 44 field-stage false-positive samples, the other sample was negative for only 17), and the first goal of the lessons is to show occJSDM working successfully." The entry goes on: "Every seed, prior, MCMC setting and case-selection rule is unchanged." In teaching terms, the reason is field replication. This lesson shows the model weighing a contaminated sample against the site's other samples, alongside the site's habitat. With two samples per site, a contaminated sample has only one other sample to be weighed against, too little field replication to show that mechanism. With three it has two, enough for the lesson to show how field replication weighs it. Only the number of samples changed; the model, its settings and the rules for choosing the cases did not.
 
 ### Reproduce the lesson and inspect its evidence
 

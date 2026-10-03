@@ -312,7 +312,7 @@ one_stage_data <- list(
 
 fit_one_stage <- runOccJSDM(
   data = one_stage_data,
-  occCovariates = "X_psi.EnvCov.1",
+  occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
   collCovariates = "X_theta",
   listParams = list(n_factors = 2),
   spatCovariates = NULL,
@@ -321,7 +321,7 @@ fit_one_stage <- runOccJSDM(
 # occJSDM prints "occJSDM has inferred occupancy data" for this shape.
 ```
 
-The message confirms that `runOccJSDM()` inferred the one-stage model. Its collection probability, `theta`, is the per-sample detection probability that the hand calculation called `p`, and it depends on `X_theta` as our `p` depended on effort. The package fits all `r xfun::n2w(ncol(lesson$input$sim$data_list$OTU))` species together, with the hidden factors that the second half of this lesson describes. It also estimates a rate of field-stage false positives, with a prior that expects the rate to be small, as Lesson 1 explains. This table has none, so the hand calculation leaves that rate out. The chain settings are short, for a quick look; check that the chains agree before reading the results, as Lesson 1 shows.
+The message confirms that `runOccJSDM()` inferred the one-stage model. It is the hand calculation's model extended by the second habitat covariate: its occupancy part uses both `X_psi.EnvCov.1` and `X_psi.EnvCov.2`, as the advice above recommends, where the hand calculation used only the first. Its collection probability, `theta`, is the per-sample detection probability that the hand calculation called `p`, and it depends on `X_theta` as our `p` depended on effort. The package fits all `r xfun::n2w(ncol(lesson$input$sim$data_list$OTU))` species together, with the hidden site factors that the second half of this lesson describes. It also estimates a rate of field-stage false positives, with a prior that expects the rate to be small, as Lesson 1 explains. This table has none, so the hand calculation leaves that rate out. The chain settings are short, for a quick look; check that the chains agree before reading the results, as Lesson 1 shows.
 
 False positives are excluded from this half of the lesson by construction. They arrive in Lesson 1 with the second stage, PCR detection in the laboratory, which brings laboratory false positives as well as field-stage ones. There, the same replication logic protects site occupancy against contamination at collection.
 
