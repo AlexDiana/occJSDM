@@ -46,7 +46,6 @@ for (name in p$api_names) {
   stopifnot(identical(body(get(name, asNamespace("occJSDM"))), body(get(name, source_environment))),
             identical(formals(get(name, asNamespace("occJSDM"))), formals(get(name, source_environment))))
 }
-stopifnot(all(c("plotVariancePartitioning", "plotVarPart") %in% p$api_names))
 
 # Prove that the displayed chunks are those evaluated by the exporter.
 rmd <- tempfile(fileext = ".Rmd")
@@ -65,7 +64,7 @@ exportable_chunks <- function(lines) {
 }
 expected_chunks <- exportable_chunks(readLines(snippet_path))
 lesson_chunks <- exportable_chunks(readLines("vignettes/occJSDM-lesson-3.Rmd"))
-stopifnot(length(expected_chunks) == 7L)
+stopifnot(length(expected_chunks) == 6L)
 if (any(names(expected_chunks) %in% names(lesson_chunks))) {
   stopifnot(all(names(expected_chunks) %in% names(lesson_chunks)),
             identical(expected_chunks, lesson_chunks[names(expected_chunks)]))
@@ -178,33 +177,10 @@ for (name in c("stage1_fp", "stage2_fp", "detection")) {
   }
 }
 cat("All 50 rate intervals and truth crosses match species, primers, dodge coordinates, and threshold targets.\n")
-rec <- x$plots$variation
-vp <- j$varPart_output
-stopifnot(identical(dim(vp), c(length(sp), 4L, 6000L, 4L)),
-          identical(as.character(rec$data$Species), sp),
-          nrow(rec$layers[[1]]) == length(sp), nrow(rec$layers[[2]]) == length(sp),
-          all(rec$layers[[2]]$shape == 4))
-share <- function(k) vapply(seq_along(sp), function(s) mean(vp[s, k, , ]), numeric(1))
-close(rec$data$Env, share(1)); close(rec$data$Spatial, share(2)); close(rec$data$Biotic, share(3))
-close(rec$layers[[1]]$x, share(1)); close(rec$layers[[1]]$y, share(3)); close(rec$layers[[1]]$z, share(2))
-# Independent truth: in this non-spatial model the package partition reduces to two shares.
-true_env <- vapply(seq_along(sp), function(s) {
-  measured <- b$B0[s] + drop(f$X_psi %*% b$B[, s])
-  hidden <- drop(b$U %*% b$L[, s])
-  ve <- sd(plogis(measured)); vh <- sd(plogis(hidden)); vb <- sd(plogis(measured + hidden))
-  ce <- ve + max(vb - vh, 0); ch <- vh + max(vb - ve, 0)
-  ce / (ce + ch)
-}, numeric(1))
-stopifnot(identical(x$truth$variation$Species, sp))
-close(x$truth$variation$Env, true_env); close(x$truth$variation$Biotic, 1 - true_env)
-close(x$truth$variation$Spatial, rep(0, length(sp)))
-close(rec$layers[[2]]$x, true_env); close(rec$layers[[2]]$y, 1 - true_env)
-close(rec$layers[[2]]$z, rep(0, length(sp)))
-cat("Variation partitioning: ten posterior-mean shares from all 24000 draws and ten independent true shares verified in plotted ternary coordinates.\n")
 for (i in seq_len(nrow(x$figures))) {
   file <- new_path(file.path("vignettes/teaching-data", x$figures$file[i]))
   stopifnot(identical(md5(file), x$figures$md5[i]), file.info(file)$size > 5000,
             identical(as.integer(readBin(file, "raw", n = 8)), c(137L, 80L, 78L, 71L, 13L, 10L, 26L, 10L)))
 }
 stopifnot(file.info(new_path("vignettes/teaching-data/remaining-plots-data.rds"))$size < 1e6)
-cat("Six PNGs, compact bundle, full-fit/library/source hashes, and exact displayed code verified.\n")
+cat("Five PNGs, compact bundle, full-fit/library/source hashes, and exact displayed code verified.\n")

@@ -2317,28 +2317,6 @@ field_rates / laboratory_rates
 
 The parentheses matter: the first `+` inside them adds a `ggplot2` layer to one plot, whereas the `+` between the parenthesised plot and the next plot is `patchwork`’s side-by-side operator.
 
-### Variation partitioning with truth
-
-`plotVariancePartitioning()` draws each species as one point in a triangle whose corners are the environmental, spatial and residual (`Biotic`) shares, each a posterior mean. In this non-spatial model every spatial share is zero, so every point lies on the edge between `Env` and `Biotic`. Black crosses mark the true shares under the package’s own definition. The plot keeps its own ternary theme, so no theme is added.
-
-``` r
-# ggplot2 may warn that it ignores z; the ternary coordinates still use it.
-remaining_variation <- plotVariancePartitioning(fitmodel) +
-  geom_point(
-    data = remaining_truth$variation,
-    aes(x = Env, y = Biotic, z = Spatial),
-    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
-  ) +
-  labs(
-    title = "Variation partitioning, PCR-observation fit",
-    caption = "Dot: posterior mean shares for one species. Black cross: true shares, same definition."
-  )
-
-remaining_variation
-```
-
-<img src="teaching-data/remaining-plots-variation.png" alt="" width="100%" />
-
 ## Reproduce the extraction or find a function
 
 The compact files retain source and fit hashes. Full MCMC fits are kept outside the package because they are much larger. To regenerate them, follow `dev/simstudy/vignette-lesson/README.md` and run the existing simulation/fitting commands with the recorded source. Then export this lesson’s additional summaries:
