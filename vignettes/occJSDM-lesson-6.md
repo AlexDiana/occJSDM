@@ -1,4 +1,4 @@
-Repeat the four-JSDM comparison across ten communities, with traits
+Lesson 6: Repeat the four-JSDM comparison across ten communities, with traits
 ================
 
 ## What this lesson adds

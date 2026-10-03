@@ -16,14 +16,14 @@
   // lessons are withheld until Doug has reviewed them.
   var LESSONS = [
     { stem: "occJSDM", label: "Quickstart", title: "occJSDM: quickstart", published: true },
-    { stem: "occJSDM-lesson-intuition", label: "Intuition", title: "What occupancy models and joint species distribution models do", published: false },
     { stem: "occJSDM-lesson-0", label: "Lesson 0", title: "Lesson 0 (optional): Create and explore a simulated survey", published: false },
-    { stem: "occJSDM-lesson-1", label: "Lesson 1", title: "Lesson 1: Fit the model and compare its answers with truth", published: false },
-    { stem: "occJSDM-lesson-2", label: "Lesson 2", title: "Lesson 2: Spatial landscapes and survey design", published: false },
+    { stem: "occJSDM-lesson-1", label: "Lesson 1", title: "Lesson 1: What occupancy models and joint species distribution models do", published: false },
+    { stem: "occJSDM-lesson-2", label: "Lesson 2", title: "Lesson 2: Fit the model and compare its answers with truth", published: false },
     { stem: "occJSDM-lesson-3", label: "Lesson 3", title: "Lesson 3: Understand the model's outputs by comparing them with truth", published: false },
-    { stem: "occJSDM-lesson-prediction", label: "Prediction", title: "Predict occupancy at new sites and compare models", published: false },
-    { stem: "occJSDM-lesson-4", label: "Lesson 4", title: "Lesson 4: Compare four JSDMs with a community whose truth we know", published: false },
-    { stem: "occJSDM-lesson-extension", label: "Extension", title: "Repeat the four-JSDM comparison across ten communities, with traits", published: false }
+    { stem: "occJSDM-lesson-4", label: "Lesson 4", title: "Lesson 4: Predict occupancy at new sites and compare models", published: false },
+    { stem: "occJSDM-lesson-5", label: "Lesson 5", title: "Lesson 5: Compare four JSDMs with a community whose truth we know", published: false },
+    { stem: "occJSDM-lesson-6", label: "Lesson 6", title: "Lesson 6: Repeat the four-JSDM comparison across ten communities, with traits", published: false },
+    { stem: "occJSDM-lesson-7", label: "Lesson 7", title: "Lesson 7: Spatial landscapes and survey design", published: false }
   ];
 
   // How far below the top of the window, in pixels, a heading must have
@@ -41,7 +41,7 @@
     return -1;
   }
 
-  // "Lesson 1 of 0-4" (with an en dash) for a numbered lesson; "" for the
+  // "Lesson 1 of 0-7" (with an en dash) for a numbered lesson; "" for the
   // quickstart, which is entry 0.
   function positionText(i, lessons) {
     if (i <= 0) return "";

@@ -139,14 +139,14 @@ stopifnot(identical(displayed$unbalanced_data, dat),
 
 # Replace only the model call with a capturing function. Never run a second fit.
 displayed$capture_fit_call <- function(...) list(...)
-load_code <- chunk("vignettes/occJSDM-lesson-1.Rmd", "unbalanced-load")
-stopifnot(identical(load_code, chunk("dev/simstudy/vignette-lesson/unbalanced-lesson-1.Rmd",
+load_code <- chunk("vignettes/occJSDM-lesson-2.Rmd", "unbalanced-load")
+stopifnot(identical(load_code, chunk("dev/simstudy/vignette-lesson/unbalanced-lesson-2.Rmd",
                                     "unbalanced-load")))
 previous_directory <- setwd("vignettes")
 tryCatch(eval(load_code, displayed), finally = setwd(previous_directory))
 stopifnot(identical(displayed$unbalanced_data, dat))
-optional <- chunk("vignettes/occJSDM-lesson-1.Rmd", "unbalanced-fit-optional")
-stopifnot(identical(optional, chunk("dev/simstudy/vignette-lesson/unbalanced-lesson-1.Rmd",
+optional <- chunk("vignettes/occJSDM-lesson-2.Rmd", "unbalanced-fit-optional")
+stopifnot(identical(optional, chunk("dev/simstudy/vignette-lesson/unbalanced-lesson-2.Rmd",
                                    "unbalanced-fit-optional")),
           optional[[1]][[2]] == saved$seed)
 stopifnot(identical(optional[[2]][[3]][[1]], quote(occJSDM::runOccJSDM)))

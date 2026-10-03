@@ -1,5 +1,5 @@
 ---
-title: "Lesson 4: Compare four JSDMs with a community whose truth we know"
+title: "Lesson 5: Compare four JSDMs with a community whose truth we know"
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -7,7 +7,7 @@ output:
     fig_width: 9
     fig_height: 6
 vignette: >
-  %\VignetteIndexEntry{Lesson 4: Compare four JSDMs with a community whose truth we know}
+  %\VignetteIndexEntry{Lesson 5: Compare four JSDMs with a community whose truth we know}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -19,9 +19,9 @@ knitr::opts_chunk$set(
   # R's vignette cleanup removes generated figure directories after HTML builds.
   # Keep temporary figures separate from the saved teaching inputs.
   fig.path = if (knitr::is_html_output(excludes = c("markdown", "gfm"))) {
-    "occJSDM-lesson-4_files/figure-html/"
+    "occJSDM-lesson-5_files/figure-html/"
   } else {
-    "teaching-data/lesson-4-"
+    "teaching-data/lesson-5-"
   }
 )
 

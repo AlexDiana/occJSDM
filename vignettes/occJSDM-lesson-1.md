@@ -1,4 +1,4 @@
-What occupancy models and joint species distribution models do
+Lesson 1: What occupancy models and joint species distribution models do
 ================
 
 ## Where this lesson fits
@@ -331,7 +331,7 @@ ggplot(replicate_design, aes(samples, chance_of_missing)) +
        caption = "Orange: this survey's samples per site. Dashed line: a 5% chance of missing.")
 ```
 
-![](occJSDM-lesson-intuition_files/figure-gfm/replicate-design-1.png)<!-- -->
+![](occJSDM-lesson-1_files/figure-gfm/replicate-design-1.png)<!-- -->
 
 Each point is the chance that a site occupied by OTU_3 produces no detections, for a given number of samples. One sample misses the species 60.6% of the time. This survey’s 3 samples miss it 22.2% of the time, which is why the previous sections found occupied sites among the all-negative ones. Reaching a 5% chance of missing would take 6 samples per site.
 

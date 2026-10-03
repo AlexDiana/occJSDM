@@ -1,4 +1,4 @@
-Predict occupancy at new sites and compare models
+Lesson 4: Predict occupancy at new sites and compare models
 ================
 
 ## What this lesson answers
@@ -174,7 +174,7 @@ ggplot(native_prediction_examples, aes(x = Site)) +
   )
 ```
 
-![](occJSDM-lesson-prediction_files/figure-gfm/prediction-native-intervals-1.png)<!-- -->
+![](occJSDM-lesson-4_files/figure-gfm/prediction-native-intervals-1.png)<!-- -->
 
 The wide intervals are informative: habitat alone leaves considerable uncertainty about a particular site’s occupancy probability. Seeing truth inside an interval is a useful check, but these twenty examples cannot establish an overall coverage rate.
 
@@ -211,7 +211,7 @@ ggplot(prediction_cells, aes(x = truth, y = estimate)) +
   theme(legend.position = "bottom")
 ```
 
-![](occJSDM-lesson-prediction_files/figure-gfm/prediction-marginal-recovery-1.png)<!-- -->
+![](occJSDM-lesson-4_files/figure-gfm/prediction-marginal-recovery-1.png)<!-- -->
 
 Calculate the average direction and size of the errors separately. A negative signed error means underestimation on average. Absolute errors count both overestimates and underestimates as positive distances, so they cannot cancel.
 

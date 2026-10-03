@@ -1,4 +1,4 @@
-Lesson 1: Fit the model and compare its answers with truth
+Lesson 2: Fit the model and compare its answers with truth
 ================
 
 ## Before you start
@@ -228,7 +228,7 @@ ggplot(probability_and_state, aes(x = Site, y = value)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-1_files/figure-gfm/probability-and-state-1.png" alt="Both panels show known truth for OTU_1 at the first 20 sites. The lower panel is one binary realization of the probabilities above. Neither panel shows a fitted estimate." />
+<img src="occJSDM-lesson-2_files/figure-gfm/probability-and-state-1.png" alt="Both panels show known truth for OTU_1 at the first 20 sites. The lower panel is one binary realization of the probabilities above. Neither panel shows a fitted estimate." />
 <figcaption aria-hidden="true">Both panels show known truth for OTU_1 at the first 20 sites. The lower panel is one binary realization of the probabilities above. Neither panel shows a fitted estimate.</figcaption>
 </figure>
 
@@ -428,7 +428,7 @@ ggplot(comparison_results, aes(x = truth, y = estimate, colour = arm)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-1_files/figure-gfm/occupancy-recovery-1.png" alt="Each point represents one species at one fitted site. The black diagonal is perfect recovery of the true occupancy probability. Points above it are overestimates; points below it are underestimates. The sites are the same in both panels." />
+<img src="occJSDM-lesson-2_files/figure-gfm/occupancy-recovery-1.png" alt="Each point represents one species at one fitted site. The black diagonal is perfect recovery of the true occupancy probability. Points above it are overestimates; points below it are underestimates. The sites are the same in both panels." />
 <figcaption aria-hidden="true">Each point represents one species at one fitted site. The black diagonal is perfect recovery of the true occupancy probability. Points above it are overestimates; points below it are underestimates. The sites are the same in both panels.</figcaption>
 </figure>
 
@@ -532,7 +532,7 @@ ggplot(interval_results, aes(x = site_number, y = estimate, colour = arm)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-1_files/figure-gfm/occupancy-intervals-1.png" alt="Black points are true probabilities. Coloured points are posterior means and bars are 95% credible intervals. Intervals describe uncertainty; they do not ensure that the true value is recovered." />
+<img src="occJSDM-lesson-2_files/figure-gfm/occupancy-intervals-1.png" alt="Black points are true probabilities. Coloured points are posterior means and bars are 95% credible intervals. Intervals describe uncertainty; they do not ensure that the true value is recovered." />
 <figcaption aria-hidden="true">Black points are true probabilities. Coloured points are posterior means and bars are 95% credible intervals. Intervals describe uncertainty; they do not ensure that the true value is recovered.</figcaption>
 </figure>
 
@@ -587,7 +587,7 @@ ggplot(probability_maps, aes(x = east, y = north, colour = probability)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-1_files/figure-gfm/occupancy-probability-maps-1.png" alt="The default two-stage fit at the sampled sites, compared with its matching simulated truth. Both species and both quantities share the 0 to 100% colour scale. These are point maps of a non-spatial fit, not predictions for the unsampled space between points." />
+<img src="occJSDM-lesson-2_files/figure-gfm/occupancy-probability-maps-1.png" alt="The default two-stage fit at the sampled sites, compared with its matching simulated truth. Both species and both quantities share the 0 to 100% colour scale. These are point maps of a non-spatial fit, not predictions for the unsampled space between points." />
 <figcaption aria-hidden="true">The default two-stage fit at the sampled sites, compared with its matching simulated truth. Both species and both quantities share the 0 to 100% colour scale. These are point maps of a non-spatial fit, not predictions for the unsampled space between points.</figcaption>
 </figure>
 
@@ -614,7 +614,7 @@ ggplot(map_errors, aes(x = east, y = north, colour = error_pp)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-1_files/figure-gfm/occupancy-error-maps-1.png" alt="Orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state." />
+<img src="occJSDM-lesson-2_files/figure-gfm/occupancy-error-maps-1.png" alt="Orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state." />
 <figcaption aria-hidden="true">Orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state.</figcaption>
 </figure>
 
@@ -664,7 +664,7 @@ ggplot(detection_rates, aes(x = estimate, y = species)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-1_files/figure-gfm/detection-rate-recovery-1.png" alt="Black crosses are the true rates for positive read results. Orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species." />
+<img src="occJSDM-lesson-2_files/figure-gfm/detection-rate-recovery-1.png" alt="Black crosses are the true rates for positive read results. Orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species." />
 <figcaption aria-hidden="true">Black crosses are the true rates for positive read results. Orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species.</figcaption>
 </figure>
 
@@ -731,7 +731,7 @@ ggplot(case_observations, aes(x = PCR, y = sample_label, fill = observed_result)
 ```
 
 <figure>
-<img src="occJSDM-lesson-1_files/figure-gfm/observed-detection-cases-1.png" alt="These are actual rows from the simulated dataset. All three field samples at each selected site are shown, including the sample used to select the case. A positive PCR by itself does not reveal its source." />
+<img src="occJSDM-lesson-2_files/figure-gfm/observed-detection-cases-1.png" alt="These are actual rows from the simulated dataset. All three field samples at each selected site are shown, including the sample used to select the case. A positive PCR by itself does not reveal its source." />
 <figcaption aria-hidden="true">These are actual rows from the simulated dataset. All three field samples at each selected site are shown, including the sample used to select the case. A positive PCR by itself does not reveal its source.</figcaption>
 </figure>
 
@@ -795,7 +795,7 @@ ggplot(revealed_observations, aes(x = PCR, y = sample_label, fill = source)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-1_files/figure-gfm/revealed-detection-cases-1.png" alt="Green positives come from DNA collected at an occupied site. Pink positives arise in a sample without the species’ DNA. Orange positives amplify DNA in a field sample despite the species being absent from the site. These labels come from the simulation, not the fitted model." />
+<img src="occJSDM-lesson-2_files/figure-gfm/revealed-detection-cases-1.png" alt="Green positives come from DNA collected at an occupied site. Pink positives arise in a sample without the species’ DNA. Orange positives amplify DNA in a field sample despite the species being absent from the site. These labels come from the simulation, not the fitted model." />
 <figcaption aria-hidden="true">Green positives come from DNA collected at an occupied site. Pink positives arise in a sample without the species’ DNA. Orange positives amplify DNA in a field sample despite the species being absent from the site. These labels come from the simulation, not the fitted model.</figcaption>
 </figure>
 
@@ -1141,7 +1141,7 @@ ggplot(case_comparison, aes(x = estimate, y = case, colour = arm)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-1_files/figure-gfm/prior-sensitivity-cases-1.png" alt="Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The two coloured points use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability." />
+<img src="occJSDM-lesson-2_files/figure-gfm/prior-sensitivity-cases-1.png" alt="Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The two coloured points use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability." />
 <figcaption aria-hidden="true">Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The two coloured points use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability.</figcaption>
 </figure>
 
@@ -1242,7 +1242,7 @@ replication_results |>
   theme(legend.position = "bottom")
 ```
 
-![](occJSDM-lesson-1_files/figure-gfm/unbalanced-truth-1.png)<!-- -->
+![](occJSDM-lesson-2_files/figure-gfm/unbalanced-truth-1.png)<!-- -->
 
 For a closer look at the selected sites, diamonds show each unchanged true probability. Points and 95% credible intervals show the two fitted answers. These are probabilities `psi`, not the binary simulated site states `z`.
 
@@ -1266,7 +1266,7 @@ selected_probabilities |>
         legend.position = "bottom")
 ```
 
-![](occJSDM-lesson-1_files/figure-gfm/unbalanced-selected-sites-1.png)<!-- -->
+![](occJSDM-lesson-2_files/figure-gfm/unbalanced-selected-sites-1.png)<!-- -->
 
 Calculate errors for both the complete community and the selected sites, using the signed and absolute errors defined in “Calculate the errors ourselves”. The `truth` and `estimate` columns remain probabilities, and the two error columns are percentage points. The errors are calculated before the probabilities are averaged.
 

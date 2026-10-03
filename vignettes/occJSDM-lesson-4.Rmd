@@ -1,5 +1,5 @@
 ---
-title: "Predict occupancy at new sites and compare models"
+title: "Lesson 4: Predict occupancy at new sites and compare models"
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -7,7 +7,7 @@ output:
     fig_width: 9
     fig_height: 5
 vignette: >
-  %\VignetteIndexEntry{Predict occupancy at new sites and compare models}
+  %\VignetteIndexEntry{Lesson 4: Predict occupancy at new sites and compare models}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---

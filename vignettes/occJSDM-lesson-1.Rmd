@@ -1,11 +1,11 @@
 ---
-title: "What occupancy models and joint species distribution models do"
+title: "Lesson 1: What occupancy models and joint species distribution models do"
 output:
   rmarkdown::html_vignette:
     toc: true
     css: teaching.css
 vignette: >
-  %\VignetteIndexEntry{What occupancy models and joint species distribution models do}
+  %\VignetteIndexEntry{Lesson 1: What occupancy models and joint species distribution models do}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---

@@ -1,5 +1,5 @@
 ---
-title: "Lesson 2: Spatial landscapes and survey design"
+title: "Lesson 7: Spatial landscapes and survey design"
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -7,7 +7,7 @@ output:
     fig_width: 8
     fig_height: 5
 vignette: >
-  %\VignetteIndexEntry{Lesson 2: Spatial landscapes and survey design}
+  %\VignetteIndexEntry{Lesson 7: Spatial landscapes and survey design}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -18,9 +18,9 @@ knitr::opts_chunk$set(
   fig.width = 8, fig.height = 5, dpi = 150, dev = "png",
   # HTML builds write temporary figures, so they never overwrite the tracked Markdown figures.
   fig.path = if (knitr::is_html_output(excludes = c("markdown", "gfm"))) {
-    "occJSDM-lesson-2_files/figure-html/"
+    "occJSDM-lesson-7_files/figure-html/"
   } else {
-    "teaching-data/lesson-2-"
+    "teaching-data/lesson-7-"
   }
 )
 source("lesson-links.R")

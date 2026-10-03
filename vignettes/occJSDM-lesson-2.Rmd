@@ -1,5 +1,5 @@
 ---
-title: "Lesson 1: Fit the model and compare its answers with truth"
+title: "Lesson 2: Fit the model and compare its answers with truth"
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -7,7 +7,7 @@ output:
     fig_width: 8
     fig_height: 5
 vignette: >
-  %\VignetteIndexEntry{Lesson 1: Fit the model and compare its answers with truth}
+  %\VignetteIndexEntry{Lesson 2: Fit the model and compare its answers with truth}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---

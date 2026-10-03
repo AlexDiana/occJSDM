@@ -1,4 +1,4 @@
-Lesson 2: Spatial landscapes and survey design
+Lesson 7: Spatial landscapes and survey design
 ================
 
 ## What this lesson adds
@@ -152,7 +152,7 @@ layer_maps <- lapply(levels(landscape_cells$layer), function(this_layer)
 wrap_plots(layer_maps, nrow = 1) + plot_annotation(title = "One simulated landscape, community 1")
 ```
 
-![](teaching-data/lesson-2-landscape-maps-1.png)<!-- -->
+![](teaching-data/lesson-7-landscape-maps-1.png)<!-- -->
 
 The environment map shows the broad gradient. Its correlation range is 0.5 of the side, and the speckle on it is independent site-to-site noise, with a standard deviation of 0.3 (from the sweep’s protocol). On its own, the gradient would give species 6, a 75% species, a broad trend across the area. The field adds patches a few percent of the side wide, and the probability map is their sum on the log-odds scale. A geographically structured distribution is therefore expected even where no spatial process acts, and the spatial term’s job is only the patches.
 
@@ -175,7 +175,7 @@ ggplot(sites, aes(x, y)) +
   labs(x = NULL, y = NULL, title = "Four ways to place 100 sites")
 ```
 
-![](teaching-data/lesson-2-arrangement-maps-1.png)<!-- -->
+![](teaching-data/lesson-7-arrangement-maps-1.png)<!-- -->
 
 Why should arrangement matter? Each site’s own occupancy state says a little about the field where it stands. To see the shape of a patch, the model also needs other sites close enough for their field values to be correlated. Within about 1.18 ranges, 0.035 here, the correlation is above 0.5. The design table records, for each arrangement, how many sites have such a neighbour.
 
@@ -253,7 +253,7 @@ ggplot(filter(recovery, arm == arm_labels["oracle"]), aes(arrangement, reduction
   theme(axis.text.x = element_text(angle = 25, hjust = 1), plot.margin = margin(5.5, 5.5, 5.5, 30))
 ```
 
-![](teaching-data/lesson-2-oracle-recovery-1.png)<!-- -->
+![](teaching-data/lesson-7-oracle-recovery-1.png)<!-- -->
 
 To read results like these, the sweep fixed its vocabulary before any fit. An arrangement is **informative** for a species group when, in every community, the error reduction is at least 20% and the correlation at least 0.5. It is **uninformative** when the reduction is under 10% or the correlation under 0.3 in every community. Anything else is **intermediate**. The labels were written for occJSDM’s true-state fits in 2C. The paragraph below applies the informative thresholds to the oracle too.
 
@@ -285,7 +285,7 @@ ggplot(recovery, aes(arrangement, reduction, colour = arm)) +
   theme(axis.text.x = element_text(angle = 25, hjust = 1), legend.position = "bottom", plot.margin = margin(5.5, 5.5, 5.5, 30))
 ```
 
-![](teaching-data/lesson-2-fit-recovery-1.png)<!-- -->
+![](teaching-data/lesson-7-fit-recovery-1.png)<!-- -->
 
 Applied to occJSDM’s true-state fits, the reading rules give the labels below. Each row is one cell, an arrangement and species group. Its two numbers are the smallest error reduction and the smallest correlation among the three communities, which is what the informative rule tests.
 
@@ -423,7 +423,7 @@ ggplot(maps, aes(x, y, colour = value)) +
        caption = "Fitted values are posterior medians. Compare the fitted maps with the truth column in each row.")
 ```
 
-![](teaching-data/lesson-2-field-maps-1.png)<!-- -->
+![](teaching-data/lesson-7-field-maps-1.png)<!-- -->
 
 The fit does not find the range either. Each fit gives a posterior probability, its posterior mass, to each of the ten range values on the grid. Neighbouring grid values are 0.032 apart, which is one grid step. By the prespecified rule, the range is recovered when at least half of its posterior mass lies within one grid step of the truth in every community. That mass is 0.18 to 0.37 across the 24 fits, so the rule finds the range recovered in 0 of the 8 arrangement and arm combinations. The posterior mean range is 0.13 to 0.21 on the standardised scale, against a truth of 0.098 to 0.118: the fits prefer a longer, smoother field than the one simulated.
 
@@ -441,7 +441,7 @@ sweep$fits$range |>
   theme(axis.text.x = element_text(angle = 25, hjust = 1), legend.position = "bottom")
 ```
 
-![](teaching-data/lesson-2-range-amplitude-1.png)<!-- -->
+![](teaching-data/lesson-7-range-amplitude-1.png)<!-- -->
 
 The table below turns from the field to the occupancy probabilities at the surveyed sites. Its errors are in percentage points: a true probability of 10% estimated as 18% is an error of 8 points.
 
@@ -551,7 +551,7 @@ lattice_means |>
   theme(axis.text.x = element_text(angle = 30, hjust = 1), legend.position = "bottom")
 ```
 
-![](teaching-data/lesson-2-lattice-prediction-1.png)<!-- -->
+![](teaching-data/lesson-7-lattice-prediction-1.png)<!-- -->
 
 ``` r
 spatial_gain <- lattice_means |>
@@ -598,7 +598,7 @@ sweep$lattice_maps |>
        caption = "Black dots are the surveyed sites.")
 ```
 
-![](teaching-data/lesson-2-lattice-maps-1.png)<!-- -->
+![](teaching-data/lesson-7-lattice-maps-1.png)<!-- -->
 
 ``` r
 true_field <- sweep$landscape$field[sweep$landscape$index$lattice, "species06"]

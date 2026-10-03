@@ -1,4 +1,4 @@
-Lesson 4: Compare four JSDMs with a community whose truth we know
+Lesson 5: Compare four JSDMs with a community whose truth we know
 ================
 
 ## What are we comparing?
@@ -124,7 +124,7 @@ ggplot(example_cells, aes(site, species, fill = probability)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-![](teaching-data/lesson-4-observed-versus-probability-1.png)<!-- -->
+![](teaching-data/lesson-5-observed-versus-probability-1.png)<!-- -->
 
 ### Optional: reproduce this community
 
@@ -445,7 +445,7 @@ ggplot(new_site_predictions, aes(truth, estimate)) +
        subtitle = "300 independent test sites x 10 species; no test observations supplied")
 ```
 
-![](teaching-data/lesson-4-new-site-probabilities-1.png)<!-- -->
+![](teaching-data/lesson-5-new-site-probabilities-1.png)<!-- -->
 
 These are genuine predictions at new sites. The target is the average over possible hidden conditions, not the unknowable particular condition of each test site.
 
@@ -467,7 +467,7 @@ ggplot(sampled_site_predictions, aes(truth, estimate)) +
        subtitle = "100 training sites x 10 species; observations helped fit the model")
 ```
 
-![](teaching-data/lesson-4-sampled-site-probabilities-1.png)<!-- -->
+![](teaching-data/lesson-5-sampled-site-probabilities-1.png)<!-- -->
 
 The sampled-site plot is more scattered. Even knowing all ten species’ presences does not tell us the hidden conditions perfectly. Do not interpret this contrast as “models predict better when deprived of observations”: the two figures have **different targets**. Averaging over hidden conditions removes variation that the sampled-site exercise asks the model to reconstruct.
 
@@ -524,7 +524,7 @@ ggplot(overall_errors, aes(package, average_absolute_error_pp, fill = package)) 
        caption = "Panels answer different probability questions.\nThese bars do not show uncertainty across independently simulated communities.")
 ```
 
-![](teaching-data/lesson-4-absolute-error-comparison-1.png)<!-- -->
+![](teaching-data/lesson-5-absolute-error-comparison-1.png)<!-- -->
 
 At new sites, the average absolute errors are about **6.1, 7.1, 7.1 and 6.3 points**, in package order. At sampled sites they are about **12.1, 11.9, 13.3 and 12.2 points**. These are measured results, not notional examples, and they are not the older occJSDM-only sample-size experiment.
 
@@ -623,7 +623,7 @@ ggplot(species_errors, aes(absolute_error_pp, species, colour = package)) +
   theme(legend.position = "bottom")
 ```
 
-![](teaching-data/lesson-4-errors-by-species-1.png)<!-- -->
+![](teaching-data/lesson-5-errors-by-species-1.png)<!-- -->
 
 Every plotted error is a distance from matching simulated truth. This figure helps identify which species deserve closer examination. It cannot by itself establish why a species is difficult or whether the same pattern recurs in other communities.
 
@@ -686,7 +686,7 @@ ggplot(filter(response_curves, gradient == "environment_1"),
   theme(legend.position = "bottom")
 ```
 
-![](teaching-data/lesson-4-environmental-gradient-1-1.png)<!-- -->
+![](teaching-data/lesson-5-environmental-gradient-1-1.png)<!-- -->
 
 ``` r
 ggplot(filter(response_curves, gradient == "environment_2"),
@@ -706,7 +706,7 @@ ggplot(filter(response_curves, gradient == "environment_2"),
   theme(legend.position = "bottom")
 ```
 
-![](teaching-data/lesson-4-environmental-gradient-2-1.png)<!-- -->
+![](teaching-data/lesson-5-environmental-gradient-2-1.png)<!-- -->
 
 Look for three different kinds of disagreement: a curve that is generally too high or low, one that changes too steeply or too weakly, and one that changes in the wrong direction. Their ecological implications differ, even if their overall average errors happen to be similar. For example, species_03’s gradient-1 curves follow truth closely, while species_04’s gradient-1 curves are too flat. Along gradient 2, species_03’s fitted responses are much flatter than its true response. These examples are visible in the full set of panels; they illustrate how to read a curve, rather than determining which results we include.
 

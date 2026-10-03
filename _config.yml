@@ -26,7 +26,7 @@
 # published page would be a 404 on the site, so such links must point at the
 # file on GitHub instead.
 #
-# During the beta the five teaching lessons are withheld until Doug has
+# During the beta the eight teaching lessons are withheld until Doug has
 # reviewed them: their pages, figure folders and the teaching data are
 # excluded below, assets/js/lessons.js marks them unpublished (a Node test in
 # dev/simstudy/lesson-site/ checks that the two agree), and .Rbuildignore keeps
@@ -41,17 +41,17 @@ exclude:
   - dev/
   - PARALLELISATION/
   - deprecated/
-  - vignettes/occJSDM-lesson-intuition.md
   - vignettes/occJSDM-lesson-0.md
   - vignettes/occJSDM-lesson-1.md
   - vignettes/occJSDM-lesson-2.md
   - vignettes/occJSDM-lesson-3.md
   - vignettes/occJSDM-lesson-4.md
-  - vignettes/occJSDM-lesson-prediction.md
-  - vignettes/occJSDM-lesson-extension.md
-  - vignettes/occJSDM-lesson-intuition_files/
+  - vignettes/occJSDM-lesson-5.md
+  - vignettes/occJSDM-lesson-6.md
+  - vignettes/occJSDM-lesson-7.md
   - vignettes/occJSDM-lesson-0_files/
   - vignettes/occJSDM-lesson-1_files/
+  - vignettes/occJSDM-lesson-2_files/
   - vignettes/occJSDM-lesson-3_files/
-  - vignettes/occJSDM-lesson-prediction_files/
+  - vignettes/occJSDM-lesson-4_files/
   - vignettes/teaching-data/
