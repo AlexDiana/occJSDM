@@ -118,11 +118,12 @@ for (chain in seq_len(dim(original$L_output)[4])) {
 stopifnot(all(maximum_error < 1e-10), minimum_singular_value > 1e-10)
 
 plot_names <- c("sites", "loadings", "biplot")
-plots <- setNames(lapply(paste0("native_", plot_names), get,
-                        envir = student_environment), plot_names)
-figures <- tibble(plot = plot_names,
-                  file = paste0("ordination-", plot_names, ".png"),
-                  width = c(12, 12, 9), height = c(7, 7, 7))
+plots <- c(setNames(lapply(paste0("native_", plot_names), get,
+                           envir = student_environment), plot_names),
+           list(ordinary_biplot = student_environment$ordinary_biplot))
+figures <- tibble(plot = names(plots),
+                  file = paste0("ordination-", gsub("_", "-", names(plots)), ".png"),
+                  width = c(12, 12, 9, 9), height = c(7, 7, 7, 7))
 for (index in seq_len(nrow(figures))) {
   path <- new_path(file.path("vignettes/teaching-data", figures$file[index]))
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
@@ -169,10 +170,11 @@ ordination_examples <- list(
                  "using orthogonal Procrustes, with scores transformed jointly.",
                  "Original fitted object unchanged; no scaling, refitting or thinning.",
                  "Truth-assisted orientation is a simulation diagnostic only.",
-                 "Circle areas encode products of marginal 95% widths, not joint coverage.")
+                 "Circle areas encode products of marginal 95% widths, not joint coverage.",
+                 "The ordinary biplot uses the unaligned fit and carries no truth overlay.")
   )
 )
 saveRDS(ordination_examples, new_path("vignettes/teaching-data/ordination-examples.rds"),
         compress = "xz")
 print(maximum_error)
-cat("Exported three native ordination plots from 24000 aligned draws.\n")
+cat("Exported three aligned native ordination plots from 24000 draws and the ordinary biplot.\n")

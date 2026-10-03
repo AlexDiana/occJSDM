@@ -61,4 +61,54 @@ native_traits_2
 knitr::include_graphics("teaching-data/native-traits-gradient-2.png")
 ```
 
+The same two calls on the perfect-observation fit, `fitmodel_perfect`, use the same generating crosses.
+
+```{r native-traits-perfect-gradient-1, eval=FALSE, purl=TRUE}
+native_traits_perfect_1 <- occJSDM::plotTraitsCoefficients(
+  fitmodel_perfect, covName = "X_psi.EnvCov.1"
+) +
+  native_trait_theme +
+  geom_point(
+    data = filter(native_trait_truth, covariate == "X_psi.EnvCov.1"),
+    aes(x = trait, y = truth), inherit.aes = FALSE,
+    shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Trait effects on the response to gradient 1, perfect-observation fit",
+    x = "Measured trait",
+    y = "Change in environmental coefficient\nper trait standard deviation",
+    caption = "Black cross: generating effect on the fitted scale. Bar: native 95% interval."
+  )
+
+native_traits_perfect_1
+```
+
+```{r native-traits-perfect-gradient-1-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-traits-perfect-gradient-1.png")
+```
+
+```{r native-traits-perfect-gradient-2, eval=FALSE, purl=TRUE}
+native_traits_perfect_2 <- occJSDM::plotTraitsCoefficients(
+  fitmodel_perfect, covName = "X_psi.EnvCov.2"
+) +
+  native_trait_theme +
+  geom_point(
+    data = filter(native_trait_truth, covariate == "X_psi.EnvCov.2"),
+    aes(x = trait, y = truth), inherit.aes = FALSE,
+    shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Trait effects on the response to gradient 2, perfect-observation fit",
+    x = "Measured trait",
+    y = "Change in environmental coefficient\nper trait standard deviation",
+    caption = "Black cross: generating effect on the fitted scale. Bar: native 95% interval."
+  )
+
+native_traits_perfect_2
+```
+
+```{r native-traits-perfect-gradient-2-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-traits-perfect-gradient-2.png")
+```
+
 Read each bar against both references. Crossing the red line means the fitted interval includes zero; enclosing the black cross means it includes the generating effect. Those are separate questions. The native function orders traits by their lower interval endpoints, so match by the trait labels when comparing the two figures.

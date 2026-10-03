@@ -20,6 +20,12 @@ ordinary_loadings <- occJSDM::plotFactorLoadings(fitmodel)
 ordinary_biplot <- occJSDM::plotBiplot(fitmodel)
 ```
 
+The ordinary biplot uses the package's stored orientation. It carries no truth overlay: on unaligned axes a correct configuration can be rotated or reflected away from the generating one, so a mismatch would not show an error.
+
+```{r ordination-ordinary-biplot-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/ordination-ordinary-biplot.png")
+```
+
 With the full `fitmodel` from Lesson 1, run this simulation comparison preparation once. `known_truth` is the generating parameter list loaded at the start of this lesson.
 
 ```{r ordination-align, eval=FALSE, purl=TRUE}

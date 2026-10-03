@@ -148,3 +148,27 @@ knitr::include_graphics("teaching-data/remaining-plots-detection.png")
 ```
 
 Species order is chosen separately by each native helper. A truth cross outside its bar identifies an interval that misses the generating rate in this dataset. These rate intervals summarize parameter uncertainty, unlike the random survey-count ranges in the cumulative-detection examples.
+
+### Variation partitioning with truth
+
+`plotVariancePartitioning()` draws each species as one point in a triangle whose corners are the environmental, spatial and residual (`Biotic`) shares, each a posterior mean. In this non-spatial model every spatial share is zero, so every point lies on the edge between `Env` and `Biotic`. Black crosses mark the true shares under the package's own definition. The plot keeps its own ternary theme, so no theme is added.
+
+```{r remaining-plots-variation, eval=FALSE, purl=TRUE}
+# ggplot2 may warn that it ignores z; the ternary coordinates still use it.
+remaining_variation <- plotVariancePartitioning(fitmodel) +
+  geom_point(
+    data = remaining_truth$variation,
+    aes(x = Env, y = Biotic, z = Spatial),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Variation partitioning, PCR-observation fit",
+    caption = "Dot: posterior mean shares for one species. Black cross: true shares, same definition."
+  )
+
+remaining_variation
+```
+
+```{r remaining-plots-variation-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/remaining-plots-variation.png")
+```
