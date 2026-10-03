@@ -9,7 +9,7 @@ You will learn to distinguish bias from error size, and to read interval coverag
 
 The four packages, the probability each one is asked to predict and the checks on each fit are those of [Lesson 5](occJSDM-lesson-5.md). This lesson reminds you of them where they matter rather than teaching them again.
 
-Sections 1 and 2 show their code. Sections 3 and 4 present the saved results as a report and hide the code that renders them; the appendix shows the code for its tables and figures, and every chunk is in this R Markdown source. Knit this file, or run its chunks with `vignettes` as the working directory. Rendering reads two compact results bundles and does **not** fit any models.
+Sections 1 and 2 show their code. Sections 3 and 4 present the saved results as a report and hide the code that renders them. The appendix shows the code for its tables and figures, and every chunk is in this R Markdown source. Knit this file, or run its chunks with `vignettes` as the working directory. Rendering reads two compact results bundles and does **not** fit any models.
 
 **What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R for Data Science on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. The unusual operations, tibble’s `tribble()` for writing a small table row by row and tidyr’s `expand_grid()` for every combination of several columns, are explained where they appear.
 
@@ -89,7 +89,7 @@ In the baseline, the ten species’ average true probabilities run from 23% to 7
 
 ### Which fits passed, remained flagged or failed?
 
-The complete experiment has **640 combinations of package, dataset and model**, before optimisation restarts: 400 ecological comparisons and 240 trait comparisons. The ecological part is five settings (baseline, rare species, correlated environment, and curved responses fitted once with straight responses and once with a squared term), by two site counts, by ten communities, by four packages. The trait part, in section 2, is two site counts, by two species counts, by traits supplied or omitted, by ten communities, by three packages. Each counted fit represents one combination, even if fitting it required several starts or a longer MCMC run. The table is calculated from the saved results, so unsuccessful combinations remain visible alongside the estimates we can score.
+The complete experiment has **640 combinations of package, dataset and model**, before optimisation restarts: 400 ecological comparisons and 240 trait comparisons. The ecological part has five settings: baseline, rare species, correlated environment, and curved responses fitted once with straight responses and once with a squared term. Each setting is crossed with two site counts, ten communities and four packages. The trait part, in section 2, crosses two site counts, two species counts, traits supplied or omitted, ten communities and three packages. Each counted fit represents one combination, even if fitting it required several starts or a longer MCMC run. The table is calculated from the saved results, so unsuccessful combinations remain visible alongside the estimates we can score.
 
 ``` r
 extension_status <- as_tibble(extension$manifest) |>
@@ -162,7 +162,7 @@ knitr::kable(
 
 Hmsc’s flagged fits are not confined to one kind of ecology. Every scenario has them, from 35% to 50% of its fits. gllvm’s failures are concentrated in the trait experiment, 13 of 14, and 10 of those had traits supplied. The remaining one came from the rare scenario.
 
-All **121 flagged fits remain in the scored results** and are marked as unresolved in the comparisons below. Failed combinations remain in the counts and archive but cannot contribute a prediction error; paired comparisons require estimates at both settings. Read the number of available communities and their diagnostic status alongside each average, because leaving out difficult failed cases can affect that average. We did not keep refitting until favourable results appeared, or use the known truth to choose a start. sjSDM has fewer attempted combinations because it did not enter the trait experiment. These counts describe the specified datasets, settings and budgets; passing diagnostics does not establish ecological accuracy or a general ranking of the packages.
+All **121 flagged fits remain in the scored results** and are marked as unresolved in the comparisons below. Failed combinations remain in the counts and archive but cannot contribute a prediction error; paired comparisons require estimates at both settings. Read the number of available communities and their diagnostic status alongside each average, because leaving out difficult failed cases can affect that average. We did not keep refitting until favourable results appeared. Nor did we use the known truth to choose a start. sjSDM has fewer attempted combinations because it did not enter the trait experiment. These counts describe the specified datasets, settings and budgets, and passing diagnostics does not establish ecological accuracy.
 
 ### What ecological changes did we simulate?
 
@@ -363,7 +363,8 @@ curve_gaps <- as_tibble(extension$fitted_curves) |>
 
 # For the straight fits: the share of test sites where the 300-site curve is closer
 # to the truth, and where the sites that got worse lie (below 0, or past the true peak).
-# reframe() returns one row per test site for each package and site count.
+# reframe() returns one row per test site for each package and site count;
+# first() takes the first value in a group, and peak is the same on every row.
 site_gaps <- as_tibble(extension$fitted_curves) |>
   filter(response == "linear") |>
   group_by(package, n_sites) |>
@@ -400,7 +401,7 @@ curve_gaps |>
 | quadratic | 100 | 6.0 | 8.3 | 3.0 | 4.6 |
 | quadratic | 300 | 3.9 | 5.9 | 1.6 | 2.3 |
 
-All gaps are in percentage points. The curve holds gradient 2 at zero, so the test-site average is a guide to where the predictions lie, not the scored error itself.
+All gaps are in percentage points. The plotted curve holds gradient 2 at zero, but the test sites vary in both gradients. The test-site average is therefore a guide to where the predictions lie, not the scored error itself.
 
 The straight fits’ largest gap grew with more sites, from 13 to 16 points at 100 sites to 19 to 21 at 300. For every package it lies at gradient 1 = 2, the high end of the figure. Most sites lie on the rising side of the true curve: 68% of community 1’s first 100 training sites are below its peak. A straight line fitted to them must keep rising past the peak, and with 300 sites it is steeper. At the high end it reaches 24 to 26% with 300 sites, against 18 to 21% with 100, where the truth has fallen to 5%. Few sites lie out there: only 6% of the 300 test sites have gradient 1 above 1.5.
 
@@ -543,7 +544,7 @@ if (nrow(extension$traits) > 0) {
 
 ![](teaching-data/lesson-6-extension-trait-coefficient-recovery-1.png)<!-- -->
 
-These coefficient comparisons undo both environmental and trait standardisation. Hmsc’s probit coefficients have different units from the simulation’s logit coefficients, so they are not overlaid on the same numerical truth here. Hmsc remains in the probability comparison above, where estimates and truth share the same meaning. gllvm’s saved records retain its standard-error warnings; passing the objective and gradient checks does not establish that every uncertainty estimate is reliable. The appendix’s table “Trait relationships in the same format” gives each package’s bias, coverage and interval width for these relationships, for 100 sites and ten species. It marks Hmsc’s coefficients as `Different link`.
+These coefficient comparisons undo both environmental and trait standardisation. Hmsc’s probit coefficients have different units from the simulation’s logit coefficients, so they are not overlaid on the same numerical truth here. Hmsc remains in the probability comparison above. There, estimates and truth share the same meaning. gllvm’s saved records retain its standard-error warnings; passing the objective and gradient checks does not establish that every uncertainty estimate is reliable. The appendix’s table “Trait relationships in the same format” gives each package’s bias, coverage and interval width for these relationships, for 100 sites and ten species. It marks Hmsc’s coefficients as `Different link`.
 
 How often did the intervals in the figure contain the truth, and how often did they exclude zero? The chunk below counts both for each package, trait and design.
 
@@ -597,7 +598,7 @@ We simulated communities whose true probabilities and environmental effects are 
 **What the comparison says**
 
 - **Predictions:** average bias is small in the baseline for all four packages. More training sites reduce prediction error substantially.
-- **Uncertainty:** coverage is the percentage of 95% intervals that contain the truth. In the baseline, probability coverage is close to 95% for occJSDM and Hmsc, from 94.8% to 96.6%. Coefficient coverage for occJSDM, gllvm and sjSDM strays further from 95%, from 82% to 100%.
+- **Uncertainty:** coverage is the percentage of 95% intervals that contain the truth, and section 4 reads it in detail. In the baseline, probability coverage is close to 95% for occJSDM and Hmsc, from 94.8% to 96.6%. Coefficient coverage for occJSDM, gllvm and sjSDM strays further from 95%, from 82% to 100%.
 - **Harder conditions:** rare species, correlated predictors and an unsuitable response shape can change the answer. Diagnostic warnings and the small number of independent communities prevent a confident overall ranking.
 
 ### How close are the predictions?
@@ -639,21 +640,19 @@ These coefficients describe a species’ baseline tendency to occur and its resp
 | Environment 1 effect | 0.025 +/- 0.016 | 0.026 +/- 0.024 | 0.030 +/- 0.072 | Different link |
 | Environment 2 effect | -0.017 +/- 0.017 | 0.002 +/- 0.021 | -0.033 +/- 0.049 | Different link |
 
-Baseline, 100 training sites: coefficient bias +/- one MCSE, in original coefficient units. The full results also show 300 sites, RMSE and interval widths.
+Baseline, 100 training sites: coefficient bias +/- one MCSE, in original coefficient units. The appendix also shows 300 sites, RMSE and interval widths.
 
 Average coefficient bias is also modest in this baseline. That does not establish that every species’ effect is recovered accurately, or that its interval is reliable. The next question checks the intervals directly.
 
 ## 4. Do 95% intervals contain the truth?
 
-A 95% interval is useful only if it contains the truth often enough **and** is narrow enough to say something. Coverage is the percentage of intervals that contain the known truth across repeated datasets. The reference is 95%. A value far below that signals too many misses; a value above it can reflect unnecessarily wide intervals.
-
-**Coverage** asks how often an interval includes the generating truth across repeated datasets. For example, an interval from 0.2 to 0.5 covers a true occurrence probability of 0.4 but misses a truth of 0.7. A narrow interval can be confidently wrong; a very wide interval can cover the truth while saying little. We therefore read the coverage shown here **beside the interval widths** in the [appendix](#appendix-evidence-and-reproduction) tables.
+A 95% interval is useful only if it contains the truth often enough **and** is narrow enough to say something. **Coverage**, as section 3 defined it, is measured across repeated datasets, and the reference is 95%. A value far below that signals too many misses; a value above it can reflect unnecessarily wide intervals. For example, an interval from 0.2 to 0.5 covers a true occurrence probability of 0.4 but misses a truth of 0.7. A narrow interval can be confidently wrong, and a very wide interval can cover the truth while saying little. We therefore read the coverage shown here **beside the interval widths** in the [appendix](#appendix-evidence-and-reproduction) tables.
 
 Bayesian credible intervals and approximate frequentist confidence intervals have different definitions. Repeated simulation lets us measure the coverage of either procedure. Bayesian intervals are not guaranteed to have exactly 95% coverage under the ecological truth distribution used here.
 
 ### All four packages together
 
-This table separates **occurrence probabilities** from **environmental coefficients**. Probability intervals are evaluated at five fixed environmental settings shared by all packages, rather than the 300 test sites used for prediction errors above. To keep the interval calculation inspectable, we evaluate five fixed settings: both environmental gradients at zero, then each gradient at -1 and +1 while the other remains zero. Coefficients are checked on their original logit scale. The two targets are never averaged together.
+This table separates **occurrence probabilities** from **environmental coefficients**. To keep the interval calculation inspectable, probability intervals are evaluated at five fixed environmental settings shared by all packages, not at the 300 test sites used for prediction errors above. The settings are both gradients at zero, then each gradient at -1 and +1 while the other remains zero. Coefficients are checked on their original logit scale. The two targets are never averaged together.
 
 | Target | Sites | occJSDM | gllvm | sjSDM | Hmsc |
 |:---|---:|:---|:---|:---|:---|
@@ -691,25 +690,25 @@ On real data you do not know the true curve, but you can test for one. Fit the m
 
 <img src="teaching-data/lesson-6-calibration-report-coefficient-coverage-1.png" alt="Coverage of the first environmental coefficient by package and scenario; Hmsc is labelled different link."  />
 
-This figure follows the **first environmental effect**, not all coefficients pooled. The curved scenario is included only when the fitted model contains the quadratic term. Every point is an average over the available communities, with one MCSE shown. The full tables below retain the other effects and the interval widths. In particular, a flagged gllvm fit in the rare-species scenario produces exceptionally wide intervals; high coverage there is not evidence of useful precision.
+This figure follows the **first environmental effect**, not all coefficients pooled. The curved scenario is included only when the fitted model contains the quadratic term. Every point is an average over the available communities, with one MCSE shown. The appendix tables retain the other effects and the interval widths. In particular, a flagged gllvm fit in the rare-species scenario produces exceptionally wide intervals; high coverage there is not evidence of useful precision.
 
 ### What limits the comparison?
 
-**Some fits or uncertainty calculations still have warnings.** Of the 79 saved gllvm fits used for the native interval extension, 20 have a covariance-matrix warning. Hmsc has unresolved MCMC diagnostics in 9 of its 10 rare-species fits at 300 sites. The main results retain flagged fits; the full results also show the sensitivity to keeping only fits that pass the relevant checks.
+**Some fits or uncertainty calculations still have warnings.** Of the 79 saved gllvm fits used for the native interval extension, 20 have a covariance-matrix warning. Hmsc has unresolved MCMC diagnostics in 9 of its 10 rare-species fits at 300 sites. The main results retain flagged fits; the appendix also shows the sensitivity to keeping only fits that pass the relevant checks.
 
-**The intervals use different methods.** occJSDM and Hmsc use posterior draws. gllvm uses its native variational covariance calculation. sjSDM’s native coefficient intervals hold species associations and other species’ coefficients fixed, so they omit uncertainty in those fitted quantities. This is a limitation of the uncertainty calculation tested here, not a demonstrated explanation for every coverage shortfall.
+**The intervals use different methods.** occJSDM and Hmsc use posterior draws. gllvm uses its native variational covariance calculation. sjSDM’s native coefficient intervals hold species associations and other species’ coefficients fixed. They therefore omit uncertainty in those fitted quantities. This is a limitation of the uncertainty calculation tested here, not a demonstrated explanation for every coverage shortfall.
 
-**Ten independent communities give a preliminary comparison.** Many species or test sites do not substitute for more communities. These data support the patterns above; they do not establish an overall package ranking. The trait comparison is also narrower. Only occJSDM and gllvm have trait-effect intervals on the simulation’s logit scale, where they can be checked against the truth; Hmsc uses a different coefficient scale, and sjSDM was not fitted in that experiment.
+**Ten independent communities give a preliminary comparison.** Many species or test sites do not substitute for more communities. These data support the patterns above; they do not establish an overall package ranking. The trait comparison is also narrower. Only occJSDM and gllvm have trait-effect intervals on the simulation’s logit scale, where they can be checked against the truth. Hmsc uses a different coefficient scale, and sjSDM was not fitted in that experiment.
 
 ## What this lesson establishes
 
-Across ten independent communities, more training sites reduce prediction error, average bias is small in the baseline for all four packages, and interval coverage differs more among packages than point accuracy does. Rare species, correlated predictors and an unsuitable response shape change the answer, and the diagnostic warnings and the small number of communities prevent a confident overall ranking.
+Across ten independent communities, more training sites reduce prediction error. Average bias is small in the baseline for all four packages, and interval coverage differs more among packages than point accuracy does. Rare species, correlated predictors and an unsuitable response shape change the answer, and the diagnostic warnings and the small number of communities prevent a confident overall ranking.
 
 For an occJSDM user the take-home is this. Its point predictions held up across communities, with errors close to the other packages’, and improved with more sites. Its interval coverage did not always hold up. In the baseline at 100 sites, its intervals for the first environmental effect were too narrow, and in the harder scenarios its probability intervals covered less often. More sites narrowed the shortfall without removing it: across the ecological scenarios, coverage of the first environmental effect at 300 sites was 80% to 89%. Read occJSDM’s intervals for environmental effects from a survey of about 100 sites as too narrow, and add sites. More sites help, but they may not bring coverage up to 95%. Expect estimates for rare species to be too high, and check whether a response needs a curve before trusting any interval.
 
-A larger coverage study should add independent communities, assess gllvm/sjSDM marginal-probability intervals, and include a probit-generating arm under a declared fitting and diagnostic protocol.
+A larger coverage study should add independent communities, assess marginal-probability intervals for gllvm and sjSDM, and include a probit-generating arm under a declared fitting and diagnostic protocol.
 
-The appendix below holds the acceptance rules for each fit, the detailed prediction errors, the interval widths and coverage by community, the diagnostic sensitivity, the trait relationships, and how to filter the saved results yourself.
+The appendix below holds six things. They are the acceptance rules for each fit, the detailed prediction errors, the interval widths and coverage by community, the diagnostic sensitivity, the trait relationships, and how to filter the saved results yourself.
 
 Continue to [Lesson 7](occJSDM-lesson-7.md), on spatial landscapes and survey design, or return to [Lesson 5](occJSDM-lesson-5.md) or the [Quickstart and lesson guide](occJSDM.md).
 
@@ -1078,9 +1077,9 @@ calibration_comparison_table(
 | Irrelevant trait: environment 2 | Mean interval width | 0.666 | 0.533 | Not fitted | Different link |
 | Irrelevant trait: environment 2 | Communities: scored / intervals | 10 / 10 | 6 / 6 | Not fitted | Different link |
 
-Hmsc trait coefficients are on the probit scale, and sjSDM was not included in the trait experiment. Their columns make those limits explicit. This displayed trait slice uses 100 sites and ten species; the saved summary also contains the 300-site and thirty-species cases. For the irrelevant trait, truth is zero, so an interval that misses truth also excludes zero incorrectly. For a genuinely nonzero effect, covering truth and excluding zero answer different questions. gllvm’s original standard-error warnings and unavailable fits still matter; these are approximate intervals from the selected fits, not a guarantee of calibration.
+Hmsc trait coefficients are on the probit scale, and sjSDM was not included in the trait experiment. Their columns make those limits explicit. This displayed trait slice uses 100 sites and ten species; the saved summary also contains the 300-site and thirty-species cases. For the irrelevant trait, truth is zero, so an interval that misses truth also excludes zero incorrectly. For a genuinely nonzero effect, covering the truth and excluding zero answer different questions. gllvm’s original standard-error warnings and unavailable fits still matter. These are approximate intervals from the selected fits, not a guarantee of calibration.
 
-The compact bundle contains per-community summaries and individual grid/coefficient records, so these tables can be filtered without accessing the large fitting archive. For example:
+The compact bundle contains per-community summaries and individual records for each grid setting and coefficient, so these tables can be filtered without accessing the large fitting archive. For example:
 
 ``` r
 as_tibble(calibration$per_community) |>
