@@ -5,9 +5,13 @@ Lesson 3: Understand the model’s outputs by comparing them with truth
 
 An environmental effect can be real in the simulation and still be estimated imprecisely. A fitted curve can look convincing and still miss the truth. This lesson shows how to distinguish those situations. With real data the truth is never known, so a simulation whose truth we know is the only place to see what each output can and cannot tell you. The [function finder](#find-the-function-for-your-question) near the end maps each question to the functions that answer it.
 
-Start with [Lesson 2](occJSDM-lesson-2.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer. The [quickstart’s](occJSDM.md) `sampledata` also has three field samples per site, but three primers with two PCRs each. The model reads the structure of the survey, repeated samples within sites and repeated PCRs within samples, not fixed counts, as Lesson 2’s [fitting reference](occJSDM-lesson-2.md#fitting-your-own-data-what-the-call-needs) explains.
+Start with [Lesson 2](occJSDM-lesson-2.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
 
-We compare two existing fits of that community: one given the actual presence/absence matrix (**perfect observation**) and one given the PCR observations. The perfect-observation fit shows what the occupancy part of the model recovers once detection error is removed, so the gap between the two fits is the cost of imperfect detection. The diagnostics section also revisits Lesson 2’s longer alternative-prior fit. Most examples reuse these fits. [Lesson 4](occJSDM-lesson-4.md), on prediction at new sites, adds one fit to the same PCR observations, changing only the number of hidden site factors from two to one. Hidden site factors stand for unmeasured conditions at a site that several species respond to, as [Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-does) explains.
+The [quickstart’s](occJSDM.md) `sampledata` also has three field samples per site, but three primers with two PCRs each. The model reads the structure of the survey, repeated samples within sites and repeated PCRs within samples, not fixed counts, as Lesson 2’s [fitting reference](occJSDM-lesson-2.md#fitting-your-own-data-what-the-call-needs) explains.
+
+We compare two existing fits of that community: one given the actual presence/absence matrix (**perfect observation**) and one given the PCR observations. The perfect-observation fit shows what the occupancy part of the model recovers once detection error is removed, so the gap between the two fits is the cost of imperfect detection.
+
+The diagnostics section also revisits Lesson 2’s longer alternative-prior fit. Most examples reuse these fits. [Lesson 4](occJSDM-lesson-4.md), on prediction at new sites, adds one fit to the same PCR observations, changing only the number of hidden site factors from two to one. Hidden site factors stand for unmeasured conditions at a site that several species respond to, as [Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-does) explains.
 
 All teaching code is visible. Run chunks with `vignettes` as the working directory, or knit this file, which means rendering it into this page. Figures and tables use compact saved summaries. Some chunks, marked `eval=FALSE`, are shown but not run while knitting, because they need a full fit, which takes too long to build each time the page is rendered. They show how to obtain the underlying outputs from your own fit.
 
@@ -20,6 +24,7 @@ In those optional examples, `fitmodel` is the full object returned by `runOccJSD
 - `mutate()` and `transmute()` to add columns (`transmute()` keeps only the new ones), with `across()` to change several columns in one step, and `group_by()`, `summarise()` and `ungroup()` to summarise by group.
 - `bind_rows()` to stack tables, and `left_join()` to add the columns of one table to another by shared identifiers.
 - `as_tibble()` and `enframe()`, from tibble, to turn a data frame or a named vector into a tibble.
+- `glimpse()`, also from tibble, to list every column of a table with its first values.
 
 ``` r
 library(dplyr)
@@ -43,6 +48,12 @@ environment_labels <- c(
 )
 
 species_order <- colnames(lesson$input$sim$data_list$OTU)
+n_species <- length(species_order)
+n_sites <- n_distinct(lesson$input$sim$data_list$info$Site)
+
+# Chain means from the mirror-labelling study, used in the diagnostics and the appendix.
+mirror_chains <- read.csv("teaching-data/mirror-labelling-chains.csv", comment.char = "#")
+mirror_original <- filter(mirror_chains, run == "original 4-chain fit")
 
 # This theme also works after occJSDM loads its ternary-plot dependency.
 theme_set(ggtern::theme_bw(base_size = 12))
@@ -50,7 +61,7 @@ theme_set(ggtern::theme_bw(base_size = 12))
 
 The last line of the chunk sets the plotting theme from the ggtern package, which installing occJSDM also installs. occJSDM uses ggtern for its ternary plots, and once ggtern is loaded, `theme_set(ggplot2::theme_bw())` makes the next plot fail ggplot2’s check of a ternary theme element (`tern.axis.ticks.length.major`); ggtern’s own `theme_bw()` draws the same theme with those elements in place, so these lessons use it. If you plot with ggplot2 after loading occJSDM, do the same, or add `theme_bw()` to each plot instead of calling `theme_set()`.
 
-Here is what the three teaching objects hold, and the first rows of the coefficient table that several sections use.
+Here is what the three teaching objects hold, and every column of the coefficient table that several sections use, with its first values.
 
 ``` r
 names(lesson)
@@ -85,31 +96,37 @@ names(diagnostic_examples$traces)
     #> [1] "collection"          "detection"           "field_contamination"
 
 ``` r
-head(outputs$coefficients)
+glimpse(outputs$coefficients)
 ```
 
-    #> # A tibble: 6 × 12
-    #>   covariate      term  block    truth estimate  lower  upper excludes_zero  rhat
-    #>   <chr>          <chr> <chr>    <dbl>    <dbl>  <dbl>  <dbl> <lgl>         <dbl>
-    #> 1 X_psi.EnvCov.1 OTU_1 Enviro…  0.828   0.376  -0.255  1.03  FALSE          1.00
-    #> 2 X_psi.EnvCov.1 OTU_2 Enviro… -3.65   -2.66   -3.75  -1.74  TRUE           1.00
-    #> 3 X_psi.EnvCov.1 OTU_3 Enviro… -0.910  -1.32   -2.02  -0.710 TRUE           1.00
-    #> 4 X_psi.EnvCov.1 OTU_4 Enviro…  0.280  -0.0816 -0.521  0.362 FALSE          1.00
-    #> 5 X_psi.EnvCov.1 OTU_5 Enviro… -0.492  -0.798  -1.46  -0.198 TRUE           1.00
-    #> 6 X_psi.EnvCov.1 OTU_6 Enviro… -0.761  -0.869  -1.55  -0.254 TRUE           1.00
-    #> # ℹ 3 more variables: ess_bulk <dbl>, ess_tail <dbl>, arm <chr>
+    #> Rows: 48
+    #> Columns: 12
+    #> $ covariate     <chr> "X_psi.EnvCov.1", "X_psi.EnvCov.1", "X_psi.EnvCov.1", "X…
+    #> $ term          <chr> "OTU_1", "OTU_2", "OTU_3", "OTU_4", "OTU_5", "OTU_6", "O…
+    #> $ block         <chr> "Environment", "Environment", "Environment", "Environmen…
+    #> $ truth         <dbl> 0.8281640, -3.6499301, -0.9103899, 0.2796435, -0.4922653…
+    #> $ estimate      <dbl> 0.376044764, -2.656362833, -1.315172113, -0.081602446, -…
+    #> $ lower         <dbl> -0.25474733, -3.74591606, -2.02156162, -0.52139757, -1.4…
+    #> $ upper         <dbl> 1.02659391, -1.73718373, -0.70997941, 0.36202006, -0.198…
+    #> $ excludes_zero <lgl> FALSE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, …
+    #> $ rhat          <dbl> 1.0005696, 1.0010705, 1.0005770, 1.0001550, 1.0006303, 1…
+    #> $ ess_bulk      <dbl> 4786.8601, 2140.7017, 3473.6461, 9752.8412, 4756.1448, 4…
+    #> $ ess_tail      <dbl> 9234.162, 3419.619, 5714.067, 15702.110, 7970.178, 6755.…
+    #> $ arm           <chr> "perfect", "perfect", "perfect", "perfect", "perfect", "…
 
 - `lesson` is Lesson 2’s bundle. `input` holds the simulated survey and its truth. `observations` has one row per PCR observation of each species, with the true site and sample states and where each positive came from. `cases` holds the four detection cases Lesson 2 selected, and `cells` each fit’s estimate for every species at every site. `diagnostics` holds the saved diagnostic tables of the three fits, and `manifests` each fit’s settings. The other elements are Lesson 2’s remaining summaries and records that identify the files the bundle was built from.
 - `outputs` holds this lesson’s summaries of the full fits, one table per output. The lesson uses `coefficients`, `baseline` (baseline occupancy), `correlations` (residual correlations), `residual` (the hidden site contributions), `detection_effort` (expected detections for each survey effort), `trait_components` and `trait_hidden_correlation`.
 - `diagnostic_examples$traces` holds the three trace excerpts drawn in the diagnostics section: a collection effect, a primer’s detection rate and a field-contamination rate.
 - `known_truth` is the simulation’s generating parameters, which no fit saw.
 
-These are teaching summaries exported from the full fits, not what `runOccJSDM()` returns; the optional chunks show the package call that gives each output from your own fit. Each row of `outputs$coefficients` is one coefficient in one fit. `arm` names the fit (`perfect`, or `default` for the PCR fit with the package’s default priors). `block` says whether the row is a species’ response to an environmental gradient (`Environment`, with the species in `term`) or a trait’s effect on that response (`Trait`, with the trait in `term`). `covariate` names the gradient, and `truth` is the generating value on the fitted scale. `estimate`, `lower` and `upper` are the posterior mean and 95% credible interval described in the terms below, and `excludes_zero` says whether that interval lies wholly on one side of zero. `rhat`, `ess_bulk` and `ess_tail` are the computation checks of the diagnostics section.
+These are teaching summaries exported from the full fits, not what `runOccJSDM()` returns; the optional chunks show the package call that gives each output from your own fit. Each row of `outputs$coefficients` is one coefficient in one fit.
+
+`arm` names the fit (`perfect`, or `default` for the PCR fit with the package’s default priors). `block` says what kind of coefficient the row is. `Environment` is a species’ response to an environmental gradient, with the species in `term`; `Trait` is a trait’s effect on that response, with the trait in `term`. `covariate` names the gradient, and `truth` is the generating value on the fitted scale. `estimate`, `lower` and `upper` are the posterior mean and 95% credible interval described in the terms below, and `excludes_zero` says whether that interval lies wholly on one side of zero. `rhat`, `ess_bulk` and `ess_tail` are the computation checks of the diagnostics section.
 
 **Terms used throughout.**
 
 - A **posterior draw** is one plausible set of parameter values given the data and the priors. A fit keeps thousands, and every estimate in this lesson is a summary taken over them.
-- A **chain** is one independent run of the sampler that produces the draws. The perfect-observation and PCR fits each ran 4 chains of 6,000 kept draws, 24,000 in all.
+- A **chain** is one independent run of the sampler that produces the draws. The perfect-observation and PCR fits each ran four chains of 6,000 kept draws, 24,000 in all.
 - A **95% credible interval** is the range holding the middle 95% of the draws. It is the model’s statement of uncertainty given its assumptions, not a measured distance from truth.
 - **Log-odds** are the scale on which the model adds effects: `log(p / (1 - p))` for a probability `p`. Zero is 50%, and `plogis()` converts log-odds back to a probability.
 - **Hidden site factors**, as in the opening, are unmeasured conditions at a site that several species respond to ([Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-does)). A species’ **hidden site-factor contribution** at a site is their combined effect on its log-odds there.
@@ -150,11 +167,13 @@ knitr::kable(diagnostic_summary, digits = 3)
 | PCR observations    |        100 |           0 |        1.009 |     835.289 |
 | Perfect observation |         30 |           0 |        1.002 |    2096.978 |
 
-The perfect-observation fit’s table covers 30 parameters, the occupancy intercepts and environmental slopes, because that fit has no detection stages; its largest Rhat is 1.002 and its smallest ESS 2,097. The PCR fit’s 100 parameters add the collection, field-contamination and laboratory parameters; its largest Rhat is 1.009 and its smallest ESS 835. Diagnostics check the computation, not ecological accuracy: chains can agree closely on an imprecise estimate, and they cannot separate ecological explanations that the data cannot tell apart. The subsections below get the same table for your own fit and find the individual parameters that need attention.
+The perfect-observation fit’s table covers 30 parameters, the occupancy intercepts and environmental slopes, because that fit has no detection stages; its largest Rhat is 1.002 and its smallest ESS 2,097. The PCR fit’s 100 parameters add the collection, field-contamination and laboratory parameters; its largest Rhat is 1.009 and its smallest ESS 835.
+
+Diagnostics check the computation, not ecological accuracy: chains can agree closely on an imprecise estimate, and they cannot separate ecological explanations that the data cannot tell apart. The subsections below get the same table for your own fit and find the individual parameters that need attention.
 
 ### Get the diagnostics for your own fit
 
-Use the `fitmodel` returned by `runOccJSDM()`. At the end of fitting, `runOccJSDM()` calls `computeDiagnostics()` to print a block-by-block summary of Rhat and effective sample size to the console and to warn if any block has an Rhat above 1.1 or an ESS below 50. Those are loose screening thresholds that catch gross failures. For the stricter, per-parameter checks below, use the table-returning function. The first two lines of the chunk load the archived teaching fit, for readers reproducing this lesson; with your own data, skip them and use your own `fitmodel`.
+Use the `fitmodel` returned by `runOccJSDM()`. At the end of fitting, `runOccJSDM()` calls `computeDiagnostics()`. It prints a block-by-block summary of Rhat and effective sample size to the console, and warns if any block has an Rhat above 1.1 or an ESS below 50. Those are loose screening thresholds that catch gross failures. For the stricter, per-parameter checks below, use the table-returning function. The first two lines of the chunk load the archived teaching fit, for readers reproducing this lesson; with your own data, skip them and use your own `fitmodel`.
 
 ``` r
 saved_fit <- readRDS("/path/to/full-fits/default-fit.rds")
@@ -179,7 +198,9 @@ The table also contains `mean`, `sd`, `q2.5` and `q97.5`: posterior summaries of
 
 ### Find the parameters that need attention
 
-The code below flags every parameter with an Rhat above 1.01 or an ESS below 400, the screens [Lesson 2](occJSDM-lesson-2.md#are-the-calculations-stable-enough-to-interpret) uses. These are screening rules, not sharp boundaries between trustworthy and untrustworthy results. In this package revision, `returnConvergenceDiagnostics()` uses the classical `coda` Rhat and effective sample size calculations. The newer `posterior` calculations below use rank-normalized split-chain Rhat and distinguish bulk from tail ESS. Their numbers can differ; do not relabel the package’s `ess` column as bulk or tail ESS. The [Stan diagnostics guide](https://mc-stan.org/learn-stan/diagnostics-warnings.html) explains the newer diagnostics and the commonly used 1.01 Rhat screen. Our legacy ESS screen of 400 is a prompt to inspect precision, not a guarantee about every posterior summary. In practice, screen with the `rhat` and `ess` columns of the package’s table. For any parameter whose interval endpoints matter to your conclusions, also compute the newer `posterior` diagnostics, because the tail ESS describes those endpoints.
+The code below flags every parameter with an Rhat above 1.01 or an ESS below 400, the screens [Lesson 2](occJSDM-lesson-2.md#are-the-calculations-stable-enough-to-interpret) uses. These are screening rules, not sharp boundaries between trustworthy and untrustworthy results. In this package revision, `returnConvergenceDiagnostics()` uses the classical `coda` Rhat and effective sample size calculations. The newer `posterior` calculations below use rank-normalized split-chain Rhat and distinguish bulk from tail ESS. Their numbers can differ; do not relabel the package’s `ess` column as bulk or tail ESS.
+
+The [Stan diagnostics guide](https://mc-stan.org/learn-stan/diagnostics-warnings.html) explains the newer diagnostics and the commonly used 1.01 Rhat screen. Our legacy ESS screen of 400 is a prompt to inspect precision, not a guarantee about every posterior summary. In practice, screen with the `rhat` and `ess` columns of the package’s table. For any parameter whose interval endpoints matter to your conclusions, also compute the newer `posterior` diagnostics, because the tail ESS describes those endpoints.
 
 The code uses the package’s diagnostic table saved with each teaching fit. When working with your own model, replace the first assignment with the call above.
 
@@ -206,7 +227,9 @@ nrow(flagged_default)
 
 For this default-prior fit, 0 rows need attention under this screen. An empty list means only that the listed parameters pass these checks. Missing diagnostics are flagged too. A missing Rhat can arise from having only one chain or a chain that never moved, so silently dropping missing values would hide a possible problem.
 
-Now apply exactly the same screen to the **longer alternative-prior fit** from Lesson 2. That fit expects contamination to be less rare. It replaces the package’s default Beta(1, 20) priors on the laboratory false-positive rate `q` and the field-contamination rate `theta0` with Beta(1, 4) on both ([Lesson 2](occJSDM-lesson-2.md#what-changes-if-we-are-less-confident-about-low-contamination)). It has already been extended to 4 chains with 12,000 retained draws each:
+Now apply exactly the same screen to the **longer alternative-prior fit** from Lesson 2. That fit expects contamination to be less rare.
+
+It replaces the package’s default Beta(1, 20) priors on the laboratory false-positive rate `q` and the field-contamination rate `theta0` with Beta(1, 4) on both ([Lesson 2](occJSDM-lesson-2.md#what-changes-if-we-are-less-confident-about-low-contamination)). It has already been extended to four chains with 12,000 retained draws each:
 
 ``` r
 flagged_alternative <- as_tibble(lesson$diagnostics$alternative) |>
@@ -246,7 +269,12 @@ occJSDM::plotTraceplot(
   facet_grid(label2 ~ chain, scales = "free_y") +
   labs(
     x = "Saved draw after burn-in", colour = "Chain",
-    caption = "Columns: chains 1 to 4. Rows: species. Dashed line: generating effect. All 6,000 saved draws per chain are shown."
+    caption = paste0(
+      "Columns: chains 1 to ", lesson$manifests$default$mcmc$nchain,
+      ". Rows: species. Dashed line: generating effect. All ",
+      format(lesson$manifests$default$mcmc$niter, big.mark = ","),
+      " saved draws per chain are shown."
+    )
   ) +
   theme(legend.position = "none")
 ```
@@ -255,7 +283,7 @@ occJSDM::plotTraceplot(
 
 Compare the height and spread of the traces between columns for the same species. Persistent separation between chains, a continuing upward or downward drift, or long periods stuck in a narrow region would warrant investigation. Jagged movement and a wide vertical spread are not by themselves failures: they may reflect a broad posterior distribution.
 
-The black line asks a different question: **where is the generating effect relative to the sampled values?** Agreement between chains checks whether the calculation is stable; proximity to the line checks recovery in this simulation. Chains can agree while being centred away from truth, or agree on a wide interval containing truth. Do not change the sampler merely to force its traces onto the black line.
+The black line asks a different question, about **where the generating effect lies relative to the sampled values**. Agreement between chains checks whether the calculation is stable; proximity to the line checks recovery in this simulation. Chains can agree while being centred away from truth, or agree on a wide interval containing truth. Do not change the sampler merely to force its traces onto the black line.
 
 ### Inspect a primer’s detection rate
 
@@ -319,9 +347,9 @@ The traces make this slow movement visible: each chain spends stretches at relat
 
 ### When chains settle on two different explanations
 
-In that example the chains explore the same range of values, only slowly. A different failure is possible: chains that each settle on a different explanation of the same observations, each looking stable on its own, so that the pooled summary averages the two. Rhat compares chains, so it flags this only when chains actually land in different explanations. One of our simulation studies found such a mirror explanation when laboratory contamination was set far above what the default priors assume; the [appendix](#the-mirror-labelling-study) describes it.
+In that example the chains explore the same range of values, only slowly. A different failure is possible. Chains can each settle on a different explanation of the same observations, each looking stable on its own, so that the pooled summary averages the two. Rhat compares chains, so it flags this only when chains actually land in different explanations. One of our simulation studies found such a mirror explanation when laboratory contamination was set far above what the default priors assume; the [appendix](#the-mirror-labelling-study) describes it.
 
-To check your own fit, summarise each chain separately for every species. This needs a two-stage or occupancy fit, because the collection and field-contamination arrays are `NULL` for a plain JSDM fit, with at least two chains and two species.
+To check your own fit, summarise each chain separately for every species. This needs a two-stage or occupancy fit with at least two chains and two species. The collection and field-contamination arrays are `NULL` for a plain JSDM fit, and with one species or one chain the arrays lose a dimension.
 
 ``` r
 results <- fitmodel$results_output
@@ -348,11 +376,15 @@ chain_summary(results$jsdm_output$B0_output)
 
 `theta0_output` and `jsdm_output$B0_output`, which holds the occupancy intercepts, are species by iteration by chain. The first row of `beta_theta_output` is the collection intercept, on the log-odds scale at the mean of the standardized collection covariates (and reference levels of factors). Rows 1 and 2 of `jsdm_output$B_output` are the occupancy slopes on the first and second environmental covariates.
 
-The warning sign is a species whose chains fall into groups with means that differ by far more than each chain’s own standard deviation. In the study the two groups’ `theta0` means were about 0.036 and 0.25, with chain standard deviations of about 0.025 and 0.04. In our interpretation, two further signs suggest which group is the mirror: a `theta0` far above what its prior expects (under the default Beta(1, 20), about 0.3% of the prior lies above 0.25), and occupancy or collection relations that run opposite to what is ecologically plausible for the species. Real data have no truth line to settle the question, so these are judgments, not proofs. Compare chains on `theta0`, the collection intercept and the two environmental slopes, not on average occupancy or the occupancy intercepts `B0` alone. In the study these four separated the chains and the other two did not.
+The warning sign is a species whose chains fall into groups with means that differ by far more than each chain’s own standard deviation. In the study the two groups’ `theta0` means were about 0.036 and 0.25, with chain standard deviations of about 0.025 and 0.04.
+
+In our interpretation, two further signs suggest which group is the mirror. One is a `theta0` far above what its prior expects: under the default Beta(1, 20), about 0.3% of the prior lies above 0.25. The other is occupancy or collection relations that run opposite to what is ecologically plausible for the species. Real data have no truth line to settle the question, so these are judgments, not proofs.
+
+Compare chains on `theta0`, the collection intercept and the two environmental slopes, not on average occupancy or the occupancy intercepts `B0` alone. In the study these four separated the chains and the other two did not.
 
 What to do next is also our interpretation, not a tested procedure. If the chains fall into groups, do not report the pooled summary, which averages the explanations. Report each group’s estimates, and say which you consider plausible and why, or that neither can be ruled out. Refitting with other seeds (`set.seed()` before `runOccJSDM()`) shows how often each explanation appears when chains are run the package’s usual way; it cannot show which one is right. A tighter prior on `theta0` is an assumption to justify from laboratory and field practice, not a tested fix.
 
-### Check the trait coefficients, then decide what to do next
+### Check the trait coefficients
 
 The package’s diagnostics table does not include the trait coefficients (the matrix `G`). Because trait recovery is a main concern here, this lesson computed their Rhat and ESS from the saved draws, keeping each chain separate, alongside those of the environmental coefficients. The [appendix](#where-to-find-other-parameter-draws) shows how.
 
@@ -382,11 +414,15 @@ Direct checks of environmental and trait coefficient sampling.
 
 The tail ESS is the one that matters for interval endpoints. See the [`posterior` diagnostics documentation](https://mc-stan.org/posterior/reference/diagnostics.html) for the definitions used in this coefficient table.
 
+### Decide what to do about a flagged parameter
+
 When a parameter is flagged, inspect its trace and consider which ecological conclusions depend on it. If the chains explore similar distributions but move slowly, more iterations may improve precision. If they remain separated or drift, investigate the model, priors, data information and starting values rather than assuming a longer run will necessarily solve the problem. Recheck both diagnostics and the stability of the reported estimates after any change.
 
 Keep `nthin = 1` unless storage is the limiting concern. Discarding additional draws does not make the sampler explore better or repair chains trapped in different regions. Never discard selected chains or tune priors just to make the examples pass a diagnostic threshold. In a real dataset the black truth lines are unavailable, so convergence checks, model checks and ecological judgment each have a separate role.
 
-WAIC, the widely applicable information criterion, is meant to estimate how well a model would predict new data, with smaller values better. The package’s current value cannot rank these two fits, which have different response data; [Lesson 4](occJSDM-lesson-4.md#check-the-additional-fit-and-understand-the-waic-limitation) explains why and compares models using actual independent sites instead.
+### Can WAIC compare these fits?
+
+WAIC, the widely applicable information criterion, is meant to estimate how well a model would predict new data, with smaller values better. The package’s current value cannot rank the perfect-observation and PCR fits, which have different response data. It is also not yet a valid guide to prediction between fits of the same data; [Lesson 4](occJSDM-lesson-4.md#check-the-additional-fit-and-understand-the-waic-limitation) explains why and compares models using actual independent sites instead.
 
 ## How many effects does each fit resolve?
 
@@ -415,7 +451,7 @@ knitr::kable(effect_counts, caption = "How many 95% intervals exclude zero?")
 
 How many 95% intervals exclude zero?
 
-Of the 20 environmental intervals, 12 exclude zero in the perfect-observation fit and 9 in the PCR fit. An interval that excludes zero is read as a resolved direction, because 95% of the posterior lies on one side of zero.
+Of the 20 environmental intervals, 12 exclude zero in the perfect-observation fit and 9 in the PCR fit. An interval that excludes zero is read as a resolved direction, because the whole interval, and so at least 97.5% of the draws, lies on one side of zero.
 
 Perfect observation identifies the direction of more environmental effects in this example. That makes ecological sense: it removes uncertainty about whether each species was present. It does not reveal the underlying occurrence probabilities, because each site still gives one presence or absence per species, not its probability. Nor does it guarantee precise coefficients.
 
@@ -578,7 +614,9 @@ ggplot(environment_effects, aes(x = species)) +
 
 ![](occJSDM-lesson-3_files/figure-gfm/environmental-coefficients-1.png)<!-- -->
 
-A positive coefficient means occurrence becomes more likely along that gradient; a negative one means less likely. Zero means no direct response to that covariate in this model. These coefficients are changes in log-odds for a one-standard-deviation change in the environmental predictor, not percentage-point changes in occurrence probability. `runOccJSDM()` standardizes the occupancy covariates itself (the fit stores the standardized design matrix as `fitmodel$X_psi`), so you supply raw values and read effects per standard deviation. The [response-curve section](#what-does-an-effect-mean-for-a-species-distribution) shows the conversion back to raw units.
+A positive coefficient means occurrence becomes more likely along that gradient; a negative one means less likely. Zero means no direct response to that covariate in this model. These coefficients are changes in log-odds for a one-standard-deviation change in the environmental predictor, not percentage-point changes in occurrence probability.
+
+`runOccJSDM()` standardizes the occupancy covariates itself (the fit stores the table of standardized covariates as `fitmodel$X_psi`), so you supply raw values and read effects per standard deviation. The [response-curve section](#what-does-an-effect-mean-for-a-species-distribution) shows the conversion back to raw units.
 
 Read each species in three steps: where is the black cross, is it inside the bar, and how wide is the bar? If the interval crosses zero, the fitted model has not clearly resolved the direction under this criterion. It does **not** establish that the environmental effect is absent. Conversely, excluding zero does not guarantee an accurate effect size.
 
@@ -669,7 +707,7 @@ remaining_gradient_2
 
 Notice that the same coefficient can produce very different probability changes depending on where the species starts on the vertical axis. An effect near a baseline probability of 50% has more room to move the probability than the same log-odds change near 0% or 100%. The curves make that easier to see than the coefficient plot alone.
 
-`returnOccupancyRates()` similarly describes the probability when the standardized measured predictors and the hidden factors are all zero. It transforms each species’ occupancy intercept to the probability scale and returns a **posterior-draw-by-species matrix**, pooling the draws of all chains. In this fit, there are 24,000 rows, 4 chains of 6,000 kept draws, and ten species columns.
+`returnOccupancyRates()` similarly describes the probability when the standardized measured predictors and the hidden factors are all zero. It transforms each species’ occupancy intercept to the probability scale and returns a **posterior-draw-by-species matrix**, pooling the draws of all chains. In this fit, there are 24,000 rows (four chains of 6,000 kept draws) and ten species columns.
 
 Use it to compare species’ baseline occurrence probabilities under the same reference conditions, or to report a baseline estimate with its uncertainty. This is not the average occupancy across the landscape: measured environmental effects and hidden site contributions have been set to zero, not averaged over sites.
 
@@ -745,7 +783,9 @@ trait_1_draws <- trait_draws[, "X_psi.EnvCov.1", "Trait_1"]
 
 The generating trait matrix is `known_truth$jsdmParams_true$G`. The simulator used unstandardized traits, whereas fitting standardized them. A raw coefficient of -1 therefore does not necessarily appear as -1 on the fitted scale. The comparison below multiplies each generating trait coefficient by that trait’s sample standard deviation. The environmental scale already matches. Trait coefficients are therefore per standard deviation of the trait across the species surveyed, so a report should give the trait’s standard deviation beside the coefficient.
 
-Three of the four generating trait effects are nonzero. Only one of the four intervals excludes zero in the PCR fit, and one in the perfect-observation fit. That is a genuine limitation of recovery in this example. It is not evidence that the simulation omitted trait effects, and removing observation error does not make it disappear. An oracle decomposition in the [appendix](#a-real-cancellation-inside-this-simulated-community) shows why one of them stays unresolved. For a survey of ten or so species, expect weak trait results. A trait effect is estimated from differences among species, so more species, not more PCRs or sites, is what helps.
+Three of the four generating trait effects are nonzero. Only one of the four intervals excludes zero in the PCR fit, and one in the perfect-observation fit. That is a genuine limitation of recovery in this example. It is not evidence that the simulation omitted trait effects, and removing observation error does not make it disappear. An oracle decomposition in the [appendix](#a-real-cancellation-inside-this-simulated-community) shows why one of them stays unresolved.
+
+For a survey of ten or so species, expect weak trait results. A trait effect is estimated from differences among species, so more species helps most. More sites sharpen each species’ own response, and more PCRs add no species, so neither adds the species-level contrasts a trait effect needs.
 
 `plotTraitsCoefficients()` displays one environmental response at a time, with a 95% posterior interval for each measured trait. It does not draw a posterior mean. Here are both environmental responses from the PCR-observation fit, with the generating coefficients described above. The black crosses include the trait-standardization adjustment: each raw generating coefficient is multiplied by that trait’s standard deviation among the ten species. Red lines mark zero effect.
 
@@ -881,7 +921,7 @@ trait_summary
 
 `expand_grid()` lists every covariate-by-trait pair, `rowwise()` lets each row pull its own vector of draws, and the three summaries are computed from that vector. The result is an ordinary tibble that can be filtered, joined to the generating values, or passed to `ggplot2`.
 
-The figure below is custom because no package plot draws both fits in one panel; it shows such summaries, the posterior mean and 95% interval of each trait effect, for the perfect-observation and PCR fits beside the same standardized truth.
+The figure below is custom because no package plot draws both fits in one panel. It shows the posterior mean and 95% interval of each trait effect for the perfect-observation and PCR fits, beside the same standardized truth.
 
 ``` r
 trait_effects <- outputs$coefficients |>
@@ -909,7 +949,9 @@ ggplot(trait_effects, aes(x = term)) +
 
 ## Residual species associations: did we recover what was put in?
 
-A residual correlation measures whether two species occur together, or apart, more often than their measured environmental responses predict. In the model it comes from the shared hidden site factors. It is not the raw correlation of PCR detections, and it does not establish a biological interaction between species. Even after supplying every measured environmental covariate, this simulation still contains the deliberately generated hidden site factors. With `n_factors` hidden factors, each species is described by that many loadings. The correlations can therefore express at most that many independent patterns, and too few factors force unrelated pairs to share one.
+A residual correlation measures whether two species occur together, or apart, more often than their measured environmental responses predict. In the model it comes from the shared hidden site factors. It is not the raw correlation of PCR detections, and it does not establish a biological interaction between species.
+
+Even after supplying every measured environmental covariate, this simulation still contains the deliberately generated hidden site factors. With `n_factors` hidden factors, each species is described by that many loadings. The correlations can therefore express at most that many independent patterns, and too few factors force unrelated pairs to share one.
 
 ``` r
 residual_correlations <- occJSDM::returnResidualCorrelationMatrix(fitmodel)
@@ -920,9 +962,9 @@ median_correlations <- residual_correlations[2, , ]
 
 The returned array is quantile by species by species: its first dimension holds the lower limit, median and upper limit, and the other two name the pair of species.
 
-The package’s heat map colours each pair by its fitted median residual correlation. Its central **X means the model cannot confidently establish whether the association is positive or negative**: the 95% credible interval includes zero. It does not mean the true correlation is zero. The small number above each X is the true correlation from the generating loading matrix. For example, `1.00` above an X means a truly strong positive correlation was estimated too uncertainly to establish its direction. All 45 pairs have Xs in this fit.
+The package’s heat map colours each pair by its fitted median residual correlation. Its central **X means the model cannot confidently establish whether the association is positive or negative**: the 95% credible interval includes zero. It does not mean the true correlation is zero.
 
-Wide uncertainty here coexists with strong true correlations; a pale tile does not prove absence of an association. Residual associations are not direct evidence of biological interactions.
+The small number above each X is the true correlation from the generating loading matrix. For example, `1.00` above an X means a truly strong positive correlation was estimated too uncertainly to establish its direction. All 45 pairs have Xs in this fit. Wide uncertainty here coexists with strong true correlations, and a pale tile does not prove absence of an association.
 
 ``` r
 native_correlations <- plotResidualCorrelationMatrix(
@@ -954,7 +996,9 @@ Compare the pattern and magnitude, not just whether an interval crosses zero. An
 
 An ordination places sites and species on a few axes that summarise the variation the measured covariates leave unexplained. In occJSDM those axes are the hidden site factors. Each site has a score on each factor, standing for its unmeasured conditions, and each species has a loading on each factor, its response to those conditions.
 
-The occupancy part of the model adds three terms to give species $j$’s log-odds of occupying site $i$. The first is the species’ intercept $\beta_{0j}$. The second is the measured environmental effects: site $i$’s covariate values $X_i$ times species $j$’s coefficients $\beta_j$. The third is the hidden-factor term: site $i$’s scores $U_i$ times species $j$’s loadings $L_j$. Written out, $\text{logit}(\psi_{ij}) = \beta_{0j} + X_i \beta_j + U_i L_j$, where $\psi_{ij}$ is the probability that species $j$ occupies site $i$ and $\text{logit}$ converts it to log-odds.
+The occupancy part of the model adds three terms to give species $j$’s log-odds of occupying site $i$. The first is the species’ intercept $\beta_{0j}$. The second is the measured environmental effects: site $i$’s covariate values $X_i$ times species $j$’s coefficients $\beta_j$. The third is the hidden-factor term: site $i$’s scores $U_i$ times species $j$’s loadings $L_j$.
+
+Written out, $\text{logit}(\psi_{ij}) = \beta_{0j} + X_i \beta_j + U_i L_j$, where $\psi_{ij}$ is the probability that species $j$ occupies site $i$ and $\text{logit}$ converts it to log-odds.
 
 The product $U_i L_j$ is the species’ hidden site-factor contribution at that site. It is what carries residual co-occurrence. Species that load on the same factor rise and fall together across sites for reasons the measured covariates do not explain, whether an unmeasured gradient or an interaction. `returnOrdinationScores()` returns the hidden site scores $U$; `returnFactorLoadings()` returns the species loadings $L$.
 
@@ -974,13 +1018,13 @@ The ordinary biplot uses the package’s stored orientation. It carries no truth
 
 <img src="teaching-data/ordination-ordinary-biplot.png" alt="" width="100%" />
 
-The arrows of OTU_3 and OTU_5 to OTU_10 look short here because the hidden axes’ orientation differs from draw to draw, so their loadings average towards zero across draws, not because those species lack associations (OTU_4 genuinely has none); the aligned biplot in the [appendix](#read-native-ordination-plots-after-aligning-their-axes) is the one to read for associations.
+The arrows of OTU_3 and OTU_5 to OTU_10 look short here. The hidden axes’ orientation differs from draw to draw, so their loadings average towards zero across draws. That does not mean those species lack associations (OTU_4 genuinely has none). The aligned biplot in the [appendix](#read-native-ordination-plots-after-aligning-their-axes) is the one to read for associations.
 
-A loading is a species’ response to a unit change in a hidden site score, on the occurrence log-odds scale. Opposite loading directions indicate opposite residual responses. They do not establish competition, facilitation or another causal interaction.
+A loading is a species’ response to a unit change in a hidden site score, on the occurrence log-odds scale. Opposite loading directions indicate opposite residual responses.
 
 A site lying farther in a species-arrow direction tends to receive a larger contribution from these factors to that species’ occurrence log-odds. The complete probability also includes the intercept and measured environmental effects.
 
-On your own survey, an ordination is for finding structure the measured covariates missed. Map the site scores to look for an unmeasured gradient. Before naming a cause, check which species load together: a shared loading says only that those species respond alike to something the survey did not measure.
+On your own survey, an ordination is for finding structure the measured covariates missed. Map the site scores to look for an unmeasured gradient. Before naming a cause, check which species load together. A shared loading says only that those species respond alike to something the survey did not measure. An opposite loading says only that they respond in opposite directions. Neither establishes competition, facilitation or another causal interaction.
 
 The comparison with truth uses the combined contribution, multiplying scores by loadings **within each posterior draw** and then averaging the products. Multiplying the mean scores by the mean loadings would not give the same answer. This figure is custom because no package plot draws the combined contribution, the one comparison with truth that does not depend on how the hidden axes are rotated.
 
@@ -1005,7 +1049,7 @@ The diagonal is exact recovery. Points closer to zero than their true values sho
 
 Collection covariates predict whether DNA enters a field sample, conditional on the species being present at the site. Examples are the volume of water filtered, its turbidity, or the time between taking a sample and preserving it. They are separate from the environmental covariates predicting the species’ distribution.
 
-Like the environmental coefficients, the collection coefficient below is a change in log-odds per standard deviation of its predictor, so the generating collection slope has been multiplied by the collection predictor’s standard deviation before comparison.
+Like the environmental coefficients, the collection coefficient below is a change in log-odds per standard deviation of its predictor. The generating collection slope has therefore been multiplied by the collection predictor’s standard deviation before comparison.
 
 ``` r
 collection_truth <- native_truth$collection |>
@@ -1048,9 +1092,9 @@ quantile(collection_draws[, "X_theta", "OTU_1"], probs = c(0.025, 0.975))
 
 Replace `X_theta` and `OTU_1` with names from your own fit. An interval spanning zero means the direction remains uncertain under this interval criterion. These pooled draws support posterior summaries; use the separate chain arrays, as the [diagnostics section](#check-computation-as-well-as-ecological-recovery) at the start of this lesson does, for convergence checks.
 
-Two related helpers answer different questions about collection. `plotCollectionRates()` shows each species’ collection probability with the covariates fixed at their mean, one value per species. `computeAverageCollectionProbs()` instead returns a sample-by-species matrix of posterior mean collection probabilities using each field sample’s actual covariate values, which is the quantity to use when asking which samples were poorly collected.
+Two related helpers answer different questions about collection. `plotCollectionRates()` shows each species’ collection probability with the covariates fixed at their mean, one value per species.
 
-[Lesson 2](occJSDM-lesson-2.md) compares true and estimated PCR detection, laboratory false-positive and field-contamination probabilities, and shows why their values alone cannot classify every positive detection correctly.
+`computeAverageCollectionProbs()` instead uses each field sample’s actual covariate values. It returns a sample-by-species matrix of posterior mean collection probabilities, the quantity to use when asking which samples were poorly collected.
 
 Baseline collection is conditional on presence and sets the standardized collection predictor to zero, meaning its observed raw-scale mean. Its truth is `plogis(raw_intercept + raw_slope * predictor_mean)`, not `plogis(raw_intercept)`.
 
@@ -1074,7 +1118,11 @@ native_collection_rates
 
 ### Laboratory true-positive and false-positive rates by primer
 
-Blue intervals describe positive PCR observations given collection; red intervals describe positive PCR observations without collection. Each black cross is the corresponding true probability. With the fitted threshold of one read, truth equals the generating event probability multiplied by the probability that its rounded read count reaches the threshold. The adjustment uses the true-read distribution for true positives and the contamination-read distribution for false positives.
+[Lesson 2](occJSDM-lesson-2.md) compares true and estimated PCR detection, laboratory false-positive and field-contamination probabilities, and shows why their values alone cannot classify every positive detection correctly. The plots below check the laboratory rates against their generating values.
+
+Blue intervals describe positive PCR observations given collection; red intervals describe positive PCR observations without collection. Each black cross is the corresponding true probability.
+
+With the fitted threshold of one read, truth equals the generating event probability multiplied by the probability that its rounded read count reaches the threshold. The adjustment uses the true-read distribution for true positives and the contamination-read distribution for false positives.
 
 ``` r
 primer_1_truth <- native_truth$laboratory |>
@@ -1181,7 +1229,7 @@ remaining_detection
 
 Species order is chosen separately by each of the package’s helpers. A truth cross outside its bar identifies an interval that misses the generating rate in this dataset. These rate intervals summarize parameter uncertainty, unlike the random survey-count ranges in the cumulative-detection examples.
 
-Every plotting function in this package returns a `ggplot2` object, so the plots can be placed side by side with the `patchwork` package. Its `+` operator lays two plots next to each other, and `/` stacks them. Pairing each stage’s false-positive plot with its success plot puts what should ideally be low beside what should ideally be high.
+Every plotting function that draws a figure returns a `ggplot2` object, with two exceptions. `plotCovariateEffect()` returns a named list with one plot per covariate, so combine its elements rather than the list. `plotLatentPresences()` returns a table. The `ggplot2` plots can therefore be placed side by side with the `patchwork` package. Its `+` operator lays two plots next to each other, and `/` stacks them. Pairing each stage’s false-positive plot with its success plot puts what should ideally be low beside what should ideally be high.
 
 ``` r
 library(patchwork)
@@ -1213,13 +1261,13 @@ detected_in_any_sample <- 1 - (1 - detected_in_one_sample)^M
 expected_species_detected <- sum(detected_in_any_sample)
 ```
 
-The package’s `plotCumulativeSpeciesDetections()` below simulates whole surveys rather than computing this expectation, so its intervals include the random outcome of a single survey; the orange truth is the exact distribution of that outcome under the generating values.
+The package’s `plotCumulativeSpeciesDetections()` below simulates whole surveys rather than computing this expectation. Its intervals therefore include the random outcome of a single survey, and the orange truth is the exact distribution of that outcome under the generating values.
 
-This function asks how many species would be detected if **all ten were present at the site**, the collection predictor were at its mean, and false positives were excluded. It pools both primers and varies field samples (`M`) and PCRs per primer per sample (`K`). It does not predict observed richness at an arbitrary site. Field replication of four is prospective; the fitted data contained three field samples per site. PCR replication stays within the six-PCR design.
+The function pools both primers and varies field samples (`M`) and PCRs per primer per sample (`K`). Field replication of four is prospective; the fitted data contained three field samples per site. PCR replication stays within the six-PCR design.
 
-The package’s bars include both fitted-parameter uncertainty and random collection/PCR outcomes. The routine selects 500 posterior draws to simulate surveys, so endpoints can vary with the seed. Orange bars are the exact 2.5% and 97.5% quantiles of the matching survey-count distribution under the generating parameters. Orange crosses mark its median. These truth intervals remain wide even when parameters are known. When planning a survey, compare designs with the expected count from the formula above, and use the survey-outcome interval to see how much one survey can vary around it.
+The package’s bars include both fitted-parameter uncertainty and random collection and PCR outcomes. The routine selects 500 posterior draws to simulate surveys, so endpoints can vary with the seed. Orange bars are the exact 2.5% and 97.5% quantiles of the matching survey-count distribution under the generating parameters. Orange crosses mark its median. These truth intervals remain wide even when parameters are known. When planning a survey, compare designs with the expected count from the formula above, and use the survey-outcome interval to see how much one survey can vary around it.
 
-Each species’ true detection probability is `1 - (1 - theta * (1 - prod((1 - p)^K)))^M`. Here `theta` is baseline collection conditional on presence and the primer-specific `p` values include the read-threshold adjustment explained under [laboratory rates by primer](#laboratory-true-positive-and-false-positive-rates-by-primer). Combining ten independent detection indicators gives the exact count distribution from zero to ten. Its quantiles are stored in the teaching bundle. This is a distribution of random survey outcomes, not an interval around the expected count from the formula above.
+Each species’ true detection probability is `1 - (1 - theta * (1 - prod((1 - p)^K)))^M`. Here `theta` is baseline collection conditional on presence and the primer-specific `p` values include the read-threshold adjustment explained under [laboratory rates by primer](#laboratory-true-positive-and-false-positive-rates-by-primer). Combining ten independent detection indicators gives the exact count distribution from zero to ten. Its quantiles are stored in the teaching bundle.
 
 ``` r
 set.seed(20260922)
@@ -1283,7 +1331,7 @@ The take-home: if all ten species occupy a site, the true expected number detect
 
 `computePredictiveOccupancyProbs()` gives the fitted habitat-based probability of occupancy at each surveyed site, from the measured environment and the fitted hidden site factors. It is the quantity [Ji et al. (2025)](#references-and-further-reading) reported. Despite its name, it is not a prediction from the measured covariates alone: the fitted site factors were learned using the observations.
 
-`computeConditionalOccupancyProbs()` summarizes the model’s belief that the species actually occupied the surveyed site, accounting for the observation process. It returns a **site-by-species matrix** of posterior probabilities, with site identifiers as row names and species names as column names. Here that is 100 rows by ten columns. Each entry is the posterior mean of the latent 0/1 occupancy state, so an entry of 0.8 means an 80% posterior probability that the species was present at that site, given the survey observations and the fitted model.
+`computeConditionalOccupancyProbs()` summarizes the model’s belief that the species actually occupied the surveyed site, accounting for the observation process. It returns a **site-by-species matrix** of posterior probabilities, with site identifiers as row names and species names as column names. Here that is 100 rows by ten columns. Each entry is the posterior mean of the latent occupancy state (1 if present, 0 if absent). An entry of 0.8 therefore means an 80% posterior probability that the species was present at that site, given the survey observations and the fitted model.
 
 ``` r
 conditional_occupancy <- occJSDM::computeConditionalOccupancyProbs(fitmodel)
@@ -1298,11 +1346,13 @@ conditional_occupancy[, "OTU_1"]
 predictive_occupancy <- occJSDM::computePredictiveOccupancyProbs(fitmodel)
 ```
 
-Use this matrix to map inferred presence at surveyed sites or examine sites with uncertain occupancy; match its row names to site identifiers when joining other data. It contains posterior probabilities rather than individual draws or credible limits. Its appropriate simulation check is the realized 0/1 state, not the generating probability. These are estimates at surveyed sites; use `predictNewSites()` for unsurveyed sites.
+Use this matrix to map inferred presence at surveyed sites or examine sites with uncertain occupancy; match its row names to site identifiers when joining other data. It contains posterior probabilities rather than individual draws or credible limits. Its appropriate simulation check is the realized state, present or absent, not the generating probability. These are estimates at surveyed sites; use `predictNewSites()` for unsurveyed sites.
 
-Its sample-level counterpart, `computeConditionalSamplePresenceProbs()`, returns a sample-by-species matrix of posterior probabilities that the species’ DNA was in each field sample; the latent presence table below shows the same quantity in its `CondSampleProb` column, beside the PCR results that produced it. [Lesson 2](occJSDM-lesson-2.md) puts these quantities alongside the actual simulated detection cases, with maps in Lesson 0.
+Its sample-level counterpart, `computeConditionalSamplePresenceProbs()`, returns a sample-by-species matrix of posterior probabilities that the species’ DNA was in each field sample. The latent presence table below shows the same quantity in its `CondSampleProb` column, beside the PCR results that produced it. [Lesson 2](occJSDM-lesson-2.md) puts these quantities alongside the actual simulated detection cases, with maps in Lesson 0.
 
-Which one should a study report? [Ji et al. (2025)](#references-and-further-reading) reported the predictive probabilities, because they are estimated from the environmental relationships learned across all sites and are therefore less sensitive to the handful of detections at any one site. The conditional probability moves with that site’s own PCR results, so a single contaminated or failed sample can shift it substantially. The two are most useful together: a site where the conditional probability is high but the predictive probability is low is one where weak positive evidence overrode unfavourable covariates, and the reverse pattern marks a site the model believes occupied despite few detections. Their Supplementary Information 12 works through such cases; Lesson 2’s worked detections do the same on this simulation.
+Which one should a study report? [Ji et al. (2025)](#references-and-further-reading) reported the predictive probabilities. Their reason was that the probabilities are estimated from the environmental relationships learned across all sites, so they are less sensitive to the handful of detections at any one site. The conditional probability moves with that site’s own PCR results, so a single contaminated or failed sample can shift it substantially.
+
+The two are most useful together. A site where the conditional probability is high but the predictive probability is low is one where weak positive evidence overrode unfavourable covariates. The reverse pattern marks a site whose habitat suits the species but where few detections made the model doubt it was occupied. It has a high predictive probability and a low conditional one. Their Supplementary Information 12 works through such cases; Lesson 2’s worked detections do the same on this simulation.
 
 `returnLatentPresences()` and `plotLatentPresences()` collect those fitted quantities by site, sample and primer. The next section demonstrates them on this lesson’s own simulation, so the observations, estimates and truth all refer to the same records.
 
@@ -1329,7 +1379,9 @@ occJSDM::plotLatentPresences(
 )
 ```
 
-To keep knitting quick, the next chunk reads the exact tables exported from the saved default-prior fit. We focus on OTU_1 at sites 1 and 6: the laboratory false-positive and weak true-detection cases selected in Lesson 2, which `example_cases` takes from `lesson$cases`. All three field samples and both primers are retained at each site. The six PCRs within each sample and primer combination are numbered in their original observation order.
+To keep knitting quick, the next chunk reads the exact tables exported from the saved default-prior fit. We focus on OTU_1 at sites 1 and 6: the laboratory false-positive and weak true-detection cases selected in Lesson 2, which `example_cases` takes from `lesson$cases`.
+
+All three field samples and both primers are retained at each site. The six PCRs within each sample and primer combination are numbered in their original observation order.
 
 ``` r
 native_tables <- readRDS("teaching-data/latent-presence-lesson.rds")
@@ -1457,13 +1509,19 @@ occJSDM::plotLatentPresences(
 
 `plotLatentPresences()` returns a gt table, which displays in HTML; the Markdown version of this page shows the same records as a plain table with decimals. In HTML, colours group the sites and shades group samples and primers; they do not indicate confidence or whether the model is correct.
 
-At site 1, sample 1 has no OTU_1 DNA (`TrueSample = 0`), despite a positive PCR. OTU_1 nevertheless occupies the site (`TrueSite = 1`). This is a **laboratory false positive about the sample**, not evidence that the species must be absent from the entire site. At site 6, sample 18 genuinely contains DNA but gives only 2 positives across its 12 PCR observations, and samples 16 and 17 contain none. Sample identifiers run across the whole survey, which is why a site’s samples are not numbered 1 to 3. Read all three samples together before judging the site’s inferred state.
+At site 1, sample 1 has no OTU_1 DNA (`TrueSample = 0`), despite a positive PCR. OTU_1 nevertheless occupies the site (`TrueSite = 1`). This is a **laboratory false positive about the sample**, not evidence that the species must be absent from the entire site.
+
+At site 6, sample 18 genuinely contains DNA but gives only 2 positives across its 12 PCR observations, and samples 16 and 17 contain none. Sample identifiers run across the whole survey, so site 6’s samples are 16 to 18, not 1 to 3. Read all three samples together before judging the site’s inferred state.
 
 ### Keep generating probabilities separate from actual states
 
 The table’s other three probabilities answer different questions. `PredOccProb` estimates the generating occupancy probability at a fitted site, including its learned hidden site contribution. `CollectionProb` estimates collection success **if the species is present at the site**. `DetectionProb` estimates a threshold-positive PCR **if its DNA is in the sample**. Neither collection nor detection probability is an unconditional prediction that an arbitrary PCR will be positive.
 
-For these columns, compare probabilities with probabilities. The chunk below attaches the true values: each site’s occupancy probability, each sample’s collection probability from its raw collection covariate and the simulator’s collection intercept and slope, and each primer’s detection probability, which includes the read-threshold adjustment explained under [laboratory rates by primer](#laboratory-true-positive-and-false-positive-rates-by-primer).
+For these columns, compare probabilities with probabilities. The chunk below attaches three true values:
+
+- each site’s occupancy probability;
+- each sample’s collection probability, from its raw collection covariate and the simulator’s collection intercept and slope;
+- each primer’s detection probability, which includes the read-threshold adjustment explained under [laboratory rates by primer](#laboratory-true-positive-and-false-positive-rates-by-primer).
 
 ``` r
 site_truth <- lesson$cells |>
@@ -1552,7 +1610,16 @@ Each question names the functions that answer it and where these lessons check t
 
 ## Where to go next
 
-[Lesson 4](occJSDM-lesson-4.md) predicts occupancy at 300 new sites and compares two models by what actually occurred there. The appendix below holds the evidence that needs the simulation’s truth or the full fits: the trait cancellation, the truth-aligned ordination plots, the mirror-labelling study, reading trace draws from the fit object, the corrected response-curve helper, and the commands that reproduce the teaching figures.
+[Lesson 4](occJSDM-lesson-4.md) predicts occupancy at 300 new sites and compares two models by what actually occurred there.
+
+The appendix below holds the evidence that needs the simulation’s truth or the full fits:
+
+- the trait cancellation;
+- the truth-aligned ordination plots;
+- the mirror-labelling study;
+- how to read trace draws from the fit object;
+- the corrected response-curve helper;
+- the commands that reproduce the teaching figures.
 
 ## References and further reading
 
@@ -1568,7 +1635,9 @@ The model allows a species’ environmental response to combine three contributi
 
 In these ten species, Trait_1 happens to correlate with the unmeasured species trait (0.52). The generator drew these traits independently; a small realized sample can still contain a substantial correlation. For environmental gradient 1, the resulting contributions oppose one another.
 
-The following is an **oracle diagnostic**, possible only because we have the simulation truth. Regress the known species environmental coefficients on both measured traits, then repeat the regression for each generating contribution. Because these regressions use the same predictors, the contributions add to the observed relationship among these ten species. A least-squares regression is linear in its response, so regressing each component on the same traits gives slopes that sum to the slope of the total. `known_truth$jsdmParams_true$B` holds the true environmental coefficients, one row per covariate and one column per species, so `B[1, ]` is every species’ response to gradient 1.
+The following is an **oracle diagnostic**, possible only because we have the simulation truth. Regress the known species environmental coefficients on both measured traits, then repeat the regression for each generating contribution.
+
+Because these regressions use the same predictors, the contributions add to the observed relationship among these ten species. A least-squares regression is linear in its response, so regressing each component on the same traits gives slopes that sum to the slope of the total. `known_truth$jsdmParams_true$B` holds the true environmental coefficients, one row per covariate and one column per species, so `B[1, ]` is every species’ response to gradient 1.
 
 ``` r
 species_comparison <- lesson$input$sim$data_list$traits |>
@@ -1631,7 +1700,9 @@ This is a diagnosis of **this simulation**, not proof that all weak trait result
 
 The combined contribution above avoids an ambiguity: a rotation or reflection of both the site scores and species loadings leaves every fitted occurrence probability unchanged. Axis 1 in two fits need not represent the same direction. The package already chooses a loading-based orientation at fitting, but that convention alone does not make an axis a biological quantity.
 
-For this simulation we can use the **known species loadings** to orient every posterior draw. The orthogonal Procrustes calculation below finds the rotation or reflection that brings the fitted loadings closest to the generating loadings, without changing their lengths. We apply that same transformation to the site scores. This is a simulation-only aid: the true loadings would be unavailable for real observations. It removes orientation differences, not estimation error, and uses no true site scores to choose the rotation.
+For this simulation we can use the **known species loadings** to orient every posterior draw. The orthogonal Procrustes calculation below finds the rotation or reflection that brings the fitted loadings closest to the generating loadings, without changing their lengths. We apply that same transformation to the site scores.
+
+This is a simulation-only aid: the true loadings would be unavailable for real observations. It removes orientation differences, not estimation error, and uses no true site scores to choose the rotation.
 
 These plots use the PCR-observation fit, including all 6,000 retained iterations from each of four chains. We make a separate plotting copy. For a rotation matrix `rotation`, the transformed scores and loadings are `scores %*% rotation` and `t(rotation) %*% loadings`; their product is still `scores %*% loadings`. The exporter also verifies this for every draw.
 
@@ -1823,9 +1894,22 @@ Because truth helped choose the orientation, agreement in arrow direction is not
 
 ### The mirror-labelling study
 
-One of our simulation studies of two-stage (eDNA) data found a different pattern, in a design that sets laboratory contamination far above what the default priors assume: a PCR of a field sample without the species’ DNA was positive with probability 0.13 to 0.24, whereas the default Beta(1, 20) prior on `q` has mean 0.048. With 24 PCRs per site, almost every site had at least one positive PCR for every species, so whether a site had any positive said almost nothing about its occupancy. For one species in that 300-site community, which is not this lesson’s community, two of the four chains settled near the truth and the other two on a **mirror** explanation of the same observations: a field-contamination probability, or field false-positive rate, `theta0` of about 0.25 (truth 0.038), a low collection probability, both environmental slopes of the wrong sign, and site occupancy probabilities running almost opposite to the truth (correlation -0.86). Both explanations were consistent with the observed rate of positive PCRs; that is a consistency check, not a likelihood comparison, and it does not show that the two fit equally well. Each of the four chains stayed in its explanation for all 12,000 retained draws, so each looked stable on its own, and the pooled summary averaged the two, giving `theta0` 0.144.
+One of our simulation studies of two-stage (eDNA) data found a different pattern, in a design that sets laboratory contamination far above what the default priors assume. A PCR of a field sample without the species’ DNA was positive with probability 0.13 to 0.24, whereas the default Beta(1, 20) prior on `q` has mean 0.048. With 24 PCRs per site, almost every site had at least one positive PCR for every species, so whether a site had any positive said almost nothing about its occupancy.
 
-In the study, the all-chain Rhat for that species’ `theta0`, collection intercept and environmental slopes was about 1.7, and the package’s convergence warnings reported it. The original chains ran one after another in one process, as the package runs them, with 6,000 burn-in and 12,000 retained iterations each. The 16 fresh chains were separate single-chain runs with their own seeds (10,000 burn-in and 40,000 further iterations, every fourth kept), and every one stayed near the truth. Counting the two chains of an earlier, shorter fit of the same data as near-truth, as their scores suggest, two of the six chains run the package’s usual way entered the mirror and none of the 16 separate runs did; why is not established. Every chain starts from the same default values, so such counts show where chains go from that start, not how much posterior probability the mirror holds: Rhat cannot warn about an explanation that no chain visits. This is the only such case found in these studies, and how often it happens in real data is unknown. Other flagged fits of the same community, with wider occupancy-intercept priors, were not examined for it, and nothing in these studies shows the mirror when contamination is at the level the priors assume.
+For one species in that 300-site community, which is not this lesson’s community, two of the four chains settled near the truth. The other two settled on a **mirror** explanation of the same observations, which had:
+
+- a field-contamination probability, or field false-positive rate, `theta0` of about 0.25 (truth 0.038);
+- a low collection probability;
+- both environmental slopes of the wrong sign;
+- site occupancy probabilities running almost opposite to the truth (correlation -0.86).
+
+Both explanations were consistent with the observed rate of positive PCRs. That is a consistency check, not a likelihood comparison, and it does not show that the two fit equally well. Each of the four chains stayed in its explanation for all 12,000 retained draws, so each looked stable on its own. The pooled summary averaged the two, giving `theta0` 0.144.
+
+In the study, the all-chain Rhat for that species’ `theta0`, collection intercept and environmental slopes was about 1.7, and the package’s convergence warnings reported it. The original chains ran one after another in one process, as the package runs them, with 6,000 burn-in and 12,000 retained iterations each. The 16 fresh chains were separate single-chain runs with their own seeds (10,000 burn-in and 40,000 further iterations, every fourth kept), and every one stayed near the truth.
+
+Of the six chains run the package’s usual way, two entered the mirror. The six include the two chains of an earlier, shorter fit of the same data, which sat near the truth judging by their scores. None of the 16 separate runs entered it, and why is not established. Every chain starts from the same default values. Such counts therefore show where chains go from that start, not how much posterior probability the mirror holds, and Rhat cannot warn about an explanation that no chain visits.
+
+This is the only such case found in these studies, and how often it happens in real data is unknown. Other flagged fits of the same community, with wider occupancy-intercept priors, were not examined for it. Nothing in these studies shows the mirror when contamination is at the level the priors assume.
 
 The figure reads the study’s per-chain posterior means for that species from a small saved file, for the original four-chain fit and the 16 fresh chains.
 
@@ -1864,9 +1948,9 @@ mirror_chains |>
 
 <img src="occJSDM-lesson-3_files/figure-gfm/mirror-labelling-chains-1.png" alt="Scatter plot with one point per MCMC chain for one simulated species, showing the chain mean of theta0 against the chain mean of average occupancy probability. Eighteen chains, including all 16 fresh chains, cluster at theta0 of about 3.5 percent, near the generating value of 3.8 percent marked by a black cross. Two chains of the original fit sit apart at theta0 of about 25 percent, with average occupancy only about three points lower."  />
 
-Two chains of the original fit sit far above the rest in `theta0`, yet their average occupancy differs from the other chains’ by only about three percentage points: the site-by-site pattern is reversed, but the average barely moves. In the study, `theta0`, the collection intercept and the two environmental slopes carried the signal, with gaps between chains of 3.5 to 6.1 pooled within-chain standard deviations, while `B0` and average occupancy overlapped (gaps of 0.7 and 0.3).
+Two chains of the original fit sit far above the rest in `theta0`, yet their average occupancy differs from the other chains’ by only about three percentage points. The site-by-site pattern is reversed, but the average barely moves. In the study, `theta0`, the collection intercept and the two environmental slopes carried the signal, with gaps between chains of 3.5 to 6.1 pooled within-chain standard deviations. `B0` and average occupancy overlapped, with gaps of 0.7 and 0.3.
 
-In the study, the counts differed between the two ways of running chains for reasons not established. The study ran 8 chains with a Beta(1, 100) prior on `theta0`, but none of the 16 fresh default-prior chains entered the mirror either, so the comparison could not show whether that prior prevents it; the prior also pulled that species’ `theta0` down to 0.011, against a truth of 0.038. The [study report](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/convergence-flag-diagnosis/REPORT.md) gives the details and limitations.
+The study also ran 8 chains with a Beta(1, 100) prior on `theta0`. None of them entered the mirror, but none of the 16 fresh default-prior chains did either, so the comparison could not show whether that prior prevents it. The prior also pulled that species’ `theta0` down to 0.011, against a truth of 0.038. The [study report](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/convergence-flag-diagnosis/REPORT.md) gives the details and limitations.
 
 ### Read trace draws from the fit object
 
@@ -1971,13 +2055,13 @@ tibble(
 
 ### The corrected response-curve helper
 
-`returnCovariateEffect()` and `plotCovariateEffect()` vary one predictor in original units, hold other numeric predictors at their medians and categories at their first fitted levels, and set spatial and latent site effects to zero. Their posterior-median column is named `median`.
+`returnCovariateEffect()` and `plotCovariateEffect()` vary one predictor in original units. They hold other numeric predictors at their medians and categories at their first fitted levels, and set spatial and latent site effects to zero. Their posterior-median column is named `median` (formerly `mean`), so code that read the old column needs the new name. The two `plotOccupancyGradient()` examples earlier in this lesson were not affected, so their differences from the simulated truth are not caused by this bug.
 
 Before the correction in [PR \#13](https://github.com/AlexDiana/occJSDM/pull/13), these helpers added a log-odds intercept after converting to probabilities and standardized predictors twice, which could give probabilities above one. Existing fits with the required covariate metadata need no refit.
 
 ### Reproduce the teaching figures
 
-The compact files retain source and fit hashes. Full MCMC fits are kept outside the package because they are much larger. To regenerate them, follow [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md) and run the existing simulation/fitting commands with the recorded source. Then export this lesson’s additional summaries:
+The compact files retain source and fit hashes. Full MCMC fits are kept outside the package because they are much larger. To regenerate them, follow [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md) and run the existing simulation and fitting commands with the recorded source. Then export this lesson’s additional summaries:
 
 ``` bash
 Rscript dev/simstudy/vignette-lesson/summarise_outputs.R /path/to/full-fits
