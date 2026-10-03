@@ -672,7 +672,7 @@ Try these with the saved tables, without refitting:
 2.  `sweep$lattice_maps` has every lattice cell for species 6 in community 1, for each arrangement and occJSDM arm, with its distance to the nearest site. Recompute the distance bins at 0.01, 0.03 and 0.06 and redraw the prediction-error figure for the four arrangements and two arms it contains. Hint: `cut()` with `breaks = c(0, 0.01, 0.03, 0.06, Inf)` makes the bins; then average `abs(with - truth)` and `abs(without - truth)` by arrangement, source and bin.
 3.  The clustered design for the 25% species is the one intermediate cell. From `sweep$fits$field`, compute its error reduction and correlation in each community, then say which part of the informative rule it fails and what keeps it out of the uninformative label. Hint: follow the `true-state-communities` chunk in section 3, and add the mean of `centred_correlation`.
 
-The appendix below holds the convergence checks of the 24 fits and the reproduction record. This is the last lesson. Return to the [Quickstart](occJSDM.md), to [Lesson 2](occJSDM-lesson-2.md) for fitting, or to [Lesson 3](occJSDM-lesson-3.md) for reading outputs.
+The appendix below holds the convergence checks of the 24 fits and the reproduction record. Return to the [Quickstart](occJSDM.md), to [Lesson 2](occJSDM-lesson-2.md) for fitting, or to [Lesson 3](occJSDM-lesson-3.md) for reading outputs.
 
 ## Appendix: evidence and reproduction
 

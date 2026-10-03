@@ -773,12 +773,19 @@ true_curves <- response_curves |>
 
 ``` r
 # For each package, the largest gap between its curve and the truth, in percentage points.
+largest_misses <- response_curves |>
+  group_by(gradient, species, package) |>
+  summarise(largest_miss_pp = 100 * max(abs(estimate - truth)), .groups = "drop")
+
+# One package's largest gap for one species on one gradient, rounded for the text below.
+miss_pp <- function(g, sp, pkg) {
+  with(largest_misses, round(largest_miss_pp[gradient == g & species == sp & package == pkg], 1))
+}
+
 # Keep the species where that gap exceeds the threshold for all four packages, quoted in the text below.
 curve_threshold <- 15
 
-gradient_misses <- response_curves |>
-  group_by(gradient, species, package) |>
-  summarise(largest_miss_pp = 100 * max(abs(estimate - truth)), .groups = "drop") |>
+gradient_misses <- largest_misses |>
   group_by(gradient, species) |>
   filter(all(largest_miss_pp > curve_threshold)) |>
   group_by(gradient) |>
@@ -828,7 +835,7 @@ ggplot(filter(response_curves, gradient == "environment_2"),
 
 Look for three different kinds of disagreement: a curve that is generally too high or low, one that changes too steeply or too weakly, and one that changes in the wrong direction. Their ecological implications differ, even if their overall average errors happen to be similar. For example, species_03’s gradient-1 curves follow truth closely, while species_04’s, species_08’s and species_09’s gradient-1 curves are too flat. Along gradient 2, species_03’s fitted responses are much flatter than its true response.
 
-In almost every panel the four packages’ curves lie on top of each other. Where they miss the truth, all four miss it together. Every package’s curve strays more than 15 points from the truth somewhere along the gradient for species_04, species_08 and species_09 on gradient 1 and for species_02, species_03 and species_08 on gradient 2. These errors come from what 100 sites can reveal about each species, not from any one package.
+In almost every panel the four packages’ curves lie on top of each other. Where they miss the truth by most, all four miss the same species, though not by the same amount. Every package’s curve strays more than 15 points from the truth somewhere along the gradient for species_04, species_08 and species_09 on gradient 1 and for species_02, species_03 and species_08 on gradient 2. These errors come from what 100 sites can reveal about each species, not from any one package. The packages’ gaps still differ. On gradient 1, occJSDM’s curve for species_10 strays up to 16.7 points from the truth and gllvm’s up to 8.5; for species_01 the gaps are 17.1 and 11.1 points.
 
 These are observational responses within this simulated model, with other measured conditions fixed and unmeasured conditions averaged over. For a real dataset, a fitted environmental association does not by itself establish a causal effect. Also, these curves differ from the zero-factor occupancy-gradient profiles taught in [Lesson 3](occJSDM-lesson-3.md): here we deliberately average over hidden variation.
 
@@ -915,7 +922,7 @@ Run each package’s fitting example in a **fresh R session**, with the package 
 
 #### occJSDM: directly observed binary data
 
-There are no repeated `Site`, `Sample` or `Primer` identifiers in this input, so `info` has one row per site and occJSDM infers binary JSDM mode, as the opening described. `OTU = training$y` holds 0s and 1s rather than read counts; in this mode they are used directly as absences and presences, so no read threshold applies. `n_lattrait = 0` fits no latent traits, unmeasured species traits that would shape the species’ environmental responses (the default is two); `n_factors = 2` retains the two hidden site factors.
+There are no repeated `Site`, `Sample` or `Primer` identifiers in this input, so `info` has one row per site and occJSDM infers binary JSDM mode, as the opening described. `OTU = training$y` holds 0s and 1s rather than read counts; in this mode they are used directly as absences and presences, so no read threshold applies. `n_lattrait = 0` fits no latent traits, unmeasured species traits that would shape the species’ environmental responses. By default occJSDM sets the number of latent traits from the numbers of species and occupancy covariates. `n_factors = 2` retains the two hidden site factors.
 
 ``` r
 library(occJSDM)

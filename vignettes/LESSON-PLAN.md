@@ -114,7 +114,7 @@ Assess faithful computation, whether changed inputs really produce new calculati
 
 The audit compares `vignettes/occJSDM.Rmd` at revision `8654ff1` with the teaching lessons. Lesson 3 is a rewrite and redistribution, not a complete transfer of every worked example. Listing a function in its index is not the same as teaching its use. Preserve useful workflows while replacing stale argument names, unmatched examples and unsupported claims.
 
-The original walkthrough is preserved unchanged from that revision as [ORIG_occJSDM.Rmd](ORIG_occJSDM.Rmd). It is an archival reference, excluded from package builds. The current `occJSDM.Rmd` remains the Quickstart and lesson guide.
+The original walkthrough is preserved unchanged from that revision as [ORIG_occJSDM.Rmd](ORIG_occJSDM.Rmd). It is an archival reference, excluded from package builds. The current `occJSDM.Rmd` remains the Quickstart.
 
 - **Input structure and fitting arguments:** Lessons 0 and 2 plus the Quickstart show current fitting code. Lesson 2 now includes a concise reference for model inference, identifiers, covariates, traits, priors, threshold, missingness and retained latent output. Remaining work: keep it aligned with the current API, including `n_lattrait` for fitting and the limited scope of `summarisedLatentPresences = FALSE`.
 - **Unbalanced study design created by dropping whole field samples:** Lesson 0 removes one whole sample at each of three declared sites, retaining 297 samples and 3,564 PCR rows. Lesson 2 presents a separate matching fit and its diagnostics against unchanged truth. Remaining work: keep the example limited to handling unequal effort. One removal pattern and fit cannot estimate the general consequences of sample loss.
