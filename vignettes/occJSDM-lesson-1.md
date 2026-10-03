@@ -516,3 +516,5 @@ The pair species_A and species_B, which load on the same gradient, has a correla
 - **Estimates with uncertainty.** The hand calculation gave single best values; [Lesson 3](occJSDM-lesson-3.md#put-the-true-coefficient-beside-its-estimate) reads the fitted model’s estimates with their credible intervals.
 - **Hidden factors and residual correlations.** The species-by-species matrix of the toy community is what [Lesson 3’s association section](occJSDM-lesson-3.md#residual-species-associations-did-we-recover-what-was-put-in) compares with truth, and the rotation problem is why its [ordination section](occJSDM-lesson-3.md#ordination-compare-the-combined-effect-before-naming-the-axes) compares combined effects before naming axes.
 - **Conditional prediction.** [Lesson 5’s exercise](occJSDM-lesson-5.md#exercise-predict-one-species-given-another) predicts one species from the presence of another, which only a joint model can do.
+
+Continue to [Lesson 2: Fit the model and compare its answers with truth](occJSDM-lesson-2.md).
