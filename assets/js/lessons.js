@@ -16,6 +16,7 @@
   // lessons are withheld until Doug has reviewed them.
   var LESSONS = [
     { stem: "occJSDM", label: "Quickstart", title: "occJSDM: quickstart", published: true },
+    { stem: "occJSDM-lesson-intuition", label: "Intuition", title: "What occupancy models and joint species distribution models do", published: false },
     { stem: "occJSDM-lesson-0", label: "Lesson 0", title: "Lesson 0 (optional): Create and explore a simulated survey", published: false },
     { stem: "occJSDM-lesson-1", label: "Lesson 1", title: "Lesson 1: Fit the model and compare its answers with truth", published: false },
     { stem: "occJSDM-lesson-2", label: "Lesson 2", title: "Lesson 2: Spatial landscapes and survey design", published: false },

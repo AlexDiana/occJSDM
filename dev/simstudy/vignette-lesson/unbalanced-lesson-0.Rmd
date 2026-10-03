@@ -33,26 +33,26 @@ unbalanced_data <- survey_data
 unbalanced_data$info <- survey_data$info[retained_rows, , drop = FALSE]
 unbalanced_data$OTU <- survey_data$OTU[retained_rows, , drop = FALSE]
 
-samples_per_site <- unbalanced_data$info |>
+samples_per_site_unbalanced <- unbalanced_data$info |>
   distinct(Site, Sample) |>
   count(Site, name = "samples")
 
-pcrs_per_primer <- unbalanced_data$info |>
+pcrs_per_primer_unbalanced <- unbalanced_data$info |>
   count(Site, Sample, Primer, name = "PCRs")
 
 stopifnot(
   nrow(unbalanced_data$info) == 3564,
   nrow(unbalanced_data$OTU) == 3564,
   n_distinct(unbalanced_data$info$Sample) == 297,
-  nrow(samples_per_site) == 100,
-  all(samples_per_site$samples >= 1),
-  nrow(pcrs_per_primer) == 297 * 2,
-  all(pcrs_per_primer$PCRs == 6),
+  nrow(samples_per_site_unbalanced) == 100,
+  all(samples_per_site_unbalanced$samples >= 1),
+  nrow(pcrs_per_primer_unbalanced) == 297 * 2,
+  all(pcrs_per_primer_unbalanced$PCRs == 6),
   identical(colnames(unbalanced_data$OTU), colnames(survey_data$OTU)),
   identical(unbalanced_data$traits, survey_data$traits)
 )
 
-samples_per_site |>
+samples_per_site_unbalanced |>
   count(samples, name = "sites")
 ```
 
