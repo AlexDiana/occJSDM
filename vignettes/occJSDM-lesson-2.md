@@ -3,7 +3,7 @@ Lesson 2: Fit the model and compare its answers with truth
 
 ## Before you start
 
-This is **Lesson 2**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we simulated the survey used here and maps its environmental values, true occurrences and detections. You can start here with the supplied data. This lesson is non-spatial. The spatial lesson, [Lesson 7](occJSDM-lesson-7.md), covers how sites are arranged in space. If occupancy models or joint species distribution models are new to you, read [Lesson 1](occJSDM-lesson-1.md) first: it works through both by hand, without fitting a model.
+This is **Lesson 2**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we simulated the survey used here and maps its environmental values, true occurrences and detections. You can skip it and use the supplied data. This lesson is non-spatial. The spatial lesson, [Lesson 7](occJSDM-lesson-7.md), covers how sites are arranged in space. Every reader starts with [Lesson 1](occJSDM-lesson-1.md), the first required lesson: it works through occupancy models and joint species distribution models by hand, without fitting a model.
 
 All teaching code is shown. Run the chunks in order with the repository’s `vignettes` directory as the working directory; knitting handles this automatically. In RStudio, use **Session \> Set Working Directory \> To Source File Location** with this file open.
 

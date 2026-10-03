@@ -23,7 +23,7 @@ source("lesson-links.R")
 
 ## Where this lesson fits
 
-We will learn occJSDM using a community whose true distribution is known. A real survey never reveals which sites a species truly occupies, so it cannot show whether a model's answers are right. A simulation keeps those answers, so every estimate the model makes can be checked against the truth that generated the data. occJSDM estimates which species occupy which sites from eDNA surveys. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). The [quickstart](occJSDM.md) shows a first fit on the package's example data. This lesson creates and explores the survey, and [Lesson 2](occJSDM-lesson-2.md) fits the model. [Lesson 1](occJSDM-lesson-1.md) works through, by hand, what an occupancy model and a joint species distribution model do; read it before Lesson 2 if either idea is new to you.
+We will learn occJSDM using a community whose true distribution is known. A real survey never reveals which sites a species truly occupies, so it cannot show whether a model's answers are right. A simulation keeps those answers, so every estimate the model makes can be checked against the truth that generated the data. occJSDM estimates which species occupy which sites from eDNA surveys. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). The [quickstart](occJSDM.md) shows a first fit on the package's example data. This lesson creates and explores the survey, and [Lesson 2](occJSDM-lesson-2.md) fits the model. [Lesson 1](occJSDM-lesson-1.md) works through, by hand, what an occupancy model and a joint species distribution model do; it is the first required lesson, so every reader starts there, before Lesson 2.
 
 You can skip Lesson 0 and start Lesson 2 with the supplied dataset. Read this lesson if you want to understand where that dataset came from, change the simulation settings, or learn how to prepare the tables and figures yourself.
 
@@ -577,7 +577,7 @@ The main two-stage fit receives **`survey_data` only**, and the fit with unequal
 
 The appendix below records the package revision, seed and software environment of the saved simulation, and how the lesson's code for the unequal survey is checked.
 
-Continue to [Lesson 2: Fit the model and compare its answers with truth](occJSDM-lesson-2.md).
+Continue to [Lesson 1: What occupancy models and joint species distribution models do](occJSDM-lesson-1.md), then [Lesson 2: Fit the model and compare its answers with truth](occJSDM-lesson-2.md).
 
 ## Appendix: evidence and reproduction
 

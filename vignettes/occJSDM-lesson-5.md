@@ -7,7 +7,7 @@ Suppose we know with certainty which species occupy each surveyed site. Can a jo
 
 We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated observations**. This lesson uses the pure JSDM portion of occJSDM: there is no DNA collection failure, PCR detection error or false positive. Those processes matter in [Lesson 2](occJSDM-lesson-2.md), but here we remove them to examine the ecological model itself. You do not need the spatial lesson first.
 
-This lesson works through **one community**. [Lesson 6](occJSDM-lesson-6.md) repeats the experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits. In the first version of this lesson, sjSDM was labelled provisional because repeated optimisation runs disagreed. A follow-up found that its fitting problem has two genuine local optima, reproduced the better one from independent starts, and recorded the selection before any truth was read. The lesson now uses that checked fit and, in section 5, teaches what the two optima mean.
+This lesson works through **one community**. [Lesson 6](occJSDM-lesson-6.md) repeats the experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits. In the first version of this lesson, sjSDM was labelled provisional because repeated optimisation runs disagreed. A follow-up restored the optimiser’s usual weak penalty and found that the penalised fitting problem has two verified local optima. It reproduced the better one from independent starts and recorded the selection before any truth was read. Whether the two optima also explain the earlier disagreement is still open. The lesson now uses that checked fit and, in section 5, teaches what the two optima mean.
 
 You will learn to:
 
@@ -211,7 +211,7 @@ We keep the last 300 observations, all hidden conditions and all generating prob
 
 ## 2. How similar are the four models?
 
-All four receive the same information, linear environmental predictors and two hidden factors. We exclude traits, phylogeny, space and observation error from this comparison. The number of factors is fixed at the known generating count; **this lesson does not choose the count using WAIC**.
+All four receive the same information, linear environmental predictors and two hidden factors. We exclude traits, phylogeny, space and observation error from this comparison. The number of factors is fixed at the known generating count; **this lesson does not choose the count using WAIC**. In this pilot, each package is configured as follows:
 
 - **occJSDM:** version 0.1.0 fits a binary logit model with two site factors and no latent traits, by Bayesian sampling that retains the package’s coefficient and factor priors.
 - **gllvm:** version 2.0.15 fits a binary logit model with two unconstrained factors, by variational approximation (VA) checked from multiple starting points.
@@ -409,11 +409,11 @@ Both passed our checks of Rhat at most 1.01 and bulk/tail ESS at least 400 for a
 
 For optimised fits, we also compare different starting points. gllvm’s initial EVA fits reported convergence but gave extreme effects and inconsistent objectives. We rejected them. The selected VA solution was reproduced from separate starts. A message saying “converged” is not enough by itself.
 
-sjSDM’s original longer starts, fitted with no penalty at all, differed by 0.2115 in accurately calculated training log likelihood, exceeding our declared 0.1 stability check. Smaller optimisation steps did not close the gap. The reason turned out to be a property of the fitting problem, not of the optimiser, and it is worth understanding.
+sjSDM’s original longer starts, fitted with no penalty at all, differed by 0.2115 in accurately calculated training log likelihood, exceeding our declared 0.1 stability check. Smaller optimisation steps did not close the gap. A follow-up then examined the fitting problem itself, and what it found is worth understanding.
 
 ### Two local optima in the sjSDM fit
 
-Restoring the optimiser’s usual weak penalty and refining the saved fits with an exact optimiser showed why: the penalised fitting problem has two genuine local maxima, two hills, and independent starts climb one or the other. The declared selection rule picked the better hill, reached by four of twelve starts, before any truth was read.
+Restoring the optimiser’s usual weak penalty and refining the saved fits with an exact optimiser found that the penalised fitting problem has two verified local maxima, two hills, and independent starts climb one or the other. Whether these two maxima also explain why the unpenalised starts disagreed is still open: the stability work did not establish it. The declared selection rule picked the better hill, reached by four of twelve starts, before any truth was read.
 
 In the selected solution, species 2 has a large residual spread and species 9 a small one; in the other solution it is the reverse. With 100 sites, the data cannot firmly decide which species’ unexplained variation is large, so two explanations fit almost equally well. The appendix tables show that the choice barely matters for new-site prediction but matters for some sampled-site reconstructions, because those depend on the inferred hidden conditions.
 
@@ -758,7 +758,7 @@ Try these exercises with the saved tables, without refitting:
 
 The appendix below holds each package’s fitting call and what the runs cost, the evidence for the two sjSDM optima, and the reproduction record.
 
-Return to the [Quickstart and lesson guide](occJSDM.md), [Lesson 2](occJSDM-lesson-2.md) or [Lesson 3](occJSDM-lesson-3.md).
+Continue to [Lesson 6](occJSDM-lesson-6.md), or return to the [Quickstart and lesson guide](occJSDM.md), [Lesson 2](occJSDM-lesson-2.md) or [Lesson 3](occJSDM-lesson-3.md).
 
 ## Appendix: evidence and reproduction
 
@@ -836,7 +836,7 @@ fit_sjSDM <- sjSDM(
 )
 ```
 
-Weight decay 0.0001 is the optimiser’s usual default in this sjSDM release. The original pilot set it to zero, which allowed coefficients to grow without limit and left repeated starts disagreeing; the weak penalty is what made the two local maxima identifiable. After the call above, the selected fit continued for another 1,000 epochs at learning rate 0.0002 with a fresh optimiser, using the package’s own model object. The exact continuation code is in `dev/simstudy/jsdm-package-comparison/sjsdm-multistart.R`. A single call cannot show which local maximum a start will reach, so repeat it with several seeds and compare their training objectives. sjSDM’s live Python model cannot simply be saved and restored as an ordinary R object; the study archives verified numeric parameters separately.
+Weight decay 0.0001 is the optimiser’s usual default in this sjSDM release. The original pilot set it to zero, which allowed coefficients to grow without limit, and its repeated starts disagreed. With the weak penalty, the fitting problem has two verified local maxima; whether they also explain the unpenalised starts’ disagreement is still open. After the call above, the selected fit continued for another 1,000 epochs at learning rate 0.0002 with a fresh optimiser, using the package’s own model object. The exact continuation code is in `dev/simstudy/jsdm-package-comparison/sjsdm-multistart.R`. A single call cannot show which local maximum a start will reach, so repeat it with several seeds and compare their training objectives. sjSDM’s live Python model cannot simply be saved and restored as an ordinary R object; the study archives verified numeric parameters separately.
 
 #### Hmsc: a site level without spatial information
 

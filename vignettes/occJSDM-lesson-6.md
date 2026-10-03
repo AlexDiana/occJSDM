@@ -365,7 +365,7 @@ Baseline predictions at 300 independent test sites. Each package has ten scored 
 
 The dots show average bias, and the bars show **one Monte Carlo standard error (MCSE)**. This measures uncertainty from having only ten simulated communities; it is not the uncertainty of an individual species estimate. The same convention is used in the coverage plots below. Species and test sites are not counted as independent simulation repetitions.
 
-The rare-species scenario produces more overestimation, especially for occJSDM with 100 sites. Bias alone still misses an important problem: a package can make positive and negative errors that cancel. The full community-level RMSE results are retained in the full results section below.
+The rare-species scenario produces more overestimation, especially for occJSDM with 100 sites. Bias alone still misses an important problem: a package can make positive and negative errors that cancel. The full community-level RMSE results are retained in the [appendix](#appendix-evidence-and-reproduction), under Detailed prediction errors.
 
 ### How close are the environmental effects?
 
@@ -385,7 +385,7 @@ Average coefficient bias is also modest in this baseline. That does not establis
 
 A 95% interval is useful only if it contains the truth often enough **and** is narrow enough to say something. Coverage is the percentage of intervals that contain the known truth across repeated datasets. The reference is 95%. A value far below that signals too many misses; a value above it can reflect unnecessarily wide intervals.
 
-**Coverage** asks how often an interval includes the generating truth across repeated datasets. For example, an interval from 0.2 to 0.5 covers a true occurrence probability of 0.4 but misses a truth of 0.7. A narrow interval can be confidently wrong; a very wide interval can cover the truth while saying little. We therefore show **coverage and interval width together**.
+**Coverage** asks how often an interval includes the generating truth across repeated datasets. For example, an interval from 0.2 to 0.5 covers a true occurrence probability of 0.4 but misses a truth of 0.7. A narrow interval can be confidently wrong; a very wide interval can cover the truth while saying little. We therefore read the coverage shown here **beside the interval widths** in the [appendix](#appendix-evidence-and-reproduction) tables.
 
 Bayesian credible intervals and approximate frequentist confidence intervals have different definitions. Repeated simulation lets us measure the coverage of either procedure. Bayesian intervals are not guaranteed to have exactly 95% coverage under the ecological truth distribution used here.
 
@@ -444,6 +444,8 @@ Across ten independent communities, more training sites reduce prediction error,
 A larger coverage study should add independent communities, assess gllvm/sjSDM marginal-probability intervals, and include a probit-generating arm under a declared fitting and diagnostic protocol.
 
 The appendix below holds the detailed prediction errors, the interval widths and coverage by community, the diagnostic sensitivity, the trait relationships, and how to filter the saved results yourself.
+
+Continue to [Lesson 7](occJSDM-lesson-7.md), on spatial landscapes and survey design, or return to [Lesson 5](occJSDM-lesson-5.md) or the [Quickstart and lesson guide](occJSDM.md).
 
 ## Appendix: evidence and reproduction
 

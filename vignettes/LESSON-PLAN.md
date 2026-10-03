@@ -26,7 +26,7 @@ The aim is to help an empirical ecologist understand what occJSDM does, read and
 - **Lesson 6: Repeat the four-JSDM comparison across ten communities, with traits** (`occJSDM-lesson-6.Rmd`): Split from the four-JSDM lesson in Phase B. Built from the completed ten-community extension; failures and diagnostic flags retained. The same comparison with varying sample size, ecological conditions and supplied traits, with bias and interval coverage across communities.
 - **Lesson 7: Spatial landscapes and survey design** (`occJSDM-lesson-7.Rmd`): Built: concept section plus the worked site-arrangement sweep; dispersal and confounding deferred. Smooth environmental gradients, additional spatial structure, contrasting dispersal (deferred) and prediction away from sampled sites.
 
-Read Lesson 0 if the data structure is unfamiliar and Lesson 1 if occupancy models or joint species distribution models are new, then Lesson 2 and Lesson 3. The spatial lesson is not a prerequisite for Lesson 3. Lesson N was renamed Lesson 4 on 23 September 2026 once its content was settled.
+Lesson 1 is the first required lesson: every reader starts there, then reads Lesson 2 and Lesson 3. Lesson 0 is optional, for readers to whom the data structure is unfamiliar. The spatial lesson is not a prerequisite for Lesson 3. Lesson N was renamed Lesson 4 on 23 September 2026 once its content was settled.
 
 ## What has been built
 
