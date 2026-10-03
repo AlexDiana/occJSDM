@@ -71,7 +71,7 @@ If all protected sites are in one valley and all unprotected sites are in anothe
 
 For inference about protection, repeat protected-versus-unprotected comparisons in several geographical areas, with overlapping habitat and elevation conditions. The same principle applies to other ecological contrasts. Repeating a contrast across areas usually provides more useful evidence about that contrast than intensively sampling only one pair of areas. Such replication strengthens inference, although it does not remove every possible source of confounding.
 
-Interpret the spatial field as an unresolved geographical pattern. It could reflect unmeasured habitat, dispersal history, hunting or several processes together. The spatial fraction in a variance-partitioning plot or table (`plotVariancePartitioning()` and `returnVariancePartitioning()`, shown in [Lesson 3](occJSDM-lesson-3.md#variation-partitioning-an-allocation-within-the-model)) is therefore not automatically the fraction caused by dispersal limitation. Likewise, residual species correlations (`plotResidualCorrelationMatrix()`) do not on their own establish biotic interactions.
+Interpret the spatial field as an unresolved geographical pattern. It could reflect unmeasured habitat, dispersal history, hunting or several processes together. The spatial fraction in a variance-partitioning plot or table (`plotVariancePartitioning()` and `returnVariancePartitioning()`) is therefore not automatically the fraction caused by dispersal limitation. Likewise, residual species correlations (`plotResidualCorrelationMatrix()`) do not on their own establish biotic interactions.
 
 ### Choosing sample grain, spacing and extent
 
