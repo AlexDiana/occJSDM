@@ -59,7 +59,7 @@ write_page <- function(md, html, title) {
 }
 
 lessons <- sub("\\.md$", "", list.files("vignettes", pattern = "^occJSDM(-lesson-[0-9]+)?\\.md$"))
-stopifnot(length(lessons) == 6)
+stopifnot(length(lessons) == 9)
 for (stem in lessons) {
   md <- file.path("vignettes", paste0(stem, ".md"))
   write_page(md, file.path(root, "vignettes", paste0(stem, ".html")),

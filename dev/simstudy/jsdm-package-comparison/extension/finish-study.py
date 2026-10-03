@@ -26,8 +26,8 @@ try:
          '--launcher', a.launcher, '--workers', a.workers, '--score'])
     run([a.launcher, code / 'extension/export.R', root, repo])
     run([a.launcher, code / 'extension/verify.R', root, repo])
-    run([a.launcher, '-e', 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", quiet=TRUE); '
-         'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", '
+    run([a.launcher, '-e', 'rmarkdown::render("vignettes/occJSDM-lesson-6.Rmd", quiet=TRUE); '
+         'rmarkdown::render("vignettes/occJSDM-lesson-6.Rmd", '
          'output_format=rmarkdown::github_document(html_preview=FALSE), quiet=TRUE)'])
     final = dict(state='all_attempted_exported_and_verified', finished=datetime.datetime.now().isoformat())
 except Exception as error:

@@ -1,6 +1,6 @@
 # Remaining native plotting examples
 
-This deliverable restores checked native `plotOccupancyGradient()` examples for both environmental predictors and separate `plotStage1FPRates()`, `plotStage2FPRates()`, and `plotDetectionRates()` examples. `remaining-plots-examples.Rmd` is mirrored in the Lesson 3 native plotting appendix. It contains the exact bodies executed to make the five exported PNGs. Knitting the lesson only reads `remaining-plots-data.rds` and the PNGs; it does not need the full fit or run MCMC.
+This deliverable restores checked native `plotOccupancyGradient()` examples for both environmental predictors and separate `plotStage1FPRates()`, `plotStage2FPRates()`, and `plotDetectionRates()` examples. `remaining-plots-examples.Rmd` is mirrored in Lesson 3's sections. It contains the exact bodies executed to make the five exported PNGs. Knitting the lesson only reads `remaining-plots-data.rds` and the PNGs; it does not need the full fit or run MCMC.
 
 The compact bundle contains truth, the original predictor means/standard deviations, native plot summaries, built coordinates, and provenance. It contains no posterior arrays or replacement fit. Every actual native call uses the unchanged `default-fit.rds`, with all 6,000 iterations from each of four chains.
 

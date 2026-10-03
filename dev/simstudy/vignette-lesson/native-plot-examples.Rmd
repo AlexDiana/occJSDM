@@ -47,6 +47,82 @@ native_environment
 knitr::include_graphics("teaching-data/native-plot-environment.png")
 ```
 
+The second environmental gradient uses the same call with its own name.
+
+```{r native-environment-2-example, eval=FALSE, purl=TRUE}
+environment_2_truth <- native_truth$environment |>
+  filter(covariate == "X_psi.EnvCov.2")
+
+native_environment_2 <- plotOccupancyCovariates(
+  fitmodel, covName = "X_psi.EnvCov.2"
+) +
+  native_theme +
+  geom_point(
+    data = environment_2_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Environmental gradient 2",
+    y = "Effect on log-odds per standard deviation",
+    caption = "Black cross: truth. Bar: native 95% interval. Red line: zero effect."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_environment_2
+```
+
+```{r native-environment-2-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-environment-2.png")
+```
+
+The same calls on the perfect-observation fit, loaded as `fitmodel_perfect`, show what the occupancy model recovers when every presence and absence is known. The truth crosses are the same; only the fit changes.
+
+```{r native-environment-perfect-1-example, eval=FALSE, purl=TRUE}
+native_environment_perfect_1 <- plotOccupancyCovariates(
+  fitmodel_perfect, covName = "X_psi.EnvCov.1"
+) +
+  native_theme +
+  geom_point(
+    data = environment_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Environmental gradient 1, perfect-observation fit",
+    y = "Effect on log-odds per standard deviation",
+    caption = "Black cross: truth. Bar: native 95% interval. Red line: zero effect."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_environment_perfect_1
+```
+
+```{r native-environment-perfect-1-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-environment-perfect-1.png")
+```
+
+```{r native-environment-perfect-2-example, eval=FALSE, purl=TRUE}
+native_environment_perfect_2 <- plotOccupancyCovariates(
+  fitmodel_perfect, covName = "X_psi.EnvCov.2"
+) +
+  native_theme +
+  geom_point(
+    data = environment_2_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Environmental gradient 2, perfect-observation fit",
+    y = "Effect on log-odds per standard deviation",
+    caption = "Black cross: truth. Bar: native 95% interval. Red line: zero effect."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_environment_perfect_2
+```
+
+```{r native-environment-perfect-2-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/native-plot-environment-perfect-2.png")
+```
+
 ```{r native-collection-example, eval=FALSE, purl=TRUE}
 collection_truth <- native_truth$collection |>
   filter(covariate == "X_theta")

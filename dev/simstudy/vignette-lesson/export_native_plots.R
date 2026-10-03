@@ -46,6 +46,20 @@ stopifnot(identical(saved$source_hashes, input$source_hashes),
           identical(saved$input_md5, lesson$input_md5),
           identical(saved$mcmc, manifest$mcmc),
           identical(dim(fitmodel$results_output$p_output)[3:4], c(6000L, 4L)))
+perfect_manifest <- lesson$manifests$perfect
+perfect_path <- file.path(archive, perfect_manifest$file)
+stopifnot(identical(perfect_manifest, outputs$fit_manifests$perfect),
+          identical(perfect_manifest$md5, md5(perfect_path)))
+perfect_saved <- readRDS(perfect_path)
+fitmodel_perfect <- perfect_saved$fit
+validate_lesson_fit_identity(fitmodel_perfect, input)
+stopifnot(identical(perfect_saved$source_hashes, input$source_hashes),
+          identical(perfect_saved$input_md5, lesson$input_md5),
+          identical(perfect_saved$mcmc, perfect_manifest$mcmc),
+          identical(fitmodel_perfect$infos$speciesNames, fitmodel$infos$speciesNames),
+          identical(fitmodel_perfect$X_psi, fitmodel$X_psi),
+          identical(dim(fitmodel_perfect$results_output$jsdm_output$B_output),
+                    c(2L, 10L, 6000L, 4L)))
 
 species <- fitmodel$infos$speciesNames
 primers <- as.character(fitmodel$infos$primerNames)
@@ -114,17 +128,19 @@ knitr::purl(temporary_rmd, output = temporary_r, quiet = TRUE, documentation = 0
 student_code_md5 <- md5(temporary_r)
 environment <- new.env(parent = globalenv())
 environment$fitmodel <- fitmodel
+environment$fitmodel_perfect <- fitmodel_perfect
 environment$native_examples <- native_examples
 source(temporary_r, local = environment, echo = FALSE, print.eval = FALSE)
 unlink(c(temporary_rmd, temporary_r))
 
 plot_names <- c("environment", "collection", "occupancy_rates", "collection_rates",
-                "primer_1", "primer_2", "correlations", "effort_k", "effort_m")
+                "primer_1", "primer_2", "correlations", "effort_k", "effort_m",
+                "environment_2", "environment_perfect_1", "environment_perfect_2")
 plots <- setNames(lapply(paste0("native_", plot_names), get, envir = environment), plot_names)
 figures <- tibble(
   plot = plot_names,
   file = paste0("native-plot-", gsub("_", "-", plot_names), ".png"),
-  width = 9, height = c(4.8, 4.8, 5.2, 5.2, 5.5, 5.5, 7, 7.5, 9)
+  width = 9, height = c(4.8, 4.8, 5.2, 5.2, 5.5, 5.5, 7, 7.5, 9, 4.8, 4.8, 4.8)
 )
 for (i in seq_len(nrow(figures))) {
   ggsave(new_path(file.path("vignettes/teaching-data", figures$file[i])),
@@ -148,13 +164,14 @@ native_examples <- list(
     source_hashes = lesson_source_hashes(),
     lesson_md5 = md5(lesson_path), output_md5 = md5(output_path),
     input_md5 = lesson$input_md5, fit_manifest = manifest,
+    perfect_fit_manifest = perfect_manifest,
     snippet_md5 = md5(snippet_path), exporter_md5 = md5(exporter_path),
     student_code_md5 = student_code_md5,
     package_library = normalizePath(find.package("occJSDM")),
     package_files_md5 = tools::md5sum(list.files(find.package("occJSDM"),
                                                recursive = TRUE, full.names = TRUE)),
     seed = 20260922L, session = sessionInfo(),
-    note = paste("Native calls used the unchanged complete 6000 x 4 fit.",
+    note = paste("Native calls used the unchanged complete 6000 x 4 default fit; the two perfect-observation plots used the unchanged complete 6000 x 4 perfect fit.",
                  "The cumulative routine internally selects 500 draws and simulates surveys.",
                  "Truth quantiles use the exact Poisson-binomial distribution.",
                  "Ordination awaits a declared, validated joint factor alignment.")

@@ -3,9 +3,9 @@
 # external links, the Visual editor's encoding of inline-R destinations, and
 # committed Markdown links that GitHub Pages cannot convert to .html.
 root <- normalizePath(".")
-lessons <- c("occJSDM", "occJSDM-lesson-intuition", "occJSDM-lesson-0",
-             "occJSDM-lesson-1", "occJSDM-lesson-2", "occJSDM-lesson-3",
-             "occJSDM-lesson-4")
+lessons <- c("occJSDM", "occJSDM-lesson-0", "occJSDM-lesson-1",
+             "occJSDM-lesson-2", "occJSDM-lesson-3", "occJSDM-lesson-4",
+             "occJSDM-lesson-5", "occJSDM-lesson-6", "occJSDM-lesson-7")
 quickstart <- readLines("vignettes/occJSDM.Rmd", warn = FALSE)
 start <- grep("^```\\{r setup,", quickstart)
 end <- which(seq_along(quickstart) > start & quickstart == "```")[1]

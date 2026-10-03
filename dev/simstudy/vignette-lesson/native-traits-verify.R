@@ -47,6 +47,17 @@ stopifnot(identical(saved$source_hashes, provenance$source_hashes),
           identical(saved$input_md5, provenance$input_md5),
           identical(saved$mcmc, provenance$fit_manifest$mcmc),
           identical(dim(fit$results_output$jsdm_output$G_output), c(2L, 2L, 6000L, 4L)))
+stopifnot(identical(provenance$perfect_fit_manifest, lesson$manifests$perfect))
+perfect_path <- file.path(archive, provenance$perfect_fit_manifest$file)
+stopifnot(identical(md5(perfect_path), provenance$perfect_fit_manifest$md5))
+perfect_saved <- readRDS(perfect_path)
+fp <- perfect_saved$fit
+validate_lesson_fit_identity(fp, input)
+stopifnot(identical(perfect_saved$source_hashes, provenance$source_hashes),
+          identical(perfect_saved$input_md5, provenance$input_md5),
+          identical(perfect_saved$mcmc, provenance$perfect_fit_manifest$mcmc),
+          identical(dim(fp$results_output$jsdm_output$G_output), c(2L, 2L, 6000L, 4L)))
+close(fp$Tr, fit$Tr)
 traits <- colnames(input$sim$data_list$traits)
 environments <- grep("^X_psi", names(input$sim$data_list$info), value = TRUE)
 stopifnot(identical(colnames(fit$Tr), traits),
@@ -88,6 +99,26 @@ for (environment in seq_along(environments)) {
     close(table_row$truth, value)
   }
 }
+perfect_draws <- fp$results_output$jsdm_output$G_output
+for (environment in seq_along(environments)) {
+  record <- examples$plots[[paste0("perfect_gradient_", environment)]]
+  bars <- record$layers[[1]]
+  crosses <- record$layers[[3]]
+  stopifnot(nrow(bars) == length(traits), nrow(crosses) == length(traits),
+            all(crosses$shape == 4), all(record$layers[[2]]$yintercept == 0),
+            identical(sort(as.character(record$x_labels)), sort(traits)))
+  for (row in seq_len(nrow(bars))) {
+    trait <- match(record$x_labels[as.integer(bars$x[row])], traits)
+    stopifnot(!is.na(trait))
+    close(c(bars$ymin[row], bars$ymax[row]),
+          quantile(perfect_draws[trait, environment, , ], c(.025, .975)))
+  }
+  for (row in seq_len(nrow(crosses))) {
+    trait <- match(record$x_labels[as.integer(crosses$x[row])], traits)
+    close(crosses$y[row], factors$G[trait, environment] * trait_sd[trait])
+  }
+}
+cat("Perfect-observation trait plots: intervals from all 24000 perfect-fit draws and generating crosses verified.\n")
 
 # Exported bodies must match both canonical snippet and integrated Lesson 3.
 code_rmd <- tempfile(fileext = ".Rmd")
@@ -106,7 +137,7 @@ exportable_chunks <- function(lines) {
 }
 expected <- exportable_chunks(readLines(snippet_path))
 actual <- exportable_chunks(readLines("vignettes/occJSDM-lesson-3.Rmd"))
-stopifnot(length(expected) == 3L)
+stopifnot(length(expected) == 5L)
 if (any(names(expected) %in% names(actual))) {
   stopifnot(all(names(expected) %in% names(actual)),
             identical(expected, actual[names(expected)]))

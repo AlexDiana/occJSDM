@@ -1,6 +1,6 @@
 # Saved-fit bias and interval coverage
 
-Doug approved this Lesson 4 extension on 25 September 2026, including occJSDM, gllvm, Hmsc and sjSDM. It reanalyses the completed September experiment. The original package code, fitting settings, selected starts, datasets and diagnostics are retained. The initial posterior extraction required no refits. The native coefficient extension subsequently replays selected gllvm fits to recover their fitting objects and computes sjSDM uncertainty directly from its saved weights, as described below.
+Doug approved this extension (now Lesson 6) on 25 September 2026, including occJSDM, gllvm, Hmsc and sjSDM. It reanalyses the completed September experiment. The original package code, fitting settings, selected starts, datasets and diagnostics are retained. The initial posterior extraction required no refits. The native coefficient extension subsequently replays selected gllvm fits to recover their fitting objects and computes sjSDM uncertainty directly from its saved weights, as described below.
 
 ## What is measured
 
@@ -27,13 +27,13 @@ Rscript "$calibration_code/test-calibration.R" "$calibration_code"
 Rscript "$calibration_code/export-calibration.R" "$study_archive" . "$calibration_output"
 Rscript "$calibration_code/verify-calibration.R" "$calibration_output/calibration.rds" "$study_archive" &&
   cp "$calibration_output/calibration.rds" vignettes/teaching-data/lesson-4-calibration.rds
-Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd")'
-Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-6.Rmd")'
+Rscript -e 'rmarkdown::render("vignettes/occJSDM-lesson-6.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
 ```
 
 Always run the independent verifier successfully before copying, using or distributing a newly exported bundle; stop if any command fails. The exporter writes only to the analysis output directory. A new MD5 merely records what was read; it does not establish that a truth file is correct. The verifier reconstructs all 50 communities using the original frozen simulator, checks their complete truth objects, reconstructs each training input, and compares saved test observations and marginal truth with those communities. It separately recomputes all 626 point scores, fixed-grid truth, coefficient backtransformations and grouped summaries. It checks input/source hashes, unavailable intervals and the numerical refinement records. It never fits a model or changes the archive.
 
-The completed analysis uses an immutable source copy under `dev/simstudy/results/lesson-4-calibration-20260925/source-v1/` and writes resumable per-job extraction records, CSV summaries and logs beneath that analysis directory. The compact `vignettes/teaching-data/lesson-4-calibration.rds` contains the point metrics, grid/coefficient records, community summaries, diagnostics, integration records and provenance required to render Lesson 4 without the 22 GB fitting archive. `calibration-section.Rmd` is the reusable source for sections 14-15; the same text is included in `lesson-section.Rmd` and the full lesson.
+The completed analysis uses an immutable source copy under `dev/simstudy/results/lesson-4-calibration-20260925/source-v1/` and writes resumable per-job extraction records, CSV summaries and logs beneath that analysis directory. The compact `vignettes/teaching-data/lesson-4-calibration.rds` contains the point metrics, grid/coefficient records, community summaries, diagnostics, integration records and provenance required to render Lesson 6 without the 22 GB fitting archive. `calibration-section.Rmd` is the reusable source for Lesson 6 sections 3 and 4; the same text is included in `lesson-section.Rmd` and the full lesson.
 
 The immutable first snapshot also wrote a copy inside its isolated snapshot directory. That copy was not used by the lesson until the independent verifier passed. Review then removed automatic teaching-bundle installation from the reusable exporter; its numerical extraction is unchanged. The reproduction commands above make the verification and installation steps explicit.
 
@@ -89,7 +89,7 @@ Both independent verifiers passed: native covariance and transformation checks f
 
 ## Combined four-package presentation
 
-The lesson now presents baseline probability and coefficient results in shared tables with the same four package columns. Each row identifies one target and measure; values from different targets are never averaged together. Probability bias, RMSE and intervals in these combined tables all refer to the five fixed environments, while section 14 retains the separate 300-test-site prediction results. Bias and coverage retain their community MCSE. The trait comparison uses the same format, and figures retain all four package positions with explicit missing-result labels.
+The lesson now presents baseline probability and coefficient results in shared tables with the same four package columns. Each row identifies one target and measure; values from different targets are never averaged together. Probability bias, RMSE and intervals in these combined tables all refer to the five fixed environments, while Lesson 6 section 3 retains the separate 300-test-site prediction results. Bias and coverage retain their community MCSE. The trait comparison uses the same format, and figures retain all four package positions with explicit missing-result labels.
 
 `Unavailable` identifies an interval not calculated; `Different link` identifies the lack of a matching numerical coefficient truth for Hmsc; `Not fitted` identifies sjSDM's omitted trait experiment. Community counts remain explicit. The combined diagnostic table compares the same coefficient-compatible ecological scope for all four packages. The sensitivity display applies original fit checks to posterior intervals and both original fit and native interval checks to the new gllvm/sjSDM coefficient intervals; it does not substitute one package's retained communities for another's.
 
@@ -97,7 +97,7 @@ The presentation helper is `vignettes/lesson-4-calibration-tables.R`. This revis
 
 ## Presentation following the validation article
 
-Sections 14-15 use plain Markdown, like the rest of the lessons: a plain-language findings summary, separate compact tables for prediction error, coefficient bias and interval coverage, neutral horizontal plots with zero-bias or 95% reference lines, and a final section with all previous detailed results, widths and methods. Until 1 October 2026 they had their own report styling, adapted from the validation article: a scoped stylesheet, `vignettes/lesson-4-calibration.css`, with a tinted panel, findings boxes and a collapsible full-results section. It was removed because it existed only in the HTML vignette, and the GitHub Pages site showed the Markdown inside its HTML blocks as raw text. HTML and GitHub Markdown show the same data; the rendering code stays in the R Markdown source.
+Lesson 6 sections 3 and 4 use plain Markdown, like the rest of the lessons: a plain-language findings summary, separate compact tables for prediction error, coefficient bias and interval coverage, neutral horizontal plots with zero-bias or 95% reference lines, and a final section with all previous detailed results, widths and methods. Until 1 October 2026 they had their own report styling, adapted from the validation article: a scoped stylesheet, `vignettes/lesson-4-calibration.css`, with a tinted panel, findings boxes and a collapsible full-results section. It was removed because it existed only in the HTML vignette, and the GitHub Pages site showed the Markdown inside its HTML blocks as raw text. HTML and GitHub Markdown show the same data; the rendering code stays in the R Markdown source.
 
 The summary plots show one MCSE on either side of the community average, calculated from independent community summaries. They do not reuse the older validation article's binomial error bars based on individual interval decisions. Missing package intervals retain labelled panels. The baseline probability errors still use 300 test sites; probability coverage still uses five fixed environmental settings. Coefficient targets remain separate, and all main summaries retain diagnostic flags.
 
