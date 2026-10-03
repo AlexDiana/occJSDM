@@ -309,6 +309,52 @@ native_traits_2
 
 <img src="teaching-data/native-traits-gradient-2.png" alt="" width="100%" />
 
+The same two calls on the perfect-observation fit, `fitmodel_perfect`, use the same generating crosses.
+
+``` r
+native_traits_perfect_1 <- occJSDM::plotTraitsCoefficients(
+  fitmodel_perfect, covName = "X_psi.EnvCov.1"
+) +
+  native_trait_theme +
+  geom_point(
+    data = filter(native_trait_truth, covariate == "X_psi.EnvCov.1"),
+    aes(x = trait, y = truth), inherit.aes = FALSE,
+    shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Trait effects on the response to gradient 1, perfect-observation fit",
+    x = "Measured trait",
+    y = "Change in environmental coefficient\nper trait standard deviation",
+    caption = "Black cross: generating effect on the fitted scale. Bar: native 95% interval."
+  )
+
+native_traits_perfect_1
+```
+
+<img src="teaching-data/native-traits-perfect-gradient-1.png" alt="" width="100%" />
+
+``` r
+native_traits_perfect_2 <- occJSDM::plotTraitsCoefficients(
+  fitmodel_perfect, covName = "X_psi.EnvCov.2"
+) +
+  native_trait_theme +
+  geom_point(
+    data = filter(native_trait_truth, covariate == "X_psi.EnvCov.2"),
+    aes(x = trait, y = truth), inherit.aes = FALSE,
+    shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Trait effects on the response to gradient 2, perfect-observation fit",
+    x = "Measured trait",
+    y = "Change in environmental coefficient\nper trait standard deviation",
+    caption = "Black cross: generating effect on the fitted scale. Bar: native 95% interval."
+  )
+
+native_traits_perfect_2
+```
+
+<img src="teaching-data/native-traits-perfect-gradient-2.png" alt="" width="100%" />
+
 Read each bar against both references. Crossing the red line means the fitted interval includes zero; enclosing the black cross means it includes the generating effect. Those are separate questions. The native function orders traits by their lower interval endpoints, so match by the trait labels when comparing the two figures.
 
 The plot draws intervals only. To report point estimates beside them, or to sort and filter trait-by-environment pairs, summarise the posterior array yourself. `returnTraitsCoeff()` returns draws with dimensions `[draw, environmental covariate, trait]`, with names on the last two. The recipe below builds one row per pair and works for any posterior array this package returns, such as `returnOccupancyCovariates()` or `returnCollectionCovariates()`, after adjusting the dimension names.
@@ -493,6 +539,10 @@ ordinary_sites <- occJSDM::plotOrdinationScores(fitmodel)
 ordinary_loadings <- occJSDM::plotFactorLoadings(fitmodel)
 ordinary_biplot <- occJSDM::plotBiplot(fitmodel)
 ```
+
+The ordinary biplot uses the package’s stored orientation. It carries no truth overlay: on unaligned axes a correct configuration can be rotated or reflected away from the generating one, so a mismatch would not show an error.
+
+<img src="teaching-data/ordination-ordinary-biplot.png" alt="" width="100%" />
 
 With the full `fitmodel` from Lesson 1, run this simulation comparison preparation once. `known_truth` is the generating parameter list loaded at the start of this lesson.
 
@@ -1843,6 +1893,76 @@ native_environment
 
 <img src="teaching-data/native-plot-environment.png" alt="" width="100%" />
 
+The second environmental gradient uses the same call with its own name.
+
+``` r
+environment_2_truth <- native_truth$environment |>
+  filter(covariate == "X_psi.EnvCov.2")
+
+native_environment_2 <- plotOccupancyCovariates(
+  fitmodel, covName = "X_psi.EnvCov.2"
+) +
+  native_theme +
+  geom_point(
+    data = environment_2_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Environmental gradient 2",
+    y = "Effect on log-odds per standard deviation",
+    caption = "Black cross: truth. Bar: native 95% interval. Red line: zero effect."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_environment_2
+```
+
+<img src="teaching-data/native-plot-environment-2.png" alt="" width="100%" />
+
+The same calls on the perfect-observation fit, loaded as `fitmodel_perfect`, show what the occupancy model recovers when every presence and absence is known. The truth crosses are the same; only the fit changes.
+
+``` r
+native_environment_perfect_1 <- plotOccupancyCovariates(
+  fitmodel_perfect, covName = "X_psi.EnvCov.1"
+) +
+  native_theme +
+  geom_point(
+    data = environment_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Environmental gradient 1, perfect-observation fit",
+    y = "Effect on log-odds per standard deviation",
+    caption = "Black cross: truth. Bar: native 95% interval. Red line: zero effect."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_environment_perfect_1
+```
+
+<img src="teaching-data/native-plot-environment-perfect-1.png" alt="" width="100%" />
+
+``` r
+native_environment_perfect_2 <- plotOccupancyCovariates(
+  fitmodel_perfect, covName = "X_psi.EnvCov.2"
+) +
+  native_theme +
+  geom_point(
+    data = environment_2_truth, aes(x = species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Environmental gradient 2, perfect-observation fit",
+    y = "Effect on log-odds per standard deviation",
+    caption = "Black cross: truth. Bar: native 95% interval. Red line: zero effect."
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+native_environment_perfect_2
+```
+
+<img src="teaching-data/native-plot-environment-perfect-2.png" alt="" width="100%" />
+
 ``` r
 collection_truth <- native_truth$collection |>
   filter(covariate == "X_theta")
@@ -2197,6 +2317,28 @@ field_rates / laboratory_rates
 
 The parentheses matter: the first `+` inside them adds a `ggplot2` layer to one plot, whereas the `+` between the parenthesised plot and the next plot is `patchwork`’s side-by-side operator.
 
+### Variation partitioning with truth
+
+`plotVariancePartitioning()` draws each species as one point in a triangle whose corners are the environmental, spatial and residual (`Biotic`) shares, each a posterior mean. In this non-spatial model every spatial share is zero, so every point lies on the edge between `Env` and `Biotic`. Black crosses mark the true shares under the package’s own definition. The plot keeps its own ternary theme, so no theme is added.
+
+``` r
+# ggplot2 may warn that it ignores z; the ternary coordinates still use it.
+remaining_variation <- plotVariancePartitioning(fitmodel) +
+  geom_point(
+    data = remaining_truth$variation,
+    aes(x = Env, y = Biotic, z = Spatial),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  labs(
+    title = "Variation partitioning, PCR-observation fit",
+    caption = "Dot: posterior mean shares for one species. Black cross: true shares, same definition."
+  )
+
+remaining_variation
+```
+
+<img src="teaching-data/remaining-plots-variation.png" alt="" width="100%" />
+
 ## Reproduce the extraction or find a function
 
 The compact files retain source and fit hashes. Full MCMC fits are kept outside the package because they are much larger. To regenerate them, follow `dev/simstudy/vignette-lesson/README.md` and run the existing simulation/fitting commands with the recorded source. Then export this lesson’s additional summaries:
@@ -2230,6 +2372,7 @@ In an R session with those full fits available:
 ``` r
 saved_fit <- readRDS("/path/to/full-fits/default-fit.rds")
 fitmodel <- saved_fit$fit
+fitmodel_perfect <- readRDS("/path/to/full-fits/perfect-fit.rds")$fit
 
 known_truth <- lesson$input$sim$true_params
 ```
