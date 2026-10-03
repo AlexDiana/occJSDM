@@ -10,9 +10,6 @@ vignette: >
   %\VignetteIndexEntry{Lesson 4: Compare four JSDMs with a community whose truth we know}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options:
-  markdown:
-    wrap: none
 ---
 
 ```{r setup, include=FALSE}
@@ -204,12 +201,10 @@ We keep the last 300 observations, all hidden conditions and all generating prob
 
 All four receive the same information, linear environmental predictors and two hidden factors. We exclude traits, phylogeny, space and observation error from this comparison. The number of factors is fixed at the known generating count; **this lesson does not choose the count using WAIC**.
 
-| Package | This pilot's model | How it is fitted |
-|---|---|---|
-| occJSDM 0.1.0 | Binary logit; two site factors; no latent traits | Bayesian sampling, retaining the package's coefficient and factor priors |
-| gllvm 2.0.15 | Binary logit; two unconstrained factors | Variational approximation (VA), checked from multiple starting points |
-| sjSDM 1.0.7 | Binary logit; linear environment; covariance factor dimension two | PyTorch CPU optimisation with the optimiser's default weak penalty (weight decay 0.0001); twelve independent starts, each with a low-step continuation |
-| Hmsc 3.3-7 | Binary probit; one independent site level with exactly two factors | Bayesian sampling, retaining its community and factor priors |
+- **occJSDM:** version 0.1.0 fits a binary logit model with two site factors and no latent traits, by Bayesian sampling that retains the package's coefficient and factor priors.
+- **gllvm:** version 2.0.15 fits a binary logit model with two unconstrained factors, by variational approximation (VA) checked from multiple starting points.
+- **sjSDM:** version 1.0.7 fits a binary logit model with a linear environment and a covariance factor dimension of two, by PyTorch CPU optimisation with the optimiser's default weak penalty (weight decay 0.0001), from twelve independent starts, each with a low-step continuation.
+- **Hmsc:** version 3.3-7 fits a binary probit model with one independent site level holding exactly two factors, by Bayesian sampling that retains its community and factor priors.
 
 Hmsc uses **probit**, whereas the other three use **logit**, as does this simulator. Both turn an ecological score into a probability, but their curves differ. This is why we compare probabilities rather than raw coefficient sizes. The priors and fitting approximations also differ: this is a comparison of these configurations with equal data, not an experiment changing only the package name.
 
@@ -217,22 +212,12 @@ The sjSDM R version is 1.0.7 inside Doug's fork release **v0.2.1**. The release 
 
 ## 3. What a joint model adds to factoring a matrix
 
-Hidden factors are a familiar idea outside ecology. A recommender system takes a table of viewers by films, with a 1 where a viewer liked a film, and finds two small tables whose product reproduces it: a score for each viewer on a few hidden dimensions, and a position for each film on the same dimensions. The dimensions turn out to be genres that nobody labelled, and multiplying the two tables fills in the films a viewer has not yet seen. Replace viewers by sites and films by species, and the same arithmetic recovers unmeasured habitat axes from co-occurrence alone. That is where the hidden factors in section 1 come from, and it is a good way to build intuition for them.
-
-A JSDM uses that low-rank idea, but it is not a factorisation of your data matrix, and the difference is worth stating plainly. **A factorisation describes the table you have. A JSDM estimates how species covary, so that it can reason about tables you do not have.** Three additions make the difference.
-
-- **It factors the residual, not the data.** The measured environment enters first as an ordinary regression, one coefficient vector per species. The hidden factors are then asked to explain only what the environment left over. That is why the output is called a *residual* correlation. If you measure a gradient that the factors had been standing in for and add it as a covariate, the association it produced shrinks. That is the model working as intended, not a contradiction.
-- **It is a probability model of a presence or absence.** A recommender regresses 1s and 0s as if they were continuous scores and reports a fitted number per cell. A JSDM treats each cell as a Bernoulli outcome whose probability is a logit or probit transform of the linear predictor. That gives a likelihood, and with it uncertainty for every parameter, sensible behaviour for rare species, and a basis for comparing models.
-- **It treats the site scores as random and averages over them.** In a recommender, each viewer's score vector is a parameter, because recommending to that viewer needs it. In a JSDM, a site's hidden scores are assumed to be drawn from a standard normal distribution. The optimised packages here average over every value the scores could take and keep only the species loadings; the Bayesian packages sample the scores for the fitted sites but likewise average over them at new sites. Because the scores are independent standard normals, the covariance between two species' residuals at a site is the dot product of their two loading rows. That holds at any site, sampled or not. The loading matrix therefore describes the community rather than the particular sites surveyed, and the species-by-species matrix built from it is what the packages report as the residual covariance or association matrix.
-
-Put together, these define the **joint probability distribution of the whole species vector at a site**. That is the sense in which the model is joint. Two things follow that no factorisation offers. First, recording one species at a site tells you something about the others, because it is evidence about that site's hidden scores. Second, the same model answers two different prediction questions, depending on whether such evidence is available. The next section makes that distinction precise; the exercise below shows the first consequence in numbers.
+A JSDM explains what the measured environment leaves over with hidden site factors and species loadings, so it defines the joint probability of the whole species list at a site; [the intuition lesson](occJSDM-lesson-intuition.md#what-a-joint-model-adds-to-a-factorisation) builds this up from a recommender's viewer-by-film table. Two consequences matter here: recording one species at a site is evidence about the others, and the same model answers two different prediction questions, which the next section separates.
 
 ## 4. Two probability questions that must not be mixed
 
-| Question | Information available to the fitted model | Matching simulated truth |
-|---|---|---|
-| Reconstruct a sampled site | Its environment and the observed community used for fitting | Probability including that site's actual hidden conditions |
-| Predict a new, unsurveyed site | Its environment, with no species observations there | Probability averaged over possible hidden conditions |
+- **Reconstruct a sampled site:** the fitted model has the site's environment and the observed community used for fitting, and the matching simulated truth is the probability including that site's actual hidden conditions.
+- **Predict a new, unsurveyed site:** the fitted model has the site's environment, with no species observations there, and the matching simulated truth is the probability averaged over possible hidden conditions.
 
 At a sampled site, the community helps the model infer whether the unmeasured conditions favour a species. We compare its fitted probability with the probability that generated that particular site. This is **reconstruction**, not a held-out prediction test.
 
@@ -306,7 +291,7 @@ tibble(
   knitr::kable(digits = 1)
 ```
 
-Here `beta` contains the intercept and two environmental slopes; `loading` contains the two hidden-factor effects. Their squared sum is the variance of this species' hidden contribution. For Hmsc's normal-probit model, the corresponding average has the exact expression `pnorm(environmental_score / sqrt(1 + residual_sd^2))`. Bayesian averaging still applies this within each parameter draw. The full checked extraction scripts are recorded in the reproduction notes below.
+Here `beta` contains the intercept and two environmental slopes; `loading` contains the two hidden-factor effects. Their squared sum is the variance of this species' hidden contribution. For Hmsc's normal-probit model, the corresponding average has the exact expression `pnorm(environmental_score / sqrt(1 + residual_sd^2))`. Bayesian averaging still applies this within each parameter draw. The full checked extraction scripts are named in the [reproduction record](#reproduction-record) in the appendix.
 
 ### Exercise: predict one species given another
 
@@ -393,11 +378,15 @@ sjSDM's original longer starts, fitted with no penalty at all, differed by 0.211
 
 ### Two local optima in the sjSDM fit
 
-In the selected solution, species 2 has a large residual spread and species 9 a small one; in the other solution it is the reverse. With 100 sites, the data cannot firmly decide which species' unexplained variation is large, so two explanations fit almost equally well. The next table shows that the choice barely matters for new-site prediction but matters for some sampled-site reconstructions, because those depend on the inferred hidden conditions.
+Restoring the optimiser's usual weak penalty and refining the saved fits with an exact optimiser showed why: the penalised fitting problem has two genuine local maxima, two hills, and independent starts climb one or the other. The declared selection rule picked the better hill, reached by four of twelve starts, before any truth was read.
+
+In the selected solution, species 2 has a large residual spread and species 9 a small one; in the other solution it is the reverse. With 100 sites, the data cannot firmly decide which species' unexplained variation is large, so two explanations fit almost equally well. The appendix tables show that the choice barely matters for new-site prediction but matters for some sampled-site reconstructions, because those depend on the inferred hidden conditions.
 
 The average errors of the two local maxima are almost identical, and the original unpenalised fit was within 0.4 points of the revised fit at every new site. Some sampled-site probabilities differ by tens of points between the two maxima, mostly for species 2 and 9. This is the teaching point: a converged optimiser is not the same as a unique answer, and agreement of average errors does not mean the models agree about every site.
 
 We select starts by the training fitting criterion, never by similarity to truth. Fitting criteria from different packages are not directly comparable here, so a larger numerical likelihood is not a cross-package score.
+
+[The appendix](#the-two-sjsdm-optima-evidence) gives the evidence: the deterministic refinement and curvature check, the twelve-start classification and the tables behind these statements.
 
 ## 6. Put the estimated probabilities beside truth
 
@@ -636,7 +625,7 @@ knitr::kable(outcome_scores, digits = 4,
 
 The scores are close in this pilot. Even the true probability will sometimes give substantial error against a random binary outcome: a species predicted with 80% probability is still absent about one time in five. This is why the probability-error tables and the outcome-score table measure different things. We do not use sampled-site outcome scores to claim independent prediction skill, because those observations helped fit the models.
 
-## 11. What this lesson establishes, and what remains open
+## 10. What this lesson establishes, and what remains open
 
 The four packages can be compared on the same perfectly observed community **when their prediction targets are explicitly matched**. Perfect observation still leaves appreciable probability error. Across this one community, the differences among new-site scores are small, while errors vary among species and probability bands.
 
@@ -649,6 +638,8 @@ Try these exercises with the saved tables, without refitting:
 3. Pick an environmental curve that misses truth. Describe whether its baseline, direction or steepness is wrong.
 4. Explain why the two sampled-site and new-site figures cannot be used as an ordinary training-versus-test overfitting comparison.
 5. Rerun the conditional-prediction example with `comparison$point_parameters$sjSDM` in place of the gllvm parameters. The two fits agree closely on species_10 alone but not on how much species_03 changes it. Explain from their loadings why.
+
+The appendix below holds each package's fitting call and what the runs cost, the evidence for the two sjSDM optima, and the reproduction record.
 
 Return to the [Quickstart and lesson guide](occJSDM.md), [Lesson 1](occJSDM-lesson-1.md) or [Lesson 3](occJSDM-lesson-3.md).
 
@@ -853,6 +844,6 @@ comparison$sjsdm_revision$prediction_differences |>
 
 ### Reproduction record
 
-The compact bundle records seed 26092201, complete generating truth, fit selection, input/source hashes, diagnostics and unrounded estimates. It also keeps the original provisional sjSDM selection, the twelve-start classification, the curvature summary and the three-way sjSDM comparison shown in section 5. The occJSDM snapshot is `3a97267`; Doug's sjSDM fork snapshot is `d2ca508`. The examples use gllvm 2.0.15 and Hmsc 3.3-7. No fit is rerun while knitting, and the lesson needs no Python or full MCMC files to render.
+The compact bundle records seed 26092201, complete generating truth, fit selection, input/source hashes, diagnostics and unrounded estimates. It also keeps the original provisional sjSDM selection, the twelve-start classification, the curvature summary and the three-way sjSDM comparison shown above. The occJSDM snapshot is `3a97267`; Doug's sjSDM fork snapshot is `d2ca508`. The examples use gllvm 2.0.15 and Hmsc 3.3-7. No fit is rerun while knitting, and the lesson needs no Python or full MCMC files to render.
 
 For the full fitting, selection, numerical extraction and validation commands, see `dev/simstudy/jsdm-package-comparison/README.md` in the source repository. The development reports retain failed attempts, optimisation follow-ups and environment limitations; that directory is deliberately excluded from the built package. The compact teaching bundle and this lesson are included.
