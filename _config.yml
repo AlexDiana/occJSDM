@@ -48,6 +48,7 @@ exclude:
   - vignettes/occJSDM-lesson-3.md
   - vignettes/occJSDM-lesson-4.md
   - vignettes/occJSDM-lesson-prediction.md
+  - vignettes/occJSDM-lesson-extension.md
   - vignettes/occJSDM-lesson-intuition_files/
   - vignettes/occJSDM-lesson-0_files/
   - vignettes/occJSDM-lesson-1_files/

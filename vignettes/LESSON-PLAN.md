@@ -75,7 +75,7 @@ On 25 September 2026, `du -sk` measured 21,462,696 KiB allocated to this directo
 
 Keep this directory while the saved fits may be needed for detailed diagnostic review, rescoring or further analyses. It can be deleted later when those records are no longer needed, or after copying it to another archive. Deleting it removes the saved posterior draws and fitted parameters, failed attempts, detailed diagnostics, simulation inputs/truth, logs and scoring-recovery records. Recreating those full records would require running the fits again. The committed compact bundle, `vignettes/teaching-data/lesson-4-extension.rds`, and the lesson sources, rendered Markdown and figures remain sufficient to render the existing lesson without this archive. No archive files were deleted during this documentation update.
 
-The student-facing [fit-status summary in Lesson 4](occJSDM-lesson-4.md#which-fits-passed-remained-flagged-or-failed) reports passed, flagged, failed and scored counts separately for each package, explains the checks, and states how unresolved results enter the comparisons. Its counts come directly from the compact bundle's manifest, checked against the archive's `status.csv`.
+The student-facing [fit-status summary in Lesson 4](occJSDM-lesson-extension.md#which-fits-passed-remained-flagged-or-failed) reports passed, flagged, failed and scored counts separately for each package, explains the checks, and states how unresolved results enter the comparisons. Its counts come directly from the compact bundle's manifest, checked against the archive's `status.csv`.
 
 ### Other teaching work still needed
 

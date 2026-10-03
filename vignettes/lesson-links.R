@@ -3,7 +3,8 @@
 local({
   lessons <- c("occJSDM", "occJSDM-lesson-intuition", "occJSDM-lesson-0",
                "occJSDM-lesson-1", "occJSDM-lesson-2", "occJSDM-lesson-3",
-               "occJSDM-lesson-prediction", "occJSDM-lesson-4")
+               "occJSDM-lesson-prediction", "occJSDM-lesson-4",
+               "occJSDM-lesson-extension")
 
   # The document hook sees code as well as prose. Skip fenced blocks and inline
   # code so displayed examples are preserved. (*SKIP)(*F) is PCRE's skip syntax.

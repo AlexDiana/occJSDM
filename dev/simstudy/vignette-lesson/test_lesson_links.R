@@ -5,7 +5,8 @@
 root <- normalizePath(".")
 lessons <- c("occJSDM", "occJSDM-lesson-intuition", "occJSDM-lesson-0",
              "occJSDM-lesson-1", "occJSDM-lesson-2", "occJSDM-lesson-3",
-             "occJSDM-lesson-prediction", "occJSDM-lesson-4")
+             "occJSDM-lesson-prediction", "occJSDM-lesson-4",
+             "occJSDM-lesson-extension")
 quickstart <- readLines("vignettes/occJSDM.Rmd", warn = FALSE)
 start <- grep("^```\\{r setup,", quickstart)
 end <- which(seq_along(quickstart) > start & quickstart == "```")[1]
