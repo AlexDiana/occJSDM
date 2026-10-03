@@ -710,7 +710,7 @@ A larger coverage study should add independent communities, assess marginal-prob
 
 The appendix below holds six things. They are the acceptance rules for each fit, the detailed prediction errors, the interval widths and coverage by community, the diagnostic sensitivity, the trait relationships, and how to filter the saved results yourself.
 
-Continue to [Lesson 7](occJSDM-lesson-7.md), on spatial landscapes and survey design, or return to [Lesson 5](occJSDM-lesson-5.md) or the [Quickstart and lesson guide](occJSDM.md).
+Continue to [Lesson 7](occJSDM-lesson-7.md), on spatial landscapes and survey design, or return to [Lesson 5](occJSDM-lesson-5.md) or the [Quickstart](occJSDM.md).
 
 ## Appendix: evidence and reproduction
 

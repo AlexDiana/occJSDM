@@ -764,7 +764,7 @@ Try these exercises with the saved tables, without refitting:
 
 The appendix below holds each package's fitting call and what the runs cost, the evidence for the two sjSDM optima, and the reproduction record.
 
-Continue to [Lesson 6](occJSDM-lesson-6.md), or return to the [Quickstart and lesson guide](occJSDM.md), [Lesson 2](occJSDM-lesson-2.md) or [Lesson 3](occJSDM-lesson-3.md).
+Continue to [Lesson 6](occJSDM-lesson-6.md), or return to the [Quickstart](occJSDM.md), [Lesson 2](occJSDM-lesson-2.md) or [Lesson 3](occJSDM-lesson-3.md).
 
 ## Appendix: evidence and reproduction
 

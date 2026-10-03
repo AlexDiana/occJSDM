@@ -28,7 +28,7 @@ source("lesson-links.R")
 
 ## What this lesson adds
 
-This lesson is about where to put survey sites when you want occJSDM to learn a spatial pattern. Its first half explains, without code, what occJSDM's spatial term adds to a species distribution model and how that should shape the grain, spacing and replication of a survey. Its second half tests those ideas on a simulation of one landscape, with 100 sites placed in four different ways. The simulated species have known true distributions, so every estimate can be checked against the truth. The simulation leaves out dispersal. It also leaves out any unmeasured habitat variable that varies at the same scale as the spatial pattern, and the closing section says what that leaves untested.
+This lesson is about where to put survey sites when you want occJSDM to learn a spatial pattern. Its first half explains, without code, what occJSDM's spatial term adds to a species distribution model and how that should shape the grain, spacing and replication of a survey. Its second half tests those ideas on a simulation of one landscape, with 100 sites placed in four different ways. The simulated species have known true distributions, so every estimate can be checked against the truth. The simulation leaves out dispersal. It also leaves out any unmeasured habitat variable that varies at the same scale as the spatial pattern, and the closing section says what that leaves untested. This is the last lesson. It assumes [Lesson 2](occJSDM-lesson-2.md), whose two-stage model the eDNA-survey fits use, and reads the spatial fits' outputs in the way [Lesson 3](occJSDM-lesson-3.md) reads non-spatial ones: credible intervals, convergence checks and truth beside each estimate.
 
 The question the simulation answers is: **with a budget of 100 sites, how should they be placed if the spatial field is to be learned at all, and what does that placement cost in coverage of the study area?** The short answer, for the beta, is that at this budget the spatial term learns little, whatever the arrangement, and the environmental covariates carry the predictions. That is the evidence behind the [quickstart's](occJSDM.md#fit-the-model) advice to leave `spatCovariates` out of your own fits for now. The closing section says when a spatial term may still be worth trying, and how to check your own design.
 
@@ -103,7 +103,7 @@ Spatial blocking can reveal overoptimistic assessments from random validation, b
 
 Everything from here on comes from one simulation sweep, saved as a compact bundle, `teaching-data/spatial-lesson.rds`. It holds the first community's simulated landscape, every community's site arrangements and the summaries of every fit, so nothing is refitted while you read. The bundle will ship with the package's vignettes once the lessons are published, so that the exercises at the end run from the installed package. Until then, run the chunks in order with the source repository's `vignettes` directory as the working directory. Knitting handles this automatically.
 
-```{r lesson-2-load, message=FALSE, warning=FALSE}
+```{r lesson-7-load, message=FALSE, warning=FALSE}
 library(dplyr)
 library(tidyr)
 library(tibble)
@@ -128,7 +128,7 @@ span <- function(x, digits = 2) paste(fixed(min(x), digits), "to", fixed(max(x),
 theme_set(theme_bw(base_size = 12))
 ```
 
-```{r lesson-2-contents}
+```{r lesson-7-contents}
 names(sweep)
 ```
 
@@ -571,7 +571,7 @@ Try these with the saved tables, without refitting:
 2. `sweep$lattice_maps` has every lattice cell for species 6 in community 1, for each arrangement and occJSDM arm, with its distance to the nearest site. Recompute the distance bins at 0.01, 0.03 and 0.06 and redraw the prediction-error figure for the four arrangements and two arms it contains. Hint: `cut()` with `breaks = c(0, 0.01, 0.03, 0.06, Inf)` makes the bins; then average `abs(with - truth)` and `abs(without - truth)` by arrangement, source and bin.
 3. The clustered design for the 25% species is the one intermediate cell. From `sweep$fits$field`, compute its error reduction and correlation in each community, then say which part of the informative rule it fails and what keeps it out of the uninformative label. Hint: follow the `true-state-communities` chunk in section 3, and add the mean of `centred_correlation`.
 
-The appendix below holds the convergence checks of the `r nrow(sweep$selected_fits)` fits and the reproduction record. Return to the [Quickstart and lesson guide](occJSDM.md), [Lesson 2](occJSDM-lesson-2.md) or [Lesson 3](occJSDM-lesson-3.md).
+The appendix below holds the convergence checks of the `r nrow(sweep$selected_fits)` fits and the reproduction record. This is the last lesson. Return to the [Quickstart](occJSDM.md), to [Lesson 2](occJSDM-lesson-2.md) for fitting, or to [Lesson 3](occJSDM-lesson-3.md) for reading outputs.
 
 ## Appendix: evidence and reproduction
 
