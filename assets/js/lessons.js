@@ -21,6 +21,7 @@
     { stem: "occJSDM-lesson-1", label: "Lesson 1", title: "Lesson 1: Fit the model and compare its answers with truth", published: false },
     { stem: "occJSDM-lesson-2", label: "Lesson 2", title: "Lesson 2: Spatial landscapes and survey design", published: false },
     { stem: "occJSDM-lesson-3", label: "Lesson 3", title: "Lesson 3: Understand the model's outputs by comparing them with truth", published: false },
+    { stem: "occJSDM-lesson-prediction", label: "Prediction", title: "Predict occupancy at new sites and compare models", published: false },
     { stem: "occJSDM-lesson-4", label: "Lesson 4", title: "Lesson 4: Compare four JSDMs with a community whose truth we know", published: false }
   ];
 

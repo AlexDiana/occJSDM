@@ -18,7 +18,7 @@ All teaching code is shown, including the code that draws each figure from the s
 
 ## Spatial effects, inference and sampling design
 
-This section explains what the spatial component contributes to species distribution predictions and how that affects survey design. Read it if you are planning a survey; it needs no code. The worked sections after it help you decide whether to fit a spatial term at all, and with what arrangement of sites. [Lesson 3](occJSDM-lesson-3.md#predict-occupancy-at-genuinely-new-sites) shows the non-spatial prediction call in R.
+This section explains what the spatial component contributes to species distribution predictions and how that affects survey design. Read it if you are planning a survey; it needs no code. The worked sections after it help you decide whether to fit a spatial term at all, and with what arrangement of sites. [Lesson 3](occJSDM-lesson-prediction.md#predict-occupancy-at-genuinely-new-sites) shows the non-spatial prediction call in R.
 
 ### What the spatial component learns
 

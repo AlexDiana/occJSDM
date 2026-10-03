@@ -260,7 +260,7 @@ cat("Interpretation: site SE conditions on the saved probability estimates. It e
 # Inspect displayed calls without executing either fit or its prediction again.
 # Replace only named API calls in parsed chunk expressions with recording stubs.
 read_chunk <- function(label) {
-  lines <- readLines("vignettes/occJSDM-lesson-3.Rmd",warn=FALSE)
+  lines <- readLines("vignettes/occJSDM-lesson-prediction.Rmd",warn=FALSE)
   first <- grep(paste0("^```\\{r ",label,"[,}]"),lines)
   stopifnot(length(first)==1L)
   last <- first+which(lines[(first+1L):length(lines)]=="```")[1L]
