@@ -52,8 +52,7 @@ sys.source("R/jsdmfun.R", source_environment)
 api_names <- c("returnOccupancyGradient", "plotOccupancyGradient", "plotSpeciesRates",
                "plotStage1FPRates", "plotStage2FPRates", "plotDetectionRates",
                "plotCovariateEffect", "returnCovariateEffect_base", "returnCovariateEffect",
-               "create_covariates_matrix", "returnVariancePartitioning", "plotVariancePartitioning",
-               "returnVariancePartitioningMatrix", "plotVarPart")
+               "create_covariates_matrix")
 stopifnot(all(vapply(api_names, function(name) {
   identical(body(get(name, asNamespace("occJSDM"))), body(get(name, source_environment))) &&
     identical(formals(get(name, asNamespace("occJSDM"))), formals(get(name, source_environment)))
@@ -88,17 +87,11 @@ rate_truth <- expand_grid(Species = species, Primer = primers) |>
                    pnorm(log(1.5), input$params$mu0, input$params$sigma0, lower.tail = FALSE)),
     Primer = factor(Primer, levels = primers)
   )
-variation_truth <- outputs$variation |>
-  filter(arm == "default") |>
-  select(species, component, truth) |>
-  pivot_wider(names_from = component, values_from = truth) |>
-  transmute(Species = species, Env = Environmental, Biotic = Residual, Spatial)
 remaining_examples <- list(truth = list(
   gradients = gradients,
   stage1_fp = tibble(Species = species, truth = input$params$theta0),
   stage2_fp = rate_truth |> select(Species, Primer, truth = q),
-  detection = rate_truth |> select(Species, Primer, truth = p),
-  variation = variation_truth
+  detection = rate_truth |> select(Species, Primer, truth = p)
 ))
 
 # Only explicitly exportable chunks are evaluated. The fit is never thinned.
@@ -113,11 +106,11 @@ environment$fitmodel <- fitmodel
 environment$remaining_examples <- remaining_examples
 source(r, local = environment, echo = FALSE, print.eval = FALSE)
 unlink(c(rmd, r))
-plot_names <- c("gradient_1", "gradient_2", "stage1_fp", "stage2_fp", "detection", "variation")
+plot_names <- c("gradient_1", "gradient_2", "stage1_fp", "stage2_fp", "detection")
 plots <- setNames(lapply(paste0("remaining_", plot_names), get, envir = environment), plot_names)
 figures <- tibble(plot = plot_names,
                   file = paste0("remaining-plots-", gsub("_", "-", plot_names), ".png"),
-                  width = c(10, 10, 10, 10, 10, 8), height = c(8, 8, 5.5, 6, 6, 7))
+                  width = 10, height = c(8, 8, 5.5, 6, 6))
 for (i in seq_len(nrow(figures))) {
   ggsave(new_path(file.path("vignettes/teaching-data", figures$file[i])),
          plots[[i]], width = figures$width[i], height = figures$height[i], dpi = 150, bg = "white")
@@ -148,4 +141,4 @@ remaining_examples$provenance <- list(
   note = "Native plots use the unchanged complete 6000 x 4 fit. Site factors equal zero in gradient curves."
 )
 saveRDS(remaining_examples, new_path("vignettes/teaching-data/remaining-plots-data.rds"), compress = "xz")
-cat("Exported six native plots, matching truth, scaling, and exact-code provenance.\n")
+cat("Exported five native plots, matching truth, scaling, and exact-code provenance.\n")
