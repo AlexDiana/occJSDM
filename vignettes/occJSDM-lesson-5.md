@@ -5,9 +5,11 @@ Lesson 5: Compare four JSDMs with a community whose truth we know
 
 Suppose we know with certainty which species occupy each surveyed site. Can a joint species distribution model recover the underlying probabilities, and can it predict occurrence at sites we have not surveyed?
 
-We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated observations**. This lesson uses the pure JSDM portion of occJSDM: there is no DNA collection failure, PCR detection error or false positive. Those processes matter in [Lesson 2](occJSDM-lesson-2.md), but here we remove them to examine the ecological model itself. You do not need the spatial lesson first.
+We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated observations**. gllvm fits generalised linear latent variable models by approximate likelihood. sjSDM is a fast JSDM fitted by optimisation in PyTorch, a Python machine-learning library. Hmsc is a Bayesian hierarchical JSDM widely used in community ecology.
 
-This lesson works through **one community**. [Lesson 6](occJSDM-lesson-6.md) repeats the experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits. In the first version of this lesson, sjSDM was labelled provisional because repeated optimisation runs disagreed. A follow-up restored the optimiser’s usual weak penalty and found that the penalised fitting problem has two verified local optima. It reproduced the better one from independent starts and recorded the selection before any truth was read. Whether the two optima also explain the earlier disagreement is still open. The lesson now uses that checked fit and, in section 5, teaches what the two optima mean.
+Why compare an eDNA package with packages that have no detection model? Only occJSDM models detection error. This lesson checks that its ecological core, the part it shares with these established JSDMs, does as well as theirs on perfectly observed data. Here there is no DNA collection failure, PCR detection error or false positive. As the [quickstart](occJSDM.md#the-example-data) notes, when `info` has only one row per site, `runOccJSDM()` skips the detection stages and fits a JSDM to the observed presence/absence. That is the mode used here. The detection processes matter in [Lesson 2](occJSDM-lesson-2.md), but here we remove them to examine the ecological model itself.
+
+This lesson works through **one community**. [Lesson 6](occJSDM-lesson-6.md) repeats the experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits. Section 5 explains why the sjSDM fit needed several starts and what its two solutions mean.
 
 You will learn to:
 
@@ -16,9 +18,17 @@ You will learn to:
 3.  Measure both the direction and the size of errors against simulation truth.
 4.  Compare environmental responses on the probability scale.
 5.  Separate reliable computation from accurate ecological estimation.
-6.  Explain what makes the model joint, and use that to predict one species from another.
+6.  Use what makes the model joint to predict one species from another.
 
-All teaching code is visible. Knit this file, or run its chunks with `vignettes` as the working directory. Rendering reads a compact results bundle and does **not** fit any models. The optional simulation and fitting chunks are shown with `eval=FALSE`; run them deliberately if you want to repeat the experiment.
+All teaching code is visible. Knit this file, or run its chunks with `vignettes` as the working directory. Rendering reads a compact results bundle and does **not** fit any models. The optional simulation and fitting chunks are shown with `eval=FALSE`; run them deliberately if you want to repeat the experiment. Knitting needs only the four packages loaded below and ggtern, which installing occJSDM also installs; gllvm, sjSDM and Hmsc are needed only for the optional fits in the appendix.
+
+**What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R for Data Science on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. The unusual operations, base R’s `sweep()` and `integrate()`, are explained where they appear.
+
+- `select()` to choose columns, `filter()` and `distinct()` to keep and deduplicate rows, and `pull()` to take one column out as a vector.
+- `mutate()` and `transmute()` to add columns (`transmute()` keeps only the new ones), and `group_by()` and `summarise()` to summarise by group.
+- `left_join()` and `inner_join()` to add the columns of one table to another by shared identifiers (`inner_join()` keeps only the rows that match in both).
+- `as_tibble()`, from tibble, to turn a data frame or a matrix into a tibble.
+- `pivot_longer()`, from tidyr, to turn several columns into rows, here one row per site and species.
 
 ``` r
 library(dplyr)
@@ -53,9 +63,43 @@ predictions <- predictions |>
     absolute_error_pp = abs(signed_error_pp)
   )
 
-# Keep the registered ternary theme elements valid when vignettes share a session.
+# This theme also works after occJSDM loads its ternary-plot dependency.
 theme_set(ggtern::theme_bw(base_size = 12))
 ```
+
+The last line sets ggtern’s version of `theme_bw()`; [Lesson 3](occJSDM-lesson-3.md#what-this-lesson-answers) explains why the lessons use it.
+
+`comparison` is a list. Here is every element it holds:
+
+``` r
+str(comparison, max.level = 1)
+```
+
+    #> List of 12
+    #>  $ training          :List of 4
+    #>  $ test_x            :'data.frame':  300 obs. of  2 variables:
+    #>  $ truth             :List of 10
+    #>  $ predictions       :'data.frame':  16000 obs. of  9 variables:
+    #>  $ curves            : tibble [4,080 × 6] (S3: tbl_df/tbl/data.frame)
+    #>  $ point_parameters  :List of 2
+    #>  $ integration_checks: tibble [4 × 2] (S3: tbl_df/tbl/data.frame)
+    #>  $ attempts          :'data.frame':  35 obs. of  12 variables:
+    #>  $ diagnostics       :'data.frame':  2270 obs. of  9 variables:
+    #>  $ selected          : Named chr [1:4] "occJSDM-attempt-1-start-1" "Hmsc-attempt-1-start-1" "gllvm-VA-attempt-2-start-2-res" "sjSDM-multistart-start-11"
+    #>   ..- attr(*, "names")= chr [1:4] "occJSDM" "Hmsc" "gllvm" "sjSDM"
+    #>  $ sjsdm_revision    :List of 12
+    #>  $ provenance        :List of 5
+
+- `training` holds the 100 training sites that every package received: `x`, the standardised environmental table, and `y`, the presence/absence matrix. `centre` and `spread` are the training means and standard deviations used to standardise.
+- `test_x` is the standardised environment of the 300 test sites, with no observations.
+- `truth` is the simulation’s generating truth, which no fitter saw; we call it `known_truth`, and section 1 names the parts the lesson uses.
+- `predictions` has one row for each package, prediction question, site and species, 16,000 in all. Each row holds the estimate, the matching true probability, the observed 0 or 1 and the probability band used in section 7.
+- `curves` holds the fitted and true response curves of section 8.
+- `point_parameters` holds gllvm’s and sjSDM’s fitted intercepts, slopes and loadings, which section 4 uses.
+- `diagnostics` holds the chain diagnostics for occJSDM and Hmsc that section 5 summarises.
+- `attempts` lists every fitting attempt with its run time and checks, and `selected` names the attempt chosen for each package; the appendix reads both.
+- `sjsdm_revision` holds the evidence for the two sjSDM solutions, shown in the appendix.
+- `integration_checks` and `provenance` are records that the reproduction checks read; this lesson does not use them.
 
 ## 1. What the models receive, and what we keep secret
 
@@ -98,6 +142,8 @@ Perfectly observed presence (1) and absence (0)
 
 **Perfect observation does not mean perfect knowledge of probability.** If a species has a 20% chance of occurring, a survey still records either 0 or 1. It does not record 0.20. The model must learn the probability from patterns across sites and species.
 
+`known_truth` keeps what the fitters never see. The lesson uses four of its parts. `conditional_probability` is the generating probability for every site and species, including the site’s actual hidden conditions. `parameters` is the generating table of intercepts, environmental slopes and hidden-factor loadings, on the raw environmental scale. `scaled_coefficients` holds the same intercepts and slopes converted to the standardised environment the fitters receive, and `loadings` the hidden-factor loadings, each with one column per species.
+
 The next figure shows both kinds of truth for the first ten sites and first five species, chosen by their order, not by how well they were fitted. The background colour is the generating probability. The printed number is the actual presence or absence, which is what the models receive.
 
 ``` r
@@ -128,7 +174,7 @@ ggplot(example_cells, aes(site, species, fill = probability)) +
 
 ### Optional: reproduce this community
 
-These coefficients were fixed before fitting. Positive environmental slopes favour a species as that gradient increases; negative slopes do the opposite. The values are on the **logit scale**, so a slope of 1 does not mean a one-percentage-point change. We will use probability curves to understand their ecological meaning.
+These coefficients were fixed before fitting. Positive environmental slopes favour a species as that gradient increases; negative slopes do the opposite. The values are on the **logit scale**: they are log-odds, `log(p / (1 - p))` for a probability `p`, as in [Lesson 3’s terms list](occJSDM-lesson-3.md#what-this-lesson-answers). A slope of 1 multiplies the odds of occurrence by about 2.7 (`exp(1)`) for each unit of the gradient, so it does not mean a one-percentage-point change. We will use probability curves to understand their ecological meaning.
 
 ``` r
 knitr::kable(known_truth$parameters, digits = 1,
@@ -207,29 +253,37 @@ training_data <- list(
 test_environment <- as.data.frame(standardised_environment[101:400, ])
 ```
 
-We keep the last 300 observations, all hidden conditions and all generating probabilities out of fitting and tuning. Standardisation puts zero at the training mean and one unit at one training standard deviation. Test sites use the **same** transformation; calculating a new test-site mean would change the meaning of a fitted coefficient.
+We keep the last 300 observations, all hidden conditions and all generating probabilities out of fitting and tuning. Standardisation puts zero at the training mean and one unit at one training standard deviation. In the code, `sweep()` applies one value per column to a matrix: the first call subtracts each gradient’s training mean, and the second divides by its training standard deviation. Test sites use the **same** transformation; calculating a new test-site mean would change the meaning of a fitted coefficient.
+
+With occJSDM on your own data you do not need to standardise first. `runOccJSDM()` standardises the occupancy covariates itself and saves the training means and standard deviations, and `predictNewSites()` applies that training transformation to raw new-site values, as [Lesson 4](occJSDM-lesson-4.md#predict-occupancy-at-genuinely-new-sites) shows. This lesson standardised beforehand only so that all four packages receive identical inputs.
 
 ## 2. How similar are the four models?
 
-All four receive the same information, linear environmental predictors and two hidden factors. We exclude traits, phylogeny, space and observation error from this comparison. The number of factors is fixed at the known generating count; **this lesson does not choose the count using WAIC**. In this pilot, each package is configured as follows:
+All four receive the same information: the presence/absence matrix and the two measured environmental predictors, which enter linearly. Each estimates two hidden factors from those data. We exclude traits, phylogeny, space and observation error from this comparison.
+
+The number of factors is fixed at the known generating count, which removes one source of difference between the packages. **This lesson does not choose the count, by WAIC or otherwise.** On a real survey the count is unknown. [Lesson 4](occJSDM-lesson-4.md#compare-models-using-what-actually-occurred) compares two candidate counts by how well each predicts what was recorded at held-out sites.
+
+The four packages fit in two different ways. occJSDM and Hmsc use Bayesian sampling, which returns a posterior: thousands of plausible sets of parameter values, whose spread measures the uncertainty. gllvm and sjSDM use optimisation, which returns one best estimate. The appendix’s fitting calls explain the remaining technical terms. In this pilot, each package is configured as follows:
 
 - **occJSDM:** version 0.1.0 fits a binary logit model with two site factors and no latent traits, by Bayesian sampling that retains the package’s coefficient and factor priors.
-- **gllvm:** version 2.0.15 fits a binary logit model with two unconstrained factors, by variational approximation (VA) checked from multiple starting points.
+- **gllvm:** version 2.0.15 fits a binary logit model with two unconstrained factors, by variational approximation (VA) checked from multiple starting points. VA is a simpler stand-in for the exact likelihood that is faster to optimise.
 - **sjSDM:** version 1.0.7 fits a binary logit model with a linear environment and a covariance factor dimension of two, by PyTorch CPU optimisation with the optimiser’s default weak penalty (weight decay 0.0001), from twelve independent starts, each with a low-step continuation.
 - **Hmsc:** version 3.3-7 fits a binary probit model with one independent site level holding exactly two factors, by Bayesian sampling that retains its community and factor priors.
 
-Hmsc uses **probit**, whereas the other three use **logit**, as does this simulator. Both turn an ecological score into a probability, but their curves differ. This is why we compare probabilities rather than raw coefficient sizes. The priors and fitting approximations also differ: this is a comparison of these configurations with equal data, not an experiment changing only the package name.
+Hmsc uses **probit**, whereas the other three use **logit**, as does this simulator. Both turn an ecological score into a probability, but their curves differ. This is why we compare probabilities rather than raw coefficient sizes. The priors and fitting approximations also differ: this is a comparison of these configurations with equal data, not an experiment changing only the package name. The probit link also means Hmsc’s coefficients cannot be checked against the logit truth, which is why [Lesson 6’s coefficient checks](occJSDM-lesson-6.md#how-close-are-the-environmental-effects) leave them out.
 
-The sjSDM R version is 1.0.7 inside Doug’s fork release **v0.2.1**. The release also has an optional Mojo path, but this experiment explicitly used PyTorch. Mojo was neither used nor upgraded.
+To fit sjSDM yourself, install it from Doug’s fork, release [v0.1.0](https://github.com/dougwyu/s-jSDM/releases/tag/v0.1.0), which runs on Apple Silicon and uses PyTorch only. The fits in this lesson ran under the fork’s later release v0.2.1 (sjSDM 1.0.7) with its optional Mojo backend switched off. We did not refit under v0.1.0. Our reason is an argument from reading the two releases’ code, not a rerun: with the backend switch at zero, v0.2.1’s fitting code reaches the same PyTorch loss as v0.1.0 line for line, apart from integer conversions of tensor sizes. A rerun under v0.1.0 is planned. We did not test the CRAN release of sjSDM.
 
 ## 3. What a joint model adds to factoring a matrix
 
-A JSDM explains what the measured environment leaves over with hidden site factors and species loadings, so it defines the joint probability of the whole species list at a site; [Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-adds-to-a-factorisation) builds this up from a recommender’s viewer-by-film table. Two consequences matter here: recording one species at a site is evidence about the others, and the same model answers two different prediction questions, which the next section separates.
+A JSDM explains what the measured environment leaves over with hidden site factors and species loadings, so it defines the joint probability of the whole species list at a site. [Lesson 1’s joint-model section](occJSDM-lesson-1.md#what-a-joint-model-does) builds this up from a recommender’s viewer-by-film table, and its [next section](occJSDM-lesson-1.md#what-a-joint-model-adds-to-a-factorisation) explains what a JSDM adds to factoring that table. Two consequences matter here: recording one species at a site is evidence about the others, and the same model answers two different prediction questions, which the next section separates. The exercise at the end of section 4 shows the first consequence in numbers.
 
 ## 4. Two probability questions that must not be mixed
 
-- **Reconstruct a sampled site:** the fitted model has the site’s environment and the observed community used for fitting, and the matching simulated truth is the probability including that site’s actual hidden conditions.
-- **Predict a new, unsurveyed site:** the fitted model has the site’s environment, with no species observations there, and the matching simulated truth is the probability averaged over possible hidden conditions.
+[Lesson 4](occJSDM-lesson-4.md#which-true-probability-should-a-new-site-prediction-recover) met the two targets below as the **conditional** probability, given a site’s actual hidden conditions, and the **marginal** probability, averaged over the hidden conditions a site could have. Here each becomes a question we ask of all four packages.
+
+- **Reconstruct a sampled site:** the fitted model has the site’s environment and the observed community used for fitting, and the matching simulated truth is the conditional probability, including that site’s actual hidden conditions.
+- **Predict a new, unsurveyed site:** the fitted model has the site’s environment, with no species observations there, and the matching simulated truth is the marginal probability, averaged over possible hidden conditions.
 
 At a sampled site, the community helps the model infer whether the unmeasured conditions favour a species. We compare its fitted probability with the probability that generated that particular site. This is **reconstruction**, not a held-out prediction test.
 
@@ -239,7 +293,7 @@ For an explicitly hypothetical example, measured habitat might imply a 40% avera
 
 ### Averaging is different from setting hidden conditions to zero
 
-Because the conversion to probability is curved, converting an average score need not equal averaging the converted probabilities. Here is a reproducible numerical illustration, separate from the fitted results:
+Because the conversion to probability is curved, converting an average score need not equal averaging the converted probabilities. Here is a reproducible numerical illustration, separate from the fitted results. `plogis()` converts log-odds to a probability. `dnorm()` gives more weight to common hidden conditions and less to unusual ones, and `integrate()` adds up the weighted probabilities over every value the hidden condition could take.
 
 ``` r
 environmental_score <- -2
@@ -268,9 +322,9 @@ tibble(
 | Set hidden contribution to zero |                11.9 |
 | Average over hidden conditions  |                22.5 |
 
-The comparison therefore does not simply call four functions named `predict()` and assume their outputs mean the same thing. For example, gllvm’s level-zero prediction sets hidden scores to zero. The inspected sjSDM environmental prediction does too. Our saved new-site predictions integrate over fitted hidden variation.
+Setting the hidden contribution to zero gives 11.9%, while averaging over hidden conditions gives 22.5%: averaging nearly doubles the probability here. At a low score, favourable hidden conditions raise the probability more than unfavourable ones lower it, because the curve is steeper above the score than below it. We chose a large hidden spread of 2 to make the effect easy to see.
 
-For the Bayesian models, that integration happens separately for each parameter draw, then the probabilities are averaged. For gllvm and sjSDM, we hold their estimated global parameters fixed and integrate over hidden variation. For sampled sites, we condition on the observed community: Bayesian fits already include that information in their joint draws; the other two use a checked study calculation. We do not condition on the test observations or multiply their likelihood into predictions.
+The comparison therefore does not simply call four functions named `predict()` and assume their outputs mean the same thing. For a new site, the ordinary prediction calls of gllvm and sjSDM set the hidden scores to zero, so neither gives the marginal probability directly. This lesson computed it, as below. Our saved new-site predictions integrate over fitted hidden variation. Each package’s new-site prediction was converted to the same marginal question; the [appendix](#appendix-evidence-and-reproduction) records how.
 
 The following code shows the marginal calculation for one species with fixed logit coefficients. A nonzero residual spread flattens the average environmental response because otherwise similar sites have different hidden conditions.
 
@@ -312,13 +366,37 @@ tibble(
 |:-----------|------------------:|-------------:|
 | species_01 |              14.6 |         16.1 |
 
-Here `beta` contains the intercept and two environmental slopes; `loading` contains the two hidden-factor effects. Their squared sum is the variance of this species’ hidden contribution. For Hmsc’s normal-probit model, the corresponding average has the exact expression `pnorm(environmental_score / sqrt(1 + residual_sd^2))`. Bayesian averaging still applies this within each parameter draw. The full checked extraction scripts are named in the [reproduction record](#reproduction-record) in the appendix.
+For species_01 at the mean environment, gllvm’s marginal probability is 14.6%, against a true marginal probability of 16.1%: the estimate is 1.5 points too low.
+
+`beta` has one row for the intercept and one for each environmental slope, and `loading` one row for each hidden factor; both have one column per species. The species’ squared loadings, summed, give the variance of its hidden contribution. For Hmsc’s normal-probit model, the corresponding average has the exact expression `pnorm(environmental_score / sqrt(1 + residual_sd^2))`. Bayesian averaging still applies this within each parameter draw. The full checked extraction scripts are named in the [reproduction record](#reproduction-record) in the appendix.
+
+Why use gllvm’s parameters here rather than occJSDM’s? occJSDM’s route to the marginal new-site question is `predictNewSites()` with `useBiotic = TRUE`, the default for a fit with factors: for each posterior draw it draws one new set of hidden conditions. It returns quantiles of the resulting probabilities (a lower limit, median and upper limit), not the probability averaged over hidden conditions. [Lesson 4](occJSDM-lesson-4.md#check-point-predictions-against-the-appropriate-truth) explains that the package cannot return that average yet. This lesson’s occJSDM new-site predictions were therefore computed by the study’s own integration, which the appendix describes. [Lesson 4](occJSDM-lesson-4.md#use-the-packages-new-site-prediction-function) shows how to read the interval it returns. It also has no mode that conditions on another species’ record at the new site, so the exercise below uses gllvm’s single set of point parameters. With the occJSDM fit from the appendix, the new-site call would be:
+
+``` r
+# fit_occJSDM is the fit from the appendix's occJSDM call.
+# predictNewSites() draws new hidden conditions, so set a seed for repeatable quantiles.
+set.seed(26092212)
+
+test_quantiles <- occJSDM::predictNewSites(
+  fit_occJSDM,
+  X_psi = comparison$test_x,
+  useSpatial = FALSE,
+  useBiotic = TRUE,
+  confidence = 0.95,
+  verbose = FALSE
+)
+
+# Quantile by site by species: lower limit, median, upper limit. Species 1 is species_01.
+test_quantiles[, 1:5, 1]
+```
+
+`predictNewSites()` standardises `X_psi` with the training means and standard deviations. Because `training$x` was already standardised, with mean 0 and standard deviation 1, that step leaves `comparison$test_x` unchanged.
 
 ### Exercise: predict one species given another
 
 Suppose a survey at a new site has recorded species_03 as present and we want the probability that species_10 is also there. A stacked model, one species at a time, would give the same answer whether or not species_03 was seen: it assumes independence once the environment is known. A JSDM does not. Species_03’s presence shifts the plausible values of the site’s hidden scores, and species_10’s loadings translate that shift into a changed probability.
 
-The calculation averages over the hidden scores. We draw many standard-normal score pairs, compute both species’ probabilities at each draw, and average. The probability of species_10 alone is the plain average. Its probability given species_03 present weights each draw by how likely species_03 was to be present there, and given species_03 absent weights by the complement. We use the same gllvm parameters as the marginal example above, and the generating parameters for comparison. The environment is set to the training mean, and then to one standard deviation above it on gradient 1, because conditional information matters most where a species is not already near certain.
+The calculation averages over the hidden scores. We draw many standard-normal score pairs, compute both species’ probabilities at each draw, and average. The probability of species_10 alone is the plain average. Its probability given species_03 present weights each draw by how likely species_03 was to be present there, and given species_03 absent weights by the complement. We use the same gllvm parameters as the marginal example above, and the generating parameters, arranged in the same rows and columns, for comparison. The environment is set to the training mean, and then to one standard deviation above it on gradient 1, because conditional information matters most where a species is not already near certain.
 
 ``` r
 conditional_probabilities <- function(parameters, given, target,
@@ -359,6 +437,10 @@ conditional_table <- rbind(
     conditional_probabilities(true_parameters, "species_03", "species_10", c(1, 0))
 )
 
+# The gap between the two conditional columns, in points, as the table rounds them.
+conditional_gap <- round(100 * conditional_table[, "target_given_present"], 1) -
+  round(100 * conditional_table[, "target_given_absent"], 1)
+
 knitr::kable(
   100 * conditional_table, digits = 1,
   col.names = c("species_10 alone", "given species_03 present", "given species_03 absent"),
@@ -375,13 +457,17 @@ knitr::kable(
 
 Occurrence probability of species_10 at a new site, in percent
 
-Read across a row. A stacked model would put the same number in all three columns. Here the middle column is higher and the right column lower, in the fitted model and in the truth, because species_03 and species_10 respond to the same hidden factors. The gap widens when species_10 is less certain to begin with. The fitted gap is somewhat smaller than the true gap in this community; the fitted residual spread for these two species is below its generating value, which is one of the errors the response curves in section 8 also show. With 200,000 draws the Monte Carlo error is in the second decimal place; change the seed to check.
+Read across a row. A stacked model would put the same number in all three columns. Here the middle column is higher and the right column lower, in the fitted model and in the truth, because species_03 and species_10 respond to the same hidden factors. The gap between them widens when species_10 is less certain to begin with. The fitted gap is 3.5 points against a true 6.3 at the mean environment, and 7.2 against 10.6 at +1 SD: about 56% and 68% of the true gap. The fitted residual spread for these two species is below its generating value, which is one of the errors the response curves in section 8 also show.
+
+The baseline, species_10 alone, is off too: 89.2% fitted against 83.9% true at the mean environment. gllvm’s fitted intercept for species_10, 2.24, is above the generating 1.91, and its smaller residual spread pulls the average less towards 50%. Its curve therefore sits above the truth there, as section 8’s gradient-1 panel for species_10 shows. With 200,000 draws the Monte Carlo error is in the second decimal place; change the seed to check.
+
+occJSDM has no conditional-prediction call. For your own fitted occJSDM model, this calculation is the way to get one. Apply it within each posterior draw, using that draw’s intercepts, slopes and loadings, and draw the hidden scores with that draw’s standard deviation instead of a standard normal. Then average over the draws. [Lesson 3’s appendix](occJSDM-lesson-3.md#read-trace-draws-from-the-fit-object) shows where the intercept and slope draws are kept; the loadings are in `jsdm_output$L_output` and the hidden scores’ standard deviation in `jsdm_output$sigmah_output`.
 
 This is only a demonstration on a single pair chosen for its strong fitted association, not a validated conditional-prediction test. A real test would hold out species records at independent sites and score the conditional predictions against them.
 
 ## 5. Check the computation before interpreting the ecology
 
-For occJSDM and Hmsc we used four chains, each with 2,000 warm-up and 4,000 retained iterations. Chains should agree, and enough effectively independent draws should remain to estimate the quantities we report. Rhat near 1 measures agreement; effective sample size (ESS) measures the usable information in correlated draws. Neither measures ecological accuracy.
+For occJSDM and Hmsc we used four chains, each with 2,000 warm-up and 4,000 retained iterations, as the fitting calls in the appendix set them. Warm-up is what the quickstart calls burn-in: the settling-in iterations that are discarded, set by `nburn` in `runOccJSDM()`. The quickstart’s example runs two chains of 5,000 burn-in and 5,000 kept iterations. This comparison runs four chains, as Lessons 2 and 3 do, and keeps 16,000 draws in all rather than 10,000. It does so because it applies the stricter screen below to every monitored quantity, and that screen assumes four chains. Chains should agree, and enough effectively independent draws should remain to estimate the quantities we report. Rhat near 1 measures agreement; effective sample size (ESS) measures the usable information in correlated draws. Neither measures ecological accuracy.
 
 ``` r
 diagnostic_summary <- comparison$diagnostics |>
@@ -405,21 +491,21 @@ knitr::kable(
 | Hmsc    |       1135 |       1.0048 |              1051 |               516 |
 | occJSDM |       1135 |       1.0015 |              3674 |              4894 |
 
-Both passed our checks of Rhat at most 1.01 and bulk/tail ESS at least 400 for all 1,135 monitored quantities. These include environmental coefficients, residual covariance and reported probabilities. We monitor covariance rather than separate factor axes because axes can rotate or reverse sign without changing the model.
+Both passed our checks of Rhat at most 1.01 and bulk and tail ESS at least 400 for all 1,135 quantities monitored in each fit. These are the published screens of Vehtari and colleagues (2021) that [Lesson 2](occJSDM-lesson-2.md#are-the-calculations-stable-enough-to-interpret) adopts and [Lesson 3’s diagnostics section](occJSDM-lesson-3.md#check-computation-as-well-as-ecological-recovery) explains. An ESS of 400 gives each of four chains about 100 effective draws. Here they are applied to the rank-normalised Rhat and the bulk and tail ESS for which they were defined. The monitored quantities include environmental coefficients, residual covariance and reported probabilities. We monitor covariance rather than separate factor axes because axes can rotate or reverse sign without changing the model.
 
-For optimised fits, we also compare different starting points. gllvm’s initial EVA fits reported convergence but gave extreme effects and inconsistent objectives. We rejected them. The selected VA solution was reproduced from separate starts. A message saying “converged” is not enough by itself.
+For optimised fits, we also compare different starting points. gllvm’s first fits used its extended variational approximation (EVA), another way of approximating the likelihood. All six reported convergence but gave extreme effects, with coefficients as large as 26,828. Their objectives were also inconsistent: the starts reached approximate log-likelihoods from -461 to -311, where a settled fit reaches the same value from every start. We rejected them. The selected VA solution was reproduced from separate starts. A message saying “converged” is not enough by itself. To check your own gllvm fit, run several starts, with different seeds or with `n.init` in `control.start`, and compare their log-likelihoods with `logLik()`. Trust the best only if more than one start reaches it.
 
-sjSDM’s original longer starts, fitted with no penalty at all, differed by 0.2115 in accurately calculated training log likelihood, exceeding our declared 0.1 stability check. Smaller optimisation steps did not close the gap. A follow-up then examined the fitting problem itself, and what it found is worth understanding.
+sjSDM’s original longer starts, fitted with no penalty at all, differed by about 0.21 in accurately calculated training log likelihood. That exceeds the 0.1 stability check declared before fitting in the study’s run plan (`dev/simstudy/jsdm-package-comparison/RUN-PLAN.md`, line 15). Smaller optimisation steps did not close the gap. A follow-up then examined the fitting problem itself, and what it found is worth understanding.
 
 ### Two local optima in the sjSDM fit
 
-Restoring the optimiser’s usual weak penalty and refining the saved fits with an exact optimiser found that the penalised fitting problem has two verified local maxima, two hills, and independent starts climb one or the other. Whether these two maxima also explain why the unpenalised starts disagreed is still open: the stability work did not establish it. The declared selection rule picked the better hill, reached by four of twelve starts, before any truth was read.
+Picture the fitting problem as a landscape whose height is how well a set of parameter values fits the training data. An optimiser climbs from its starting point until no step goes higher. If the landscape has two hills, starts on different slopes stop on different summits. Each summit is a **local maximum**: the highest point nearby, not necessarily the highest anywhere. Restoring the optimiser’s usual weak penalty and refining the saved fits with an exact optimiser found that the penalised fitting problem has two verified local maxima, two hills. Independent starts climb one or the other. Whether these two maxima also explain why the unpenalised starts disagreed is still open: the stability work did not establish it. The declared selection rule picked the better hill, reached by four of twelve starts, before any truth was read.
 
 In the selected solution, species 2 has a large residual spread and species 9 a small one; in the other solution it is the reverse. With 100 sites, the data cannot firmly decide which species’ unexplained variation is large, so two explanations fit almost equally well. The appendix tables show that the choice barely matters for new-site prediction but matters for some sampled-site reconstructions, because those depend on the inferred hidden conditions.
 
-The average errors of the two local maxima are almost identical, and the original unpenalised fit was within 0.4 points of the revised fit at every new site. Some sampled-site probabilities differ by tens of points between the two maxima, mostly for species 2 and 9. This is the teaching point: a converged optimiser is not the same as a unique answer, and agreement of average errors does not mean the models agree about every site.
+The average errors of the two local maxima are almost identical, and the original unpenalised fit was within 0.4 points of the revised fit at every new site. Some sampled-site probabilities differ by tens of points between the two maxima, mostly for species 2 and 9. This is the teaching point: a converged optimiser is not the same as a unique answer, and agreement of average errors does not mean the models agree about every site. MCMC chains can also settle in different modes, which is one reason several chains are run and compared; [Lesson 3](occJSDM-lesson-3.md#when-chains-settle-on-two-different-explanations) shows how to check your own fit for this.
 
-We select starts by the training fitting criterion, never by similarity to truth. Fitting criteria from different packages are not directly comparable here, so a larger numerical likelihood is not a cross-package score.
+We select starts by the training fitting criterion, never by similarity to truth. The rule was declared before any truth was read because that prevents choosing the answer you like. Fitting criteria from different packages are not directly comparable here, so a larger numerical likelihood is not a cross-package score.
 
 [The appendix](#the-two-sjsdm-optima-evidence) gives the evidence: the deterministic refinement and curvature check, the twelve-start classification and the tables behind these statements.
 
@@ -469,7 +555,7 @@ ggplot(sampled_site_predictions, aes(truth, estimate)) +
 
 ![](teaching-data/lesson-5-sampled-site-probabilities-1.png)<!-- -->
 
-The sampled-site plot is more scattered. Even knowing all ten species’ presences does not tell us the hidden conditions perfectly. Do not interpret this contrast as “models predict better when deprived of observations”: the two figures have **different targets**. Averaging over hidden conditions removes variation that the sampled-site exercise asks the model to reconstruct.
+The four panels in each figure look much alike. At this level the packages are hard to tell apart, so the figures mainly test what they share, the model and the data, rather than the packages. The clearest difference is at sampled sites, where occJSDM’s and Hmsc’s points stay further from 0% and 100% than gllvm’s and sjSDM’s; section 7 measures it by probability band. The sampled-site plot is more scattered because its target is harder, not because observations make predictions worse; section 7 explains why.
 
 ## 7. How far wrong, and in which direction?
 
@@ -526,15 +612,15 @@ ggplot(overall_errors, aes(package, average_absolute_error_pp, fill = package)) 
 
 ![](teaching-data/lesson-5-absolute-error-comparison-1.png)<!-- -->
 
-At new sites, the average absolute errors are about **6.1, 7.1, 7.1 and 6.3 points**, in package order. At sampled sites they are about **12.1, 11.9, 13.3 and 12.2 points**. These are measured results, not notional examples, and they are not the older occJSDM-only sample-size experiment.
+At new sites, the average absolute errors are about **6.1, 7.1, 7.1 and 6.3 points**, in package order. At sampled sites they are about **12.1, 11.9, 13.3 and 12.2 points**.
 
 Why are the new-site errors lower here, even though sampled sites supply more observations? The targets differ. At a new site, the score asks for the occurrence probability **averaged over possible hidden site conditions**, not the probability under some “average” hidden condition. At a sampled site, it asks for the probability under that site’s particular hidden conditions. The ten observed presences and absences help infer those conditions, but do not reveal them exactly. If the generating distribution and global model parameters were known perfectly, the new-site average could be calculated exactly, while the sampled-site probability would still be uncertain. The lower new-site error therefore does not show that withholding observations helps; it reflects an easier, averaged target in this comparison.
 
-The signed averages are only about +1 point, because overestimates and underestimates largely cancel. An average absolute error of 6.1 points means the predictions miss by 6.1 points on average when direction is ignored. It does not mean every prediction is 6.1 points wrong, or that 6.1% of species are incorrectly classified.
+The signed averages are only +1.0 to +1.2 points, because overestimates and underestimates largely cancel. occJSDM’s average absolute error of 6.1 points at new sites means its predictions miss by that much on average when direction is ignored. It does not mean every prediction is 6.1 points wrong, or that 6.1% of species are incorrectly classified.
 
 ### Does performance differ for rare and common occurrences?
 
-The bands below refer to each **species-by-site probability**, not a permanent classification of the species. The same species can have low probability at one site and high probability at another. The middle band includes 20% and excludes 80%; the upper band starts at 80%.
+The bands below refer to each **species-by-site probability**, not a permanent classification of the species. The same species can have low probability at one site and high probability at another. The edges at 20% and 80% separate occurrences that are unlikely at a site, middling and near-certain. [Lesson 2](occJSDM-lesson-2.md#calculate-the-errors-ourselves) groups its errors at the same cut points to look for its pull towards the middle. The middle band includes 20% and excludes 80%; the upper band starts at 80%.
 
 ``` r
 band_errors <- predictions |>
@@ -599,7 +685,22 @@ knitr::kable(
 
 Sampled sites: direction and size of errors within each probability band
 
+``` r
+# Signed errors in one band, in package order, quoted in the text below.
+band_signed <- function(which_question, which_band) {
+  band_errors |>
+    filter(question == which_question, band == which_band) |>
+    pull(signed_error_pp) |>
+    sprintf(fmt = "%+.1f") |>
+    knitr::combine_words(oxford_comma = FALSE)
+}
+```
+
 Read the signed and absolute columns together. A positive signed value in the low band indicates overestimation on average there. A negative value in the high band indicates underestimation. A small middle-band signed average does not imply accurate middle-band predictions; check its absolute-error column. The counts indicate how much of this community each result describes. They are not numbers of independent simulation replicates.
+
+At sampled sites, every package overestimates in the “Below 20%” band, with signed errors of +8.8, +4.6, +3.0 and +7.4 points in package order, and underestimates in the “80% or above” band, at -10.4, -6.9, -5.0 and -9.4. This is **shrinkage towards the middle**: low probabilities come out too high and high ones too low. Part of it follows from the target, as explained above. Ten presences and absences cannot reveal a site’s hidden conditions exactly, so the most extreme conditional probabilities are partly averaged away. The pull is larger for occJSDM and Hmsc than for gllvm and sjSDM. Their priors are one possible reason, which this one community cannot test; [Lesson 2](occJSDM-lesson-2.md#why-rare-and-common-species-are-pulled-towards-the-middle) explains how occJSDM’s prior on baseline occupancy pulls rare and common species towards the middle.
+
+At new sites the band errors are smaller, and their directions differ among packages. In the “Below 20%” band the signed errors are +2.8, -1.0, -1.2 and +1.0 points, and in the “80% or above” band -2.1, +1.6, +2.0 and -0.3. occJSDM and Hmsc are pulled towards the middle, as at sampled sites, while gllvm and sjSDM err slightly the other way, underestimating low probabilities and overestimating high ones. This one community cannot say why they differ.
 
 ### Are the same species difficult for every package?
 
@@ -625,7 +726,7 @@ ggplot(species_errors, aes(absolute_error_pp, species, colour = package)) +
 
 ![](teaching-data/lesson-5-errors-by-species-1.png)<!-- -->
 
-Every plotted error is a distance from matching simulated truth. This figure helps identify which species deserve closer examination. It cannot by itself establish why a species is difficult or whether the same pattern recurs in other communities.
+Every plotted error is a distance from the simulated truth. This figure helps identify which species deserve closer examination. It cannot by itself establish why a species is difficult or whether the same pattern recurs in other communities.
 
 To inspect a species in detail, filter the same table. Here is species_01, the first species in the input order. Change that name to examine another species. The [complete species error table](teaching-data/lesson-4-species-errors.csv) contains both error measures and counts for every species, package and question.
 
@@ -654,11 +755,13 @@ species_errors |>
 
 Species_01: actual error against truth
 
+Every signed error for species_01 is negative, from -3.2 to -0.6 points, although the overall averages above are positive. All four packages put species_01 slightly too low, and the overall average hides that.
+
 ## 8. What environmental response does each model recover?
 
 We now move along one gradient while keeping the other at its training mean. The horizontal axis runs from two training standard deviations below the mean to two above it. All curves **average over hidden conditions**, matching the new-site question.
 
-Each black dashed line is the true response. Each coloured line is a model’s estimated response. We show all ten species, rather than selecting the most attractive examples. The curves are point summaries; no common uncertainty interval was calculated across all four fitting methods. Their agreement or separation is not a test of a statistically significant difference between packages.
+Each black dashed line is the true response. Each coloured line is a model’s estimated response. We show all ten species, rather than selecting the most attractive examples. The curves are point summaries; no common uncertainty interval was calculated across all four fitting methods, because the packages measure uncertainty in different ways. [Lesson 6’s interval checks](occJSDM-lesson-6.md#4-do-95-intervals-contain-the-truth) compare intervals where they can be compared, and have probability intervals only for the two Bayesian packages. Their agreement or separation is not a test of a statistically significant difference between packages.
 
 ``` r
 response_curves <- as_tibble(comparison$curves) |>
@@ -708,7 +811,9 @@ ggplot(filter(response_curves, gradient == "environment_2"),
 
 ![](teaching-data/lesson-5-environmental-gradient-2-1.png)<!-- -->
 
-Look for three different kinds of disagreement: a curve that is generally too high or low, one that changes too steeply or too weakly, and one that changes in the wrong direction. Their ecological implications differ, even if their overall average errors happen to be similar. For example, species_03’s gradient-1 curves follow truth closely, while species_04’s gradient-1 curves are too flat. Along gradient 2, species_03’s fitted responses are much flatter than its true response. These examples are visible in the full set of panels; they illustrate how to read a curve, rather than determining which results we include.
+Look for three different kinds of disagreement: a curve that is generally too high or low, one that changes too steeply or too weakly, and one that changes in the wrong direction. Their ecological implications differ, even if their overall average errors happen to be similar. For example, species_03’s gradient-1 curves follow truth closely, while species_04’s and species_09’s gradient-1 curves are too flat. Along gradient 2, species_03’s fitted responses are much flatter than its true response.
+
+In almost every panel the four packages’ curves lie on top of each other. Where they miss the truth, as for species_04 and species_09 on gradient 1 and species_03 on gradient 2, all four miss it together. These errors come from what 100 sites can reveal about each species, not from any one package.
 
 These are observational responses within this simulated model, with other measured conditions fixed and unmeasured conditions averaged over. For a real dataset, a fitted environmental association does not by itself establish a causal effect. Also, these curves differ from the zero-factor occupancy-gradient profiles taught in [Lesson 3](occJSDM-lesson-3.md): here we deliberately average over hidden variation.
 
@@ -740,11 +845,38 @@ knitr::kable(outcome_scores, digits = 4,
 
 Scores for 3,000 held-out binary outcomes
 
+Is a Brier score of about 0.18 good? Two references, scored on the same outcomes, answer that.
+
+``` r
+training_prevalence <- colMeans(training$y)
+
+new_site_predictions |>
+  filter(package == "occJSDM") |>
+  mutate(prevalence = training_prevalence[as.character(species)]) |>
+  summarise(
+    `True probabilities` = mean((truth - observed)^2),
+    `Each species' training prevalence` = mean((prevalence - observed)^2)
+  ) |>
+  knitr::kable(digits = 4, caption = "Brier scores of two references on the same 3,000 outcomes")
+```
+
+| True probabilities | Each species’ training prevalence |
+|-------------------:|----------------------------------:|
+|             0.1772 |                            0.2212 |
+
+Brier scores of two references on the same 3,000 outcomes
+
+The true probabilities, averaged over hidden conditions, score 0.1772. That is the best a model given only the environment could expect to score here, because even the generating probabilities leave each 0 or 1 uncertain. Predicting each species’ training prevalence at every site, which ignores the environment, scores 0.2212. The four packages, from 0.1817 to 0.1827, lie much closer to the first. The rows are filtered to one package only because the truth and the outcomes repeat in every package’s rows.
+
 The scores are close in this pilot. Even the true probability will sometimes give substantial error against a random binary outcome: a species predicted with 80% probability is still absent about one time in five. This is why the probability-error tables and the outcome-score table measure different things. We do not use sampled-site outcome scores to claim independent prediction skill, because those observations helped fit the models.
+
+To get such scores on your own presence/absence survey, hold out some sites before fitting and predict them with `predictNewSites()`, as [Lesson 4](occJSDM-lesson-4.md#use-the-packages-new-site-prediction-function) shows. Then score the predictions against what was recorded there, as Lesson 4’s [model comparison](occJSDM-lesson-4.md#compare-models-using-what-actually-occurred) does. With eDNA data, the detections are not the true presences, so the held-out sites need occupancy that you can establish independently, as [Lesson 4](occJSDM-lesson-4.md#predict-occupancy-at-genuinely-new-sites) cautions.
 
 ## 10. What this lesson establishes, and what remains open
 
 The four packages can be compared on the same perfectly observed community **when their prediction targets are explicitly matched**. Perfect observation still leaves appreciable probability error. Across this one community, the differences among new-site scores are small, while errors vary among species and probability bands.
+
+For an eDNA user the take-home is this: on perfectly observed presence/absence data, occJSDM’s ecological model performed like the established packages in this community. The choice among them can therefore rest on whether you need the detection model, which only occJSDM has.
 
 This does not establish a generally superior package, prove that any fitted optimum is global, or demonstrate systematic bias across repeated communities. [Lesson 6](occJSDM-lesson-6.md) adds independent simulated communities, sample-size comparisons and a matched trait example. A broader study still needs both logit- and probit-generating scenarios and sensitivity to priors. Spatial effects, residual-correlation comparisons and variation partitioning require their own matched experiments; they are not included in this pilot.
 
@@ -764,11 +896,11 @@ Continue to [Lesson 6](occJSDM-lesson-6.md), or return to the [Quickstart and le
 
 ### Fit the same configurations yourself
 
-Run each package’s fitting example in a **fresh R session** with its recorded dependencies available. Load `comparison` and `training` as above first. The examples show the selected configuration; they do not replace the multiple-start and diagnostic checks. Bayesian defaults and numerical results can change with package versions.
+Run each package’s fitting example in a **fresh R session**, with the package versions listed in [section 2](#2-how-similar-are-the-four-models); the [reproduction record](#reproduction-record) gives the exact snapshots the recorded fits used. Load `comparison` and `training` as above first. The examples show the selected configuration; they do not replace the multiple-start and diagnostic checks. Bayesian defaults and numerical results can change with package versions.
 
 #### occJSDM: directly observed binary data
 
-There are no repeated `Site`, `Sample` or `Primer` identifiers in this input. occJSDM infers binary JSDM mode. `n_lattrait = 0` removes latent species-trait structure; `n_factors = 2` retains the two hidden site factors.
+There are no repeated `Site`, `Sample` or `Primer` identifiers in this input, so `info` has one row per site and occJSDM infers binary JSDM mode, as the opening described. `OTU = training$y` holds 0s and 1s rather than read counts; in this mode they are used directly as absences and presences, so no read threshold applies. `n_lattrait = 0` fits no latent traits, unmeasured species traits that would shape the species’ environmental responses (the default is two); `n_factors = 2` retains the two hidden site factors.
 
 ``` r
 library(occJSDM)
@@ -804,13 +936,13 @@ fit_gllvm <- gllvm(
 )
 ```
 
+`starting.val = "res"` takes the starting values of the hidden factors and loadings from the residuals of a first fit without them, rather than from random values. `jitter.var = 0.1` adds a little random variation to those starting values, so that different seeds start from slightly different points. `maxit` and `max.iter` are the iteration limits of gllvm’s optimisers; both are set to 12,000, twice the 6,000 used by the first attempts (`dev/simstudy/jsdm-package-comparison/RUN-PLAN.md`, lines 14 and 31). `sd.errors = FALSE` skips standard errors, which this pilot did not need because it compares point estimates; [Lesson 6](occJSDM-lesson-6.md#appendix-evidence-and-reproduction), whose interval checks need them, replays its selected gllvm fits to get them.
+
 #### sjSDM: the selected weak-penalty configuration
 
-Select the Python environment appropriate for your machine before loading reticulate or sjSDM. This switch explicitly disables Mojo in the recorded fork. `df = 2` sets the covariance factor dimension; the environmental response is linear, not a neural network. The seed below is the selected start; the pilot ran twelve.
+Install sjSDM from Doug’s fork release v0.1.0, as section 2 recommends, and follow its installation instructions for the Python environment sjSDM needs. With the later release v0.2.1, which the recorded fits used, run `Sys.setenv(SJSDM_MOJO_BACKEND = "0")` before loading sjSDM, so that it fits with PyTorch rather than its optional Mojo backend. `df = 2` sets the covariance factor dimension; the environmental response is linear, not a neural network. The seed below is the selected start; the pilot ran twelve.
 
 ``` r
-Sys.setenv(SJSDM_MOJO_BACKEND = "0")
-
 library(sjSDM)
 
 fit_sjSDM <- sjSDM(
@@ -835,6 +967,8 @@ fit_sjSDM <- sjSDM(
   verbose = FALSE
 )
 ```
+
+`sampling = 2000L` sets how many random draws of the hidden factors sjSDM uses to approximate the likelihood; the bundle records 2,000 for the selected fit. `step_size = 100L` sets how many sites each optimisation step uses; at 100, every step uses all 100 training sites. `lambda = 0` in `linear()` and `bioticStruct()` turns off sjSDM’s own penalties on the environmental coefficients and on the species covariance. `weight_decay = 0.0001` is the optimiser’s own small penalty on large parameter values, which the next paragraph explains.
 
 Weight decay 0.0001 is the optimiser’s usual default in this sjSDM release. The original pilot set it to zero, which allowed coefficients to grow without limit, and its repeated starts disagreed. With the weak penalty, the fitting problem has two verified local maxima; whether they also explain the unpenalised starts’ disagreement is still open. After the call above, the selected fit continued for another 1,000 epochs at learning rate 0.0002 with a fresh optimiser, using the package’s own model object. The exact continuation code is in `dev/simstudy/jsdm-package-comparison/sjsdm-multistart.R`. A single call cannot show which local maximum a start will reach, so repeat it with several seeds and compare their training objectives. sjSDM’s live Python model cannot simply be saved and restored as an ordinary R object; the study archives verified numeric parameters separately.
 
@@ -875,6 +1009,8 @@ fit_Hmsc <- sampleMcmc(
 )
 ```
 
+How each package’s new-site prediction was made marginal: for the Bayesian models, the integration over hidden variation happens separately for each parameter draw, then the probabilities are averaged. For gllvm and sjSDM, we hold their estimated global parameters fixed and integrate over hidden variation. For sampled sites, we condition on the observed community: Bayesian fits already include that information in their joint draws; the other two use a checked study calculation. We do not condition on the test observations or multiply their likelihood into predictions.
+
 #### What did these runs cost?
 
 The table separates time for the selected fit from time spent on all attempts. For sjSDM the attempts include the six original unpenalised starts and the twelve weak-penalty starts with their continuations; the selected fit’s time covers both its stages. Times are elapsed wall time measured on one Apple Silicon machine; some processes ran concurrently. Summing them is an accounting of fit effort, not the elapsed duration of the project or a controlled speed benchmark. It excludes setup, checking, exports and the deterministic diagnostic calculations.
@@ -911,7 +1047,9 @@ knitr::kable(
 | occJSDM |        1 |                18.6 |                 18.6 |
 | sjSDM   |       18 |              7971.7 |                664.4 |
 
-The original longer sjSDM workers saved complete numeric fits but subsequently exited with a parser error because their driver file was edited while running. The saved fits were checked in fresh processes against the input hashes and native predictions; the execution error remains in the record. Later runs used immutable driver snapshots. Numerical probability integration was independently checked at finer resolution, with differences much smaller than the ecological errors shown here.
+How long will each take? The selected fits took 18.6 seconds for occJSDM, 0.6 for gllvm, 24.0 for Hmsc and 664.4 for sjSDM, about 11 minutes. Because sjSDM was fitted from many starts, its 18 attempts together took 7,972 seconds, about 2.2 hours. On your own data, budget for the repeated starts, not only for one fit.
+
+Of the original sjSDM processes, three ended with an error after saving their fits; `dev/simstudy/jsdm-package-comparison/FITTING-REPORT.md` (line 82) records why, and how the saved fits were checked before use.
 
 ### The two sjSDM optima: evidence
 
@@ -1010,6 +1148,6 @@ Differences between sjSDM predictions, in percentage points
 
 ### Reproduction record
 
-The compact bundle records seed 26092201, complete generating truth, fit selection, input/source hashes, diagnostics and unrounded estimates. It also keeps the original provisional sjSDM selection, the twelve-start classification, the curvature summary and the three-way sjSDM comparison shown above. The occJSDM snapshot is `3a97267`; Doug’s sjSDM fork snapshot is `d2ca508`. The examples use gllvm 2.0.15 and Hmsc 3.3-7. No fit is rerun while knitting, and the lesson needs no Python or full MCMC files to render.
+The compact bundle records seed 26092201, complete generating truth, fit selection, input and source hashes, diagnostics and unrounded estimates. It also keeps the original provisional sjSDM selection, the twelve-start classification, the curvature summary and the three-way sjSDM comparison shown above. The occJSDM snapshot is `3a97267`; Doug’s sjSDM fork snapshot is `d2ca508` (fork release v0.2.1, Mojo backend off). The examples use gllvm 2.0.15 and Hmsc 3.3-7. No fit is rerun while knitting, and the lesson needs no Python or full MCMC files to render.
 
 For the full fitting, selection, numerical extraction and validation commands, see `dev/simstudy/jsdm-package-comparison/README.md` in the source repository. The development reports retain failed attempts, optimisation follow-ups and environment limitations; that directory is deliberately excluded from the built package. The compact teaching bundle and this lesson are included.
