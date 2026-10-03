@@ -49,6 +49,11 @@ fit_labels <- c(
   default = "PCR observations"
 )
 
+environment_labels <- c(
+  X_psi.EnvCov.1 = "Environmental gradient 1",
+  X_psi.EnvCov.2 = "Environmental gradient 2"
+)
+
 species_order <- colnames(lesson$input$sim$data_list$OTU)
 
 # This theme also works after occJSDM loads its ternary-plot dependency.
@@ -455,7 +460,33 @@ native_environment_perfect_2
 knitr::include_graphics("teaching-data/native-plot-environment-perfect-2.png")
 ```
 
-A cross outside its bar shows an interval that misses truth in this dataset. A bar crossing the red line means its direction is unresolved under this interval criterion; it does not establish that the simulated effect is absent. Species order follows the native interval bounds, so positions differ between plots.
+A cross outside its bar shows an interval that misses truth in this dataset. A bar crossing the red line means its direction is unresolved under this interval criterion; it does not establish that the simulated effect is absent. Species order follows the native interval bounds, so positions differ between plots; the figure below keeps one species order for both fits.
+
+This figure is custom because no package plot draws both fits in one panel, which is the comparison this section's headline question asks for.
+
+```{r environmental-coefficients, fig.height=8}
+environment_effects <- outputs$coefficients |>
+  filter(block == "Environment") |>
+  mutate(species = factor(term, levels = species_order))
+
+ggplot(environment_effects, aes(x = species)) +
+  geom_hline(yintercept = 0, colour = "grey55", linetype = "dashed") +
+  geom_pointrange(
+    aes(y = estimate, ymin = lower, ymax = upper),
+    colour = "#0072B2"
+  ) +
+  geom_point(aes(y = truth), shape = 4, size = 3, stroke = 1) +
+  facet_grid(
+    covariate ~ arm,
+    labeller = labeller(covariate = environment_labels, arm = fit_labels)
+  ) +
+  labs(
+    x = "Species",
+    y = "Environmental effect on log-odds of occurrence",
+    caption = "Black cross: true coefficient. Blue point: posterior mean. Bar: 95% interval."
+  ) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
 
 A positive coefficient means occurrence becomes more likely along that gradient; a negative one means less likely. Zero means no direct response to that covariate in this model. These coefficients are changes in log-odds for a one-standard-deviation change in the environmental predictor, not percentage-point changes in occurrence probability.
 
@@ -748,6 +779,30 @@ trait_summary
 
 `expand_grid()` lists every covariate-by-trait pair, `rowwise()` lets each row pull its own vector of draws, and the three summaries are computed from that vector. The result is an ordinary tibble that can be filtered, joined to the generating values, or passed to `ggplot2`.
 
+The figure below is custom because no package plot draws both fits in one panel; it shows such summaries, the posterior mean and 95% interval of each trait effect, for the perfect-observation and PCR fits beside the same standardized truth.
+
+```{r trait-effects, fig.height=6}
+trait_effects <- outputs$coefficients |>
+  filter(block == "Trait")
+
+ggplot(trait_effects, aes(x = term)) +
+  geom_hline(yintercept = 0, colour = "grey55", linetype = "dashed") +
+  geom_pointrange(
+    aes(y = estimate, ymin = lower, ymax = upper),
+    colour = "#0072B2"
+  ) +
+  geom_point(aes(y = truth), shape = 4, size = 3, stroke = 1) +
+  facet_grid(
+    covariate ~ arm,
+    labeller = labeller(covariate = environment_labels, arm = fit_labels)
+  ) +
+  labs(
+    x = "Measured species trait",
+    y = "Change in environmental coefficient per trait standard deviation",
+    caption = "Black cross: generating trait effect on the fitted scale. Blue: posterior mean and 95% interval."
+  )
+```
+
 ## Residual species associations: did we recover what was put in?
 
 The residual correlation describes the model's shared hidden site component. It is not the raw correlation of PCR detections, and it does not establish a biological interaction between species. Even after supplying every measured environmental covariate, this simulation still contains the deliberately generated hidden site factors.
@@ -785,7 +840,7 @@ native_correlations
 knitr::include_graphics("teaching-data/native-plot-correlations.png")
 ```
 
-OTU_4 was generated with zero loading on both hidden site factors. Its hidden contribution has no variation, so its correlation with another hidden contribution is mathematically undefined. The package plot labels those cells `NA` and we exclude them from numerical correlation-error summaries. Painting them white would incorrectly claim their true correlation was zero.
+OTU_4 was generated with zero loading on both hidden site factors. Its hidden contribution has no variation, so its correlation with another hidden contribution is mathematically undefined. The package plot labels those cells `NA` and we exclude them from numerical correlation-error summaries.
 
 Compare the pattern and magnitude, not just whether an interval crosses zero. An apparently strong estimated correlation can still be far from the generating value.
 
@@ -835,7 +890,7 @@ The ordinary biplot uses the package's stored orientation. It carries no truth o
 knitr::include_graphics("teaching-data/ordination-ordinary-biplot.png")
 ```
 
-The arrows of OTU_3 to OTU_10 look short here because the hidden axes' orientation differs from draw to draw, so their loadings average towards zero across draws, not because those species lack associations; the aligned biplot in the [appendix](#read-native-ordination-plots-after-aligning-their-axes) is the one to read for associations.
+The arrows of OTU_3 and OTU_5 to OTU_10 look short here because the hidden axes' orientation differs from draw to draw, so their loadings average towards zero across draws, not because those species lack associations (OTU_4 genuinely has none); the aligned biplot in the [appendix](#read-native-ordination-plots-after-aligning-their-axes) is the one to read for associations.
 
 A loading is a species' response to a unit change in a hidden site score, on the occurrence log-odds scale. Opposite loading directions indicate opposite residual responses. They do not establish competition, facilitation or another causal interaction.
 
@@ -1312,17 +1367,17 @@ There are twelve rows because these probabilities do not vary among repeated PCR
 Each question names the functions that answer it and where these lessons check the answer against truth.
 
 - **How do I prepare and fit data?** `simulateOccJSDMData()`, `runOccJSDM()`. Truth check: Lessons 0 and 1.
-- **How does each species respond to the environment?** `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()`. Truth check: the coefficient and response-curve plots above, for both fits.
+- **How does each species respond to the environment?** `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()`. Truth check: the coefficient plots above, for both fits, and the response-curve plots above.
 - **What is baseline occupancy?** `returnOccupancyRates()`, `plotOccupancyRates()`. Truth check: the baseline table and package plot above.
-- **Do traits explain species responses?** `returnTraitsCoeff()`, `plotTraitsCoefficients()`. Truth check: the package trait plots for both fits above, with standardized truth; the cancellation diagnostic in the appendix.
+- **Do traits explain species responses?** `returnTraitsCoeff()`, `plotTraitsCoefficients()`. Truth check: the package trait plots and the two-fit comparison above, with standardized truth; the cancellation diagnostic in the appendix.
 - **Which species share unmeasured site responses?** `returnResidualCorrelationMatrix()`, `plotResidualCorrelationMatrix()`. Truth check: the package heat map with true correlations above.
-- **What do ordination axes represent?** `returnOrdinationScores()`, `returnFactorLoadings()`, `plotOrdinationScores()`, `plotFactorLoadings()`, `plotBiplot()`. Truth check: the combined contribution and the ordinary biplot above; truth-aligned scores, loadings and biplot in the appendix.
+- **What do ordination axes represent?** `returnOrdinationScores()`, `returnFactorLoadings()`, `plotOrdinationScores()`, `plotFactorLoadings()`, `plotBiplot()`. Truth check: the combined contribution above; truth-aligned scores, loadings and biplot in the appendix.
 - **What affects collection?** `returnCollectionCovariates()`, `plotCollectionCovariates()`, `plotCollectionRates()`, `computeAverageCollectionProbs()`. Truth check: the collection plots above; observation process in Lesson 1.
 - **What about PCR failures and contamination?** `plotDetectionRates()`, `plotStage1FPRates()`, `plotStage2FPRates()`. Truth check: combined and separate rate plots above; actual cases in Lesson 1.
 - **How does sampling effort affect detection?** `plotCumulativeSpeciesDetections()`. Truth check: package survey-outcome intervals with exact true ranges above.
 - **What happened at a particular site or sample?** `computeConditionalOccupancyProbs()`, `computeConditionalSamplePresenceProbs()`, `computePredictiveOccupancyProbs()`, `returnLatentPresences()`, `plotLatentPresences()`. Truth check: package tables above, with matching states and probabilities.
 - **Can I trust the computation?** `computeDiagnostics()`, `returnConvergenceDiagnostics()`, `plotTraceplot()`, `extractWAIC()`. Truth check: diagnostics at the start of this lesson; these have no single simulated true value.
-- **How well does it predict unsurveyed sites?** `predictNewSites()`. Truth check: [The prediction lesson](occJSDM-lesson-prediction.md): 300 independent non-spatial sites, with clearly distinguished probability targets.
+- **How well does it predict unsurveyed sites?** `predictNewSites()`. Truth check: [the prediction lesson](occJSDM-lesson-prediction.md): 300 independent non-spatial sites, with clearly distinguished probability targets.
 - **What about spatial prediction?** Spatial model outputs. [The spatial lesson](occJSDM-lesson-2.md) works through a site-arrangement sweep; this lesson does not validate spatial outputs.
 
 ## Where to go next
