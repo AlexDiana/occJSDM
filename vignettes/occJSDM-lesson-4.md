@@ -3,9 +3,9 @@ Lesson 4: Predict occupancy at new sites and compare models
 
 ## What this lesson answers
 
-Genuine prediction at an unsurveyed site requires keeping its observations out of fitting and averaging appropriately over its unknown conditions. Reusing the fitting sites’ covariates is not an independent prediction test. This lesson supplies 300 independently generated sites that neither model has seen, predicts occupancy there with the package’s new-site function, and compares two models by how well they predict what actually occurred. Spatial prediction is in [the spatial lesson](occJSDM-lesson-7.md).
+Genuine prediction at an unsurveyed site requires keeping its observations out of fitting and averaging appropriately over its unknown conditions. Reusing the fitting sites’ covariates is not an independent prediction test. This lesson supplies 300 independently generated sites that neither model has seen. It predicts occupancy there with the package’s new-site function and compares two models by how well they predict what actually occurred. Spatial prediction is in [the spatial lesson](occJSDM-lesson-7.md).
 
-It continues [Lesson 3](occJSDM-lesson-3.md), which reads the same fits’ outputs against truth, and uses the same non-spatial community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
+It continues [Lesson 3](occJSDM-lesson-3.md), which reads the same fits’ outputs against truth. It uses the same non-spatial community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
 
 All teaching code is visible. Run chunks with `vignettes` as the working directory, or knit this file. Figures and tables use compact saved summaries; chunks labelled `eval=FALSE` show how to obtain the underlying outputs from a full fit, where `fitmodel` is the full object returned by `runOccJSDM()`. The [appendix](#appendix-evidence-and-reproduction) shows how to rebuild the new-site comparison.
 
@@ -42,7 +42,7 @@ Imagine receiving habitat measurements from a second survey area before collecti
 
 The original training survey is unchanged: 100 sites, three field samples per site, two primers and six PCR replicates per primer per sample. We compare its existing two-factor PCR fit with a new one-factor fit. Both use the same observations, environmental covariates, traits, priors and MCMC settings. The only model-setting change is the number of hidden site factors. The generating community has two factors, but that does not guarantee that two fitted factors will predict more accurately from this amount of data.
 
-How should you choose the number of hidden site factors for your own data? There is no rule yet. Start small, compare candidate numbers by scoring their predictions at sites left out of fitting, as this lesson does, and check that your conclusions do not change between them; [Lesson 2’s fitting reference](occJSDM-lesson-2.md#fitting-your-own-data-what-the-call-needs) lists `n_factors` among the settings of the call. Even in a simulation, the number that generated the data need not win.
+How should you choose the number of hidden site factors for your own data? Follow [Lesson 2’s advice](occJSDM-lesson-2.md#now-give-occjsdm-only-the-pcr-observations) on refitting with different numbers; its [fitting reference](occJSDM-lesson-2.md#fitting-your-own-data-what-the-call-needs) lists `n_factors` among the settings of the call. Scoring predictions at sites left out of fitting, as this lesson does, needs sites whose occupancy you can establish independently of the eDNA detections. The package has no validated held-out workflow for surveys with imperfect detection yet. Even in a simulation, the number that generated the data need not win.
 
 ``` r
 prediction_examples <- readRDS("teaching-data/prediction-lesson.rds")
@@ -84,7 +84,7 @@ Two probabilities are useful here. They answer different questions.
 
 The second is often called a **marginal probability**, because the unmeasured conditions have been averaged out. The first is a **conditional probability**, because it assumes those conditions are known. Neither is the actual presence/absence observation, which is only zero or one.
 
-Here is a concrete example from the simulation. The code uses the true parameters to show the distinction for OTU_6 at site 101. `plogis()` converts log-odds into a probability. `dnorm()` gives more weight to common hidden conditions and less weight to unusual ones; `integrate()` adds up their weighted probabilities. `lesson$input$jsdm$sigma_h` is the standard deviation of each hidden site factor in the simulation (1 here). Multiplying it by the length of the species’ loadings, the square root of the summed squares of how strongly it responds to each factor (`true_parameters$L`), gives the spread of that species’ hidden contribution on the log-odds scale.
+Here is a concrete example from the simulation. The code uses the true parameters to show the distinction for OTU_6 at site 101. `plogis()` converts log-odds into a probability. `dnorm()` gives more weight to common hidden conditions and less weight to unusual ones; `integrate()` adds up their weighted probabilities. `lesson$input$jsdm$sigma_h` is the standard deviation of each hidden site factor in the simulation (1 here). Multiplying it by the length of the species’ loadings gives the spread of that species’ hidden contribution on the log-odds scale. The loadings (`true_parameters$L`) say how strongly the species responds to each factor, and their length is the square root of their summed squares.
 
 ``` r
 true_parameters <- known_truth$jsdmParams_true
@@ -165,7 +165,7 @@ tibble(
 
 `X_psi` takes the new sites’ raw environmental values. `useSpatial = FALSE` leaves out the spatial field, which this non-spatial fit does not have. `confidence = 0.95` sets the interval’s coverage, so the lower and upper slices are the 2.5% and 97.5% quantiles. `verbose = FALSE` silences progress messages. `useBiotic`, left at its default, includes the hidden-factor term for a fit with factors, drawing new hidden conditions as described above. The last lines of the chunk put the first species’ three slices in a table, one row per site.
 
-Because the function draws new hidden conditions, its interval includes uncertainty about those conditions as well as uncertainty about the fitted parameters. Compare that interval with the simulator’s **conditional probability for the site’s actual conditions**. It is not a confidence interval for a binary presence/absence observation, and its middle slice is a **median**, not a posterior mean. The figure shows the intervals this call gave for two species, OTU_1 and OTU_6, from the two-factor fit.
+Because the function draws new hidden conditions, its interval includes uncertainty about those conditions as well as uncertainty about the fitted parameters. Compare that interval with the simulator’s **conditional probability for the site’s actual conditions**. The interval is not a confidence interval for a binary presence/absence observation, and its middle slice is a **median**, not a posterior mean. The figure shows the intervals this call gave for two species, OTU_1 and OTU_6, from the two-factor fit.
 
 ``` r
 native_prediction_examples <- prediction_examples$public |>
@@ -193,13 +193,13 @@ ggplot(native_prediction_examples, aes(x = Site)) +
 
 ![](occJSDM-lesson-4_files/figure-gfm/prediction-native-intervals-1.png)<!-- -->
 
-The wide intervals are informative: habitat alone leaves considerable uncertainty about a particular site’s occupancy probability. Of the 20 intervals, 16 contain their cross. A cross above its interval marks a site whose hidden conditions suited the species better than its habitat alone suggests. Seeing truth inside an interval is a useful check, but 20 examples cannot establish an overall coverage rate.
+The wide intervals are informative: habitat alone leaves considerable uncertainty about a particular site’s occupancy probability. Of the 20 intervals, 16 contain their cross. Here, a cross above its interval marks a site whose hidden conditions suited the species better than its habitat alone suggests. In general, error in the fitted parameters can also put a cross outside its interval. Seeing truth inside an interval is a useful check, but 20 examples cannot establish an overall coverage rate.
 
 ### Check point predictions against the appropriate truth
 
-For a single probability prediction, we use the **posterior mean of probabilities averaged over unknown conditions**. The package cannot return this yet. `predictNewSites()` currently returns only quantiles: setting `summarised = FALSE`, which would return the draws themselves, stops with “Only summarised version for now” (`R/output.R` line 1667). With your own data, report the median and interval that `predictNewSites()` returns. The posterior mean scored here came from a development script. For each of the 24,000 retained draws, it averages the probability over hidden conditions, the same kind of averaging `integrate()` did above, and then averages across the draws. Averaging over the hidden conditions, rather than drawing them as `predictNewSites()` does, removes the extra noise of drawing hypothetical conditions. It does not remove uncertainty or Monte Carlo error in the fitted parameters.
+For a single probability prediction, we use the **posterior mean of probabilities averaged over unknown conditions**. The package cannot return this yet. `predictNewSites()` currently returns only quantiles: setting `summarised = FALSE`, which would return the draws themselves, stops with “Only summarised version for now” (`R/output.R` line 1667). With your own data, report the median and interval that `predictNewSites()` returns. The posterior mean scored here came from a development script. For each of the 24,000 retained draws, it averages the probability over hidden conditions, the same kind of averaging `integrate()` did above, and then averages across the draws. Averaging over the hidden conditions, rather than drawing them as `predictNewSites()` does, removes the extra noise of drawing hypothetical conditions. It does not remove uncertainty in the fitted parameters, or their Monte Carlo error: the numerical error that comes from summarising a finite number of draws.
 
-In the next figure, both axes refer to probability given **only the measured environment**. Each point represents one species at one new site. The diagonal is exact agreement. Points above it are overestimates; points below it are underestimates. The two fits produce very similar predictions.
+In the next figure, both axes refer to probability given **only the measured environment**. Each point represents one species at one new site. The diagonal is exact agreement. Points above it are overestimates; points below it are underestimates.
 
 ``` r
 prediction_cells <- prediction_examples$cells |>
@@ -230,9 +230,9 @@ ggplot(prediction_cells, aes(x = truth, y = estimate)) +
 
 ![](occJSDM-lesson-4_files/figure-gfm/prediction-marginal-recovery-1.png)<!-- -->
 
-The points follow the diagonal in both panels, spreading most at intermediate true probabilities, and the two panels look almost the same. The crosses, sites beyond the training range of at least one gradient, stray further from the diagonal: their average absolute error is 10.9 percentage points, against 8.8 for sites within the training ranges. Here, predictions beyond the conditions the model was trained on were less accurate, even though the new sites came from the same distribution.
+The points follow the diagonal in both panels, spreading most at intermediate true probabilities, and the two panels look almost the same. The blue crosses mark sites beyond the training range of at least one gradient, and they stray further from the diagonal. Their average absolute error is 10.9 percentage points, against 8.8 for sites within the training ranges. Here, predictions beyond the conditions the model was trained on were less accurate, even though the new sites came from the same distribution.
 
-Calculate the average direction and size of the errors separately. A negative signed error means underestimation on average. Absolute errors count both overestimates and underestimates as positive distances, so they cannot cancel. The root mean squared error (RMSE) squares each error, averages the squares and takes the square root, so a few large errors raise it more than they raise the absolute error.
+Calculate the average direction and size of the errors separately. A negative signed error means underestimation on average. Absolute errors count both overestimates and underestimates as positive distances, so they cannot cancel. The root mean squared error (RMSE) squares each error, averages the squares and takes the square root. A few large errors therefore raise it more than they raise the absolute error.
 
 ``` r
 prediction_cells |>
@@ -251,7 +251,7 @@ prediction_cells |>
 | One hidden site factor | 0.52 | 8.95 | 12.11 |
 | Two hidden site factors | 0.36 | 8.91 | 12.00 |
 
-Both models overestimate these probabilities slightly on average, by **0.52 percentage points** with one factor and **0.36** with two, while their **average absolute error is about 8.9 percentage points**. Those are results from this simulation, not hypothetical examples. The difference between the two error measures means that errors in opposite directions partially cancel. An absolute error of ten points would be a prediction of 40% or 60% when truth is 50%. The RMSE, about 12.1 percentage points, is larger than the absolute error because some species-site predictions miss by much more than the average.
+Both models overestimate these probabilities slightly on average, by **0.52 percentage points** with one factor and **0.36** with two, while their **average absolute error is about 8.9 percentage points**. Those are results from this simulation, not hypothetical examples. The difference between the two error measures means that errors in opposite directions partially cancel. An absolute error of ten points would be a prediction of 40% or 60% when truth is 50%. The RMSE, about 12.1 percentage points, is about 3.1 points larger than the absolute error, because some species-site predictions miss by much more than the average.
 
 These new-site errors have a different target from Lesson 2’s errors in fitted-site probabilities. Here we average over unknown local conditions; there we check the probability for each surveyed site’s actual conditions. Comparing their magnitudes as if they measured the same task would be misleading.
 
@@ -299,7 +299,7 @@ observed_scores |>
 
 The one-factor fit has a Brier score of 0.1872 and a negative log score of 0.5546; the two-factor fit has 0.1868 and 0.5538. Both Brier scores are about 0.019 above the score of the true probabilities.
 
-Both models predict the **same new sites**, so compare their scores in pairs. Species at a site share hidden conditions; treating 3,000 species-site outcomes as independent would exaggerate the amount of independent evidence. We first average across the ten species within each site, then calculate differences across the 300 sites. `pivot_wider()` turns the two rows for each site, one per model, into a single row with one column for each model’s score, so the difference can be taken within each site.
+Both models predict the **same new sites**, so compare their scores in pairs. Species at a site share hidden conditions; treating 3,000 species-site outcomes as independent would exaggerate the amount of independent evidence. We first average across the ten species within each site, then calculate differences across the 300 sites. `pivot_wider()` turns the two rows for each site, one per model, into a single row with a column for each model’s score. The difference can then be taken within each site.
 
 ``` r
 paired_sites <- observed_scores |>
@@ -320,7 +320,7 @@ paired_sites |>
 |----------------------:|----------------------------:|
 |             0.0003306 |                    6.64e-05 |
 
-The difference, one factor minus two factors, is about **0.00033 Brier units**, slightly favouring the two-factor fit in this particular experiment. That is tiny: about the size of the numerical uncertainty in the MCMC estimates alone, before counting the variation we would see if the training survey were repeated, so it cannot rank the models. The table’s standard error measures only how the difference varies among these new sites; the [appendix](#appendix-evidence-and-reproduction) records the numerical check and why that standard error understates the uncertainty.
+The difference, one factor minus two factors, is about **0.00033 Brier units**, slightly favouring the two-factor fit in this particular experiment. That is tiny, about the size of the numerical uncertainty in the MCMC estimates alone, and repeating the training survey would add further variation. It cannot rank the models. The table’s standard error measures only how the difference varies among these new sites; the [appendix](#appendix-evidence-and-reproduction) records the numerical check and why that standard error understates the uncertainty.
 
 The broad result is that these two fits have nearly identical predictive performance here. We do not select a winning factor count from this tiny difference. Predicting each species’ marginal occurrence also does not test whether the model has recovered joint community structure or the correct number of hidden ecological drivers. A model can give useful single-species probabilities while describing species associations poorly.
 
@@ -344,7 +344,7 @@ fit_one_factor <- occJSDM::runOccJSDM(
 )
 ```
 
-`n_lattrait = 1` keeps the one unmeasured species trait the baseline fit used ([Lesson 3’s appendix](occJSDM-lesson-3.md#a-real-cancellation-inside-this-simulated-community) explains it), so only `n_factors` differs. Both fits use the baseline’s MCMC settings and priors, which the chunk reads from the baseline’s saved record: four chains, 3,000 burn-in iterations (the discarded settling-in period) and 6,000 retained iterations per chain, with no thinning. The additional fit produced no warnings. The following table checks both the public parameter diagnostics and diagnostics for each species’ predicted probability averaged across the 300 new sites. Rhat and effective sample size check MCMC behaviour; they do not have ecological true values to overlay.
+`n_lattrait = 1` keeps the one unmeasured species trait the baseline fit used ([Lesson 3’s appendix](occJSDM-lesson-3.md#a-real-cancellation-inside-this-simulated-community) explains it), so only `n_factors` differs. Both fits use the baseline’s MCMC settings and priors, which the chunk reads from the baseline’s saved record. Those settings are four chains, 3,000 burn-in iterations (the discarded settling-in period) and 6,000 retained iterations per chain, with no thinning. The additional fit produced no warnings. The following table checks both the public parameter diagnostics and diagnostics for each species’ predicted probability averaged across the 300 new sites. Rhat and effective sample size check MCMC behaviour; they do not have ecological true values to overlay.
 
 The screen below is the one [Lesson 3’s diagnostics](occJSDM-lesson-3.md#check-computation-as-well-as-ecological-recovery) introduces: flag a parameter whose Rhat exceeds 1.01 or whose effective sample size is below 400.
 
@@ -403,7 +403,9 @@ tibble(
 | Two hidden site factors |                  24495.31 |
 | One hidden site factor  |                  24501.00 |
 
-**Do not use this table to choose the better model for unsurveyed sites.** In plain terms, the current WAIC rewards fitting the training survey’s own hidden states, not predicting new sites. The current calculation combines likelihood terms for the sampled, unobserved site and collection states with terms for the PCR observations. Those hidden states are learned using the training observations. It does not average them out to evaluate the probability of new observations at a new site. Matching the training dataset is necessary for comparison, but does not by itself fix this difference in target. The independent-site scores above provide the worked predictive comparison. A validated observed-data WAIC or site-level cross-validation workflow remains separate work.
+**Do not use this table to choose the better model for unsurveyed sites.** In plain terms, the current WAIC rewards fitting the training survey’s own hidden states, not predicting new sites.
+
+The current calculation combines likelihood terms for the sampled, unobserved site and collection states with terms for the PCR observations. Those hidden states are learned using the training observations. The calculation does not average them out to evaluate the probability of new observations at a new site. Matching the training dataset is necessary for comparison, but does not by itself fix this difference in target. The independent-site scores above provide the worked predictive comparison. A validated observed-data WAIC or site-level cross-validation workflow remains separate work.
 
 ## Where to go next
 
@@ -420,4 +422,4 @@ Rscript dev/simstudy/vignette-lesson/prediction-export.R /path/to/full-fits /pat
 Rscript dev/simstudy/vignette-lesson/prediction-verify.R /path/to/full-fits /path/to/new-site-check
 ```
 
-This paragraph records the numerical check behind the statement that the score difference cannot rank the two models. The site-based standard error of the paired Brier difference, about 0.000066, describes variation among new sites **conditional on these fitted predictions**. It excludes Monte Carlo error in the MCMC estimates, variation from repeating the original training survey, and changes to the simulated community, so a site-only interval can exclude zero, as it does here, without establishing a dependable model advantage. Running the verifier above with `--score-mcse` added estimates, from all retained posterior draws, the Monte Carlo standard error of the Brier difference at about 0.00026 (recorded in the build log of the full-fit archive, step “33-prediction-verify-score-mcse”). The observed difference of 0.00033 is therefore only about 1.3 Monte Carlo standard errors from zero. That is numerical uncertainty from MCMC, a different source from the site-based standard error, and a difference this close to it supports withholding a model ranking. The calculation uses a first-order approximation.
+This paragraph records the numerical check behind the statement that the score difference cannot rank the two models. The site-based standard error of the paired Brier difference, about 0.000066, describes variation among new sites **conditional on these fitted predictions**. It excludes Monte Carlo error in the MCMC estimates, variation from repeating the original training survey, and changes to the simulated community. An interval built from this standard error alone can therefore exclude zero, as it does here, without establishing a dependable model advantage. Running the verifier above with `--score-mcse` added also estimates the Monte Carlo standard error of the Brier difference from all retained posterior draws. The estimate is about 0.00026, recorded in the build log kept with the archived full fits, at step “33-prediction-verify-score-mcse”. The observed difference of 0.00033 is therefore only about 1.3 Monte Carlo standard errors from zero. That is numerical uncertainty from MCMC, a different source from the site-based standard error, and a difference this close to it supports withholding a model ranking. The MCSE calculation uses a first-order approximation.
