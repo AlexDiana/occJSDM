@@ -719,7 +719,6 @@ covariate_effect_examples <- readRDS("teaching-data/covariate-effect-data.rds")
 
 ``` r
 library(occJSDM)
-library(dplyr)
 library(ggplot2)
 
 covariate_effect_truth <- covariate_effect_examples$truth
@@ -747,11 +746,11 @@ covariate_effect_1
 
 <img src="teaching-data/covariate-effect-1.png" alt="" width="100%" />
 
-The axis runs from -19.4 to 30.9, the lowest and highest values observed at the sites. The same call with `covNames = "X_psi.EnvCov.2"` draws the second gradient. The function orders the panels alphabetically by species name, so `OTU_10` comes second.
+The axis runs from -19.4 to 30.9, the lowest and highest values observed at the sites. The same call with `covNames = "X_psi.EnvCov.2"` draws the second gradient. The function orders the panels alphabetically by species name, so OTU_10 comes second.
 
-This figure and the coefficient plot answer different questions. The coefficient plot says whether an effect is credibly different from zero on the log-odds scale. This curve shows how large the effect is as a change in occupancy probability. As with the curves above, the same coefficient moves occupancy a lot for a species whose baseline is near 50% and little for one near 0% or 100%.
+This figure and the coefficient plot answer different questions. The coefficient plot says whether an effect is credibly different from zero on the log-odds scale. This curve shows how large the effect is as a change in occupancy probability. As the curves above showed, the same coefficient moves occupancy most near a 50% baseline.
 
-The generating curve lies inside the 95% band at every point of the grid for six of the ten species. The largest gap between the posterior median and the truth is 0.32 on the probability scale, for OTU_5. These departures are the fit’s, not the function’s. Both functions summarise the same draws under the same conditions, and the standardized curves above miss the truth for the same species. On your own survey there is no dashed line, so read the band’s width as your uncertainty, and trust the curve’s shape only across the range your sites cover.
+The generating curve lies inside the 95% band at every point of the grid for six of the ten species. The largest gap between the posterior median and the truth is 0.32 on the probability scale, for OTU_5. These departures are the fit’s, not the function’s. Both functions summarise the same draws under the same conditions, and the standardized gradient-1 curves above miss the truth for the same species, OTU_1, OTU_2, OTU_5 and OTU_10. On your own survey there is no dashed line, so read the band’s width as your uncertainty. Trust the curve’s shape least at the ends of the axis, where few sites lie: this plot has no rug, but the rug on `plotOccupancyGradient()` shows where your sites are.
 
 ### Baseline occupancy
 

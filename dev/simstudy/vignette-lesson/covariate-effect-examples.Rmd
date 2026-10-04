@@ -4,7 +4,6 @@ covariate_effect_examples <- readRDS("teaching-data/covariate-effect-data.rds")
 
 ```{r covariate-effect-setup, eval=FALSE, purl=TRUE}
 library(occJSDM)
-library(dplyr)
 library(ggplot2)
 
 covariate_effect_truth <- covariate_effect_examples$truth

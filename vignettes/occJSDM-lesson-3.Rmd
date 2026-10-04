@@ -664,7 +664,6 @@ covariate_effect_examples <- readRDS("teaching-data/covariate-effect-data.rds")
 
 ```{r covariate-effect-setup, eval=FALSE, purl=TRUE}
 library(occJSDM)
-library(dplyr)
 library(ggplot2)
 
 covariate_effect_truth <- covariate_effect_examples$truth
@@ -694,11 +693,42 @@ covariate_effect_1
 knitr::include_graphics("teaching-data/covariate-effect-1.png")
 ```
 
-The axis runs from `r round(min(covariate_effect_examples$truth$x), 1)` to `r round(max(covariate_effect_examples$truth$x), 1)`, the lowest and highest values observed at the sites. The same call with `covNames = "X_psi.EnvCov.2"` draws the second gradient. The function orders the panels alphabetically by species name, so `OTU_10` comes second.
+The axis runs from `r round(min(covariate_effect_examples$truth$x), 1)` to `r round(max(covariate_effect_examples$truth$x), 1)`, the lowest and highest values observed at the sites. The same call with `covNames = "X_psi.EnvCov.2"` draws the second gradient. The function orders the panels alphabetically by species name, so OTU_10 comes second.
 
-This figure and the coefficient plot answer different questions. The coefficient plot says whether an effect is credibly different from zero on the log-odds scale. This curve shows how large the effect is as a change in occupancy probability. As with the curves above, the same coefficient moves occupancy a lot for a species whose baseline is near 50% and little for one near 0% or 100%.
+This figure and the coefficient plot answer different questions. The coefficient plot says whether an effect is credibly different from zero on the log-odds scale. This curve shows how large the effect is as a change in occupancy probability. As the curves above showed, the same coefficient moves occupancy most near a 50% baseline.
 
-The generating curve lies inside the 95% band at every point of the grid for `r xfun::n2w(sum(covariate_effect_examples$checks$inside_share == 1))` of the `r xfun::n2w(nrow(covariate_effect_examples$checks))` species. The largest gap between the posterior median and the truth is `r sprintf("%.2f", max(covariate_effect_examples$checks$max_gap))` on the probability scale, for `r covariate_effect_examples$checks$Species[which.max(covariate_effect_examples$checks$max_gap)]`. These departures are the fit's, not the function's. Both functions summarise the same draws under the same conditions, and the standardized curves above miss the truth for the same species. On your own survey there is no dashed line, so read the band's width as your uncertainty, and trust the curve's shape only across the range your sites cover.
+```{r covariate-effect-misses, include=FALSE}
+# Species whose generating curve leaves the 95% band somewhere, in each figure.
+original_misses <- covariate_effect_examples$checks |>
+  filter(inside_share < 1) |>
+  pull(Species)
+standardized_coverage <- inner_join(
+  remaining_examples$plots$gradient_1$data |>
+    mutate(species = as.character(species), point = row_number(), .by = species),
+  remaining_examples$truth$gradients |>
+    filter(covariate == "X_psi.EnvCov.1") |>
+    mutate(species = as.character(species), point = row_number(), .by = species),
+  by = c("species", "point")
+)
+stopifnot(nrow(standardized_coverage) == 400, max(abs(standardized_coverage$x.x - standardized_coverage$x.y)) < 1e-10)
+standardized_misses <- standardized_coverage |>
+  filter(truth < low | truth > high) |>
+  distinct(species) |>
+  pull(species)
+original_misses <- intersect(species_order, original_misses)
+standardized_misses <- intersect(species_order, standardized_misses)
+misses_text <- if (setequal(original_misses, standardized_misses)) {
+  paste("the standardized gradient-1 curves above miss the truth for the same species,",
+        knitr::combine_words(original_misses, oxford_comma = FALSE))
+} else {
+  paste0("the standardized gradient-1 curves above miss the truth for ",
+         knitr::combine_words(standardized_misses, oxford_comma = FALSE),
+         ", against ", knitr::combine_words(original_misses, oxford_comma = FALSE),
+         " here; the sets can differ because the standardized curves stop at the 2nd and 98th percentiles")
+}
+```
+
+The generating curve lies inside the 95% band at every point of the grid for `r xfun::n2w(sum(covariate_effect_examples$checks$inside_share == 1))` of the `r xfun::n2w(nrow(covariate_effect_examples$checks))` species. The largest gap between the posterior median and the truth is `r sprintf("%.2f", max(covariate_effect_examples$checks$max_gap))` on the probability scale, for `r covariate_effect_examples$checks$Species[which.max(covariate_effect_examples$checks$max_gap)]`. These departures are the fit's, not the function's. Both functions summarise the same draws under the same conditions, and `r misses_text`. On your own survey there is no dashed line, so read the band's width as your uncertainty. Trust the curve's shape least at the ends of the axis, where few sites lie: this plot has no rug, but the rug on `plotOccupancyGradient()` shows where your sites are.
 
 ### Baseline occupancy
 
