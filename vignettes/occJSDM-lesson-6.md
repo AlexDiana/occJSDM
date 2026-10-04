@@ -32,10 +32,11 @@ package_order <- c("occJSDM", "gllvm", "sjSDM", "Hmsc")
 # Each package keeps its Lesson 5 colour and shape.
 package_colours <- c(occJSDM = "#0072B2", gllvm = "#E69F00", sjSDM = "#009E73", Hmsc = "#CC79A7")
 package_shapes <- c(occJSDM = 16, gllvm = 17, sjSDM = 15, Hmsc = 18)
-# Figures that already place packages on an axis or in panels use the two colours
-# no package uses, so a colour there never looks like a package.
+# Training-site counts use the two colours no package uses, so in figures that
+# also show packages a site colour never looks like a package.
 site_colours <- c("100" = "#56B4E9", "300" = "#D55E00")
-response_colours <- c(linear = "#D55E00", quadratic = "#56B4E9")
+# The fitted response is shown by line type, so these colours keep one meaning.
+response_linetypes <- c(quadratic = "solid", linear = "dotdash")
 
 # Keep the registered ternary theme elements valid when vignettes share a session.
 theme_set(ggtern::theme_bw(base_size = 12))
@@ -340,16 +341,16 @@ if (nrow(extension$fitted_curves) > 0) {
   extension$fitted_curves |>
     as_tibble() |>
     ggplot(aes(environment)) +
-    geom_line(aes(y = truth), colour = "black", linetype = "dashed", linewidth = 0.8) +
-    geom_line(aes(y = estimate, colour = response), linewidth = 0.8) +
+    geom_line(aes(y = truth), colour = "black", linetype = "dashed", linewidth = 1) +
+    geom_line(aes(y = estimate, linetype = response), colour = "grey25", linewidth = 0.7) +
     facet_grid(n_sites ~ package) +
-    scale_colour_manual(values = response_colours) +
+    scale_linetype_manual(values = response_linetypes) +
     scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
     labs(
       x = "Environmental gradient 1",
       y = "Occurrence probability",
-      colour = "Fitted response",
-      caption = "Curved scenario, species_01, community 1. Dashed black: truth. Coloured: fitted marginal probabilities. Rows: training sites."
+      linetype = "Fitted response",
+      caption = "Curved scenario, species_01, community 1. Dashed black: truth. Rows: training sites.\nGrey: fitted marginal probabilities, solid for the quadratic fit and dot-dash for the straight-line fit."
     ) +
     theme_bw()
 }

@@ -99,7 +99,7 @@ fit_labels <- c(
 fit_colours <- c(
   perfect = "#0072B2",
   default = "#D55E00",
-  alternative = "#009E73"
+  alternative = "grey40"
 )
 
 # A shape for each prior setting, so the prior comparison does not rely on colour alone.
@@ -948,7 +948,7 @@ alternative_fit <- runOccJSDM(
 )
 ```
 
-```{r prior-sensitivity-cases, fig.height=5.4, fig.cap="Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The coloured circle and triangle use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability."}
+```{r prior-sensitivity-cases, fig.height=5.4, fig.cap="Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The red-orange circle and grey triangle use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability."}
 case_comparison <- bind_rows(
   case_results |>
     transmute(case, arm, quantity = "Site was occupied",

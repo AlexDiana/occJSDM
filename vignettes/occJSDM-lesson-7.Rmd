@@ -118,8 +118,9 @@ arrangement_labels <- c(spread = "Spread at random", pairs = "Spread plus close 
 arm_labels <- c(oracle = "Oracle: true states, known parameters",
                 binary = "occJSDM: true states", two_stage = "occJSDM: eDNA survey")
 # Okabe-Ito colours and a shape for each arm, so the arms stay distinct
-# for readers with colour-vision deficiency.
-arm_colours <- setNames(c("#0072B2", "#D55E00", "#009E73"), arm_labels)
+# for readers with colour-vision deficiency. As in Lesson 2, blue is the fit
+# given true states and red-orange the fit to the eDNA survey.
+arm_colours <- setNames(c("#000000", "#0072B2", "#D55E00"), arm_labels)
 arm_shapes <- setNames(c(16, 17, 15), arm_labels)
 group_labels <- c(prevalence_5pct = "5% species", prevalence_25pct = "25% species",
                   prevalence_75pct = "75% species")
