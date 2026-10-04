@@ -6,19 +6,29 @@
 # Added 4 October 2026 for PR #23 (Okabe-Ito colours): the changes are colour
 # scales only. These functions draw plots from a finished fit and are never
 # called while fitting, so a change to them cannot change any fit.
+# Every entry needs a dated justification like this one. Entries do not expire:
+# bundles keep the fit-time hashes, so a later change to a listed function also
+# passes this check. What guards those later changes is the figure verifiers'
+# comparison of the installed library against R/ (body(), formals() and
+# package_files_md5).
 lesson_plot_only_changes <- c("plotFPTPStage2Rates", "plotDetectionRates",
                               "plotStage2FPRates", "plotTraceplot", "okabe_ito")
 
 # Compare the source fingerprint recorded with a fit (lesson_source_hashes())
 # against the current tree, ignoring comments. Run from the repository root.
 # Files with equal raw md5 pass. A changed R/*.R file is looked up in git
-# history by its recorded md5, both versions are parsed without source
-# references (which drops comments) and compared function by function: only
-# functions named in `allow` may be added, removed or changed, and every other
-# top-level expression must deparse identically. New R/*.R files may define
-# only allow-listed functions. Every other file (DESCRIPTION, NAMESPACE, src/)
-# must match its raw md5. Returns TRUE invisibly or stops naming every
-# difference.
+# history by its recorded md5, and both versions are parsed without source
+# references, which drops comments. Top-level definitions of functions named in
+# `allow` are removed from each version, and the remaining ordered sequences of
+# top-level expressions must be identical() as language objects (so constants
+# are compared exactly, 0.1 vs 0.1000000000000001 and 1L vs 1 included). New
+# R/*.R files may contain only allow-listed function definitions. Every other
+# file (DESCRIPTION, NAMESPACE, src/) must match its raw md5. Returns TRUE
+# invisibly or stops naming every difference.
+# The git lookup searches only history reachable from HEAD (git log). If the
+# commit a fit was made at is not reachable (a rebased or squash-merged branch,
+# a shallow clone), the check fails closed with "no commit in git history has
+# the recorded md5", which is not evidence of a code change.
 lesson_source_check <- function(recorded, allow = lesson_plot_only_changes) {
   stopifnot(is.character(recorded), length(recorded) > 0L,
             !is.null(names(recorded)), is.character(allow))
@@ -48,21 +58,24 @@ lesson_source_check <- function(recorded, allow = lesson_plot_only_changes) {
     }
     NULL
   }
-  # Top-level functions (name -> deparsed definitions) and other expressions.
+  # Ordered top-level expressions without allow-listed function definitions,
+  # plus the remaining function definitions by name and the other expressions,
+  # which are used only to name what differs.
   definitions <- function(file) {
-    exprs <- parse(file, keep.source = FALSE)
-    text <- function(e) paste(deparse(e, width.cutoff = 500L), collapse = "\n")
-    functions <- list(); others <- character()
-    for (e in as.list(exprs)) {
+    exprs <- as.list(parse(file, keep.source = FALSE))
+    defined <- vapply(exprs, function(e) {
       if (is.call(e) && length(e) == 3L &&
           (identical(e[[1L]], as.name("<-")) || identical(e[[1L]], as.name("="))) &&
           (is.name(e[[2L]]) || is.character(e[[2L]])) &&
-          is.call(e[[3L]]) && identical(e[[3L]][[1L]], as.name("function"))) {
-        name <- as.character(e[[2L]])
-        functions[[name]] <- c(functions[[name]], text(e[[3L]]))
-      } else others <- c(others, text(e))
-    }
-    list(functions = functions, others = others)
+          is.call(e[[3L]]) && identical(e[[3L]][[1L]], as.name("function")))
+        as.character(e[[2L]]) else NA_character_
+    }, character(1))
+    kept <- is.na(defined) | !(defined %in% allow)
+    sequence <- exprs[kept]; names_kept <- defined[kept]
+    is_fn <- !is.na(names_kept)
+    list(sequence = sequence,
+         functions = split(sequence[is_fn], factor(names_kept[is_fn])),
+         others = sequence[!is_fn])
   }
   problems <- character()
   note <- function(path, what) problems <<- c(problems, paste0(path, ": ", what))
@@ -75,7 +88,9 @@ lesson_source_check <- function(recorded, allow = lesson_plot_only_changes) {
       note(path, "no commit in git history has the recorded md5"); next
     }
     old <- definitions(old_file); new <- definitions(path)
-    for (name in setdiff(union(names(old$functions), names(new$functions)), allow)) {
+    if (identical(old$sequence, new$sequence)) next
+    before <- length(problems)
+    for (name in union(names(old$functions), names(new$functions))) {
       if (!identical(old$functions[[name]], new$functions[[name]]))
         note(path, paste0("function ", name, " ",
                           if (is.null(old$functions[[name]])) "added"
@@ -84,11 +99,13 @@ lesson_source_check <- function(recorded, allow = lesson_plot_only_changes) {
     }
     if (!identical(old$others, new$others))
       note(path, "top-level code other than function definitions changed")
+    if (length(problems) == before)
+      note(path, "order of top-level code changed")
   }
   for (path in setdiff(names(lesson_source_hashes()), names(recorded))) {
     if (!is_r(path)) { note(path, "new file not in the recorded fingerprint"); next }
     new <- definitions(path)
-    for (name in setdiff(names(new$functions), allow))
+    for (name in names(new$functions))
       note(path, paste0("new file defines function ", name))
     if (length(new$others))
       note(path, "new file has top-level code other than function definitions")

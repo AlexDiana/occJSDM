@@ -11,6 +11,7 @@ lesson <- readRDS(lesson_path)
 bundle <- readRDS("vignettes/teaching-data/latent-presence-lesson.rds")
 stopifnot(identical(bundle$lesson_md5, unname(tools::md5sum(lesson_path))),
           lesson_source_check(bundle$source_hashes),
+          identical(bundle$source_hashes, lesson$input$source_hashes),
           identical(bundle$exporter_md5, unname(tools::md5sum(
             "dev/simstudy/vignette-lesson/summarise_latent_tables.R"))))
 fit_path <- file.path(archive, bundle$fit_manifest$file)

@@ -7,6 +7,7 @@ source("dev/simstudy/vignette-lesson/source-check.R")
 x <- readRDS("vignettes/teaching-data/diagnostics-lesson.rds")
 lesson <- readRDS("vignettes/teaching-data/nonspatial-lesson.rds")
 stopifnot(lesson_source_check(x$source_hashes),
+          identical(x$source_hashes, lesson$input$source_hashes),
           identical(x$lesson_md5, unname(tools::md5sum("vignettes/teaching-data/nonspatial-lesson.rds"))),
           identical(x$exporter_md5, unname(tools::md5sum("dev/simstudy/vignette-lesson/summarise_diagnostics.R"))))
 
