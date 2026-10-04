@@ -203,9 +203,6 @@ primer_1_truth <- native_truth$laboratory |>
 
 native_primer_1 <- plotFPTPStage2Rates(fitmodel, primerName = "1") +
   native_theme +
-  scale_colour_manual(
-    name = "Colour", values = c("TP rate" = "#0072B2", "FP rate" = "#D55E00")
-  ) +
   geom_point(
     data = primer_1_truth, aes(x = species, y = truth),
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
@@ -225,9 +222,6 @@ primer_2_truth <- native_truth$laboratory |>
 
 native_primer_2 <- plotFPTPStage2Rates(fitmodel, primerName = "2") +
   native_theme +
-  scale_colour_manual(
-    name = "Colour", values = c("TP rate" = "#0072B2", "FP rate" = "#D55E00")
-  ) +
   geom_point(
     data = primer_2_truth, aes(x = species, y = truth),
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1

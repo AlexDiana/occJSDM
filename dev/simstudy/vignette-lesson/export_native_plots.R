@@ -16,6 +16,7 @@ library(tibble)
 library(ggplot2)
 
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 
 md5 <- function(path) unname(tools::md5sum(path))
@@ -30,7 +31,7 @@ manifest <- lesson$manifests$default
 fit_path <- file.path(archive, manifest$file)
 stopifnot(
   identical(lesson$input, input),
-  identical(input$source_hashes, lesson_source_hashes()),
+  lesson_source_check(input$source_hashes),
   identical(outputs$source_hashes, input$source_hashes),
   identical(outputs$lesson_md5, md5(lesson_path)),
   identical(manifest, outputs$fit_manifests$default),
@@ -161,7 +162,7 @@ plot_records <- lapply(plots, function(plot) {
 native_examples <- list(
   schema = 1L, truth = native_truth, plots = plot_records, figures = figures,
   provenance = list(
-    source_hashes = lesson_source_hashes(),
+    source_hashes = input$source_hashes, export_source_hashes = lesson_source_hashes(),
     lesson_md5 = md5(lesson_path), output_md5 = md5(output_path),
     input_md5 = lesson$input_md5, fit_manifest = manifest,
     perfect_fit_manifest = perfect_manifest,

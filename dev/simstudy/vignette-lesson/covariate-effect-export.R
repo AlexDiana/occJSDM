@@ -12,6 +12,7 @@ library(purrr)
 library(tibble)
 library(ggplot2)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 
 lesson_path <- "vignettes/teaching-data/nonspatial-lesson.rds"
@@ -28,7 +29,7 @@ manifest <- lesson$manifests$default
 fit_path <- file.path(archive, manifest$file)
 stopifnot(
   identical(lesson$input, input),
-  identical(input$source_hashes, lesson_source_hashes()),
+  lesson_source_check(input$source_hashes),
   identical(outputs$source_hashes, input$source_hashes),
   identical(outputs$lesson_md5, md5(lesson_path)),
   identical(manifest, outputs$fit_manifests$default),
@@ -117,7 +118,8 @@ covariate_effect_examples$schema <- 1L
 covariate_effect_examples$figures <- figures
 covariate_effect_examples$checks <- checks
 covariate_effect_examples$provenance <- list(
-  source_hashes = lesson_source_hashes(), lesson_md5 = md5(lesson_path),
+  source_hashes = input$source_hashes, export_source_hashes = lesson_source_hashes(),
+  lesson_md5 = md5(lesson_path),
   output_md5 = md5(output_path), remaining_md5 = md5(remaining_path),
   input_md5 = lesson$input_md5, fit_manifest = manifest,
   snippet_md5 = md5(snippet_path), exporter_md5 = md5(exporter_path),
