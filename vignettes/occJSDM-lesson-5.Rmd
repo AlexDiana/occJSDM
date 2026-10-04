@@ -78,7 +78,7 @@ package_colours <- c(
 )
 # A second cue beside colour where packages share one panel.
 package_shapes <- c(occJSDM = 16, gllvm = 17, sjSDM = 15, Hmsc = 18)
-package_linetypes <- c(occJSDM = "solid", gllvm = "longdash", sjSDM = "dotdash", Hmsc = "dotted")
+package_linetypes <- c(occJSDM = "solid", gllvm = "dotdash", sjSDM = "twodash", Hmsc = "dotted")
 
 target_labels <- c(
   sampled_site_recovery = "Reconstruct sampled sites",
@@ -473,7 +473,7 @@ new_site_predictions <- predictions |>
 
 ggplot(new_site_predictions, aes(truth, estimate)) +
   geom_abline(slope = 1, intercept = 0, colour = "grey35") +
-  geom_point(alpha = 0.18, size = 0.8, colour = "#007A87") +
+  geom_point(alpha = 0.18, size = 0.8, colour = "grey30") +
   facet_wrap(~ package, ncol = 2,
              labeller = as_labeller(setNames(package_labels, package_order))) +
   scale_x_continuous(limits = c(0, 1), labels = scales::label_percent()) +
@@ -493,7 +493,7 @@ sampled_site_predictions <- predictions |>
 
 ggplot(sampled_site_predictions, aes(truth, estimate)) +
   geom_abline(slope = 1, intercept = 0, colour = "grey35") +
-  geom_point(alpha = 0.22, size = 0.8, colour = "#007A87") +
+  geom_point(alpha = 0.22, size = 0.8, colour = "grey30") +
   facet_wrap(~ package, ncol = 2,
              labeller = as_labeller(setNames(package_labels, package_order))) +
   scale_x_continuous(limits = c(0, 1), labels = scales::label_percent()) +

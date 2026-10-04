@@ -6,6 +6,8 @@
 # Added 4 October 2026 for PR #23 (Okabe-Ito colours): the changes are colour
 # scales only. These functions draw plots from a finished fit and are never
 # called while fitting, so a change to them cannot change any fit.
+# lesson_source_check() enforces "never called while fitting": it fails if any
+# top-level code in R/ other than these definitions names one of them.
 # Every entry needs a dated justification like this one. Entries do not expire:
 # bundles keep the fit-time hashes, so a later change to a listed function also
 # passes this check. What guards those later changes is the figure verifiers'
@@ -23,7 +25,9 @@ lesson_plot_only_changes <- c("plotFPTPStage2Rates", "plotDetectionRates",
 # top-level expressions must be identical() as language objects (so constants
 # are compared exactly, 0.1 vs 0.1000000000000001 and 1L vs 1 included). New
 # R/*.R files may contain only allow-listed function definitions. Every other
-# file (DESCRIPTION, NAMESPACE, src/) must match its raw md5. Returns TRUE
+# file (DESCRIPTION, NAMESPACE, src/) must match its raw md5. In every current
+# R/*.R file, top-level code other than the allow-listed definitions must not
+# name an allow-listed function, as a symbol or as a string. Returns TRUE
 # invisibly or stops naming every difference.
 # The git lookup searches only history reachable from HEAD (git log). If the
 # commit a fit was made at is not reachable (a rebased or squash-merged branch,
@@ -109,6 +113,28 @@ lesson_source_check <- function(recorded, allow = lesson_plot_only_changes) {
       note(path, paste0("new file defines function ", name))
     if (length(new$others))
       note(path, "new file has top-level code other than function definitions")
+  }
+  # Symbols and strings in an expression, so do.call("name") is caught too.
+  referenced <- function(e) {
+    if (is.name(e)) return(as.character(e))
+    if (is.character(e)) return(e)
+    if (is.call(e) || is.pairlist(e) || is.expression(e) || is.list(e))
+      return(unique(unlist(lapply(as.list(e), referenced))))
+    character()
+  }
+  for (path in names(lesson_source_hashes())) {
+    if (!is_r(path) || !length(allow)) next
+    current <- definitions(path)
+    for (name in names(current$functions)) {
+      used <- intersect(referenced(current$functions[[name]]), allow)
+      if (length(used))
+        note(path, paste0("function ", name, " refers to allow-listed ",
+                          paste(used, collapse = ", ")))
+    }
+    used <- intersect(referenced(current$others), allow)
+    if (length(used))
+      note(path, paste0("top-level code refers to allow-listed ",
+                        paste(used, collapse = ", ")))
   }
   if (length(problems))
     stop("Package source differs from the recorded fingerprint beyond comments ",

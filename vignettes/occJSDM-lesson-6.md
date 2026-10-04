@@ -514,7 +514,7 @@ Supplying traits lowered the average error a little, by at most 0.5 percentage p
 
 Improved prediction and clear evidence of a trait relationship are different outcomes. A model can predict reasonably while remaining uncertain about why species differ. Conversely, a detectable trait relationship need not greatly improve predictions when each species already has plenty of observations.
 
-The next figure subtracts the known true trait effect from each estimate. The dashed black line therefore means **accurate estimation**, not necessarily **no trait effect**. The dotted red line means an estimated effect of zero. For the irrelevant trait, those references coincide because its true effect is zero. An interval crossing the black line includes the truth; an interval crossing the red line includes no effect. These are different questions for a trait whose generating effect is nonzero.
+The next figure subtracts the known true trait effect from each estimate. The dashed black line therefore means **accurate estimation**, not necessarily **no trait effect**. The dotted red-orange line means an estimated effect of zero. For the irrelevant trait, those references coincide because its true effect is zero. An interval crossing the black line includes the truth; an interval crossing the red-orange line includes no effect. These are different questions for a trait whose generating effect is nonzero.
 
 ``` r
 if (nrow(extension$traits) > 0) {
@@ -544,13 +544,13 @@ if (nrow(extension$traits) > 0) {
       position = position_dodge(width = 0.5)
     ) +
     facet_grid(relationship ~ design, scales = "free_y") +
-    scale_colour_manual(values = package_colours) +
-    scale_shape_manual(values = package_shapes) +
+    scale_colour_manual(values = package_colours, breaks = package_order) +
+    scale_shape_manual(values = package_shapes, breaks = package_order) +
     labs(
       x = "Independent simulated community",
       y = "Estimated trait effect minus its true value",
       colour = "Package", shape = "Package",
-      caption = "Dashed black: estimate equals truth. Dotted red: estimated effect is zero. Coefficient differences are not probability percentage points."
+      caption = "Dashed black: estimate equals truth. Dotted red-orange: estimated effect is zero.\nCoefficient differences are not probability percentage points."
     ) +
     theme_bw()
 }

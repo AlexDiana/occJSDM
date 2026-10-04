@@ -184,6 +184,20 @@ run_tests <- function() {
   fails(recorded, "R/order.R", "order of top-level code")
   put("R/order.R", order)
   stopifnot(passes(recorded))
+
+  # 14. Code outside the allow list must not refer to an allow-listed function,
+  #     whether the reference is new or already in the recorded version.
+  calls_plot <- sub("x + y", "plotA(x + y)", model, fixed = TRUE)
+  put("R/model.R", calls_plot)
+  fails(recorded, "R/model.R", "function fitModel refers to allow-listed plotA")
+  commit("fitModel calls plotA")
+  fails(tools::md5sum(files), "R/model.R", "function fitModel refers to allow-listed plotA")
+  put("R/model.R", sub("x + y", "do.call(\"plotA\", list(x))", model, fixed = TRUE))
+  fails(recorded, "R/model.R", "refers to allow-listed plotA")
+  put("R/model.R", c(model, "plot_alias <- plotA"))
+  fails(recorded, "R/model.R", "top-level code refers to allow-listed plotA")
+  put("R/model.R", model); commit("restore model again")
+  stopifnot(passes(recorded))
 }
 run_tests()
 cat("All lesson_source_check() tests passed.\n")

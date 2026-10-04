@@ -617,8 +617,8 @@ ggplot(map_errors, aes(x = east, y = north, colour = error_pp)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-2_files/figure-gfm/occupancy-error-maps-1.png" alt="Orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state." />
-<figcaption aria-hidden="true">Orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state.</figcaption>
+<img src="occJSDM-lesson-2_files/figure-gfm/occupancy-error-maps-1.png" alt="Red-orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state." />
+<figcaption aria-hidden="true">Red-orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state.</figcaption>
 </figure>
 
 OTU_1 is common, and 81% of its sites are blue: the pull towards the middle again, underestimating its high probabilities. Neither map shows errors gathered in one part of the survey area; large overestimates and underestimates sit next to each other. That is what this simulation should produce, because its environmental values and hidden site factors were generated independently of coordinates. Smoothing these points would invent a surface that this simulation never generated. The spatial lesson, [Lesson 7](occJSDM-lesson-7.md), introduces a smooth habitat gradient and spatial structure.
@@ -667,8 +667,8 @@ ggplot(detection_rates, aes(x = estimate, y = species)) +
 ```
 
 <figure>
-<img src="occJSDM-lesson-2_files/figure-gfm/detection-rate-recovery-1.png" alt="Black crosses are the true rates for positive read results. Orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species." />
-<figcaption aria-hidden="true">Black crosses are the true rates for positive read results. Orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species.</figcaption>
+<img src="occJSDM-lesson-2_files/figure-gfm/detection-rate-recovery-1.png" alt="Black crosses are the true rates for positive read results. Red-orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species." />
+<figcaption aria-hidden="true">Black crosses are the true rates for positive read results. Red-orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species.</figcaption>
 </figure>
 
 The laboratory rates are recovered well: 37 of the 40 intervals for `p` and `q` contain the true value. The intervals are comparatively narrow, none wider than 79% of its estimate, because every sample’s twelve PCRs give the model many repeated laboratory results to learn from. The field-contamination rate is harder: 9 of its 10 intervals contain the true value, but they are wide, from 87% to 329% of the estimate and reaching up to 19.4%. They are wide because field-stage contamination happens only at unoccupied sites, and a contaminated sample looks like any other sample with DNA.

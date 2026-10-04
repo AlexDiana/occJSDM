@@ -499,7 +499,7 @@ ggplot(probability_maps, aes(x = east, y = north, colour = probability)) +
 
 To see the direction and size of individual mistakes, map estimate minus truth, in percentage points, on a scale centred at zero and shared by both species.
 
-```{r occupancy-error-maps, fig.height=4.5, fig.cap="Orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state."}
+```{r occupancy-error-maps, fig.height=4.5, fig.cap="Red-orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state."}
 map_errors <- mapped_results |>
   mutate(error_pp = 100 * signed_error)
 
@@ -538,7 +538,7 @@ An occasional stray positive is plausible without DNA in the sample. Repeated po
 
 Here are the rates the model actually estimated, next to their true values. The saved `rates` table already contains the fit's summaries and the true rates; we select the default-prior fit and label each parameter before plotting it. Unlike the occupancy maps, these panels have different horizontal scales so small false-positive rates remain readable; compare the axis labels as well as the points.
 
-```{r detection-rate-recovery, fig.height=6.5, fig.cap="Black crosses are the true rates for positive read results. Orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species."}
+```{r detection-rate-recovery, fig.height=6.5, fig.cap="Black crosses are the true rates for positive read results. Red-orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species."}
 detection_rates <- lesson$rates |>
   as_tibble() |>
   filter(arm == "default") |>
