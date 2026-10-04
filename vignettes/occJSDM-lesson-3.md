@@ -131,7 +131,7 @@ These are teaching summaries exported from the full fits, not what `runOccJSDM()
 - **Log-odds** are the scale on which the model adds effects: `log(p / (1 - p))` for a probability `p`. Zero is 50%, and `plogis()` converts log-odds back to a probability.
 - **Hidden site factors**, as in the opening, are unmeasured conditions at a site that several species respond to ([Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-does)). A species’ **hidden site-factor contribution** at a site is their combined effect on its log-odds there.
 
-In the figures, **black crosses or lines show truth**. Blue points or lines show estimates, and blue intervals show posterior uncertainty. An interval is not a measurement of how far the estimate actually is from truth; simulation lets us check both separately.
+In the figures, **black crosses or lines show truth**. Coloured or black bars show posterior intervals; the legend or caption says which. An interval is not a measurement of how far the estimate actually is from truth; simulation lets us check both separately.
 
 ## Check computation as well as ecological recovery
 
@@ -1235,7 +1235,7 @@ remaining_detection
 
 <img src="teaching-data/remaining-plots-detection.png" alt="" width="100%" />
 
-On this figure, a primer mismatch shows as one species whose gap between primers is much larger than the other species’ gaps, or reversed. It means the primer with the lower interval amplifies that species’ DNA poorly. Low rates under every primer point instead to the species itself, for example one that releases little DNA, so that its collected samples hold few copies. Treat such a species with caution, because its non-detections say less about absence than other species’ do. Here each species’ primer 2 cross sits the same distance to the right of its primer 1 cross, so there is no primer mismatch to see. OTU_1 is the lowest under both. If you use the per-primer plots above instead, note that each orders its rows separately, by the lower end of the blue interval.
+On this figure, a primer mismatch shows as one species whose gap between primers is much larger than the other species’ gaps, or runs the other way. It means the primer with the lower interval amplifies that species’ DNA poorly. Low rates under every primer point instead to the species itself, for example one that releases little DNA, so that its collected samples hold few copies. Treat such a species with caution, because its non-detections say less about absence than other species’ do. Here each species’ primer 2 cross sits the same distance to the right of its primer 1 cross, so there is no primer mismatch to see. OTU_1 is the lowest under both.
 
 When mismatches run in different directions for different species, which primer detects best depends on the species: a species-by-primer interaction. The next figure is a made-up example of one, drawn by the same `plotDetectionRates()` from invented rates for three primers and six species, not from a fit.
 
@@ -1243,13 +1243,13 @@ When mismatches run in different directions for different species, which primer 
 
 Read it species by species; the function orders the rows by the average lower end of each species’ intervals, not by name. Primer A has the highest rate for Sp_1, Sp_2 and Sp_3, primer B for Sp_4 and Sp_5, and primer C, weak for every other species, for Sp_6. No primer is uniformly better, so dropping any one of them leaves some species poorly detected.
 
-One way forward is to keep several primers and fit them together, because occJSDM uses every PCR from every primer. To decide whether a field sample holds a species’ DNA, it combines all that sample’s PCRs, weighting each by its primer’s detection and false-positive rates for that species. A species that one primer amplifies poorly is therefore still detected through the other primers’ PCRs. This treats a sample’s PCRs as independent once we know whether the sample holds the DNA.
+One way forward is to keep several primers and fit them together, because occJSDM uses every PCR from every primer. To decide whether a field sample holds a species’ DNA, it combines all that sample’s PCRs, weighting each by its primer’s detection and false-positive rates for that species. A weak primer’s negative PCRs count for little, because when a primer rarely detects a species, a negative is almost as likely whether the sample holds the DNA or not. A species that one primer amplifies poorly is therefore still detected through the other primers’ PCRs. This treats a sample’s PCRs as independent once we know whether the sample holds the DNA.
 
-If running every primer on every sample is too much laboratory work, choose the primer that best amplifies your focal species. Judge that from a pilot survey fitted with all candidate primers and read on a figure like this one, not from one primer’s results alone.
+If running every primer on every sample is too much laboratory work, there is a middle path. The fitter accepts samples that lack some primers, as [Lesson 0](occJSDM-lesson-0.md#unequal-numbers-of-field-samples) explains, so you can run the strongest primer on every sample and a second primer on a subset. Otherwise, choose the one primer that best amplifies your focal species. Either way, judge which primer is strongest from a pilot survey fitted with all candidate primers and read on a figure like this one, not from one primer’s results alone.
 
 ### Separate false-positive and detection-rate plots
 
-This subsection shows the two false-positive rates on their own: field contamination, then laboratory false positives by primer. The first plot shows field contamination: the probability of a collected presence when the species is absent from the site. Black crosses mark the generating `theta0`; bars are the package’s 95% posterior intervals. This is a latent collection event, so its truth does not need a read-threshold adjustment.
+This subsection shows the two false-positive rates on their own. The first plot shows field contamination: the probability of a collected presence when the species is absent from the site. Black crosses mark the generating `theta0`; bars are the package’s 95% posterior intervals. This is a latent collection event, so its truth does not need a read-threshold adjustment.
 
 ``` r
 remaining_stage1_fp <- plotStage1FPRates(fitmodel, idx_species = 1:10) +
@@ -1296,7 +1296,7 @@ remaining_stage2_fp
 
 <img src="teaching-data/remaining-plots-stage2-fp.png" alt="" width="100%" />
 
-Species order is chosen separately by each of the package’s helpers. A truth cross outside its bar identifies an interval that misses the generating rate in this dataset. These rate intervals summarize parameter uncertainty, unlike the random survey-count ranges in the cumulative-detection examples.
+Species order is chosen separately by each of the package’s helpers; the per-primer plots above, for example, each order their rows by the lower end of the blue interval. A truth cross outside its bar identifies an interval that misses the generating rate in this dataset. These rate intervals summarize parameter uncertainty, unlike the random survey-count ranges in the cumulative-detection examples.
 
 Every plotting function that draws a figure returns a `ggplot2` object, with two exceptions. `plotCovariateEffect()` returns a named list with one plot per covariate, so combine its elements, taken by name as in [the curves in original units](#the-same-curves-in-original-units), rather than the list. `plotLatentPresences()` returns a table. The `ggplot2` plots can therefore be placed side by side with the `patchwork` package. Its `+` operator lays two plots next to each other, and `/` stacks them. Pairing each stage’s false-positive plot with its success plot puts what should ideally be low beside what should ideally be high.
 
@@ -1306,13 +1306,15 @@ library(patchwork)
 field_rates <- (plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1)) +
   plotCollectionRates(fitmodel, idx_species = 1:10)
 
-laboratory_rates <- (plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1)) +
-  plotDetectionRates(fitmodel, idx_species = 1:10)
+primer_colours <- scale_colour_manual(values = c("1" = "#0072B2", "2" = "#E69F00"))
+
+laboratory_rates <- (plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1) + primer_colours) +
+  (plotDetectionRates(fitmodel, idx_species = 1:10) + primer_colours)
 
 field_rates / laboratory_rates
 ```
 
-The parentheses matter: the first `+` inside them adds a `ggplot2` layer to one plot, whereas the `+` between the parenthesised plot and the next plot is `patchwork`’s side-by-side operator.
+`primer_colours` gives the primers the colours of the figures above. The parentheses matter. A `+` inside them adds a `ggplot2` layer or scale to one plot, whereas the `+` between the parenthesised plot and the next plot is `patchwork`’s side-by-side operator.
 
 ### Would more field samples or PCR replicates help detection?
 
