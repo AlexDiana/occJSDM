@@ -1,0 +1,35 @@
+```{r covariate-effect-read, purl=FALSE}
+covariate_effect_examples <- readRDS("teaching-data/covariate-effect-data.rds")
+```
+
+```{r covariate-effect-setup, eval=FALSE, purl=TRUE}
+library(occJSDM)
+library(dplyr)
+library(ggplot2)
+
+covariate_effect_truth <- covariate_effect_examples$truth
+covariate_effect_theme <- ggtern::theme_bw(base_size = 12)
+```
+
+```{r covariate-effect-gradient-1, eval=FALSE, purl=TRUE}
+# plotCovariateEffect() returns a named list: take the plot by its covariate name.
+covariate_effect_1 <- plotCovariateEffect(
+  fitmodel, covNames = "X_psi.EnvCov.1", idx_species = 1:10
+)[["X_psi.EnvCov.1"]] +
+  covariate_effect_theme +
+  geom_line(
+    data = covariate_effect_truth, aes(x = x, y = truth),
+    inherit.aes = FALSE, colour = "black", linetype = "dashed"
+  ) +
+  labs(
+    title = "Environmental gradient 1 in its original units: site factors set to zero",
+    x = "Environmental gradient 1 (original units)",
+    caption = "Blue: posterior median and pointwise 95% interval. Black dashed: true probability."
+  )
+
+covariate_effect_1
+```
+
+```{r covariate-effect-gradient-1-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/covariate-effect-1.png")
+```

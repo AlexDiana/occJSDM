@@ -707,7 +707,55 @@ remaining_gradient_2
 
 Notice that the same coefficient can produce very different probability changes depending on where the species starts on the vertical axis. An effect near a baseline probability of 50% has more room to move the probability than the same log-odds change near 0% or 100%. The curves make that easier to see than the coefficient plot alone.
 
-`returnOccupancyRates()` similarly describes the probability when the standardized measured predictors and the hidden factors are all zero. It transforms each species’ occupancy intercept to the probability scale and returns a **posterior-draw-by-species matrix**, pooling the draws of all chains. In this fit, there are 24,000 rows (four chains of 6,000 kept draws) and ten species columns.
+### The same curves in original units
+
+`plotOccupancyGradient()` labels its horizontal axis in standard deviations, which makes gradients comparable with each other but is not how a report states them. `plotCovariateEffect()` draws the same curves under the same conditions: other numeric covariates at their medians, and hidden site factors and spatial terms at zero. Its horizontal axis is in the covariate’s original units, the units you recorded it in, and runs over the full observed range rather than the 2nd to 98th percentiles. This is the version to put in a report, or to show a reader outside modelling.
+
+The function accepts several covariate names and returns a named list with one plot per covariate, even when you give one name. Take the plot by its name, as below, before adding layers to it. The black dashed line is the generating curve on the function’s own grid, with the second gradient at its median.
+
+``` r
+covariate_effect_examples <- readRDS("teaching-data/covariate-effect-data.rds")
+```
+
+``` r
+library(occJSDM)
+library(dplyr)
+library(ggplot2)
+
+covariate_effect_truth <- covariate_effect_examples$truth
+covariate_effect_theme <- ggtern::theme_bw(base_size = 12)
+```
+
+``` r
+# plotCovariateEffect() returns a named list: take the plot by its covariate name.
+covariate_effect_1 <- plotCovariateEffect(
+  fitmodel, covNames = "X_psi.EnvCov.1", idx_species = 1:10
+)[["X_psi.EnvCov.1"]] +
+  covariate_effect_theme +
+  geom_line(
+    data = covariate_effect_truth, aes(x = x, y = truth),
+    inherit.aes = FALSE, colour = "black", linetype = "dashed"
+  ) +
+  labs(
+    title = "Environmental gradient 1 in its original units: site factors set to zero",
+    x = "Environmental gradient 1 (original units)",
+    caption = "Blue: posterior median and pointwise 95% interval. Black dashed: true probability."
+  )
+
+covariate_effect_1
+```
+
+<img src="teaching-data/covariate-effect-1.png" alt="" width="100%" />
+
+The axis runs from -19.4 to 30.9, the lowest and highest values observed at the sites. The same call with `covNames = "X_psi.EnvCov.2"` draws the second gradient. The function orders the panels alphabetically by species name, so `OTU_10` comes second.
+
+This figure and the coefficient plot answer different questions. The coefficient plot says whether an effect is credibly different from zero on the log-odds scale. This curve shows how large the effect is as a change in occupancy probability. As with the curves above, the same coefficient moves occupancy a lot for a species whose baseline is near 50% and little for one near 0% or 100%.
+
+The generating curve lies inside the 95% band at every point of the grid for six of the ten species. The largest gap between the posterior median and the truth is 0.32 on the probability scale, for OTU_5. These departures are the fit’s, not the function’s. Both functions summarise the same draws under the same conditions, and the standardized curves above miss the truth for the same species. On your own survey there is no dashed line, so read the band’s width as your uncertainty, and trust the curve’s shape only across the range your sites cover.
+
+### Baseline occupancy
+
+Like the response curves, `returnOccupancyRates()` describes the probability under fixed conditions, here with the standardized measured predictors and the hidden factors all at zero. It transforms each species’ occupancy intercept to the probability scale and returns a **posterior-draw-by-species matrix**, pooling the draws of all chains. In this fit, there are 24,000 rows (four chains of 6,000 kept draws) and ten species columns.
 
 Use it to compare species’ baseline occurrence probabilities under the same reference conditions, or to report a baseline estimate with its uncertainty. This is not the average occupancy across the landscape: measured environmental effects and hidden site contributions have been set to zero, not averaged over sites.
 
@@ -1229,7 +1277,7 @@ remaining_detection
 
 Species order is chosen separately by each of the package’s helpers. A truth cross outside its bar identifies an interval that misses the generating rate in this dataset. These rate intervals summarize parameter uncertainty, unlike the random survey-count ranges in the cumulative-detection examples.
 
-Every plotting function that draws a figure returns a `ggplot2` object, with two exceptions. `plotCovariateEffect()` returns a named list with one plot per covariate, so combine its elements rather than the list. `plotLatentPresences()` returns a table. The `ggplot2` plots can therefore be placed side by side with the `patchwork` package. Its `+` operator lays two plots next to each other, and `/` stacks them. Pairing each stage’s false-positive plot with its success plot puts what should ideally be low beside what should ideally be high.
+Every plotting function that draws a figure returns a `ggplot2` object, with two exceptions. `plotCovariateEffect()` returns a named list with one plot per covariate, so combine its elements, taken by name as in [the curves in original units](#the-same-curves-in-original-units), rather than the list. `plotLatentPresences()` returns a table. The `ggplot2` plots can therefore be placed side by side with the `patchwork` package. Its `+` operator lays two plots next to each other, and `/` stacks them. Pairing each stage’s false-positive plot with its success plot puts what should ideally be low beside what should ideally be high.
 
 ``` r
 library(patchwork)
@@ -1595,7 +1643,7 @@ There are twelve rows because these probabilities do not vary among repeated PCR
 Each question names the functions that answer it and where these lessons check the answer against truth.
 
 - **How do I prepare and fit data?** `simulateOccJSDMData()`, `runOccJSDM()`. Truth check: Lessons 0 and 2.
-- **How does each species respond to the environment?** `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()`. Truth check: the coefficient plots above, for both fits, and the response curves above, for the PCR fit.
+- **How does each species respond to the environment?** `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()`. Truth check: the coefficient plots above, for both fits, and the response curves above, in standardized and original units, for the PCR fit.
 - **What is baseline occupancy?** `returnOccupancyRates()`, `plotOccupancyRates()`. Truth check: the baseline table and package plot above.
 - **Do traits explain species responses?** `returnTraitsCoeff()`, `plotTraitsCoefficients()`. Truth check: the package trait plots and the two-fit comparison above, with standardized truth; the cancellation diagnostic in the appendix.
 - **Which species share unmeasured site responses?** `returnResidualCorrelationMatrix()`, `plotResidualCorrelationMatrix()`. Truth check: the package heat map with true correlations above.
@@ -2076,6 +2124,8 @@ Rscript dev/simstudy/vignette-lesson/ordination-export.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/ordination-verify.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/remaining-plots-export.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/remaining-plots-verify.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/covariate-effect-export.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/covariate-effect-verify.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/native-traits-export.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/native-traits-verify.R /path/to/full-fits
 ```
