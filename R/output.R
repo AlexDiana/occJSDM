@@ -910,9 +910,9 @@ plotCollectionRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the true and false positives at the lab stage
 #'
-#' The TP rate is drawn in blue (`#0072B2`) and the FP rate in vermillion
-#' (`#D55E00`) from the colour-blind-safe Okabe-Ito palette; add
-#' `scale_colour_manual()` to the returned plot to use other colours.
+#' The TP rate is drawn in blue (\code{#0072B2}) and the FP rate in vermillion
+#' (\code{#D55E00}) from the colour-blind-safe Okabe-Ito palette; add
+#' \code{scale_colour_manual()} to the returned plot to use other colours.
 #'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
@@ -986,6 +986,9 @@ plotFPTPStage2Rates <- function(fitModel,
   # other than a prefix 1:k (TODO.md Fixed bugs 31/32).
   speciesNameOrdered <- data_plot$Species[order(data_plot$p1)]
 
+  # Okabe-Ito blue for TP and vermillion for FP (colours 1 and 6).
+  rate_colours <- okabe_ito(6)[c(1, 6)]
+
   detectionRates <- data_plot %>%
     ggplot()  +
     geom_errorbar(aes(x = factor(Species, level = speciesNameOrdered),
@@ -1003,10 +1006,9 @@ plotFPTPStage2Rates <- function(fitModel,
     theme_bw() +
     # ylim(c(0,1)) +
     ylab("Detection probability") +
-    # Okabe-Ito blue for TP and vermillion for FP (colours 1 and 6).
     scale_color_manual(
       name = "Colour",
-      values = c("TP rate" = okabe_ito(6)[1], "FP rate" = okabe_ito(6)[6])
+      values = c("TP rate" = rate_colours[1], "FP rate" = rate_colours[2])
     ) +
     theme(
       axis.text = element_text(angle = 0,
@@ -1029,7 +1031,7 @@ plotFPTPStage2Rates <- function(fitModel,
 #'
 #' Primers are coloured from the colour-blind-safe Okabe-Ito palette in their
 #' stored order (recycled, with a warning, beyond eight primers); add
-#' `scale_colour_manual()` to the returned plot to use other colours.
+#' \code{scale_colour_manual()} to the returned plot to use other colours.
 #'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
@@ -1166,7 +1168,7 @@ plotStage1FPRates <- function(fitModel,
 #'
 #' Primers are coloured from the colour-blind-safe Okabe-Ito palette in their
 #' stored order (recycled, with a warning, beyond eight primers); add
-#' `scale_colour_manual()` to the returned plot to use other colours.
+#' \code{scale_colour_manual()} to the returned plot to use other colours.
 #'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).

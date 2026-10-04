@@ -22,7 +22,7 @@ Plots the 95% credible interval of the true positives at the lab stage
 
 Primers are coloured from the colour-blind-safe Okabe-Ito palette in their
 stored order (recycled, with a warning, beyond eight primers); add
-`scale_colour_manual()` to the returned plot to use other colours.
+\code{scale_colour_manual()} to the returned plot to use other colours.
 }
 \examples{
 \dontrun{

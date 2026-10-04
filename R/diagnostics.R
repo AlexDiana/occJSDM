@@ -262,7 +262,7 @@ summarisePosterior <- function(param_output, param_name = "parameter",
 #' Faceted per-chain trace plots for every element of a posterior array.
 #'
 #' Chains are coloured from the colour-blind-safe Okabe-Ito palette (recycled,
-#' with a warning, beyond eight chains); add `ggplot2::scale_colour_manual()`
+#' with a warning, beyond eight chains); add \code{ggplot2::scale_colour_manual()}
 #' to the returned plot to use other colours.
 #'
 #' @param param_output A numeric array with 2, 3, or 4 dimensions
