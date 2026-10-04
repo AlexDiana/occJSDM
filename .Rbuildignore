@@ -20,7 +20,6 @@
 ^vignettes/LESSON-PLAN\.md$
 ^\.posit/assistant$
 ^\.worktrees$
-^vignettes/images$
 ^CLAUDE-HANDOVER\.md$
 ^_includes$
 ^assets$
