@@ -131,7 +131,7 @@ These are teaching summaries exported from the full fits, not what `runOccJSDM()
 - **Log-odds** are the scale on which the model adds effects: `log(p / (1 - p))` for a probability `p`. Zero is 50%, and `plogis()` converts log-odds back to a probability.
 - **Hidden site factors**, as in the opening, are unmeasured conditions at a site that several species respond to ([Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-does)). A species’ **hidden site-factor contribution** at a site is their combined effect on its log-odds there.
 
-In the figures, **black crosses or lines show truth**. Blue points or lines show estimates, and blue intervals show posterior uncertainty. An interval is not a measurement of how far the estimate actually is from truth; simulation lets us check both separately.
+In the figures, **black crosses or lines show truth**. Coloured or black bars show posterior intervals; the legend or caption says which. An interval is not a measurement of how far the estimate actually is from truth; simulation lets us check both separately.
 
 ## Check computation as well as ecological recovery
 
@@ -707,7 +707,54 @@ remaining_gradient_2
 
 Notice that the same coefficient can produce very different probability changes depending on where the species starts on the vertical axis. An effect near a baseline probability of 50% has more room to move the probability than the same log-odds change near 0% or 100%. The curves make that easier to see than the coefficient plot alone.
 
-`returnOccupancyRates()` similarly describes the probability when the standardized measured predictors and the hidden factors are all zero. It transforms each species’ occupancy intercept to the probability scale and returns a **posterior-draw-by-species matrix**, pooling the draws of all chains. In this fit, there are 24,000 rows (four chains of 6,000 kept draws) and ten species columns.
+### The same curves in original units
+
+`plotOccupancyGradient()` labels its horizontal axis in standard deviations, which makes gradients comparable with each other but is not how a report states them. `plotCovariateEffect()` draws the same curves under the same conditions: other numeric covariates at their medians, and hidden site factors and spatial terms at zero. Its horizontal axis is in the covariate’s original units, the units you recorded it in, and runs over the full observed range rather than the 2nd to 98th percentiles. This is the version to put in a report, or to show a reader outside modelling.
+
+The function accepts several covariate names and returns a named list with one plot per covariate, even when you give one name. Take the plot by its name, as below, before adding layers to it. The black dashed line is the generating curve on the function’s own grid, with the second gradient at its median.
+
+``` r
+covariate_effect_examples <- readRDS("teaching-data/covariate-effect-data.rds")
+```
+
+``` r
+library(occJSDM)
+library(ggplot2)
+
+covariate_effect_truth <- covariate_effect_examples$truth
+covariate_effect_theme <- ggtern::theme_bw(base_size = 12)
+```
+
+``` r
+# plotCovariateEffect() returns a named list: take the plot by its covariate name.
+covariate_effect_1 <- plotCovariateEffect(
+  fitmodel, covNames = "X_psi.EnvCov.1", idx_species = 1:10
+)[["X_psi.EnvCov.1"]] +
+  covariate_effect_theme +
+  geom_line(
+    data = covariate_effect_truth, aes(x = x, y = truth),
+    inherit.aes = FALSE, colour = "black", linetype = "dashed"
+  ) +
+  labs(
+    title = "Environmental gradient 1 in its original units: site factors set to zero",
+    x = "Environmental gradient 1 (original units)",
+    caption = "Blue: posterior median and pointwise 95% interval. Black dashed: true probability."
+  )
+
+covariate_effect_1
+```
+
+<img src="teaching-data/covariate-effect-1.png" alt="" width="100%" />
+
+The axis runs from -19.4 to 30.9, the lowest and highest values observed at the sites. The same call with `covNames = "X_psi.EnvCov.2"` draws the second gradient. The function orders the panels alphabetically by species name, so OTU_10 comes second.
+
+This figure and the coefficient plot answer different questions. The coefficient plot says whether an effect is credibly different from zero on the log-odds scale. This curve shows how large the effect is as a change in occupancy probability. As the curves above showed, the same coefficient moves occupancy most near a 50% baseline.
+
+The generating curve lies inside the 95% band at every point of the grid for six of the ten species. The largest gap between the posterior median and the truth is 0.32 on the probability scale, for OTU_5. These departures are the fit’s, not the function’s. Both functions summarise the same draws under the same conditions, and the standardized gradient-1 curves above miss the truth for the same species, OTU_1, OTU_2, OTU_5 and OTU_10. On your own survey there is no dashed line, so read the band’s width as your uncertainty. Trust the curve’s shape least at the ends of the axis, where few sites lie: this plot has no rug, but the rug on `plotOccupancyGradient()` shows where your sites are.
+
+### Baseline occupancy
+
+Like the response curves, `returnOccupancyRates()` describes the probability under fixed conditions, here with the standardized measured predictors and the hidden factors all at zero. It transforms each species’ occupancy intercept to the probability scale and returns a **posterior-draw-by-species matrix**, pooling the draws of all chains. In this fit, there are 24,000 rows (four chains of 6,000 kept draws) and ten species columns.
 
 Use it to compare species’ baseline occurrence probabilities under the same reference conditions, or to report a baseline estimate with its uncertainty. This is not the average occupancy across the landscape: measured environmental effects and hidden site contributions have been set to zero, not averaged over sites.
 
@@ -1120,7 +1167,7 @@ native_collection_rates
 
 [Lesson 2](occJSDM-lesson-2.md) compares true and estimated PCR detection, laboratory false-positive and field-contamination probabilities, and shows why their values alone cannot classify every positive detection correctly. The plots below check the laboratory rates against their generating values.
 
-Blue intervals describe positive PCR observations given collection; red intervals describe positive PCR observations without collection. Each black cross is the corresponding true probability.
+Blue intervals describe positive PCR observations given collection; red-orange intervals describe positive PCR observations without collection. Each black cross is the corresponding true probability.
 
 With the fitted threshold of one read, truth equals the generating event probability multiplied by the probability that its rounded read count reaches the threshold. The adjustment uses the true-read distribution for true positives and the contamination-read distribution for false positives.
 
@@ -1130,6 +1177,9 @@ primer_1_truth <- native_truth$laboratory |>
 
 native_primer_1 <- plotFPTPStage2Rates(fitmodel, primerName = "1") +
   native_theme +
+  scale_colour_manual(
+    name = "Colour", values = c("TP rate" = "#0072B2", "FP rate" = "#D55E00")
+  ) +
   geom_point(
     data = primer_1_truth, aes(x = species, y = truth),
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
@@ -1147,6 +1197,9 @@ primer_2_truth <- native_truth$laboratory |>
 
 native_primer_2 <- plotFPTPStage2Rates(fitmodel, primerName = "2") +
   native_theme +
+  scale_colour_manual(
+    name = "Colour", values = c("TP rate" = "#0072B2", "FP rate" = "#D55E00")
+  ) +
   geom_point(
     data = primer_2_truth, aes(x = species, y = truth),
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
@@ -1158,9 +1211,45 @@ native_primer_2
 
 <img src="teaching-data/native-plot-primer-2.png" alt="" width="100%" />
 
+The model estimates these rates for each primer and species separately, so the useful comparison is species by species across primers. `plotDetectionRates()` draws that comparison on one figure, with one row per species and one coloured true-positive interval per primer, and it works for any number of primers.
+
+``` r
+remaining_detection <- plotDetectionRates(fitmodel, idx_species = 1:10) +
+  remaining_theme +
+  geom_point(
+    data = remaining_truth$detection,
+    aes(x = Species, y = truth, group = Primer),
+    inherit.aes = FALSE, shape = 4, size = 2.5, stroke = 1,
+    position = position_dodge(width = 0.6)
+  ) +
+  ylim(0, 1) +
+  scale_colour_manual(values = c("1" = "#0072B2", "2" = "#E69F00")) +
+  labs(
+    title = "Laboratory true-positive detection by primer",
+    y = "Positive observation probability, given collection",
+    caption = "Black cross: matching primer truth. Coloured bar: native 95% interval."
+  )
+
+remaining_detection
+```
+
+<img src="teaching-data/remaining-plots-detection.png" alt="" width="100%" />
+
+On this figure, a primer mismatch shows as one species whose gap between primers is much larger than the other species’ gaps, or runs the other way. It means the primer with the lower interval amplifies that species’ DNA poorly. Low rates under every primer point instead to the species itself, for example one that releases little DNA, so that its collected samples hold few copies. Treat such a species with caution, because its non-detections say less about absence than other species’ do. Here each species’ primer 2 cross sits the same distance to the right of its primer 1 cross, so there is no primer mismatch to see. OTU_1 is the lowest under both.
+
+When mismatches run in different directions for different species, which primer detects best depends on the species: a species-by-primer interaction. The next figure is a made-up example of one, drawn by the same `plotDetectionRates()` from invented rates for three primers and six species, not from a fit.
+
+![](occJSDM-lesson-3_files/figure-gfm/hypothetical-primer-interaction-1.png)<!-- -->
+
+Read it species by species; the function orders the rows by the average lower end of each species’ intervals, not by name. Primer A has the highest rate for Sp_1, Sp_2 and Sp_3, primer B for Sp_4 and Sp_5, and primer C, weak for every other species, for Sp_6. No primer is uniformly better, so dropping any one of them leaves some species poorly detected.
+
+One way forward is to keep several primers and fit them together, because occJSDM uses every PCR from every primer. To decide whether a field sample holds a species’ DNA, it combines all that sample’s PCRs, weighting each by its primer’s detection and false-positive rates for that species. A weak primer’s negative PCRs count for little, because when a primer rarely detects a species, a negative is almost as likely whether the sample holds the DNA or not. A species that one primer amplifies poorly is therefore still detected through the other primers’ PCRs. This treats a sample’s PCRs as independent once we know whether the sample holds the DNA.
+
+If running every primer on every sample is too much laboratory work, there is a middle path. The fitter accepts samples that lack some primers, as [Lesson 0](occJSDM-lesson-0.md#unequal-numbers-of-field-samples) explains, so you can run the strongest primer on every sample and a second primer on a subset. Otherwise, choose the one primer that best amplifies your focal species. Either way, judge which primer is strongest from a pilot survey fitted with all candidate primers and read on a figure like this one, not from one primer’s results alone.
+
 ### Separate false-positive and detection-rate plots
 
-The first plot shows field contamination: the probability of a collected presence when the species is absent from the site. Black crosses mark the generating `theta0`; bars are the package’s 95% posterior intervals. This is a latent collection event, so its truth does not need a read-threshold adjustment.
+This subsection shows the two false-positive rates on their own. The first plot shows field contamination: the probability of a collected presence when the species is absent from the site. Black crosses mark the generating `theta0`; bars are the package’s 95% posterior intervals. This is a latent collection event, so its truth does not need a read-threshold adjustment.
 
 ``` r
 remaining_stage1_fp <- plotStage1FPRates(fitmodel, idx_species = 1:10) +
@@ -1181,9 +1270,9 @@ remaining_stage1_fp
 
 <img src="teaching-data/remaining-plots-stage1-fp.png" alt="" width="100%" />
 
-The two laboratory helpers display each primer separately; they do not pool primers and have no `primerName` argument. Each truth cross is displaced with its matching primer bar. Use `plotFPTPStage2Rates(fitmodel, primerName = "1")` from the preceding examples when you want to select one primer instead.
+The laboratory false-positive helper, like `plotDetectionRates()` above, displays each primer separately within a species row; it does not pool primers and has no `primerName` argument. Each truth cross is displaced with its matching primer bar. Use `plotFPTPStage2Rates(fitmodel, primerName = "1")` from the preceding examples when you want to select one primer instead.
 
-Laboratory false positives condition on no collection. True-positive detection conditions on collection. In both cases the truth includes the read-threshold adjustment explained under [laboratory rates by primer](#laboratory-true-positive-and-false-positive-rates-by-primer).
+Laboratory false positives condition on no collection, and their truth includes the read-threshold adjustment explained under [laboratory rates by primer](#laboratory-true-positive-and-false-positive-rates-by-primer).
 
 ``` r
 remaining_stage2_fp <- plotStage2FPRates(fitmodel, idx_species = 1:10) +
@@ -1195,6 +1284,7 @@ remaining_stage2_fp <- plotStage2FPRates(fitmodel, idx_species = 1:10) +
     position = position_dodge(width = 0.15)
   ) +
   ylim(0, 1) +
+  scale_colour_manual(values = c("1" = "#0072B2", "2" = "#E69F00")) +
   labs(
     title = "Laboratory false positives by primer",
     y = "Positive observation probability, given no collection",
@@ -1206,30 +1296,9 @@ remaining_stage2_fp
 
 <img src="teaching-data/remaining-plots-stage2-fp.png" alt="" width="100%" />
 
-``` r
-remaining_detection <- plotDetectionRates(fitmodel, idx_species = 1:10) +
-  remaining_theme +
-  geom_point(
-    data = remaining_truth$detection,
-    aes(x = Species, y = truth, group = Primer),
-    inherit.aes = FALSE, shape = 4, size = 2.5, stroke = 1,
-    position = position_dodge(width = 0.6)
-  ) +
-  ylim(0, 1) +
-  labs(
-    title = "Laboratory true-positive detection by primer",
-    y = "Positive observation probability, given collection",
-    caption = "Black cross: matching primer truth. Coloured bar: native 95% interval."
-  )
+Species order is chosen separately by each of the package’s helpers; the per-primer plots above, for example, each order their rows by the lower end of the blue interval. A truth cross outside its bar identifies an interval that misses the generating rate in this dataset. These rate intervals summarize parameter uncertainty, unlike the random survey-count ranges in the cumulative-detection examples.
 
-remaining_detection
-```
-
-<img src="teaching-data/remaining-plots-detection.png" alt="" width="100%" />
-
-Species order is chosen separately by each of the package’s helpers. A truth cross outside its bar identifies an interval that misses the generating rate in this dataset. These rate intervals summarize parameter uncertainty, unlike the random survey-count ranges in the cumulative-detection examples.
-
-Every plotting function that draws a figure returns a `ggplot2` object, with two exceptions. `plotCovariateEffect()` returns a named list with one plot per covariate, so combine its elements rather than the list. `plotLatentPresences()` returns a table. The `ggplot2` plots can therefore be placed side by side with the `patchwork` package. Its `+` operator lays two plots next to each other, and `/` stacks them. Pairing each stage’s false-positive plot with its success plot puts what should ideally be low beside what should ideally be high.
+Every plotting function that draws a figure returns a `ggplot2` object, with two exceptions. `plotCovariateEffect()` returns a named list with one plot per covariate, so combine its elements, taken by name as in [the curves in original units](#the-same-curves-in-original-units), rather than the list. `plotLatentPresences()` returns a table. The `ggplot2` plots can therefore be placed side by side with the `patchwork` package. Its `+` operator lays two plots next to each other, and `/` stacks them. Pairing each stage’s false-positive plot with its success plot puts what should ideally be low beside what should ideally be high.
 
 ``` r
 library(patchwork)
@@ -1237,13 +1306,15 @@ library(patchwork)
 field_rates <- (plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1)) +
   plotCollectionRates(fitmodel, idx_species = 1:10)
 
-laboratory_rates <- (plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1)) +
-  plotDetectionRates(fitmodel, idx_species = 1:10)
+primer_colours <- scale_colour_manual(values = c("1" = "#0072B2", "2" = "#E69F00"))
+
+laboratory_rates <- (plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1) + primer_colours) +
+  (plotDetectionRates(fitmodel, idx_species = 1:10) + primer_colours)
 
 field_rates / laboratory_rates
 ```
 
-The parentheses matter: the first `+` inside them adds a `ggplot2` layer to one plot, whereas the `+` between the parenthesised plot and the next plot is `patchwork`’s side-by-side operator.
+`primer_colours` gives the primers the colours of the figures above. The parentheses matter. A `+` inside them adds a `ggplot2` layer or scale to one plot, whereas the `+` between the parenthesised plot and the next plot is `patchwork`’s side-by-side operator.
 
 ### Would more field samples or PCR replicates help detection?
 
@@ -1595,7 +1666,7 @@ There are twelve rows because these probabilities do not vary among repeated PCR
 Each question names the functions that answer it and where these lessons check the answer against truth.
 
 - **How do I prepare and fit data?** `simulateOccJSDMData()`, `runOccJSDM()`. Truth check: Lessons 0 and 2.
-- **How does each species respond to the environment?** `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()`. Truth check: the coefficient plots above, for both fits, and the response curves above, for the PCR fit.
+- **How does each species respond to the environment?** `returnOccupancyCovariates()`, `plotOccupancyCovariates()`, `returnOccupancyGradient()`, `plotOccupancyGradient()`, `plotCovariateEffect()`. Truth check: the coefficient plots above, for both fits, and the response curves above, in standardized and original units, for the PCR fit.
 - **What is baseline occupancy?** `returnOccupancyRates()`, `plotOccupancyRates()`. Truth check: the baseline table and package plot above.
 - **Do traits explain species responses?** `returnTraitsCoeff()`, `plotTraitsCoefficients()`. Truth check: the package trait plots and the two-fit comparison above, with standardized truth; the cancellation diagnostic in the appendix.
 - **Which species share unmeasured site responses?** `returnResidualCorrelationMatrix()`, `plotResidualCorrelationMatrix()`. Truth check: the package heat map with true correlations above.
@@ -2076,6 +2147,8 @@ Rscript dev/simstudy/vignette-lesson/ordination-export.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/ordination-verify.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/remaining-plots-export.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/remaining-plots-verify.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/covariate-effect-export.R /path/to/full-fits
+Rscript dev/simstudy/vignette-lesson/covariate-effect-verify.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/native-traits-export.R /path/to/full-fits
 Rscript dev/simstudy/vignette-lesson/native-traits-verify.R /path/to/full-fits
 ```

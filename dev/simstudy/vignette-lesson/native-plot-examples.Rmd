@@ -195,7 +195,7 @@ knitr::include_graphics("teaching-data/native-plot-collection-rates.png")
 
 ### Laboratory true-positive and false-positive rates by primer
 
-Blue intervals describe positive PCR observations given collection; red intervals describe positive PCR observations without collection. Each black cross is the corresponding true probability. With the fitted threshold of one read, truth equals the generating event probability multiplied by the probability that its rounded read count reaches the threshold. The adjustment uses the true-read distribution for true positives and the contamination-read distribution for false positives.
+Blue intervals describe positive PCR observations given collection; red-orange intervals describe positive PCR observations without collection. Each black cross is the corresponding true probability. With the fitted threshold of one read, truth equals the generating event probability multiplied by the probability that its rounded read count reaches the threshold. The adjustment uses the true-read distribution for true positives and the contamination-read distribution for false positives.
 
 ```{r native-primer-1-example, eval=FALSE, purl=TRUE}
 primer_1_truth <- native_truth$laboratory |>
@@ -203,6 +203,9 @@ primer_1_truth <- native_truth$laboratory |>
 
 native_primer_1 <- plotFPTPStage2Rates(fitmodel, primerName = "1") +
   native_theme +
+  scale_colour_manual(
+    name = "Colour", values = c("TP rate" = "#0072B2", "FP rate" = "#D55E00")
+  ) +
   geom_point(
     data = primer_1_truth, aes(x = species, y = truth),
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
@@ -222,6 +225,9 @@ primer_2_truth <- native_truth$laboratory |>
 
 native_primer_2 <- plotFPTPStage2Rates(fitmodel, primerName = "2") +
   native_theme +
+  scale_colour_manual(
+    name = "Colour", values = c("TP rate" = "#0072B2", "FP rate" = "#D55E00")
+  ) +
   geom_point(
     data = primer_2_truth, aes(x = species, y = truth),
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
@@ -265,7 +271,7 @@ knitr::include_graphics("teaching-data/native-plot-correlations.png")
 
 ### Cumulative detections: compare survey outcomes with survey outcomes
 
-This function asks how many species would be detected if **all ten were present at the site**, the collection predictor were at its mean, and false positives were excluded. It pools both primers and varies field samples (`M`) and PCRs per primer per sample (`K`). It does not predict observed richness at an arbitrary site. Field replication up to four is prospective; the fitted data contained two field samples per site. PCR replication stays within the six-PCR design.
+This function asks how many species would be detected if **all ten were present at the site**, the collection predictor were at its mean, and false positives were excluded. It pools both primers and varies field samples (`M`) and PCRs per primer per sample (`K`). It does not predict observed richness at an arbitrary site. Field replication of four is prospective; the fitted data contained three field samples per site. PCR replication stays within the six-PCR design.
 
 Native bars include both fitted-parameter uncertainty and random collection/PCR outcomes. The routine selects 500 posterior draws to simulate surveys, so endpoints can vary with the seed. Orange bars are the exact 2.5% and 97.5% quantiles of the matching survey-count distribution under the generating parameters. Orange crosses mark its median. These truth intervals remain wide even when parameters are known.
 

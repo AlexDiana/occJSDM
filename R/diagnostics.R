@@ -261,6 +261,10 @@ summarisePosterior <- function(param_output, param_name = "parameter",
 #'
 #' Faceted per-chain trace plots for every element of a posterior array.
 #'
+#' Chains are coloured from the colour-blind-safe Okabe-Ito palette (recycled,
+#' with a warning, beyond eight chains); add \code{ggplot2::scale_colour_manual()}
+#' to the returned plot to use other colours.
+#'
 #' @param param_output A numeric array with 2, 3, or 4 dimensions
 #'   (`[dim1, dim2, niter, nchain]`, or a 2- or 3-dimensional array missing
 #'   one or both of the leading index dimensions).
@@ -284,6 +288,7 @@ plotTraceplot <- function(param_output, param_name = "parameter",
 
   ggplot2::ggplot(df, ggplot2::aes(x = iter, y = value, color = chain)) +
     ggplot2::geom_line(alpha = .7) +
+    ggplot2::scale_colour_manual(values = okabe_ito(nlevels(df$chain))) +
     ggplot2::facet_wrap(facet_formula, scales = "free_y") +
     ggplot2::labs(x = "Iteration", y = param_name, color = "Chain")
 }
