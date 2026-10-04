@@ -129,9 +129,10 @@ A list with two elements:
   data frame with one row per observation (the \code{Site},
   \code{Sample} and \code{Primer} ids the model has, the occupancy
   covariates \code{X_psi.EnvCov.1}, \code{X_psi.EnvCov.2}, and so on, on
-  their original scale, the coordinates \code{Xs.1} and \code{Xs.2}, and
-  the collection covariates \code{X_theta}, or \code{X_theta.1},
-  \code{X_theta.2}, and so on when there are several); \code{OTU}, a
+  their original scale, the coordinates \code{Xs.1} and \code{Xs.2},
+  and, for \code{"occupancy"} and \code{"two_stage"}, the collection
+  covariates \code{X_theta}, or \code{X_theta.1}, \code{X_theta.2}, and
+  so on when there are several); \code{OTU}, a
   matrix with one column per species, named \code{OTU_1},
   \code{OTU_2}, and so on; and \code{traits}, the \code{S} by \code{g}
   trait table with rows named by species and columns \code{Trait_1},
@@ -157,7 +158,8 @@ The four models then differ in what they return as \code{OTU}:
   \item{\code{"occupancy"}}{One row per sample: whether the sample
   collected the species' DNA (\code{w}). Given \code{z = 1}, this is
   Bernoulli with probability \code{theta}, where \code{logit(theta)} is
-  the sample's collection covariates times \code{beta_theta_true}; given
+  an intercept plus the sample's collection covariates times their
+  slopes (the rows of \code{beta_theta_true}, intercept first); given
   \code{z = 0}, the probability is \code{theta0}.}
   \item{\code{"two_stage"}}{One row per PCR replicate: read counts. Each
   replicate detects the species with probability \code{p} when
