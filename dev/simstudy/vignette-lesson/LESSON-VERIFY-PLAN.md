@@ -4,6 +4,8 @@
 
 **Goal:** Make the lesson verifiers pass on main again without refitting, by giving them a code fingerprint that ignores comments and allows declared plot-only changes; re-export the figure bundles with the current package; drop Lesson 3's own colour scales now that the package sets them; and make the coloured figures in Lessons 2, 5, 6 and 7 colour-blind-safe.
 
+**As built:** implemented in `source-check.R`, not `helpers.R`, because bundles record the md5 of `helpers.R` and of the producer scripts (ruling of 4 October 2026, after Task 1).
+
 **Architecture:** The verifiers compare the source hashes recorded when the fits were made with `lesson_source_hashes()` on the current tree. A new helper in `dev/simstudy/vignette-lesson/helpers.R` replaces those `identical()` checks: for each R file whose raw md5 differs, it finds the recorded version in git history, parses both versions, and compares them function by function with comments dropped; differences are allowed only in a declared list of plot-only functions. The archive's package library is reinstalled from current main (the old one kept), and every bundle that records the library's files is re-exported from the existing fits. Lessons 2, 5, 6 and 7 draw their figures live, so their colours change in the lesson code alone.
 
 **Tech Stack:** R 4.5, rmarkdown, knitr, ggplot2, testthat, git; the full-fit archive at `/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples`.

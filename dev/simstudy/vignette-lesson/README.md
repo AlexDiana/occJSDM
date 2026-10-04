@@ -32,6 +32,8 @@ The initial alternative-prior fit is retained, but the published example uses it
 
 `prepare` refuses to overwrite an input bundle. The fitting step refuses to overwrite a fit, and checks the source hashes against the input. The verification step checks generator hashes, fit hashes and input identity. To change the simulation or fit source, use a new build directory and regenerate the evidence rather than mix old fits with new truth. Selected cases are saved to `cases-selected-before-fitting.csv` before any fit is run. MCMC seeds are independent of the simulation seed and are fixed per fit.
 
+**Source checks since 4 October 2026.** The 11 verifiers that read saved fits now call `lesson_source_check()` in `source-check.R`. So do the six figure exporters (`export_native_plots.R`, `native-traits-export.R`, `ordination-export.R`, `remaining-plots-export.R`, `covariate-effect-export.R`, `prediction-export.R`). Each previously required `identical(..., lesson_source_hashes())`. The new check ignores comments and compares each changed `R/` file function by function, against the version in git history whose md5 the fit recorded. Only the functions in `lesson_plot_only_changes` may differ: `plotFPTPStage2Rates()`, `plotDetectionRates()`, `plotStage2FPRates()`, `plotTraceplot()` and `okabe_ito()`, added for PR #23's colour scales. It also fails if any other code in `R/` refers to one of them, so they cannot be called while fitting. `DESCRIPTION`, `NAMESPACE` and `src/` must still match byte for byte. A new entry in `lesson_plot_only_changes` needs a dated justification beside it. The fitting, build and summarise scripts keep the strict check on purpose: `build_lesson.R`, `summarise_lesson.R`, `summarise_outputs.R`, `summarise_diagnostics.R`, `summarise_latent_tables.R`, `unbalanced-build.R`, `prediction-build.R` and `remaining-plots-diagnose-covariate.R`. A fit or summary should record exactly the code it ran with. Several bundles also record these scripts' md5 (in `generator_hashes`, `summary_source_hashes` and similar fields), so editing the scripts would break the verifiers. Consequently, after any change to `R/`, plot-only changes included, these scripts stop on the existing archive, and re-running one needs a new build directory and new fits. In the archive, `library` was reinstalled from current main on 4 October 2026, because the figure verifiers compare the installed functions with `R/`; the fit-time build is kept as `library-fbe3ed6`. Re-exported bundles keep the fit-time `source_hashes` and add `export_source_hashes`, the tree they were exported from, which is for information only.
+
 The source categories describe this simulator: a positive with `w=0` is a laboratory false positive; a positive with `z=0,w=1` is a field-stage false positive; a positive with `z=1,w=1` is a true detection. Missing observations are separate. The first sample in each declared category is selected in lexicographic species-name, numeric-site and numeric-sample order. Consequently `OTU_10` sorts before `OTU_2`; this is intentional and does not use fitted results. Category totals and the all-positive-sample table prevent the selected cases from being presented as a general error-rate estimate.
 
 The prior stress test changes both `q` and `theta0` from Beta(1,20) to Beta(1,4), leaving `p` unchanged. It cannot distinguish which of the two altered priors is responsible for a change. It illustrates sensitivity to the joint low-contamination assumption and is not a recommendation to change the defaults.
@@ -144,7 +146,7 @@ Lesson 3 now shows `returnLatentPresences()` and `plotLatentPresences()` using t
 
 The native plotting appendix uses `native-plots.rds` and nine `native-plot-*.png` files. It demonstrates occupancy and collection coefficients, baseline probabilities, both primers' true/false-positive rates, residual-correlation uncertainty and cumulative detection counts with PCR or field replication on the horizontal axis. Every ecological plot adds matching truth. The cumulative plots compare survey-outcome intervals with exact generating count quantiles, not with intervals around an expected count. Raw ordination axes remain deferred until score/loading alignment is explicitly validated.
 
-From the repository root, with the archive's matching library first in `R_LIBS`:
+From the repository root, with the archive's library (`library`, current main; the fit-time build is `library-fbe3ed6`) first in `R_LIBS`:
 
 ```sh
 Rscript dev/simstudy/vignette-lesson/summarise_latent_tables.R /path/to/full-fits
@@ -193,7 +195,7 @@ The follow-up on `codex/lesson-migration-completion` adds the remaining valid no
 
 ### Ordination and remaining plotting functions
 
-Run from the repository root with the original archive's matching installed library first in `R_LIBS`:
+Run from the repository root with the archive's library (`library`, current main; the fit-time build is `library-fbe3ed6`) first in `R_LIBS`:
 
 ```sh
 Rscript dev/simstudy/vignette-lesson/ordination-export.R /path/to/full-fits
