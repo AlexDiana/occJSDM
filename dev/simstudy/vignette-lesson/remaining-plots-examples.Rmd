@@ -70,7 +70,7 @@ remaining_gradient_2
 knitr::include_graphics("teaching-data/remaining-plots-gradient-2.png")
 ```
 
-The original walkthrough used `plotCovariateEffect()` here. That helper cannot currently be restored as a trustworthy occupancy-probability example: for numeric predictors it adds a log-odds intercept after the inverse-logit transformation, and its purported raw predictor grid is already standardized in this fit. For example, its median for `OTU_1` along environmental gradient 1 ranges from 1.772 to 1.815, outside the probability scale. The developer diagnostic `remaining-plots-diagnose-covariate.R` reproduces this from the archived fit. The two checked `plotOccupancyGradient()` calls above provide the response-curve examples.
+The original walkthrough used `plotCovariateEffect()` here. [PR #13](https://github.com/AlexDiana/occJSDM/pull/13) has since corrected it, and Lesson 3 shows it in original units through the separate `covariate-effect-examples.Rmd` snippet, so no figure in this bundle depends on it. The developer diagnostic `remaining-plots-diagnose-covariate.R` reproduces the old defect only against the old archive and package. The two checked `plotOccupancyGradient()` calls above provide the standardized response-curve examples.
 
 ### Separate false-positive and detection-rate plots
 
