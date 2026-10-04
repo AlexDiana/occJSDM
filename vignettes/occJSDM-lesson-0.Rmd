@@ -186,7 +186,7 @@ str(ecological_settings)
 
 `tau` is the only setting with one value per species; every other setting is a single number or a switch. `gt = 1` gives each species one unmeasured trait, a property not in the trait table that also shapes how it responds to the environment. Two hidden factors and one unmeasured trait are a choice made for this simulation, and Lesson 2 fits the model with the matching `n_factors = 2` and `n_lattrait = 1`. `sigma_b` sets how differently species respond to the same environment beyond what their traits predict: a larger value makes their responses more varied. `sigma_h` sets how much the hidden factors vary between sites: a larger value makes them matter more for occupancy, and so strengthens the associations between species.
 
-The most important choice for this lesson is `useSpatField = FALSE`: there is no simulated spatial field and no dispersal process. The simulator still draws site coordinates, whether or not the field is on, which is why the sites can be mapped below. `ds`, `sigma_s` and `l_s` set the spatial field, so they have no effect while the switch is off; [the appendix](#simulate-a-survey-with-a-spatial-field) shows how to switch it on. `sigma_bs` and `sigma_ts` are required arguments that change nothing: the simulator sets the residual spatial coefficients to zero and never reads `sigma_ts`.
+The most important choice for this lesson is `useSpatField = FALSE`: there is no simulated spatial field and no dispersal process. The simulator still draws site coordinates, whether or not the field is on, which is why the sites can be mapped below. `ds`, `sigma_s` and `l_s` set the spatial field, so they have no effect while the switch is off; [the appendix](#simulate-a-survey-with-a-spatial-field) shows how to switch it on. `sigma_bs` and `sigma_ts` are accepted but have no effect. The simulator has no residual spatial coefficients to draw with `sigma_bs`, and it passes `sigma_ts` on without using it, so leaving both out gives the same survey.
 
 ## How traits build each species' responses
 
@@ -219,7 +219,7 @@ unmeasured_effects
 describe_effect <- function(entry) c("lowers", "does not change", "raises")[entry + 2]
 ```
 
-Covariate 1 and Covariate 2 are the columns `X_psi.EnvCov.1` and `X_psi.EnvCov.2` of `info`. In this survey `Tr` is `r nrow(Tr)` species by `r ncol(Tr)` traits, and `G` is `r nrow(jsdm_truth$G)` traits by `r ncol(jsdm_truth$G)` covariates. `A` is `r nrow(jsdm_truth$A)` species by `r ncol(jsdm_truth$A)` unmeasured trait, and `C` is `r nrow(jsdm_truth$C)` by `r ncol(jsdm_truth$C)`. `Bt` and the sum are `r nrow(jsdm_truth$Bt)` species by `r ncol(jsdm_truth$Bt)` covariates. Read `G` one row at a time. `r rownames(trait_effects)[1]` `r describe_effect(trait_effects[1, 1])` the response to Covariate 1 and `r describe_effect(trait_effects[1, 2])` the response to Covariate 2. `r rownames(trait_effects)[2]` `r describe_effect(trait_effects[2, 1])` the response to Covariate 1 and `r describe_effect(trait_effects[2, 2])` the response to Covariate 2. A species with a high `r rownames(trait_effects)[2]` value therefore tends to have a `r if (trait_effects[2, 1] < 0) "lower" else "higher"` coefficient for Covariate 1 and a `r if (trait_effects[2, 2] < 0) "lower" else "higher"` one for Covariate 2. In `C`, the unmeasured trait `r describe_effect(unmeasured_effects[1, 1])` the response to Covariate 1 and `r describe_effect(unmeasured_effects[1, 2])` the response to Covariate 2.
+Covariate 1 and Covariate 2 are the two environmental covariates mapped below, the columns `X_psi.EnvCov.1` and `X_psi.EnvCov.2` of `info` that "Understand the three input objects" describes. In this survey `Tr` is `r nrow(Tr)` species by `r ncol(Tr)` traits, and `G` is `r nrow(jsdm_truth$G)` traits by `r ncol(jsdm_truth$G)` covariates. `A` is `r nrow(jsdm_truth$A)` species by `r ncol(jsdm_truth$A)` unmeasured trait, and `C` is `r nrow(jsdm_truth$C)` by `r ncol(jsdm_truth$C)`. `Bt` and the sum are `r nrow(jsdm_truth$Bt)` species by `r ncol(jsdm_truth$Bt)` covariates. Read `G` one row at a time. `r rownames(trait_effects)[1]` `r describe_effect(trait_effects[1, 1])` the response to Covariate 1 and `r describe_effect(trait_effects[1, 2])` the response to Covariate 2. `r rownames(trait_effects)[2]` `r describe_effect(trait_effects[2, 1])` the response to Covariate 1 and `r describe_effect(trait_effects[2, 2])` the response to Covariate 2. In `C`, the unmeasured trait `r describe_effect(unmeasured_effects[1, 1])` the response to Covariate 1 and `r describe_effect(unmeasured_effects[1, 2])` the response to Covariate 2.
 
 To check that this formula is exactly what generated the survey, rebuild the coefficients from their parts and compare them with the saved ones.
 
@@ -232,18 +232,27 @@ all.equal(unname(rebuilt_B), jsdm_truth$B)
 
 `all.equal()` returns `TRUE`: the three parts add up to the coefficients that set every species' occupancy probability in this survey.
 
-How visible is the trait part in the coefficients? The chunk below picks a covariate on which only one measured trait acts, so that the trait part alone is a straight line against that trait. It plots each species' true coefficient for that covariate against its value of the trait, with the line beside the points.
+How visible is the trait part in the coefficients? The chunk below picks a covariate and a measured trait that acts on it, preferring a covariate on which only one measured trait acts. It plots each species' true coefficient for that covariate against its value of the trait. The line beside the points is that trait's part alone, its `G` entry times the trait value.
 
-```{r trait-coefficient-scatter, fig.height=4.5, fig.cap="Each point is one species: its true coefficient for the covariate against its value of the measured trait that acts on it. The line is what the measured-trait part alone predicts. The vertical gaps between the points and the line are the parts that the measured traits do not explain."}
-shown_covariate <- which(colSums(jsdm_truth$G != 0) == 1)[1]
-shown_trait <- which(jsdm_truth$G[, shown_covariate] != 0)
-trait_part <- Tr %*% jsdm_truth$G
+```{r trait-coefficient-scatter, fig.height=4.5, fig.cap="Each point is one species: its true coefficient for the covariate against its value of a measured trait that acts on it. The line is that trait's part of the coefficient alone. The vertical gaps between the points and the line are the parts of the coefficient that this trait does not explain."}
+# Prefer the covariate on which the fewest measured traits act (at least one).
+traits_acting <- colSums(jsdm_truth$G != 0)
+stopifnot(any(traits_acting > 0))
+candidates <- which(traits_acting > 0)
+shown_covariate <- candidates[which.min(traits_acting[candidates])]
+shown_trait <- which(jsdm_truth$G[, shown_covariate] != 0)[1]
+trait_slope <- jsdm_truth$G[shown_trait, shown_covariate]
+
+# Is the trait's part the only systematic part of this coefficient?
+only_this_trait <- traits_acting[shown_covariate] == 1 &&
+  all(jsdm_truth$C[, shown_covariate] == 0)
+untouched_traits <- colnames(Tr)[jsdm_truth$G[, shown_covariate] == 0]
 
 trait_scatter <- tibble(
   species = rownames(Tr),
   trait_value = Tr[, shown_trait],
   coefficient = jsdm_truth$B[shown_covariate, ],
-  trait_prediction = trait_part[, shown_covariate]
+  trait_prediction = trait_slope * Tr[, shown_trait]
 )
 
 ggplot(trait_scatter, aes(x = trait_value)) +
@@ -256,13 +265,13 @@ ggplot(trait_scatter, aes(x = trait_value)) +
   theme_minimal(base_size = 12)
 ```
 
-The chunk picks `r covariate_names[shown_covariate]`, on which only `r colnames(Tr)[shown_trait]` acts: its `G` entry is `r jsdm_truth$G[shown_trait, shown_covariate]`, so the line has slope `r jsdm_truth$G[shown_trait, shown_covariate]`. The points `r if (jsdm_truth$G[shown_trait, shown_covariate] > 0) "rise" else "fall"` with the line, because the sign of the slope follows the `G` entry. They scatter around it because the other two parts add to each species' coefficient. Here the unmeasured trait's `C` entry for this covariate is `r jsdm_truth$C[1, shown_covariate]`, so the gaps are the remainder `Bt` alone. `r colnames(Tr)[jsdm_truth$G[, shown_covariate] == 0]` has a `G` entry of 0 for this covariate. Plotted against `r colnames(Tr)[jsdm_truth$G[, shown_covariate] == 0]`, the coefficients would vary only through parts that do not involve it, and no trend would be expected.
+The chunk picks `r covariate_names[shown_covariate]` and `r colnames(Tr)[shown_trait]`, whose `G` entry is `r trait_slope`, so the line has slope `r trait_slope`. The points `r if (trait_slope > 0) "rise" else "fall"` with the line, because the sign of the slope follows the `G` entry. They scatter around it because the other parts add to each species' coefficient. `r if (only_this_trait) "Here no other measured trait and no unmeasured trait acts on this covariate, so the gaps are the remainder alone." else "Here the gaps are the remainder plus the other traits, measured or unmeasured, that act on this covariate."` `r if (length(untouched_traits) > 0) paste(knitr::combine_words(untouched_traits), "has a G entry of 0 for this covariate. Plotted against it, the coefficients") else "Had a trait's G entry been 0, the coefficients plotted against it"` would vary only through parts that do not involve that trait, and no trend would be expected.
 
 This is the structure that `runOccJSDM()` estimates when it is given a trait table and `n_lattrait`, the number of unmeasured traits. A survey of ten species gives few points from which to learn `G`, and [Lesson 3's trait section](occJSDM-lesson-3.md#traits-ask-a-harder-different-question) asks how well it can be recovered.
 
-The simulator draws the environmental values, traits, coefficients and hidden factors using these settings. It then calculates occupancy probabilities and draws actual presence or absence from those probabilities. The seed set in the chunk below was not picked to make the fit look good, because a seed chosen that way would mislead you about how well the model works.
-
 ## Recreate the dataset if you want to
+
+The simulator draws the environmental values, traits, coefficients and hidden factors using the settings above. It then calculates occupancy probabilities and draws actual presence or absence from those probabilities. The seed set in the chunk below was not picked to make the fit look good, because a seed chosen that way would mislead you about how well the model works.
 
 The following optional chunk shows the simulator call itself. It is displayed but not run when knitting, because the figures use the saved simulation. To recreate the data yourself, run the chunk with occJSDM installed. It does not fit a model. `model = "two_stage"` asks for PCR read counts. The simulator can also produce `"occupancy"` data, with one record per field sample and no PCR stage, and `"binary"` presence/absence data, like the presence/absence case described in the quickstart.
 
@@ -664,9 +673,9 @@ This lesson's survey has no spatial field. This subsection shows how to switch o
 A **spatial field** is a smooth random surface over the site coordinates. The simulator adds it to each species' occupancy score, so nearby sites share more of it than distant ones. A species then does better or worse in whole patches of the survey area. Four settings control it:
 
 - `useSpatField = TRUE` switches the field on.
-- `sigma_s` is the field's variance at a site. The kernel that sets how much two sites share, `sigma_s * exp(-d^2 / (2 * l_s^2))` for sites a distance `d` apart, equals `sigma_s` at zero distance, so `sigma_s` is a variance, not a standard deviation. The lesson's `r ecological_settings$sigma_s` gives a standard deviation of about `r round(sqrt(ecological_settings$sigma_s), 2)` on the logit scale.
+- `sigma_s` is the field's variance at a site. The kernel that sets how much two sites share, `sigma_s * exp(-d^2 / (2 * l_s^2))` for sites a distance `d` apart, equals `sigma_s` at zero distance, so `sigma_s` is a variance, not a standard deviation. The lesson's `r ecological_settings$sigma_s` gives a standard deviation of about `r round(sqrt(ecological_settings$sigma_s), 2)` on the logit scale at any one site. Within one survey the spread across sites is smaller, because nearby sites share the same part of the field.
 - `l_s` is the distance over which sites stay similar, in the units of the coordinates. The coordinates are drawn uniformly on the unit square. With `l_s` at `r ecological_settings$l_s` two sites `r ecological_settings$l_s` apart have a correlation of `r round(exp(-1 / 2), 2)` in the field, and sites twice as far apart `r round(exp(-2), 2)`.
-- `ds` is `r ecological_settings$ds` here, which gives one field shared by every species. A positive value gives each species its own field instead, correlated across species at rank `ds`. The species' fields are then built from `ds` underlying patterns, so some species tend to do well in the same patches.
+- `ds` is `r ecological_settings$ds` here, which gives one field shared by every species. A positive value gives each species its own field instead, built from `ds` underlying patterns shared across species. Some species then tend to do well in the same patches, and others in opposite ones.
 
 The chunk below runs the simulator twice with this lesson's own settings and saved seed: once as saved, and once with the field switched on by `modifyList()`. It uses new object names, so it changes nothing used above.
 
@@ -704,11 +713,11 @@ shares_on
 
 The first `TRUE` confirms that the rerun without the field reproduces this lesson's survey exactly, so the second run differs only in the switch. The second confirms that the site coordinates are the same in both runs: the simulator draws them before it reads the switch. The environment, traits, coefficients and hidden factors are drawn before the switch too, so they are also the same. Only the field, and the presence and detections drawn after it, differ.
 
-`varPart` describes, for each species, how much its true occupancy probability varies across the `r n_sites` sites and where that variation comes from. `Total` is the standard deviation of the occupancy probability across sites. `Environmental`, `Spatial` and `Biotic` are the shares of that variation due to the environmental covariates, the spatial field and the hidden site factors. They add up to one for each species. The simulator finds each share by comparing the standard deviation with that part included and left out, over every combination of the other two parts. Without the field, the spatial share is `r max(shares_off$Spatial)` for every species. With it, the spatial share ranges from `r format_percent(min(shares_on$Spatial))` for `r shares_on$species[which.min(shares_on$Spatial)]` to `r format_percent(max(shares_on$Spatial))` for `r shares_on$species[which.max(shares_on$Spatial)]`. The environmental share falls for every species to make room, and so does the hidden-factor share wherever it is not zero. `r shares_on$species[which.max(shares_on$Spatial)]` takes the largest spatial share because it has the least other variation. Its hidden-factor share is `r shares_on$Biotic[which.max(shares_on$Spatial)]` in both runs, because the simulator gave it a loading of zero on both hidden factors (`known_truth$jsdmParams_true$L`). Without the field, its occupancy probability varies least of all the species, with a `Total` of `r round(shares_off$Total[which.max(shares_on$Spatial)], 3)`. The field is shared by every species here, yet its share differs between species, because it is set against each species' own environmental and hidden-factor variation, which differ in strength.
+`varPart` describes, for each species, how much its true occupancy probability varies across the `r n_sites` sites and which source drives that variation. `Total` is the standard deviation of the occupancy probability across sites. `Environmental`, `Spatial` and `Biotic` are the relative contributions of the environmental covariates, the spatial field and the hidden site factors, and they add up to one for each species. The simulator finds each contribution by comparing the standard deviation with that source included and left out, over every combination of the other two. They say which source matters most for a species, but they are not pieces of `Total`: multiplying one by `Total` does not give that source's standard deviation. Without the field, the spatial contribution is `r max(shares_off$Spatial)` for every species. With it, the spatial contribution ranges from `r format_percent(min(shares_on$Spatial))` for `r shares_on$species[which.min(shares_on$Spatial)]` to `r format_percent(max(shares_on$Spatial))` for `r shares_on$species[which.max(shares_on$Spatial)]`. The environmental contribution is lower with the field for `r sum(shares_on$Environmental < shares_off$Environmental)` of the `r n_species` species, and the hidden-factor contribution for `r sum(shares_on$Biotic < shares_off$Biotic)`. With `ds = 0` the field is the same surface for every species, so on its own it varies every species' occupancy probability by the same amount. Its relative contribution therefore tends to be largest for species whose other sources vary them least. Without the field, `r shares_on$species[which.max(shares_on$Spatial)]` has a `Total` of `r round(shares_off$Total[which.max(shares_on$Spatial)], 3)`, `r if (which.min(shares_off$Total) == which.max(shares_on$Spatial)) "the lowest of the ten species" else paste("against a median of", round(median(shares_off$Total), 3), "across the species")`.
 
 The map below shows the continuous occupancy score, `eta`, of that species with the field on, at each site's coordinates.
 
-```{r spatial-field-map, fig.height=4.5, fig.cap="True occupancy score (logit scale) of the species with the largest spatial share, simulated with the spatial field switched on. Nearby sites tend to have similar scores."}
+```{r spatial-field-map, fig.height=4.5, fig.cap="True occupancy score (logit scale) of the species with the largest spatial share, simulated with the spatial field switched on. Nearby sites tend to have similar scores, but the environment and hidden factors also vary the score from site to site, so the pattern is only partly spatial."}
 field_species <- shares_on$species[which.max(shares_on$Spatial)]
 field_scores <- field_on$true_params$jsdmParams_true$eta
 
@@ -726,4 +735,4 @@ ggplot(field_map, aes(x = east, y = north, colour = score)) +
   theme_minimal(base_size = 12)
 ```
 
-A map of the 0/1 occupancy states, `z_true`, shows the pattern less clearly. Each state is a single random draw from the probability, and the environment and hidden factors add variation that is not spatial. To make the spatial signal dominate in your own test data, raise `l_s` for broader patches, or lower `sigma_h` and `sigma_b` to reduce the non-spatial variation.
+A map of the 0/1 occupancy states, `z_true`, shows the pattern less clearly. Each state is a single random draw from the probability, and the environment and hidden factors add variation that is not spatial. To make the spatial signal stronger in your own test data, raise `sigma_s`, the direct lever, or lower `sigma_h` to weaken the hidden factors. `l_s` sets the size of the patches. On the unit square, values near 1 or more spread each patch over most of the survey area, which flattens the field across sites and lowers its contribution.
