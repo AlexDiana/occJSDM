@@ -18,7 +18,6 @@
 ^\.github$
 ^vignettes/articles$
 ^vignettes/LESSON-PLAN\.md$
-^vignettes/ORIG_occJSDM\.Rmd$
 ^\.posit/assistant$
 ^\.worktrees$
 ^vignettes/images$
