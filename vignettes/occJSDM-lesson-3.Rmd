@@ -1211,7 +1211,58 @@ remaining_detection
 knitr::include_graphics("teaching-data/remaining-plots-detection.png")
 ```
 
-On this figure, a primer mismatch shows as one species whose intervals sit far apart under different primers while the other species' intervals stay close. It means that primer amplifies the species' DNA poorly. Low rates under every primer point instead to the species itself, for example one that releases little DNA, so that its collected samples hold few copies. Here each species' primer 2 cross sits the same distance to the right of its primer 1 cross, so there is no primer mismatch to see. OTU_1 is the lowest under both. If you use the per-primer plots above instead, note that each orders its rows separately, by the lower end of the blue interval. On your own survey, keep both primers when a species is detected well by only one of them. Treat a species that every primer detects weakly with caution, because its non-detections say less about absence than other species' do.
+On this figure, a primer mismatch shows as one species whose gap between primers is much larger than the other species' gaps, or reversed. It means the primer with the lower interval amplifies that species' DNA poorly. Low rates under every primer point instead to the species itself, for example one that releases little DNA, so that its collected samples hold few copies. Treat such a species with caution, because its non-detections say less about absence than other species' do. Here each species' primer 2 cross sits the same distance to the right of its primer 1 cross, so there is no primer mismatch to see. OTU_1 is the lowest under both. If you use the per-primer plots above instead, note that each orders its rows separately, by the lower end of the blue interval.
+
+When mismatches run in different directions for different species, which primer detects best depends on the species: a species-by-primer interaction. The next figure is a made-up example of one, drawn by the same `plotDetectionRates()` from invented rates for three primers and six species, not from a fit.
+
+```{r hypothetical-primer-interaction, echo=FALSE, fig.height=4}
+# Invented true-positive rates (rows: primers, columns: species), chosen so
+# that each primer is best for different species; C is weak for all but one.
+invented_rates <- rbind(
+  A = c(0.85, 0.80, 0.75, 0.30, 0.25, 0.20),
+  B = c(0.35, 0.30, 0.45, 0.85, 0.80, 0.25),
+  C = c(0.20, 0.15, 0.25, 0.20, 0.15, 0.75)
+)
+colnames(invented_rates) <- paste0("Sp_", 1:6)
+
+# Beta draws centred on each rate, narrow enough for the intervals to separate.
+# plotDetectionRates() reads p_output as primer x species x draws.
+set.seed(20261004)
+n_draws <- 1000
+p_draws <- array(
+  rbeta(length(invented_rates) * n_draws, invented_rates * 200, (1 - invented_rates) * 200),
+  dim = c(dim(invented_rates), n_draws)
+)
+
+# A minimal stand-in for a runOccJSDM() result: only the slots the function reads.
+invented_fit <- list(
+  infos = list(
+    model = "two_stage", S = ncol(invented_rates),
+    speciesNames = colnames(invented_rates), primerNames = rownames(invented_rates)
+  ),
+  results_output = list(p_output = p_draws)
+)
+
+occJSDM::plotDetectionRates(invented_fit) +
+  ggtern::theme_bw(base_size = 12) +
+  ylim(0, 1) +
+  labs(
+    title = "Invented example: a species-by-primer interaction",
+    y = "Positive observation probability, given collection",
+    caption = "Rates invented for illustration, not estimated from a fit. Coloured bar: 95% interval of the invented draws."
+  )
+
+# Best primer for each species, used in the reading below.
+best_primer <- rownames(invented_rates)[apply(invented_rates, 2, which.max)]
+names(best_primer) <- colnames(invented_rates)
+best_for <- function(primer) knitr::combine_words(names(best_primer)[best_primer == primer], oxford_comma = FALSE)
+```
+
+Read it species by species; the function orders the rows by the average lower end of each species' intervals, not by name. Primer A has the highest rate for `r best_for("A")`, primer B for `r best_for("B")`, and primer C, weak for every other species, for `r best_for("C")`. No primer is uniformly better, so dropping any one of them leaves some species poorly detected.
+
+One way forward is to keep several primers and fit them together, because occJSDM uses every PCR from every primer. To decide whether a field sample holds a species' DNA, it combines all that sample's PCRs, weighting each by its primer's detection and false-positive rates for that species. A species that one primer amplifies poorly is therefore still detected through the other primers' PCRs. This treats a sample's PCRs as independent once we know whether the sample holds the DNA.
+
+If running every primer on every sample is too much laboratory work, choose the primer that best amplifies your focal species. Judge that from a pilot survey fitted with all candidate primers and read on a figure like this one, not from one primer's results alone.
 
 ### Separate false-positive and detection-rate plots
 

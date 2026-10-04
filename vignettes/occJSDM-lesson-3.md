@@ -1228,7 +1228,17 @@ remaining_detection
 
 <img src="teaching-data/remaining-plots-detection.png" alt="" width="100%" />
 
-On this figure, a primer mismatch shows as one species whose intervals sit far apart under different primers while the other species’ intervals stay close. It means that primer amplifies the species’ DNA poorly. Low rates under every primer point instead to the species itself, for example one that releases little DNA, so that its collected samples hold few copies. Here each species’ primer 2 cross sits the same distance to the right of its primer 1 cross, so there is no primer mismatch to see. OTU_1 is the lowest under both. If you use the per-primer plots above instead, note that each orders its rows separately, by the lower end of the blue interval. On your own survey, keep both primers when a species is detected well by only one of them. Treat a species that every primer detects weakly with caution, because its non-detections say less about absence than other species’ do.
+On this figure, a primer mismatch shows as one species whose gap between primers is much larger than the other species’ gaps, or reversed. It means the primer with the lower interval amplifies that species’ DNA poorly. Low rates under every primer point instead to the species itself, for example one that releases little DNA, so that its collected samples hold few copies. Treat such a species with caution, because its non-detections say less about absence than other species’ do. Here each species’ primer 2 cross sits the same distance to the right of its primer 1 cross, so there is no primer mismatch to see. OTU_1 is the lowest under both. If you use the per-primer plots above instead, note that each orders its rows separately, by the lower end of the blue interval.
+
+When mismatches run in different directions for different species, which primer detects best depends on the species: a species-by-primer interaction. The next figure is a made-up example of one, drawn by the same `plotDetectionRates()` from invented rates for three primers and six species, not from a fit.
+
+![](occJSDM-lesson-3_files/figure-gfm/hypothetical-primer-interaction-1.png)<!-- -->
+
+Read it species by species; the function orders the rows by the average lower end of each species’ intervals, not by name. Primer A has the highest rate for Sp_1, Sp_2 and Sp_3, primer B for Sp_4 and Sp_5, and primer C, weak for every other species, for Sp_6. No primer is uniformly better, so dropping any one of them leaves some species poorly detected.
+
+One way forward is to keep several primers and fit them together, because occJSDM uses every PCR from every primer. To decide whether a field sample holds a species’ DNA, it combines all that sample’s PCRs, weighting each by its primer’s detection and false-positive rates for that species. A species that one primer amplifies poorly is therefore still detected through the other primers’ PCRs. This treats a sample’s PCRs as independent once we know whether the sample holds the DNA.
+
+If running every primer on every sample is too much laboratory work, choose the primer that best amplifies your focal species. Judge that from a pilot survey fitted with all candidate primers and read on a figure like this one, not from one primer’s results alone.
 
 ### Separate false-positive and detection-rate plots
 
