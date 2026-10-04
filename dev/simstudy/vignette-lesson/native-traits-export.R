@@ -12,6 +12,7 @@ library(occJSDM)
 library(dplyr)
 library(ggplot2)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 lesson_path <- "vignettes/teaching-data/nonspatial-lesson.rds"
 outputs_path <- "vignettes/teaching-data/output-lesson.rds"
@@ -24,7 +25,7 @@ manifest <- lesson$manifests$default
 fit_path <- file.path(archive, manifest$file)
 stopifnot(
   identical(lesson$input, input),
-  identical(input$source_hashes, lesson_source_hashes()),
+  lesson_source_check(input$source_hashes),
   identical(outputs$source_hashes, input$source_hashes),
   identical(outputs$lesson_md5, md5(lesson_path)),
   identical(outputs$fit_manifests$default, manifest),
@@ -130,7 +131,8 @@ result <- list(
   scaling = data.frame(trait = names(trait_sd), sd = unname(trait_sd)),
   plots = plot_records, figures = figures,
   provenance = list(
-    source_hashes = lesson_source_hashes(), lesson_md5 = md5(lesson_path),
+    source_hashes = input$source_hashes, export_source_hashes = lesson_source_hashes(),
+    lesson_md5 = md5(lesson_path),
     outputs_md5 = md5(outputs_path), input_md5 = lesson$input_md5,
     fit_manifest = manifest,
     perfect_fit_manifest = perfect_manifest,

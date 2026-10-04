@@ -12,6 +12,10 @@ new_archive <- normalizePath(args[2L], mustWork=TRUE)
 suppressPackageStartupMessages(library(occJSDM))
 stopifnot(identical(normalizePath(find.package("occJSDM")),
                     normalizePath(file.path(archive,"library/occJSDM"))))
+# Only for lesson_source_check(), which uses lesson_source_hashes() from
+# helpers.R; both files define functions and run nothing.
+source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 md5 <- function(path) unname(tools::md5sum(path))
 near <- function(a,b,tol=1e-11,label="numeric check") {
   if(length(a)!=length(b) || anyNA(a) || anyNA(b) ||
@@ -34,7 +38,7 @@ stopifnot(identical(input,b$input),identical(o,old_lesson$input),
   identical(input$generator_md5,md5("dev/simstudy/vignette-lesson/prediction-build.R")),
   identical(b$source_md5,tools::md5sum(names(b$source_md5))),
   identical(o$source_hashes,b$source_hashes),identical(input$source_hashes,b$source_hashes),
-  identical(b$source_hashes,tools::md5sum(names(b$source_hashes))),
+  lesson_source_check(b$source_hashes),
   identical(saved$two_factors$mcmc,saved$one_factor$mcmc),
   identical(saved$two_factors$priors,saved$one_factor$priors),
   identical(saved$one_factor$prediction_input_md5,md5(ip)))

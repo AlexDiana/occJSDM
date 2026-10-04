@@ -14,6 +14,7 @@ close <- function(left, right) {
 }
 library(occJSDM)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 examples <- readRDS(new_path("vignettes/teaching-data/native-traits-data.rds"))
 provenance <- examples$provenance
@@ -23,7 +24,7 @@ outputs <- readRDS("vignettes/teaching-data/output-lesson.rds")
 snippet_path <- new_path("dev/simstudy/vignette-lesson/native-traits-examples.Rmd")
 stopifnot(
   identical(lesson$input, input),
-  identical(provenance$source_hashes, lesson_source_hashes()),
+  lesson_source_check(provenance$source_hashes),
   identical(provenance$source_hashes, input$source_hashes),
   identical(provenance$source_hashes, outputs$source_hashes),
   identical(provenance$lesson_md5, md5("vignettes/teaching-data/nonspatial-lesson.rds")),

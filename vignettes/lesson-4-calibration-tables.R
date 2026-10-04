@@ -90,7 +90,7 @@ calibration_summary_plot <- function(x, measure, packages, xlabel) {
     ggplot2::geom_text(data = missing, ggplot2::aes(x = 50, y = condition, label = label),
       inherit.aes = FALSE, colour = "grey45", size = 2.7) +
     ggplot2::facet_wrap(~package, nrow = 1, drop = FALSE) +
-    ggplot2::scale_colour_manual(values = c("100 sites" = "#777777", "300 sites" = "#1F5F6B"), drop = FALSE) +
+    ggplot2::scale_colour_manual(values = c("100 sites" = "#56B4E9", "300 sites" = "#D55E00"), drop = FALSE) +
     ggplot2::scale_shape_manual(values = c("100 sites" = 16, "300 sites" = 17), drop = FALSE) +
     ggplot2::labs(x = xlabel, y = NULL, colour = NULL, shape = NULL) +
     ggplot2::theme_minimal(base_size = 11) +

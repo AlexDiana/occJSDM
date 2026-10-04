@@ -71,10 +71,14 @@ predictions <- as_tibble(comparison$predictions)
 
 package_order <- c("occJSDM", "gllvm", "sjSDM", "Hmsc")
 package_labels <- c("occJSDM", "gllvm", "sjSDM", "Hmsc")
+# Okabe-Ito colours, which stay distinct for readers with colour-vision deficiency.
 package_colours <- c(
-  occJSDM = "#007A87", gllvm = "#555AA4",
-  sjSDM = "#C16612", Hmsc = "#648747"
+  occJSDM = "#0072B2", gllvm = "#E69F00",
+  sjSDM = "#009E73", Hmsc = "#CC79A7"
 )
+# A second cue beside colour where packages share one panel.
+package_shapes <- c(occJSDM = 16, gllvm = 17, sjSDM = 15, Hmsc = 18)
+package_linetypes <- c(occJSDM = "solid", gllvm = "dotdash", sjSDM = "twodash", Hmsc = "dotted")
 
 target_labels <- c(
   sampled_site_recovery = "Reconstruct sampled sites",
@@ -469,7 +473,7 @@ new_site_predictions <- predictions |>
 
 ggplot(new_site_predictions, aes(truth, estimate)) +
   geom_abline(slope = 1, intercept = 0, colour = "grey35") +
-  geom_point(alpha = 0.18, size = 0.8, colour = "#007A87") +
+  geom_point(alpha = 0.18, size = 0.8, colour = "grey30") +
   facet_wrap(~ package, ncol = 2,
              labeller = as_labeller(setNames(package_labels, package_order))) +
   scale_x_continuous(limits = c(0, 1), labels = scales::label_percent()) +
@@ -489,7 +493,7 @@ sampled_site_predictions <- predictions |>
 
 ggplot(sampled_site_predictions, aes(truth, estimate)) +
   geom_abline(slope = 1, intercept = 0, colour = "grey35") +
-  geom_point(alpha = 0.22, size = 0.8, colour = "#007A87") +
+  geom_point(alpha = 0.22, size = 0.8, colour = "grey30") +
   facet_wrap(~ package, ncol = 2,
              labeller = as_labeller(setNames(package_labels, package_order))) +
   scale_x_continuous(limits = c(0, 1), labels = scales::label_percent()) +
@@ -607,13 +611,15 @@ species_errors <- predictions |>
     .groups = "drop"
   )
 
-ggplot(species_errors, aes(absolute_error_pp, species, colour = package)) +
+ggplot(species_errors, aes(absolute_error_pp, species, colour = package, shape = package)) +
   geom_point(position = position_dodge(width = 0.6), size = 2.4) +
   facet_wrap(~ question) +
   scale_colour_manual(values = package_colours, labels = package_labels) +
+  scale_shape_manual(values = package_shapes, labels = package_labels) +
   scale_x_continuous(limits = c(0, NA)) +
   labs(x = "Average absolute error (percentage points)", y = "Species",
-       colour = "Package", title = "An overall average hides differences among species") +
+       colour = "Package", shape = "Package",
+       title = "An overall average hides differences among species") +
   theme(legend.position = "bottom")
 ```
 
@@ -673,17 +679,18 @@ gradient_misses <- largest_misses |>
 
 ```{r environmental-gradient-1, fig.height=8}
 ggplot(filter(response_curves, gradient == "environment_1"),
-       aes(value, estimate, colour = package)) +
+       aes(value, estimate, colour = package, linetype = package)) +
   geom_line(linewidth = 0.65) +
   geom_line(data = filter(true_curves, gradient == "environment_1"),
             aes(value, truth), inherit.aes = FALSE,
             colour = "black", linetype = "dashed", linewidth = 0.8) +
   facet_wrap(~ species, ncol = 2) +
   scale_colour_manual(values = package_colours, labels = package_labels) +
+  scale_linetype_manual(values = package_linetypes, labels = package_labels) +
   scale_y_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1),
                      labels = scales::label_percent()) +
   labs(x = "Environmental gradient 1 (training standard deviations)",
-       y = "Occurrence probability", colour = "Package",
+       y = "Occurrence probability", colour = "Package", linetype = "Package",
        title = "Gradient 1: fitted curves beside the true response",
        subtitle = "Black dashed line = truth; gradient 2 held at its training mean") +
   theme(legend.position = "bottom")
@@ -691,17 +698,18 @@ ggplot(filter(response_curves, gradient == "environment_1"),
 
 ```{r environmental-gradient-2, fig.height=8}
 ggplot(filter(response_curves, gradient == "environment_2"),
-       aes(value, estimate, colour = package)) +
+       aes(value, estimate, colour = package, linetype = package)) +
   geom_line(linewidth = 0.65) +
   geom_line(data = filter(true_curves, gradient == "environment_2"),
             aes(value, truth), inherit.aes = FALSE,
             colour = "black", linetype = "dashed", linewidth = 0.8) +
   facet_wrap(~ species, ncol = 2) +
   scale_colour_manual(values = package_colours, labels = package_labels) +
+  scale_linetype_manual(values = package_linetypes, labels = package_labels) +
   scale_y_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1),
                      labels = scales::label_percent()) +
   labs(x = "Environmental gradient 2 (training standard deviations)",
-       y = "Occurrence probability", colour = "Package",
+       y = "Occurrence probability", colour = "Package", linetype = "Package",
        title = "Gradient 2: fitted curves beside the true response",
        subtitle = "Black dashed line = truth; gradient 1 held at its training mean") +
   theme(legend.position = "bottom")

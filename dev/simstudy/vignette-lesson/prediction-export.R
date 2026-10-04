@@ -6,6 +6,7 @@ outdir <- normalizePath(args[2], mustWork = TRUE)
 library(dplyr)
 library(tidyr)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 source("dev/simstudy/vignette-lesson/prediction-math.R")
 md5 <- function(p) unname(tools::md5sum(p))
@@ -14,7 +15,7 @@ input_path <- file.path(outdir, "prediction-input.rds")
 input <- readRDS(input_path)
 fit_paths <- c(two_factors = file.path(archive, "default-fit.rds"),
                one_factor = file.path(outdir, "one-factor-fit.rds"))
-stopifnot(identical(input$source_hashes, lesson_source_hashes()),
+stopifnot(lesson_source_check(input$source_hashes),
           identical(input$original_input_md5, md5(file.path(archive, "input.rds"))),
           identical(input$baseline_fit_md5, md5(fit_paths[["two_factors"]])),
           identical(input$generator_md5, md5("dev/simstudy/vignette-lesson/prediction-build.R")))
@@ -81,7 +82,8 @@ differences <- bind_rows(lapply(c("brier", "negative_log_score"), function(metri
     upper = mean(d) + 1.96 * sd(d) / sqrt(length(d)))
 }))
 bundle <- list(schema = 1L, input = input, prediction_input_md5 = md5(input_path),
-  source_hashes = original$source_hashes, manifests = manifests,
+  source_hashes = original$source_hashes, export_source_hashes = lesson_source_hashes(),
+  manifests = manifests,
   truth = truth_table, cells = cells, scores = scores, paired_site_differences = differences,
   public = bind_rows(public), diagnostics = bind_rows(diagnostics),
   probability_diagnostics = bind_rows(lapply(results, `[[`, "diagnostics")),

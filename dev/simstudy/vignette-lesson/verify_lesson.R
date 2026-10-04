@@ -2,10 +2,11 @@
 args <- commandArgs(TRUE); stopifnot(length(args)==1)
 outdir <- normalizePath(args[1],mustWork=TRUE)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 x <- readRDS("vignettes/teaching-data/nonspatial-lesson.rds")
 b <- readRDS(file.path(outdir,"input.rds"))
-stopifnot(identical(x$input,b),identical(b$source_hashes,lesson_source_hashes()),
+stopifnot(identical(x$input,b),lesson_source_check(b$source_hashes),
           identical(b$generator_hashes,tools::md5sum(names(b$generator_hashes))),
           identical(x$summary_source_hashes,tools::md5sum(names(x$summary_source_hashes))),
           identical(x$input_md5,unname(tools::md5sum(file.path(outdir,"input.rds")))))

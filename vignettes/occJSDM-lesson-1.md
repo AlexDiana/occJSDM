@@ -328,7 +328,7 @@ ggplot(replicate_design, aes(samples, chance_of_missing)) +
   scale_y_continuous(labels = scales::percent, limits = c(0, NA)) +
   labs(x = "Field samples per site", y = "Chance of missing a present species",
        title = "With this detection probability, how many samples does a site need?",
-       caption = "Orange: this survey's samples per site. Dashed line: a 5% chance of missing.")
+       caption = "Red-orange: this survey's samples per site. Dashed line: a 5% chance of missing.")
 ```
 
 ![](occJSDM-lesson-1_files/figure-gfm/replicate-design-1.png)<!-- -->

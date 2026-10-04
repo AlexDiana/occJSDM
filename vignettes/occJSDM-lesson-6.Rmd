@@ -55,6 +55,16 @@ library(ggplot2)
 
 package_order <- c("occJSDM", "gllvm", "sjSDM", "Hmsc")
 
+# Okabe-Ito colours, which stay distinct for readers with colour-vision deficiency.
+# Each package keeps its Lesson 5 colour and shape.
+package_colours <- c(occJSDM = "#0072B2", gllvm = "#E69F00", sjSDM = "#009E73", Hmsc = "#CC79A7")
+package_shapes <- c(occJSDM = 16, gllvm = 17, sjSDM = 15, Hmsc = 18)
+# Training-site counts use the two colours no package uses, so in figures that
+# also show packages a site colour never looks like a package.
+site_colours <- c("100" = "#56B4E9", "300" = "#D55E00")
+# The fitted response is shown by line type, so these colours keep one meaning.
+response_linetypes <- c(quadratic = "solid", linear = "dotdash")
+
 # Keep the registered ternary theme elements valid when vignettes share a session.
 theme_set(ggtern::theme_bw(base_size = 12))
 ```
@@ -168,13 +178,15 @@ These are the **true generating curves** for the first species in the first simu
 extension$generating_curves |>
   as_tibble() |>
   filter(scenario %in% c("baseline", "rare", "curved")) |>
-  ggplot(aes(environment, probability, colour = scenario)) +
+  ggplot(aes(environment, probability, colour = scenario, linetype = scenario)) +
   geom_line(linewidth = 1) +
+  scale_colour_manual(values = c(baseline = "#0072B2", rare = "#E69F00", curved = "#009E73")) +
+  scale_linetype_manual(values = c(baseline = "solid", rare = "longdash", curved = "dotdash")) +
   scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
   labs(
     x = "Environmental gradient 1, in original simulation units",
     y = "True probability of occurrence",
-    colour = "Simulation",
+    colour = "Simulation", linetype = "Simulation",
     caption = "Known generating truth for species_01, community 1; no model estimates in this figure."
   ) +
   theme_bw()
@@ -289,15 +301,16 @@ if (nrow(extension$fitted_curves) > 0) {
   extension$fitted_curves |>
     as_tibble() |>
     ggplot(aes(environment)) +
-    geom_line(aes(y = truth), colour = "black", linetype = "dashed", linewidth = 0.8) +
-    geom_line(aes(y = estimate, colour = response), linewidth = 0.8) +
+    geom_line(aes(y = truth), colour = "black", linetype = "dashed", linewidth = 1) +
+    geom_line(aes(y = estimate, linetype = response), colour = "grey25", linewidth = 0.7) +
     facet_grid(n_sites ~ package) +
+    scale_linetype_manual(values = response_linetypes) +
     scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
     labs(
       x = "Environmental gradient 1",
       y = "Occurrence probability",
-      colour = "Fitted response",
-      caption = "Curved scenario, species_01, community 1. Dashed black: truth. Coloured: fitted marginal probabilities. Rows: training sites."
+      linetype = "Fitted response",
+      caption = "Curved scenario, species_01, community 1. Dashed black: truth. Rows: training sites.\nGrey: fitted marginal probabilities, solid for the quadratic fit and dot-dash for the straight-line fit."
     ) +
     theme_bw()
 }
@@ -442,7 +455,7 @@ Supplying traits lowered the average error a little, by at most `r sprintf("%.1f
 
 Improved prediction and clear evidence of a trait relationship are different outcomes. A model can predict reasonably while remaining uncertain about why species differ. Conversely, a detectable trait relationship need not greatly improve predictions when each species already has plenty of observations.
 
-The next figure subtracts the known true trait effect from each estimate. The dashed black line therefore means **accurate estimation**, not necessarily **no trait effect**. The dotted red line means an estimated effect of zero. For the irrelevant trait, those references coincide because its true effect is zero. An interval crossing the black line includes the truth; an interval crossing the red line includes no effect. These are different questions for a trait whose generating effect is nonzero.
+The next figure subtracts the known true trait effect from each estimate. The dashed black line therefore means **accurate estimation**, not necessarily **no trait effect**. The dotted red-orange line means an estimated effect of zero. For the irrelevant trait, those references coincide because its true effect is zero. An interval crossing the black line includes the truth; an interval crossing the red-orange line includes no effect. These are different questions for a trait whose generating effect is nonzero.
 
 ```{r extension-trait-coefficient-recovery, fig.height=9}
 if (nrow(extension$traits) > 0) {
@@ -460,7 +473,7 @@ if (nrow(extension$traits) > 0) {
     distinct(relationship, design, truth) |>
     mutate(no_effect_on_error_scale = -truth)
 
-  ggplot(matched_trait_effects, aes(factor(replicate), coefficient_error, colour = package)) +
+  ggplot(matched_trait_effects, aes(factor(replicate), coefficient_error, colour = package, shape = package)) +
     geom_hline(yintercept = 0, linetype = "dashed") +
     geom_hline(
       data = no_effect_references,
@@ -472,11 +485,13 @@ if (nrow(extension$traits) > 0) {
       position = position_dodge(width = 0.5)
     ) +
     facet_grid(relationship ~ design, scales = "free_y") +
+    scale_colour_manual(values = package_colours, breaks = package_order) +
+    scale_shape_manual(values = package_shapes, breaks = package_order) +
     labs(
       x = "Independent simulated community",
       y = "Estimated trait effect minus its true value",
-      colour = "Package",
-      caption = "Dashed black: estimate equals truth. Dotted red: estimated effect is zero. Coefficient differences are not probability percentage points."
+      colour = "Package", shape = "Package",
+      caption = "Dashed black: estimate equals truth. Dotted red-orange: estimated effect is zero.\nCoefficient differences are not probability percentage points."
     ) +
     theme_bw()
 }
@@ -719,6 +734,7 @@ prediction_calibration |>
   geom_hline(yintercept = 0, colour = "grey70") +
   geom_point(position = position_jitterdodge(jitter.width = .15, dodge.width = .6, seed = 25), alpha = .75) +
   facet_grid(condition ~ measure, scales = "free_y") +
+  scale_colour_manual(values = site_colours) +
   labs(x = NULL, y = "Error (percentage points)", colour = "Training sites", shape = "Diagnostics",
     caption = "Each point is one community. Flagged fits remain visible; failed fits have no score.") +
   theme_bw() + theme(axis.text.x = element_text(angle = 35, hjust = 1))
@@ -810,6 +826,7 @@ as_tibble(calibration$per_community) |>
     inherit.aes = FALSE, vjust = -.7, size = 2.5) +
   scale_x_discrete(limits = package_order, drop = FALSE) +
   facet_grid(condition ~ measure, scales = "free_y") +
+  scale_colour_manual(values = site_colours) +
   labs(x = NULL, y = NULL, colour = "Training sites", shape = "Diagnostics",
     caption = "Each point summarises one community. Empty package columns identify missing intervals.") +
   theme_bw()
@@ -878,6 +895,7 @@ as_tibble(calibration$per_community) |>
     aes(x = package, y = -Inf, label = "Different link"), inherit.aes = FALSE, vjust = -.7, size = 2.5) +
   scale_x_discrete(limits = package_order, drop = FALSE) +
   facet_wrap(vars(condition, measure), ncol = 2, scales = "free_y") +
+  scale_colour_manual(values = site_colours) +
   labs(x = NULL, y = NULL, colour = "Training sites", shape = "Diagnostics",
     caption = "First environmental slope, original predictor units. sjSDM uses conditional native uncertainty.") +
   theme_bw()

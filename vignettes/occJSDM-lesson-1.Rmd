@@ -281,7 +281,7 @@ ggplot(replicate_design, aes(samples, chance_of_missing)) +
   scale_y_continuous(labels = scales::percent, limits = c(0, NA)) +
   labs(x = "Field samples per site", y = "Chance of missing a present species",
        title = "With this detection probability, how many samples does a site need?",
-       caption = "Orange: this survey's samples per site. Dashed line: a 5% chance of missing.")
+       caption = "Red-orange: this survey's samples per site. Dashed line: a 5% chance of missing.")
 ```
 
 Each point is the chance that a site occupied by OTU_3 produces no detections, for a given number of samples. One sample misses the species `r format_percent(1 - p_hat)` of the time. This survey's `r M` samples miss it `r format_percent((1 - p_hat)^M)` of the time, which is why the previous sections found occupied sites among the all-negative ones. Reaching a 5% chance of missing would take `r ceiling(log(0.05) / log(1 - p_hat))` samples per site.

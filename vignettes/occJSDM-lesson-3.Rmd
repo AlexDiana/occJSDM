@@ -1155,9 +1155,6 @@ primer_1_truth <- native_truth$laboratory |>
 
 native_primer_1 <- plotFPTPStage2Rates(fitmodel, primerName = "1") +
   native_theme +
-  scale_colour_manual(
-    name = "Colour", values = c("TP rate" = "#0072B2", "FP rate" = "#D55E00")
-  ) +
   geom_point(
     data = primer_1_truth, aes(x = species, y = truth),
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
@@ -1177,9 +1174,6 @@ primer_2_truth <- native_truth$laboratory |>
 
 native_primer_2 <- plotFPTPStage2Rates(fitmodel, primerName = "2") +
   native_theme +
-  scale_colour_manual(
-    name = "Colour", values = c("TP rate" = "#0072B2", "FP rate" = "#D55E00")
-  ) +
   geom_point(
     data = primer_2_truth, aes(x = species, y = truth),
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
@@ -1205,7 +1199,6 @@ remaining_detection <- plotDetectionRates(fitmodel, idx_species = 1:10) +
     position = position_dodge(width = 0.6)
   ) +
   ylim(0, 1) +
-  scale_colour_manual(values = c("1" = "#0072B2", "2" = "#E69F00")) +
   labs(
     title = "Laboratory true-positive detection by primer",
     y = "Positive observation probability, given collection",
@@ -1234,7 +1227,7 @@ colnames(invented_rates) <- paste0("Sp_", 1:6)
 
 When mismatches run in different directions for different species, which primer detects best depends on the species: a species-by-primer interaction. The next figure is a made-up example of one, drawn by the same `plotDetectionRates()` from invented rates for `r xfun::n2w(nrow(invented_rates))` primers and `r xfun::n2w(ncol(invented_rates))` species, not from a fit.
 
-```{r hypothetical-primer-interaction, echo=FALSE, purl=FALSE, message=FALSE, fig.height=4}
+```{r hypothetical-primer-interaction, echo=FALSE, purl=FALSE, fig.height=4}
 # Beta draws centred on each rate, narrow enough for the intervals to separate.
 # plotDetectionRates() reads p_output as primer x species x draws.
 set.seed(20261004)
@@ -1256,7 +1249,6 @@ invented_fit <- list(
 occJSDM::plotDetectionRates(invented_fit) +
   ggtern::theme_bw(base_size = 12) +
   ylim(0, 1) +
-  scale_colour_manual(values = c(A = "#0072B2", B = "#E69F00", C = "#009E73")) +
   labs(
     title = "Invented example: a species-by-primer interaction",
     y = "Positive observation probability, given collection",
@@ -1314,7 +1306,6 @@ remaining_stage2_fp <- plotStage2FPRates(fitmodel, idx_species = 1:10) +
     position = position_dodge(width = 0.15)
   ) +
   ylim(0, 1) +
-  scale_colour_manual(values = c("1" = "#0072B2", "2" = "#E69F00")) +
   labs(
     title = "Laboratory false positives by primer",
     y = "Positive observation probability, given no collection",
@@ -1338,15 +1329,13 @@ library(patchwork)
 field_rates <- (plotStage1FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1)) +
   plotCollectionRates(fitmodel, idx_species = 1:10)
 
-primer_colours <- scale_colour_manual(values = c("1" = "#0072B2", "2" = "#E69F00"))
-
-laboratory_rates <- (plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1) + primer_colours) +
-  (plotDetectionRates(fitmodel, idx_species = 1:10) + primer_colours)
+laboratory_rates <- (plotStage2FPRates(fitmodel, idx_species = 1:10) + ylim(0, 1)) +
+  plotDetectionRates(fitmodel, idx_species = 1:10)
 
 field_rates / laboratory_rates
 ```
 
-`primer_colours` gives the primers the colours of the figures above. The parentheses matter. A `+` inside them adds a `ggplot2` layer or scale to one plot, whereas the `+` between the parenthesised plot and the next plot is `patchwork`'s side-by-side operator.
+The parentheses matter. A `+` inside them adds a `ggplot2` layer or scale to one plot, whereas the `+` between the parenthesised plot and the next plot is `patchwork`'s side-by-side operator.
 
 ### Would more field samples or PCR replicates help detection?
 

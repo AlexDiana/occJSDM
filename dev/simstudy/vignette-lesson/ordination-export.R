@@ -18,6 +18,7 @@ library(purrr)
 library(ggplot2)
 theme_set(ggtern::theme_bw(base_size = 12))
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 
 lesson_path <- "vignettes/teaching-data/nonspatial-lesson.rds"
@@ -31,7 +32,7 @@ manifest <- lesson$manifests$default
 fit_path <- file.path(archive, manifest$file)
 stopifnot(
   identical(input, lesson$input),
-  identical(input$source_hashes, lesson_source_hashes()),
+  lesson_source_check(input$source_hashes),
   identical(outputs$source_hashes, input$source_hashes),
   identical(outputs$lesson_md5, md5(lesson_path)),
   identical(outputs$fit_manifests$default, manifest),
@@ -157,7 +158,8 @@ ordination_examples <- list(
   checks = list(draws = 24000L, maximum_error = maximum_error,
                 minimum_alignment_singular_value = minimum_singular_value),
   provenance = list(
-    source_hashes = lesson_source_hashes(), lesson_md5 = md5(lesson_path),
+    source_hashes = input$source_hashes, export_source_hashes = lesson_source_hashes(),
+    lesson_md5 = md5(lesson_path),
     outputs_md5 = md5(outputs_path), input_md5 = lesson$input_md5,
     fit_manifest = manifest, snippet_md5 = md5(snippet_path),
     exporter_md5 = md5(exporter_path), student_code_md5 = student_code_md5,

@@ -14,6 +14,7 @@ close <- function(a, b, tolerance = 1e-10) {
 
 library(occJSDM)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 x <- readRDS(new_path("vignettes/teaching-data/native-plots.rds"))
 lesson <- readRDS("vignettes/teaching-data/nonspatial-lesson.rds")
@@ -22,7 +23,7 @@ truth <- input$sim$true_params
 provenance <- x$provenance
 snippet_path <- new_path("dev/simstudy/vignette-lesson/native-plot-examples.Rmd")
 stopifnot(
-  identical(provenance$source_hashes, lesson_source_hashes()),
+  lesson_source_check(provenance$source_hashes),
   identical(provenance$lesson_md5, md5("vignettes/teaching-data/nonspatial-lesson.rds")),
   identical(provenance$output_md5, md5("vignettes/teaching-data/output-lesson.rds")),
   identical(provenance$snippet_md5, md5(snippet_path)),
