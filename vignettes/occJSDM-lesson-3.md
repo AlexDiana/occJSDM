@@ -1167,7 +1167,7 @@ native_collection_rates
 
 [Lesson 2](occJSDM-lesson-2.md) compares true and estimated PCR detection, laboratory false-positive and field-contamination probabilities, and shows why their values alone cannot classify every positive detection correctly. The plots below check the laboratory rates against their generating values.
 
-Blue intervals describe positive PCR observations given collection; red intervals describe positive PCR observations without collection. Each black cross is the corresponding true probability.
+Blue intervals describe positive PCR observations given collection; red-orange intervals describe positive PCR observations without collection. Each black cross is the corresponding true probability.
 
 With the fitted threshold of one read, truth equals the generating event probability multiplied by the probability that its rounded read count reaches the threshold. The adjustment uses the true-read distribution for true positives and the contamination-read distribution for false positives.
 
@@ -1177,6 +1177,9 @@ primer_1_truth <- native_truth$laboratory |>
 
 native_primer_1 <- plotFPTPStage2Rates(fitmodel, primerName = "1") +
   native_theme +
+  scale_colour_manual(
+    name = "Colour", values = c("TP rate" = "#0072B2", "FP rate" = "#D55E00")
+  ) +
   geom_point(
     data = primer_1_truth, aes(x = species, y = truth),
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
@@ -1194,6 +1197,9 @@ primer_2_truth <- native_truth$laboratory |>
 
 native_primer_2 <- plotFPTPStage2Rates(fitmodel, primerName = "2") +
   native_theme +
+  scale_colour_manual(
+    name = "Colour", values = c("TP rate" = "#0072B2", "FP rate" = "#D55E00")
+  ) +
   geom_point(
     data = primer_2_truth, aes(x = species, y = truth),
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
@@ -1217,6 +1223,7 @@ remaining_detection <- plotDetectionRates(fitmodel, idx_species = 1:10) +
     position = position_dodge(width = 0.6)
   ) +
   ylim(0, 1) +
+  scale_colour_manual(values = c("1" = "#0072B2", "2" = "#E69F00")) +
   labs(
     title = "Laboratory true-positive detection by primer",
     y = "Positive observation probability, given collection",
@@ -1277,6 +1284,7 @@ remaining_stage2_fp <- plotStage2FPRates(fitmodel, idx_species = 1:10) +
     position = position_dodge(width = 0.15)
   ) +
   ylim(0, 1) +
+  scale_colour_manual(values = c("1" = "#0072B2", "2" = "#E69F00")) +
   labs(
     title = "Laboratory false positives by primer",
     y = "Positive observation probability, given no collection",
