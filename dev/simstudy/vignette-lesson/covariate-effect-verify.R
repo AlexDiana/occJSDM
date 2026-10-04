@@ -13,6 +13,7 @@ close <- function(a, b, tolerance = 1e-10) {
 library(occJSDM)
 library(ggplot2)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 bundle_path <- "vignettes/teaching-data/covariate-effect-data.rds"
 x <- readRDS(bundle_path)
@@ -22,7 +23,7 @@ p <- x$provenance
 snippet_path <- "dev/simstudy/vignette-lesson/covariate-effect-examples.Rmd"
 stopifnot(
   identical(x$schema, 1L),
-  identical(p$source_hashes, lesson_source_hashes()),
+  lesson_source_check(p$source_hashes),
   identical(p$lesson_md5, md5("vignettes/teaching-data/nonspatial-lesson.rds")),
   identical(p$output_md5, md5("vignettes/teaching-data/output-lesson.rds")),
   identical(p$remaining_md5, md5("vignettes/teaching-data/remaining-plots-data.rds")),

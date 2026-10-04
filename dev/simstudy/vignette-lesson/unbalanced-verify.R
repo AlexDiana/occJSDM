@@ -5,6 +5,7 @@ stopifnot(length(args) == 1L)
 archive <- normalizePath(args[1], mustWork = TRUE)
 library(dplyr)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 lesson <- readRDS("vignettes/teaching-data/nonspatial-lesson.rds")
 compact <- readRDS("vignettes/teaching-data/unbalanced-lesson.rds")
@@ -15,9 +16,9 @@ original <- lesson$input$sim$data_list
 dat <- input$sim$data_list
 stopifnot(
   identical(input$sim$true_params, lesson$input$sim$true_params),
-  identical(input$source_hashes, lesson_source_hashes()),
-  identical(saved$source_hashes, lesson_source_hashes()),
-  identical(compact$source_hashes, lesson_source_hashes()),
+  lesson_source_check(input$source_hashes),
+  lesson_source_check(saved$source_hashes),
+  lesson_source_check(compact$source_hashes),
   identical(compact$original_lesson_md5,
             unname(tools::md5sum("vignettes/teaching-data/nonspatial-lesson.rds"))),
   identical(compact$exporter_hashes, tools::md5sum(names(compact$exporter_hashes))),
