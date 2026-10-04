@@ -68,7 +68,7 @@ Doug approved a saved-results calibration extension on 25 September 2026, includ
 
 The full Lesson 6 extension archive is at this exact location, outside the former extension worktree:
 
-```text
+``` text
 /Users/douglasyu/src/occJSDM/dev/simstudy/results/lesson-4-extension-20260923/
 ```
 
