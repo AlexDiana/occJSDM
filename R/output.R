@@ -910,6 +910,10 @@ plotCollectionRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the true and false positives at the lab stage
 #'
+#' The TP rate is drawn in blue (`#0072B2`) and the FP rate in vermillion
+#' (`#D55E00`) from the colour-blind-safe Okabe-Ito palette; add
+#' `scale_colour_manual()` to the returned plot to use other colours.
+#'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #' @param primerName Name of the primer to plot (defaults to the first primer in `fitModel$infos$primerNames`)
@@ -999,9 +1003,10 @@ plotFPTPStage2Rates <- function(fitModel,
     theme_bw() +
     # ylim(c(0,1)) +
     ylab("Detection probability") +
+    # Okabe-Ito blue for TP and vermillion for FP (colours 1 and 6).
     scale_color_manual(
       name = "Colour",
-      values = c("TP rate" = "blue", "FP rate" = "red")
+      values = c("TP rate" = okabe_ito(6)[1], "FP rate" = okabe_ito(6)[6])
     ) +
     theme(
       axis.text = element_text(angle = 0,
@@ -1021,6 +1026,10 @@ plotFPTPStage2Rates <- function(fitModel,
 #'
 #' @details
 #' Plots the 95% credible interval of the true positives at the lab stage
+#'
+#' Primers are coloured from the colour-blind-safe Okabe-Ito palette in their
+#' stored order (recycled, with a warning, beyond eight primers); add
+#' `scale_colour_manual()` to the returned plot to use other colours.
 #'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
@@ -1086,6 +1095,11 @@ plotDetectionRates <- function(fitModel,
       # coord_flip() inverts that into top-to-bottom; reverse the legend so
       # it matches the on-screen vertical order of the errorbars
       guides(color = guide_legend(reverse = TRUE)) +
+      # Named values pin each primer to its stored position in the palette
+      scale_color_manual(
+        values = stats::setNames(okabe_ito(length(primerNames)),
+                                 as.character(primerNames))
+      ) +
       theme_bw() + coord_flip()
 
     plotDetectionRates
@@ -1150,6 +1164,10 @@ plotStage1FPRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the false positives at the lab stage
 #'
+#' Primers are coloured from the colour-blind-safe Okabe-Ito palette in their
+#' stored order (recycled, with a warning, beyond eight primers); add
+#' `scale_colour_manual()` to the returned plot to use other colours.
+#'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
@@ -1209,6 +1227,11 @@ plotStage2FPRates <- function(fitModel,
     theme_bw() +
     ylab("q") +
     labs(color = "Primer") +
+    # factor(Primer) sorts the names, so map colours by name to keep each
+    # primer at its stored position in the palette
+    scale_color_manual(
+      values = stats::setNames(okabe_ito(maxP), as.character(primerNames))
+    ) +
     theme(
       axis.text = element_text(angle = 0, size = 8),
       axis.title = element_text(size = 12, face = "bold"),
