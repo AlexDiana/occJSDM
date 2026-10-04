@@ -1186,59 +1186,7 @@ native_primer_2
 knitr::include_graphics("teaching-data/native-plot-primer-2.png")
 ```
 
-The model estimates these rates for each primer and species separately, so compare the two plots species by species. A species with a low true-positive rate under one primer but not the other suggests a primer mismatch: that primer amplifies the species' DNA poorly. Low rates under both primers point instead to the species itself, for example one that releases little DNA, so that its collected samples hold few copies. Each plot orders its rows by the lower end of the blue interval, not by species name. Match species by label: OTU_4 and OTU_5 swap rows in the primer 2 plot. In this simulation the black crosses keep the same species order under both primers, and primer 2 detects every species a little more often. OTU_1 is the lowest under both, so there is no primer mismatch to see here. On your own survey, keep both primers when a species is detected well by only one of them. Treat a species that every primer detects weakly with caution, because its non-detections say less about absence than other species' do.
-
-### Separate false-positive and detection-rate plots
-
-The first plot shows field contamination: the probability of a collected presence when the species is absent from the site. Black crosses mark the generating `theta0`; bars are the package's 95% posterior intervals. This is a latent collection event, so its truth does not need a read-threshold adjustment.
-
-```{r remaining-plots-stage1-fp, eval=FALSE, purl=TRUE}
-remaining_stage1_fp <- plotStage1FPRates(fitmodel, idx_species = 1:10) +
-  remaining_theme +
-  geom_point(
-    data = remaining_truth$stage1_fp, aes(x = Species, y = truth),
-    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
-  ) +
-  ylim(0, 1) +
-  labs(
-    title = "Field false positives",
-    y = "Collection probability, given site absence",
-    caption = "Black cross: truth. Bar: native 95% interval."
-  )
-
-remaining_stage1_fp
-```
-
-```{r remaining-plots-stage1-fp-image, echo=FALSE, purl=FALSE, out.width="100%"}
-knitr::include_graphics("teaching-data/remaining-plots-stage1-fp.png")
-```
-
-The two laboratory helpers display each primer separately; they do not pool primers and have no `primerName` argument. Each truth cross is displaced with its matching primer bar. Use `plotFPTPStage2Rates(fitmodel, primerName = "1")` from the preceding examples when you want to select one primer instead.
-
-Laboratory false positives condition on no collection. True-positive detection conditions on collection. In both cases the truth includes the read-threshold adjustment explained under [laboratory rates by primer](#laboratory-true-positive-and-false-positive-rates-by-primer).
-
-```{r remaining-plots-stage2-fp, eval=FALSE, purl=TRUE}
-remaining_stage2_fp <- plotStage2FPRates(fitmodel, idx_species = 1:10) +
-  remaining_theme +
-  geom_point(
-    data = remaining_truth$stage2_fp,
-    aes(x = Species, y = truth, group = Primer),
-    inherit.aes = FALSE, shape = 4, size = 2.5, stroke = 1,
-    position = position_dodge(width = 0.15)
-  ) +
-  ylim(0, 1) +
-  labs(
-    title = "Laboratory false positives by primer",
-    y = "Positive observation probability, given no collection",
-    caption = "Black cross: matching primer truth. Coloured bar: native 95% interval."
-  )
-
-remaining_stage2_fp
-```
-
-```{r remaining-plots-stage2-fp-image, echo=FALSE, purl=FALSE, out.width="100%"}
-knitr::include_graphics("teaching-data/remaining-plots-stage2-fp.png")
-```
+The model estimates these rates for each primer and species separately, so the useful comparison is species by species across primers. `plotDetectionRates()` draws that comparison on one figure, with one row per species and one coloured true-positive interval per primer, and it works for any number of primers.
 
 ```{r remaining-plots-detection, eval=FALSE, purl=TRUE}
 remaining_detection <- plotDetectionRates(fitmodel, idx_species = 1:10) +
@@ -1261,6 +1209,60 @@ remaining_detection
 
 ```{r remaining-plots-detection-image, echo=FALSE, purl=FALSE, out.width="100%"}
 knitr::include_graphics("teaching-data/remaining-plots-detection.png")
+```
+
+On this figure, a primer mismatch shows as one species whose intervals sit far apart under different primers while the other species' intervals stay close. It means that primer amplifies the species' DNA poorly. Low rates under every primer point instead to the species itself, for example one that releases little DNA, so that its collected samples hold few copies. Here each species' primer 2 cross sits the same distance to the right of its primer 1 cross, so there is no primer mismatch to see. OTU_1 is the lowest under both. If you use the per-primer plots above instead, note that each orders its rows separately, by the lower end of the blue interval. On your own survey, keep both primers when a species is detected well by only one of them. Treat a species that every primer detects weakly with caution, because its non-detections say less about absence than other species' do.
+
+### Separate false-positive and detection-rate plots
+
+This subsection shows the two false-positive rates on their own: field contamination, then laboratory false positives by primer. The first plot shows field contamination: the probability of a collected presence when the species is absent from the site. Black crosses mark the generating `theta0`; bars are the package's 95% posterior intervals. This is a latent collection event, so its truth does not need a read-threshold adjustment.
+
+```{r remaining-plots-stage1-fp, eval=FALSE, purl=TRUE}
+remaining_stage1_fp <- plotStage1FPRates(fitmodel, idx_species = 1:10) +
+  remaining_theme +
+  geom_point(
+    data = remaining_truth$stage1_fp, aes(x = Species, y = truth),
+    inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
+  ) +
+  ylim(0, 1) +
+  labs(
+    title = "Field false positives",
+    y = "Collection probability, given site absence",
+    caption = "Black cross: truth. Bar: native 95% interval."
+  )
+
+remaining_stage1_fp
+```
+
+```{r remaining-plots-stage1-fp-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/remaining-plots-stage1-fp.png")
+```
+
+The laboratory false-positive helper, like `plotDetectionRates()` above, displays each primer separately within a species row; it does not pool primers and has no `primerName` argument. Each truth cross is displaced with its matching primer bar. Use `plotFPTPStage2Rates(fitmodel, primerName = "1")` from the preceding examples when you want to select one primer instead.
+
+Laboratory false positives condition on no collection, and their truth includes the read-threshold adjustment explained under [laboratory rates by primer](#laboratory-true-positive-and-false-positive-rates-by-primer).
+
+```{r remaining-plots-stage2-fp, eval=FALSE, purl=TRUE}
+remaining_stage2_fp <- plotStage2FPRates(fitmodel, idx_species = 1:10) +
+  remaining_theme +
+  geom_point(
+    data = remaining_truth$stage2_fp,
+    aes(x = Species, y = truth, group = Primer),
+    inherit.aes = FALSE, shape = 4, size = 2.5, stroke = 1,
+    position = position_dodge(width = 0.15)
+  ) +
+  ylim(0, 1) +
+  labs(
+    title = "Laboratory false positives by primer",
+    y = "Positive observation probability, given no collection",
+    caption = "Black cross: matching primer truth. Coloured bar: native 95% interval."
+  )
+
+remaining_stage2_fp
+```
+
+```{r remaining-plots-stage2-fp-image, echo=FALSE, purl=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/remaining-plots-stage2-fp.png")
 ```
 
 Species order is chosen separately by each of the package's helpers. A truth cross outside its bar identifies an interval that misses the generating rate in this dataset. These rate intervals summarize parameter uncertainty, unlike the random survey-count ranges in the cumulative-detection examples.
