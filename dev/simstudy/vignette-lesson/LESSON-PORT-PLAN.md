@@ -62,8 +62,8 @@ node --test dev/simstudy/lesson-site/test_lessons.js
 Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/check-frozen-chunks.R
 Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM-lesson-[0-7].md vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md
 zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/prose-checks.zsh <files>
-git diff --name-only fbe3ed6 -- ':!*.png' ':!*.rds' | xargs /usr/bin/grep -n $'—' | wc -l
-git log fbe3ed6..HEAD --format=%B | /usr/bin/grep -c $'—'
+git diff --name-only fbe3ed6 -- ':!*.png' ':!*.rds' | xargs /usr/bin/grep -n $'\u2014' | wc -l
+git log fbe3ed6..HEAD --format=%B | /usr/bin/grep -c $'\u2014'
 ```
 
 Expected: "Shared lesson-link regression checks passed."; `fail 0`; "All 36 frozen chunks match main at fbe3ed6."; the link checker's success line; every "must be 0" count is 0, and every long sentence the task added is split or kept for a stated reason; the last two counts are 0.
