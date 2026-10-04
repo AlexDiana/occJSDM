@@ -1205,6 +1205,8 @@ native_primer_2
 
 <img src="teaching-data/native-plot-primer-2.png" alt="" width="100%" />
 
+The model estimates these rates for each primer and species separately, so compare the two plots species by species. A species with a low true-positive rate under one primer but not the other suggests a primer mismatch: that primer amplifies the species’ DNA poorly. Low rates under both primers point instead to the species itself, for example one that releases little DNA, so that its collected samples hold few copies. In this simulation the black crosses keep the same species order under both primers, and primer 2 detects every species a little more often. OTU_1 is the lowest under both, so there is no primer mismatch to see here. On your own survey, keep both primers when a species is detected well by only one of them. Treat a species that every primer detects weakly with caution, because its non-detections say less about absence than other species’ do.
+
 ### Separate false-positive and detection-rate plots
 
 The first plot shows field contamination: the probability of a collected presence when the species is absent from the site. Black crosses mark the generating `theta0`; bars are the package’s 95% posterior intervals. This is a latent collection event, so its truth does not need a read-threshold adjustment.

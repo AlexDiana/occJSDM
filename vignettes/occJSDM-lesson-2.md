@@ -386,7 +386,7 @@ The main settings are:
 - `spatCovariates`: coordinate-column names, or `NULL` for the non-spatial fit used here.
 - `listParams$n_factors`: number of hidden site factors, which capture species occurring together more or less often than the measured environment predicts.
 - `listParams$n_lattrait`: number of unmeasured species-trait dimensions; this is the fitting argument, whereas the simulator calls it `gt`.
-- `threshold`: minimum reads counted as a positive result; we use 1 throughout.
+- `threshold`: minimum reads counted as a positive result; we use 1 throughout. On your own survey, keep it at 1 unless you have a specific reason to raise it. The model already separates false positives through its laboratory and field false-positive rates, and a higher threshold throws away weak true detections. It must be at least 1; `threshold = 0`, which would model read counts directly, is not supported and stops with an error.
 - `listPriors`: prior settings, the model’s starting expectations about rates, explained in “How does good practice enter the model?”; the contamination-prior example below changes named entries explicitly.
 - `MCMCparams`: chains, burn-in, retained draws and thinning, explained with the first fit.
 
