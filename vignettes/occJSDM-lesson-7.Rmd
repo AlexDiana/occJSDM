@@ -117,6 +117,10 @@ arrangement_labels <- c(spread = "Spread at random", pairs = "Spread plus close 
                         clustered = "Ten clusters of ten", grid = "Regular grid (control)")
 arm_labels <- c(oracle = "Oracle: true states, known parameters",
                 binary = "occJSDM: true states", two_stage = "occJSDM: eDNA survey")
+# Okabe-Ito colours and a shape for each arm, so the arms stay distinct
+# for readers with colour-vision deficiency.
+arm_colours <- setNames(c("#0072B2", "#D55E00", "#009E73"), arm_labels)
+arm_shapes <- setNames(c(16, 17, 15), arm_labels)
 group_labels <- c(prevalence_5pct = "5% species", prevalence_25pct = "25% species",
                   prevalence_75pct = "75% species")
 
@@ -277,12 +281,13 @@ The ceiling is low for every arrangement except one. With sites spread at random
 The full model must also estimate what the oracle was given: the intercepts, slopes, range and amplitude. In the survey arm it must, in addition, see the field through detection error. So the gap between the oracle and the true-state fit is the **cost of estimation**, and the gap between the true-state fit and the eDNA-survey fit is the **cost of detection**.
 
 ```{r fit-recovery, fig.height=5}
-ggplot(recovery, aes(arrangement, reduction, colour = arm)) +
+ggplot(recovery, aes(arrangement, reduction, colour = arm, shape = arm)) +
   geom_hline(yintercept = 0, colour = "grey50") +
   geom_point(position = position_dodge(.5), size = 2.4) +
   facet_wrap(~ group) +
-  scale_colour_manual(values = c("#0072B2", "#D55E00", "#7B3294")) +
-  labs(x = NULL, y = "Field error reduction relative to a flat field", colour = NULL,
+  scale_colour_manual(values = arm_colours) +
+  scale_shape_manual(values = arm_shapes) +
+  labs(x = NULL, y = "Field error reduction relative to a flat field", colour = NULL, shape = NULL,
        title = "Oracle ceiling, true-state fit and eDNA-survey fit",
        caption = "Means of three communities. Each point's community range is in the saved tables.") +
   theme(axis.text.x = element_text(angle = 25, hjust = 1), legend.position = "bottom", plot.margin = margin(5.5, 5.5, 5.5, 30))
@@ -381,12 +386,13 @@ The fit does not find the range either. Each fit gives a posterior probability, 
 sweep$fits$range |>
   mutate(arrangement = factor(arrangement, arrangement_order, arrangement_labels),
          arm = factor(arm, names(arm_labels)[-1], arm_labels[-1])) |>
-  ggplot(aes(arrangement, mass_within_one_step, colour = arm)) +
+  ggplot(aes(arrangement, mass_within_one_step, colour = arm, shape = arm)) +
   geom_hline(yintercept = .5, linetype = "dashed") +
   geom_point(position = position_dodge(.4), size = 2.4) +
-  scale_colour_manual(values = c("#D55E00", "#7B3294")) +
+  scale_colour_manual(values = arm_colours) +
+  scale_shape_manual(values = arm_shapes) +
   ylim(0, 1) +
-  labs(x = NULL, y = "Posterior mass near the true range", colour = NULL,
+  labs(x = NULL, y = "Posterior mass near the true range", colour = NULL, shape = NULL,
        title = "Does the fit find the range?", caption = "Mass within one grid step of the true range. One point per community. Dashed line: the reading rule.") +
   theme(axis.text.x = element_text(angle = 25, hjust = 1), legend.position = "bottom")
 ```

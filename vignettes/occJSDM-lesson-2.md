@@ -154,8 +154,11 @@ fit_labels <- c(
 fit_colours <- c(
   perfect = "#0072B2",
   default = "#D55E00",
-  alternative = "#7B3294"
+  alternative = "#009E73"
 )
+
+# A shape for each prior setting, so the prior comparison does not rely on colour alone.
+fit_shapes <- c(default = 16, alternative = 17)
 
 format_percent <- function(probability, digits = 1) {
   paste0(formatC(100 * probability, format = "f", digits = digits), "%")
@@ -1122,7 +1125,7 @@ case_comparison <- bind_rows(
 case_truth <- case_comparison |>
   distinct(case, quantity, truth)
 
-ggplot(case_comparison, aes(x = estimate, y = case, colour = arm)) +
+ggplot(case_comparison, aes(x = estimate, y = case, colour = arm, shape = arm)) +
   geom_point(position = position_dodge(width = 0.35), size = 2.5) +
   geom_point(
     data = case_truth, aes(x = truth, y = case),
@@ -1135,14 +1138,20 @@ ggplot(case_comparison, aes(x = estimate, y = case, colour = arm)) +
     labels = c("Default priors", "More permissive FP priors"),
     name = NULL
   ) +
+  scale_shape_manual(
+    values = fit_shapes,
+    breaks = c("default", "alternative"),
+    labels = c("Default priors", "More permissive FP priors"),
+    name = NULL
+  ) +
   scale_x_continuous(limits = c(-0.02, 1.02), breaks = seq(0, 1, 0.25), labels = format_percent) +
   labs(x = "Estimated probability; black cross = actual state", y = NULL) +
   theme(legend.position = "bottom")
 ```
 
 <figure>
-<img src="occJSDM-lesson-2_files/figure-gfm/prior-sensitivity-cases-1.png" alt="Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The two coloured points use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability." />
-<figcaption aria-hidden="true">Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The two coloured points use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability.</figcaption>
+<img src="occJSDM-lesson-2_files/figure-gfm/prior-sensitivity-cases-1.png" alt="Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The coloured circle and triangle use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability." />
+<figcaption aria-hidden="true">Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The coloured circle and triangle use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability.</figcaption>
 </figure>
 
 Under the alternative priors, the field-stage false-positive case receives 0.6% probability of site presence, close to its 0.7% under the default priors. Although this case is rejected under both priors, loosening the contamination priors does not resolve field-stage false positives across the survey. Their mean site probability is 41.4% under the alternative priors, against 47.4% under the default priors, because the ambiguity is in the data, not the prior. Across all 1,000 species-site pairs, mean absolute occupancy error changes from 15.4 to 16.2 percentage points. The alternative priors therefore worsen overall recovery in this dataset. We did not tune them to get any particular answer. On your own survey, refitting under a more permissive contamination prior is a way to see whether your key conclusions depend on the contamination assumption.
