@@ -13,7 +13,7 @@ from .runtime import (artifact, confined_path, digest, fresh_output,
 
 SOURCE_REVISION = 'b7b7001e56cea8e3931b09c917ea0e29e6cef3c6'
 REFERENCE = f'https://github.com/AlexDiana/occJSDM/blob/{SOURCE_REVISION}/vignettes/occJSDM.Rmd'
-quickstart_mcp = FastMCP(name='quickstart')
+quickstart_mcp = FastMCP(name='quickstart', strict_input_validation=True)
 
 
 class StrictOptions(BaseModel):

@@ -19,5 +19,29 @@
     "report": "reports/local-pilot-checkpoint.json",
     "guide": "USAGE.md",
     "Cloud_execution": "not_run"
+  },
+  "prerequisites": {
+    "python": {
+      "version": "3.12.11",
+      "reported_by": "Doug",
+      "source": "Cloud Terminal python3 --version user reply",
+      "meets_wrapper_minimum": true,
+      "server_execution_tested": false
+    }
+  },
+  "transfer": {
+    "status": "independently_verified_on_Mac_Cloud_installation_pending",
+    "archive": "dist/occJSDM-cloud-pilot.zip",
+    "inventory": "reports/cloud-transfer/bundle-inventory.json",
+    "purpose": "Cloud pilot; workshop delivery remains gated on adoption",
+    "archive_sha256": "4137eefbb14208bd88dbd9298731392713781459c0af28bc01d9d25d029cc670",
+    "archive_bytes": 54401018,
+    "verification_report": "reports/cloud-transfer/relocation-verification.json",
+    "verification_report_sha256": "594d5d38c98f3f28fadb7c518c2a1d1f9ea321d7989eb04b9f044ecb4af465eb",
+    "real_stdio_calls": 30,
+    "full_native_fits_compared": 6,
+    "full_native_table_calls_compared": 8,
+    "regressions_passed": 37,
+    "restore_mode": "Mac dependency cache with scientific source rebuilt; Cloud network restoration not run"
   }
 }

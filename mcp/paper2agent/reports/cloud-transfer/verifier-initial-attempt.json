@@ -1,0 +1,28 @@
+{
+  "status": "blocked_pending_strict_transport_repair",
+  "success": false,
+  "agent": "/root/mcp_cloud_transfer_verifier",
+  "archive_sha256": "d3f05b53703336093264acf3768c0dcde97b76ab39b670b60025fc46871839ef",
+  "all_21_extracted_hashes_match": true,
+  "fresh_python_install": "passed Python3.14.6 pinned closure",
+  "fresh_R_restore": "passed 61packages Mac arm64 R4.5 cache-assisted plus occJSDM built from original ZIP source",
+  "initial_stdio": "15 successful calls and four expected errors before unexpected seed=True acceptance",
+  "scientific_comparison": {
+    "success": true,
+    "full_fits": 4,
+    "table_calls": 8,
+    "tolerance": 0,
+    "full_CSVs": "byte-exact"
+  },
+  "blocking_finding": "FastMCP strict_input_validation default False overrides strict field/model annotations; seed=True accepted and fit published",
+  "failed_evidence": "verifier-stdio.json/log unchanged",
+  "production_mutations": false,
+  "Cloud_tested": false,
+  "limits": [
+    "Cloud Python3.12.11 only user-reported prerequisite; not exercised",
+    "Cloud/Linux/R4.6.1/Assistant untested",
+    "No network-only R restore",
+    "No adoption or workshop-release completion"
+  ],
+  "timestamp": "2026-10-05T18:15:17.696336+00:00"
+}

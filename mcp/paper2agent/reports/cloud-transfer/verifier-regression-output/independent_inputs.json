@@ -1,0 +1,120 @@
+{
+  "binary_single": {
+    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+    "options": {
+      "occCovariates": [
+        "habitat_changed"
+      ],
+      "collCovariates": [],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 0
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 2
+      }
+    },
+    "seed": 2401,
+    "model": "binary",
+    "dimensions": [
+      40,
+      1
+    ],
+    "species": [
+      "verifier_species_1"
+    ]
+  },
+  "occupancy_changed": {
+    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/occupancy_changed_data.rds",
+    "options": {
+      "occCovariates": [
+        "habitat_changed",
+        "habitat_factor"
+      ],
+      "collCovariates": [
+        "collection_changed"
+      ],
+      "threshold": 2,
+      "listParams": {
+        "n_factors": 1
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 2
+      }
+    },
+    "seed": 2402,
+    "model": "occupancy",
+    "dimensions": [
+      80,
+      3
+    ],
+    "species": [
+      "verifier_species_1",
+      "verifier_species_2",
+      "verifier_species_3"
+    ]
+  },
+  "two_stage_single": {
+    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/two_stage_single_data.rds",
+    "options": {
+      "occCovariates": [
+        "habitat_changed"
+      ],
+      "collCovariates": [
+        "collection_changed"
+      ],
+      "threshold": 3,
+      "listParams": {
+        "n_factors": 0
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 3
+      }
+    },
+    "seed": 2403,
+    "model": "two_stage",
+    "error": "incorrect number of dimensions"
+  },
+  "two_stage_changed": {
+    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/two_stage_changed_data.rds",
+    "options": {
+      "occCovariates": [
+        "habitat_changed",
+        "habitat_factor"
+      ],
+      "collCovariates": [
+        "collection_changed"
+      ],
+      "threshold": 3,
+      "listParams": {
+        "n_factors": 1
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 3
+      }
+    },
+    "seed": 2404,
+    "model": "two_stage",
+    "dimensions": [
+      160,
+      3
+    ],
+    "species": [
+      "verifier_species_1",
+      "verifier_species_2",
+      "verifier_species_3"
+    ]
+  }
+}

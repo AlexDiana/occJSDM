@@ -2,7 +2,7 @@
 from fastmcp import FastMCP
 from tools.quickstart import quickstart_mcp
 
-mcp = FastMCP("occJSDM")
+mcp = FastMCP("occJSDM", strict_input_validation=True)
 mcp.mount(quickstart_mcp)
 
 if __name__ == "__main__":

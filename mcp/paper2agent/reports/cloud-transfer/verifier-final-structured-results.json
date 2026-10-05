@@ -1,0 +1,48 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "case": "binary_single_diagnostics",
+      "screening_counts_exact": true,
+      "bounded_preview_matches_native_csv": true
+    },
+    {
+      "case": "binary_single_summary",
+      "screening_counts_exact": true,
+      "bounded_preview_matches_native_csv": true
+    },
+    {
+      "case": "occupancy_changed_diagnostics",
+      "screening_counts_exact": true,
+      "bounded_preview_matches_native_csv": true
+    },
+    {
+      "case": "occupancy_changed_summary",
+      "screening_counts_exact": true,
+      "bounded_preview_matches_native_csv": true
+    },
+    {
+      "case": "two_stage_changed_diagnostics",
+      "screening_counts_exact": true,
+      "bounded_preview_matches_native_csv": true
+    },
+    {
+      "case": "two_stage_changed_summary",
+      "screening_counts_exact": true,
+      "bounded_preview_matches_native_csv": true
+    },
+    {
+      "case": "summary_repeat",
+      "screening_counts_exact": true,
+      "bounded_preview_matches_native_csv": true
+    },
+    {
+      "case": "diagnostics_repeat",
+      "screening_counts_exact": true,
+      "bounded_preview_matches_native_csv": true
+    }
+  ],
+  "published_fits": 6,
+  "all_expected_errors_published_no_fit": true,
+  "preview_numeric_tolerance": 1e-13
+}

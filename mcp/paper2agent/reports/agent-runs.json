@@ -471,6 +471,62 @@
         "reports/verification/quickstart/alignment_character_shuffled_saved_summary_recomputed.csv": "b54a7f47bdd0ecabab06bc624d8ab25901ee98e1b4aafc9abce16a6f657e8ed7",
         "reports/mcp-acceptance-quickstart.json": "4bc845029335cf00c6558576b8e7d6af7c67877b3daf4525427443302580360c"
       }
+    },
+    {
+      "id": "extract-quickstart-transport-strictness-attempt-1",
+      "role": "implementer",
+      "task": "quickstart",
+      "agent_id": "/root/mcp_implementer",
+      "status": "succeeded",
+      "started_at": "2026-10-05T18:16:17.496554Z",
+      "finished_at": "2026-10-05T18:19:18.364356Z",
+      "owned_paths": [
+        "src/tools/quickstart.py",
+        "src/occJSDM_mcp.py",
+        "tests/code/implementation/test_transport_strictness.py",
+        "reports/cloud-transfer/implementation-transport-strictness.json",
+        "src/r_scripts/quickstart.R"
+      ],
+      "report": "reports/cloud-transfer/implementation-transport-strictness.json",
+      "report_sha256": "ad917c512046ea058a4987623b413c2ab5b368395e463c57a8d5e88de9f5c299",
+      "produced_files": {
+        "src/tools/quickstart.py": "9fdb02fd732e10d2cab8e5ccfa8b3a0ec78e957db0a61339b1de73fb51b5a225",
+        "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7",
+        "src/occJSDM_mcp.py": "e2674e0ba068a0845f63d22c5af1e169816d2a0baad80654676b64d0723046f7"
+      },
+      "notes": "Two strict FastMCP registration settings repaired after genuine stdio coercion failure; native/runtime files unchanged. Awaiting fresh independent re-verification; all previous report hashes retained. Unchanged R dispatcher is retained in the module handoff as required by the R workflow, not rewritten by this repair."
+    },
+    {
+      "id": "verify-quickstart-transport-relocation-attempt-1",
+      "role": "verifier",
+      "task": "quickstart",
+      "agent_id": "/root/mcp_cloud_transfer_verifier",
+      "status": "succeeded",
+      "started_at": "2026-10-05T18:20:33.123250Z",
+      "finished_at": "2026-10-05T18:25:18.845097Z",
+      "implementation_run_id": "extract-quickstart-transport-strictness-attempt-1",
+      "owned_paths": [
+        "tmp/Cloud pilot relocation",
+        "reports/cloud-transfer/relocation-verification.json",
+        "reports/cloud-transfer/verifier-regression-output",
+        "reports/cloud-transfer/verifier-final-stdio.json",
+        "src/tools/quickstart.py",
+        "src/r_scripts/quickstart.R",
+        "src/tools/runtime.py",
+        "src/tools/__init__.py",
+        "src/occJSDM_mcp.py"
+      ],
+      "report": "reports/cloud-transfer/relocation-verification.json",
+      "report_sha256": "594d5d38c98f3f28fadb7c518c2a1d1f9ea321d7989eb04b9f044ecb4af465eb",
+      "tested_files": {
+        "src/tools/quickstart.py": "9fdb02fd732e10d2cab8e5ccfa8b3a0ec78e957db0a61339b1de73fb51b5a225",
+        "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7",
+        "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+        "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b",
+        "src/occJSDM_mcp.py": "e2674e0ba068a0845f63d22c5af1e169816d2a0baad80654676b64d0723046f7"
+      },
+      "produced_files": {},
+      "notes": "Fresh independent phase began after repair implementation terminal. Exact revised ZIP, fresh isolated origins, 30 stdio calls, six native fit/eight native table comparisons, 37 affected regressions. Initial failed discovery retained separately. Mac cache-assisted only; Cloud/adoption pending. Source entries in owned_paths identify verification scope; the verifier made no production mutations."
     }
   ],
   "exclusions": []

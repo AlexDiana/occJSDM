@@ -138,5 +138,18 @@
   "pending": [
     "User-run Posit Cloud MCP pilot and matched model comparisons",
     "Workshop packaging, relocation and distribution conditional on adoption"
-  ]
+  ],
+  "latest_transport_verification": {
+    "report": "reports/cloud-transfer/relocation-verification.json",
+    "sha256": "594d5d38c98f3f28fadb7c518c2a1d1f9ea321d7989eb04b9f044ecb4af465eb",
+    "tested_files": {
+      "src/tools/quickstart.py": "9fdb02fd732e10d2cab8e5ccfa8b3a0ec78e957db0a61339b1de73fb51b5a225",
+      "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7",
+      "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+      "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b",
+      "src/occJSDM_mcp.py": "e2674e0ba068a0845f63d22c5af1e169816d2a0baad80654676b64d0723046f7"
+    },
+    "repair": "Enable strict input validation in both FastMCP registrations after genuine Boolean-seed coercion failure",
+    "scope": "Exact Cloud pilot ZIP passed local relocation; Linux/Cloud, model trials and workshop adoption pending"
+  }
 }

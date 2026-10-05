@@ -1,0 +1,105 @@
+{
+  "status": "ok",
+  "model": "binary",
+  "readback_valid": true,
+  "effective_n_factors": 0,
+  "kept_draws_per_chain": 20,
+  "total_iterations_per_chain": 60,
+  "dimensions": [
+    40,
+    1
+  ],
+  "design": {
+    "occupancy_columns": [
+      "habitat_changed"
+    ],
+    "collection_columns": [],
+    "trait_columns": [],
+    "n_sites": 40,
+    "n_samples": null,
+    "n_primers": null,
+    "missing_observations": 0,
+    "species_count": 1,
+    "observations": 40
+  },
+  "runtime": {
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "R": "R version 4.5.0 (2025-04-11)",
+    "occJSDM_version": "0.1.0",
+    "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+    "renv_version": "1.2.3",
+    "libPaths": [
+      "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
+      "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+    ],
+    "thread_env": {
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "MKL_NUM_THREADS": "",
+      "RCPP_PARALLEL_NUM_THREADS": ""
+    },
+    "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+  },
+  "qualifications": [
+    "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+    "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+  ],
+  "warnings": [
+    "Low ESS in 'B'. Min ESS < 50",
+    "Low ESS in 'A'. Min ESS < 50",
+    "Low ESS in 'C'. Min ESS < 50",
+    "Low ESS in 'sigmab'. Min ESS < 50",
+    "Low ESS in 'sigmah'. Min ESS < 50"
+  ],
+  "warning_count": 5,
+  "schema_version": 1,
+  "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
+  "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+  "artifacts": [
+    {
+      "kind": "log",
+      "description": "Captured native R console output",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-72699e6b5d3b461ab1e94cc62a6b389c/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "log",
+      "description": "Captured native R startup diagnostics",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-72699e6b5d3b461ab1e94cc62a6b389c/stderr.log",
+      "sha256": "3ea093d14d227e8982cdf24eb82c50afc3c24f9f55c237165f0842575ea79565"
+    },
+    {
+      "kind": "fit",
+      "description": "Native occJSDM fit, reload with readRDS",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-72699e6b5d3b461ab1e94cc62a6b389c/fit.rds",
+      "sha256": "6343cc7fcf25725f313e8f2d919c4b85675cbb415500bd3eb3712b621e7ec5ff"
+    },
+    {
+      "kind": "manifest",
+      "description": "Fit provenance and effective settings",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-72699e6b5d3b461ab1e94cc62a6b389c/manifest.json",
+      "sha256": "f8a047c7de20c1606fc07debf904cbb61a5a29a2f97ea1214429bf208e63c3b5"
+    }
+  ],
+  "fit_id": "fit_78affff466ed4da88394f65064c41864",
+  "settings": {
+    "occCovariates": [
+      "habitat_changed"
+    ],
+    "collCovariates": [],
+    "threshold": 1,
+    "listParams": {
+      "n_factors": 0
+    },
+    "MCMCparams": {
+      "nchain": 2,
+      "nburn": 20,
+      "niter": 20,
+      "nthin": 2
+    },
+    "spatCovariates": [],
+    "summarisedLatentPresences": true,
+    "listPriors": {}
+  },
+  "input_sha256": "655ded4dd0a6c66e2b5c260ea1263b32a383ea4b4b271c45b2436024d52f6600"
+}
