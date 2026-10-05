@@ -1,0 +1,102 @@
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+The following package(s) will be updated:
+
+# Local ----------------------------------------------------------------------
+- occJSDM         [* -> 0.1.0]
+
+# Repository -----------------------------------------------------------------
+- lattice         [0.22-7 -> 0.22-9]
+- MASS            [7.3-65 -> 7.3-66]
+- base64enc       [* -> 0.1-6]
+- bayesm          [* -> 3.1-7]
+- cli             [* -> 3.6.6]
+- coda            [* -> 0.19-4.1]
+- compositions    [* -> 2.0-9]
+- cpp11           [* -> 0.5.5]
+- DEoptimR        [* -> 1.2-0]
+- digest          [* -> 0.6.39]
+- dplyr           [* -> 1.2.1]
+- farver          [* -> 2.1.2]
+- FastGP          [* -> 1.3]
+- generics        [* -> 0.1.4]
+- ggcorrplot      [* -> 0.2.0]
+- ggforce         [* -> 0.5.0]
+- ggplot2         [* -> 4.0.3]
+- ggrepel         [* -> 0.9.8]
+- ggtern          [* -> 4.0.0]
+- glue            [* -> 1.8.1]
+- gridExtra       [* -> 2.3.1]
+- gtable          [* -> 0.3.6]
+- hexbin          [* -> 1.28.5]
+- isoband         [* -> 0.3.0]
+- jsonlite        [* -> 2.0.0]
+- labeling        [* -> 0.4.3]
+- latex2exp       [* -> 0.9.8]
+- lifecycle       [* -> 1.0.5]
+- magrittr        [* -> 2.0.5]
+- mvtnorm         [* -> 1.4-2]
+- pillar          [* -> 1.11.1]
+- pkgconfig       [* -> 2.0.3]
+- plyr            [* -> 1.8.9]
+- polyclip        [* -> 1.10-7]
+- proto           [* -> 1.0.0]
+- purrr           [* -> 1.2.2]
+- R6              [* -> 2.6.1]
+- RColorBrewer    [* -> 1.1-3]
+- Rcpp            [* -> 1.1.2]
+- RcppArmadillo   [* -> 15.4.0-1]
+- RcppEigen       [* -> 0.3.4.0.2]
+- RcppParallel    [* -> 5.1.11-2]
+- renv            [* -> 1.2.3]
+- reshape2        [* -> 1.4.5]
+- rlang           [* -> 1.3.0]
+- robustbase      [* -> 0.99-7]
+- S7              [* -> 0.2.2]
+- scales          [* -> 1.4.0]
+- stringi         [* -> 1.8.7]
+- stringr         [* -> 1.6.0]
+- systemfonts     [* -> 1.3.2]
+- tensorA         [* -> 0.36.2.1]
+- tibble          [* -> 3.3.1]
+- tidyr           [* -> 1.3.2]
+- tidyselect      [* -> 1.2.1]
+- tweenr          [* -> 2.0.3]
+- utf8            [* -> 1.2.6]
+- vctrs           [* -> 0.7.3]
+- viridisLite     [* -> 0.4.3]
+- withr           [* -> 3.0.3]
+
+- Querying repositories for available source packages ... Done!
+# Downloading packages -------------------------------------------------------
+renv was unable to query available packages from the following repositories:
+- # file:///Users/douglasyu/src/contrib ----------------------------------------
+error downloading 'file:///Users/douglasyu/src/contrib/PACKAGES.rds' [error code 37]
+error downloading 'file:///Users/douglasyu/src/contrib/PACKAGES.gz' [error code 37]
+error downloading 'file:///Users/douglasyu/src/contrib/PACKAGES' [error code 37]
+
+
+renv was unable to query available packages from the following repositories:
+- # file:///Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/restore-proof-attempt2/offline-repository/bin/macosx/big-sur-arm64/contrib/4.5 --------
+error downloading 'file:///Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/restore-proof-attempt2/offline-repository/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES.rds' [error code 37]
+error downloading 'file:///Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/restore-proof-attempt2/offline-repository/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES.gz' [error code 37]
+error downloading 'file:///Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/restore-proof-attempt2/offline-repository/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES' [error code 37]
+
+- # file:///Users/douglasyu/bin/macosx/big-sur-arm64/contrib/4.5 ---------------
+error downloading 'file:///Users/douglasyu/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES.rds' [error code 37]
+error downloading 'file:///Users/douglasyu/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES.gz' [error code 37]
+error downloading 'file:///Users/douglasyu/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES' [error code 37]
+
+
+Error: failed to create directory at path '/Users/douglasyu/Library/Caches/org.R-project.R/R/renv/binary/macos/R-4.5/aarch64-apple-darwin20/repository/tensorA'
+Traceback (most recent calls last):
+7: renv::restore(project = target, library = renv::paths$library(project = target), 
+       lockfile = file.path(target, "renv.lock"), prompt = FALSE)
+6: renv_restore_run_actions(project, diff, current, lockfile, rebuild, 
+       strict, descriptions)
+5: renv_graph_install(descriptions)
+4: ensure_parent_directory(destfiles)
+3: ensure_directory(unique(dirname(path)))
+2: stopf("failed to create directory at path '%s'", path)
+1: stop(sprintf(fmt, ...), call. = call.)
+Execution halted

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "status": "not_run",
+  "project_url": "https://posit.cloud/spaces/828411/content/13067379",
+  "client": "Posit Assistant",
+  "configured_server": false,
+  "isolated_runtime_restored": false,
+  "tool_calls_verified": false,
+  "client_config_reference": "https://assistant.posit.co/docs/reference/mcp-servers/",
+  "reference_checked_date": "2026-10-05",
+  "notes": [
+    "Template uses documented local subprocess command array and project settings. It has not been registered or tested in Cloud.",
+    "Connection timeout is not a tool-call duration guarantee.",
+    "All Cloud checks are user-run; no credentials required by the local build.",
+    "Prior successful direct-R smoke test does not verify MCP transport."
+  ],
+  "local_preparation": {
+    "status": "passed",
+    "report": "reports/local-pilot-checkpoint.json",
+    "guide": "USAGE.md",
+    "Cloud_execution": "not_run"
+  }
+}

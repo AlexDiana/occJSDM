@@ -1,0 +1,17 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______ test_actual_rds_contents_and_provided_row_ids[traits_alias-False] _______
+
+extra_inputs = PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/test-inputs-f01f3531886b4a4faf74940b06d1c46f')
+name = 'traits_alias', eligible = False
+
+    @pytest.mark.parametrize('name,eligible',[('aligned_rows',True),('default_info_otu_rows',True),('misaligned_rows',False),('malformed',False),('missing_species',False),('nonnumeric_otu',False),('negative_reads',False),('nan_reads',False),('continuous',False),('constant_covariate',False),('traits_alias',False)])
+    def test_actual_rds_contents_and_provided_row_ids(extra_inputs,name,eligible):
+        r=asyncio.run(call('validate_data',dict(data_path=str(extra_inputs/(name+'.rds')),occCovariates=['X_psi.EnvCov.1'],collCovariates=[])))
+>       assert r['eligible'] is eligible
+E       assert True is False
+
+tests/code/implementation/test_quickstart.py:191: AssertionError
+=========================== short test summary info ============================
+FAILED tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[traits_alias-False]
+1 failed, 62 deselected in 51.93s

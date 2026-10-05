@@ -1,0 +1,17 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_short_fit_qualification_persists_in_downstream_results __________
+
+    def test_short_fit_qualification_persists_in_downstream_results():
+        o=options(NATIVE['cases']['binary'])
+        fit=asyncio.run(call('fit_model',dict(data_path='notebooks/quickstart/data/binary_data.rds',options=o,seed=1702)))
+        manifest=json.loads(Path(next(a['path'] for a in fit['artifacts'] if a['kind']=='manifest')).read_text())
+>       assert manifest.get('qualifications')==fit['qualifications']
+E       AssertionError: assert None == ['Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.', 'Short f...port/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling.']
+E        +  where None = <built-in method get of dict object at 0x10bd27300>('qualifications')
+E        +    where <built-in method get of dict object at 0x10bd27300> = {'schema_version': 1, 'status': 'complete', 'fit_id': 'fit_a9d1b8bb08aa417fb6db2ad16881dcaa', 'fit_path': '/Users/doug.../.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-59f25f6861634d6a94c727e0ef68fa50/fit.rds', ...}.get
+
+tests/code/implementation/test_quickstart.py:210: AssertionError
+=========================== short test summary info ============================
+FAILED tests/code/implementation/test_quickstart.py::test_short_fit_qualification_persists_in_downstream_results
+1 failed, 65 deselected in 31.50s

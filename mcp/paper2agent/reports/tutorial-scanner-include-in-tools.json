@@ -1,0 +1,66 @@
+{
+  "scan_metadata": {
+    "repository_name": "occJSDM",
+    "paper_name": "Ji et al. (2025), Ecology Letters, doi:10.1111/ele.70302",
+    "scan_date": "2026-10-05",
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "language": "r",
+    "evaluated_source_files": 19,
+    "included_source_files": 1,
+    "selected_tool_count": 4,
+    "success": true,
+    "execution_verified": false,
+    "explanation": "Exactly four approved names, one quickstart owning module. Supporting APIs/tests/data are verification references, not additional execution owners. Discovery does not establish runtime/Cloud feasibility."
+  },
+  "tutorials": [
+    {
+      "path": "vignettes/occJSDM.Rmd",
+      "title": "occJSDM: quickstart",
+      "description": "Native RDS quickstart, fitting, diagnostics and baseline occupancy",
+      "type": "markdown",
+      "sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+      "include_in_tools": true,
+      "reason_for_include_or_exclude": "Single owner of approved four operations",
+      "tutorial_id": "quickstart",
+      "source_module": "quickstart",
+      "suggested_tools": [
+        {
+          "tool_name": "validate_data",
+          "source_section": "The example data; inferDataModel/process_covariates/create_covariates_matrix",
+          "task": "Check an occJSDM-ready RDS and covariate choices before fitting.",
+          "primary_input": "data_path plus explicit occupancy/collection covariate-name lists",
+          "outputs": "inferred model, structural dimensions and replication, missingness counts, traits availability/alignment, actionable issues and eligibility; no raw observation values",
+          "description": "Check an occJSDM-ready RDS and covariate choices before fitting.",
+          "applicable_to_new_data": true
+        },
+        {
+          "tool_name": "fit_model",
+          "source_section": "Fit the model (adapt spatial example by leaving spatCovariates empty)",
+          "task": "Fit a supported nonspatial model and save a native result.",
+          "primary_input": "data_path, explicit seed, FitOptions with native covariate names, threshold, n_factors and MCMC settings",
+          "outputs": "fit_id, inferred model, settings/warnings and hashed fit.rds plus manifest",
+          "description": "Fit a supported nonspatial model and save a native result.",
+          "applicable_to_new_data": true
+        },
+        {
+          "tool_name": "diagnostics",
+          "source_section": "Check that the chains agree",
+          "task": "Inspect convergence for selected occupancy/detection coefficients.",
+          "primary_input": "server-owned fit_id and max_rows default 20, capped at 20",
+          "outputs": "bounded table, flagged/unavailable counts, complete diagnostics CSV and warning metadata",
+          "description": "Inspect convergence for selected occupancy/detection coefficients.",
+          "applicable_to_new_data": true
+        },
+        {
+          "tool_name": "summarise_fit",
+          "source_section": "Look at the results; plotOccupancyRates delegates to returnOccupancyRates",
+          "task": "Summarise baseline occupancy draws and retain convergence qualifications.",
+          "primary_input": "server-owned fit_id and max_rows default 20, capped at 20",
+          "outputs": "bounded per-species baseline occupancy mean/median/95% interval, diagnostic counts/warnings, full summary CSV",
+          "description": "Summarise baseline occupancy draws and retain convergence qualifications.",
+          "applicable_to_new_data": true
+        }
+      ]
+    }
+  ]
+}

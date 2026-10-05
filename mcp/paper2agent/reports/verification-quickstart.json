@@ -1,0 +1,462 @@
+{
+  "schema_version": 1,
+  "module": "quickstart",
+  "status": "verified",
+  "implementation_run_id": "extract-quickstart-attempt-1",
+  "verified_at": "2026-10-05T17:47:12.630139+00:00",
+  "project_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent",
+  "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+  "verifier_identity": "Fresh independent /root/mcp_verifier, distinct from extraction implementer",
+  "exposed_tools": [
+    "validate_data",
+    "fit_model",
+    "diagnostics",
+    "summarise_fit"
+  ],
+  "exclusions": [],
+  "tested_files": {
+    "src/tools/quickstart.py": "1b326fa079d421706508c47f2e80be90b711171027c0f8f91714ec3948e3486b",
+    "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7",
+    "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+    "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b"
+  },
+  "tested_production_hashes": {
+    "src/tools/quickstart.py": "1b326fa079d421706508c47f2e80be90b711171027c0f8f91714ec3948e3486b",
+    "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7",
+    "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+    "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b"
+  },
+  "source_call_review": {
+    "validate_data": "Fixed R dispatcher calls native inferDataModel, process_covariates and create_covariates_matrix; cheap structural/alignment/invariance guards prevent native errors or misleading first-row preparation. No sampler or scientific formula is copied.",
+    "fit_model": "Native runOccJSDM called once per invocation, set.seed applied first, no spatial covariates, summarisedLatentPresences TRUE and unchanged default priors. Input snapshot, atomic publication, RDS read-back and hashed registry are transport adaptations.",
+    "diagnostics": "Native returnConvergenceDiagnostics table is written in full; selected-block screen only counts Rhat>1.01, ESS<400 and unavailable entries. JSON NA becomes null; no convergence statistic is reimplemented.",
+    "summarise_fit": "Native returnOccupancyRates returns pooled draws by species; approved R mean and quantile output adaptation is validated on all draws, full summaries and labels. Estimand is inverse-logit species intercept, not a site prediction or observed detection count.",
+    "runtime.py": "Explicit isolated activation under --vanilla, pinned source guard, fixed argv/data JSON, project-confined resolved paths, captured diagnostics, timeout and cancellation reaping, no untracked user-library fallback.",
+    "__init__.py": "Documentation-only package marker inspected; imported during every production call.",
+    "installed_package": "All six relevant installed function bodies and formals exactly match the pinned R source. Existing recorded source installation, origin and compile evidence were reviewed; every pinned source file remains unchanged."
+  },
+  "scientific_comparisons": {
+    "all_passed": true,
+    "installed_source_bodies_identical": true,
+    "saved_reference_cases": {
+      "binary": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "occupancy": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "two_stage": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "no_traits": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "renamed_single_covariates": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "permuted_trait_rows": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "categorical_traits": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "changed_seed_thinning2": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "changed_seed_same_schedule": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "alignment_global_ordered": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "alignment_global_shuffled": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "alignment_local_ordered": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "alignment_local_shuffled": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "alignment_character_ordered": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "alignment_character_shuffled": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "alignment_identifier_covariates": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "alignment_occupancy_shuffled": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      },
+      "boundary_two_stage_NA_OTU": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "diagnostics": true,
+        "baseline": true
+      }
+    },
+    "changed_cases": {
+      "binary_single": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "B0_dimensions": [
+          1,
+          20,
+          2
+        ],
+        "baseline_dimensions": [
+          40,
+          1
+        ]
+      },
+      "occupancy_changed": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "B0_dimensions": [
+          3,
+          20,
+          2
+        ],
+        "baseline_dimensions": [
+          40,
+          3
+        ]
+      },
+      "two_stage_changed": {
+        "full_arrays": true,
+        "dimensions_identifiers_classes": true,
+        "B0_dimensions": [
+          3,
+          20,
+          2
+        ],
+        "baseline_dimensions": [
+          40,
+          3
+        ]
+      }
+    },
+    "tolerance": 0,
+    "nonfinite": "Native R all.equal preserves NA/NaN locations and attributes; diagnostic CSV NA remains null in JSON"
+  },
+  "changed_input_oracles": {
+    "binary_single": "40 observations, one renamed species, no traits, changed numeric covariate, seed2401, zero factors, threshold1,20burn/20retained/2chains/thin2. Full native fit and 40x1 baseline draw matrix match direct R.",
+    "occupancy_changed": "Three renamed species, numeric and categorical occupancy covariates with explicit factor levels, changed collection covariate, seed2402, one factor, threshold2 and thin2; full native fit/classes/labels/diagnostics/baseline match direct R.",
+    "two_stage_changed": "Three renamed species, changed numeric/categorical occupancy and collection covariates, seed2404, one factor, threshold3 and thin3; full native fit/classes/labels/diagnostics/baseline match direct R.",
+    "two_stage_single": "Direct native one-species two_stage/zero-factor call fails with incorrect number of dimensions. MCP preserves that error and publishes no fit. The failure is retained as a documented native boundary, not silently skipped."
+  },
+  "independent_tests": {
+    "test_files": [
+      "tests/code/quickstart/test_diagnostics.py",
+      "tests/code/quickstart/test_fit_model.py",
+      "tests/code/quickstart/test_summarise_fit.py",
+      "tests/code/quickstart/test_validate_data.py"
+    ],
+    "count": 37,
+    "passed": 37,
+    "elapsed_seconds": 77.31,
+    "framework": "project Python3.14.6/FastMCP4.0.3 Client(module)",
+    "checks": [
+      "full native arrays and all six top-level fit components",
+      "all18savednativecalls independently rerun in one activation",
+      "immutable source and reference hashes",
+      "source functions/classes/dimensions/design/species labels",
+      "strict schemas and native error transport",
+      "closed unsupported options and no spatial/custom priors",
+      "changed settings and seeds",
+      "single-species dimensional simplification",
+      "all diagnostic and baseline CSV values",
+      "constant chains Rhat null/ESS0/unavailable counts",
+      "preview1/2/20 and errors0/21/noninteger",
+      "exact row identity and trait-alias semantics",
+      "composed preflight failure/no publication",
+      "unchanged original inputs",
+      "repeated fit/diagnostic/summary artifact separation",
+      "publication and integrity hashes",
+      "unavailable configured Rscript",
+      "persistent20/20 scientific-unsuitability qualifications"
+    ]
+  },
+  "reused_inspected_evidence": {
+    "report": "reports/implementation-quickstart.json",
+    "frozen_suite": "reports/implementation-green-suite.json",
+    "count": 66,
+    "qualification": "These are inspected earlier broad tests, not additional fresh-verifier tests. Matching frozen runtime.py/R hashes and only a Path import repair permit reuse for unchanged logic.",
+    "coverage": [
+      "17 native validation/error or misleading-success guards",
+      "native two_stage NA support",
+      "traits reordering/categorical encoding",
+      "local/global/character and unbalanced alignment",
+      "timeout/cancellation process-group reaping",
+      "symlink confinement",
+      "effective factor cap",
+      "two fresh changed-settings native comparisons"
+    ]
+  },
+  "repairs": [
+    {
+      "file": "src/tools/quickstart.py",
+      "attempt": 1,
+      "change": "Import pathlib.Path for the private response annotation, which Python3.14 lazy annotations masked during calls. get_type_hints and FastMCP schemas now pass. No scientific behavior changed."
+    }
+  ],
+  "attempts": {
+    "pytest_runs": 2,
+    "production_repairs_per_tool": {
+      "validate_data": 1,
+      "fit_model": 1,
+      "diagnostics": 1,
+      "summarise_fit": 1
+    },
+    "maximum_per_tool": 6
+  },
+  "retained_failures": [
+    {
+      "log": "reports/verification/quickstart/pytest-attempt1.log",
+      "outcome": "30passed,7setup errors: verifier selected historical manifests lacking requested_settings. Corrected to require complete metadata and exact input/options/seed/hash match for every case. No assertion relaxed or case excluded."
+    },
+    {
+      "log": "reports/verification/quickstart/prepare.log",
+      "outcome": "Fresh direct R identified native single-species two_stage dimension error; preserved in independent_inputs.json and actual MCP acceptance."
+    }
+  ],
+  "runtime_acceptance": {
+    "cases": "reports/mcp-acceptance-quickstart.json",
+    "count": 19,
+    "positive": 12,
+    "negative": 7,
+    "module_execution": "reports/verification/quickstart/acceptance_module.json",
+    "module_success": true,
+    "scientific_artifacts": "reports/verification/quickstart/acceptance_artifact_audit_guarded.json",
+    "full_native_fits_compared": 4,
+    "full_native_tables_compared": 5,
+    "publication_hash_checks": 4,
+    "dependency": "Downstream cases intentionally use explicit independently tested server-owned registry IDs in the same project root. They do not rely on pytest or case ordering; this is scoped runtime acceptance, not a portable fixture import API.",
+    "oracle_mapping": "reports/verification/quickstart/acceptance_oracle_mapping.json",
+    "comparator_command": "PROJECT_PYTHON tests/code/quickstart/audit_acceptance_artifacts.py PROJECT_ROOT COORDINATOR_PRIOR_DIR_NAMES_JSON SELECTED_R_PROJECT COORDINATOR_OUTPUT_JSON",
+    "comparator_output_note": "Coordinator should save snapshots and outputs under reports/coordinator-stdio-*.json, outside the immutable verifier namespace.",
+    "remaining_coordinator_work": [
+      "root stdio integration acceptance",
+      "fresh Python plus separately restored R runtime acceptance",
+      "scientific artifact comparisons after each acceptance run"
+    ]
+  },
+  "commands": [
+    {
+      "command": "Rscript --vanilla tests/code/quickstart/independent_prepare.R PROJECT_ROOT",
+      "exit_code": 0,
+      "log": "reports/verification/quickstart/prepare.log",
+      "observed_log_mtime_utc": "2026-10-05T17:27:40.419483+00:00"
+    },
+    {
+      "command": "Rscript --vanilla tests/code/quickstart/independent_prepare.R PROJECT_ROOT",
+      "exit_code": 0,
+      "log": "reports/verification/quickstart/prepare-attempt2.log",
+      "observed_log_mtime_utc": "2026-10-05T17:28:47.249727+00:00"
+    },
+    {
+      "command": "occJSDM-env/bin/python -m pytest -q tests/code/quickstart",
+      "exit_code": 1,
+      "log": "reports/verification/quickstart/pytest-attempt1.log",
+      "observed_log_mtime_utc": "2026-10-05T17:35:09.680552+00:00"
+    },
+    {
+      "command": "Independent numerical_audit fixture invoked against retained MCP exercise outputs",
+      "exit_code": 0,
+      "log": "reports/verification/quickstart/audit-run-attempt1.log",
+      "observed_log_mtime_utc": "2026-10-05T17:36:28.568132+00:00"
+    },
+    {
+      "command": "occJSDM-env/bin/python -m pytest -q tests/code/quickstart",
+      "exit_code": 0,
+      "log": "reports/verification/quickstart/pytest-attempt2.log",
+      "observed_log_mtime_utc": "2026-10-05T17:38:05.485364+00:00"
+    },
+    {
+      "command": "Independent numerical_audit fixture invoked after adding empty nonspatial Xs comparison",
+      "exit_code": 0,
+      "log": "reports/verification/quickstart/audit-final-command.log",
+      "observed_log_mtime_utc": "2026-10-05T17:41:45.782522+00:00"
+    },
+    {
+      "command": "occJSDM-env/bin/python tests/code/quickstart/exercise_acceptance_module.py",
+      "exit_code": 0,
+      "log": "reports/verification/quickstart/acceptance-module.log",
+      "observed_log_mtime_utc": "2026-10-05T17:40:52.115062+00:00"
+    },
+    {
+      "command": "Rscript --vanilla tests/code/quickstart/audit_acceptance_artifacts.R PROJECT_ROOT CUTOFF R_PROJECT OUTPUT_JSON",
+      "exit_code": 0,
+      "log": "reports/verification/quickstart/acceptance-artifact-audit.log",
+      "observed_log_mtime_utc": "2026-10-05T17:42:14.972592+00:00"
+    },
+    {
+      "command": "occJSDM-env/bin/python tests/code/quickstart/audit_acceptance_artifacts.py PROJECT_ROOT PRIOR_DIRS_JSON R_PROJECT OUTPUT_JSON",
+      "exit_code": 0,
+      "log": "reports/verification/quickstart/acceptance-artifact-final-command.log",
+      "observed_log_mtime_utc": "2026-10-05T17:43:52.078163+00:00"
+    },
+    {
+      "command": "Same comparator with exact options/input/publication/producer hashes and isolated-source guards",
+      "exit_code": 0,
+      "log": "reports/verification/quickstart/acceptance-artifact-guarded-command.log",
+      "observed_log_mtime_utc": "2026-10-05T17:44:55.998543+00:00"
+    }
+  ],
+  "read_only_shared_dependencies": {
+    "r-runtime/activate.R": "efbff9abaab1163265e85755a49ab6205b5004b9c5ee19a932797b513165e2c3",
+    "r-runtime/renv/activate.R": "51798a35c2772b94b4a73ae7a7cc928975ff6e628a17bad1bc73d30defca82e6",
+    "r-runtime/renv.lock": "9ca6b63b191e675ec283d0e6c2b064c5d405e89b0c6143290262791e190cf651",
+    "reports/tool-bindings.json": "f85c66046146c62b79470dc7c7afa2955b4d6c8107e26d011a757bc61827b644",
+    "reports/executed_notebook_quickstart.json": "49532ef6127af1c5daea3bfb132edb0f484ae9d54cf02e98847beb25c9625525",
+    "reports/implementation-quickstart.json": "1fc9e4bc79bcc76d475e84dd2877b184da5ff4f484f64f3425065b53004c4805"
+  },
+  "immutable_evidence": {
+    "pinned_source_files_checked": 1169,
+    "reference_artifacts_checked": 157,
+    "reference_hashes": "reports/verification/quickstart/immutable_before.json",
+    "all_unchanged": true
+  },
+  "limitations": [
+    "Nonspatial binary/occupancy/two_stage only; continuous/no-stage counts/spatial/prediction/conversion out of scope.",
+    "Native single-species two_stage fails for tested settings and is not suitable for a positive classroom example; binary single-species is verified.",
+    "Faithful beta execution does not prove unbiased inference, convergence or calibrated intervals.20/20 fits are explicitly unsuitable for scientific interpretation.",
+    "Python must be>=3.11 because hashlib.file_digest is used; only3.14.6 is tested here. FastMCP metadata alone does not establish Python3.10 wrapper support.",
+    "Mac arm64 R4.5.0/project renv only; Linux, Posit Cloud, paid calls and classroom trial untested.",
+    "Module execution is not stdio or clean-runtime validation; those remain coordinator responsibilities."
+  ],
+  "verification_evidence_hashes": {
+    "reports/verification/quickstart/binary_single_oracle_fit.rds": "6343cc7fcf25725f313e8f2d919c4b85675cbb415500bd3eb3712b621e7ec5ff",
+    "reports/verification/quickstart/audit-run-attempt1.log": "a9ac0c3ac83c40e1b4c3416066d63d324ee9f8c144641dfeed72d140b6557245",
+    "reports/verification/quickstart/acceptance-artifact-audit.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reports/verification/quickstart/two_stage_changed_oracle_diagnostics.csv": "40a64aa5f73f1ba525f98c9f7bc8f73b43ec50adcf7798e79d623670e78d3467",
+    "reports/verification/quickstart/alignment_global_ordered_saved_summary_recomputed.csv": "b54a7f47bdd0ecabab06bc624d8ab25901ee98e1b4aafc9abce16a6f657e8ed7",
+    "reports/verification/quickstart/occupancy_changed_data.rds": "5819438fc66cf81db8d6c6967dfaf87d28c5474932b82abc37fe7494ed070c56",
+    "reports/verification/quickstart/acceptance_oracle_mapping.json": "7f8f1463b931a13b2d1fa17224ef0a428943e39a2a936ae401f79e8aeea81da8",
+    "reports/verification/quickstart/acceptance-artifact-guarded-command.log": "72f5dc88656c8408a34b3b592262d3ab0355ff43ab5d4cbfcf34445ab8b62675",
+    "reports/verification/quickstart/alignment_identifier_covariates_saved_summary_recomputed.csv": "a6eba3e0e7e42374def4491686c0683c2c7c6765a11f8aa3c94d286555ad9611",
+    "reports/verification/quickstart/repeat_summary_result.json": "3f8d928e06512b2fd119226b519ca788be11dcf17bd81e9b4a8f7899bc0c5fc0",
+    "reports/verification/quickstart/renamed_single_covariates_saved_summary_recomputed.csv": "a9b5be8385f467f5216138c3426ac08c65cbbe3f33396c76f88e6a1d674efb5c",
+    "reports/verification/quickstart/pytest-attempt2.log": "48dbb279d01b9922abb5f1d3c79dc635de475f90ae9f28f40e3bee5ad7f2e3cc",
+    "reports/verification/quickstart/binary_single_oracle_diagnostics.csv": "583cc576d8a4b4a5036e521ae0596cbf701cdb9fe2c544748831027c7e64968f",
+    "reports/verification/quickstart/two_stage_changed_oracle_fit.rds": "f3c3e78f7f22f1344ba8ae747ec41b6311b6bc18a858c37faa8393d389537816",
+    "reports/verification/quickstart/producer_hashes.json": "fc5604793a258941265961c64ea8abb3c511b7566cd807d555358ccebfd89891",
+    "reports/verification/quickstart/alignment_local_ordered_saved_summary_recomputed.csv": "b54a7f47bdd0ecabab06bc624d8ab25901ee98e1b4aafc9abce16a6f657e8ed7",
+    "reports/verification/quickstart/pytest-attempt1.log": "40fc4201d5112fc47af8f9730f9879661e98092537a6477c2920f8052b4ea1ae",
+    "reports/verification/quickstart/prepare-attempt2.log": "343d71e16c739f543f08b39bb99fb1b9a9da44a6ffae697dcc782f2fa049dee0",
+    "reports/verification/quickstart/occupancy_changed_oracle_summary.csv": "978c2260278e648316a2617d7044b089099f4d98b712bfccde174e9687ab743a",
+    "reports/verification/quickstart/acceptance_artifact_audit_final.json": "cf2dccb37fa49c3fc199807ffac4e45bfc3f9ca4200c78be6553e42ff7d79f65",
+    "reports/verification/quickstart/binary_single_oracle_summary.csv": "5586b6fe31e4688cc42c6af21564b3f58ec83e9937921f99a76e80a3f0f246c1",
+    "reports/verification/quickstart/independent_input_schemas.json": "8775a4cf7f3812b045956ec7bb56aa7574f68f3f9efb60f4fc7daec8826991d1",
+    "reports/verification/quickstart/changed_seed_thinning2_saved_summary_recomputed.csv": "253549d3e2755bd6f5d86bfea45704f45beab43053fa85d6824a60fe8f7c4a3d",
+    "reports/verification/quickstart/boundary_two_stage_NA_OTU_saved_summary_recomputed.csv": "c4af48ab203a3d47a253f50c890a82ec30fcb9dfac5e507e13835a3177de325e",
+    "reports/verification/quickstart/numerical_audit.json": "4b94324749fcadef696980836712f10a2bfe4ea07d29648f88994665985a7f4c",
+    "reports/verification/quickstart/acceptance-module.log": "4217682f175584bd011d775823a51783c492f233b47f5801a5e3ace777aec956",
+    "reports/verification/quickstart/binary_single_data.rds": "655ded4dd0a6c66e2b5c260ea1263b32a383ea4b4b271c45b2436024d52f6600",
+    "reports/verification/quickstart/no_traits_saved_summary_recomputed.csv": "ffa04a2ba7af395b505a7b3de8380e155106d44526ba0cc929332a4a43ae48af",
+    "reports/verification/quickstart/changed_seed_same_schedule_saved_summary_recomputed.csv": "428e7aafbeb211f4a98d32c1d81f19af2b97ad436efba58d26cfd4d324ed5290",
+    "reports/verification/quickstart/missing_info.rds": "9f1b46e08159704a323a299c1c8a6b14f2c679f75b4b539d41deaad200866bbd",
+    "reports/verification/quickstart/independent_inputs.json": "56d5025bec37d3ba5544ae18960cf14533db0860ebc0c0fb008e9d294d618498",
+    "reports/verification/quickstart/acceptance_artifact_audit.json": "76f60540acaf3c4ca069f61849c1ec280b32a69e2f93f0245f7b75474139ecf1",
+    "reports/verification/quickstart/alignment_character_ordered_saved_summary_recomputed.csv": "b54a7f47bdd0ecabab06bc624d8ab25901ee98e1b4aafc9abce16a6f657e8ed7",
+    "reports/verification/quickstart/categorical_traits_saved_summary_recomputed.csv": "5333f73aec0daf936875260b3a12e4d54306d003824b9cccce96c48f5eb9c76d",
+    "reports/verification/quickstart/alignment_global_shuffled_saved_summary_recomputed.csv": "b54a7f47bdd0ecabab06bc624d8ab25901ee98e1b4aafc9abce16a6f657e8ed7",
+    "reports/verification/quickstart/audit.log": "a9874684753536ea64a10f52546ef7a129af5677508a8193d5d65c0869b515aa",
+    "reports/verification/quickstart/audit-final-command.log": "a9ac0c3ac83c40e1b4c3416066d63d324ee9f8c144641dfeed72d140b6557245",
+    "reports/verification/quickstart/permuted_trait_rows_saved_summary_recomputed.csv": "ae960401f4349d97fe57412a3e97454da6f6ccffedac3453c9dca0483c5491fc",
+    "reports/verification/quickstart/traits_alias.rds": "99cf1c7090192640c0fee402b6652e12b84d2d600ce2708843276a4704eec904",
+    "reports/verification/quickstart/occupancy_saved_summary_recomputed.csv": "010103bdfba456b2b75f1971f3d37dc3eba7cf53a85f9336c219520def6d3af6",
+    "reports/verification/quickstart/two_stage_changed_data.rds": "0ddbabe91ad4fb32975670463ab8e6bfa0f08f3ce5d343db4394dac910567ac5",
+    "reports/verification/quickstart/two_stage_changed_oracle_summary.csv": "622db958a07a2bc2b3939003a62edb4076f6d8d8fec1a13bb29824ee125b568c",
+    "reports/verification/quickstart/acceptance_module.json": "1d7408078717ad44bac043c98eb9a7a47500e45475c57819ad97e730cf10e9c2",
+    "reports/verification/quickstart/two_stage_saved_summary_recomputed.csv": "ae960401f4349d97fe57412a3e97454da6f6ccffedac3453c9dca0483c5491fc",
+    "reports/verification/quickstart/module_calls_before.json": "4c011e1010d86fc9dce28aa93c20c0e29f38d4c27f67469cd472e78d63b51b39",
+    "reports/verification/quickstart/row_mismatch.rds": "aa4e8934dcd1dbc2e93a2fe0f686c952d6dd3805c2e90ab1b57694580a749d3e",
+    "reports/verification/quickstart/alignment_local_shuffled_saved_summary_recomputed.csv": "b54a7f47bdd0ecabab06bc624d8ab25901ee98e1b4aafc9abce16a6f657e8ed7",
+    "reports/verification/quickstart/repeat_fit_result.json": "54b7df7c2a5b4060b458bf5b5a2ffce379d9c80fa43e92eedcb06fdf779a69e5",
+    "reports/verification/quickstart/prepare.log": "2b80c102a53b1d4d14c7a8cf14d9d74b383bd5cf7708d75ef35ed6ce6bbadc42",
+    "reports/verification/quickstart/binary_saved_summary_recomputed.csv": "1d3098fac4d892d7d033c82289f8f019334d2c89222e5c0e1d5ed7e097e65b4c",
+    "reports/verification/quickstart/acceptance_artifact_audit_final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reports/verification/quickstart/constant_diagnostics_result.json": "fc2b631c1b55599f041026f0ed155b03d2da7b8f64b6d0004d30f11e0301161b",
+    "reports/verification/quickstart/alignment_occupancy_shuffled_saved_summary_recomputed.csv": "c136c0fd3dbeb36a77fe35e9c57106c884a236a6a221cd9a8fcd6db5dd8a5791",
+    "reports/verification/quickstart/immutable_before.json": "8c158b2d203043f022a1b74c8e2296147e4154a17701b3c19c9a06a4ce765d51",
+    "reports/verification/quickstart/mcp_exercised_results.json": "acbd7a91761cf856cab85a68f98f186cbce07f05e7b02fc348a2ca0bca5786cb",
+    "reports/verification/quickstart/occupancy_changed_oracle_fit.rds": "525c0926cb92fbcf6917d85544b325e8d5845de1ff06e4251aeb6a8226a28c93",
+    "reports/verification/quickstart/bundled_native_summary_recomputed.csv": "165ccbe9b80c49164e83dfb1ec2faeec734a2c4879d7d9988283ef6686baa39c",
+    "reports/verification/quickstart/acceptance_artifact_audit_guarded.json": "cf2dccb37fa49c3fc199807ffac4e45bfc3f9ca4200c78be6553e42ff7d79f65",
+    "reports/verification/quickstart/occupancy_changed_oracle_diagnostics.csv": "af500ebbb82364a02ff2824aa55c5d4cc31705e1e6c3f5352972be4409e3a4cc",
+    "reports/verification/quickstart/saved_manifest_selection.json": "fb1924aa62b98b493f7ad5113ca1586118c386865bcf2365a34911c8e54a434d",
+    "reports/verification/quickstart/acceptance_artifact_audit_guarded.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reports/verification/quickstart/acceptance-artifact-final-command.log": "be28e5e891771bf68d2cb3e6796ae65fdcfba7a0ffd451e0da247a9fe7315f2d",
+    "reports/verification/quickstart/two_stage_single_data.rds": "bcdc408a2c5c87659a68c7f6bfca09f02afddc84e5937c676bf452208485b1ec",
+    "reports/verification/quickstart/repeat_diagnostics_result.json": "93679f879926f4e7f938d9fcbbfe7b6b939069fd3eb0ec57409f2e9778b4dec6",
+    "reports/verification/quickstart/alignment_character_shuffled_saved_summary_recomputed.csv": "b54a7f47bdd0ecabab06bc624d8ab25901ee98e1b4aafc9abce16a6f657e8ed7"
+  },
+  "test_code_hashes": {
+    "tests/code/quickstart/audit_acceptance_artifacts.R": "e78e0e43af383cf6c62f38426d3459a7d3967ab94995e253c00754df490dc158",
+    "tests/code/quickstart/test_diagnostics.py": "a4a05934814870cf7bda8ccd52a8e9d3f0920b6560f4d27298ddce64d4b4da8c",
+    "tests/code/quickstart/conftest.py": "f888be8becb9558f8a590ee0ba5fbc19c10cc68f5fc1979029d9e6e6f96b60cf",
+    "tests/code/quickstart/exercise_acceptance_module.py": "a1b13f258731783d01ae6d7cee51c3232912142fa5d19c95368eb84005051249",
+    "tests/code/quickstart/independent_audit.R": "feb16a2c369d459a379e6540060f1950121c3026c10ccbde2c81914a98303352",
+    "tests/code/quickstart/test_summarise_fit.py": "b26648e5d25923adb4ceecf6acc94bea64e7a277f8d1a3b02ce13b3f1781264c",
+    "tests/code/quickstart/write_verification_report.py": "735d4ab0c197b463f2847a4425474c04966b5a584b26d1489f97c4c88ec76795",
+    "tests/code/quickstart/build_acceptance.py": "c0b919b3200a0ea0b1690b53f42c1e09e6b5f6c1542b203f45e445542a59474a",
+    "tests/code/quickstart/audit_acceptance_artifacts.py": "3656877cee713e1f6f6391b55d1074689c039e53100b2b2d57bf1b2d4ee8aec2",
+    "tests/code/quickstart/test_validate_data.py": "0437274d6c1abaf33e5c9a8f90204d5d19a60f6ac7fdeffcd6c16094827d697e",
+    "tests/code/quickstart/independent_prepare.R": "43f72fc66e792568093ba222520b82605497e198805f1d501b69c155b8f45041",
+    "tests/code/quickstart/test_fit_model.py": "d36be13eaf408e81041ab8fce245b7defe7c4711ca015ad86b616f4f2a3142fb"
+  }
+}

@@ -1,0 +1,8 @@
+* checking for file ‘source-build/occJSDM/DESCRIPTION’ ... OK
+* preparing ‘occJSDM’:
+* checking DESCRIPTION meta-information ... OK
+* cleaning src
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+* building ‘occJSDM_0.1.0.tar.gz’
+

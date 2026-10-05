@@ -1,0 +1,66 @@
+* installing *source* package ‘occJSDM’ ...
+** this is package ‘occJSDM’ version ‘0.1.0’
+** using staged installation
+** libs
+using C++ compiler: ‘Apple clang version 21.0.0 (clang-2100.3.34.2)’
+using SDK: ‘’
+clang++ -arch arm64 -std=gnu++17 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG  -I'/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp/include' -I'/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppArmadillo/include' -I'/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppParallel/include' -I/opt/R/arm64/include -I/opt/homebrew/opt/libomp/include    -fPIC  -falign-functions=64 -Wall -g -O2   -c RcppExports.cpp -o RcppExports.o
+In file included from RcppExports.cpp:4:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppArmadillo/include/RcppArmadillo.h:29:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppArmadillo/include/RcppArmadillo/interface/RcppArmadilloForward.h:26:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp/include/RcppCommon.h:30:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp/include/Rcpp/r/headers.h:71:
+In file included from /Library/Frameworks/R.framework/Resources/include/R.h:70:
+/Library/Frameworks/R.framework/Resources/include/R_ext/Boolean.h:62:36: warning: unknown warning group '-Wfixed-enum-extension', ignored [-Wunknown-warning-option]
+   62 | #  pragma clang diagnostic ignored "-Wfixed-enum-extension"
+      |                                    ^
+1 warning generated.
+clang++ -arch arm64 -std=gnu++17 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG  -I'/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp/include' -I'/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppArmadillo/include' -I'/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppParallel/include' -I/opt/R/arm64/include -I/opt/homebrew/opt/libomp/include    -fPIC  -falign-functions=64 -Wall -g -O2   -c functions.cpp -o functions.o
+In file included from functions.cpp:2:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppArmadillo/include/RcppArmadillo.h:29:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppArmadillo/include/RcppArmadillo/interface/RcppArmadilloForward.h:26:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp/include/RcppCommon.h:30:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp/include/Rcpp/r/headers.h:71:
+In file included from /Library/Frameworks/R.framework/Resources/include/R.h:70:
+/Library/Frameworks/R.framework/Resources/include/R_ext/Boolean.h:62:36: warning: unknown warning group '-Wfixed-enum-extension', ignored [-Wunknown-warning-option]
+   62 | #  pragma clang diagnostic ignored "-Wfixed-enum-extension"
+      |                                    ^
+functions.cpp:136:15: warning: unused function 'samplepg' [-Wunused-function]
+  136 | static double samplepg(double z) {
+      |               ^~~~~~~~
+functions.cpp:359:18: warning: unused function 'sample_beta_cpp_TS_opt' [-Wunused-function]
+  359 | static arma::vec sample_beta_cpp_TS_opt(const arma::mat& X,
+      |                  ^~~~~~~~~~~~~~~~~~~~~~
+functions.cpp:391:18: warning: unused function 'sample_beta_cpp_TS' [-Wunused-function]
+  391 | static arma::vec sample_beta_cpp_TS(arma::mat& X, arma::mat& B, arma::vec& b,
+      |                  ^~~~~~~~~~~~~~~~~~
+4 warnings generated.
+clang++ -arch arm64 -std=gnu++17 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG  -I'/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp/include' -I'/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppArmadillo/include' -I'/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppParallel/include' -I/opt/R/arm64/include -I/opt/homebrew/opt/libomp/include    -fPIC  -falign-functions=64 -Wall -g -O2   -c jsdm.cpp -o jsdm.o
+In file included from jsdm.cpp:1:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppArmadillo/include/RcppArmadillo.h:29:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppArmadillo/include/RcppArmadillo/interface/RcppArmadilloForward.h:26:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp/include/RcppCommon.h:30:
+In file included from /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp/include/Rcpp/r/headers.h:71:
+In file included from /Library/Frameworks/R.framework/Resources/include/R.h:70:
+/Library/Frameworks/R.framework/Resources/include/R_ext/Boolean.h:62:36: warning: unknown warning group '-Wfixed-enum-extension', ignored [-Wunknown-warning-option]
+   62 | #  pragma clang diagnostic ignored "-Wfixed-enum-extension"
+      |                                    ^
+jsdm.cpp:119:15: warning: unused function 'samplepg' [-Wunused-function]
+  119 | static double samplepg(double z) {
+      |               ^~~~~~~~
+2 warnings generated.
+clang++ -arch arm64 -std=gnu++17 -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -L/Library/Frameworks/R.framework/Resources/lib -L/opt/R/arm64/lib -L/opt/homebrew/opt/libomp/lib -lomp -o occJSDM.so RcppExports.o functions.o jsdm.o -L/Library/Frameworks/R.framework/Resources/lib -lRlapack -L/Library/Frameworks/R.framework/Resources/lib -lRblas -L/opt/gfortran/lib/gcc/aarch64-apple-darwin20.0/14.2.0 -L/opt/gfortran/lib -lemutls_w -lheapt_w -lgfortran -lquadmath -L/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppParallel/lib -ltbb -ltbbmalloc -F/Library/Frameworks/R.framework/.. -framework R
+installing to /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/00LOCK-occJSDM/00new/occJSDM/libs
+** R
+** data
+*** moving datasets to lazyload DB
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** checking absolute paths in shared objects and dynamic libraries
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (occJSDM)
