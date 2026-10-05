@@ -130,7 +130,8 @@ fixed <- function(x, digits = 2) formatC(x, format = "f", digits = digits)
 percent <- function(x) paste0(fixed(100 * x, 1), "%")
 span <- function(x, digits = 2) paste(fixed(min(x), digits), "to", fixed(max(x), digits))
 
-theme_set(theme_bw(base_size = 12))
+# This theme also works after occJSDM loads its ternary-plot dependency.
+theme_set(ggtern::theme_bw(base_size = 12))
 ```
 
 ```{r lesson-7-contents}
