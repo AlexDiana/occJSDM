@@ -33,7 +33,7 @@ This survey has no spatial structure. Its sites have coordinates, which let us d
 
 The teaching data are in the occJSDM repository, not in the installed package, so first clone or download [the repository from GitHub](https://github.com/AlexDiana/occJSDM). Run the code with the repository's `vignettes` directory as your working directory. Knitting this document uses that directory automatically. In RStudio, opening the `.Rmd` file and choosing **Session \> Set Working Directory \> To Source File Location** gives the same starting point for running chunks interactively.
 
-**What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R for Data Science on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. Operations that are unusual, such as joining two tables on species identity, are explained where they appear.
+**What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R **for Data Science** on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. Operations that are unusual, such as joining two tables on species identity, are explained where they appear.
 
 - `select()` and `pull()` to choose columns, or to take one column out as a vector.
 - `filter()`, `distinct()`, `arrange()`, `slice_head()` and `slice_sample()` to keep, deduplicate, order and pick rows, including a random pick.
@@ -666,7 +666,7 @@ The simulation was made at occJSDM revision **`r substr(lesson$input$source_comm
 
 The two chunks that prepare the unequal survey, `unbalanced-select-samples` and `unbalanced-paired-rows`, are checked by `dev/simstudy/vignette-lesson/unbalanced-verify.R`. It runs them exactly as displayed here and confirms that they produce the reduced survey of Lesson 2's saved fit, with every truth unchanged.
 
-### Simulate a survey with a spatial field
+### Simulate a survey with a spatial field {#simulate-a-survey-with-a-spatial-field}
 
 This lesson's survey has no spatial field. This subsection shows how to switch one on, for a reader who wants test data in which nearby sites resemble each other. Fitting a model that learns such a pattern, and placing sites so that it can, is taught in [the spatial lesson](occJSDM-lesson-7.md).
 

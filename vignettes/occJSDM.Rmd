@@ -27,6 +27,7 @@ This quickstart shows how the input data must be structured, makes a fitting cal
 ```{r data}
 library(occJSDM)
 
+sampledata <- sampledata # this loads the package's sampledata into your environment
 str(sampledata, max.level = 1)
 head(sampledata$info)
 head(sampledata$OTU)
