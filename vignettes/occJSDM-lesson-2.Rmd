@@ -113,7 +113,8 @@ format_points <- function(error) {
   formatC(100 * error, format = "f", digits = 1)
 }
 
-theme_set(theme_minimal(base_size = 12))
+# This theme also works after occJSDM loads its ternary-plot dependency.
+theme_set(ggtern::theme_minimal(base_size = 12))
 ```
 
 ## What are we trying to learn?

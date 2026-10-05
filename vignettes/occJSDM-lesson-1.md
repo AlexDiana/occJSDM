@@ -28,7 +28,8 @@ format_percent <- function(probability, digits = 1) {
   paste0(formatC(100 * probability, format = "f", digits = digits), "%")
 }
 
-theme_set(theme_minimal(base_size = 12))
+# This theme also works after occJSDM loads its ternary-plot dependency.
+theme_set(ggtern::theme_minimal(base_size = 12))
 ```
 
 `lesson` is the saved file that Lesson 2 reads. We use three parts of it. `truth_samples` has one row per species and field sample, with the simulation’s true states. `survey_info` is the survey’s `info` table, with one row per PCR and the site, sample and covariate columns that Lesson 2 describes. `known_truth` holds the coefficients the simulation used, which we use only to check answers. `format_percent()` prints probabilities as percentages in the text.
