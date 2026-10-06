@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "status": "not_run",
+  "status": "Cloud_native_execution_and_both_resource_measurements_passed_user_reported_classroom_adoption_pending",
   "project_url": "https://posit.cloud/spaces/828411/content/13067379",
   "client": "Posit Assistant",
-  "configured_server": false,
-  "isolated_runtime_restored": false,
-  "tool_calls_verified": false,
+  "configured_server": true,
+  "isolated_runtime_restored": true,
+  "tool_calls_verified": true,
   "client_config_reference": "https://assistant.posit.co/docs/reference/mcp-servers/",
   "reference_checked_date": "2026-10-05",
   "notes": [
-    "Template uses documented local subprocess command array and project settings. It has not been registered or tested in Cloud.",
+    "Project settings registered by Doug; Assistant showed Connected and all four MCP calls subsequently succeeded in user-reported evidence.",
     "Connection timeout is not a tool-call duration guarantee.",
     "All Cloud checks are user-run; no credentials required by the local build.",
     "Prior successful direct-R smoke test does not verify MCP transport."
@@ -18,7 +18,7 @@
     "status": "passed",
     "report": "reports/local-pilot-checkpoint.json",
     "guide": "USAGE.md",
-    "Cloud_execution": "not_run"
+    "Cloud_execution": "all_four_tools_passed_user_reported"
   },
   "prerequisites": {
     "python": {
@@ -26,11 +26,45 @@
       "reported_by": "Doug",
       "source": "Cloud Terminal python3 --version user reply",
       "meets_wrapper_minimum": true,
-      "server_execution_tested": false
+      "server_execution_tested": true
+    },
+    "python_dependencies": {
+      "status": "installation_succeeded_user_reported",
+      "python_version": "3.12.11",
+      "platform": "Posit Cloud Linux",
+      "evidence": "Doug pasted pip Successfully installed output on 5 October 2026",
+      "fastmcp": "4.0.3",
+      "fastmcp_slim": "4.0.3",
+      "mcp": "2.3.0",
+      "pydantic": "2.13.5",
+      "linux_conditional_dependencies_observed": {
+        "SecretStorage": "3.5.0",
+        "jeepney": "0.9.0"
+      },
+      "import_check": "passed_user_reported",
+      "server_startup": "passed_user_reported",
+      "real_mcp_calls": "all_four_tools_passed_user_reported"
+    },
+    "r_runtime": {
+      "status": "passed_user_reported",
+      "evidence": "Doug pasted Cloud restore-verification.json with status passed on 5 October 2026",
+      "r_version": "R version 4.6.1 (2026-06-24)",
+      "project": "/cloud/project/mcp/paper2agent/cloud-r-runtime",
+      "occjsdm_origin": "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/occJSDM",
+      "restoration": "repository source dependencies with retained occJSDM source cellar",
+      "repeat_install_attempt": "Stopped at nonempty-target guard; completed restore report subsequently confirmed",
+      "real_mcp_calls": "all_four_tools_passed_user_reported",
+      "renv_status": {
+        "status": "R_version_metadata_difference_only_user_reported",
+        "evidence": "Doug pasted renv::status() on 5 October 2026: The lockfile was generated with R 4.5.0, but you are using R 4.6.1. No other issue was reported.",
+        "lockfile_R": "4.5.0",
+        "Cloud_R": "4.6.1",
+        "decision": "Retain dependency pins and original lockfile metadata; record successful Cloud runtime separately. No restore, snapshot or dependency updates requested."
+      }
     }
   },
   "transfer": {
-    "status": "independently_verified_on_Mac_Cloud_installation_pending",
+    "status": "Cloud_installation_four_tool_workflows_and_native_agreement_passed_user_reported",
     "archive": "dist/occJSDM-cloud-pilot.zip",
     "inventory": "reports/cloud-transfer/bundle-inventory.json",
     "purpose": "Cloud pilot; workshop delivery remains gated on adoption",
@@ -43,5 +77,444 @@
     "full_native_table_calls_compared": 8,
     "regressions_passed": 37,
     "restore_mode": "Mac dependency cache with scientific source rebuilt; Cloud network restoration not run"
+  },
+  "connection": {
+    "status": "connected_user_reported",
+    "evidence": "Doug supplied Posit Assistant /mcp Session information screenshot on 5 October 2026 showing occJSDM Connected",
+    "tool_inventory_verified": false,
+    "real_mcp_calls": "all_four_tools_passed_user_reported"
+  },
+  "cloud_tool_checks": {
+    "validate_data": {
+      "status": "passed_user_reported",
+      "evidence": "Doug supplied Posit Assistant screenshot dated 5 October 2026 21:44 showing completed mcp__occJSDM__validate_data and reported native result; raw JSON not yet collected",
+      "input_path": "/cloud/project/mcp-smoke-data.rds",
+      "model": "two_stage",
+      "eligible": true,
+      "observations": 1800,
+      "species": 10,
+      "sites": 100,
+      "samples": 300,
+      "primers": 3,
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta.1",
+        "X_theta.2"
+      ],
+      "reported_issues": 0,
+      "reported_warnings": 0,
+      "artifact_directory": "/cloud/project/artifacts/calls/validate_data-688116ebec4a4a76a1176c2a067bc499"
+    },
+    "fit_model": {
+      "status": "passed_user_reported",
+      "evidence": "Doug supplied PA screenshot dated 5 October 2026 21:49 showing switch to DeepSeek V4.1 Flash, natural-language prompt and completed mcp__occJSDM__fit_model call; raw response and native artifacts not yet collected",
+      "model_display_name": "DeepSeek: DeepSeek V4.1 Flash",
+      "input_path": "/cloud/project/mcp-smoke-data.rds",
+      "fit_id": "fit_36416693024c496189f0bd234c746975",
+      "fit_path": "/cloud/project/artifacts/calls/fit_model-b6dcd00eb1e644abba640f4e66d0c6c6/fit.rds",
+      "effective_settings_user_reported": {
+        "model": "two_stage",
+        "n_factors": 2,
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1,
+        "threshold": 1,
+        "seed": 1702
+      },
+      "warnings_count_user_reported": 24,
+      "teaching_issue": "Assistant stated that expected short-fit warnings are not a sign of a data problem; short chains do not rule out data or model problems.",
+      "native_comparison": "pending",
+      "actual_cost": "not_reported"
+    },
+    "diagnostics": {
+      "status": "passed_user_reported",
+      "evidence": "Doug pasted PA response listing mcp__occJSDM__diagnostics on 5 October 2026; raw response and CSV not yet independently inspected",
+      "fit_id": "fit_36416693024c496189f0bd234c746975",
+      "csv": "/cloud/project/artifacts/calls/diagnostics-3893dba6ae5546e8ad2d10a48075ce4e/diagnostics.csv",
+      "screening_counts_user_reported": {
+        "total_rows": 130,
+        "rhat_flagged": 107,
+        "ess_flagged": 130,
+        "unavailable_rhat": 0,
+        "unavailable_ess": 0,
+        "unavailable_rows": 0
+      },
+      "scope": "Six selected occupancy/detection coefficient blocks; excludes latent variables",
+      "native_comparison": "complete_CSV_text_matches_native_R_user_reported"
+    },
+    "summarise_fit": {
+      "status": "passed_user_reported",
+      "evidence": "Doug pasted PA response listing mcp__occJSDM__summarise_fit on 5 October 2026; raw response and CSV not yet independently inspected",
+      "fit_id": "fit_36416693024c496189f0bd234c746975",
+      "csv": "/cloud/project/artifacts/calls/summarise_fit-9984b8514dd04a7da75b21253a2b3021/summary.csv",
+      "estimand": "Inverse-logit species intercept draws, pooled over retained iterations and chains",
+      "native_comparison": "complete_CSV_text_matches_native_R_user_reported"
+    }
+  },
+  "provider_failures": [
+    {
+      "status": "pending_provider_response_blocked",
+      "evidence": "Doug supplied PA screenshot dated 5 October 2026 21:47 showing provider content-filter message for the natural-language short-fit request",
+      "mcp_call_visible": false,
+      "model_id_confirmed": false,
+      "cause": "Unknown; no provider response metadata or server fit logs collected",
+      "retry_plan": "Select DeepSeek v4.1 Flash and resend the same request in the existing chat; retain identical scientific settings"
+    }
+  ],
+  "tool_calls_evidence_level": "User-reported screenshots, Assistant responses and developer-run complete native CSV comparison; Cloud artifact files not downloaded locally",
+  "teaching_issues": [
+    "Assistant incorrectly described baseline occupancy as absorbing collection/detection stages; estimator is inverse-logit occupancy intercept and detection stages remain distinct.",
+    "Assistant equated low ESS with almost no independent ecological information; ESS concerns Monte Carlo precision, not ecological data information.",
+    "Finite diagnostics are computable estimates, not proof that diagnostic estimates from 20 draws per chain are reliable.",
+    "Assistant suggested traceplots and a 1000/1000 refit; neither was requested or run."
+  ],
+  "native_CSV_audit": {
+    "status": "passed_user_reported",
+    "evidence": "Doug pasted Cloud Terminal output on 5 October 2026: Both complete CSV tables match native R; saved fit unchanged.",
+    "method": "Pinned isolated Rscript runtime; returnConvergenceDiagnostics and returnOccupancyRates on saved fit; complete CSV lines compared exactly; fit MD5 before/after identical",
+    "fit_id": "fit_36416693024c496189f0bd234c746975",
+    "diagnostic_rows": 130,
+    "fit_rerun": false,
+    "fit_changed": false,
+    "raw_Cloud_artifacts_collected": false
+  },
+  "remaining_Cloud_checks": [
+    "Measure CPU, peak RAM, elapsed time and actual MCP call behaviour for the intended teaching schedule; only short native fit timing is available",
+    "Record actual model IDs/provider routes, usage/cost, timing and Cloud resource limits",
+    "Run matched A/B/C model trials and make adoption decision",
+    "Rehearse copied student project and non-AI workflow before workshop packaging"
+  ],
+  "second_input_workflow": {
+    "input_path": "/cloud/project/occjsdm-pilot-data.rds",
+    "provenance": "Earlier user-run PA pilot input, distinct from packaged sampledata; input bytes and generating provenance not yet collected",
+    "validate_data": {
+      "status": "passed_user_reported",
+      "evidence": "Doug supplied PA result screenshot dated 5 October 2026 22:01; tool call banner not visible in crop",
+      "eligible": true,
+      "model": "two_stage",
+      "observations": 160,
+      "species": 4,
+      "sites": 40,
+      "samples": 80,
+      "primers": 1,
+      "missing_observations": 0,
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta"
+      ],
+      "reported_issues": 0,
+      "reported_warnings": 0,
+      "artifact_directory": "/cloud/project/artifacts/calls/validate_data-b098153c32fa4830914a1e70331f45b6"
+    },
+    "fit_model": {
+      "status": "passed_user_reported",
+      "evidence": "Doug pasted PA fit_model, diagnostics and summarise_fit response on 5 October 2026",
+      "fit_id": "fit_fa9d078129f9450cabc029f0af695958",
+      "fit_path": "/cloud/project/artifacts/calls/fit_model-e9e007efc3d2441ebe2d90a19871f75f/fit.rds",
+      "manifest_path": "/cloud/project/artifacts/calls/fit_model-e9e007efc3d2441ebe2d90a19871f75f/manifest.json",
+      "effective_settings_user_reported": {
+        "model": "two_stage",
+        "n_factors": 2,
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1,
+        "threshold": 1,
+        "seed": 1702
+      },
+      "warnings_count_user_reported": 23
+    },
+    "diagnostics": {
+      "status": "passed_user_reported",
+      "fit_id": "fit_fa9d078129f9450cabc029f0af695958",
+      "csv": "/cloud/project/artifacts/calls/diagnostics-601b03dccd6c4165adffe6293fa845e1/diagnostics.csv",
+      "screening_counts_user_reported": {
+        "total_rows": 32,
+        "rhat_flagged": 29,
+        "ess_flagged": 32,
+        "unavailable_rhat": 0,
+        "unavailable_ess": 0,
+        "unavailable_rows": 0
+      },
+      "native_comparison": "pending"
+    },
+    "summarise_fit": {
+      "status": "passed_user_reported",
+      "fit_id": "fit_fa9d078129f9450cabc029f0af695958",
+      "csv": "/cloud/project/artifacts/calls/summarise_fit-b6c1f06e3b104503b53cfc1ee76dfee1/summary.csv",
+      "rounded_baseline_means_user_reported": {
+        "OTU_1": 0.64,
+        "OTU_2": 0.52,
+        "OTU_3": 0.37,
+        "OTU_4": 0.41
+      },
+      "native_comparison": "pending"
+    },
+    "native_same_settings_fit_comparison": {
+      "status": "passed_user_reported",
+      "evidence": "Doug pasted Cloud Terminal output on 5 October 2026: All fit components match direct R exactly; saved fit unchanged.",
+      "method": "Separate native runOccJSDM fit in memory using preserved input.rds and identical non-spatial settings and seed; all saved component names compared with all.equal tolerance=0; saved fit MD5 unchanged",
+      "fit_id": "fit_fa9d078129f9450cabc029f0af695958",
+      "saved_components_compared": [
+        "results_output",
+        "infos",
+        "Tr",
+        "X_theta",
+        "Xs",
+        "X_psi"
+      ],
+      "source_runtime": "Pinned isolated Cloud R 4.6.1 environment",
+      "timing_seconds": {
+        "user": 0.875,
+        "system": 0.262,
+        "elapsed": 1.239
+      },
+      "timing_scope": "system.time block around direct native fitting and capture.output; excludes R startup, MCP transport, model latency and initial installation",
+      "peak_RAM": "not_measured",
+      "Cloud_artifacts_downloaded_locally": false
+    }
+  },
+  "resources": {
+    "RAM_GB_allocated": 4.5,
+    "allocation_source": "Doug earlier reported Cloud gear Resources panel",
+    "CPU_allocation": "requested_from_Doug_2026-10-06_pending",
+    "peak_RAM": "Measured peak individual R child RSS: 282017792 bytes for small transport fixture and 551825408 bytes for full quickstart schedule; excludes simultaneous total Cloud memory and compilation",
+    "teaching_schedule_benchmark": {
+      "status": "both_schedules_measured_long_native_diagnostics_verified_user_reported_stricter_screen_failed",
+      "approval": "Doug selected two chains with 5000 burn-in and 5000 retained draws per chain through the schedule question",
+      "input_path": "/cloud/project/mcp-smoke-data.rds",
+      "dataset_choice": "Packaged quickstart example, 1800 observations and 10 species, for the intended teaching-scale check; the separately prepared small input remains the transport fixture",
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 5000,
+        "niter": 5000,
+        "nthin": 1
+      },
+      "n_factors": 2,
+      "threshold": 1,
+      "seed": 1702,
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta.1",
+        "X_theta.2"
+      ],
+      "measurement_goal": "Instrument the actual native R subprocess invoked by the existing MCP server, preserving original R code and requested schedule",
+      "server_deadline_seconds": 600,
+      "execution": "completed_user_reported",
+      "Cloud_Rscript_path": "/opt/R/4.6.1/lib/R/bin/Rscript",
+      "GNU_time": "absent: Doug reported /usr/bin/time: No such file or directory",
+      "measurement_setup": {
+        "method": "Temporary P2A_RSCRIPT Python observer using resource.getrusage(RUSAGE_CHILDREN)",
+        "source": "reports/resource-benchmark/measure_rscript.py",
+        "self_contained_setup": "reports/resource-benchmark/setup-resource-benchmark.py",
+        "CPU_and_elapsed_scope": "Actual native R dispatcher including startup; excludes model latency and MCP CPU",
+        "memory_scope": "Largest individual waited child peak RSS, not simultaneous process-tree or total Cloud project memory",
+        "Cloud_execution": "setup_and_both_native_fit_measurements_passed_user_reported",
+        "local_verification": {
+          "status": "passed",
+          "scope": "Six process/configuration tests, independent native R byte agreement, CPU/RSS accounting on Darwin, process-group termination and configuration restoration; Cloud/Linux run pending",
+          "report": "reports/resource-benchmark/verification-resource-observer.json",
+          "observer_sha256": "a82985f443b9b2f7bb90ae6f619d1dc0380c8b8303608a1a1b9691c8cdf4f4b7",
+          "setup_sha256": "3e1f528efce9c9d74ba2416bd4feb4565083d52a050bdd7c1d2493fefb606c87"
+        },
+        "Cloud_setup_evidence": {
+          "date": "2026-10-06",
+          "command": "python3 /cloud/project/setup-resource-benchmark.py",
+          "settings_backup": "/cloud/project/.posit/assistant/settings.json.benchmark-f529800091c5470a957d527fea59f663.bak",
+          "output": "Resource measurement ready. Restart occJSDM through /mcp in Posit Assistant.",
+          "evidence_level": "Doug pasted Cloud Terminal output; no direct Cloud access"
+        },
+        "cleanup": "pending: restore prior P2A_RSCRIPT setting with setup helper --remove and restart server"
+      },
+      "short_measured_call": {
+        "date": "2026-10-06",
+        "status": "fit_and_resource_measurement_passed_user_reported",
+        "fit_id": "fit_2a4a4ef2f13a4ef2976ef458cdee980f",
+        "fit_path": "/cloud/project/artifacts/calls/fit_model-8feb57a18a28487ea1b46224c9b88124/fit.rds",
+        "expected_resource_report": "/cloud/project/artifacts/calls/fit_model-8feb57a18a28487ea1b46224c9b88124/resource-usage.json",
+        "input_path": "/cloud/project/occjsdm-pilot-data.rds",
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 1
+        },
+        "n_factors": 2,
+        "threshold": 1,
+        "seed": 1702,
+        "occCovariates": [
+          "X_psi.EnvCov.1",
+          "X_psi.EnvCov.2"
+        ],
+        "collCovariates": [
+          "X_theta"
+        ],
+        "warnings_count_reported_by_PA": 23,
+        "evidence_level": "Doug pasted PA tool names/summary and complete Cloud resource-usage.json; Cloud artifacts not downloaded locally",
+        "interpretation_issue": "PA says warnings rule out structural/data problems; a deliberately short fit cannot establish that causal claim. Its listed warning pairs also do not fully enumerate the reported 23 warnings.",
+        "resource_report": {
+          "native_executable": "/opt/R/4.6.1/lib/R/bin/Rscript",
+          "native_returncode": 0,
+          "termination_signal": null,
+          "elapsed_seconds": 6.003829270994174,
+          "user_cpu_seconds": 3.287606,
+          "system_cpu_seconds": 0.600583,
+          "peak_individual_child_rss_bytes": 282017792,
+          "platform": "linux",
+          "cpu_scope": "Native R dispatcher, including startup and waited descendants; excludes MCP and model latency",
+          "memory_scope": "Largest individual waited child peak RSS; not simultaneous process-tree or Cloud-project memory"
+        },
+        "derived_metrics": {
+          "total_CPU_seconds": 3.888189,
+          "peak_individual_child_RSS_MiB": 268.953125
+        }
+      },
+      "long_call": {
+        "date": "2026-10-06",
+        "status": "fit_resources_and_native_diagnostic_counts_passed_user_reported_stricter_screen_failed",
+        "fit_id": "fit_f663109d46ce42798396ca7a3137e5d8",
+        "fit_path": "/cloud/project/artifacts/calls/fit_model-dc86fea4b8554a8eaf104d84059aac69/fit.rds",
+        "expected_resource_report": "/cloud/project/artifacts/calls/fit_model-dc86fea4b8554a8eaf104d84059aac69/resource-usage.json",
+        "source_revision_reported": "b7b7001e",
+        "warnings_count_reported_by_PA": 0,
+        "client_outcome": "PA reports fitting tool completed and saved new fit; no timeout or cancellation reported",
+        "settings_reported": {
+          "model": "two_stage",
+          "sites": 100,
+          "samples": 300,
+          "primers": 3,
+          "species": 10,
+          "observations": 1800,
+          "n_factors": 2,
+          "nchain": 2,
+          "nburn": 5000,
+          "niter": 5000,
+          "nthin": 1,
+          "threshold": 1,
+          "seed": 1702
+        },
+        "evidence_level": "Doug pasted PA tool-call/summary and complete Cloud resource-usage.json; native artifacts not downloaded locally",
+        "interpretation": "PA correctly says absence of native warnings does not establish convergence; stricter complete-table diagnostics pending",
+        "resource_report": {
+          "native_executable": "/opt/R/4.6.1/lib/R/bin/Rscript",
+          "native_returncode": 0,
+          "termination_signal": null,
+          "elapsed_seconds": 335.09957835899695,
+          "user_cpu_seconds": 180.722953,
+          "system_cpu_seconds": 101.002084,
+          "peak_individual_child_rss_bytes": 551825408,
+          "platform": "linux",
+          "cpu_scope": "Native R dispatcher, including startup and waited descendants; excludes MCP and model latency",
+          "memory_scope": "Largest individual waited child peak RSS; not simultaneous process-tree or Cloud-project memory"
+        },
+        "derived_metrics": {
+          "total_CPU_seconds": 281.725037,
+          "peak_individual_child_RSS_MiB": 526.26171875,
+          "server_deadline_seconds": 600,
+          "completed_within_server_deadline": true
+        },
+        "diagnostics": {
+          "status": "complete_aggregate_and_per_block_native_counts_match_PA_user_reported",
+          "total_rows": 130,
+          "rhat_above_1_01": 16,
+          "ess_below_400": 21,
+          "rows_flagged_by_either_screen": 26,
+          "rows_passing_both_screens": 104,
+          "rhat_unavailable": 0,
+          "ess_unavailable": 0,
+          "rows_with_either_unavailable": 0,
+          "both_screen_flags_derived": 11,
+          "rhat_only_derived": 5,
+          "ess_only_derived": 10,
+          "blocks": [
+            "beta0_psi",
+            "beta_psi",
+            "beta_theta",
+            "p",
+            "q",
+            "theta0"
+          ],
+          "scope": "Selected occupancy/detection coefficient blocks, excluding latent variables and model-assumption checks",
+          "PA_direct_CSV_read": "blocked: file is not world-readable",
+          "CSV_path": "not provided in pasted PA summary",
+          "evidence_level": "Doug pasted PA diagnostics tool name, blocked executeCode read and aggregate summary; native resource reports obtained separately, diagnostic artifacts not downloaded",
+          "interpretation": "Runtime benchmark succeeded, but the chosen schedule fails the stricter selected-coefficient screens; no inference-ready workshop preset established",
+          "teaching_issues": [
+            "Screen failures warrant investigation; no universal harmless number of failures establishes convergence.",
+            "Finite diagnostics do not establish reliable diagnostic estimation or validate model assumptions.",
+            "The diagnostics tool creates new artifacts even though it preserves the saved fit; PA claimed no new files."
+          ],
+          "native_check": {
+            "date": "2026-10-06",
+            "status": "passed_user_reported",
+            "method": "Rscript --vanilla, source isolated activate.R, returnConvergenceDiagnostics on saved fit, per-block flags and assertions against PA aggregates, before/after MD5 equality",
+            "fit_unchanged": true,
+            "model_rerun": false,
+            "per_block": [
+              {
+                "block": "beta_psi",
+                "rows": 20,
+                "rhat_flagged": 8,
+                "ess_flagged": 15,
+                "either_flagged": 16,
+                "unavailable": 0
+              },
+              {
+                "block": "beta_theta",
+                "rows": 30,
+                "rhat_flagged": 4,
+                "ess_flagged": 1,
+                "either_flagged": 4,
+                "unavailable": 0
+              },
+              {
+                "block": "beta0_psi",
+                "rows": 10,
+                "rhat_flagged": 3,
+                "ess_flagged": 4,
+                "either_flagged": 5,
+                "unavailable": 0
+              },
+              {
+                "block": "p",
+                "rows": 30,
+                "rhat_flagged": 0,
+                "ess_flagged": 0,
+                "either_flagged": 0,
+                "unavailable": 0
+              },
+              {
+                "block": "q",
+                "rows": 30,
+                "rhat_flagged": 0,
+                "ess_flagged": 0,
+                "either_flagged": 0,
+                "unavailable": 0
+              },
+              {
+                "block": "theta0",
+                "rows": 10,
+                "rhat_flagged": 1,
+                "ess_flagged": 1,
+                "either_flagged": 1,
+                "unavailable": 0
+              }
+            ],
+            "terminal_confirmation": "Native counts match PA; saved fit unchanged.",
+            "evidence_level": "Doug pasted complete Cloud Terminal output, including assertions and per-block table; files not downloaded locally"
+          }
+        }
+      }
+    }
   }
 }
