@@ -1,0 +1,1370 @@
+"table","item","own","stored","pass"
+"summary-means.csv","row set","1 qfar primary all; 1 qfar primary high; 1 qfar primary low; 1 qfar primary middle; 1 qfar primary rare_below_20pct; 1 qnear primary all; 1 qnear primary high; 1 qnear primary low; 1 qnear primary middle; 1 qnear primary rare_below_20pct; 2 qfar primary all; 2 qfar primary high; 2 qfar primary low; 2 qfar primary middle; 2 qfar primary rare_below_20pct; 2 qnear primary all; 2 qnear primary high; 2 qnear primary low; 2 qnear primary middle; 2 qnear primary rare_below_20pct; 3 qfar primary all; 3 qfar primary high; 3 qfar primary low; 3 qfar primary middle; 3 qfar primary rare_below_20pct; 3 qnear primary all; 3 qnear primary high; 3 qnear primary low; 3 qnear primary middle; 3 qnear primary rare_below_20pct; 5 qfar primary all; 5 qfar primary high; 5 qfar primary low; 5 qfar primary middle; 5 qfar primary rare_below_20pct; 5 qnear primary all; 5 qnear primary high; 5 qnear primary low; 5 qnear primary middle; 5 qnear primary rare_below_20pct","1 qfar primary all; 1 qfar primary high; 1 qfar primary low; 1 qfar primary middle; 1 qfar primary rare_below_20pct; 1 qnear primary all; 1 qnear primary high; 1 qnear primary low; 1 qnear primary middle; 1 qnear primary rare_below_20pct; 2 qfar primary all; 2 qfar primary high; 2 qfar primary low; 2 qfar primary middle; 2 qfar primary rare_below_20pct; 2 qnear primary all; 2 qnear primary high; 2 qnear primary low; 2 qnear primary middle; 2 qnear primary rare_below_20pct; 3 qfar primary all; 3 qfar primary high; 3 qfar primary low; 3 qfar primary middle; 3 qfar primary rare_below_20pct; 3 qnear primary all; 3 qnear primary high; 3 qnear primary low; 3 qnear primary middle; 3 qnear primary rare_below_20pct; 5 qfar primary all; 5 qfar primary high; 5 qfar primary low; 5 qfar primary middle; 5 qfar primary rare_below_20pct; 5 qnear primary all; 5 qnear primary high; 5 qnear primary low; 5 qnear primary middle; 5 qnear primary rare_below_20pct",TRUE
+"summary-means.csv","1 qfar primary all communities","10","10",TRUE
+"summary-means.csv","1 qfar primary all mean_signed_error","-1.7638658525337674","-1.76386585253377",TRUE
+"summary-means.csv","1 qfar primary all mean_abs_signed_error","2.6366465453695667","2.6366465453695702",TRUE
+"summary-means.csv","1 qfar primary all mean_abs_cell_error","16.969678846662717","16.969678846662699",TRUE
+"summary-means.csv","1 qfar primary all mean_coverage","0.82430000000000003","0.82430000000000003",TRUE
+"summary-means.csv","2 qfar primary all communities","10","10",TRUE
+"summary-means.csv","2 qfar primary all mean_signed_error","-2.3055071017772759","-2.3055071017772799",TRUE
+"summary-means.csv","2 qfar primary all mean_abs_signed_error","2.9040476006787515","2.9040476006787501",TRUE
+"summary-means.csv","2 qfar primary all mean_abs_cell_error","16.958280543717549","16.9582805437175",TRUE
+"summary-means.csv","2 qfar primary all mean_coverage","0.88219999999999998","0.88219999999999998",TRUE
+"summary-means.csv","3 qfar primary all communities","10","10",TRUE
+"summary-means.csv","3 qfar primary all mean_signed_error","-2.6898942759374451","-2.68989427593745",TRUE
+"summary-means.csv","3 qfar primary all mean_abs_signed_error","3.4168875259183573","3.41688752591836",TRUE
+"summary-means.csv","3 qfar primary all mean_abs_cell_error","17.448904386759985","17.448904386759999",TRUE
+"summary-means.csv","3 qfar primary all mean_coverage","0.89319999999999999","0.89319999999999999",TRUE
+"summary-means.csv","5 qfar primary all communities","10","10",TRUE
+"summary-means.csv","5 qfar primary all mean_signed_error","-1.9268736472505168","-1.9268736472505199",TRUE
+"summary-means.csv","5 qfar primary all mean_abs_signed_error","2.9092637573046489","2.9092637573046498",TRUE
+"summary-means.csv","5 qfar primary all mean_abs_cell_error","17.703940263003201","17.703940263003201",TRUE
+"summary-means.csv","5 qfar primary all mean_coverage","0.89639999999999997","0.89639999999999997",TRUE
+"summary-means.csv","1 qnear primary all communities","10","10",TRUE
+"summary-means.csv","1 qnear primary all mean_signed_error","-0.56671292267812023","-0.56671292267812001",TRUE
+"summary-means.csv","1 qnear primary all mean_abs_signed_error","2.1564615624335461","2.1564615624335501",TRUE
+"summary-means.csv","1 qnear primary all mean_abs_cell_error","15.195636838344766","15.1956368383448",TRUE
+"summary-means.csv","1 qnear primary all mean_coverage","0.79889999999999994","0.79890000000000005",TRUE
+"summary-means.csv","2 qnear primary all communities","10","10",TRUE
+"summary-means.csv","2 qnear primary all mean_signed_error","-0.53279063650738789","-0.532790636507388",TRUE
+"summary-means.csv","2 qnear primary all mean_abs_signed_error","2.2961493447534123","2.29614934475341",TRUE
+"summary-means.csv","2 qnear primary all mean_abs_cell_error","14.962499986799953","14.962499986799999",TRUE
+"summary-means.csv","2 qnear primary all mean_coverage","0.84840000000000004","0.84840000000000004",TRUE
+"summary-means.csv","3 qnear primary all communities","10","10",TRUE
+"summary-means.csv","3 qnear primary all mean_signed_error","-0.77065573156582823","-0.77065573156582801",TRUE
+"summary-means.csv","3 qnear primary all mean_abs_signed_error","2.6377282907098993","2.6377282907098998",TRUE
+"summary-means.csv","3 qnear primary all mean_abs_cell_error","15.120008481417818","15.1200084814178",TRUE
+"summary-means.csv","3 qnear primary all mean_coverage","0.85630000000000006","0.85629999999999995",TRUE
+"summary-means.csv","5 qnear primary all communities","10","10",TRUE
+"summary-means.csv","5 qnear primary all mean_signed_error","-0.69556084005811203","-0.69556084005811203",TRUE
+"summary-means.csv","5 qnear primary all mean_abs_signed_error","2.6425406354879746","2.6425406354879701",TRUE
+"summary-means.csv","5 qnear primary all mean_abs_cell_error","15.2364573960873","15.2364573960873",TRUE
+"summary-means.csv","5 qnear primary all mean_coverage","0.85619999999999996","0.85619999999999996",TRUE
+"summary-means.csv","1 qfar primary high communities","10","10",TRUE
+"summary-means.csv","1 qfar primary high mean_signed_error","-18.818335994073756","-18.818335994073799",TRUE
+"summary-means.csv","1 qfar primary high mean_abs_signed_error","18.818335994073756","18.818335994073799",TRUE
+"summary-means.csv","1 qfar primary high mean_abs_cell_error","19.342466924845738","19.342466924845699",TRUE
+"summary-means.csv","1 qfar primary high mean_coverage","0.71580356585082916","0.71580356585082905",TRUE
+"summary-means.csv","2 qfar primary high communities","10","10",TRUE
+"summary-means.csv","2 qfar primary high mean_signed_error","-18.210875592311641","-18.210875592311599",TRUE
+"summary-means.csv","2 qfar primary high mean_abs_signed_error","18.210875592311641","18.210875592311599",TRUE
+"summary-means.csv","2 qfar primary high mean_abs_cell_error","18.992681641069549","18.992681641069499",TRUE
+"summary-means.csv","2 qfar primary high mean_coverage","0.8450065796870514","0.84500657968705095",TRUE
+"summary-means.csv","3 qfar primary high communities","10","10",TRUE
+"summary-means.csv","3 qfar primary high mean_signed_error","-18.192414196132429","-18.1924141961324",TRUE
+"summary-means.csv","3 qfar primary high mean_abs_signed_error","18.192414196132429","18.1924141961324",TRUE
+"summary-means.csv","3 qfar primary high mean_abs_cell_error","19.221577157196364","19.2215771571964",TRUE
+"summary-means.csv","3 qfar primary high mean_coverage","0.87364241367371942","0.87364241367371898",TRUE
+"summary-means.csv","5 qfar primary high communities","10","10",TRUE
+"summary-means.csv","5 qfar primary high mean_signed_error","-16.715237445256658","-16.715237445256701",TRUE
+"summary-means.csv","5 qfar primary high mean_abs_signed_error","16.715237445256658","16.715237445256701",TRUE
+"summary-means.csv","5 qfar primary high mean_abs_cell_error","18.14293981294778","18.142939812947802",TRUE
+"summary-means.csv","5 qfar primary high mean_coverage","0.8961007916812247","0.89610079168122503",TRUE
+"summary-means.csv","1 qnear primary high communities","10","10",TRUE
+"summary-means.csv","1 qnear primary high mean_signed_error","-14.779154315456223","-14.7791543154562",TRUE
+"summary-means.csv","1 qnear primary high mean_abs_signed_error","14.779154315456223","14.7791543154562",TRUE
+"summary-means.csv","1 qnear primary high mean_abs_cell_error","15.29931126232567","15.2993112623257",TRUE
+"summary-means.csv","1 qnear primary high mean_coverage","0.7282722378255837","0.72827223782558403",TRUE
+"summary-means.csv","2 qnear primary high communities","10","10",TRUE
+"summary-means.csv","2 qnear primary high mean_signed_error","-13.466121735385327","-13.4661217353853",TRUE
+"summary-means.csv","2 qnear primary high mean_abs_signed_error","13.466121735385327","13.4661217353853",TRUE
+"summary-means.csv","2 qnear primary high mean_abs_cell_error","14.213207759013736","14.2132077590137",TRUE
+"summary-means.csv","2 qnear primary high mean_coverage","0.82150472570521349","0.82150472570521305",TRUE
+"summary-means.csv","3 qnear primary high communities","10","10",TRUE
+"summary-means.csv","3 qnear primary high mean_signed_error","-13.368589900937923","-13.3685899009379",TRUE
+"summary-means.csv","3 qnear primary high mean_abs_signed_error","13.368589900937923","13.3685899009379",TRUE
+"summary-means.csv","3 qnear primary high mean_abs_cell_error","14.252272474981746","14.2522724749817",TRUE
+"summary-means.csv","3 qnear primary high mean_coverage","0.84720843558992442","0.84720843558992398",TRUE
+"summary-means.csv","5 qnear primary high communities","10","10",TRUE
+"summary-means.csv","5 qnear primary high mean_signed_error","-12.97735204519736","-12.977352045197399",TRUE
+"summary-means.csv","5 qnear primary high mean_abs_signed_error","12.97735204519736","12.977352045197399",TRUE
+"summary-means.csv","5 qnear primary high mean_abs_cell_error","14.027016345756341","14.0270163457563",TRUE
+"summary-means.csv","5 qnear primary high mean_coverage","0.85954893628795881","0.85954893628795903",TRUE
+"summary-means.csv","1 qfar primary low communities","10","10",TRUE
+"summary-means.csv","1 qfar primary low mean_signed_error","15.343740178864348","15.3437401788643",TRUE
+"summary-means.csv","1 qfar primary low mean_abs_signed_error","15.343740178864348","15.3437401788643",TRUE
+"summary-means.csv","1 qfar primary low mean_abs_cell_error","15.81532859467451","15.815328594674501",TRUE
+"summary-means.csv","1 qfar primary low mean_coverage","0.78768261803942252","0.78768261803942297",TRUE
+"summary-means.csv","2 qfar primary low communities","10","10",TRUE
+"summary-means.csv","2 qfar primary low mean_signed_error","13.257496036131426","13.2574960361314",TRUE
+"summary-means.csv","2 qfar primary low mean_abs_signed_error","13.257496036131426","13.2574960361314",TRUE
+"summary-means.csv","2 qfar primary low mean_abs_cell_error","13.997035302372764","13.997035302372799",TRUE
+"summary-means.csv","2 qfar primary low mean_coverage","0.85833767525827565","0.85833767525827598",TRUE
+"summary-means.csv","3 qfar primary low communities","10","10",TRUE
+"summary-means.csv","3 qfar primary low mean_signed_error","12.24774806798988","12.2477480679899",TRUE
+"summary-means.csv","3 qfar primary low mean_abs_signed_error","12.24774806798988","12.2477480679899",TRUE
+"summary-means.csv","3 qfar primary low mean_abs_cell_error","13.306138660999318","13.3061386609993",TRUE
+"summary-means.csv","3 qfar primary low mean_coverage","0.87876279104428634","0.87876279104428601",TRUE
+"summary-means.csv","5 qfar primary low communities","10","10",TRUE
+"summary-means.csv","5 qfar primary low mean_signed_error","12.015436434530406","12.0154364345304",TRUE
+"summary-means.csv","5 qfar primary low mean_abs_signed_error","12.015436434530406","12.0154364345304",TRUE
+"summary-means.csv","5 qfar primary low mean_abs_cell_error","13.362950179622853","13.362950179622899",TRUE
+"summary-means.csv","5 qfar primary low mean_coverage","0.88375162202278701","0.88375162202278701",TRUE
+"summary-means.csv","1 qnear primary low communities","10","10",TRUE
+"summary-means.csv","1 qnear primary low mean_signed_error","14.4155385997705","14.4155385997705",TRUE
+"summary-means.csv","1 qnear primary low mean_abs_signed_error","14.4155385997705","14.4155385997705",TRUE
+"summary-means.csv","1 qnear primary low mean_abs_cell_error","14.868156870595215","14.8681568705952",TRUE
+"summary-means.csv","1 qnear primary low mean_coverage","0.72453110989483527","0.72453110989483505",TRUE
+"summary-means.csv","2 qnear primary low communities","10","10",TRUE
+"summary-means.csv","2 qnear primary low mean_signed_error","13.158509617844716","13.1585096178447",TRUE
+"summary-means.csv","2 qnear primary low mean_abs_signed_error","13.158509617844716","13.1585096178447",TRUE
+"summary-means.csv","2 qnear primary low mean_abs_cell_error","13.854676719641995","13.854676719642001",TRUE
+"summary-means.csv","2 qnear primary low mean_coverage","0.7973837644190116","0.79738376441901204",TRUE
+"summary-means.csv","3 qnear primary low communities","10","10",TRUE
+"summary-means.csv","3 qnear primary low mean_signed_error","12.568110062440175","12.5681100624402",TRUE
+"summary-means.csv","3 qnear primary low mean_abs_signed_error","12.568110062440175","12.5681100624402",TRUE
+"summary-means.csv","3 qnear primary low mean_abs_cell_error","13.461091391235406","13.461091391235399",TRUE
+"summary-means.csv","3 qnear primary low mean_coverage","0.80800268978295131","0.80800268978295098",TRUE
+"summary-means.csv","5 qnear primary low communities","10","10",TRUE
+"summary-means.csv","5 qnear primary low mean_signed_error","12.211624736824261","12.2116247368243",TRUE
+"summary-means.csv","5 qnear primary low mean_abs_signed_error","12.211624736824261","12.2116247368243",TRUE
+"summary-means.csv","5 qnear primary low mean_abs_cell_error","13.286773196097887","13.286773196097901",TRUE
+"summary-means.csv","5 qnear primary low mean_coverage","0.80787185336829759","0.80787185336829803",TRUE
+"summary-means.csv","1 qfar primary middle communities","10","10",TRUE
+"summary-means.csv","1 qfar primary middle mean_signed_error","-1.2184606217511473","-1.21846062175115",TRUE
+"summary-means.csv","1 qfar primary middle mean_abs_signed_error","1.788060912735727","1.7880609127357301",TRUE
+"summary-means.csv","1 qfar primary middle mean_abs_cell_error","16.069306701123086","16.0693067011231",TRUE
+"summary-means.csv","1 qfar primary middle mean_coverage","0.93413475220871189","0.934134752208712",TRUE
+"summary-means.csv","2 qfar primary middle communities","10","10",TRUE
+"summary-means.csv","2 qfar primary middle mean_signed_error","-1.6019830757790097","-1.6019830757790099",TRUE
+"summary-means.csv","2 qfar primary middle mean_abs_signed_error","2.3247337545549964","2.324733754555",TRUE
+"summary-means.csv","2 qfar primary middle mean_abs_cell_error","17.585004179552111","17.585004179552101",TRUE
+"summary-means.csv","2 qfar primary middle mean_coverage","0.92689215493642907","0.92689215493642896",TRUE
+"summary-means.csv","3 qfar primary middle communities","10","10",TRUE
+"summary-means.csv","3 qfar primary middle mean_signed_error","-1.8831956032935282","-1.88319560329353",TRUE
+"summary-means.csv","3 qfar primary middle mean_abs_signed_error","3.0161302094230642","3.0161302094230602",TRUE
+"summary-means.csv","3 qfar primary middle mean_abs_cell_error","19.070476882052439","19.0704768820524",TRUE
+"summary-means.csv","3 qfar primary middle mean_coverage","0.9174865885768847","0.91748658857688503",TRUE
+"summary-means.csv","5 qfar primary middle communities","10","10",TRUE
+"summary-means.csv","5 qfar primary middle mean_signed_error","-0.76642283444039117","-0.76642283444039105",TRUE
+"summary-means.csv","5 qfar primary middle mean_abs_signed_error","3.2433973722399272","3.2433973722399299",TRUE
+"summary-means.csv","5 qfar primary middle mean_abs_cell_error","20.457511687185761","20.4575116871858",TRUE
+"summary-means.csv","5 qfar primary middle mean_coverage","0.90528337971064143","0.90528337971064099",TRUE
+"summary-means.csv","1 qnear primary middle communities","10","10",TRUE
+"summary-means.csv","1 qnear primary middle mean_signed_error","-0.72272121031077818","-0.72272121031077796",TRUE
+"summary-means.csv","1 qnear primary middle mean_abs_signed_error","2.9935728482955364","2.9935728482955399",TRUE
+"summary-means.csv","1 qnear primary middle mean_abs_cell_error","15.561524645613753","15.561524645613799",TRUE
+"summary-means.csv","1 qnear primary middle mean_coverage","0.90409910351226597","0.90409910351226597",TRUE
+"summary-means.csv","2 qnear primary middle communities","10","10",TRUE
+"summary-means.csv","2 qnear primary middle mean_signed_error","-0.64823738944784026","-0.64823738944784004",TRUE
+"summary-means.csv","2 qnear primary middle mean_abs_signed_error","3.8348996609348909","3.83489966093489",TRUE
+"summary-means.csv","2 qnear primary middle mean_abs_cell_error","16.577726444420268","16.5777264444203",TRUE
+"summary-means.csv","2 qnear primary middle mean_coverage","0.90124703478767265","0.90124703478767298",TRUE
+"summary-means.csv","3 qnear primary middle communities","10","10",TRUE
+"summary-means.csv","3 qnear primary middle mean_signed_error","-0.85260683335758614","-0.85260683335758602",TRUE
+"summary-means.csv","3 qnear primary middle mean_abs_signed_error","4.4695939281118671","4.4695939281118697",TRUE
+"summary-means.csv","3 qnear primary middle mean_abs_cell_error","17.276141101327347","17.276141101327301",TRUE
+"summary-means.csv","3 qnear primary middle mean_coverage","0.89214906872688104","0.89214906872688104",TRUE
+"summary-means.csv","5 qnear primary middle communities","10","10",TRUE
+"summary-means.csv","5 qnear primary middle mean_signed_error","-0.69204817347470149","-0.69204817347470104",TRUE
+"summary-means.csv","5 qnear primary middle mean_abs_signed_error","4.7154389968448154","4.7154389968448198",TRUE
+"summary-means.csv","5 qnear primary middle mean_abs_cell_error","17.91594591012483","17.915945910124801",TRUE
+"summary-means.csv","5 qnear primary middle mean_coverage","0.88157624091961317","0.88157624091961295",TRUE
+"summary-means.csv","1 qfar primary rare_below_20pct communities","1","1",TRUE
+"summary-means.csv","1 qfar primary rare_below_20pct mean_signed_error","20.105054484315378","20.105054484315399",TRUE
+"summary-means.csv","1 qfar primary rare_below_20pct mean_abs_signed_error","20.105054484315378","20.105054484315399",TRUE
+"summary-means.csv","1 qfar primary rare_below_20pct mean_abs_cell_error","23.611290278902956","23.611290278902999",TRUE
+"summary-means.csv","1 qfar primary rare_below_20pct mean_coverage","0.73666666666666669","0.73666666666666702",TRUE
+"summary-means.csv","2 qfar primary rare_below_20pct communities","1","1",TRUE
+"summary-means.csv","2 qfar primary rare_below_20pct mean_signed_error","12.955712223333194","12.955712223333199",TRUE
+"summary-means.csv","2 qfar primary rare_below_20pct mean_abs_signed_error","12.955712223333194","12.955712223333199",TRUE
+"summary-means.csv","2 qfar primary rare_below_20pct mean_abs_cell_error","18.538206978303698","18.538206978303698",TRUE
+"summary-means.csv","2 qfar primary rare_below_20pct mean_coverage","0.90333333333333332","0.90333333333333299",TRUE
+"summary-means.csv","3 qfar primary rare_below_20pct communities","1","1",TRUE
+"summary-means.csv","3 qfar primary rare_below_20pct mean_signed_error","6.2901864899706812","6.2901864899706803",TRUE
+"summary-means.csv","3 qfar primary rare_below_20pct mean_abs_signed_error","6.2901864899706812","6.2901864899706803",TRUE
+"summary-means.csv","3 qfar primary rare_below_20pct mean_abs_cell_error","15.321494231525579","15.3214942315256",TRUE
+"summary-means.csv","3 qfar primary rare_below_20pct mean_coverage","0.98999999999999999","0.98999999999999999",TRUE
+"summary-means.csv","5 qfar primary rare_below_20pct communities","1","1",TRUE
+"summary-means.csv","5 qfar primary rare_below_20pct mean_signed_error","0.079769031898614673","0.079769031898614701",TRUE
+"summary-means.csv","5 qfar primary rare_below_20pct mean_abs_signed_error","0.079769031898614673","0.079769031898614701",TRUE
+"summary-means.csv","5 qfar primary rare_below_20pct mean_abs_cell_error","12.846300750866172","12.846300750866201",TRUE
+"summary-means.csv","5 qfar primary rare_below_20pct mean_coverage","1","1",TRUE
+"summary-means.csv","1 qnear primary rare_below_20pct communities","1","1",TRUE
+"summary-means.csv","1 qnear primary rare_below_20pct mean_signed_error","30.523261730928585","30.523261730928599",TRUE
+"summary-means.csv","1 qnear primary rare_below_20pct mean_abs_signed_error","30.523261730928585","30.523261730928599",TRUE
+"summary-means.csv","1 qnear primary rare_below_20pct mean_abs_cell_error","31.961939486189113","31.961939486189099",TRUE
+"summary-means.csv","1 qnear primary rare_below_20pct mean_coverage","0.5033333333333333","0.50333333333333297",TRUE
+"summary-means.csv","2 qnear primary rare_below_20pct communities","1","1",TRUE
+"summary-means.csv","2 qnear primary rare_below_20pct mean_signed_error","34.510032827353285","34.510032827353299",TRUE
+"summary-means.csv","2 qnear primary rare_below_20pct mean_abs_signed_error","34.510032827353285","34.510032827353299",TRUE
+"summary-means.csv","2 qnear primary rare_below_20pct mean_abs_cell_error","35.494248532742041","35.494248532741999",TRUE
+"summary-means.csv","2 qnear primary rare_below_20pct mean_coverage","0.66666666666666663","0.66666666666666696",TRUE
+"summary-means.csv","3 qnear primary rare_below_20pct communities","1","1",TRUE
+"summary-means.csv","3 qnear primary rare_below_20pct mean_signed_error","34.264461302611323","34.264461302611302",TRUE
+"summary-means.csv","3 qnear primary rare_below_20pct mean_abs_signed_error","34.264461302611323","34.264461302611302",TRUE
+"summary-means.csv","3 qnear primary rare_below_20pct mean_abs_cell_error","35.368063137753417","35.368063137753403",TRUE
+"summary-means.csv","3 qnear primary rare_below_20pct mean_coverage","0.73999999999999999","0.73999999999999999",TRUE
+"summary-means.csv","5 qnear primary rare_below_20pct communities","1","1",TRUE
+"summary-means.csv","5 qnear primary rare_below_20pct mean_signed_error","33.11682886188256","33.116828861882603",TRUE
+"summary-means.csv","5 qnear primary rare_below_20pct mean_abs_signed_error","33.11682886188256","33.116828861882603",TRUE
+"summary-means.csv","5 qnear primary rare_below_20pct mean_abs_cell_error","34.293819892034477","34.293819892034499",TRUE
+"summary-means.csv","5 qnear primary rare_below_20pct mean_coverage","0.76000000000000001","0.76000000000000001",TRUE
+"b0-means.csv","row set","1 qfar; 1 qnear; 2 qfar; 2 qnear; 3 qfar; 3 qnear; 5 qfar; 5 qnear","1 qfar; 1 qnear; 2 qfar; 2 qnear; 3 qfar; 3 qnear; 5 qfar; 5 qnear",TRUE
+"b0-means.csv","1 qfar communities","10","10",TRUE
+"b0-means.csv","1 qfar mean_b0_bias","-0.091686661148267512","-0.091686661148267498",TRUE
+"b0-means.csv","1 qfar mean_b0_abs_bias","0.60326848825908452","0.60326848825908497",TRUE
+"b0-means.csv","1 qfar mean_b0_coverage","0.92000000000000004","0.92000000000000004",TRUE
+"b0-means.csv","2 qfar communities","10","10",TRUE
+"b0-means.csv","2 qfar mean_b0_bias","-0.11924858150661855","-0.119248581506619",TRUE
+"b0-means.csv","2 qfar mean_b0_abs_bias","0.68374623272283219","0.68374623272283197",TRUE
+"b0-means.csv","2 qfar mean_b0_coverage","0.97999999999999998","0.97999999999999998",TRUE
+"b0-means.csv","3 qfar communities","10","10",TRUE
+"b0-means.csv","3 qfar mean_b0_bias","-0.15444133881611935","-0.15444133881611899",TRUE
+"b0-means.csv","3 qfar mean_b0_abs_bias","0.89580751940277259","0.89580751940277303",TRUE
+"b0-means.csv","3 qfar mean_b0_coverage","0.97999999999999998","0.97999999999999998",TRUE
+"b0-means.csv","5 qfar communities","10","10",TRUE
+"b0-means.csv","5 qfar mean_b0_bias","-0.097126241917864092","-0.097126241917864106",TRUE
+"b0-means.csv","5 qfar mean_b0_abs_bias","1.1487136398342797","1.1487136398342801",TRUE
+"b0-means.csv","5 qfar mean_b0_coverage","0.97999999999999998","0.97999999999999998",TRUE
+"b0-means.csv","1 qnear communities","10","10",TRUE
+"b0-means.csv","1 qnear mean_b0_bias","-0.020884258037057089","-0.0208842580370571",TRUE
+"b0-means.csv","1 qnear mean_b0_abs_bias","0.48643417943088807","0.48643417943088801",TRUE
+"b0-means.csv","1 qnear mean_b0_coverage","0.90000000000000002","0.90000000000000002",TRUE
+"b0-means.csv","2 qnear communities","10","10",TRUE
+"b0-means.csv","2 qnear mean_b0_bias","-0.0015722081766851789","-0.00157220817668518",TRUE
+"b0-means.csv","2 qnear mean_b0_abs_bias","0.49631856944252484","0.496318569442525",TRUE
+"b0-means.csv","2 qnear mean_b0_coverage","0.94999999999999996","0.94999999999999996",TRUE
+"b0-means.csv","3 qnear communities","10","10",TRUE
+"b0-means.csv","3 qnear mean_b0_bias","-0.0085206904421054382","-0.00852069044210544",TRUE
+"b0-means.csv","3 qnear mean_b0_abs_bias","0.58159617813668341","0.58159617813668296",TRUE
+"b0-means.csv","3 qnear mean_b0_coverage","0.94999999999999996","0.94999999999999996",TRUE
+"b0-means.csv","5 qnear communities","10","10",TRUE
+"b0-means.csv","5 qnear mean_b0_bias","0.008752429852721344","0.0087524298527213405",TRUE
+"b0-means.csv","5 qnear mean_b0_abs_bias","0.71393579387566342","0.71393579387566297",TRUE
+"b0-means.csv","5 qnear mean_b0_coverage","0.94000000000000006","0.93999999999999995",TRUE
+"beta-theta-means.csv","row set","1 qfar; 1 qnear; 2 qfar; 2 qnear; 3 qfar; 3 qnear; 5 qfar; 5 qnear","1 qfar; 1 qnear; 2 qfar; 2 qnear; 3 qfar; 3 qnear; 5 qfar; 5 qnear",TRUE
+"beta-theta-means.csv","1 qfar communities","10","10",TRUE
+"beta-theta-means.csv","1 qfar mean_bt_bias","0.041430037786046814","0.0414300377860468",TRUE
+"beta-theta-means.csv","1 qfar mean_bt_abs_bias","0.28133168351803117","0.28133168351803101",TRUE
+"beta-theta-means.csv","1 qfar mean_bt_coverage","0.97999999999999998","0.97999999999999998",TRUE
+"beta-theta-means.csv","1 qfar mean_b0_bt_correlation","-0.35846239334830271","-0.35846239334830299",TRUE
+"beta-theta-means.csv","2 qfar communities","10","10",TRUE
+"beta-theta-means.csv","2 qfar mean_bt_bias","0.07970560644469836","0.079705606444698401",TRUE
+"beta-theta-means.csv","2 qfar mean_bt_abs_bias","0.26164981859608988","0.26164981859608999",TRUE
+"beta-theta-means.csv","2 qfar mean_bt_coverage","0.96999999999999997","0.96999999999999997",TRUE
+"beta-theta-means.csv","2 qfar mean_b0_bt_correlation","-0.40305158968462396","-0.40305158968462401",TRUE
+"beta-theta-means.csv","3 qfar communities","10","10",TRUE
+"beta-theta-means.csv","3 qfar mean_bt_bias","0.10534829866592237","0.105348298665922",TRUE
+"beta-theta-means.csv","3 qfar mean_bt_abs_bias","0.27294169689427561","0.272941696894276",TRUE
+"beta-theta-means.csv","3 qfar mean_bt_coverage","0.97999999999999998","0.97999999999999998",TRUE
+"beta-theta-means.csv","3 qfar mean_b0_bt_correlation","-0.40263796693421455","-0.402637966934214",TRUE
+"beta-theta-means.csv","5 qfar communities","10","10",TRUE
+"beta-theta-means.csv","5 qfar mean_bt_bias","0.10943903143619317","0.109439031436193",TRUE
+"beta-theta-means.csv","5 qfar mean_bt_abs_bias","0.27404261360137805","0.27404261360137799",TRUE
+"beta-theta-means.csv","5 qfar mean_bt_coverage","0.96999999999999997","0.96999999999999997",TRUE
+"beta-theta-means.csv","5 qfar mean_b0_bt_correlation","-0.39659475006781669","-0.39659475006781703",TRUE
+"beta-theta-means.csv","1 qnear communities","10","10",TRUE
+"beta-theta-means.csv","1 qnear mean_bt_bias","0.032910300736145211","0.032910300736145197",TRUE
+"beta-theta-means.csv","1 qnear mean_bt_abs_bias","0.16817941669896014","0.16817941669896",TRUE
+"beta-theta-means.csv","1 qnear mean_bt_coverage","0.97999999999999998","0.97999999999999998",TRUE
+"beta-theta-means.csv","1 qnear mean_b0_bt_correlation","-0.54782140873321594","-0.54782140873321605",TRUE
+"beta-theta-means.csv","2 qnear communities","10","10",TRUE
+"beta-theta-means.csv","2 qnear mean_bt_bias","0.061003157511223524","0.061003157511223503",TRUE
+"beta-theta-means.csv","2 qnear mean_bt_abs_bias","0.18484434419801091","0.18484434419801099",TRUE
+"beta-theta-means.csv","2 qnear mean_bt_coverage","0.95999999999999996","0.95999999999999996",TRUE
+"beta-theta-means.csv","2 qnear mean_b0_bt_correlation","-0.58191157470889432","-0.58191157470889399",TRUE
+"beta-theta-means.csv","3 qnear communities","10","10",TRUE
+"beta-theta-means.csv","3 qnear mean_bt_bias","0.078554530489925042","0.078554530489925001",TRUE
+"beta-theta-means.csv","3 qnear mean_bt_abs_bias","0.20158390213143917","0.20158390213143901",TRUE
+"beta-theta-means.csv","3 qnear mean_bt_coverage","0.95999999999999996","0.95999999999999996",TRUE
+"beta-theta-means.csv","3 qnear mean_b0_bt_correlation","-0.57424427117706678","-0.574244271177067",TRUE
+"beta-theta-means.csv","5 qnear communities","10","10",TRUE
+"beta-theta-means.csv","5 qnear mean_bt_bias","0.0855905591268111","0.0855905591268111",TRUE
+"beta-theta-means.csv","5 qnear mean_bt_abs_bias","0.21537339448820025","0.2153733944882",TRUE
+"beta-theta-means.csv","5 qnear mean_bt_coverage","0.95999999999999996","0.95999999999999996",TRUE
+"beta-theta-means.csv","5 qnear mean_b0_bt_correlation","-0.56417125243235255","-0.564171252432353",TRUE
+"convergence.csv","row set","1 qfar; 1 qnear; 2 qfar; 2 qnear; 3 qfar; 3 qnear; 5 qfar; 5 qnear","1 qfar; 1 qnear; 2 qfar; 2 qnear; 3 qfar; 3 qnear; 5 qfar; 5 qnear",TRUE
+"convergence.csv","1 qnear selected_fits","10","10",TRUE
+"convergence.csv","1 qnear selected_flagged","1","1",TRUE
+"convergence.csv","1 qnear first_flagged","NA","NA",TRUE
+"convergence.csv","1 qnear long_repeats","NA","NA",TRUE
+"convergence.csv","1 qnear missing_fits","0","0",TRUE
+"convergence.csv","1 qfar selected_fits","10","10",TRUE
+"convergence.csv","1 qfar selected_flagged","3","3",TRUE
+"convergence.csv","1 qfar first_flagged","NA","NA",TRUE
+"convergence.csv","1 qfar long_repeats","NA","NA",TRUE
+"convergence.csv","1 qfar missing_fits","0","0",TRUE
+"convergence.csv","2 qnear selected_fits","10","10",TRUE
+"convergence.csv","2 qnear selected_flagged","3","3",TRUE
+"convergence.csv","2 qnear first_flagged","7","7",TRUE
+"convergence.csv","2 qnear long_repeats","6","6",TRUE
+"convergence.csv","2 qnear missing_fits","0","0",TRUE
+"convergence.csv","2 qfar selected_fits","10","10",TRUE
+"convergence.csv","2 qfar selected_flagged","4","4",TRUE
+"convergence.csv","2 qfar first_flagged","5","5",TRUE
+"convergence.csv","2 qfar long_repeats","2","2",TRUE
+"convergence.csv","2 qfar missing_fits","0","0",TRUE
+"convergence.csv","3 qnear selected_fits","10","10",TRUE
+"convergence.csv","3 qnear selected_flagged","7","7",TRUE
+"convergence.csv","3 qnear first_flagged","9","9",TRUE
+"convergence.csv","3 qnear long_repeats","6","6",TRUE
+"convergence.csv","3 qnear missing_fits","0","0",TRUE
+"convergence.csv","3 qfar selected_fits","10","10",TRUE
+"convergence.csv","3 qfar selected_flagged","9","9",TRUE
+"convergence.csv","3 qfar first_flagged","9","9",TRUE
+"convergence.csv","3 qfar long_repeats","2","2",TRUE
+"convergence.csv","3 qfar missing_fits","0","0",TRUE
+"convergence.csv","5 qnear selected_fits","10","10",TRUE
+"convergence.csv","5 qnear selected_flagged","9","9",TRUE
+"convergence.csv","5 qnear first_flagged","9","9",TRUE
+"convergence.csv","5 qnear long_repeats","6","6",TRUE
+"convergence.csv","5 qnear missing_fits","0","0",TRUE
+"convergence.csv","5 qfar selected_fits","10","10",TRUE
+"convergence.csv","5 qfar selected_flagged","10","10",TRUE
+"convergence.csv","5 qfar first_flagged","10","10",TRUE
+"convergence.csv","5 qfar long_repeats","2","2",TRUE
+"convergence.csv","5 qfar missing_fits","0","0",TRUE
+"gate-detail.csv","row set","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear; c4 flags qfar; c4 flags qnear","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear; c4 flags qfar; c4 flags qnear",TRUE
+"gate-detail.csv","c1 low pooled communities","10","10",TRUE
+"gate-detail.csv","c1 low pooled needed","7","7",TRUE
+"gate-detail.csv","c1 low pooled improved","10","10",TRUE
+"gate-detail.csv","c1 low pooled value_new","13.208002826988071","13.2080028269881",TRUE
+"gate-detail.csv","c1 low pooled value_control","14.879639389317424","14.879639389317401",TRUE
+"gate-detail.csv","c1 low pooled statistic","-1.6716365623293523","-1.6716365623293501",TRUE
+"gate-detail.csv","c1 low pooled missing_new","NA","NA",TRUE
+"gate-detail.csv","c1 low pooled pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c1 low pooled tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear communities","10","10",TRUE
+"gate-detail.csv","c2 low qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear value_new","13.158509617844716","13.1585096178447",TRUE
+"gate-detail.csv","c2 low qnear value_control","14.4155385997705","14.4155385997705",TRUE
+"gate-detail.csv","c2 low qnear statistic","-1.2570289819257834","-1.2570289819257801",TRUE
+"gate-detail.csv","c2 low qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle qnear communities","10","10",TRUE
+"gate-detail.csv","c2 middle qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 middle qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 middle qnear value_new","3.8348996609348909","3.83489966093489",TRUE
+"gate-detail.csv","c2 middle qnear value_control","2.9935728482955364","2.9935728482955399",TRUE
+"gate-detail.csv","c2 middle qnear statistic","0.84132681263935449","0.84132681263935405",TRUE
+"gate-detail.csv","c2 middle qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 middle qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 high qnear communities","10","10",TRUE
+"gate-detail.csv","c2 high qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 high qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 high qnear value_new","13.466121735385327","13.4661217353853",TRUE
+"gate-detail.csv","c2 high qnear value_control","14.779154315456223","14.7791543154562",TRUE
+"gate-detail.csv","c2 high qnear statistic","-1.313032580070896","-1.3130325800709",TRUE
+"gate-detail.csv","c2 high qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 high qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 mae qnear communities","10","10",TRUE
+"gate-detail.csv","c2 mae qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 mae qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 mae qnear value_new","14.962499986799953","14.962499986799999",TRUE
+"gate-detail.csv","c2 mae qnear value_control","15.195636838344766","15.1956368383448",TRUE
+"gate-detail.csv","c2 mae qnear statistic","-0.23313685154481334","-0.23313685154481301",TRUE
+"gate-detail.csv","c2 mae qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 mae qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 mae qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 low qfar communities","10","10",TRUE
+"gate-detail.csv","c2 low qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 low qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 low qfar value_new","13.257496036131426","13.2574960361314",TRUE
+"gate-detail.csv","c2 low qfar value_control","15.343740178864348","15.3437401788643",TRUE
+"gate-detail.csv","c2 low qfar statistic","-2.0862441427329212","-2.0862441427329199",TRUE
+"gate-detail.csv","c2 low qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 low qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle qfar communities","10","10",TRUE
+"gate-detail.csv","c2 middle qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 middle qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 middle qfar value_new","2.3247337545549964","2.324733754555",TRUE
+"gate-detail.csv","c2 middle qfar value_control","1.788060912735727","1.7880609127357301",TRUE
+"gate-detail.csv","c2 middle qfar statistic","0.53667284181926944","0.536672841819269",TRUE
+"gate-detail.csv","c2 middle qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 middle qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 high qfar communities","10","10",TRUE
+"gate-detail.csv","c2 high qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 high qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 high qfar value_new","18.210875592311641","18.210875592311599",TRUE
+"gate-detail.csv","c2 high qfar value_control","18.818335994073756","18.818335994073799",TRUE
+"gate-detail.csv","c2 high qfar statistic","-0.6074604017621148","-0.60746040176211502",TRUE
+"gate-detail.csv","c2 high qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 high qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 mae qfar communities","10","10",TRUE
+"gate-detail.csv","c2 mae qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 mae qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 mae qfar value_new","16.958280543717549","16.9582805437175",TRUE
+"gate-detail.csv","c2 mae qfar value_control","16.969678846662717","16.969678846662699",TRUE
+"gate-detail.csv","c2 mae qfar statistic","-0.011398302945167416","-0.0113983029451674",TRUE
+"gate-detail.csv","c2 mae qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 mae qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 mae qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 low qnear communities","10","10",TRUE
+"gate-detail.csv","c3 low qnear needed","NA","NA",TRUE
+"gate-detail.csv","c3 low qnear improved","NA","NA",TRUE
+"gate-detail.csv","c3 low qnear value_new","0.7973837644190116","0.79738376441901204",TRUE
+"gate-detail.csv","c3 low qnear value_control","0.72453110989483527","0.72453110989483505",TRUE
+"gate-detail.csv","c3 low qnear statistic","-0.07285265452417633","-0.072852654524176302",TRUE
+"gate-detail.csv","c3 low qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 low qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 middle qnear communities","10","10",TRUE
+"gate-detail.csv","c3 middle qnear needed","NA","NA",TRUE
+"gate-detail.csv","c3 middle qnear improved","NA","NA",TRUE
+"gate-detail.csv","c3 middle qnear value_new","0.90124703478767265","0.90124703478767298",TRUE
+"gate-detail.csv","c3 middle qnear value_control","0.90409910351226597","0.90409910351226597",TRUE
+"gate-detail.csv","c3 middle qnear statistic","0.0028520687245933152","0.0028520687245933199",TRUE
+"gate-detail.csv","c3 middle qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 middle qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 high qnear communities","10","10",TRUE
+"gate-detail.csv","c3 high qnear needed","NA","NA",TRUE
+"gate-detail.csv","c3 high qnear improved","NA","NA",TRUE
+"gate-detail.csv","c3 high qnear value_new","0.82150472570521349","0.82150472570521305",TRUE
+"gate-detail.csv","c3 high qnear value_control","0.7282722378255837","0.72827223782558403",TRUE
+"gate-detail.csv","c3 high qnear statistic","-0.093232487879629788","-0.093232487879629802",TRUE
+"gate-detail.csv","c3 high qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 high qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 low qfar communities","10","10",TRUE
+"gate-detail.csv","c3 low qfar needed","NA","NA",TRUE
+"gate-detail.csv","c3 low qfar improved","NA","NA",TRUE
+"gate-detail.csv","c3 low qfar value_new","0.85833767525827565","0.85833767525827598",TRUE
+"gate-detail.csv","c3 low qfar value_control","0.78768261803942252","0.78768261803942297",TRUE
+"gate-detail.csv","c3 low qfar statistic","-0.070655057218853123","-0.070655057218853096",TRUE
+"gate-detail.csv","c3 low qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 low qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 middle qfar communities","10","10",TRUE
+"gate-detail.csv","c3 middle qfar needed","NA","NA",TRUE
+"gate-detail.csv","c3 middle qfar improved","NA","NA",TRUE
+"gate-detail.csv","c3 middle qfar value_new","0.92689215493642907","0.92689215493642896",TRUE
+"gate-detail.csv","c3 middle qfar value_control","0.93413475220871189","0.934134752208712",TRUE
+"gate-detail.csv","c3 middle qfar statistic","0.0072425972722828247","0.0072425972722828203",TRUE
+"gate-detail.csv","c3 middle qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 middle qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 high qfar communities","10","10",TRUE
+"gate-detail.csv","c3 high qfar needed","NA","NA",TRUE
+"gate-detail.csv","c3 high qfar improved","NA","NA",TRUE
+"gate-detail.csv","c3 high qfar value_new","0.8450065796870514","0.84500657968705095",TRUE
+"gate-detail.csv","c3 high qfar value_control","0.71580356585082916","0.71580356585082905",TRUE
+"gate-detail.csv","c3 high qfar statistic","-0.12920301383622224","-0.12920301383622201",TRUE
+"gate-detail.csv","c3 high qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 high qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags qnear communities","NA","NA",TRUE
+"gate-detail.csv","c4 flags qnear needed","NA","NA",TRUE
+"gate-detail.csv","c4 flags qnear improved","NA","NA",TRUE
+"gate-detail.csv","c4 flags qnear value_new","3","3",TRUE
+"gate-detail.csv","c4 flags qnear value_control","1","1",TRUE
+"gate-detail.csv","c4 flags qnear statistic","2","2",TRUE
+"gate-detail.csv","c4 flags qnear missing_new","0","0",TRUE
+"gate-detail.csv","c4 flags qnear pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags qnear tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar communities","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar needed","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar improved","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar value_new","4","4",TRUE
+"gate-detail.csv","c4 flags qfar value_control","3","3",TRUE
+"gate-detail.csv","c4 flags qfar statistic","1","1",TRUE
+"gate-detail.csv","c4 flags qfar missing_new","0","0",TRUE
+"gate-detail.csv","c4 flags qfar pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags qfar tolerance_decisive","NA","NA",TRUE
+"gate.csv","SD 2 columns","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c2_high_qfar_control c2_high_qfar_diff c2_high_qfar_new c2_high_qfar_pass c2_high_qnear_control c2_high_qnear_diff c2_high_qnear_new c2_high_qnear_pass c2_low_qfar_control c2_low_qfar_diff c2_low_qfar_new c2_low_qfar_pass c2_low_qnear_control c2_low_qnear_diff c2_low_qnear_new c2_low_qnear_pass c2_mae_qfar_control c2_mae_qfar_diff c2_mae_qfar_new c2_mae_qfar_pass c2_mae_qnear_control c2_mae_qnear_diff c2_mae_qnear_new c2_mae_qnear_pass c2_middle_qfar_control c2_middle_qfar_diff c2_middle_qfar_new c2_middle_qfar_pass c2_middle_qnear_control c2_middle_qnear_diff c2_middle_qnear_new c2_middle_qnear_pass c2_pass c3_high_qfar_control c3_high_qfar_drop c3_high_qfar_new c3_high_qfar_pass c3_high_qnear_control c3_high_qnear_drop c3_high_qnear_new c3_high_qnear_pass c3_low_qfar_control c3_low_qfar_drop c3_low_qfar_new c3_low_qfar_pass c3_low_qnear_control c3_low_qnear_drop c3_low_qnear_new c3_low_qnear_pass c3_middle_qfar_control c3_middle_qfar_drop c3_middle_qfar_new c3_middle_qfar_pass c3_middle_qnear_control c3_middle_qnear_drop c3_middle_qnear_new c3_middle_qnear_pass c3_pass c4_pass c4_qfar_flagged_control c4_qfar_flagged_new c4_qfar_missing_new c4_qfar_pass c4_qnear_flagged_control c4_qnear_flagged_new c4_qnear_missing_new c4_qnear_pass result","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c2_high_qfar_control c2_high_qfar_diff c2_high_qfar_new c2_high_qfar_pass c2_high_qnear_control c2_high_qnear_diff c2_high_qnear_new c2_high_qnear_pass c2_low_qfar_control c2_low_qfar_diff c2_low_qfar_new c2_low_qfar_pass c2_low_qnear_control c2_low_qnear_diff c2_low_qnear_new c2_low_qnear_pass c2_mae_qfar_control c2_mae_qfar_diff c2_mae_qfar_new c2_mae_qfar_pass c2_mae_qnear_control c2_mae_qnear_diff c2_mae_qnear_new c2_mae_qnear_pass c2_middle_qfar_control c2_middle_qfar_diff c2_middle_qfar_new c2_middle_qfar_pass c2_middle_qnear_control c2_middle_qnear_diff c2_middle_qnear_new c2_middle_qnear_pass c2_pass c3_high_qfar_control c3_high_qfar_drop c3_high_qfar_new c3_high_qfar_pass c3_high_qnear_control c3_high_qnear_drop c3_high_qnear_new c3_high_qnear_pass c3_low_qfar_control c3_low_qfar_drop c3_low_qfar_new c3_low_qfar_pass c3_low_qnear_control c3_low_qnear_drop c3_low_qnear_new c3_low_qnear_pass c3_middle_qfar_control c3_middle_qfar_drop c3_middle_qfar_new c3_middle_qfar_pass c3_middle_qnear_control c3_middle_qnear_drop c3_middle_qnear_new c3_middle_qnear_pass c3_pass c4_pass c4_qfar_flagged_control c4_qfar_flagged_new c4_qfar_missing_new c4_qfar_pass c4_qnear_flagged_control c4_qnear_flagged_new c4_qnear_missing_new c4_qnear_pass result",TRUE
+"gate.csv","SD 2 c1_low_communities","10","10",TRUE
+"gate.csv","SD 2 c1_low_improved","10","10",TRUE
+"gate.csv","SD 2 c1_low_needed","7","7",TRUE
+"gate.csv","SD 2 c1_low_mean_new","13.208002826988071","13.2080028269881",TRUE
+"gate.csv","SD 2 c1_low_mean_control","14.879639389317424","14.879639389317401",TRUE
+"gate.csv","SD 2 c1_low_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_low_qnear_new","13.158509617844716","13.1585096178447",TRUE
+"gate.csv","SD 2 c2_low_qnear_control","14.4155385997705","14.4155385997705",TRUE
+"gate.csv","SD 2 c2_low_qnear_diff","-1.2570289819257834","-1.2570289819257801",TRUE
+"gate.csv","SD 2 c2_low_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_middle_qnear_new","3.8348996609348909","3.83489966093489",TRUE
+"gate.csv","SD 2 c2_middle_qnear_control","2.9935728482955364","2.9935728482955399",TRUE
+"gate.csv","SD 2 c2_middle_qnear_diff","0.84132681263935449","0.84132681263935405",TRUE
+"gate.csv","SD 2 c2_middle_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_high_qnear_new","13.466121735385327","13.4661217353853",TRUE
+"gate.csv","SD 2 c2_high_qnear_control","14.779154315456223","14.7791543154562",TRUE
+"gate.csv","SD 2 c2_high_qnear_diff","-1.313032580070896","-1.3130325800709",TRUE
+"gate.csv","SD 2 c2_high_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_mae_qnear_new","14.962499986799953","14.962499986799999",TRUE
+"gate.csv","SD 2 c2_mae_qnear_control","15.195636838344766","15.1956368383448",TRUE
+"gate.csv","SD 2 c2_mae_qnear_diff","-0.23313685154481334","-0.23313685154481301",TRUE
+"gate.csv","SD 2 c2_mae_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_low_qfar_new","13.257496036131426","13.2574960361314",TRUE
+"gate.csv","SD 2 c2_low_qfar_control","15.343740178864348","15.3437401788643",TRUE
+"gate.csv","SD 2 c2_low_qfar_diff","-2.0862441427329212","-2.0862441427329199",TRUE
+"gate.csv","SD 2 c2_low_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_middle_qfar_new","2.3247337545549964","2.324733754555",TRUE
+"gate.csv","SD 2 c2_middle_qfar_control","1.788060912735727","1.7880609127357301",TRUE
+"gate.csv","SD 2 c2_middle_qfar_diff","0.53667284181926944","0.536672841819269",TRUE
+"gate.csv","SD 2 c2_middle_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_high_qfar_new","18.210875592311641","18.210875592311599",TRUE
+"gate.csv","SD 2 c2_high_qfar_control","18.818335994073756","18.818335994073799",TRUE
+"gate.csv","SD 2 c2_high_qfar_diff","-0.6074604017621148","-0.60746040176211502",TRUE
+"gate.csv","SD 2 c2_high_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_mae_qfar_new","16.958280543717549","16.9582805437175",TRUE
+"gate.csv","SD 2 c2_mae_qfar_control","16.969678846662717","16.969678846662699",TRUE
+"gate.csv","SD 2 c2_mae_qfar_diff","-0.011398302945167416","-0.0113983029451674",TRUE
+"gate.csv","SD 2 c2_mae_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_low_qnear_new","0.7973837644190116","0.79738376441901204",TRUE
+"gate.csv","SD 2 c3_low_qnear_control","0.72453110989483527","0.72453110989483505",TRUE
+"gate.csv","SD 2 c3_low_qnear_drop","-0.07285265452417633","-0.072852654524176302",TRUE
+"gate.csv","SD 2 c3_low_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_middle_qnear_new","0.90124703478767265","0.90124703478767298",TRUE
+"gate.csv","SD 2 c3_middle_qnear_control","0.90409910351226597","0.90409910351226597",TRUE
+"gate.csv","SD 2 c3_middle_qnear_drop","0.0028520687245933152","0.0028520687245933199",TRUE
+"gate.csv","SD 2 c3_middle_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_high_qnear_new","0.82150472570521349","0.82150472570521305",TRUE
+"gate.csv","SD 2 c3_high_qnear_control","0.7282722378255837","0.72827223782558403",TRUE
+"gate.csv","SD 2 c3_high_qnear_drop","-0.093232487879629788","-0.093232487879629802",TRUE
+"gate.csv","SD 2 c3_high_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_low_qfar_new","0.85833767525827565","0.85833767525827598",TRUE
+"gate.csv","SD 2 c3_low_qfar_control","0.78768261803942252","0.78768261803942297",TRUE
+"gate.csv","SD 2 c3_low_qfar_drop","-0.070655057218853123","-0.070655057218853096",TRUE
+"gate.csv","SD 2 c3_low_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_middle_qfar_new","0.92689215493642907","0.92689215493642896",TRUE
+"gate.csv","SD 2 c3_middle_qfar_control","0.93413475220871189","0.934134752208712",TRUE
+"gate.csv","SD 2 c3_middle_qfar_drop","0.0072425972722828247","0.0072425972722828203",TRUE
+"gate.csv","SD 2 c3_middle_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_high_qfar_new","0.8450065796870514","0.84500657968705095",TRUE
+"gate.csv","SD 2 c3_high_qfar_control","0.71580356585082916","0.71580356585082905",TRUE
+"gate.csv","SD 2 c3_high_qfar_drop","-0.12920301383622224","-0.12920301383622201",TRUE
+"gate.csv","SD 2 c3_high_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c4_qnear_flagged_new","3","3",TRUE
+"gate.csv","SD 2 c4_qnear_flagged_control","1","1",TRUE
+"gate.csv","SD 2 c4_qnear_missing_new","0","0",TRUE
+"gate.csv","SD 2 c4_qnear_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 2 c4_qfar_flagged_new","4","4",TRUE
+"gate.csv","SD 2 c4_qfar_flagged_control","3","3",TRUE
+"gate.csv","SD 2 c4_qfar_missing_new","0","0",TRUE
+"gate.csv","SD 2 c4_qfar_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 2 c1_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c2_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c3_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 2 c4_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 2 result","FAIL","FAIL",TRUE
+"schedule-matched.csv","row set","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear",TRUE
+"schedule-matched.csv","c1 low pooled communities","10","10",TRUE
+"schedule-matched.csv","c1 low pooled needed","7","7",TRUE
+"schedule-matched.csv","c1 low pooled improved","10","10",TRUE
+"schedule-matched.csv","c1 low pooled value_new","13.144918240593071","13.1449182405931",TRUE
+"schedule-matched.csv","c1 low pooled value_control","14.879639389317424","14.879639389317401",TRUE
+"schedule-matched.csv","c1 low pooled statistic","-1.7347211487243523","-1.7347211487243499",TRUE
+"schedule-matched.csv","c1 low pooled pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c1 low pooled tolerance_decisive","NA","NA",TRUE
+"schedule-matched.csv","c2 low qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 low qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 low qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 low qnear value_new","13.130150133719194","13.1301501337192",TRUE
+"schedule-matched.csv","c2 low qnear value_control","14.4155385997705","14.4155385997705",TRUE
+"schedule-matched.csv","c2 low qnear statistic","-1.2853884660513053","-1.28538846605131",TRUE
+"schedule-matched.csv","c2 low qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 middle qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qnear value_new","3.8896990553477986","3.8896990553477999",TRUE
+"schedule-matched.csv","c2 middle qnear value_control","2.9935728482955364","2.9935728482955399",TRUE
+"schedule-matched.csv","c2 middle qnear statistic","0.8961262070522622","0.89612620705226198",TRUE
+"schedule-matched.csv","c2 middle qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 high qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 high qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 high qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 high qnear value_new","13.503934935167996","13.503934935167999",TRUE
+"schedule-matched.csv","c2 high qnear value_control","14.779154315456223","14.7791543154562",TRUE
+"schedule-matched.csv","c2 high qnear statistic","-1.2752193802882275","-1.2752193802882299",TRUE
+"schedule-matched.csv","c2 high qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 mae qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 mae qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qnear value_new","14.999653375858923","14.9996533758589",TRUE
+"schedule-matched.csv","c2 mae qnear value_control","15.195636838344766","15.1956368383448",TRUE
+"schedule-matched.csv","c2 mae qnear statistic","-0.19598346248584342","-0.195983462485843",TRUE
+"schedule-matched.csv","c2 mae qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 mae qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 low qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 low qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 low qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 low qfar value_new","13.159686347466948","13.1596863474669",TRUE
+"schedule-matched.csv","c2 low qfar value_control","15.343740178864348","15.3437401788643",TRUE
+"schedule-matched.csv","c2 low qfar statistic","-2.1840538313973994","-2.1840538313973998",TRUE
+"schedule-matched.csv","c2 low qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 middle qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qfar value_new","2.492650922565411","2.4926509225654101",TRUE
+"schedule-matched.csv","c2 middle qfar value_control","1.788060912735727","1.7880609127357301",TRUE
+"schedule-matched.csv","c2 middle qfar statistic","0.70459000982968401","0.70459000982968401",TRUE
+"schedule-matched.csv","c2 middle qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 high qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 high qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 high qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 high qfar value_new","18.268088293951745","18.268088293951699",TRUE
+"schedule-matched.csv","c2 high qfar value_control","18.818335994073756","18.818335994073799",TRUE
+"schedule-matched.csv","c2 high qfar statistic","-0.55024770012201074","-0.55024770012201096",TRUE
+"schedule-matched.csv","c2 high qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 mae qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 mae qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qfar value_new","16.974474059055709","16.974474059055702",TRUE
+"schedule-matched.csv","c2 mae qfar value_control","16.969678846662717","16.969678846662699",TRUE
+"schedule-matched.csv","c2 mae qfar statistic","0.0047952123929917434","0.0047952123929917399",TRUE
+"schedule-matched.csv","c2 mae qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 mae qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 low qnear communities","10","10",TRUE
+"schedule-matched.csv","c3 low qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c3 low qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c3 low qnear value_new","0.7948499285239996","0.79484992852400005",TRUE
+"schedule-matched.csv","c3 low qnear value_control","0.72453110989483527","0.72453110989483505",TRUE
+"schedule-matched.csv","c3 low qnear statistic","-0.070318818629164337","-0.070318818629164295",TRUE
+"schedule-matched.csv","c3 low qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 middle qnear communities","10","10",TRUE
+"schedule-matched.csv","c3 middle qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qnear value_new","0.9012023136216093","0.90120231362160896",TRUE
+"schedule-matched.csv","c3 middle qnear value_control","0.90409910351226597","0.90409910351226597",TRUE
+"schedule-matched.csv","c3 middle qnear statistic","0.0028967898906566703","0.0028967898906566698",TRUE
+"schedule-matched.csv","c3 middle qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 high qnear communities","10","10",TRUE
+"schedule-matched.csv","c3 high qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c3 high qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c3 high qnear value_new","0.81901678277906098","0.81901678277906098",TRUE
+"schedule-matched.csv","c3 high qnear value_control","0.7282722378255837","0.72827223782558403",TRUE
+"schedule-matched.csv","c3 high qnear statistic","-0.09074454495347728","-0.090744544953477294",TRUE
+"schedule-matched.csv","c3 high qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 low qfar communities","10","10",TRUE
+"schedule-matched.csv","c3 low qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c3 low qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c3 low qfar value_new","0.85859232435649069","0.85859232435649102",TRUE
+"schedule-matched.csv","c3 low qfar value_control","0.78768261803942252","0.78768261803942297",TRUE
+"schedule-matched.csv","c3 low qfar statistic","-0.070909706317068166","-0.070909706317068194",TRUE
+"schedule-matched.csv","c3 low qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 middle qfar communities","10","10",TRUE
+"schedule-matched.csv","c3 middle qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qfar value_new","0.92469606274033689","0.924696062740337",TRUE
+"schedule-matched.csv","c3 middle qfar value_control","0.93413475220871189","0.934134752208712",TRUE
+"schedule-matched.csv","c3 middle qfar statistic","0.0094386894683750056","0.0094386894683750003",TRUE
+"schedule-matched.csv","c3 middle qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 high qfar communities","10","10",TRUE
+"schedule-matched.csv","c3 high qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c3 high qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c3 high qfar value_new","0.84033301357814338","0.84033301357814305",TRUE
+"schedule-matched.csv","c3 high qfar value_control","0.71580356585082916","0.71580356585082905",TRUE
+"schedule-matched.csv","c3 high qfar statistic","-0.12452944772731422","-0.124529447727314",TRUE
+"schedule-matched.csv","c3 high qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","row set","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear; c4 flags qfar; c4 flags qnear","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear; c4 flags qfar; c4 flags qnear",TRUE
+"gate-detail.csv","c1 low pooled communities","10","10",TRUE
+"gate-detail.csv","c1 low pooled needed","7","7",TRUE
+"gate-detail.csv","c1 low pooled improved","10","10",TRUE
+"gate-detail.csv","c1 low pooled value_new","12.407929065215027","12.407929065215001",TRUE
+"gate-detail.csv","c1 low pooled value_control","14.879639389317424","14.879639389317401",TRUE
+"gate-detail.csv","c1 low pooled statistic","-2.4717103241023963","-2.4717103241023999",TRUE
+"gate-detail.csv","c1 low pooled missing_new","NA","NA",TRUE
+"gate-detail.csv","c1 low pooled pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c1 low pooled tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear communities","10","10",TRUE
+"gate-detail.csv","c2 low qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear value_new","12.568110062440175","12.5681100624402",TRUE
+"gate-detail.csv","c2 low qnear value_control","14.4155385997705","14.4155385997705",TRUE
+"gate-detail.csv","c2 low qnear statistic","-1.847428537330325","-1.8474285373303201",TRUE
+"gate-detail.csv","c2 low qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle qnear communities","10","10",TRUE
+"gate-detail.csv","c2 middle qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 middle qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 middle qnear value_new","4.4695939281118671","4.4695939281118697",TRUE
+"gate-detail.csv","c2 middle qnear value_control","2.9935728482955364","2.9935728482955399",TRUE
+"gate-detail.csv","c2 middle qnear statistic","1.4760210798163307","1.47602107981633",TRUE
+"gate-detail.csv","c2 middle qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 middle qnear pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 high qnear communities","10","10",TRUE
+"gate-detail.csv","c2 high qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 high qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 high qnear value_new","13.368589900937923","13.3685899009379",TRUE
+"gate-detail.csv","c2 high qnear value_control","14.779154315456223","14.7791543154562",TRUE
+"gate-detail.csv","c2 high qnear statistic","-1.4105644145182996","-1.4105644145183001",TRUE
+"gate-detail.csv","c2 high qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 high qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 mae qnear communities","10","10",TRUE
+"gate-detail.csv","c2 mae qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 mae qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 mae qnear value_new","15.120008481417818","15.1200084814178",TRUE
+"gate-detail.csv","c2 mae qnear value_control","15.195636838344766","15.1956368383448",TRUE
+"gate-detail.csv","c2 mae qnear statistic","-0.07562835692694847","-0.075628356926948498",TRUE
+"gate-detail.csv","c2 mae qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 mae qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 mae qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 low qfar communities","10","10",TRUE
+"gate-detail.csv","c2 low qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 low qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 low qfar value_new","12.24774806798988","12.2477480679899",TRUE
+"gate-detail.csv","c2 low qfar value_control","15.343740178864348","15.3437401788643",TRUE
+"gate-detail.csv","c2 low qfar statistic","-3.0959921108744677","-3.0959921108744699",TRUE
+"gate-detail.csv","c2 low qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 low qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle qfar communities","10","10",TRUE
+"gate-detail.csv","c2 middle qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 middle qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 middle qfar value_new","3.0161302094230642","3.0161302094230602",TRUE
+"gate-detail.csv","c2 middle qfar value_control","1.788060912735727","1.7880609127357301",TRUE
+"gate-detail.csv","c2 middle qfar statistic","1.2280692966873372","1.2280692966873401",TRUE
+"gate-detail.csv","c2 middle qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 middle qfar pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 high qfar communities","10","10",TRUE
+"gate-detail.csv","c2 high qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 high qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 high qfar value_new","18.192414196132429","18.1924141961324",TRUE
+"gate-detail.csv","c2 high qfar value_control","18.818335994073756","18.818335994073799",TRUE
+"gate-detail.csv","c2 high qfar statistic","-0.62592179794132718","-0.62592179794132696",TRUE
+"gate-detail.csv","c2 high qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 high qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 mae qfar communities","10","10",TRUE
+"gate-detail.csv","c2 mae qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 mae qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 mae qfar value_new","17.448904386759985","17.448904386759999",TRUE
+"gate-detail.csv","c2 mae qfar value_control","16.969678846662717","16.969678846662699",TRUE
+"gate-detail.csv","c2 mae qfar statistic","0.47922554009726781","0.47922554009726798",TRUE
+"gate-detail.csv","c2 mae qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 mae qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 mae qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 low qnear communities","10","10",TRUE
+"gate-detail.csv","c3 low qnear needed","NA","NA",TRUE
+"gate-detail.csv","c3 low qnear improved","NA","NA",TRUE
+"gate-detail.csv","c3 low qnear value_new","0.80800268978295131","0.80800268978295098",TRUE
+"gate-detail.csv","c3 low qnear value_control","0.72453110989483527","0.72453110989483505",TRUE
+"gate-detail.csv","c3 low qnear statistic","-0.083471579888116043","-0.083471579888116001",TRUE
+"gate-detail.csv","c3 low qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 low qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 middle qnear communities","10","10",TRUE
+"gate-detail.csv","c3 middle qnear needed","NA","NA",TRUE
+"gate-detail.csv","c3 middle qnear improved","NA","NA",TRUE
+"gate-detail.csv","c3 middle qnear value_new","0.89214906872688104","0.89214906872688104",TRUE
+"gate-detail.csv","c3 middle qnear value_control","0.90409910351226597","0.90409910351226597",TRUE
+"gate-detail.csv","c3 middle qnear statistic","0.011950034785384922","0.011950034785384899",TRUE
+"gate-detail.csv","c3 middle qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 middle qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 high qnear communities","10","10",TRUE
+"gate-detail.csv","c3 high qnear needed","NA","NA",TRUE
+"gate-detail.csv","c3 high qnear improved","NA","NA",TRUE
+"gate-detail.csv","c3 high qnear value_new","0.84720843558992442","0.84720843558992398",TRUE
+"gate-detail.csv","c3 high qnear value_control","0.7282722378255837","0.72827223782558403",TRUE
+"gate-detail.csv","c3 high qnear statistic","-0.11893619776434072","-0.118936197764341",TRUE
+"gate-detail.csv","c3 high qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 high qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 low qfar communities","10","10",TRUE
+"gate-detail.csv","c3 low qfar needed","NA","NA",TRUE
+"gate-detail.csv","c3 low qfar improved","NA","NA",TRUE
+"gate-detail.csv","c3 low qfar value_new","0.87876279104428634","0.87876279104428601",TRUE
+"gate-detail.csv","c3 low qfar value_control","0.78768261803942252","0.78768261803942297",TRUE
+"gate-detail.csv","c3 low qfar statistic","-0.091080173004863818","-0.091080173004863804",TRUE
+"gate-detail.csv","c3 low qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 low qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 middle qfar communities","10","10",TRUE
+"gate-detail.csv","c3 middle qfar needed","NA","NA",TRUE
+"gate-detail.csv","c3 middle qfar improved","NA","NA",TRUE
+"gate-detail.csv","c3 middle qfar value_new","0.9174865885768847","0.91748658857688503",TRUE
+"gate-detail.csv","c3 middle qfar value_control","0.93413475220871189","0.934134752208712",TRUE
+"gate-detail.csv","c3 middle qfar statistic","0.016648163631827195","0.016648163631827199",TRUE
+"gate-detail.csv","c3 middle qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 middle qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 high qfar communities","10","10",TRUE
+"gate-detail.csv","c3 high qfar needed","NA","NA",TRUE
+"gate-detail.csv","c3 high qfar improved","NA","NA",TRUE
+"gate-detail.csv","c3 high qfar value_new","0.87364241367371942","0.87364241367371898",TRUE
+"gate-detail.csv","c3 high qfar value_control","0.71580356585082916","0.71580356585082905",TRUE
+"gate-detail.csv","c3 high qfar statistic","-0.15783884782289026","-0.15783884782289001",TRUE
+"gate-detail.csv","c3 high qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 high qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags qnear communities","NA","NA",TRUE
+"gate-detail.csv","c4 flags qnear needed","NA","NA",TRUE
+"gate-detail.csv","c4 flags qnear improved","NA","NA",TRUE
+"gate-detail.csv","c4 flags qnear value_new","7","7",TRUE
+"gate-detail.csv","c4 flags qnear value_control","1","1",TRUE
+"gate-detail.csv","c4 flags qnear statistic","6","6",TRUE
+"gate-detail.csv","c4 flags qnear missing_new","0","0",TRUE
+"gate-detail.csv","c4 flags qnear pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags qnear tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar communities","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar needed","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar improved","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar value_new","9","9",TRUE
+"gate-detail.csv","c4 flags qfar value_control","3","3",TRUE
+"gate-detail.csv","c4 flags qfar statistic","6","6",TRUE
+"gate-detail.csv","c4 flags qfar missing_new","0","0",TRUE
+"gate-detail.csv","c4 flags qfar pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags qfar tolerance_decisive","NA","NA",TRUE
+"gate.csv","SD 3 columns","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c2_high_qfar_control c2_high_qfar_diff c2_high_qfar_new c2_high_qfar_pass c2_high_qnear_control c2_high_qnear_diff c2_high_qnear_new c2_high_qnear_pass c2_low_qfar_control c2_low_qfar_diff c2_low_qfar_new c2_low_qfar_pass c2_low_qnear_control c2_low_qnear_diff c2_low_qnear_new c2_low_qnear_pass c2_mae_qfar_control c2_mae_qfar_diff c2_mae_qfar_new c2_mae_qfar_pass c2_mae_qnear_control c2_mae_qnear_diff c2_mae_qnear_new c2_mae_qnear_pass c2_middle_qfar_control c2_middle_qfar_diff c2_middle_qfar_new c2_middle_qfar_pass c2_middle_qnear_control c2_middle_qnear_diff c2_middle_qnear_new c2_middle_qnear_pass c2_pass c3_high_qfar_control c3_high_qfar_drop c3_high_qfar_new c3_high_qfar_pass c3_high_qnear_control c3_high_qnear_drop c3_high_qnear_new c3_high_qnear_pass c3_low_qfar_control c3_low_qfar_drop c3_low_qfar_new c3_low_qfar_pass c3_low_qnear_control c3_low_qnear_drop c3_low_qnear_new c3_low_qnear_pass c3_middle_qfar_control c3_middle_qfar_drop c3_middle_qfar_new c3_middle_qfar_pass c3_middle_qnear_control c3_middle_qnear_drop c3_middle_qnear_new c3_middle_qnear_pass c3_pass c4_pass c4_qfar_flagged_control c4_qfar_flagged_new c4_qfar_missing_new c4_qfar_pass c4_qnear_flagged_control c4_qnear_flagged_new c4_qnear_missing_new c4_qnear_pass result","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c2_high_qfar_control c2_high_qfar_diff c2_high_qfar_new c2_high_qfar_pass c2_high_qnear_control c2_high_qnear_diff c2_high_qnear_new c2_high_qnear_pass c2_low_qfar_control c2_low_qfar_diff c2_low_qfar_new c2_low_qfar_pass c2_low_qnear_control c2_low_qnear_diff c2_low_qnear_new c2_low_qnear_pass c2_mae_qfar_control c2_mae_qfar_diff c2_mae_qfar_new c2_mae_qfar_pass c2_mae_qnear_control c2_mae_qnear_diff c2_mae_qnear_new c2_mae_qnear_pass c2_middle_qfar_control c2_middle_qfar_diff c2_middle_qfar_new c2_middle_qfar_pass c2_middle_qnear_control c2_middle_qnear_diff c2_middle_qnear_new c2_middle_qnear_pass c2_pass c3_high_qfar_control c3_high_qfar_drop c3_high_qfar_new c3_high_qfar_pass c3_high_qnear_control c3_high_qnear_drop c3_high_qnear_new c3_high_qnear_pass c3_low_qfar_control c3_low_qfar_drop c3_low_qfar_new c3_low_qfar_pass c3_low_qnear_control c3_low_qnear_drop c3_low_qnear_new c3_low_qnear_pass c3_middle_qfar_control c3_middle_qfar_drop c3_middle_qfar_new c3_middle_qfar_pass c3_middle_qnear_control c3_middle_qnear_drop c3_middle_qnear_new c3_middle_qnear_pass c3_pass c4_pass c4_qfar_flagged_control c4_qfar_flagged_new c4_qfar_missing_new c4_qfar_pass c4_qnear_flagged_control c4_qnear_flagged_new c4_qnear_missing_new c4_qnear_pass result",TRUE
+"gate.csv","SD 3 c1_low_communities","10","10",TRUE
+"gate.csv","SD 3 c1_low_improved","10","10",TRUE
+"gate.csv","SD 3 c1_low_needed","7","7",TRUE
+"gate.csv","SD 3 c1_low_mean_new","12.407929065215027","12.407929065215001",TRUE
+"gate.csv","SD 3 c1_low_mean_control","14.879639389317424","14.879639389317401",TRUE
+"gate.csv","SD 3 c1_low_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_low_qnear_new","12.568110062440175","12.5681100624402",TRUE
+"gate.csv","SD 3 c2_low_qnear_control","14.4155385997705","14.4155385997705",TRUE
+"gate.csv","SD 3 c2_low_qnear_diff","-1.847428537330325","-1.8474285373303201",TRUE
+"gate.csv","SD 3 c2_low_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_middle_qnear_new","4.4695939281118671","4.4695939281118697",TRUE
+"gate.csv","SD 3 c2_middle_qnear_control","2.9935728482955364","2.9935728482955399",TRUE
+"gate.csv","SD 3 c2_middle_qnear_diff","1.4760210798163307","1.47602107981633",TRUE
+"gate.csv","SD 3 c2_middle_qnear_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 3 c2_high_qnear_new","13.368589900937923","13.3685899009379",TRUE
+"gate.csv","SD 3 c2_high_qnear_control","14.779154315456223","14.7791543154562",TRUE
+"gate.csv","SD 3 c2_high_qnear_diff","-1.4105644145182996","-1.4105644145183001",TRUE
+"gate.csv","SD 3 c2_high_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_mae_qnear_new","15.120008481417818","15.1200084814178",TRUE
+"gate.csv","SD 3 c2_mae_qnear_control","15.195636838344766","15.1956368383448",TRUE
+"gate.csv","SD 3 c2_mae_qnear_diff","-0.07562835692694847","-0.075628356926948498",TRUE
+"gate.csv","SD 3 c2_mae_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_low_qfar_new","12.24774806798988","12.2477480679899",TRUE
+"gate.csv","SD 3 c2_low_qfar_control","15.343740178864348","15.3437401788643",TRUE
+"gate.csv","SD 3 c2_low_qfar_diff","-3.0959921108744677","-3.0959921108744699",TRUE
+"gate.csv","SD 3 c2_low_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_middle_qfar_new","3.0161302094230642","3.0161302094230602",TRUE
+"gate.csv","SD 3 c2_middle_qfar_control","1.788060912735727","1.7880609127357301",TRUE
+"gate.csv","SD 3 c2_middle_qfar_diff","1.2280692966873372","1.2280692966873401",TRUE
+"gate.csv","SD 3 c2_middle_qfar_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 3 c2_high_qfar_new","18.192414196132429","18.1924141961324",TRUE
+"gate.csv","SD 3 c2_high_qfar_control","18.818335994073756","18.818335994073799",TRUE
+"gate.csv","SD 3 c2_high_qfar_diff","-0.62592179794132718","-0.62592179794132696",TRUE
+"gate.csv","SD 3 c2_high_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_mae_qfar_new","17.448904386759985","17.448904386759999",TRUE
+"gate.csv","SD 3 c2_mae_qfar_control","16.969678846662717","16.969678846662699",TRUE
+"gate.csv","SD 3 c2_mae_qfar_diff","0.47922554009726781","0.47922554009726798",TRUE
+"gate.csv","SD 3 c2_mae_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c3_low_qnear_new","0.80800268978295131","0.80800268978295098",TRUE
+"gate.csv","SD 3 c3_low_qnear_control","0.72453110989483527","0.72453110989483505",TRUE
+"gate.csv","SD 3 c3_low_qnear_drop","-0.083471579888116043","-0.083471579888116001",TRUE
+"gate.csv","SD 3 c3_low_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c3_middle_qnear_new","0.89214906872688104","0.89214906872688104",TRUE
+"gate.csv","SD 3 c3_middle_qnear_control","0.90409910351226597","0.90409910351226597",TRUE
+"gate.csv","SD 3 c3_middle_qnear_drop","0.011950034785384922","0.011950034785384899",TRUE
+"gate.csv","SD 3 c3_middle_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c3_high_qnear_new","0.84720843558992442","0.84720843558992398",TRUE
+"gate.csv","SD 3 c3_high_qnear_control","0.7282722378255837","0.72827223782558403",TRUE
+"gate.csv","SD 3 c3_high_qnear_drop","-0.11893619776434072","-0.118936197764341",TRUE
+"gate.csv","SD 3 c3_high_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c3_low_qfar_new","0.87876279104428634","0.87876279104428601",TRUE
+"gate.csv","SD 3 c3_low_qfar_control","0.78768261803942252","0.78768261803942297",TRUE
+"gate.csv","SD 3 c3_low_qfar_drop","-0.091080173004863818","-0.091080173004863804",TRUE
+"gate.csv","SD 3 c3_low_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c3_middle_qfar_new","0.9174865885768847","0.91748658857688503",TRUE
+"gate.csv","SD 3 c3_middle_qfar_control","0.93413475220871189","0.934134752208712",TRUE
+"gate.csv","SD 3 c3_middle_qfar_drop","0.016648163631827195","0.016648163631827199",TRUE
+"gate.csv","SD 3 c3_middle_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c3_high_qfar_new","0.87364241367371942","0.87364241367371898",TRUE
+"gate.csv","SD 3 c3_high_qfar_control","0.71580356585082916","0.71580356585082905",TRUE
+"gate.csv","SD 3 c3_high_qfar_drop","-0.15783884782289026","-0.15783884782289001",TRUE
+"gate.csv","SD 3 c3_high_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c4_qnear_flagged_new","7","7",TRUE
+"gate.csv","SD 3 c4_qnear_flagged_control","1","1",TRUE
+"gate.csv","SD 3 c4_qnear_missing_new","0","0",TRUE
+"gate.csv","SD 3 c4_qnear_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 3 c4_qfar_flagged_new","9","9",TRUE
+"gate.csv","SD 3 c4_qfar_flagged_control","3","3",TRUE
+"gate.csv","SD 3 c4_qfar_missing_new","0","0",TRUE
+"gate.csv","SD 3 c4_qfar_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 3 c1_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c2_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 3 c3_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 3 c4_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 3 result","FAIL","FAIL",TRUE
+"schedule-matched.csv","row set","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear",TRUE
+"schedule-matched.csv","c1 low pooled communities","10","10",TRUE
+"schedule-matched.csv","c1 low pooled needed","7","7",TRUE
+"schedule-matched.csv","c1 low pooled improved","10","10",TRUE
+"schedule-matched.csv","c1 low pooled value_new","12.392899011490725","12.3928990114907",TRUE
+"schedule-matched.csv","c1 low pooled value_control","14.879639389317424","14.879639389317401",TRUE
+"schedule-matched.csv","c1 low pooled statistic","-2.486740377826699","-2.4867403778266999",TRUE
+"schedule-matched.csv","c1 low pooled pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c1 low pooled tolerance_decisive","NA","NA",TRUE
+"schedule-matched.csv","c2 low qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 low qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 low qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 low qnear value_new","12.733867840871014","12.733867840871",TRUE
+"schedule-matched.csv","c2 low qnear value_control","14.4155385997705","14.4155385997705",TRUE
+"schedule-matched.csv","c2 low qnear statistic","-1.6816707588994859","-1.6816707588994899",TRUE
+"schedule-matched.csv","c2 low qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 middle qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qnear value_new","4.799429295134189","4.7994292951341899",TRUE
+"schedule-matched.csv","c2 middle qnear value_control","2.9935728482955364","2.9935728482955399",TRUE
+"schedule-matched.csv","c2 middle qnear statistic","1.8058564468386527","1.80585644683865",TRUE
+"schedule-matched.csv","c2 middle qnear pass","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 high qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 high qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 high qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 high qnear value_new","13.407811173762124","13.4078111737621",TRUE
+"schedule-matched.csv","c2 high qnear value_control","14.779154315456223","14.7791543154562",TRUE
+"schedule-matched.csv","c2 high qnear statistic","-1.3713431416940995","-1.3713431416941",TRUE
+"schedule-matched.csv","c2 high qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 mae qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 mae qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qnear value_new","15.212478645945156","15.2124786459452",TRUE
+"schedule-matched.csv","c2 mae qnear value_control","15.195636838344766","15.1956368383448",TRUE
+"schedule-matched.csv","c2 mae qnear statistic","0.016841807600389558","0.016841807600389599",TRUE
+"schedule-matched.csv","c2 mae qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 mae qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 low qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 low qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 low qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 low qfar value_new","12.051930182110436","12.0519301821104",TRUE
+"schedule-matched.csv","c2 low qfar value_control","15.343740178864348","15.3437401788643",TRUE
+"schedule-matched.csv","c2 low qfar statistic","-3.2918099967539121","-3.2918099967539098",TRUE
+"schedule-matched.csv","c2 low qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 middle qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qfar value_new","2.9587111968666409","2.95871119686664",TRUE
+"schedule-matched.csv","c2 middle qfar value_control","1.788060912735727","1.7880609127357301",TRUE
+"schedule-matched.csv","c2 middle qfar statistic","1.1706502841309139","1.1706502841309101",TRUE
+"schedule-matched.csv","c2 middle qfar pass","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 high qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 high qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 high qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 high qfar value_new","18.084937894054725","18.084937894054701",TRUE
+"schedule-matched.csv","c2 high qfar value_control","18.818335994073756","18.818335994073799",TRUE
+"schedule-matched.csv","c2 high qfar statistic","-0.73339810001903061","-0.73339810001903105",TRUE
+"schedule-matched.csv","c2 high qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 mae qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 mae qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qfar value_new","17.357832339171594","17.357832339171601",TRUE
+"schedule-matched.csv","c2 mae qfar value_control","16.969678846662717","16.969678846662699",TRUE
+"schedule-matched.csv","c2 mae qfar statistic","0.38815349250887721","0.38815349250887698",TRUE
+"schedule-matched.csv","c2 mae qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 mae qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 low qnear communities","10","10",TRUE
+"schedule-matched.csv","c3 low qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c3 low qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c3 low qnear value_new","0.80268511796345077","0.80268511796345099",TRUE
+"schedule-matched.csv","c3 low qnear value_control","0.72453110989483527","0.72453110989483505",TRUE
+"schedule-matched.csv","c3 low qnear statistic","-0.078154008068615499","-0.078154008068615499",TRUE
+"schedule-matched.csv","c3 low qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 middle qnear communities","10","10",TRUE
+"schedule-matched.csv","c3 middle qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qnear value_new","0.88608143140940099","0.88608143140940099",TRUE
+"schedule-matched.csv","c3 middle qnear value_control","0.90409910351226597","0.90409910351226597",TRUE
+"schedule-matched.csv","c3 middle qnear statistic","0.018017672102864979","0.018017672102865",TRUE
+"schedule-matched.csv","c3 middle qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 high qnear communities","10","10",TRUE
+"schedule-matched.csv","c3 high qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c3 high qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c3 high qnear value_new","0.83720109726675906","0.83720109726675895",TRUE
+"schedule-matched.csv","c3 high qnear value_control","0.7282722378255837","0.72827223782558403",TRUE
+"schedule-matched.csv","c3 high qnear statistic","-0.10892885944117536","-0.108928859441175",TRUE
+"schedule-matched.csv","c3 high qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 low qfar communities","10","10",TRUE
+"schedule-matched.csv","c3 low qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c3 low qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c3 low qfar value_new","0.87882820549153429","0.87882820549153395",TRUE
+"schedule-matched.csv","c3 low qfar value_control","0.78768261803942252","0.78768261803942297",TRUE
+"schedule-matched.csv","c3 low qfar statistic","-0.091145587452111765","-0.091145587452111806",TRUE
+"schedule-matched.csv","c3 low qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 middle qfar communities","10","10",TRUE
+"schedule-matched.csv","c3 middle qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qfar value_new","0.91409241518271134","0.914092415182711",TRUE
+"schedule-matched.csv","c3 middle qfar value_control","0.93413475220871189","0.934134752208712",TRUE
+"schedule-matched.csv","c3 middle qfar statistic","0.020042337026000556","0.020042337026000601",TRUE
+"schedule-matched.csv","c3 middle qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 high qfar communities","10","10",TRUE
+"schedule-matched.csv","c3 high qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c3 high qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c3 high qfar value_new","0.87316848002443037","0.87316848002443004",TRUE
+"schedule-matched.csv","c3 high qfar value_control","0.71580356585082916","0.71580356585082905",TRUE
+"schedule-matched.csv","c3 high qfar statistic","-0.15736491417360121","-0.15736491417360099",TRUE
+"schedule-matched.csv","c3 high qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","row set","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear; c4 flags qfar; c4 flags qnear","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear; c4 flags qfar; c4 flags qnear",TRUE
+"gate-detail.csv","c1 low pooled communities","10","10",TRUE
+"gate-detail.csv","c1 low pooled needed","7","7",TRUE
+"gate-detail.csv","c1 low pooled improved","10","10",TRUE
+"gate-detail.csv","c1 low pooled value_new","12.113530585677333","12.113530585677299",TRUE
+"gate-detail.csv","c1 low pooled value_control","14.879639389317424","14.879639389317401",TRUE
+"gate-detail.csv","c1 low pooled statistic","-2.7661088036400905","-2.76610880364009",TRUE
+"gate-detail.csv","c1 low pooled missing_new","NA","NA",TRUE
+"gate-detail.csv","c1 low pooled pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c1 low pooled tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear communities","10","10",TRUE
+"gate-detail.csv","c2 low qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear value_new","12.211624736824261","12.2116247368243",TRUE
+"gate-detail.csv","c2 low qnear value_control","14.4155385997705","14.4155385997705",TRUE
+"gate-detail.csv","c2 low qnear statistic","-2.2039138629462389","-2.2039138629462398",TRUE
+"gate-detail.csv","c2 low qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 low qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle qnear communities","10","10",TRUE
+"gate-detail.csv","c2 middle qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 middle qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 middle qnear value_new","4.7154389968448154","4.7154389968448198",TRUE
+"gate-detail.csv","c2 middle qnear value_control","2.9935728482955364","2.9935728482955399",TRUE
+"gate-detail.csv","c2 middle qnear statistic","1.721866148549279","1.7218661485492801",TRUE
+"gate-detail.csv","c2 middle qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 middle qnear pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 high qnear communities","10","10",TRUE
+"gate-detail.csv","c2 high qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 high qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 high qnear value_new","12.97735204519736","12.977352045197399",TRUE
+"gate-detail.csv","c2 high qnear value_control","14.779154315456223","14.7791543154562",TRUE
+"gate-detail.csv","c2 high qnear statistic","-1.8018022702588627","-1.8018022702588601",TRUE
+"gate-detail.csv","c2 high qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 high qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 mae qnear communities","10","10",TRUE
+"gate-detail.csv","c2 mae qnear needed","NA","NA",TRUE
+"gate-detail.csv","c2 mae qnear improved","NA","NA",TRUE
+"gate-detail.csv","c2 mae qnear value_new","15.2364573960873","15.2364573960873",TRUE
+"gate-detail.csv","c2 mae qnear value_control","15.195636838344766","15.1956368383448",TRUE
+"gate-detail.csv","c2 mae qnear statistic","0.040820557742533126","0.040820557742533098",TRUE
+"gate-detail.csv","c2 mae qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 mae qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 mae qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 low qfar communities","10","10",TRUE
+"gate-detail.csv","c2 low qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 low qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 low qfar value_new","12.015436434530406","12.0154364345304",TRUE
+"gate-detail.csv","c2 low qfar value_control","15.343740178864348","15.3437401788643",TRUE
+"gate-detail.csv","c2 low qfar statistic","-3.328303744333942","-3.3283037443339398",TRUE
+"gate-detail.csv","c2 low qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 low qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle qfar communities","10","10",TRUE
+"gate-detail.csv","c2 middle qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 middle qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 middle qfar value_new","3.2433973722399272","3.2433973722399299",TRUE
+"gate-detail.csv","c2 middle qfar value_control","1.788060912735727","1.7880609127357301",TRUE
+"gate-detail.csv","c2 middle qfar statistic","1.4553364595042002","1.4553364595042",TRUE
+"gate-detail.csv","c2 middle qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 middle qfar pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 high qfar communities","10","10",TRUE
+"gate-detail.csv","c2 high qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 high qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 high qfar value_new","16.715237445256658","16.715237445256701",TRUE
+"gate-detail.csv","c2 high qfar value_control","18.818335994073756","18.818335994073799",TRUE
+"gate-detail.csv","c2 high qfar statistic","-2.1030985488170977","-2.1030985488170999",TRUE
+"gate-detail.csv","c2 high qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 high qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c2 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 mae qfar communities","10","10",TRUE
+"gate-detail.csv","c2 mae qfar needed","NA","NA",TRUE
+"gate-detail.csv","c2 mae qfar improved","NA","NA",TRUE
+"gate-detail.csv","c2 mae qfar value_new","17.703940263003201","17.703940263003201",TRUE
+"gate-detail.csv","c2 mae qfar value_control","16.969678846662717","16.969678846662699",TRUE
+"gate-detail.csv","c2 mae qfar statistic","0.73426141634048392","0.73426141634048403",TRUE
+"gate-detail.csv","c2 mae qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c2 mae qfar pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c2 mae qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 low qnear communities","10","10",TRUE
+"gate-detail.csv","c3 low qnear needed","NA","NA",TRUE
+"gate-detail.csv","c3 low qnear improved","NA","NA",TRUE
+"gate-detail.csv","c3 low qnear value_new","0.80787185336829759","0.80787185336829803",TRUE
+"gate-detail.csv","c3 low qnear value_control","0.72453110989483527","0.72453110989483505",TRUE
+"gate-detail.csv","c3 low qnear statistic","-0.08334074347346232","-0.083340743473462306",TRUE
+"gate-detail.csv","c3 low qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 low qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 middle qnear communities","10","10",TRUE
+"gate-detail.csv","c3 middle qnear needed","NA","NA",TRUE
+"gate-detail.csv","c3 middle qnear improved","NA","NA",TRUE
+"gate-detail.csv","c3 middle qnear value_new","0.88157624091961317","0.88157624091961295",TRUE
+"gate-detail.csv","c3 middle qnear value_control","0.90409910351226597","0.90409910351226597",TRUE
+"gate-detail.csv","c3 middle qnear statistic","0.022522862592652793","0.022522862592652799",TRUE
+"gate-detail.csv","c3 middle qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 middle qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 high qnear communities","10","10",TRUE
+"gate-detail.csv","c3 high qnear needed","NA","NA",TRUE
+"gate-detail.csv","c3 high qnear improved","NA","NA",TRUE
+"gate-detail.csv","c3 high qnear value_new","0.85954893628795881","0.85954893628795903",TRUE
+"gate-detail.csv","c3 high qnear value_control","0.7282722378255837","0.72827223782558403",TRUE
+"gate-detail.csv","c3 high qnear statistic","-0.13127669846237511","-0.131276698462375",TRUE
+"gate-detail.csv","c3 high qnear missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 high qnear pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 low qfar communities","10","10",TRUE
+"gate-detail.csv","c3 low qfar needed","NA","NA",TRUE
+"gate-detail.csv","c3 low qfar improved","NA","NA",TRUE
+"gate-detail.csv","c3 low qfar value_new","0.88375162202278701","0.88375162202278701",TRUE
+"gate-detail.csv","c3 low qfar value_control","0.78768261803942252","0.78768261803942297",TRUE
+"gate-detail.csv","c3 low qfar statistic","-0.096069003983364487","-0.096069003983364501",TRUE
+"gate-detail.csv","c3 low qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 low qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 middle qfar communities","10","10",TRUE
+"gate-detail.csv","c3 middle qfar needed","NA","NA",TRUE
+"gate-detail.csv","c3 middle qfar improved","NA","NA",TRUE
+"gate-detail.csv","c3 middle qfar value_new","0.90528337971064143","0.90528337971064099",TRUE
+"gate-detail.csv","c3 middle qfar value_control","0.93413475220871189","0.934134752208712",TRUE
+"gate-detail.csv","c3 middle qfar statistic","0.02885137249807046","0.028851372498070502",TRUE
+"gate-detail.csv","c3 middle qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 middle qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c3 high qfar communities","10","10",TRUE
+"gate-detail.csv","c3 high qfar needed","NA","NA",TRUE
+"gate-detail.csv","c3 high qfar improved","NA","NA",TRUE
+"gate-detail.csv","c3 high qfar value_new","0.8961007916812247","0.89610079168122503",TRUE
+"gate-detail.csv","c3 high qfar value_control","0.71580356585082916","0.71580356585082905",TRUE
+"gate-detail.csv","c3 high qfar statistic","-0.18029722583039554","-0.18029722583039601",TRUE
+"gate-detail.csv","c3 high qfar missing_new","NA","NA",TRUE
+"gate-detail.csv","c3 high qfar pass","TRUE","TRUE",TRUE
+"gate-detail.csv","c3 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags qnear communities","NA","NA",TRUE
+"gate-detail.csv","c4 flags qnear needed","NA","NA",TRUE
+"gate-detail.csv","c4 flags qnear improved","NA","NA",TRUE
+"gate-detail.csv","c4 flags qnear value_new","9","9",TRUE
+"gate-detail.csv","c4 flags qnear value_control","1","1",TRUE
+"gate-detail.csv","c4 flags qnear statistic","8","8",TRUE
+"gate-detail.csv","c4 flags qnear missing_new","0","0",TRUE
+"gate-detail.csv","c4 flags qnear pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags qnear tolerance_decisive","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar communities","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar needed","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar improved","NA","NA",TRUE
+"gate-detail.csv","c4 flags qfar value_new","10","10",TRUE
+"gate-detail.csv","c4 flags qfar value_control","3","3",TRUE
+"gate-detail.csv","c4 flags qfar statistic","7","7",TRUE
+"gate-detail.csv","c4 flags qfar missing_new","0","0",TRUE
+"gate-detail.csv","c4 flags qfar pass","FALSE","FALSE",TRUE
+"gate-detail.csv","c4 flags qfar tolerance_decisive","NA","NA",TRUE
+"gate.csv","SD 5 columns","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c2_high_qfar_control c2_high_qfar_diff c2_high_qfar_new c2_high_qfar_pass c2_high_qnear_control c2_high_qnear_diff c2_high_qnear_new c2_high_qnear_pass c2_low_qfar_control c2_low_qfar_diff c2_low_qfar_new c2_low_qfar_pass c2_low_qnear_control c2_low_qnear_diff c2_low_qnear_new c2_low_qnear_pass c2_mae_qfar_control c2_mae_qfar_diff c2_mae_qfar_new c2_mae_qfar_pass c2_mae_qnear_control c2_mae_qnear_diff c2_mae_qnear_new c2_mae_qnear_pass c2_middle_qfar_control c2_middle_qfar_diff c2_middle_qfar_new c2_middle_qfar_pass c2_middle_qnear_control c2_middle_qnear_diff c2_middle_qnear_new c2_middle_qnear_pass c2_pass c3_high_qfar_control c3_high_qfar_drop c3_high_qfar_new c3_high_qfar_pass c3_high_qnear_control c3_high_qnear_drop c3_high_qnear_new c3_high_qnear_pass c3_low_qfar_control c3_low_qfar_drop c3_low_qfar_new c3_low_qfar_pass c3_low_qnear_control c3_low_qnear_drop c3_low_qnear_new c3_low_qnear_pass c3_middle_qfar_control c3_middle_qfar_drop c3_middle_qfar_new c3_middle_qfar_pass c3_middle_qnear_control c3_middle_qnear_drop c3_middle_qnear_new c3_middle_qnear_pass c3_pass c4_pass c4_qfar_flagged_control c4_qfar_flagged_new c4_qfar_missing_new c4_qfar_pass c4_qnear_flagged_control c4_qnear_flagged_new c4_qnear_missing_new c4_qnear_pass result","c1_low_communities c1_low_improved c1_low_mean_control c1_low_mean_new c1_low_needed c1_low_pass c1_pass c2_high_qfar_control c2_high_qfar_diff c2_high_qfar_new c2_high_qfar_pass c2_high_qnear_control c2_high_qnear_diff c2_high_qnear_new c2_high_qnear_pass c2_low_qfar_control c2_low_qfar_diff c2_low_qfar_new c2_low_qfar_pass c2_low_qnear_control c2_low_qnear_diff c2_low_qnear_new c2_low_qnear_pass c2_mae_qfar_control c2_mae_qfar_diff c2_mae_qfar_new c2_mae_qfar_pass c2_mae_qnear_control c2_mae_qnear_diff c2_mae_qnear_new c2_mae_qnear_pass c2_middle_qfar_control c2_middle_qfar_diff c2_middle_qfar_new c2_middle_qfar_pass c2_middle_qnear_control c2_middle_qnear_diff c2_middle_qnear_new c2_middle_qnear_pass c2_pass c3_high_qfar_control c3_high_qfar_drop c3_high_qfar_new c3_high_qfar_pass c3_high_qnear_control c3_high_qnear_drop c3_high_qnear_new c3_high_qnear_pass c3_low_qfar_control c3_low_qfar_drop c3_low_qfar_new c3_low_qfar_pass c3_low_qnear_control c3_low_qnear_drop c3_low_qnear_new c3_low_qnear_pass c3_middle_qfar_control c3_middle_qfar_drop c3_middle_qfar_new c3_middle_qfar_pass c3_middle_qnear_control c3_middle_qnear_drop c3_middle_qnear_new c3_middle_qnear_pass c3_pass c4_pass c4_qfar_flagged_control c4_qfar_flagged_new c4_qfar_missing_new c4_qfar_pass c4_qnear_flagged_control c4_qnear_flagged_new c4_qnear_missing_new c4_qnear_pass result",TRUE
+"gate.csv","SD 5 c1_low_communities","10","10",TRUE
+"gate.csv","SD 5 c1_low_improved","10","10",TRUE
+"gate.csv","SD 5 c1_low_needed","7","7",TRUE
+"gate.csv","SD 5 c1_low_mean_new","12.113530585677333","12.113530585677299",TRUE
+"gate.csv","SD 5 c1_low_mean_control","14.879639389317424","14.879639389317401",TRUE
+"gate.csv","SD 5 c1_low_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_low_qnear_new","12.211624736824261","12.2116247368243",TRUE
+"gate.csv","SD 5 c2_low_qnear_control","14.4155385997705","14.4155385997705",TRUE
+"gate.csv","SD 5 c2_low_qnear_diff","-2.2039138629462389","-2.2039138629462398",TRUE
+"gate.csv","SD 5 c2_low_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_middle_qnear_new","4.7154389968448154","4.7154389968448198",TRUE
+"gate.csv","SD 5 c2_middle_qnear_control","2.9935728482955364","2.9935728482955399",TRUE
+"gate.csv","SD 5 c2_middle_qnear_diff","1.721866148549279","1.7218661485492801",TRUE
+"gate.csv","SD 5 c2_middle_qnear_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 5 c2_high_qnear_new","12.97735204519736","12.977352045197399",TRUE
+"gate.csv","SD 5 c2_high_qnear_control","14.779154315456223","14.7791543154562",TRUE
+"gate.csv","SD 5 c2_high_qnear_diff","-1.8018022702588627","-1.8018022702588601",TRUE
+"gate.csv","SD 5 c2_high_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_mae_qnear_new","15.2364573960873","15.2364573960873",TRUE
+"gate.csv","SD 5 c2_mae_qnear_control","15.195636838344766","15.1956368383448",TRUE
+"gate.csv","SD 5 c2_mae_qnear_diff","0.040820557742533126","0.040820557742533098",TRUE
+"gate.csv","SD 5 c2_mae_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_low_qfar_new","12.015436434530406","12.0154364345304",TRUE
+"gate.csv","SD 5 c2_low_qfar_control","15.343740178864348","15.3437401788643",TRUE
+"gate.csv","SD 5 c2_low_qfar_diff","-3.328303744333942","-3.3283037443339398",TRUE
+"gate.csv","SD 5 c2_low_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_middle_qfar_new","3.2433973722399272","3.2433973722399299",TRUE
+"gate.csv","SD 5 c2_middle_qfar_control","1.788060912735727","1.7880609127357301",TRUE
+"gate.csv","SD 5 c2_middle_qfar_diff","1.4553364595042002","1.4553364595042",TRUE
+"gate.csv","SD 5 c2_middle_qfar_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 5 c2_high_qfar_new","16.715237445256658","16.715237445256701",TRUE
+"gate.csv","SD 5 c2_high_qfar_control","18.818335994073756","18.818335994073799",TRUE
+"gate.csv","SD 5 c2_high_qfar_diff","-2.1030985488170977","-2.1030985488170999",TRUE
+"gate.csv","SD 5 c2_high_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_mae_qfar_new","17.703940263003201","17.703940263003201",TRUE
+"gate.csv","SD 5 c2_mae_qfar_control","16.969678846662717","16.969678846662699",TRUE
+"gate.csv","SD 5 c2_mae_qfar_diff","0.73426141634048392","0.73426141634048403",TRUE
+"gate.csv","SD 5 c2_mae_qfar_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 5 c3_low_qnear_new","0.80787185336829759","0.80787185336829803",TRUE
+"gate.csv","SD 5 c3_low_qnear_control","0.72453110989483527","0.72453110989483505",TRUE
+"gate.csv","SD 5 c3_low_qnear_drop","-0.08334074347346232","-0.083340743473462306",TRUE
+"gate.csv","SD 5 c3_low_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c3_middle_qnear_new","0.88157624091961317","0.88157624091961295",TRUE
+"gate.csv","SD 5 c3_middle_qnear_control","0.90409910351226597","0.90409910351226597",TRUE
+"gate.csv","SD 5 c3_middle_qnear_drop","0.022522862592652793","0.022522862592652799",TRUE
+"gate.csv","SD 5 c3_middle_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c3_high_qnear_new","0.85954893628795881","0.85954893628795903",TRUE
+"gate.csv","SD 5 c3_high_qnear_control","0.7282722378255837","0.72827223782558403",TRUE
+"gate.csv","SD 5 c3_high_qnear_drop","-0.13127669846237511","-0.131276698462375",TRUE
+"gate.csv","SD 5 c3_high_qnear_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c3_low_qfar_new","0.88375162202278701","0.88375162202278701",TRUE
+"gate.csv","SD 5 c3_low_qfar_control","0.78768261803942252","0.78768261803942297",TRUE
+"gate.csv","SD 5 c3_low_qfar_drop","-0.096069003983364487","-0.096069003983364501",TRUE
+"gate.csv","SD 5 c3_low_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c3_middle_qfar_new","0.90528337971064143","0.90528337971064099",TRUE
+"gate.csv","SD 5 c3_middle_qfar_control","0.93413475220871189","0.934134752208712",TRUE
+"gate.csv","SD 5 c3_middle_qfar_drop","0.02885137249807046","0.028851372498070502",TRUE
+"gate.csv","SD 5 c3_middle_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c3_high_qfar_new","0.8961007916812247","0.89610079168122503",TRUE
+"gate.csv","SD 5 c3_high_qfar_control","0.71580356585082916","0.71580356585082905",TRUE
+"gate.csv","SD 5 c3_high_qfar_drop","-0.18029722583039554","-0.18029722583039601",TRUE
+"gate.csv","SD 5 c3_high_qfar_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c4_qnear_flagged_new","9","9",TRUE
+"gate.csv","SD 5 c4_qnear_flagged_control","1","1",TRUE
+"gate.csv","SD 5 c4_qnear_missing_new","0","0",TRUE
+"gate.csv","SD 5 c4_qnear_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 5 c4_qfar_flagged_new","10","10",TRUE
+"gate.csv","SD 5 c4_qfar_flagged_control","3","3",TRUE
+"gate.csv","SD 5 c4_qfar_missing_new","0","0",TRUE
+"gate.csv","SD 5 c4_qfar_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 5 c1_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c2_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 5 c3_pass","TRUE","TRUE",TRUE
+"gate.csv","SD 5 c4_pass","FALSE","FALSE",TRUE
+"gate.csv","SD 5 result","FAIL","FAIL",TRUE
+"schedule-matched.csv","row set","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear","c1 low pooled; c2 high qfar; c2 high qnear; c2 low qfar; c2 low qnear; c2 mae qfar; c2 mae qnear; c2 middle qfar; c2 middle qnear; c3 high qfar; c3 high qnear; c3 low qfar; c3 low qnear; c3 middle qfar; c3 middle qnear",TRUE
+"schedule-matched.csv","c1 low pooled communities","10","10",TRUE
+"schedule-matched.csv","c1 low pooled needed","7","7",TRUE
+"schedule-matched.csv","c1 low pooled improved","10","10",TRUE
+"schedule-matched.csv","c1 low pooled value_new","12.239279571891815","12.239279571891799",TRUE
+"schedule-matched.csv","c1 low pooled value_control","14.879639389317424","14.879639389317401",TRUE
+"schedule-matched.csv","c1 low pooled statistic","-2.6403598174256082","-2.64035981742561",TRUE
+"schedule-matched.csv","c1 low pooled pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c1 low pooled tolerance_decisive","NA","NA",TRUE
+"schedule-matched.csv","c2 low qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 low qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 low qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 low qnear value_new","12.443398763330872","12.443398763330899",TRUE
+"schedule-matched.csv","c2 low qnear value_control","14.4155385997705","14.4155385997705",TRUE
+"schedule-matched.csv","c2 low qnear statistic","-1.9721398364396272","-1.9721398364396301",TRUE
+"schedule-matched.csv","c2 low qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 middle qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qnear value_new","4.4412011479894602","4.4412011479894602",TRUE
+"schedule-matched.csv","c2 middle qnear value_control","2.9935728482955364","2.9935728482955399",TRUE
+"schedule-matched.csv","c2 middle qnear statistic","1.4476282996939238","1.44762829969392",TRUE
+"schedule-matched.csv","c2 middle qnear pass","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 high qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 high qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 high qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 high qnear value_new","12.70890221414532","12.708902214145301",TRUE
+"schedule-matched.csv","c2 high qnear value_control","14.779154315456223","14.7791543154562",TRUE
+"schedule-matched.csv","c2 high qnear statistic","-2.0702521013109028","-2.0702521013109001",TRUE
+"schedule-matched.csv","c2 high qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 mae qnear communities","10","10",TRUE
+"schedule-matched.csv","c2 mae qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qnear value_new","15.219701272759137","15.219701272759099",TRUE
+"schedule-matched.csv","c2 mae qnear value_control","15.195636838344766","15.1956368383448",TRUE
+"schedule-matched.csv","c2 mae qnear statistic","0.024064434414370339","0.024064434414370301",TRUE
+"schedule-matched.csv","c2 mae qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 mae qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 low qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 low qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 low qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 low qfar value_new","12.035160380452758","12.035160380452799",TRUE
+"schedule-matched.csv","c2 low qfar value_control","15.343740178864348","15.3437401788643",TRUE
+"schedule-matched.csv","c2 low qfar statistic","-3.3085797984115892","-3.3085797984115901",TRUE
+"schedule-matched.csv","c2 low qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 middle qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 middle qfar value_new","3.2627195125691779","3.2627195125691801",TRUE
+"schedule-matched.csv","c2 middle qfar value_control","1.788060912735727","1.7880609127357301",TRUE
+"schedule-matched.csv","c2 middle qfar statistic","1.4746585998334509","1.47465859983345",TRUE
+"schedule-matched.csv","c2 middle qfar pass","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 high qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 high qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 high qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 high qfar value_new","16.751576519371856","16.751576519371898",TRUE
+"schedule-matched.csv","c2 high qfar value_control","18.818335994073756","18.818335994073799",TRUE
+"schedule-matched.csv","c2 high qfar statistic","-2.0667594747019002","-2.0667594747018998",TRUE
+"schedule-matched.csv","c2 high qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c2 high qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 mae qfar communities","10","10",TRUE
+"schedule-matched.csv","c2 mae qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c2 mae qfar value_new","17.741456117410301","17.741456117410301",TRUE
+"schedule-matched.csv","c2 mae qfar value_control","16.969678846662717","16.969678846662699",TRUE
+"schedule-matched.csv","c2 mae qfar statistic","0.77177727074758451","0.77177727074758495",TRUE
+"schedule-matched.csv","c2 mae qfar pass","FALSE","FALSE",TRUE
+"schedule-matched.csv","c2 mae qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 low qnear communities","10","10",TRUE
+"schedule-matched.csv","c3 low qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c3 low qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c3 low qnear value_new","0.80487220226145006","0.80487220226144995",TRUE
+"schedule-matched.csv","c3 low qnear value_control","0.72453110989483527","0.72453110989483505",TRUE
+"schedule-matched.csv","c3 low qnear statistic","-0.080341092366614797","-0.080341092366614797",TRUE
+"schedule-matched.csv","c3 low qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 low qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 middle qnear communities","10","10",TRUE
+"schedule-matched.csv","c3 middle qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qnear value_new","0.88303842157648904","0.88303842157648904",TRUE
+"schedule-matched.csv","c3 middle qnear value_control","0.90409910351226597","0.90409910351226597",TRUE
+"schedule-matched.csv","c3 middle qnear statistic","0.021060681935776926","0.021060681935776902",TRUE
+"schedule-matched.csv","c3 middle qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 middle qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 high qnear communities","10","10",TRUE
+"schedule-matched.csv","c3 high qnear needed","NA","NA",TRUE
+"schedule-matched.csv","c3 high qnear improved","NA","NA",TRUE
+"schedule-matched.csv","c3 high qnear value_new","0.85705779607508759","0.85705779607508803",TRUE
+"schedule-matched.csv","c3 high qnear value_control","0.7282722378255837","0.72827223782558403",TRUE
+"schedule-matched.csv","c3 high qnear statistic","-0.12878555824950388","-0.128785558249504",TRUE
+"schedule-matched.csv","c3 high qnear pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 high qnear tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 low qfar communities","10","10",TRUE
+"schedule-matched.csv","c3 low qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c3 low qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c3 low qfar value_new","0.88178918860534938","0.88178918860534905",TRUE
+"schedule-matched.csv","c3 low qfar value_control","0.78768261803942252","0.78768261803942297",TRUE
+"schedule-matched.csv","c3 low qfar statistic","-0.094106570565926861","-0.094106570565926903",TRUE
+"schedule-matched.csv","c3 low qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 low qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 middle qfar communities","10","10",TRUE
+"schedule-matched.csv","c3 middle qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c3 middle qfar value_new","0.89961706404432573","0.89961706404432595",TRUE
+"schedule-matched.csv","c3 middle qfar value_control","0.93413475220871189","0.934134752208712",TRUE
+"schedule-matched.csv","c3 middle qfar statistic","0.034517688164386162","0.034517688164386197",TRUE
+"schedule-matched.csv","c3 middle qfar pass","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 middle qfar tolerance_decisive","FALSE","FALSE",TRUE
+"schedule-matched.csv","c3 high qfar communities","10","10",TRUE
+"schedule-matched.csv","c3 high qfar needed","NA","NA",TRUE
+"schedule-matched.csv","c3 high qfar improved","NA","NA",TRUE
+"schedule-matched.csv","c3 high qfar value_new","0.89690357725042869","0.89690357725042902",TRUE
+"schedule-matched.csv","c3 high qfar value_control","0.71580356585082916","0.71580356585082905",TRUE
+"schedule-matched.csv","c3 high qfar statistic","-0.18110001139959953","-0.1811000113996",TRUE
+"schedule-matched.csv","c3 high qfar pass","TRUE","TRUE",TRUE
+"schedule-matched.csv","c3 high qfar tolerance_decisive","FALSE","FALSE",TRUE

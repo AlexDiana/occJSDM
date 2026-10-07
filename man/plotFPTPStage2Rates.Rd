@@ -21,6 +21,10 @@ True and false positives rates at the lab stage for each species.
 }
 \details{
 Plots the 95% credible interval of the true and false positives at the lab stage
+
+The TP rate is drawn in blue (\code{#0072B2}) and the FP rate in vermillion
+(\code{#D55E00}) from the colour-blind-safe Okabe-Ito palette; add
+\code{scale_colour_manual()} to the returned plot to use other colours.
 }
 \examples{
 \dontrun{

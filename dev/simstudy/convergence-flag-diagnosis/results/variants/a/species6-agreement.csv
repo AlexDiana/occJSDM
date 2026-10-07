@@ -1,0 +1,12 @@
+"run","quantity","label","separation","max_split_rhat_within_chain","rhat","fixed","considered","agrees"
+"a","B0","agrees",0.1181585,1.005395,1.001778,FALSE,TRUE,TRUE
+"a","theta0","agrees",0.06092108,1.000823,1.000239,FALSE,TRUE,TRUE
+"a","beta_theta_intercept","agrees",0.1043587,1.00346,1.001013,FALSE,TRUE,TRUE
+"a","beta_theta_slope","agrees",0.02788932,1.000235,0.9999896,FALSE,TRUE,TRUE
+"a","p_primer1","agrees",0.05623251,1.00065,1.000135,FALSE,TRUE,TRUE
+"a","p_primer2","agrees",0.04732234,1.000247,1.000065,FALSE,TRUE,TRUE
+"a","q_primer1","agrees",0.05029235,1.000359,1.000079,FALSE,TRUE,TRUE
+"a","q_primer2","agrees",0.03350823,1.000204,1.000021,FALSE,TRUE,TRUE
+"a","B_slope1","agrees",0.07455583,1.001168,1.000387,FALSE,TRUE,TRUE
+"a","B_slope2","agrees",0.0983703,1.002648,1.001059,FALSE,TRUE,TRUE
+"a","mean_psi_original_sites","agrees",0.122501,1.005552,1.001894,FALSE,TRUE,TRUE

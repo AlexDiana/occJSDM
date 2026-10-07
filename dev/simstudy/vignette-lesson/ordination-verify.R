@@ -14,6 +14,7 @@ close <- function(left, right, tolerance = 1e-9) {
 }
 library(occJSDM)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 examples <- readRDS(new_path("vignettes/teaching-data/ordination-examples.rds"))
 provenance <- examples$provenance
@@ -23,7 +24,7 @@ input <- readRDS(file.path(archive, "input.rds"))
 snippet_path <- new_path("dev/simstudy/vignette-lesson/ordination-examples.Rmd")
 stopifnot(
   identical(lesson$input, input),
-  identical(provenance$source_hashes, lesson_source_hashes()),
+  lesson_source_check(provenance$source_hashes),
   identical(provenance$source_hashes, input$source_hashes),
   identical(provenance$source_hashes, outputs$source_hashes),
   identical(provenance$lesson_md5, md5("vignettes/teaching-data/nonspatial-lesson.rds")),
@@ -205,6 +206,22 @@ close(biplot$layers[[4]]$xend, factors$L[1, ] * multiplier)
 close(biplot$layers[[4]]$yend, factors$L[2, ] * multiplier)
 close(biplot$layers[[4]]$x, rep(0, length(species)))
 close(biplot$layers[[4]]$y, rep(0, length(species)))
+ordinary <- examples$plots$ordinary_biplot
+ordinary_sites <- apply(original$U_output, c(1, 2), median)
+ordinary_loadings <- apply(original$L_output, c(1, 2), median)
+ordinary_multiplier <- .8 * max(sqrt(rowSums(ordinary_sites^2))) /
+  max(sqrt(colSums(ordinary_loadings^2)))
+stopifnot(length(ordinary$layers) == 3L,
+          identical(as.character(ordinary$layers[[3]]$label), species))
+close(ordinary$layers[[1]]$x, ordinary_sites[, 1])
+close(ordinary$layers[[1]]$y, ordinary_sites[, 2])
+close(ordinary$layers[[2]]$x, rep(0, length(species)))
+close(ordinary$layers[[2]]$xend, ordinary_loadings[1, ] * ordinary_multiplier)
+close(ordinary$layers[[2]]$yend, ordinary_loadings[2, ] * ordinary_multiplier)
+close(ordinary$layers[[3]]$x, ordinary_loadings[1, ] * ordinary_multiplier)
+close(ordinary$layers[[3]]$y, ordinary_loadings[2, ] * ordinary_multiplier)
+close(examples$ordinary_quantiles$sites[2, , ], ordinary_sites)
+cat("Ordinary biplot: 100 unaligned site medians and ten loading arrows and labels verified from all 24000 draws; no truth layer.\n")
 for (index in seq_len(nrow(examples$figures))) {
   figure <- examples$figures[index, ]
   path <- new_path(file.path("vignettes/teaching-data", figure$file))

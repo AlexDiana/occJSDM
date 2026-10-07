@@ -12,6 +12,7 @@ library(occJSDM)
 library(dplyr)
 library(ggplot2)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 lesson_path <- "vignettes/teaching-data/nonspatial-lesson.rds"
 outputs_path <- "vignettes/teaching-data/output-lesson.rds"
@@ -24,7 +25,7 @@ manifest <- lesson$manifests$default
 fit_path <- file.path(archive, manifest$file)
 stopifnot(
   identical(lesson$input, input),
-  identical(input$source_hashes, lesson_source_hashes()),
+  lesson_source_check(input$source_hashes),
   identical(outputs$source_hashes, input$source_hashes),
   identical(outputs$lesson_md5, md5(lesson_path)),
   identical(outputs$fit_manifests$default, manifest),
@@ -44,6 +45,20 @@ stopifnot(identical(saved$source_hashes, input$source_hashes),
           identical(colnames(fitmodel$X_psi),
                     grep("^X_psi", names(input$sim$data_list$info), value = TRUE)),
           max(abs(fitmodel$Tr - scale(input$sim$data_list$traits))) < 1e-12)
+perfect_manifest <- lesson$manifests$perfect
+perfect_path <- file.path(archive, perfect_manifest$file)
+stopifnot(identical(perfect_manifest, outputs$fit_manifests$perfect),
+          identical(perfect_manifest$md5, md5(perfect_path)))
+perfect_saved <- readRDS(perfect_path)
+fitmodel_perfect <- perfect_saved$fit
+validate_lesson_fit_identity(fitmodel_perfect, input)
+stopifnot(identical(perfect_saved$source_hashes, input$source_hashes),
+          identical(perfect_saved$input_md5, lesson$input_md5),
+          identical(perfect_saved$mcmc, perfect_manifest$mcmc),
+          identical(fitmodel_perfect$Tr, fitmodel$Tr),
+          identical(fitmodel_perfect$X_psi, fitmodel$X_psi),
+          identical(dim(fitmodel_perfect$results_output$jsdm_output$G_output),
+                    c(2L, 2L, 6000L, 4L)))
 
 # The simulator standardizes environment before generating B. Reconstruct eta
 # to check that no extra environmental rescaling belongs in the trait truth.
@@ -82,13 +97,19 @@ student_code_md5 <- md5(code_r)
 student_environment <- new.env(parent = globalenv())
 student_environment$fitmodel <- fitmodel
 student_environment$outputs <- outputs
+student_environment$fitmodel_perfect <- fitmodel_perfect
 source(code_r, local = student_environment, echo = FALSE, print.eval = FALSE)
 unlink(c(code_rmd, code_r))
 stopifnot(identical(student_environment$fitmodel, saved$fit))
+stopifnot(identical(student_environment$fitmodel_perfect, perfect_saved$fit))
 plots <- list(gradient_1 = student_environment$native_traits_1,
-              gradient_2 = student_environment$native_traits_2)
+              gradient_2 = student_environment$native_traits_2,
+              perfect_gradient_1 = student_environment$native_traits_perfect_1,
+              perfect_gradient_2 = student_environment$native_traits_perfect_2)
 figures <- data.frame(plot = names(plots),
-                      file = c("native-traits-gradient-1.png", "native-traits-gradient-2.png"),
+                      file = c("native-traits-gradient-1.png", "native-traits-gradient-2.png",
+                               "native-traits-perfect-gradient-1.png",
+                               "native-traits-perfect-gradient-2.png"),
                       width = 8, height = 4.8)
 for (index in seq_len(nrow(figures))) {
   path <- new_path(file.path("vignettes/teaching-data", figures$file[index]))
@@ -110,16 +131,19 @@ result <- list(
   scaling = data.frame(trait = names(trait_sd), sd = unname(trait_sd)),
   plots = plot_records, figures = figures,
   provenance = list(
-    source_hashes = lesson_source_hashes(), lesson_md5 = md5(lesson_path),
+    source_hashes = input$source_hashes, export_source_hashes = lesson_source_hashes(),
+    lesson_md5 = md5(lesson_path),
     outputs_md5 = md5(outputs_path), input_md5 = lesson$input_md5,
-    fit_manifest = manifest, snippet_md5 = md5(snippet_path),
+    fit_manifest = manifest,
+    perfect_fit_manifest = perfect_manifest,
+    snippet_md5 = md5(snippet_path),
     exporter_md5 = md5(exporter_path), student_code_md5 = student_code_md5,
     package_library = normalizePath(find.package("occJSDM")),
     package_files_md5 = tools::md5sum(list.files(find.package("occJSDM"),
                                                recursive = TRUE, full.names = TRUE)),
     session = sessionInfo(),
-    note = "Native trait intervals use all 6000 x 4 draws from the unchanged default fit."
+    note = "Native trait intervals use all 6000 x 4 draws from the unchanged default fit, and from the unchanged perfect fit for the two perfect-observation plots."
   )
 )
 saveRDS(result, new_path("vignettes/teaching-data/native-traits-data.rds"), compress = "xz")
-cat("Exported both native trait plots from all 24000 retained draws.\n")
+cat("Exported four native trait plots from all 24000 retained draws of each fit.\n")

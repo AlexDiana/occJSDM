@@ -1,0 +1,58 @@
+"table","item","own","stored","pass"
+"summary-means.csv","row set","1 all primary all; 1 all primary high; 1 all primary low; 1 all primary middle; 1 all primary prevalence_1pct; 1 all primary prevalence_25pct; 1 all primary prevalence_5pct; 1 all primary prevalence_75pct; 1 all primary rare_1_5pct","1 all primary all; 1 all primary high; 1 all primary low; 1 all primary middle; 1 all primary prevalence_1pct; 1 all primary prevalence_25pct; 1 all primary prevalence_5pct; 1 all primary prevalence_75pct; 1 all primary rare_1_5pct",TRUE
+"summary-means.csv","1 all primary all communities","9","9",TRUE
+"summary-means.csv","1 all primary all mean_signed_error","1.3257503213935604","1.32575032139356",TRUE
+"summary-means.csv","1 all primary all mean_abs_signed_error","1.3257503213935604","1.32575032139356",TRUE
+"summary-means.csv","1 all primary all mean_abs_cell_error","8.6877677198631726","8.6877677198631709",TRUE
+"summary-means.csv","1 all primary all mean_coverage","0.51624999999999999","0.51624999999999999",TRUE
+"summary-means.csv","1 all primary high communities","9","9",TRUE
+"summary-means.csv","1 all primary high mean_signed_error","-12.987365848762913","-12.9873658487629",TRUE
+"summary-means.csv","1 all primary high mean_abs_signed_error","12.987365848762913","12.9873658487629",TRUE
+"summary-means.csv","1 all primary high mean_abs_cell_error","13.027641570512747","13.027641570512699",TRUE
+"summary-means.csv","1 all primary high mean_coverage","0.4737061789697099","0.47370617896971001",TRUE
+"summary-means.csv","1 all primary low communities","9","9",TRUE
+"summary-means.csv","1 all primary low mean_signed_error","5.0613088120901253","5.0613088120901297",TRUE
+"summary-means.csv","1 all primary low mean_abs_signed_error","5.0613088120901253","5.0613088120901297",TRUE
+"summary-means.csv","1 all primary low mean_abs_cell_error","5.6920623460651765","5.69206234606518",TRUE
+"summary-means.csv","1 all primary low mean_coverage","0.45259471044537608","0.45259471044537603",TRUE
+"summary-means.csv","1 all primary middle communities","9","9",TRUE
+"summary-means.csv","1 all primary middle mean_signed_error","-0.8158896946261055","-0.81588969462610506",TRUE
+"summary-means.csv","1 all primary middle mean_abs_signed_error","1.6121661083097025","1.6121661083097001",TRUE
+"summary-means.csv","1 all primary middle mean_abs_cell_error","13.665263097236805","13.665263097236799",TRUE
+"summary-means.csv","1 all primary middle mean_coverage","0.68240163966598333","0.682401639665983",TRUE
+"summary-means.csv","1 all primary prevalence_1pct communities","9","9",TRUE
+"summary-means.csv","1 all primary prevalence_1pct mean_signed_error","3.3799104588101652","3.37991045881017",TRUE
+"summary-means.csv","1 all primary prevalence_1pct mean_abs_signed_error","3.3799104588101652","3.37991045881017",TRUE
+"summary-means.csv","1 all primary prevalence_1pct mean_abs_cell_error","3.488301852151217","3.4883018521512201",TRUE
+"summary-means.csv","1 all primary prevalence_1pct mean_coverage","0.30111111111111111","0.301111111111111",TRUE
+"summary-means.csv","1 all primary prevalence_25pct communities","9","9",TRUE
+"summary-means.csv","1 all primary prevalence_25pct mean_signed_error","-0.71904771374269116","-0.71904771374269105",TRUE
+"summary-means.csv","1 all primary prevalence_25pct mean_abs_signed_error","2.1666010379621694","2.1666010379621699",TRUE
+"summary-means.csv","1 all primary prevalence_25pct mean_abs_cell_error","13.083502928434468","13.0835029284345",TRUE
+"summary-means.csv","1 all primary prevalence_25pct mean_coverage","0.59611111111111115","0.59611111111111104",TRUE
+"summary-means.csv","1 all primary prevalence_5pct communities","9","9",TRUE
+"summary-means.csv","1 all primary prevalence_5pct mean_signed_error","2.8469497805766339","2.84694978057663",TRUE
+"summary-means.csv","1 all primary prevalence_5pct mean_abs_signed_error","2.8469497805766339","2.84694978057663",TRUE
+"summary-means.csv","1 all primary prevalence_5pct mean_abs_cell_error","5.2654582868868092","5.2654582868868101",TRUE
+"summary-means.csv","1 all primary prevalence_5pct mean_coverage","0.55833333333333335","0.55833333333333302",TRUE
+"summary-means.csv","1 all primary prevalence_75pct communities","9","9",TRUE
+"summary-means.csv","1 all primary prevalence_75pct mean_signed_error","-0.20481124006986667","-0.20481124006986701",TRUE
+"summary-means.csv","1 all primary prevalence_75pct mean_abs_signed_error","1.7637320494075572","1.7637320494075599",TRUE
+"summary-means.csv","1 all primary prevalence_75pct mean_abs_cell_error","12.913807811980199","12.913807811980201",TRUE
+"summary-means.csv","1 all primary prevalence_75pct mean_coverage","0.60944444444444446","0.60944444444444401",TRUE
+"summary-means.csv","1 all primary rare_1_5pct communities","9","9",TRUE
+"summary-means.csv","1 all primary rare_1_5pct mean_signed_error","3.1134301196933993","3.1134301196933998",TRUE
+"summary-means.csv","1 all primary rare_1_5pct mean_abs_signed_error","3.1134301196933993","3.1134301196933998",TRUE
+"summary-means.csv","1 all primary rare_1_5pct mean_abs_cell_error","4.3768800695190127","4.37688006951901",TRUE
+"summary-means.csv","1 all primary rare_1_5pct mean_coverage","0.42972222222222223","0.42972222222222201",TRUE
+"b0-means.csv","row set","1 all","1 all",TRUE
+"b0-means.csv","1 all communities","9","9",TRUE
+"b0-means.csv","1 all mean_b0_bias","0.67213639296875993","0.67213639296876004",TRUE
+"b0-means.csv","1 all mean_b0_abs_bias","0.7949076197934174","0.79490761979341695",TRUE
+"b0-means.csv","1 all mean_b0_coverage","0.54166666666666663","0.54166666666666696",TRUE
+"convergence.csv","row set","1 all","1 all",TRUE
+"convergence.csv","1 all selected_fits","9","9",TRUE
+"convergence.csv","1 all selected_flagged","0","0",TRUE
+"convergence.csv","1 all first_flagged","NA","NA",TRUE
+"convergence.csv","1 all long_repeats","NA","NA",TRUE
+"convergence.csv","1 all missing_fits","0","0",TRUE

@@ -30,3 +30,8 @@ A `ggplot` object.
 \description{
 Faceted per-chain trace plots for every element of a posterior array.
 }
+\details{
+Chains are coloured from the colour-blind-safe Okabe-Ito palette (recycled,
+with a warning, beyond eight chains); add \code{ggplot2::scale_colour_manual()}
+to the returned plot to use other colours.
+}

@@ -335,359 +335,131 @@ createSplinesMatrix <- function(list_ns, X_new){
 
 }
 
-returnCovariateEffect_base <- function(cov_name,
-                                       idx_species,
-                                       sp_name,
-                                       B0_output_vec,
-                                       B_output_vec,
-                                       list_matrix,
-                                       speciesNames,
-                                       X0, X,
-                                       n_points = 200,
-                                       link = c("identity", "logit"),
-                                       confidence = .95){
+# Build a complete environmental design at reference conditions. X0 stores
+# standardized numeric predictors, despite its historical "raw" name. Keeping
+# calculations on that scale also avoids rounding beyond a spline boundary.
+covariate_response_grid <- function(cov_name, X0, X, list_matrix,
+                                    n_points = 200L) {
+  is_numeric <- list_matrix$is_numeric
+  selected <- X0[[cov_name]]
+  if (is_numeric[[cov_name]]) {
+    values <- seq(min(selected), max(selected), length.out = n_points)
+    x <- values * list_matrix$sd_df[[cov_name]] + list_matrix$mean_df[[cov_name]]
+  } else {
+    values <- list_matrix$cat_levels[[cov_name]]
+    x <- factor(values, levels = values)
+  }
 
-  conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+  design <- matrix(0, length(values), ncol(X), dimnames = list(NULL, colnames(X)))
+  offset <- 0L
+  # create_covariates_matrix() stores main-effect blocks in names_df order.
+  # Use those blocks directly, never prefix/regexp matching (e.g. x versus x2).
+  for (name in list_matrix$names_df) {
+    reference <- if (is_numeric[[name]]) {
+      stats::median(X0[[name]])
+    } else {
+      list_matrix$cat_levels[[name]][1L]
+    }
+    grid_values <- if (name == cov_name) values else rep(reference, length(values))
 
-  # prepare covariates info
-  {
-    is_num    <- list_matrix$is_numeric[[cov_name]]
-    is_spline <- !is.null(list_matrix$bs_info[[cov_name]])
-
-    if (is_num) {
-      # Sequence on raw scale
-      cov_min <- min(X0[[cov_name]], na.rm = TRUE)
-      cov_max <- max(X0[[cov_name]], na.rm = TRUE)
-      cov_seq_raw <- seq(cov_min, cov_max, length.out = n_points)
-      cov_std <- (cov_seq_raw - list_matrix$mean_df[[cov_name]]) / list_matrix$sd_df[[cov_name]]
-
-      if (is_spline) {
-        # Re-apply splines using stored knots on standardized data
-        info <- list_matrix$bs_info[[cov_name]]
-        X_sub <- splines::bs(
-          cov_std,
-          knots          = info$knots,
-          Boundary.knots = info$Boundary.knots,
-          degree         = info$degree,
-          intercept      = info$intercept
-        )
-        colnames(X_sub) <- paste0(cov_name, "_s", seq_len(ncol(X_sub)))
-
+    if (is_numeric[[name]]) {
+      spline <- list_matrix$bs_info[[name]]
+      block <- if (is.null(spline)) {
+        matrix(grid_values, ncol = 1L)
       } else {
-        # Linear numeric term
-        X_sub <- matrix(cov_std, ncol = 1)
-        colnames(X_sub) <- cov_name
+        splines::bs(grid_values, knots = spline$knots,
+                    Boundary.knots = spline$Boundary.knots,
+                    degree = spline$degree, intercept = spline$intercept)
       }
-
+      columns <- offset + seq_len(ncol(block))
     } else {
+      levels <- list_matrix$cat_levels[[name]]
+      columns <- offset + seq_len(ncol(stats::contrasts(X0[[name]])))
+      rows <- match(grid_values, as.character(X0[[name]]))
+      block <- X[rows, columns, drop = FALSE]
 
-      all_levels     <- list_matrix$cat_levels[[cov_name]]
-      baseline_level <- all_levels[1]
-      active_levels  <- all_levels[-1]
-
-      temp_df <- data.frame(val = factor(active_levels, levels = all_levels))
-      colnames(temp_df) <- cov_name
-
-      temp_X <- stats::model.matrix(~ ., data = temp_df)
-      X_sub  <- temp_X[, -1, drop = FALSE]
+      # Copy the actual fitted encoding, including ordered/custom contrasts.
+      # An unused factor level has no training row: reconstruct it only after
+      # checking that the available contrast settings reproduce the fitted rows.
+      if (anyNA(rows)) {
+        factor_grid <- X0[[name]][rep(1L, length(levels))]
+        factor_grid[] <- levels
+        candidates <- stats::model.matrix(~ factor_grid)[, -1L, drop = FALSE]
+        training_rows <- match(as.character(X0[[name]]), levels)
+        if (!isTRUE(all.equal(unname(candidates[training_rows, , drop = FALSE]),
+                              unname(X[, columns, drop = FALSE])))) {
+          stop("Cannot reconstruct unused levels of covariate '", name,
+               "'. Restore the contrast settings used to fit the model.", call. = FALSE)
+        }
+        block[is.na(rows), ] <- candidates[match(grid_values[is.na(rows)], levels), , drop = FALSE]
+      }
     }
-
-    cov_indices <- sapply(colnames(X_sub), function(name){
-      grep(name, colnames(X))
-    })
-
-    if (any(is.na(cov_indices))) {
-      stop(paste("Could not find exact columns in MCMC output for:", cov_name))
-    }
-
+    design[, columns] <- block
+    offset <- offset + length(columns)
   }
-
-  all_species_data <- data.frame()
-
-  for (i in seq_along(idx_species)) {
-
-    sp_idx  <- idx_species[i]
-    # Index by sp_idx, not the loop counter i -- speciesNames[i] mislabels
-    # every species whenever idx_species isn't the prefix 1:k (same defect
-    # as TODO.md Fixed bugs 31/32, found here as part of Fixed bugs 33).
-    sp_name <- speciesNames[sp_idx]
-
-    beta_mcmc_j <- B_output_vec[, , sp_idx]
-    beta_mcmc_sub <- beta_mcmc_j[, cov_indices, drop = FALSE]
-
-    partial_effect <- X_sub %*% t(beta_mcmc_sub)
-
-    if(link == "logit") partial_effect <- logistic(partial_effect)
-
-    # 6. Format data for ggplot depending on variable type
-    if (is_num) {
-
-      intercept_draws <- B0_output_vec[, sp_idx]
-      total_effect    <- sweep(partial_effect, 2, intercept_draws, FUN = "+")
-
-      # Numeric: Summarize to mean and 95% Credible Intervals
-      sp_data <- data.frame(
-        x       = cov_seq_raw,
-        mean    = apply(total_effect, 1, quantile, probs = conflevels[2]),
-        lower   = apply(total_effect, 1, quantile, probs = conflevels[1]),
-        upper   = apply(total_effect, 1, quantile, probs = conflevels[3]),
-        Species = sp_name
-      )
-
-    } else {
-      # Categorical: Keep all draws to generate boxplots
-      # Transpose so rows are grid points, columns are draws, then pivot long
-      sp_data <- as.data.frame(partial_effect) %>%
-        mutate(x = factor(active_levels, levels = active_levels), Species = sp_name) %>%
-        pivot_longer(cols = -c(x, Species), names_to = "draw", values_to = "value")
-    }
-
-
-    all_species_data <- bind_rows(all_species_data, sp_data)
-
+  if (offset != ncol(X)) {
+    stop("Stored covariate metadata does not match the fitted design matrix.", call. = FALSE)
   }
-
-  all_species_data
-
+  list(x = x, X = design)
 }
 
-plotCovariateEffect_base <- function(idx_species,
-                               cov_names,
-                               B0_output_vec,
-                               B_output_vec,
-                               list_matrix,
-                               speciesNames,
-                               X0, X,
-                               n_points = 200,
-                               link = c("identity", "logit"),
-                               confidence = .95) {
+returnCovariateEffect_base <- function(cov_name, idx_species,
+                                      B0_output_vec, B_output_vec,
+                                      list_matrix, speciesNames, X0, X,
+                                      n_points = 200L,
+                                      link = c("logit", "identity"),
+                                      confidence = .95) {
+  link <- match.arg(link)
+  grid <- covariate_response_grid(cov_name, X0, X, list_matrix, n_points)
+  probabilities <- c(.5, (1 - confidence) / 2, (1 + confidence) / 2)
+  n_draws <- nrow(B0_output_vec)
 
-  X0 <- as.data.frame(X0)
-  X <- as.data.frame(X)
+  species_data <- lapply(idx_species, function(sp) {
+    coefficients <- matrix(B_output_vec[, , sp, drop = FALSE], nrow = n_draws)
+    eta <- sweep(grid$X %*% t(coefficients), 2L, B0_output_vec[, sp], FUN = "+")
+    response <- if (link == "logit") stats::plogis(eta) else eta
 
-  # B0_output_vec/B_output_vec arrive already collapsed to (draws x species)
-  # and (draws x covariate x species) by the caller (plotCovariateEffect()).
-  # A previous version re-applied apply(..., c(1,2), c) here, which collapsed
-  # the species margin a second time and left B_output_vec's third dimension
-  # sized by ncov_psi instead of S -- "subscript out of bounds" for any
-  # sp_idx > ncov_psi. Fixed as part of TODO.md Fixed bugs 33.
-
-  plot_list <- list()
-
-  for (cov_name in cov_names) {
-
-    is_num    <- list_matrix$is_numeric[[cov_name]]
-    is_spline <- !is.null(list_matrix$bs_info[[cov_name]])
-
-    # prepare covariates info
-    {
-      is_num    <- list_matrix$is_numeric[[cov_name]]
-      is_spline <- !is.null(list_matrix$bs_info[[cov_name]])
-
-      if (is_num) {
-        # Sequence on raw scale
-        cov_min <- min(X0[[cov_name]], na.rm = TRUE)
-        cov_max <- max(X0[[cov_name]], na.rm = TRUE)
-        cov_seq_raw <- seq(cov_min, cov_max, length.out = n_points)
-        cov_std <- (cov_seq_raw - list_matrix$mean_df[[cov_name]]) / list_matrix$sd_df[[cov_name]]
-
-        if (is_spline) {
-          # Re-apply splines using stored knots on standardized data
-          info <- list_matrix$bs_info[[cov_name]]
-          X_sub <- splines::bs(
-            cov_std,
-            knots          = info$knots,
-            Boundary.knots = info$Boundary.knots,
-            degree         = info$degree,
-            intercept      = info$intercept
-          )
-          colnames(X_sub) <- paste0(cov_name, "_s", seq_len(ncol(X_sub)))
-
-        } else {
-          # Linear numeric term
-          X_sub <- matrix(cov_std, ncol = 1)
-          colnames(X_sub) <- cov_name
-        }
-
-      } else {
-
-        all_levels     <- list_matrix$cat_levels[[cov_name]]
-        baseline_level <- all_levels[1]
-        active_levels  <- all_levels[-1]
-
-        temp_df <- data.frame(val = factor(active_levels, levels = all_levels))
-        colnames(temp_df) <- cov_name
-
-        temp_X <- stats::model.matrix(~ ., data = temp_df)
-        X_sub  <- temp_X[, -1, drop = FALSE]
-      }
-
-      cov_indices <- sapply(colnames(X_sub), function(name){
-        grep(name, colnames(X))
-      })
-
-      if (any(is.na(cov_indices))) {
-        stop(paste("Could not find exact columns in MCMC output for:", cov_name))
-      }
-
-    }
-
-    if(F){
-      all_species_data <- data.frame()
-
-      for (i in seq_along(idx_species)) {
-
-        sp_idx  <- idx_species[i]
-        sp_name <- speciesNames[i]
-
-        # prepare covariates info
-        if(F){
-          is_num    <- list_matrix$is_numeric[[cov_name]]
-          is_spline <- !is.null(list_matrix$bs_info[[cov_name]])
-
-          if (is_num) {
-            # Sequence on raw scale
-            cov_min <- min(X0[[cov_name]], na.rm = TRUE)
-            cov_max <- max(X0[[cov_name]], na.rm = TRUE)
-            cov_seq_raw <- seq(cov_min, cov_max, length.out = n_points)
-            cov_std <- (cov_seq_raw - list_matrix$mean_df[[cov_name]]) / list_matrix$sd_df[[cov_name]]
-
-            if (is_spline) {
-              # Re-apply splines using stored knots on standardized data
-              info <- list_matrix$bs_info[[cov_name]]
-              X_sub <- splines::bs(
-                cov_std,
-                knots          = info$knots,
-                Boundary.knots = info$Boundary.knots,
-                degree         = info$degree,
-                intercept      = info$intercept
-              )
-              colnames(X_sub) <- paste0(cov_name, "_s", seq_len(ncol(X_sub)))
-
-            } else {
-              # Linear numeric term
-              X_sub <- matrix(cov_std, ncol = 1)
-              colnames(X_sub) <- cov_name
-            }
-
-          } else {
-
-            all_levels     <- list_matrix$cat_levels[[cov_name]]
-            baseline_level <- all_levels[1]
-            active_levels  <- all_levels[-1]
-
-            temp_df <- data.frame(val = factor(active_levels, levels = all_levels))
-            colnames(temp_df) <- cov_name
-
-            temp_X <- stats::model.matrix(~ ., data = temp_df)
-            X_sub  <- temp_X[, -1, drop = FALSE]
-          }
-
-          cov_indices <- sapply(colnames(X_sub), function(name){
-            grep(name, colnames(X))
-          })
-
-          if (any(is.na(cov_indices))) {
-            stop(paste("Could not find exact columns in MCMC output for:", cov_name))
-          }
-
-        }
-
-        # species info
-        if(F){
-
-          beta_mcmc_j <- B_output_vec[, , sp_idx]
-          beta_mcmc_sub <- beta_mcmc_j[, cov_indices, drop = FALSE]
-
-          partial_effect <- X_sub %*% t(beta_mcmc_sub)
-
-          if(link == "logit") partial_effect <- logistic(partial_effect)
-
-          # 6. Format data for ggplot depending on variable type
-          if (is_num) {
-
-            intercept_draws <- B0_output_vec[, sp_idx]
-            total_effect    <- sweep(partial_effect, 2, intercept_draws, FUN = "+")
-
-            # Numeric: Summarize to mean and 95% Credible Intervals
-            sp_data <- data.frame(
-              x       = cov_seq_raw,
-              mean    = apply(total_effect, 1, mean),
-              lower   = apply(total_effect, 1, quantile, probs = 0.025),
-              upper   = apply(total_effect, 1, quantile, probs = 0.975),
-              Species = sp_name
-            )
-          } else {
-            # Categorical: Keep all draws to generate boxplots
-            # Transpose so rows are grid points, columns are draws, then pivot long
-            sp_data <- as.data.frame(partial_effect) %>%
-              mutate(x = factor(active_levels, levels = active_levels), Species = sp_name) %>%
-              pivot_longer(cols = -c(x, Species), names_to = "draw", values_to = "value")
-          }
-        }
-
-        sp_data <- returnCovariateEffect_base(
-          cov_name,
-          sp_idx,
-          sp_name,
-          B0_output_vec,
-          B_output_vec,
-          list_matrix,
-          speciesNames,
-          X0, X,
-          n_points = n_points,
-          link = link,
-          confidence
-        )
-
-        all_species_data <- bind_rows(all_species_data, sp_data)
-      }
-
-    }
-
-    all_species_data <- returnCovariateEffect_base(
-      cov_name,
-      idx_species,
-      sp_name,
-      B0_output_vec,
-      B_output_vec,
-      list_matrix,
-      speciesNames,
-      X0, X,
-      n_points,
-      link = link,
-      confidence
-    )
-
-    # 7. Generate the Plot
-    if (is_num) {
-      type_title <- if (is_spline) "Spline" else "Linear"
-
-      # Automatically pick ~5 clean tick values across the raw range
-      raw_ticks <- pretty(cov_seq_raw, n = 5)
-
-      # Plot for continuous (Line + Ribbon)
-      p <- ggplot(all_species_data, aes(x = x, y = mean)) +
-        geom_ribbon(aes(ymin = lower, ymax = upper), fill = "#3388ff", alpha = 0.3) +
-        geom_line(color = "#0044cc", linewidth = 1) +
-        scale_x_continuous(breaks = raw_ticks) +
-        facet_wrap(~ Species, scales = "free_y") +
-        labs(title = paste("Effect of", cov_name), x = cov_name, y = "Linear Predictor") +
-        theme_bw()
+    if (list_matrix$is_numeric[[cov_name]]) {
+      interval <- t(apply(response, 1L, stats::quantile, probs = probabilities,
+                          names = FALSE))
+      data.frame(x = grid$x, median = interval[, 1L], lower = interval[, 2L],
+                 upper = interval[, 3L], Species = speciesNames[sp])
     } else {
-      # Plot for categorical (Boxplot across MCMC draws)
-      p <- ggplot(all_species_data, aes(x = factor(x), y = value)) +
-        geom_boxplot(fill = "#e6f2ff", color = "#0044cc", outlier.alpha = 0.1) +
-        facet_wrap(~ Species, scales = "free_y") +
-        labs(title = paste("Effect of", cov_name), x = cov_name, y = "Linear Predictor") +
-        theme_bw()
+      # Preserve the categorical raw-draw return format, now including level 1.
+      data.frame(x = rep(grid$x, each = n_draws), Species = speciesNames[sp],
+                 draw = rep(paste0("V", seq_len(n_draws)), times = length(grid$x)),
+                 value = as.vector(t(response)))
     }
+  })
+  dplyr::bind_rows(species_data)
+}
 
-    # Store plot in list using covariate name
-    plot_list[[cov_name]] <- p
+plot_covariate_response <- function(data, cov_name, is_numeric, link, confidence) {
+  if (is_numeric) {
+    plot <- ggplot(data, aes(x = x, y = median)) +
+      geom_ribbon(aes(ymin = lower, ymax = upper), fill = "#3388ff", alpha = .3) +
+      geom_line(color = "#0044cc", linewidth = 1) +
+      scale_x_continuous(breaks = pretty(data$x, n = 5))
+  } else {
+    summary <- data %>%
+      dplyr::group_by(Species, x) %>%
+      dplyr::summarise(
+        median = stats::median(value),
+        lower = stats::quantile(value, (1 - confidence) / 2),
+        upper = stats::quantile(value, (1 + confidence) / 2),
+        .groups = "drop"
+      )
+    plot <- ggplot(summary, aes(x = x, y = median)) +
+      geom_pointrange(aes(ymin = lower, ymax = upper), color = "#0044cc")
   }
-
-  return(plot_list)
+  plot +
+    facet_wrap(~ Species, scales = "free_y") +
+    labs(title = paste("Response to", cov_name), x = cov_name,
+         y = if (link == "logit") "Occupancy probability" else "Expected response",
+         subtitle = paste("Other numeric covariates at their medians; categorical covariates at their first levels.",
+                          "Latent site and spatial contributions set to zero.", sep = "\n"),
+         caption = paste0("Posterior median and ", 100 * confidence, "% credible interval.")) +
+    theme_bw()
 }
 
 # SPATIAL FUNCTIONS -----------
@@ -732,7 +504,7 @@ buildGrid <- function(XY_sp, gridStep){
   allPoints
 }
 
-computeSpatialSummaries <- function(Xs, ps, maxPoints){
+computeSpatialSummaries <- function(Xs, ps, maxPoints = ps){
 
   n <- nrow(Xs)
 
@@ -740,7 +512,7 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
 
     # isolate unique locations and assign indexes to sites
     uniqueXs <- which(!duplicated(Xs))
-    X_s <- Xs[uniqueXs,]
+    X_s <- Xs[uniqueXs,,drop=FALSE]
 
     # indexes assigning original locations (Xs) to new locations (X_s)
     Xs_index <- match(
@@ -757,15 +529,15 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
     # location of support points
     # X_tilde <- as.matrix(buildGrid(X_s, gridStep = .4))
 
-    # assign ps again based on new locations
-    if(ps > (nrow(X_s)-1)){
-      ps <- nrow(X_s) - 1
+    # All observed locations can serve as support points. In that case no
+    # clustering is needed, and no location is lost to an n-1 cap.
+    ps <- min(ps,nrow(X_s))
+    if (ps == nrow(X_s)) {
+      X_tilde <- X_s
+    } else {
+      list_kmeans <- kmeans(X_s, centers = ps)
+      X_tilde <- list_kmeans$centers
     }
-
-    maxPoints <- min(maxPoints, ps)
-
-    list_kmeans <- kmeans(X_s, centers = ps)
-    X_tilde <- list_kmeans$centers
 
     {
       # ggplot() +
@@ -776,20 +548,11 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
 
     }
 
-    # distance from support points
-    X_s_Xtilde_dist <- t(apply(X_s, 1, function(x){
-      apply(X_tilde, 1, function(y){
-        (x[1] - y[1])^2 + (x[2] - y[2])^2
-      })
-    }))
-
-    # indexes of closest support points to the unique points
-    X_s_centers <- t(apply(X_s_Xtilde_dist, 1, function(x){
-      order(x)[1:maxPoints]
-    }))
-
-    # closest support points to the original locations
-    Xs_centers <- X_s_centers[Xs_index,]
+    # Whitened columns are global basis functions, not local knot effects.
+    # Retain all of them to represent K_nm K_mm^-1 K_mn independently of knot
+    # ordering. maxPoints is retained for compatibility with internal callers.
+    X_s_centers <- matrix(rep(seq_len(ps), each=nrow(X_s)),nrow(X_s),ps)
+    Xs_centers <- X_s_centers[Xs_index,,drop=FALSE]
 
   } else {
 
@@ -813,7 +576,7 @@ computeSpatialSummaries <- function(Xs, ps, maxPoints){
 
 }
 
-precomputeSORmatrices <- function(l_s_grid, list_Xs){
+precomputeSORmatrices <- function(l_s_grid, list_Xs, full_gp = FALSE){
 
   length_grid_ls <- length(l_s_grid)
 
@@ -828,8 +591,10 @@ precomputeSORmatrices <- function(l_s_grid, list_Xs){
   ns <- nrow(X_s)
 
   Ks_all <- array(NA, dim = c(n, maxPoints, length_grid_ls))
-  logDetKuu_grid <- rep(NA, length_grid_ls)
-  Lm1_grid <- array(NA, c(ns, ns, length_grid_ls))
+  # Full-GP matrices belong to the standalone fixed-field diagnostic only.
+  # The fitted SoR range conditional needs no n-by-n covariance or inverse.
+  logDetKuu_grid <- if (full_gp) rep(NA, length_grid_ls) else NULL
+  Lm1_grid <- if (full_gp) array(NA, c(ns, ns, length_grid_ls)) else NULL
 
 
   if(X_centers > 0){
@@ -844,11 +609,14 @@ precomputeSORmatrices <- function(l_s_grid, list_Xs){
 
       l_s_current <- l_s_grid[j]
 
-      list_SoRelem <- computeSORmatrix(l_s_current, X_tilde, X_s, Xs_index, X_s_centers)
+      list_SoRelem <- computeSORmatrix(l_s_current, X_tilde, X_s, Xs_index,
+                                       X_s_centers, full_gp=full_gp)
 
       Ks_all[,,j] <- list_SoRelem$Ks
-      logDetKuu_grid[j] <- list_SoRelem$logDetKuu
-      Lm1_grid[,,j] <- list_SoRelem$sq_term
+      if (full_gp) {
+        logDetKuu_grid[j] <- list_SoRelem$logDetKuu
+        Lm1_grid[,,j] <- list_SoRelem$sq_term
+      }
 
     }
   }
@@ -860,23 +628,31 @@ precomputeSORmatrices <- function(l_s_grid, list_Xs){
 
 }
 
-computeSORmatrix <- function(l_s, X_tilde, X_s, Xs_index, X_s_centers){
+spatialBasis <- function(Xs, X_tilde, l_s) {
+  K_uu <- K2(X_tilde,X_tilde,1,l_s) + diag(1e-5,nrow(X_tilde))
+  L <- FastGP::rcppeigen_get_chol(K_uu)
+  K2(Xs,X_tilde,1,l_s) %*% t(FastGP::rcppeigen_invert_matrix(L))
+}
+
+computeSORmatrix <- function(l_s, X_tilde, X_s, Xs_index, X_s_centers,
+                             full_gp = FALSE){
 
   ps <- nrow(X_tilde)
+  logDetKuu <- NULL
+  sq_term <- NULL
 
   if(ps > 0){
 
-    K_uu <- K2(X_tilde, X_tilde, 1, l_s) + diag(10^(-5), nrow = nrow(X_tilde))
-    L_Kmm <- FastGP::rcppeigen_get_chol(K_uu)
-    invL_Kmm <- FastGP::rcppeigen_invert_matrix(L_Kmm)
-    K_staru <- K2(X_s, X_tilde, 1, l_s)
-    KnmLmt <- K_staru %*% t(invL_Kmm)
-    Ks <- t(sapply(1:nrow(KnmLmt), function(i){ KnmLmt[i,X_s_centers[i,]]}))
-    Ks <- Ks[Xs_index,]
+    KnmLmt <- spatialBasis(X_s,X_tilde,l_s)
+    Ks <- matrix(KnmLmt[cbind(rep(seq_len(nrow(X_s)),ncol(X_s_centers)),
+                              as.vector(X_s_centers))],nrow(X_s),ncol(X_s_centers))
+    Ks <- Ks[Xs_index,,drop=FALSE]
 
-    K_xx <- K2(X_s, X_s, 1, l_s) + diag(exp(-10), nrow = nrow(X_s))
-    logDetKuu <- sum(log(FastGP::rcppeigen_get_diag(K_xx))) * 2
-    sq_term <- FastGP::rcppeigen_get_chol(FastGP::rcppeigen_invert_matrix(K_xx))
+    if (full_gp) {
+      K_xx <- K2(X_s, X_s, 1, l_s) + diag(exp(-10), nrow = nrow(X_s))
+      logDetKuu <- sum(log(FastGP::rcppeigen_get_diag(K_xx))) * 2
+      sq_term <- FastGP::rcppeigen_get_chol(FastGP::rcppeigen_invert_matrix(K_xx))
+    }
 
   } else {
 
@@ -1189,6 +965,15 @@ sample_sigmab <- function(B, Tr, G, A, C, a_sigmab, b_sigmab){
 
 }
 
+# Half-Cauchy prior on the shared residual spatial-coefficient SD. Subtract
+# the same observed/latent trait mean as sample_sigmab(). The auxiliary is
+# refreshed from its full conditional, so it need not be retained in output.
+sample_spatial_sd_half_cauchy <- function(B,Tr,G,A,C,sigma,scale) {
+  residual <- t(B)-computeBtcoef(G,Tr,A,C,matrix(0,ncol(B),nrow(B)))
+  auxiliary <- rinvgamma_cpp(1,1/sigma^2+1/scale^2)
+  sqrt(rinvgamma_cpp((length(B)+1)/2,sum(residual^2)/2+1/auxiliary))
+}
+
 # sample variance of factor scores (U ~ N(0, sigma_h^2), iid across sites/factors)
 sample_sigmah <- function(U, a_sigmah, b_sigmah){
 
@@ -1220,6 +1005,18 @@ sample_tau <- function(z, eta, a_tau, b_tau){
   })
 
   tau
+}
+
+# Half-Cauchy(scale) prior on each response SD. With v = tau^2,
+# v | auxiliary ~ IG(1/2, 1/auxiliary), auxiliary ~ IG(1/2, 1/scale^2).
+# Refresh the auxiliary conditional on the current SD before drawing the new
+# variance. This Gibbs step has no rejection loop or lower bound on the SD.
+sample_tau_half_cauchy <- function(z,eta,tau,scale) {
+  sumsqs <- colSums((z-eta)^2)
+  vapply(seq_len(ncol(z)),function(s) {
+    auxiliary <- rinvgamma_cpp(1,1/tau[s]^2+1/scale^2)
+    sqrt(rinvgamma_cpp((nrow(z)+1)/2,sumsqs[s]/2+1/auxiliary))
+  },numeric(1))
 }
 
 # sample size parameter of responses
@@ -1260,11 +1057,12 @@ sample_rnb <- function(z, eta, tune_sd = 5){
 
 
 # sample the intercepts, fixed effects, spatial fixed effects and the factor loadings
+# The species intercept has a Normal(0, sigma_b0^2) prior; loadings keep unit variance.
 sample_BBsL <- function(k, X, Tr, U,
                         G, A, C, sigma_b,
                         Gs, As, Cs, sigma_bs,
                         Ks, Xs_centers,
-                        Omega, model) {
+                        Omega, model, sigma_b0 = 1) {
 
   p <- ncol(X)
   ps <- ncol(Cs)
@@ -1282,6 +1080,7 @@ sample_BBsL <- function(k, X, Tr, U,
   if(1 + p + ps + d > 0){
 
     B_current <- diag(1, nrow = 1 + p + d + ps)
+    diag(B_current)[1] <- sigma_b0^2
     diag(B_current)[1 + seq_len(p)] <- sigma_b^2
     diag(B_current)[1 + p + d + seq_len(ps)] <- sigma_bs^2
 
@@ -1297,7 +1096,7 @@ sample_BBsL <- function(k, X, Tr, U,
 
       XU <- cbind(1, X, U)
 
-      b_current <- c(0, M_B[,s], rep(0, d), rep(0, ps))
+      b_current <- c(0, M_B[,s], rep(0, d), M_Bs[,s])
 
       BBsL <- sampleB_SoR(XU, invB_current, b_current, k_current,
                           Omega[,s], Xs_centers, Ks, ps)
@@ -1417,58 +1216,111 @@ loglik_spatialEffect <- function(KsBs_s, Lm1, logdet, sigma_s){
   loglikelihood
 }
 
-# sample scale parameter of spatial field
-sample_ls <- function(idx_ls, SE, list_SoRSummaries,
-                      a_l_s, b_l_s, sigma_s){
-
-  if(!is.null(list_SoRSummaries)){
-
-    S <- ncol(SE)
-
-    l_s_grid <- list_SoRSummaries$l_s_grid
-    ldet_grid <- list_SoRSummaries$logDetKuu_grid
-    Lm1_grid <- list_SoRSummaries$Lm1_grid
-
-    if(idx_ls == 1){
-      idx_ls_star <- 2
-    } else if(idx_ls == length(l_s_grid)){
-      idx_ls_star <- length(l_s_grid) - 1
-    } else {
-      idx_ls_star <- ifelse(runif(1) < .5, idx_ls - 1, idx_ls + 1)
-    }
-
-    # current point
-    l_s_current <- l_s_grid[idx_ls]
-
-    loglikelihood_current <- sum(
-      sapply(1:S, function(s){
-        loglik_spatialEffect(SE[,s], Lm1_grid[,,idx_ls], ldet_grid[idx_ls], sigma_s)
-      })
-    )
-
-    logPrior_current <- dgamma(l_s_current, a_l_s, b_l_s, log = T)
-
-    logposterior_current <- logPrior_current + loglikelihood_current
-
-    # proposed point
-    l_s_star <- l_s_grid[idx_ls_star]
-
-    loglikelihood_star <- sum(
-      sapply(1:S, function(s){
-        loglik_spatialEffect(SE[,s], Lm1_grid[,,idx_ls_star], ldet_grid[idx_ls_star], sigma_s)
-      })
-    )
-
-    logPrior_star <- dgamma(l_s_star, a_l_s, b_l_s, log = T)
-
-    logposterior_star <- logPrior_star + loglikelihood_star
-
-    if(runif(1) < exp(logposterior_star - logposterior_current)){
-      idx_ls <- idx_ls_star
+# Integrate the jointly Gaussian B0/B/L/Bs block before choosing a range.
+# The prior is range-independent, while the observation design depends on it.
+# Its Gaussian normalizer avoids holding whitened Bs fixed during a range move.
+spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
+                                      kappa, Omega, Xs_centers,
+                                      list_SoRSummaries, a_l_s, b_l_s,
+                                      location = NULL, sigma_b0 = 1) {
+  n <- nrow(X)
+  p <- ncol(X)
+  d <- ncol(U)
+  ps <- nrow(M_Bs)
+  S <- ncol(Omega)
+  # B0 must be integrated under the same Normal(0, sigma_b0^2) prior that
+  # sample_BBsL_cpp() then uses to draw it.
+  prior_precision <- c(1/sigma_b0^2, rep(1/sigma_b^2,p), rep(1,d), rep(1/sigma_bs^2,ps))
+  prior_means <- rbind(rep(0,S), M_B, matrix(0,d,S), M_Bs)
+  prior_linear <- prior_precision * prior_means
+  constant_omega <- vapply(seq_len(S),function(s) all(Omega[,s]==Omega[1,s]),logical(1))
+  if (!is.null(location)) {
+    if (length(location)!=n || anyNA(location))
+      stop("location must contain one non-missing group label per site row")
+    # Repeated binary observations share spatial basis rows, but retain their
+    # own covariates, factors and PG precisions. Continuous fits keep their
+    # existing constant-precision Gram-matrix shortcut.
+    if (anyDuplicated(location) && !all(constant_omega)) {
+      return(spatial_range_logweights_grouped(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+        kappa,Omega,Xs_centers,list_SoRSummaries,a_l_s,b_l_s,location,sigma_b0))
     }
   }
+  grid <- list_SoRSummaries$l_s_grid
+  vapply(seq_along(grid), function(j) {
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,j], nrow=n)
+    H <- matrix(0,n,ps)
+    H[cbind(rep(seq_len(n),ncol(Xs_centers)),as.vector(Xs_centers))] <- as.vector(Ks)
+    Z <- cbind(1,X,U,H)
+    # Continuous outcomes share an unweighted Gram matrix across species.
+    # Binary augmentation retains the heterogeneous weighted calculation.
+    gram <- if (any(constant_omega)) crossprod(Z) else NULL
+    linear <- crossprod(Z,kappa) + prior_linear
+    score <- vapply(seq_len(S), function(s) {
+      Q <- if (constant_omega[s]) Omega[1,s]*gram else crossprod(Z,Omega[,s]*Z)
+      Q <- Q + diag(prior_precision)
+      h <- linear[,s]
+      C <- chol(Q)
+      v <- forwardsolve(t(C),h)
+      .5*sum(v^2) - sum(log(diag(C)))
+    },numeric(1))
+    sum(score) + dgamma(grid[j],a_l_s,b_l_s,log=TRUE)
+  },numeric(1))
+}
 
-  idx_ls
+# Exact sufficient crossproducts for observations sharing a spatial row.
+spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+                                           kappa,Omega,Xs_centers,
+                                           list_SoRSummaries,a_l_s,b_l_s,
+                                           location,sigma_b0=1) {
+  n <- nrow(X);p <- ncol(X);d <- ncol(U);ps <- nrow(M_Bs);S <- ncol(Omega)
+  if(length(location)!=n || anyNA(location))
+    stop("location must contain one non-missing group label per site row")
+  stopifnot(n>0L,nrow(U)==n,nrow(Omega)==n,nrow(kappa)==n,ncol(kappa)==S,
+            nrow(M_B)==p,ncol(M_B)==S,ncol(M_Bs)==S,nrow(Xs_centers)==n)
+  group <- match(location,unique(location))
+  first <- which(!duplicated(group))
+  A <- cbind(1,X,U)
+  pa <- ncol(A)
+  precision <- c(1/sigma_b0^2,rep(1/sigma_b^2,p),rep(1,d),rep(1/sigma_bs^2,ps))
+  prior_mean <- rbind(rep(0,S),M_B,matrix(0,d,S),M_Bs)
+  prior_linear <- precision*prior_mean
+  diagonal_precision <- diag(precision,length(precision))
+
+  # Sufficient weighted crossproducts independent of the candidate range.
+  group_weight <- rowsum(Omega,group,reorder=FALSE)
+  group_kappa <- rowsum(kappa,group,reorder=FALSE)
+  linear_A <- crossprod(A,kappa)
+  weighted_A <- lapply(seq_len(S),function(s) Omega[,s]*A)
+  AA <- lapply(weighted_A,function(wA) crossprod(A,wA))
+  group_weighted_A <- lapply(weighted_A,function(wA) rowsum(wA,group,reorder=FALSE))
+
+  grid <- list_SoRSummaries$l_s_grid
+  vapply(seq_along(grid),function(j) {
+    # Decode the existing full, sparse or permuted coefficient layout before
+    # grouping. This guard prevents silently grouping different design rows.
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,j],nrow=n)
+    H <- matrix(0,n,ps)
+    H[cbind(rep(seq_len(n),ncol(Xs_centers)),as.vector(Xs_centers))] <- as.vector(Ks)
+    Hu <- H[first,,drop=FALSE]
+    if(any(H!=Hu[group,,drop=FALSE]))
+      stop("spatial design rows differ within a supplied location group")
+    linear_H <- crossprod(Hu,group_kappa)
+    score <- vapply(seq_len(S),function(s) {
+      AH <- crossprod(group_weighted_A[[s]],Hu)
+      HH <- crossprod(Hu,group_weight[,s]*Hu)
+      Q <- rbind(cbind(AA[[s]],AH),cbind(t(AH),HH))+diagonal_precision
+      h <- c(linear_A[,s],linear_H[,s])+prior_linear[,s]
+      C <- chol(Q)
+      v <- forwardsolve(t(C),h)
+      .5*sum(v^2)-sum(log(diag(C)))
+    },numeric(1))
+    sum(score)+dgamma(grid[j],a_l_s,b_l_s,log=TRUE)
+  },numeric(1))
+}
+
+# Exact categorical update, including the endpoints without proposal weights.
+sample_ls <- function(logweights) {
+  sample.int(length(logweights),1L,prob=exp(logweights-max(logweights)))
 }
 
 update_jSDMcoef <- function(list_data,
@@ -1508,7 +1360,7 @@ update_jSDMcoef <- function(list_data,
     tau <- list_params$tau
 
     l_s <- list_SoRSummaries$l_s_grid[idx_ls]
-    Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
   }
 
   # read priors
@@ -1523,6 +1375,9 @@ update_jSDMcoef <- function(list_data,
     b_sigmah <- list_priors$b_sigmah
     a_l_s <- list_priors$a_l_s
     b_l_s <- list_priors$b_l_s
+    # Prior SD of the species occupancy intercept (read by runOccJSDM()).
+    sigma_b0 <- list_priors$intercept_prior$sd
+    if (is.null(sigma_b0)) stop("list_priors$intercept_prior$sd is missing")
   }
 
   # read state variables
@@ -1552,7 +1407,11 @@ update_jSDMcoef <- function(list_data,
 
   # sample variance of continuous output
   if(model == "continuous"){
-    tau <- sample_tau(z, psiCoef, a_tau, b_tau)
+    if (identical(list_priors$noise_prior$type,"half_cauchy")) {
+      tau <- sample_tau_half_cauchy(z,psiCoef,tau,list_priors$noise_prior$scale)
+    } else {
+      tau <- sample_tau(z, psiCoef, a_tau, b_tau)
+    }
   }
 
   # sample Omega
@@ -1563,17 +1422,36 @@ update_jSDMcoef <- function(list_data,
     # Omega <- samplePGvariables(psiCoef)
   }
 
+  # Choose range after integrating the coefficient block, then immediately
+  # draw that entire block at the selected range. No intervening update may
+  # condition on the old coefficients after this collapsed step.
+  if (ps > 0) {
+    M_B <- t(computeBtcoef(G,Tr,A,C,matrix(0,ncol(z),ncol(X))))
+    M_Bs <- t(computeBtcoef(Gs,Tr,As,Cs,matrix(0,ncol(z),ps)))
+    kappa <- if (model == "continuous") k*Omega else k
+    logweights <- spatial_range_logweights(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+                                            kappa,Omega,list_Xs$Xs_centers,
+                                            list_SoRSummaries,a_l_s,b_l_s,
+                                            location=list_Xs$Xs_index,
+                                            sigma_b0=sigma_b0)
+    idx_ls <- sample_ls(logweights)
+    l_s <- list_SoRSummaries$l_s_grid[idx_ls]
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
+  }
+
   # sample fixed effects, spatial trait loadings and factor loadings
   list_BBsL <- sample_BBsL_cpp(k, X, Tr, U,
                            G, A, C, sigma_b,
                            Gs, As, Cs, sigma_bs,
                            Ks, list_Xs$Xs_centers,
-                           Omega, model)
+                           Omega, model,
+                           sigma_b0 = sigma_b0)
   # list_BBsL <- sample_BBsL_parallel(k, X, Tr, U,
   #                          G, A, C, sigma_b,
   #                          Gs, As, Cs, sigma_bs,
   #                          Ks, list_Xs$Xs_centers,
-  #                          Omega, model)
+  #                          Omega, model,
+  #                          sigma_b0 = sigma_b0)
   B <- list_BBsL$B
   Bt <- list_BBsL$Bt
   Bs <- list_BBsL$Bs
@@ -1584,7 +1462,12 @@ update_jSDMcoef <- function(list_data,
   # update variance of residuals of environmental covariates
   sigma_b <- sample_sigmab(B, Tr, G, A, C, a_sigmab, b_sigmab)
   if(ps > 0){
-    sigma_bs <- sample_sigmab(Bs, Tr, Gs, As, Cs, a_sigmabs, b_sigmabs)
+    if (identical(list_priors$spatial_sd_prior$type,"half_cauchy")) {
+      sigma_bs <- sample_spatial_sd_half_cauchy(Bs,Tr,Gs,As,Cs,sigma_bs,
+                                               list_priors$spatial_sd_prior$scale)
+    } else {
+      sigma_bs <- sample_sigmab(Bs, Tr, Gs, As, Cs, a_sigmabs, b_sigmabs)
+    }
   }
 
   # sample response to traits (observed and unobsered)
@@ -1625,15 +1508,6 @@ update_jSDMcoef <- function(list_data,
 
   # update variance of factor scores
   sigma_h <- sample_sigmah(U, a_sigmah, b_sigmah)
-
-  # sample spatial field scale
-  if(ps > 0){
-      idx_ls <- sample_ls(idx_ls, SE,
-                          list_SoRSummaries,
-                          a_l_s, b_l_s, sigma_s = 1)
-      l_s <- list_SoRSummaries$l_s_grid[idx_ls]
-      Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
-  }
 
   # output variables
   {
@@ -2486,7 +2360,3 @@ sampleB_m <- function(k, X, eta, Omega, B, b){
 
   B_output
 }
-
-
-
-

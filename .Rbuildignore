@@ -7,8 +7,8 @@
 ^TODO\.md$
 ^deprecated$
 ^dev$
+^mcp$
 ^data/.*_highp_highthetabaseline\.rda$
-^PARALLELISATION$
 ^\.claude$
 ^CLAUDE\.md$
 ^_config\.yml$
@@ -18,5 +18,12 @@
 ^\.github$
 ^vignettes/articles$
 ^vignettes/LESSON-PLAN\.md$
-^vignettes/ORIG_occJSDM\.Rmd$
 ^\.posit/assistant$
+^\.worktrees$
+^CLAUDE-HANDOVER\.md$
+^_includes$
+^assets$
+^vignettes/occJSDM-lesson-[0-7]\.(Rmd|md)$
+^vignettes/occJSDM-lesson-[0-7]_files$
+^vignettes/teaching-data$
+^vignettes/lesson-4-calibration-tables\.R$

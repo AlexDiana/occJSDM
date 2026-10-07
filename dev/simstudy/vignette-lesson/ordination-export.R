@@ -18,6 +18,7 @@ library(purrr)
 library(ggplot2)
 theme_set(ggtern::theme_bw(base_size = 12))
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 
 lesson_path <- "vignettes/teaching-data/nonspatial-lesson.rds"
@@ -31,7 +32,7 @@ manifest <- lesson$manifests$default
 fit_path <- file.path(archive, manifest$file)
 stopifnot(
   identical(input, lesson$input),
-  identical(input$source_hashes, lesson_source_hashes()),
+  lesson_source_check(input$source_hashes),
   identical(outputs$source_hashes, input$source_hashes),
   identical(outputs$lesson_md5, md5(lesson_path)),
   identical(outputs$fit_manifests$default, manifest),
@@ -118,11 +119,12 @@ for (chain in seq_len(dim(original$L_output)[4])) {
 stopifnot(all(maximum_error < 1e-10), minimum_singular_value > 1e-10)
 
 plot_names <- c("sites", "loadings", "biplot")
-plots <- setNames(lapply(paste0("native_", plot_names), get,
-                        envir = student_environment), plot_names)
-figures <- tibble(plot = plot_names,
-                  file = paste0("ordination-", plot_names, ".png"),
-                  width = c(12, 12, 9), height = c(7, 7, 7))
+plots <- c(setNames(lapply(paste0("native_", plot_names), get,
+                           envir = student_environment), plot_names),
+           list(ordinary_biplot = student_environment$ordinary_biplot))
+figures <- tibble(plot = names(plots),
+                  file = paste0("ordination-", gsub("_", "-", names(plots)), ".png"),
+                  width = c(12, 12, 9, 9), height = c(7, 7, 7, 7))
 for (index in seq_len(nrow(figures))) {
   path <- new_path(file.path("vignettes/teaching-data", figures$file[index]))
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
@@ -156,7 +158,8 @@ ordination_examples <- list(
   checks = list(draws = 24000L, maximum_error = maximum_error,
                 minimum_alignment_singular_value = minimum_singular_value),
   provenance = list(
-    source_hashes = lesson_source_hashes(), lesson_md5 = md5(lesson_path),
+    source_hashes = input$source_hashes, export_source_hashes = lesson_source_hashes(),
+    lesson_md5 = md5(lesson_path),
     outputs_md5 = md5(outputs_path), input_md5 = lesson$input_md5,
     fit_manifest = manifest, snippet_md5 = md5(snippet_path),
     exporter_md5 = md5(exporter_path), student_code_md5 = student_code_md5,
@@ -169,10 +172,11 @@ ordination_examples <- list(
                  "using orthogonal Procrustes, with scores transformed jointly.",
                  "Original fitted object unchanged; no scaling, refitting or thinning.",
                  "Truth-assisted orientation is a simulation diagnostic only.",
-                 "Circle areas encode products of marginal 95% widths, not joint coverage.")
+                 "Circle areas encode products of marginal 95% widths, not joint coverage.",
+                 "The ordinary biplot uses the unaligned fit and carries no truth overlay.")
   )
 )
 saveRDS(ordination_examples, new_path("vignettes/teaching-data/ordination-examples.rds"),
         compress = "xz")
 print(maximum_error)
-cat("Exported three native ordination plots from 24000 aligned draws.\n")
+cat("Exported three aligned native ordination plots from 24000 draws and the ordinary biplot.\n")

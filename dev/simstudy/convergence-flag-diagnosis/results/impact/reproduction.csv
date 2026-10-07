@@ -1,0 +1,34 @@
+"check","max_abs_difference","tolerance","pass"
+"community 5 current rows of community-scores.csv (every metric and group, every numeric column) from the pr11 fit",4.54747350886464e-12,1e-10,TRUE
+"community 5 original-site band errors (recheck_groups on the reproduced estimate) against community-scores.csv",4.44089209850063e-16,1e-10,TRUE
+"community 5 per-chain and pooled band errors against flagged-chain-scores.csv",9.43689570931383e-16,1e-10,TRUE
+"largest original-site cell Rhat of the pr11 fit (score_draw_block) against flagged-diagnostics.csv",4.66293670342566e-15,1e-10,TRUE
+"per-chain means pooled against the design scorer estimate",1.7430501486615e-14,1e-12,TRUE
+"pooled four-chain intervals against b_cells",0,1e-12,TRUE
+"extended chains: reconstructed means against each fit's stored psi_output",1.19904086659517e-14,1e-10,TRUE
+"extended run: pooled estimate against its pooled draws",2.73114864057789e-14,1e-12,TRUE
+"pr11 flag rule on the pr11 fit against the intercept-prior control flags (selection-control-flags-B.csv): Rhats, warnings, flag and reasons",4.66293670342566e-15,1e-12,TRUE
+"pr11 flag rule on the pr11 fit against current-main-recheck diagnostic-summary.csv: Rhats, warnings, unresolved",4.66293670342566e-15,1e-12,TRUE
+"package diagnostics recomputed on the pr11 fit give its saved fitting warnings",NA,NA,TRUE
+"published sites300_mae recomputed from community-scores.csv",3.19744231092045e-14,1e-08,TRUE
+"published sites300_mae recomputed with community 5 reproduced from the fit",2.8421709430404e-14,1e-08,TRUE
+"published baseline_to_sites300 recomputed from community-scores.csv",1.73194791841524e-14,1e-08,TRUE
+"published baseline_to_sites300 recomputed with community 5 reproduced from the fit",2.35367281220533e-14,1e-08,TRUE
+"published baseline_to_field4 recomputed from community-scores.csv",2.1316282072803e-14,1e-08,TRUE
+"published baseline_to_field4 recomputed with community 5 reproduced from the fit",2.1316282072803e-14,1e-08,TRUE
+"published field4_to_sites300 recomputed from community-scores.csv",3.35287353436797e-14,1e-08,TRUE
+"published field4_to_sites300 recomputed with community 5 reproduced from the fit",2.55351295663786e-14,1e-08,TRUE
+"published sites300_low_bias recomputed from community-scores.csv",4.08562073062058e-14,1e-08,TRUE
+"published sites300_low_bias recomputed with community 5 reproduced from the fit",4.44089209850063e-14,1e-08,TRUE
+"published sites300_high_bias recomputed from community-scores.csv",4.2632564145606e-14,1e-08,TRUE
+"published sites300_high_bias recomputed with community 5 reproduced from the fit",3.90798504668055e-14,1e-08,TRUE
+"published sites300_code_change recomputed from community-scores.csv",2.56461518688411e-14,1e-08,TRUE
+"published sites300_code_change recomputed with community 5 reproduced from the fit",1.54321000422897e-14,1e-08,TRUE
+"published two_stage_largest_code_change recomputed from community-scores.csv",1.77913239696181e-14,1e-08,TRUE
+"published two_stage_largest_code_change recomputed with community 5 reproduced from the fit",1.4432899320127e-14,1e-08,TRUE
+"substitution pr11_pooled leaves every other community-score row unchanged",NA,NA,TRUE
+"substitution near_truth leaves every other community-score row unchanged",NA,NA,TRUE
+"substitution mirror leaves every other community-score row unchanged",NA,NA,TRUE
+"substitution extended leaves every other community-score row unchanged",NA,NA,TRUE
+"phase B gate-detail-B.csv recomputed from the archived per-community tables",6.03961325396085e-14,1e-12,TRUE
+"phase B control groups of community 5 (band-error.csv, coverage.csv) from the pr11 fit",4.2632564145606e-14,1e-10,TRUE

@@ -1,16 +1,13 @@
 ---
-title: "occJSDM: quickstart and lesson guide"
+title: "occJSDM: quickstart"
 output:
   rmarkdown::html_vignette:
     toc: true
     css: teaching.css
 vignette: >
-  %\VignetteIndexEntry{occJSDM: quickstart and lesson guide}
+  %\VignetteIndexEntry{occJSDM: quickstart}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options:
-  markdown:
-    wrap: none
 ---
 
 ```{r setup, include=FALSE}
@@ -19,48 +16,93 @@ knitr::opts_chunk$set(echo = TRUE, collapse = FALSE, comment = "#>")
 source("lesson-links.R")
 ```
 
-occJSDM estimates species occurrence while allowing for imperfect field collection, PCR detection and false positives. It can also fit a JSDM to directly observed presence/absence data. The teaching lessons show the R code and compare the results with the truth used to simulate their data.
+`occJSDM` estimates which species occupy which sites from eDNA surveys. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). It models the species jointly: their responses to the environment, the role of their traits, and associations between species that the covariates do not explain, optionally with a spatial field. It can also analyse ordinary presence/absence surveys, in which each species is recorded as present or absent at each site and the records are assumed to be free of detection error. In that case `occJSDM` fits only a joint species distribution model (JSDM).
 
-## Choose a lesson
+This quickstart shows how the input data must be structured, makes a fitting call and takes a first look at the output, using the example data shipped with the package.
 
-- [Lesson 0: Create and explore a simulated survey](occJSDM-lesson-0.md). Optional preparation: sites, field samples, primers, PCR replicates, environmental covariates, traits and maps of the known truth.
-- [Lesson 1: Fit the model and compare its answers with truth](occJSDM-lesson-1.md). The main starting point: fit the model, understand occupancy error, and inspect actual examples of weak true detections, strong true detections and false positives.
-- [Lesson 2: Spatial landscapes and dispersal](occJSDM-lesson-2.md). A planned lesson on smooth environmental gradients, residual spatial structure and a separate dispersal simulation. It is not yet a worked spatial validation.
-- [Lesson 3: Understand the model's outputs by comparing them with truth](occJSDM-lesson-3.md). Environmental responses, trait effects, species associations, ordination, variation partitioning and detection effort. It includes a function index and explains why a real simulated effect can remain uncertain.
+## The example data
 
-You can read Lesson 3 after Lesson 1; the spatial lesson is not a prerequisite. The earlier output tour has been replaced by Lesson 3. The old `sampledata` and `sampleresults` objects remain available, but their generating truth is not stored with them, so the lessons use a complete matching simulation and fit instead.
+`sampledata` is a simulated two-stage eDNA survey of 10 species at 100 sites, stored as an R list. Each site has three field samples, and each sample was tested with three primers, twice each.
 
-## A minimal fitting example
-
-From the repository's `vignettes` directory, the following optional code fits the same non-spatial survey used in the lessons. It is shown without running during knitting because MCMC takes time. Lessons 1 and 3 render saved, checked results and show their matching truth.
-
-```{r quickstart, eval=FALSE}
+```{r data}
 library(occJSDM)
 
-lesson <- readRDS("teaching-data/nonspatial-lesson.rds")
-survey_data <- lesson$input$sim$data_list
-known_truth <- lesson$input$sim$true_params
+sampledata <- sampledata # this loads the package's sampledata into your environment
+str(sampledata, max.level = 1)
+head(sampledata$info)
+head(sampledata$OTU)
+head(sampledata$traits)
+```
 
-set.seed(20260921)
+It has three parts:
 
-fitmodel <- runOccJSDM(
-  data = survey_data,
-  listParams = list(n_factors = 2, n_lattrait = 1),
+- `info` has one row per PCR reaction: the `Site`, the field `Sample` the DNA came from, the `Primer`, and the covariates. Columns beginning `X_psi.` are occupancy covariates, columns beginning `X_theta.` are collection covariates, and `Xs.1` and `Xs.2` are the site coordinates.
+- `OTU` has one column per species and one row for each row of `info`, holding that species' read count in that reaction. Read counts can be supplied as they are, without converting the OTU table first: `runOccJSDM()` converts each count to a detection or non-detection, and a PCR reaction with at least `threshold` reads counts as a detection.
+- `traits` has one row per species.
+
+`runOccJSDM()` uses the structure of `info` to choose which model to fit. Here each sample has several rows, one per primer and PCR replicate, so it fits the two-stage occupancy model. If instead `info` had only one row per site, with no sample or PCR replicates, `runOccJSDM()` would skip the detection stages and fit a JSDM to the observed presence/absence.
+
+## Fit the model
+
+```{r fit, eval=FALSE}
+fit <- runOccJSDM(
+  data = sampledata,
+  listParams = list(n_factors = 2),
   threshold = 1,
   occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
-  collCovariates = "X_theta",
-  spatCovariates = NULL,
-  MCMCparams = list(nchain = 4, nburn = 3000, niter = 6000, nthin = 1),
+  collCovariates = c("X_theta.1", "X_theta.2"),
+  spatCovariates = c("Xs.1", "Xs.2"),
+  MCMCparams = list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1),
   summarisedLatentPresences = TRUE
 )
 ```
 
-`survey_data` is what the model receives. `known_truth` is kept separately for evaluation. `n_factors` controls the hidden site factors, whereas `n_lattrait` controls the unmeasured species-trait structure. These are different parts of the model.
+- `threshold`: a reaction with at least this many reads counts as a detection.
+- `occCovariates`, `collCovariates` and `spatCovariates` name the columns of `info` to use for occupancy, for collection and for the spatial field. The species traits are taken from `sampledata$traits`.
+  - The example includes the `spatCovariates` line to show how the full model is specified. The beta's spatial model is very underpowered, though, so we recommend leaving that line out of your own fits for now.
+- `n_factors` is the number of latent factors that capture associations between species.
+- `MCMCparams` sets the number of chains, the burn-in and kept iterations, and the thinning.
+- The priors have defaults, which `listPriors` changes. `?runOccJSDM` describes every argument.
 
-For reproduction with the original source and complete saved fits, follow `dev/simstudy/vignette-lesson/README.md`. Using the same seed with a different package revision does not guarantee the original results. The lessons record source and fit hashes and keep rendering separate from fitting.
+This chunk is not run while the vignette is built, because the fit takes several minutes. The package ships its result as `sampleresults`, which the rest of this guide uses.
 
-## What to inspect next
+```{r load-fit}
+fit <- sampleresults
+```
 
-Start with the diagnostics and probability comparisons in Lesson 1, then the coefficient, trait and community-output figures in Lesson 3. An interval crossing zero does not demonstrate that an ecological effect is absent; an interval excluding zero does not demonstrate that its magnitude is accurate.
+## Check that the chains agree
 
-For a particular function, use the index at the end of Lesson 3 or the package's R help. Genuine new-site prediction, spatial validation and comparisons with other JSDM packages require their own matched examples and are not established by the current non-spatial lessons.
+Before reading any estimate, check that the chains have converged on the same answer.
+
+```{r diagnostics}
+diagnostics <- returnConvergenceDiagnostics(fit)
+summary(diagnostics$rhat)
+summary(diagnostics$ess)
+head(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat", "ess")])
+```
+
+`rhat` compares the chains with each other: values close to 1 mean they agree, and larger values call for longer runs or a closer look at the parameters concerned. `ess` is the effective number of independent draws behind each estimate. The table covers the occupancy and detection coefficients; `plotTraceplot()` shows the chains themselves.
+
+## Look at the results
+
+Each species' baseline occupancy probability, with its credible interval:
+
+```{r occupancy, fig.width=7, fig.height=4}
+plotOccupancyRates(fit, idx_species = 1:5)
+```
+
+Each species' probability, for each primer, that a PCR reaction detects its DNA when that DNA is present in the sample:
+
+```{r detection, fig.width=7, fig.height=4}
+plotDetectionRates(fit, idx_species = 1:5)
+```
+
+The package's other `plot...()` and `return...()` functions cover covariate effects, collection and false-positive rates, species associations, ordination, variation partitioning and prediction at new sites. Each has its own help page.
+
+## Where to go next
+
+- `?runOccJSDM` for every fitting argument, including the priors.
+- `vignette("simulateOccJSDMData", package = "occJSDM")` to simulate a survey whose truth you know, so that you can compare the model's answers with it. The truth behind `sampledata` is not stored with it.
+- The [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) section of the README, before relying on the estimates.
+
+Detailed teaching lessons will follow after the beta.

@@ -286,7 +286,11 @@ create_waic_quantities <- function(n_obs){
 #'   \item{n_supportpoints}{Number of spatial support points used to
 #'   approximate the Gaussian process over site coordinates when
 #'   \code{spatCovariates} is non-empty. Defaults to
-#'   \code{getDefaultSupportPoints(n)}.}
+#'   20 percent of the number of unique coordinate locations, rounded down.
+#'   Capped to the number of unique locations. Requesting that number uses
+#'   every location as a support point. Short-range spatial patterns may
+#'   require more support points; check that increasing their number does
+#'   not materially change the estimated field or occupancy probabilities.}
 #' }
 #' @param threshold Threshold used to truncate the reads to binary detections
 #' for occupancy/two-stage models. Reads greater than or equal to the
@@ -329,6 +333,66 @@ create_waic_quantities <- function(n_obs){
 #' reproduces the previous hard-coded behaviour exactly. Its value is still
 #' under review, so treat a non-default setting as a diagnostic rather than a
 #' recommended configuration.
+#'
+#' For continuous responses, \code{tau_prior} selects the noise prior:
+#' \code{"inverse_gamma"} (current default) places an inverse-gamma prior on
+#' each species' noise variance, with \code{a_tau} (shape, default \code{5})
+#' and \code{b_tau} (rate for the reciprocal variance, default \code{5}).
+#' \code{"half_cauchy"} places a half-Cauchy prior on the noise standard
+#' deviation, with \code{tau_scale} (default \code{1}) in response units.
+#' The half-Cauchy option allows noise close to zero; the inverse-gamma
+#' default strongly discourages it. Each scale, shape and rate must be a
+#' finite positive number. These settings do not change the binary,
+#' occupancy or two-stage detection models. The chosen continuous noise
+#' prior is saved in \code{infos$noise_prior}.
+#'
+#' For spatial fits, \code{sigma_bs_prior = "half_cauchy"} enables an
+#' experimental half-Cauchy prior on the shared residual spatial-coefficient
+#' standard deviation, with \code{sigma_bs_scale} (default \code{1}) on the
+#' linear-predictor scale. This amplitude is not necessarily the realised
+#' spatial field's standard deviation, especially with reduced support.
+#' The default \code{sigma_bs_prior = "inverse_gamma"} retains the existing
+#' inverse-gamma prior on its variance (shape \code{10}, scale \code{1}).
+#' These settings require spatial covariates; \code{sigma_bs_scale} requires
+#' the half-Cauchy choice and must be a finite positive number. The applied
+#' choice is saved in \code{infos$spatial_sd_prior}. Half-Cauchy chains start
+#' at the supplied scale (the prior median); default chains retain their
+#' existing starting value. This is separate from
+#' continuous observation noise and leaves all other occupancy and detection
+#' priors unchanged.
+#' In full-rank binary spatial fits, the unbounded half-Cauchy can leave the
+#' spatial-amplitude posterior mean infinite and spatial-field means
+#' non-integrable. Use posterior medians and quantiles for spatial summaries
+#' with this experimental option, and check rank-based chain convergence.
+#' Bounded occupancy-probability means remain meaningful. This option does
+#' not establish improved spatial recovery.
+#'
+#' \code{sigma_b0} (experimental) sets how far each species' baseline
+#' occupancy \code{B0} may range. \code{B0} is the species' occupancy at a
+#' site with average covariate values, on the logit scale, and has a Normal(0,
+#' \code{sigma_b0}^2) prior. The default \code{1} is the previous fixed prior
+#' and leaves default fits unchanged. It puts about 95\% of the prior on
+#' baseline occupancies between 12\% and 88\%, so very rare or very common
+#' species can be pulled towards the middle; \code{sigma_b0 = 2} widens that
+#' range to about 2\% to 98\%. The value must be a finite positive number. It
+#' applies to spatial and non-spatial fits and does not affect the collection
+#' (detection) intercept. The applied prior is saved in
+#' \code{infos$intercept_prior}. For continuous data \code{B0} is on the
+#' response scale, so the occupancy interpretation above does not apply.
+#'
+#' A simulation study compared \code{sigma_b0} = 1, 2, 3 and 5
+#' (\code{dev/simstudy/occupancy-intercept-prior/} in the source repository).
+#' In binary fits, wider values reduced the overestimation of low occupancy
+#' probabilities, clearly in spatial fits and only slightly in non-spatial
+#' fits. In two-stage (eDNA) fits the data only weakly separate how often a
+#' species is present from how often a sample catches it when present, and the
+#' default prior probably helps by keeping \code{B0} from drifting along that
+#' trade-off: wider values made the MCMC mix worse, markedly at 3 and 5, and 3
+#' and 5 also increased the bias of probabilities between 0.2 and 0.8.
+#' Occupancy fits share that collection stage and were not tested, and neither
+#' were continuous fits. The default therefore stays at \code{1}. Keep it for
+#' occupancy and two-stage data; if you try a larger value for binary data,
+#' check chain convergence.
 #'
 #' @return A list with:
 #' \describe{
@@ -820,7 +884,7 @@ runOccJSDM <- function(data,
   # precompute spatial quantities
   {
     # Spatial covariates matrix
-    list_Xs <- computeSpatialSummaries(Xs, ps, maxPoints = 5)
+    list_Xs <- computeSpatialSummaries(Xs, ps)
     Xs_centers <- list_Xs$Xs_centers
     Xs_index <- list_Xs$Xs_index
     X_s_centers <- list_Xs$X_s_centers
@@ -841,8 +905,15 @@ runOccJSDM <- function(data,
 
     a_sigmab <- 10; b_sigmab <- 1
     a_sigmabs <- 10; b_sigmabs <- 1
+    spatial_sd_prior <- read_spatial_sd_prior(listPriors,ps>0)
+    intercept_prior <- read_intercept_prior(listPriors)
     a_sigmah <- 10; b_sigmah <- 1
     a_tau <- 5; b_tau <- 5
+    noise_prior <- if (model == "continuous") read_noise_prior(listPriors) else NULL
+    if (identical(noise_prior$type,"inverse_gamma")) {
+      a_tau <- noise_prior$shape
+      b_tau <- noise_prior$rate
+    }
     a_l_s <- 1; b_l_s <- 1
 
     list_priors <- list(
@@ -850,10 +921,13 @@ runOccJSDM <- function(data,
       "b_sigmab" = b_sigmab,
       "a_sigmabs" = a_sigmabs,
       "b_sigmabs" = b_sigmabs,
+      "spatial_sd_prior" = spatial_sd_prior,
+      "intercept_prior" = intercept_prior,
       "a_sigmah" = a_sigmah,
       "b_sigmah" = b_sigmah,
       "a_tau" = a_tau,
       "b_tau" = b_tau,
+      "noise_prior" = noise_prior,
       "a_l_s" = a_l_s,
       "b_l_s" = b_l_s
     )
@@ -1063,7 +1137,8 @@ runOccJSDM <- function(data,
         As <- matrix(0, S, gt)
         U <- matrix(0, n, d)
         sigma_b <- 1
-        sigma_bs <- .001
+        sigma_bs <- if (identical(spatial_sd_prior$type,"half_cauchy"))
+          spatial_sd_prior$scale else .001
         sigma_h <- 1
         idx_ls <- 3 # dim(list_SoRSummaries$Ks_all)[3][5]
         tau <- rep(1, S)
@@ -1071,7 +1146,7 @@ runOccJSDM <- function(data,
         Bt <- t(B) - computeBtcoef(G, Tr, A, C, matrix(0, S, ncov_psi))
         Bst <- t(Bs) - computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps))
 
-        Ks <- list_SoRSummaries$Ks_all[,,idx_ls]
+        Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=n)
 
         list_jSDMparams <- list(
           "B0" = B0,
@@ -1412,6 +1487,9 @@ runOccJSDM <- function(data,
     "model" = model,
     "jsdmModel" = jsdmModel
   )
+  infos$noise_prior <- noise_prior
+  infos$spatial_sd_prior <- spatial_sd_prior
+  infos$intercept_prior <- intercept_prior
 
   list(
     "results_output" = results_output,
@@ -1421,4 +1499,55 @@ runOccJSDM <- function(data,
     "Xs" = Xs,
     "X_psi" = X_psi)
 
+}
+
+# The occupancy intercept prior is Normal(0, sd^2); it is not the collection intercept.
+read_intercept_prior <- function(priors) {
+  sd <- get_param(priors, "sigma_b0", 1)
+  if (!is.numeric(sd) || length(sd) != 1L || !is.finite(sd) || sd <= 0)
+    stop("sigma_b0 must be a finite positive number")
+  list(mean = 0, sd = unname(sd))
+}
+
+# This prior controls spatial coefficients, not continuous-response noise.
+read_spatial_sd_prior <- function(priors,spatial) {
+  supplied <- any(c("sigma_bs_prior","sigma_bs_scale") %in% names(priors))
+  if (!spatial) {
+    if (supplied) stop("sigma_bs prior settings require spatial covariates")
+    return(NULL)
+  }
+  type <- get_param(priors,"sigma_bs_prior","inverse_gamma")
+  if (!is.character(type) || length(type)!=1L || is.na(type) ||
+      !type %in% c("half_cauchy","inverse_gamma"))
+    stop("sigma_bs_prior must be 'half_cauchy' or 'inverse_gamma'")
+  type <- unname(as.character(type))
+  if (type=="inverse_gamma") {
+    if ("sigma_bs_scale" %in% names(priors))
+      stop("sigma_bs_scale requires sigma_bs_prior = 'half_cauchy'")
+    return(list(type=type,shape=10,rate=1))
+  }
+  scale <- get_param(priors,"sigma_bs_scale",1)
+  if (!is.numeric(scale) || length(scale)!=1L || !is.finite(scale) || scale<=0)
+    stop("sigma_bs_scale must be a finite positive number")
+  list(type=type,scale=unname(scale))
+}
+
+# Continuous-response noise priors are separate from the detection priors.
+read_noise_prior <- function(priors) {
+  type <- get_param(priors,"tau_prior","inverse_gamma")
+  if (!is.character(type) || length(type)!=1L || is.na(type) ||
+      !type %in% c("half_cauchy","inverse_gamma"))
+    stop("tau_prior must be 'half_cauchy' or 'inverse_gamma'")
+  type <- unname(as.character(type))
+  positive_scalar <- function(name,default) {
+    value <- get_param(priors,name,default)
+    if (!is.numeric(value) || length(value)!=1L || !is.finite(value) || value<=0)
+      stop(name," must be a finite positive number")
+    value
+  }
+  if (type == "half_cauchy") {
+    list(type=type,scale=positive_scalar("tau_scale",1))
+  } else {
+    list(type=type,shape=positive_scalar("a_tau",5),rate=positive_scalar("b_tau",5))
+  }
 }

@@ -15,6 +15,7 @@ library(purrr)
 library(tibble)
 library(ggplot2)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 
 lesson_path <- "vignettes/teaching-data/nonspatial-lesson.rds"
@@ -28,7 +29,7 @@ manifest <- lesson$manifests$default
 fit_path <- file.path(archive, manifest$file)
 stopifnot(
   identical(lesson$input, input),
-  identical(input$source_hashes, lesson_source_hashes()),
+  lesson_source_check(input$source_hashes),
   identical(outputs$source_hashes, input$source_hashes),
   identical(outputs$lesson_md5, md5(lesson_path)),
   identical(manifest, outputs$fit_manifests$default),
@@ -51,7 +52,7 @@ sys.source("R/output.R", source_environment)
 sys.source("R/jsdmfun.R", source_environment)
 api_names <- c("returnOccupancyGradient", "plotOccupancyGradient", "plotSpeciesRates",
                "plotStage1FPRates", "plotStage2FPRates", "plotDetectionRates",
-               "plotCovariateEffect", "returnCovariateEffect_base", "plotCovariateEffect_base",
+               "plotCovariateEffect", "returnCovariateEffect_base", "returnCovariateEffect",
                "create_covariates_matrix")
 stopifnot(all(vapply(api_names, function(name) {
   identical(body(get(name, asNamespace("occJSDM"))), body(get(name, source_environment))) &&
@@ -131,7 +132,8 @@ remaining_examples$scaling <- scaling
 remaining_examples$plots <- plot_records
 remaining_examples$figures <- figures
 remaining_examples$provenance <- list(
-  source_hashes = lesson_source_hashes(), lesson_md5 = md5(lesson_path),
+  source_hashes = input$source_hashes, export_source_hashes = lesson_source_hashes(),
+  lesson_md5 = md5(lesson_path),
   output_md5 = md5(output_path), input_md5 = lesson$input_md5,
   fit_manifest = manifest, snippet_md5 = md5(snippet_path), exporter_md5 = md5(exporter_path),
   student_code_md5 = student_code_md5, api_names = api_names,

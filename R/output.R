@@ -480,8 +480,8 @@ plotOccupancyGradient <- function(fitModel,
 
 #' Stop early on a fit that predates `infos$X0_psi`.
 #'
-#' `X0_psi` holds the raw (untransformed) occupancy covariates, and the
-#' covariate-effect functions need it to build their prediction grid. It was
+#' `X0_psi` holds pre-spline covariates: standardized numbers and original
+#' factors. Stored means and SDs recover the original numeric units. It was
 #' added by `e60e3ad`; any model object fitted before that lacks the field.
 #' Without this guard the failure surfaces deep inside the grid construction
 #' as `min(NULL)` giving `Inf` and then `seq(Inf, -Inf, ...)` erroring with
@@ -510,122 +510,122 @@ stopIfNoRawCovariates <- function(fitModel, what){
   invisible(TRUE)
 }
 
-#' returnCovariateEffect
+#' Environmental response curves
 #'
-#' Return predicted species response curve
+#' Return predicted species responses as one environmental covariate changes.
 #'
 #' @details
+#' Numeric covariates are evaluated at 200 points over their observed range,
+#' in the original input units. Categorical covariates include every fitted
+#' level, including the first (reference) level. Other numeric covariates are
+#' held at their observed medians; other categorical covariates are held at
+#' their first fitted levels. Splines use the fitted scaling and knots.
 #'
+#' For each posterior draw, the intercept and all environmental contributions
+#' are added before conversion to an occupancy probability with the inverse
+#' logit. Continuous-response models retain the identity scale. Hidden site
+#' (latent-factor) and spatial contributions are set to zero. These are
+#' conditional environmental response curves, not predictions for particular
+#' sites or averages over unmeasured site conditions. They are not evidence
+#' of a causal effect of the covariate.
 #'
-#' @param fitModel Output from the function runOccJSDM
-#' @param covName Character vector. Name(s) of the covariate(s) to evaluate
-#' @param idx_species Indexes of the species to include (leave out for all species)
-#' @param confidence Numeric scalar between 0 and 1. The width of the Bayesian
-#'   credible interval to compute (default is \code{0.95} for a 95\% interval).
+#' @param fitModel Output from the function runOccJSDM.
+#' @param covName Character scalar. Name of one occupancy covariate in the
+#'   original input data, before scaling or spline expansion.
+#' @param idx_species Integer indexes of the species to include (default: all).
+#' @param confidence Numeric scalar strictly between 0 and 1. Probability
+#'   contained in the equal-tail Bayesian credible interval (default: 0.95).
+#'
+#' @return For a numeric covariate, a data frame with \code{x}, \code{median},
+#'   \code{lower}, \code{upper} and \code{Species}. The \code{median} column
+#'   contains the posterior median. Earlier versions labelled it \code{mean};
+#'   scripts using that column must now use \code{median}.
+#'   For a categorical covariate, a data frame with \code{x}, \code{Species},
+#'   \code{draw} and \code{value}, containing all posterior draws at every level.
+#'   Here \code{confidence} does not alter the raw draws; it controls the
+#'   intervals when \code{plotCovariateEffect()} summarises them.
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-returnCovariateEffect <- function(fitModel,
-                                  covName,
-                                  idx_species = NULL,
-                                  confidence = .95){
-
-  B_output <- fitModel$results_output$jsdm_output$B_output
-  B0_output <- fitModel$results_output$jsdm_output$B0_output
-  speciesNames <- fitModel$infos$speciesNames
-
-  if (is.null(idx_species)) {
-    idx_species <- seq_along(speciesNames)
-  }
-
-  sp_name <- speciesNames[idx_species]
-
-  B_output_vec <- apply(B_output, c(1,2), c)
-  B0_output_vec <- apply(B0_output, 1, c)
-
+returnCovariateEffect <- function(fitModel, covName, idx_species = NULL,
+                                  confidence = .95) {
   stopIfNoRawCovariates(fitModel, "returnCovariateEffect")
+  if (length(covName) != 1L) {
+    stop("covName must name one covariate.", call. = FALSE)
+  }
+  idx_species <- validate_covariate_response(fitModel, covName, idx_species, confidence)
 
-  X_psi <- fitModel$X_psi
-  X0_psi <- fitModel$infos$X0_psi
-
-  link_model <- ifelse(fitModel$infos$jsdmModel == "continuous","identity","logit")
-
-  list_matrix <- fitModel$infos$list_X_psi_mat
+  B <- fitModel$results_output$jsdm_output$B_output
+  B0 <- fitModel$results_output$jsdm_output$B0_output
+  # Iterations within chains, retaining singleton species/covariate dimensions.
+  n_draws <- dim(B0)[2L] * dim(B0)[3L]
+  B_draws <- array(aperm(B, c(3L, 4L, 1L, 2L)), c(n_draws, dim(B)[1L], dim(B)[2L]))
+  B0_draws <- matrix(aperm(B0, c(2L, 3L, 1L)), nrow = n_draws)
 
   returnCovariateEffect_base(
-    covName,
-    idx_species,
-    sp_name,
-    B0_output_vec,
-    B_output_vec,
-    list_matrix,
-    speciesNames,
-    X0 = X0_psi,
-    X = X_psi,
-    link = link_model
+    cov_name = covName, idx_species = idx_species,
+    B0_output_vec = B0_draws, B_output_vec = B_draws,
+    list_matrix = fitModel$infos$list_X_psi_mat,
+    speciesNames = fitModel$infos$speciesNames,
+    X0 = fitModel$infos$X0_psi, X = fitModel$X_psi,
+    link = if (fitModel$infos$jsdmModel == "continuous") "identity" else "logit",
+    confidence = confidence
   )
-
 }
 
-#' plotCovariateEffect
+# Validate shared public arguments before any posterior calculations.
+validate_covariate_response <- function(fitModel, covNames, idx_species, confidence) {
+  if (!is.character(covNames) || !length(covNames) || anyNA(covNames) ||
+      any(!covNames %in% fitModel$infos$list_X_psi_mat$names_df)) {
+    stop("Each covariate name must match an original occupancy covariate.", call. = FALSE)
+  }
+  if (!is.numeric(confidence) || length(confidence) != 1L ||
+      !is.finite(confidence) || confidence <= 0 || confidence >= 1) {
+    stop("confidence must be a single number strictly between 0 and 1.", call. = FALSE)
+  }
+  n_species <- length(fitModel$infos$speciesNames)
+  if (is.null(idx_species)) idx_species <- seq_len(n_species)
+  if (!is.numeric(idx_species) || !length(idx_species) || anyNA(idx_species) ||
+      any(!is.finite(idx_species) | idx_species != floor(idx_species) |
+            idx_species < 1L | idx_species > n_species)) {
+    stop("idx_species must contain valid positive integer species indexes.", call. = FALSE)
+  }
+  idx_species
+}
+
+#' Plot environmental response curves
 #'
-#' Plot predicted species response curve
+#' Show posterior medians and credible intervals as environmental covariates
+#' change, using the same conditional responses as \code{returnCovariateEffect()}.
 #'
-#' @details
-#'
-#'
-#' @param fitModel Output from the function runOccJSDM
-#' @param covNames Character vector. Name(s) of the covariate(s) to evaluate
-#' @param idx_species Indexes of the species to include (leave out for all species)
-#' @param confidence Numeric scalar between 0 and 1. The width of the Bayesian
-#'   credible interval to compute (default is \code{0.95} for a 95\% interval).
+#' @inheritParams returnCovariateEffect
+#' @param covNames Character vector. Names of occupancy covariates in the
+#'   original input data, before scaling or spline expansion.
+#' @inherit returnCovariateEffect details
+#' @return A named list of ggplot objects, one per requested covariate.
+#'   Numeric responses use lines and ribbons; categorical responses use
+#'   points and bars. Both display posterior medians and the requested
+#'   equal-tail credible intervals.
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-plotCovariateEffect <- function(fitModel,
-                                covNames,
-                                idx_species = NULL,
-                                confidence = .95){
-
-  B_output <- fitModel$results_output$jsdm_output$B_output
-  B0_output <- fitModel$results_output$jsdm_output$B0_output
-  speciesNames <- fitModel$infos$speciesNames
-
-  if (is.null(idx_species)) {
-    idx_species <- seq_along(speciesNames)
-  }
-
-  sp_name <- speciesNames[idx_species]
-
-  B_output_vec <- apply(B_output, c(1,2), c)
-  B0_output_vec <- apply(B0_output, 1, c)
-
+plotCovariateEffect <- function(fitModel, covNames, idx_species = NULL,
+                                confidence = .95) {
   stopIfNoRawCovariates(fitModel, "plotCovariateEffect")
-
-  X_psi <- fitModel$X_psi
-  X0_psi <- fitModel$infos$X0_psi
-
-  link_model <- ifelse(fitModel$infos$jsdmModel == "continuous","identity","logit")
-
-  list_matrix <- fitModel$infos$list_X_psi_mat
-
-  plot_list <- plotCovariateEffect_base(
-    idx_species,
-    covNames,
-    B0_output_vec,
-    B_output_vec,
-    list_matrix,
-    speciesNames,
-    X0 = X0_psi,
-    X = X_psi,
-    link = link_model
-  )
-
-  plot_list
+  idx_species <- validate_covariate_response(fitModel, covNames, idx_species, confidence)
+  plots <- lapply(covNames, function(cov_name) {
+    data <- returnCovariateEffect(fitModel, cov_name, idx_species, confidence)
+    plot_covariate_response(
+      data, cov_name, fitModel$infos$list_X_psi_mat$is_numeric[[cov_name]],
+      link = if (fitModel$infos$jsdmModel == "continuous") "identity" else "logit",
+      confidence = confidence
+    )
+  })
+  stats::setNames(plots, covNames)
 }
 
 #' returnBaselineOccupancyRates
@@ -910,6 +910,10 @@ plotCollectionRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the true and false positives at the lab stage
 #'
+#' The TP rate is drawn in blue (\code{#0072B2}) and the FP rate in vermillion
+#' (\code{#D55E00}) from the colour-blind-safe Okabe-Ito palette; add
+#' \code{scale_colour_manual()} to the returned plot to use other colours.
+#'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #' @param primerName Name of the primer to plot (defaults to the first primer in `fitModel$infos$primerNames`)
@@ -982,6 +986,9 @@ plotFPTPStage2Rates <- function(fitModel,
   # other than a prefix 1:k (TODO.md Fixed bugs 31/32).
   speciesNameOrdered <- data_plot$Species[order(data_plot$p1)]
 
+  # Okabe-Ito blue for TP and vermillion for FP (colours 1 and 6).
+  rate_colours <- okabe_ito(6)[c(1, 6)]
+
   detectionRates <- data_plot %>%
     ggplot()  +
     geom_errorbar(aes(x = factor(Species, level = speciesNameOrdered),
@@ -1001,7 +1008,7 @@ plotFPTPStage2Rates <- function(fitModel,
     ylab("Detection probability") +
     scale_color_manual(
       name = "Colour",
-      values = c("TP rate" = "blue", "FP rate" = "red")
+      values = c("TP rate" = rate_colours[1], "FP rate" = rate_colours[2])
     ) +
     theme(
       axis.text = element_text(angle = 0,
@@ -1021,6 +1028,10 @@ plotFPTPStage2Rates <- function(fitModel,
 #'
 #' @details
 #' Plots the 95% credible interval of the true positives at the lab stage
+#'
+#' Primers are coloured from the colour-blind-safe Okabe-Ito palette in their
+#' stored order (recycled, with a warning, beyond eight primers); add
+#' \code{scale_colour_manual()} to the returned plot to use other colours.
 #'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
@@ -1086,6 +1097,11 @@ plotDetectionRates <- function(fitModel,
       # coord_flip() inverts that into top-to-bottom; reverse the legend so
       # it matches the on-screen vertical order of the errorbars
       guides(color = guide_legend(reverse = TRUE)) +
+      # Named values pin each primer to its stored position in the palette
+      scale_color_manual(
+        values = stats::setNames(okabe_ito(length(primerNames)),
+                                 as.character(primerNames))
+      ) +
       theme_bw() + coord_flip()
 
     plotDetectionRates
@@ -1150,6 +1166,10 @@ plotStage1FPRates <- function(fitModel,
 #' @details
 #' Plots the 95% credible interval of the false positives at the lab stage
 #'
+#' Primers are coloured from the colour-blind-safe Okabe-Ito palette in their
+#' stored order (recycled, with a warning, beyond eight primers); add
+#' \code{scale_colour_manual()} to the returned plot to use other colours.
+#'
 #' @param fitModel Output from the function runOccJSDM
 #' @param idx_species Indexes of the species to be plotted (leave out to plot all the species).
 #'
@@ -1209,6 +1229,11 @@ plotStage2FPRates <- function(fitModel,
     theme_bw() +
     ylab("q") +
     labs(color = "Primer") +
+    # factor(Primer) sorts the names, so map colours by name to keep each
+    # primer at its stored position in the palette
+    scale_color_manual(
+      values = stats::setNames(okabe_ito(maxP), as.character(primerNames))
+    ) +
     theme(
       axis.text = element_text(angle = 0, size = 8),
       axis.title = element_text(size = 12, face = "bold"),
@@ -1532,13 +1557,7 @@ createSpatialPredMatrix <- function(Xs, l_s_grid, X_tilde, list_Xs_mat){
 
     l_s <- l_s_grid[j]
 
-    K_uu <- K2(X_tilde, X_tilde, 1, l_s) + diag(0.0001, nrow = nrow(X_tilde))
-    L_Kmm <- FastGP::rcppeigen_get_chol(K_uu)
-    invL_Kmm <- FastGP::rcppeigen_invert_matrix(L_Kmm)
-    K_staru <- K2(Xs, X_tilde, 1, l_s)
-    KnmLmt <- K_staru %*% t(invL_Kmm)
-
-    Ks_all[,,j] <- KnmLmt
+    Ks_all[,,j] <- spatialBasis(Xs,X_tilde,l_s)
 
   }
 
@@ -1678,7 +1697,9 @@ predictNewSites <- function(fitModel,
 
     B0_output_vec <- aperm(apply(B0_output, 1, c), c(2,1))
     B_output_vec <- aperm(apply(B_output, c(1,2), c), c(2,3,1))
-    L_output_vec <- aperm(apply(L_output, c(1,2), c), c(2,3,1))
+    # Collapse iteration/chain dimensions without dropping a zero-factor axis.
+    L_output_vec <- array(L_output,
+                          c(dim(L_output)[1:2],prod(dim(L_output)[3:4])))
 
     # A fit with no spatial field still returns Bs_output, but with a
     # zero-length first dimension (0 x S x niter x nchain). apply() over
@@ -2320,5 +2341,3 @@ computeSpeciesDetected <- function(beta_theta_output, p_output, M, K, primer, al
   output
 
 }
-
-

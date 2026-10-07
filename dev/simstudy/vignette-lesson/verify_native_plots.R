@@ -14,6 +14,7 @@ close <- function(a, b, tolerance = 1e-10) {
 
 library(occJSDM)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 x <- readRDS(new_path("vignettes/teaching-data/native-plots.rds"))
 lesson <- readRDS("vignettes/teaching-data/nonspatial-lesson.rds")
@@ -22,7 +23,7 @@ truth <- input$sim$true_params
 provenance <- x$provenance
 snippet_path <- new_path("dev/simstudy/vignette-lesson/native-plot-examples.Rmd")
 stopifnot(
-  identical(provenance$source_hashes, lesson_source_hashes()),
+  lesson_source_check(provenance$source_hashes),
   identical(provenance$lesson_md5, md5("vignettes/teaching-data/nonspatial-lesson.rds")),
   identical(provenance$output_md5, md5("vignettes/teaching-data/output-lesson.rds")),
   identical(provenance$snippet_md5, md5(snippet_path)),
@@ -40,6 +41,16 @@ validate_lesson_fit_identity(f, input)
 stopifnot(identical(saved$source_hashes, provenance$source_hashes),
           identical(saved$input_md5, provenance$input_md5),
           identical(dim(f$results_output$p_output)[3:4], c(6000L, 4L)))
+stopifnot(identical(provenance$perfect_fit_manifest, lesson$manifests$perfect))
+perfect_path <- file.path(archive, provenance$perfect_fit_manifest$file)
+stopifnot(identical(md5(perfect_path), provenance$perfect_fit_manifest$md5))
+perfect_saved <- readRDS(perfect_path)
+fp <- perfect_saved$fit
+validate_lesson_fit_identity(fp, input)
+stopifnot(identical(perfect_saved$source_hashes, provenance$source_hashes),
+          identical(perfect_saved$input_md5, provenance$input_md5),
+          identical(perfect_saved$mcmc, provenance$perfect_fit_manifest$mcmc),
+          identical(dim(fp$results_output$jsdm_output$B_output), c(2L, 10L, 6000L, 4L)))
 
 # Re-extract the student bodies to detect a stale figure/code pairing.
 rmd <- tempfile(fileext = ".Rmd")
@@ -61,7 +72,7 @@ exportable_chunks <- function(lines) {
 }
 expected_chunks <- exportable_chunks(readLines(snippet_path))
 lesson_chunks <- exportable_chunks(readLines("vignettes/occJSDM-lesson-3.Rmd"))
-stopifnot(length(expected_chunks) == 10L)
+stopifnot(length(expected_chunks) == 13L)
 if (any(names(expected_chunks) %in% names(lesson_chunks))) {
   stopifnot(all(names(expected_chunks) %in% names(lesson_chunks)),
             identical(expected_chunks, lesson_chunks[names(expected_chunks)]))
@@ -136,6 +147,25 @@ for (primer in 1:2) {
   }
 }
 cat("All coefficient/rate intervals, standardized truth, species and primer axes verified.\n")
+
+# Gradient 2 and both perfect-observation gradients, from their own draws.
+close(fp$X_psi, f$X_psi)
+stopifnot(identical(fp$infos$speciesNames, sp))
+covariates <- colnames(f$X_psi)
+for (name in c("environment_2", "environment_perfect_1", "environment_perfect_2")) {
+  rec <- x$plots[[name]]
+  k <- if (name == "environment_perfect_1") 1L else 2L
+  draws <- if (name == "environment_2") j$B_output else fp$results_output$jsdm_output$B_output
+  table <- x$truth$environment[x$truth$environment$covariate == covariates[k], ]
+  stopifnot(nrow(rec$data) == length(sp), nrow(table) == length(sp))
+  check_crosses(rec, table, 3)
+  for (i in seq_len(nrow(rec$data))) {
+    s <- match(rec$data$Output[i], sp)
+    close(unlist(rec$data[i, c("2.5%", "97.5%")]), quantile(draws[k, s, , ], c(.025, .975)))
+    close(table$truth[table$species == sp[s]], b$B[k, s])
+  }
+}
+cat("Gradient 2 and both perfect-observation gradients: 30 intervals from all 24000 draws and 30 truth crosses verified.\n")
 
 # Independently reconstruct every residual-correlation interval from loading
 # draws and map BOTH native x markers and truth labels back to named pairs.
@@ -228,4 +258,4 @@ for (i in seq_len(nrow(x$figures))) {
   stopifnot(identical(as.integer(signature), c(137L, 80L, 78L, 71L, 13L, 10L, 26L, 10L)))
 }
 stopifnot(file.info(new_path("vignettes/teaching-data/native-plots.rds"))$size < 1e6)
-cat("Nine PNGs, compact export, full-fit hash, source hashes and exact teaching-code provenance verified.\n")
+cat("Twelve PNGs, compact export, full-fit hash, source hashes and exact teaching-code provenance verified.\n")

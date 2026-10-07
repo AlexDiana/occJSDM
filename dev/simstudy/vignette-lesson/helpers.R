@@ -5,7 +5,7 @@ effective_detection_rate <- function(event_rate, mu, sigma, threshold=1) {
 }
 
 make_lesson <- function() {
-  n <- 100L; S <- 10L; M <- 2L; P <- 2L; K <- 6L
+  n <- 100L; S <- 10L; M <- 3L; P <- 2L; K <- 6L
   settings <- list(n=n, S=S, g=2L, M=rep(M,n), P=P,
                    K=rep(K,n*M*P), ncov_psi=2L, ncov_theta=1L)
   p_base <- seq(.35,.85,length.out=S)

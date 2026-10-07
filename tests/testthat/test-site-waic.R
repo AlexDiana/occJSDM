@@ -225,3 +225,33 @@ test_that("binary comparisons retain real site identities even with repeated res
   fit$X_psi <- fit$X_psi[2:1, , drop = FALSE]
   expect_error(compareSiteWAIC(first, computeSiteWAIC(fit)), "same.*observations")
 })
+
+
+test_that("new thresholded fits score the same observations as pre-binarized fits", {
+  for (model in c("occupancy", "two_stage")) {
+    raw <- simulate_fixture(model = model, useSpatField = FALSE)$data_list
+    raw$OTU[1:4, 1] <- c(0, 1, 2, 3)
+    binary <- raw
+    binary$OTU <- 1 * (raw$OTU >= 2)
+    fit_at <- function(dat, threshold) {
+      set.seed(914)
+      suppressMessages(suppressWarnings(runOccJSDM(
+        dat, threshold = threshold, listParams = list(n_factors = 1L),
+        listPriors = list(sigma_b0 = 2),
+        occCovariates = fixture_occ_covariates(), spatCovariates = NULL,
+        MCMCparams = FIXTURE_MCMC
+      )))
+    }
+    raw_fit <- fit_at(raw, 2)
+    binary_fit <- fit_at(binary, 1)
+    expect_identical(raw_fit$results_output, binary_fit$results_output)
+    expect_equal(raw_fit$infos$OTU, raw$OTU)
+    expect_equal(raw_fit$infos$threshold, 2)
+    expect_equal(binary_fit$infos$threshold, 1)
+    expect_equal(raw_fit$infos$intercept_prior, list(mean = 0, sd = 2))
+    score <- function(fit) suppressWarnings(computeSiteWAIC(fit, draws = c(1L, 21L)))
+    expect_equal(score(raw_fit)$log_lik, score(binary_fit)$log_lik)
+    expect_identical(extractWAIC(raw_fit, type = "legacy"), raw_fit$results_output$WAIC)
+    expect_identical(extractWAIC(binary_fit, type = "legacy"), binary_fit$results_output$WAIC)
+  }
+})

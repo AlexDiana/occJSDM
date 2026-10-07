@@ -1,6 +1,6 @@
 # Proposed observed-data, site-level WAIC
 
-Status: implementation and numerical checks complete, for Alex to review. This does not close the Lesson 3 factor-count selection exercise.
+Status update, 7 October 2026: Alex approved PR #14 at `3eb9cd3` on 6 October. Conflict resolution against main `66ffa78` is complete and verified; PR #14 remains unmerged. The September checks below remain historical evidence from the two-sample survey; former Lesson 3 model comparison is now in Lesson 4, whose current survey has three samples per site. Factor-count reliability validation remains open.
 
 ## Scientific target
 
@@ -17,7 +17,7 @@ The existing stored scalar combines complete-data terms. Preserve it only throug
 - [x] Check saved one- and two-factor teaching fits, full tests, installed-package check and independent review. Record numerical evidence and remaining validation in a companion report.
 - [x] Update public help, lesson caveats and TODO review queue.
 
-Delivery: commit and publish as a separate PR for Alex. Leave merging and acceptance of the scientific target to review.
+Delivery: PR #14 was approved by Alex on 6 October 2026. The 7 October integration preserves the approved likelihood implementation; current checks are recorded in `site-waic-validation.md`. Merging and lesson publication remain separate actions.
 
 ## Formula
 

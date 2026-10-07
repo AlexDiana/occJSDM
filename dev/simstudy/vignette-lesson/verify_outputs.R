@@ -3,6 +3,7 @@ args <- commandArgs(TRUE)
 stopifnot(length(args) == 1L)
 archive <- normalizePath(args[1], mustWork = TRUE)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 source("dev/simstudy/vignette-lesson/score_lesson.R")
 x <- readRDS("vignettes/teaching-data/output-lesson.rds")
 lesson <- readRDS("vignettes/teaching-data/nonspatial-lesson.rds")
@@ -15,7 +16,8 @@ close <- function(a, b, tolerance = 1e-10) {
   stopifnot(identical(dim(a), dim(b)), length(a) == length(b),
             all(is.finite(a)), all(is.finite(b)), max(abs(a - b)) < tolerance)
 }
-stopifnot(identical(x$source_hashes, lesson_source_hashes()),
+stopifnot(lesson_source_check(x$source_hashes),
+          identical(x$source_hashes, lesson$input$source_hashes),
           identical(x$lesson_md5, unname(tools::md5sum("vignettes/teaching-data/nonspatial-lesson.rds"))),
           identical(x$legacy_fit_md5, unname(tools::md5sum("data/sampleresults.rda"))),
           identical(x$exporter_md5, unname(tools::md5sum("dev/simstudy/vignette-lesson/summarise_outputs.R"))))

@@ -1,0 +1,7 @@
+"variant","target","cells","signed_error_pp","absolute_error_pp","brier_score","negative_log_score"
+"best native fit, basin B","new_site_prediction",3000,1.10588442229664,7.11130002514839,0.182594247851024,0.546895957088673
+"best native fit, basin B","sampled_site_recovery",1000,1.15799563521348,13.2691727514451,0.119070554867628,0.378697368506524
+"original unpenalised (provisional)","new_site_prediction",3000,1.09192525268999,7.14416332847785,0.182656794195508,0.54740301033001
+"original unpenalised (provisional)","sampled_site_recovery",1000,1.1645010143024,13.5545206860521,0.119315130398358,0.379116789300539
+"revised selected, basin A","new_site_prediction",3000,1.08430293529928,7.1406147300622,0.182643006363223,0.54730655066188
+"revised selected, basin A","sampled_site_recovery",1000,1.15976348946526,13.2645620874661,0.120371500976669,0.382438536243416

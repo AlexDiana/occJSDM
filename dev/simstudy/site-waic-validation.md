@@ -1,6 +1,6 @@
 # Observed-data site WAIC: proposed correction for Alex
 
-Status: **ALEX TO REVIEW**, 22 September 2026. Branch `codex/site-waic`, based on main `3a97267`. No changes to sampling, priors, fitted occupancy estimates or stored teaching fits.
+Status update, 7 October 2026: Alex approved PR #14 at `3eb9cd3` on 6 October. Conflict resolution against main `66ffa78` is complete and verified; PR #14 remains unmerged. The September checks below remain historical evidence from the two-sample survey; former Lesson 3 model comparison is now in Lesson 4, whose current survey has three samples per site. Factor-count reliability validation remains open.
 
 ## What this fixes, in plain words
 
@@ -17,7 +17,7 @@ The WAIC formula applied afterwards is conventional. Its uncertainty and reliabi
 1. `R/site-waic.R`: exact observation/collection likelihood, posterior draw mapping, integration refinement, WAIC summaries and comparison guards. `src/site_waic.cpp`: small deterministic log-space integration kernel. The derivation is in `site-waic-plan.md`.
 2. `R/output.R`: `extractWAIC()` now defaults to the observed-data score. This changes both its meaning and its cost: it calculates a score instead of instantly retrieving a scalar. `extractWAIC(fit, type = "legacy")` explicitly retrieves the old scalar. `results_output$WAIC` remains legacy for compatibility, and the existing teaching archive still stores those original values.
 3. `R/runOccJSDM.R`: save the threshold used to turn read counts into detections. Older saved occupancy/two-stage fits must supply their actual fitting threshold, because that cannot be inferred reliably from the reads. New fits reject an inconsistent threshold at scoring time.
-4. `tests/testthat/test-site-waic.R`: independent enumeration and integration references, numerical and mapping regressions. Public help and Lesson 3 explain how to use the corrected score and why it does not yet settle the teaching example's factor count.
+4. `tests/testthat/test-site-waic.R`: independent enumeration and integration references, numerical and mapping regressions. Public help and current Lesson 4 explain how to use the corrected score and why it does not yet settle the teaching example's factor count.
 
 ## Scope and limits
 
@@ -29,7 +29,7 @@ Tensor quadrature grows quickly with factor count. Default settings can check up
 
 Model comparisons require identical scored responses, response order, threshold, sample/primer mapping and site identities. Covariates and factor counts may differ. In particular, binary fits' synthetic `siteNames=1:n` must not hide a permutation of the actual sites in `data_info$Site`. Independent review found that case; a regression test failed before the identity correction and passes afterwards.
 
-## Tests and independent numerical checks
+## Historical tests and independent numerical checks (22 September 2026)
 
 - **Source suite:** 692 passing expectations, zero failures/errors/test warnings; the existing opt-in long coverage study is skipped. The new file contributes 51 expectations.
 - **Mathematical references:** explicit enumeration of every occupancy and collection state in a small unbalanced, partly missing, multi-primer dataset; adaptive one-dimensional integration of shared-factor species likelihoods; known symmetric probabilities; analytic occupancy-only mixtures. Joint integration retains species dependence and agrees after an orthogonal factor rotation and equivalent SD/loading rescaling.
@@ -37,9 +37,9 @@ Model comparisons require identical scored responses, response order, threshold,
 - **Reference software:** score, effective-parameter penalty and standard error agree with `loo::waic()` on both teaching fits' log-likelihood matrices. This cross-check validates the final WAIC arithmetic; the independent enumeration and integration checks validate its likelihood inputs.
 - **Installed package:** `R CMD check`, with manual and vignettes disabled, completes with zero errors, three existing warnings and three notes. Installed tests and examples pass. Warnings concern the R header's unsupported clang warning option, the existing undocumented `predictNewSites(verbose)` argument and existing GNU Makefile extensions. Notes concern the linked worktree's `.git`, accepted LICENSE metadata and existing undefined globals. No new diagnostic names this implementation.
 - **Documentation:** roxygen help generated, pkgdown reference index passes, and Lesson 3 renders to both HTML and Markdown. The old archive exporter/verifier explicitly read the legacy stored scalar and remain usable with the original package version. No saved fits or plots were regenerated.
-- **Independent code review:** no remaining high/medium findings after the binary site-identity correction. Alex's scientific/code review is still required.
+- **Independent code review:** no remaining high/medium findings after the binary site-identity correction. Alex's scientific/code review was still required at this date; he approved the PR on 6 October.
 
-## Saved teaching-fit check
+## Historical saved teaching-fit check (22 September 2026)
 
 The existing one-factor and two-factor fits use the same observations: 100 sites, 10 species, two field samples per site, two primers and six PCR replicates per primer. The generating simulation has two factors. We did not refit either candidate.
 
@@ -75,4 +75,18 @@ The parent directory contains `prediction-lesson-20260922/one-factor-fit.rds` (M
 
 ## What remains after this PR
 
-Alex should review the target, likelihood and API change. For the Lesson 3 factor-count example, score held-out *observed surveys* at independent sites, check MCMC precision using more retained draws, and assess whether WAIC differences agree with that validation. The existing lesson comparison against true occupancy probabilities remains useful but scores a different target. Do not mark factor-count selection complete or promise recovery of the generating count. Spatial model comparison remains separate work.
+Alex approved the target, likelihood and API change on 6 October 2026. For the current Lesson 4 factor-count example, score held-out *observed surveys* at independent sites, check MCMC precision using more retained draws, and assess whether WAIC differences agree with that validation. The existing lesson comparison against true occupancy probabilities remains useful but scores a different target. Do not mark factor-count selection complete or promise recovery of the generating count. Spatial model comparison remains separate work.
+
+
+## Integration validation (7 October 2026)
+
+Merged main `66ffa783991f8b19f9eb85e01ba499ae1db5508c` into the PR branch based on Alex-approved `3eb9cd33c2a7bee1980eb39ba8260e7fe86a3302`. All five conflicts are resolved. `R/site-waic.R` and `src/site_waic.cpp` are byte-for-byte unchanged from that approved head. The integration retains main's sampler, priors, threshold conversion and output fixes. Native exports were regenerated with Rcpp and the compiled registrations checked: both `sample_BBsL` routines have 17 arguments and `site_loglik_cpp` has 6.
+
+- **Source tests:** 1,050 passing expectations, zero failures or test warnings, one explicitly opt-in coverage study skipped. The focused site-WAIC file passes 67 expectations, including 16 new assertions checking threshold-2 raw reads against pre-binarized threshold-1 observations in occupancy and two-stage fits. Both paths use the same seed and nondefault intercept-prior SD of 2; posterior results and scored likelihoods agree, raw reads and threshold metadata are retained, and explicit legacy extraction is unchanged.
+- **Installed-package check:** clean integrated and clean recorded-main source archives were each built and checked with `--no-manual --no-build-vignettes` and vignette building disabled at the build step. Both report zero errors, five warnings and two notes. The shared warnings are the R header's unsupported clang warning option, undocumented `predictNewSites(verbose)`, GNU Makefile extensions, and two missing-vignette-output warnings caused by disabling vignette builds. Shared notes concern LICENSE metadata and existing R-code globals/analysis. The integrated installed suite passes 1,014 expectations, with zero failures/test warnings and eight standard skips (six CRAN-gated tests and two source-only checks); main passes 947 under the same settings. No new diagnostic category appears.
+- **Help and lessons:** roxygen2 8.0.0 regenerates help without unrelated changes. Lessons 3 and 4 render in fresh sessions to Markdown and HTML; the changed sections were visually inspected. Numerical tables are unchanged apart from the explicit legacy-score label. Two regenerated Lesson 3 figures differed only in rendering details (legend order and a one-level colour difference); main's tracked figures were retained. All teaching bundles and publication settings match main. Lesson-link and archive-source-check regressions pass, as do all 10 lesson-site JavaScript tests.
+- **Scope and provenance:** no archive was rescored, no fits were rerun for teaching, and no stored hashes or source allowlists were changed. Exporter changes preserve the legacy scalar but change source identity; the build README explains why historical archives require matching historical source and library. September's two-sample numerical validation is not evidence for the current three-sample fits.
+- **Independent final review:** no material integration findings. The reviewer checked native interfaces, main-side preservation, threshold provenance, lesson placement, historical evidence and archive gates. Review did not certify current-fit scientific reliability, which remains open.
+- **Diff checks:** no conflict entries remain. Unstaged changes and the staged PR diff against main pass whitespace checks. The full staged merge relative to the old PR head reports whitespace already present in main's archive/generated files; those unrelated files were preserved.
+
+The conflict-resolution commit updates the existing PR only. It does not merge into main, publish lessons or complete factor-count selection. Alex's 6 October approval applies to the original head, not a fresh review of this integration.

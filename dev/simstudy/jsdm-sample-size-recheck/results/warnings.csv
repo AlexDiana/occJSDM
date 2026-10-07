@@ -1,0 +1,3 @@
+"key","schedule","warning","rank_rhat_if_scalar"
+"n1000-02","fits","Convergence issue in 'sigmah_output'. Max R-hat > 1.1",1.04917023717494
+"n1000-04","fits","Convergence issue in 'sigmah_output'. Max R-hat > 1.1",1.07154093455116

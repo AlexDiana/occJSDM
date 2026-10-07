@@ -1,0 +1,9 @@
+"arrangement","arm","range_recovered"
+"clustered","binary",FALSE
+"grid","binary",FALSE
+"pairs","binary",FALSE
+"spread","binary",FALSE
+"clustered","two_stage",FALSE
+"grid","two_stage",FALSE
+"pairs","two_stage",FALSE
+"spread","two_stage",FALSE

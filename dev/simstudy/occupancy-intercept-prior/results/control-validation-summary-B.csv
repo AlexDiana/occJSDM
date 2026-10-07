@@ -1,0 +1,14 @@
+"phase","quantity","controls","compared","max_abs_difference"
+"B","estimate",20,20,0
+"B","truth",20,20,0
+"B","signed_error",20,20,4.61852778244065e-14
+"B","mean_abs_cell_error",20,20,4.9737991503207e-14
+"B","published_signed_error",20,20,9.76996261670138e-15
+"B","published_mean_abs_cell_error",20,20,9.9475983006414e-14
+"B","b0_species",20,20,0
+"B","b0",20,20,4.9960036108132e-16
+"B","published_b0",20,20,0
+"B","bt_species",20,20,0
+"B","bt",20,20,4.71844785465692e-16
+"B","published_bt",20,20,0
+"B","cells_and_groups_unequal",20,20,0

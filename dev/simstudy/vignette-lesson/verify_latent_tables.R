@@ -4,19 +4,21 @@ args <- commandArgs(TRUE)
 stopifnot(length(args) == 1L)
 archive <- normalizePath(args[1], mustWork = TRUE)
 source("dev/simstudy/vignette-lesson/helpers.R")
+source("dev/simstudy/vignette-lesson/source-check.R")
 
 lesson_path <- "vignettes/teaching-data/nonspatial-lesson.rds"
 lesson <- readRDS(lesson_path)
 bundle <- readRDS("vignettes/teaching-data/latent-presence-lesson.rds")
 stopifnot(identical(bundle$lesson_md5, unname(tools::md5sum(lesson_path))),
-          identical(bundle$source_hashes, lesson_source_hashes()),
+          lesson_source_check(bundle$source_hashes),
+          identical(bundle$source_hashes, lesson$input$source_hashes),
           identical(bundle$exporter_md5, unname(tools::md5sum(
             "dev/simstudy/vignette-lesson/summarise_latent_tables.R"))))
 fit_path <- file.path(archive, bundle$fit_manifest$file)
 stopifnot(identical(unname(tools::md5sum(fit_path)), bundle$fit_manifest$md5))
 fit <- readRDS(fit_path)$fit
 x <- bundle$tables
-stopifnot(nrow(x) == 24000L)
+stopifnot(nrow(x) == 36000L)
 
 sample_ids <- unique(fit$infos$data_info[c("Site", "Sample")])
 site_index <- match(as.character(x$Site), as.character(fit$infos$siteNames))
@@ -72,11 +74,11 @@ duplicate_failure <- tryCatch({
 }, error = function(e) TRUE)
 stopifnot(duplicate_failure)
 
-example <- joined[joined$species == "OTU_1" & joined$Site %in% c(2, 3), ]
-stopifnot(nrow(example) == 48L, all(example$z == 1),
+example <- joined[joined$species == "OTU_1" & joined$Site %in% c(1, 6), ]
+stopifnot(nrow(example) == 72L, all(example$z == 1),
           any(example$source == "Laboratory false positive"),
           any(example$source == "True detection"))
 tbl <- occJSDM::plotLatentPresences(example, species_name = "OTU_1")
-stopifnot(inherits(tbl, "gt_tbl"), nrow(tbl$`_data`) == 48L)
-cat("Verified all 24,000 native records against archived probabilities and input reads.\n")
+stopifnot(inherits(tbl, "gt_tbl"), nrow(tbl$`_data`) == 72L)
+cat("Verified all 36,000 native records against archived probabilities and input reads.\n")
 cat("Truth joins survive row permutations and reject duplicate identities; native table builds.\n")
