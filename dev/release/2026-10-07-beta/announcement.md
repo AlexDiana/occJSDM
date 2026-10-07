@@ -1,3 +1,5 @@
+**Cancelled 7 October 2026:** This draft is retained for reference only. The next major task is reviewing Lessons 0 to 7 line by line.
+
 Subject: occJSDM v0.1.0 beta: occupancy modelling for eDNA metabarcoding
 
 We have released the beta of occJSDM, an R package combining a joint species distribution model with the two-stage eDNA occupancy model of Ji et al. (2025). It estimates occupancy while accounting for false negatives and false positives in field collection and laboratory detection. It returns species-specific true-positive and false-positive field collection probabilities and lab true-positive and false-positive detection probabilities, with the lab probabilities estimated separately for each primer. Studies using multiple primers can therefore be analysed as a single dataset.
