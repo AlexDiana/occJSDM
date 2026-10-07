@@ -183,10 +183,11 @@
     "raw_Cloud_artifacts_collected": false
   },
   "remaining_Cloud_checks": [
-    "Measure CPU, peak RAM, elapsed time and actual MCP call behaviour for the intended teaching schedule; only short native fit timing is available",
-    "Record actual model IDs/provider routes, usage/cost, timing and Cloud resource limits",
-    "Run matched A/B/C model trials and make adoption decision",
-    "Rehearse copied student project and non-AI workflow before workshop packaging"
+    "Record complete provider/model routing and generation settings, per-request usage/timing, CPU allocation and total-project resource limits; retained dashboard changes and individual-child RSS are partial measurements.",
+    "Review the completed unscored A/B/C rehearsals and scientific/Indonesian teaching fidelity; users must learn from the vignettes and lessons.",
+    "Define acceptance criteria before any future controlled trials or classroom adoption; Sonnet with MCP remains deferred and no further paid runs are requested for the current review.",
+    "Establish an appropriate teaching/analysis schedule with verified diagnostics; the completed 5000/5000 benchmark failed the stricter coefficient screens.",
+    "Review student-project isolation and rehearse the student and non-AI workflows before workshop packaging."
   ],
   "second_input_workflow": {
     "input_path": "/cloud/project/occjsdm-pilot-data.rds",
@@ -334,7 +335,7 @@
           "output": "Resource measurement ready. Restart occJSDM through /mcp in Posit Assistant.",
           "evidence_level": "Doug pasted Cloud Terminal output; no direct Cloud access"
         },
-        "cleanup": "pending: restore prior P2A_RSCRIPT setting with setup helper --remove and restart server"
+        "cleanup": "2026-10-06 user-reported first --remove succeeded and restored the original launcher setting; backup settings.json.benchmark-eb23b6f7384c45a0833f912a89e84dd9.bak. The helper archives its setup record on successful removal, so a second --remove failed while reading the absent active record before changing settings. PA server restart remains pending."
       },
       "short_measured_call": {
         "date": "2026-10-06",
@@ -516,5 +517,25 @@
         }
       }
     }
+  },
+  "model_selection_evidence_2026_10_06": {
+    "date": "2026-10-06",
+    "label": "DeepSeek: DeepSeek V4.1 Flash (Medium)",
+    "reasoning_label": "Medium",
+    "source": "Doug supplied Screenshot 2026-10-06 at 09.52.14.png",
+    "scope": "UI label and preset observed; exact provider route and API generation parameters not captured"
+  },
+  "usage_snapshot_2026_10_06": {
+    "DeepSeek_model_total_USD": 0.11,
+    "displayed_all_models_total_USD": 1.04,
+    "condition_costs_unavailable": true,
+    "record": "reports/model-trial.json: spend_snapshot"
+  },
+  "rehearsal_review": {
+    "status": "completed_unscored_review_human_review_pending",
+    "report": "reports/comparison-review.md",
+    "date": "2026-10-07",
+    "controlled_comparison_completed": false,
+    "workshop_adoption_approved": false
   }
 }

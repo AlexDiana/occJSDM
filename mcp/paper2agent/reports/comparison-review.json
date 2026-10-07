@@ -1,0 +1,443 @@
+{
+  "date": "2026-10-07",
+  "status": "unscored_rehearsal_review_prepared_human_review_pending",
+  "scored": false,
+  "report_path": "comparison-review.md",
+  "report_sha256": "a479d8e6785680fc565543ed1279f4cc856904aeaae2f2175467ab961f46dedd",
+  "scope": {
+    "primary_comparison": [
+      "A",
+      "B"
+    ],
+    "reference_condition": "C",
+    "D": "deferred by Doug; no additional paid runs requested",
+    "execution_cases_each": 10,
+    "teaching_exchanges_each": 5,
+    "repetitions_observed_each": 1
+  },
+  "main_finding": "MCP adds observed validation, native readback and artifact provenance; retained prose errors prevent a claim of teaching reliability or workshop readiness.",
+  "recommendation": "Include MCP in the paper as a practical execution interface for new users. Consider it as workshop support for users required to learn from the vignettes and lessons; do not treat Sonnet or DeepSeek as authoritative teachers. Preserve scientific/Indonesian review and verified-analysis requirements before classroom use.",
+  "not_established": [
+    "Causal improvement due to MCP alone",
+    "Teaching acceptance",
+    "Student learning gains",
+    "Cost per correct scenario",
+    "DeepSeek A/B cost difference",
+    "Model ranking",
+    "MCP effect on Sonnet",
+    "Workshop readiness"
+  ],
+  "evidence_index": [
+    {
+      "condition": "A",
+      "scenario": 1,
+      "exchange": null,
+      "path": "comparison-setup/direct-r-workflow-1.json",
+      "sha256": "c071af352fa657e7560df236f859185027071aa5988a821c7ee3ded29e007046",
+      "status": "native_saved_object_comparison_passed_user_reported_overwrite_guard_missing"
+    },
+    {
+      "condition": "A",
+      "scenario": 2,
+      "exchange": null,
+      "path": "comparison-setup/direct-r-malformed-1.json",
+      "sha256": "50087eff2661e02620f12a48b0646c5993c1b77f1653c92e1f4198cc999d84eb",
+      "status": "correct_structural_diagnosis_but_attempted_fitting_after_mismatch"
+    },
+    {
+      "condition": "A",
+      "scenario": 3,
+      "exchange": null,
+      "path": "comparison-setup/direct-r-missing-covariate-1.json",
+      "sha256": "6c7d8f868ef600f34e49606438ad25f3ee3df3a4a99d1c32bec06d6427e05e41",
+      "status": "covariate_correction_executed_correctly_teaching_errors_observed"
+    },
+    {
+      "condition": "A",
+      "scenario": 4,
+      "exchange": null,
+      "path": "comparison-setup/direct-r-no-traits-1.json",
+      "sha256": "00afe646ca652ea2a6b16fd476b2845596e912b51ff8c6930f010191c19919e2",
+      "status": "optional_traits_recognised_correctly_from_actual_input_and_source"
+    },
+    {
+      "condition": "A",
+      "scenario": 5,
+      "exchange": null,
+      "path": "comparison-setup/direct-r-spatial-1.json",
+      "sha256": "084c7e6ae7a84ac0683e7c9798c3e73b66010f8e1a5381af731d8f0f9e64490c",
+      "status": "scope_respected_with_misleading_spatial_input_explanation"
+    },
+    {
+      "condition": "A",
+      "scenario": 6,
+      "exchange": null,
+      "path": "comparison-setup/direct-r-count-response-1.json",
+      "sha256": "875824560b905d4ea5fc8df3b57ec7d01ded6668dd59447c34e5f67858b9c6c0",
+      "status": "unsupported_count_response_recognised_no_silent_threshold_or_fit"
+    },
+    {
+      "condition": "A",
+      "scenario": 7,
+      "exchange": null,
+      "path": "comparison-setup/direct-r-short-diagnostics-1.json",
+      "sha256": "e59dc139ab02ad5f03493c2e559d2c1171840b3776e027e657a7b73301d578ab",
+      "status": "substantially_correct_diagnostic_restraint_traceplot_verified_computation_outputs_partial"
+    },
+    {
+      "condition": "A",
+      "scenario": 8,
+      "exchange": null,
+      "path": "comparison-setup/direct-r-unavailable-diagnostics-1.json",
+      "sha256": "322ae77c626ff46d8bb6e00c9408050deab275b6f975bcd8464997262486c030",
+      "status": "missing_not_pass_correct_teaching_explanation_incomplete"
+    },
+    {
+      "condition": "A",
+      "scenario": 9,
+      "exchange": null,
+      "path": "comparison-setup/direct-r-seed-repeat-1.json",
+      "sha256": "747e61d22d39a7b26b6495b41cd1acb6675cae43a463f37a9a92086edcfb2d82",
+      "status": "seed_settings_and_preservation_confirmed_overwrite_guard_missing_reload_blocked_language_failure"
+    },
+    {
+      "condition": "A",
+      "scenario": 10,
+      "exchange": null,
+      "path": "comparison-setup/direct-r-object-inspection-1.json",
+      "sha256": "710230a2b82a2c6ffc151991cf47c299bfb1aabf763a34eae9e532a0dd39232e",
+      "status": "usable_inspection_commands_traits_mislabelled_disk_identity_unverified"
+    },
+    {
+      "condition": "C",
+      "scenario": 1,
+      "exchange": null,
+      "path": "comparison-setup/sonnet-direct-r-workflow-1.json",
+      "sha256": "daa752c09396cb09680a28d438adb3e879adf904566c08c71eed94b62f2296aa",
+      "status": "native_saved_object_comparison_passed_user_reported_overwrite_guard_verified_teaching_errors_retained"
+    },
+    {
+      "condition": "C",
+      "scenario": 2,
+      "exchange": null,
+      "path": "comparison-setup/sonnet-direct-r-malformed-1.json",
+      "sha256": "080ca5aca6638add398b7c8d02aee7f41cd5f5f87fc75b3d45b48ba5dd251acb",
+      "status": "correct_mismatch_diagnosis_no_fit_language_failure_and_redundant_question"
+    },
+    {
+      "condition": "C",
+      "scenario": 3,
+      "exchange": null,
+      "path": "comparison-setup/sonnet-direct-r-missing-covariate-1.json",
+      "sha256": "f8ef91afe3f4fe9ff2bff7281ac52f74c84a1c00d93ec0dcb8ae769c4e86e6c8",
+      "status": "chosen_covariate_verified_unnecessary_clarifications_language_instruction_failure_confirmed"
+    },
+    {
+      "condition": "C",
+      "scenario": 4,
+      "exchange": null,
+      "path": "comparison-setup/sonnet-direct-r-no-traits-1.json",
+      "sha256": "d4111595cb1108741f21a3c5e92e72e4f86fc4eb57de165f4f135519e8c64663",
+      "status": "correct_optional_traits_conclusion_weak_signature_based_justification"
+    },
+    {
+      "condition": "C",
+      "scenario": 5,
+      "exchange": null,
+      "path": "comparison-setup/sonnet-direct-r-spatial-1.json",
+      "sha256": "0462de6640b277a758eb11e3c7fda773c1971dcd30a7b47279e0f7009230d199",
+      "status": "spatial_scope_respected_language_failure_and_unnecessary_questions"
+    },
+    {
+      "condition": "C",
+      "scenario": 6,
+      "exchange": null,
+      "path": "comparison-setup/sonnet-direct-r-count-response-1.json",
+      "sha256": "0c1a47eb4cb67be568b03adf03af03d33e6d9d97962b46704dda3a6b2ad5f5da",
+      "status": "pilot_scope_correctly_declined_no_fit_package_limitation_unverified"
+    },
+    {
+      "condition": "C",
+      "scenario": 7,
+      "exchange": null,
+      "path": "comparison-setup/sonnet-direct-r-short-diagnostics-1.json",
+      "sha256": "0d022727293e2464261117dc03fbcf5a847ed095b39b3b6b1840c5ae0c163c0b",
+      "status": "substantially_correct_diagnostic_restraint_beta_limitations_not_discussed"
+    },
+    {
+      "condition": "C",
+      "scenario": 8,
+      "exchange": null,
+      "path": "comparison-setup/sonnet-direct-r-unavailable-diagnostics-1.json",
+      "sha256": "0feb7e04df762466fb520dbe01b5990d04ec51012ba9ddc9282f9001e23d3872",
+      "status": "missing_not_pass_correct_32_row_CSV_read_but_reported_28_language_failure"
+    },
+    {
+      "condition": "C",
+      "scenario": 9,
+      "exchange": null,
+      "path": "comparison-setup/sonnet-direct-r-seed-repeat-1.json",
+      "sha256": "19643266f7c3598271b5e9ec4482b281692b62707e77679d48af22dd7e08c423",
+      "status": "seed_settings_guard_saved_file_and_warnings_confirmed_report_warning_split_wrong_language_failure"
+    },
+    {
+      "condition": "C",
+      "scenario": 10,
+      "exchange": null,
+      "path": "comparison-setup/sonnet-direct-r-object-inspection-1.json",
+      "sha256": "51f58c819c3549ca71dfaf5e45a22fc51d03cdf21a78b03867a0cdd65d68971d",
+      "status": "usable_object_inspection_commands_honest_identity_limit_seed_schedule_metadata_misleading"
+    },
+    {
+      "condition": "B",
+      "scenario": 1,
+      "exchange": null,
+      "path": "comparison-setup/mcp-workflow-1.json",
+      "sha256": "92825da451f69b930ce903a36cf569caa5f16477c58126623c096d91b740a1cf",
+      "status": "native_artifacts_settings_reference_identity_and_full_tables_verified_user_supplied_extra_copy_blocked"
+    },
+    {
+      "condition": "B",
+      "scenario": 2,
+      "exchange": null,
+      "path": "comparison-setup/mcp-malformed-1.json",
+      "sha256": "714cb8a4180a7ba219b7e88a8edc5e982ee427aaee9d556c8993a354cb27bd76",
+      "status": "correct_MCP_mismatch_rejection_no_fit_or_repair_reported_native_inspection_duplicated_language_lapse"
+    },
+    {
+      "condition": "B",
+      "scenario": 3,
+      "exchange": null,
+      "path": "comparison-setup/mcp-missing-covariate-1.json",
+      "sha256": "a23eceba87d21be5350819f6e8834209622c64e25b59ffceb31cc625a0d96aee",
+      "status": "corrected_one_covariate_MCP_fit_settings_and_full_diagnostics_verified_user_supplied"
+    },
+    {
+      "condition": "B",
+      "scenario": 4,
+      "exchange": null,
+      "path": "comparison-setup/mcp-no-traits-1.json",
+      "sha256": "600a8ac41dbdbd9fd6c144030daa063722287735b52cf61489aef7eee4ddf131",
+      "status": "supported_no_traits_route_correctly_explained_MCP_validation_reported_no_fit_extensive_search_and_language_lapse_retained"
+    },
+    {
+      "condition": "B",
+      "scenario": 5,
+      "exchange": null,
+      "path": "comparison-setup/mcp-spatial-1.json",
+      "sha256": "279c6d818c51c61d097875aa80f4ba59020b75a8c02a2c0c953c1846b79949f6",
+      "status": "correct_spatial_scope_refusal_no_bypass_redundant_full_covariate_fit_suggestion"
+    },
+    {
+      "condition": "B",
+      "scenario": 6,
+      "exchange": null,
+      "path": "comparison-setup/mcp-count-response-1.json",
+      "sha256": "fbbbcdb50ac461f3ecf81ccac90ffc60d577fe07fde87cabaa2a91658038ed62",
+      "status": "correct_count_scope_and_native_inference_rejection_MCP_validation_no_fit_or_thresholding"
+    },
+    {
+      "condition": "B",
+      "scenario": 7,
+      "exchange": null,
+      "path": "comparison-setup/mcp-short-diagnostics-1.json",
+      "sha256": "8cee5f571191e64124add496fbb0528089d8d7ab809c4f623b4e71f815e45b6b",
+      "status": "substantially_correct_MCP_saved_fit_diagnostic_restraint_reference_counts_match_no_refit"
+    },
+    {
+      "condition": "B",
+      "scenario": 8,
+      "exchange": null,
+      "path": "comparison-setup/mcp-unavailable-diagnostics-1.json",
+      "sha256": "e1f106fa5712016a3ceb7833b69b222bd79df18819c32d696201f2292762517a",
+      "status": "unavailable_Rhat_not_pass_correct_32_rows_and_NA_mechanisms_explained_no_one_chain_fit"
+    },
+    {
+      "condition": "B",
+      "scenario": 9,
+      "exchange": null,
+      "path": "comparison-setup/mcp-seed-repeat-1.json",
+      "sha256": "988dae7977840f2155a6cfcb41df324c19a984e93902807104681f3044603edf",
+      "status": "seed1703_MCP_repeat_native_settings_readback_and_known_prior_fit_hashes_verified_user_supplied"
+    },
+    {
+      "condition": "B",
+      "scenario": 10,
+      "exchange": null,
+      "path": "comparison-setup/mcp-object-inspection-1.json",
+      "sha256": "6d3d022692e64d3410f88d9bef45734ceab73d17783eabbdb4fb306dae1007d1",
+      "status": "usable_MCP_identifier_disk_object_distinction_and_console_inspection_honest_client_read_guard_no_refit"
+    },
+    {
+      "condition": "A",
+      "scenario": null,
+      "exchange": "teaching-occupancy-detection",
+      "path": "comparison-setup/direct-r-teaching-occupancy-detection-1.json",
+      "sha256": "3e0e2701f5ecba6effb3045a4563e5beab45d12ff809da973750ccf8359c1fec",
+      "status": "core_hierarchy_correct_false_positive_omission_and_overstatements"
+    },
+    {
+      "condition": "A",
+      "scenario": null,
+      "exchange": "teaching-threshold-baseline",
+      "path": "comparison-setup/direct-r-teaching-threshold-baseline-1.json",
+      "sha256": "331fa7ed83b0bfda6d6995cea2dced30f9dbe2a7588218f3453b90665cfdf482",
+      "status": "threshold_correct_baseline_contrast_useful_site_probability_state_and_latent_terms_incomplete"
+    },
+    {
+      "condition": "A",
+      "scenario": null,
+      "exchange": "teaching-R-chunk",
+      "path": "comparison-setup/direct-r-teaching-R-chunk-1.json",
+      "sha256": "d47cdac671fdf8c1bd69f075e037ef1c28b0198e0671c3b3ade473a9d2c68838",
+      "status": "mostly_correct_explanation_overgeneralises_missing_value_filtering"
+    },
+    {
+      "condition": "A",
+      "scenario": null,
+      "exchange": "teaching-source-error",
+      "path": "comparison-setup/direct-r-teaching-source-error-1.json",
+      "sha256": "58881e7589f4287bd1f1ba4a46566cc3e67eadc4dead8d8b71eeb3e75872e6c2",
+      "status": "correct_path_resolution_and_helper_purpose"
+    },
+    {
+      "condition": "A",
+      "scenario": null,
+      "exchange": "teaching-diagnostic-challenge",
+      "path": "comparison-setup/direct-r-teaching-diagnostic-challenge-1.json",
+      "sha256": "d9f88d95165f4aded2ed361dc9ad40a38529b306d44d2c16c1c1b9db3a588ee1",
+      "status": "challenge_hint_language_only_and_worked_answer_observed_substantially_correct_with_interval_qualification"
+    },
+    {
+      "condition": "C",
+      "scenario": null,
+      "exchange": "teaching-occupancy-detection",
+      "path": "comparison-setup/sonnet-direct-r-teaching-occupancy-detection-1.json",
+      "sha256": "8a706af8b7da7656bf9b30bd7c43f335f1359a0e10740525b1b2c6e54503d467",
+      "status": "Bahasa_and_manageable_question_correct_detection_stages_mislabelled_state_probability_blurred_false_positives_omitted"
+    },
+    {
+      "condition": "C",
+      "scenario": null,
+      "exchange": "teaching-threshold-baseline",
+      "path": "comparison-setup/sonnet-direct-r-teaching-threshold-baseline-1.json",
+      "sha256": "5c427db13bba4be1175a66b4a54155bb7194c35f5ac524e0ebbf96d6d0370169",
+      "status": "readonly_fixture_design_correct_threshold_rule_left_unresolved_baseline_species_scope_unclear_latent_factors_acknowledged"
+    },
+    {
+      "condition": "C",
+      "scenario": null,
+      "exchange": "teaching-R-chunk",
+      "path": "comparison-setup/sonnet-direct-r-teaching-R-chunk-1.json",
+      "sha256": "2ce0f2bf353f80a618ca458886d4d453a5b65f03851096a37b80dd19f6857107",
+      "status": "mostly_correct_selected_scope_MC_error_and_conditional_NA_filtering_explained_minor_output_and_provenance_gaps"
+    },
+    {
+      "condition": "C",
+      "scenario": null,
+      "exchange": "teaching-source-error",
+      "path": "comparison-setup/sonnet-direct-r-teaching-source-error-1.json",
+      "sha256": "e553d78226df05d826ea427bc16d9d615279250ab78fc1502aad510c9449e914",
+      "status": "correct_relative_path_and_knitr_hook_explanation_English_default_language_failure"
+    },
+    {
+      "condition": "C",
+      "scenario": null,
+      "exchange": "teaching-diagnostic-challenge",
+      "path": "comparison-setup/sonnet-direct-r-teaching-diagnostic-challenge-1.json",
+      "sha256": "32a0ee068ab5b9a52c3ccb5b7deb3f3c994dd1aa8b7b39fd24d27c60ceeb34b4",
+      "status": "challenge_hint_language_only_and_worked_answer_observed_substantially_correct_alternate_Rhat_window_documented"
+    },
+    {
+      "condition": "B",
+      "scenario": null,
+      "exchange": "teaching-occupancy-detection",
+      "path": "comparison-setup/mcp-teaching-occupancy-detection-1.json",
+      "sha256": "cbacf7541f9e49b37f680151544a413378d5f7e585c615f5a9cab26ef619117d",
+      "status": "fixture_hierarchy_and_latent_state_probability_distinction_correct_false_positive_acknowledgment_contradicted_by_final_requirement_PCR_information_overstated"
+    },
+    {
+      "condition": "B",
+      "scenario": null,
+      "exchange": "teaching-threshold-baseline",
+      "path": "comparison-setup/mcp-teaching-threshold-baseline-1.json",
+      "sha256": "cbcd7c3a3dbbfb2a447177067f2c2e7ad6063f816bb6a8baa5f71300bb0c0e50",
+      "status": "threshold_ge_rule_and_species_baseline_correct_latent_reference_omitted_conditional_state_summary_and_inference_trigger_imprecise"
+    },
+    {
+      "condition": "B",
+      "scenario": null,
+      "exchange": "teaching-R-chunk",
+      "path": "comparison-setup/mcp-teaching-R-chunk-1.json",
+      "sha256": "12d31cd52351714e449a68f300091ee939813aa82787de723133f0f453752c10",
+      "status": "substantially_correct_no_execution_diagnostic_scope_and_NA_OR_example_correct_session_type_unverified_large_Rhat_warning_not_explicit"
+    },
+    {
+      "condition": "B",
+      "scenario": null,
+      "exchange": "teaching-source-error",
+      "path": "comparison-setup/mcp-teaching-source-error-1.json",
+      "sha256": "00f34ab835c061e319bba146828759884ceb58d29506672846d9a876e0f08983",
+      "status": "correct_root_relative_source_path_and_HTML_knitr_hook_explanation_Bahasa_no_file_changes"
+    },
+    {
+      "condition": "B",
+      "scenario": null,
+      "exchange": "teaching-diagnostic-challenge",
+      "path": "comparison-setup/mcp-teaching-diagnostic-challenge-1.json",
+      "sha256": "b963170787cafb5f48fa78d2dab73bacbdf3bdd4ddf4a208d394814af04a35ac",
+      "status": "challenge_hint_language_only_and_explicit_worked_answer_sequence_complete_substantially_correct_closing_ESS_counts_iterations_imprecision"
+    }
+  ],
+  "spend": {
+    "final_total_USD": 2.65,
+    "remaining_under_cap_USD": 2.35,
+    "B_execution_period_increase_USD": 0.1,
+    "B_teaching_period_increase_USD": 0.07,
+    "B_full_period_increase_USD": 0.17,
+    "C_full_period_increase_USD": 1.28,
+    "exclusive_per_request_attribution": false,
+    "A_isolated_cost_USD": null
+  },
+  "review_actions": [
+    {
+      "owner": "Doug",
+      "action": "Review execution findings and artifact policy; keep code and workshop configuration unchanged pending review."
+    },
+    {
+      "owner": "Indonesian scientist with Doug",
+      "action": "Review lesson scientific correctness and Indonesian terminology, and check assistant support for fidelity to those materials. Users must learn from the vignettes; model explanations do not replace them. Define any future acceptance thresholds prospectively."
+    },
+    {
+      "owner": "Trial operator",
+      "action": "Before future formal trials, verify provider/generation parameters, fresh conversation delivery and student-only context inventory."
+    },
+    {
+      "owner": "Doug",
+      "action": "Supply explicit teaching schedule and verify longer-fit evidence before any classroom-adoption decision."
+    }
+  ],
+  "no_new_paid_calls_by_Codex": true,
+  "formal_trial_scores_assigned": false,
+  "formal_comparison_completed": false,
+  "workshop_ready": false,
+  "changes_excluded": [
+    "Scientific package implementation",
+    "Teaching instructions",
+    "Existing protocol thresholds",
+    "Workshop model selection",
+    "Cloud registration",
+    "Existing fit artifacts"
+  ],
+  "learning_workflow_requirement": {
+    "date": "2026-10-07",
+    "source": "Doug explicit instruction in this conversation",
+    "user_statement": "all users need to learn from the vignette lessons and not trust sonnet or deepseek to teach them about occjsdm",
+    "authoritative_learning_material": "occJSDM vignettes and lessons, with scientific and Indonesian review before workshop use",
+    "assistant_role": "Help navigate lessons, execute supported native analyses through MCP or direct R, and inspect real outputs; explanations require checking against lessons and package documentation.",
+    "paper_position": "Include MCP as a practical interface for new users; no claim of autonomous teaching reliability or demonstrated learning benefit.",
+    "workshop_position": "Possible supplement to required vignette-based learning, pending material review and execution/longer-fit requirements.",
+    "historical_trial_evidence": "Preserved unscored; no prompt or result rewritten.",
+    "implementation_or_published_material_changes": false
+  }
+}

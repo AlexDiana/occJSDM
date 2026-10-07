@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-07",
+  "status": "reviewed_ready_for_integration_decision",
+  "scientific_source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+  "implementation_tests": {
+    "collected": 128,
+    "passed_in_shards": 120,
+    "fixture_errors_in_shared_parallel_registry": 8,
+    "same_cases_passed_sequentially": 8,
+    "production_source_unchanged": true,
+    "evidence": "sharded-suite.json",
+    "shard_logs": [
+      "shard-0.log",
+      "shard-1.log",
+      "shard-2.log"
+    ],
+    "retry_log": "sequential-retry.log",
+    "caveat": "The sharded test runner shares artifact registry state across workers. Run pytest sequentially for a single-process result; the fixture assertion failure is not a production MCP failure."
+  },
+  "final_documentation_checks": {
+    "local_links": 26,
+    "comparison_evidence_hashes": 45,
+    "report_json_parses": true,
+    "comparison_and_direct_R_helpers": {
+      "passed": 16,
+      "elapsed_seconds": 0.46
+    }
+  },
+  "review_result": "No material production-code blocker found. Updated stale Cloud/setup documentation and recorded the unscored comparison evidence before integration.",
+  "limits": [
+    "The native runtime intentionally remains pinned before the beta release. Updating that revision requires new native references and verification.",
+    "Fresh checkout setup needs the retained source payload; ignored installed runtimes and caches are not committed.",
+    "The rehearsals do not establish a controlled model ranking, cost advantage, teaching acceptance or workshop readiness.",
+    "Users must learn from vignettes and lessons; scientific and Indonesian review remains required before classroom use."
+  ],
+  "integration_decision": "pending"
+}

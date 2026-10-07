@@ -1,0 +1,23 @@
+{
+  "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/cloud-transfer/strict-types-106e488e98904751966ecf0168bd081a/artifacts/calls/fit_model-1820bd72c92e457f86c9c922ca2b1606/input.rds",
+  "options": {
+    "occCovariates": [
+      "X_psi.EnvCov.1",
+      "X_psi.EnvCov.2"
+    ],
+    "collCovariates": [],
+    "threshold": 1,
+    "listParams": {
+      "n_factors": 2
+    },
+    "MCMCparams": {
+      "nchain": 2,
+      "nburn": 20,
+      "niter": 20,
+      "nthin": 1
+    }
+  },
+  "seed": 1702,
+  "operation": "fit_model",
+  "output_dir": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/cloud-transfer/strict-types-106e488e98904751966ecf0168bd081a/artifacts/calls/fit_model-1820bd72c92e457f86c9c922ca2b1606"
+}

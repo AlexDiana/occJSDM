@@ -1,0 +1,50 @@
+{
+  "status": "passed_reported_setup_check_actual_code_not_supplied",
+  "date": "2026-10-06",
+  "condition": "A",
+  "project_url": "https://posit.cloud/spaces/828411/content/13077262",
+  "model": "DeepSeek V4.1 Flash (Medium), selected by Doug as instructed",
+  "instructions": "Explicit shared instruction delivery requested; response refers to fixture instructions and uses Bahasa Indonesia. Exact sent message not supplied; automatic project loading not established.",
+  "evidence": "Doug pasted tool call labels and full Assistant response; expanded R code/output not supplied",
+  "reported_environment": {
+    "R": "R version 4.6.1 (2026-06-24)",
+    "occJSDM": "0.1.0",
+    "package_path": "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/occJSDM"
+  },
+  "reported_input": {
+    "info": [
+      160,
+      8
+    ],
+    "OTU": [
+      160,
+      4
+    ],
+    "traits": [
+      4,
+      2
+    ],
+    "occupancy_covariates": [
+      "X_psi.EnvCov.1",
+      "X_psi.EnvCov.2"
+    ],
+    "collection_covariates": [
+      "X_theta"
+    ]
+  },
+  "matches_prior_native_fixture": true,
+  "reported_no_model_fit_or_file_changes": true,
+  "observed_teaching": {
+    "language": "Bahasa Indonesia",
+    "R_identifiers_preserved": true,
+    "traits_species_vs_observation_rows_explained": true,
+    "field_PCR_mapping_explicitly_unverified": true
+  },
+  "qualifications": [
+    "Equal info/OTU row counts and benign rownames do not establish correct observation alignment; no row-order claim verified here.",
+    "Language/execution setup observation, not a formal scientific teaching or Indonesian terminology pass."
+  ],
+  "scored": false,
+  "charge_USD": null,
+  "expanded_tool_code_verified": false
+}

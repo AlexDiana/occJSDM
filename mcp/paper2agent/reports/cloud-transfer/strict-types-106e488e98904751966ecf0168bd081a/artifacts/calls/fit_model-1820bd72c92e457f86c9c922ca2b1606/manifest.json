@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "fit_id": "fit_8f182f55955740e591a5417543e3e2cf",
+  "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/cloud-transfer/strict-types-106e488e98904751966ecf0168bd081a/artifacts/calls/fit_model-1820bd72c92e457f86c9c922ca2b1606/fit.rds",
+  "fit_sha256": "7013d51c7cba757ba0beb61abdef724d38466989d1308cb6906d22debba480b2",
+  "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/cloud-transfer/strict-types-106e488e98904751966ecf0168bd081a/binary.rds",
+  "input_sha256": "16723e59be15adc39467259f10f7802e02012b15ec79c239732b78e323e62d67",
+  "seed": 1702,
+  "model": "binary",
+  "effective_settings": {
+    "occCovariates": [
+      "X_psi.EnvCov.1",
+      "X_psi.EnvCov.2"
+    ],
+    "collCovariates": [],
+    "threshold": 1,
+    "listParams": {
+      "n_factors": 2
+    },
+    "MCMCparams": {
+      "nchain": 2,
+      "nburn": 20,
+      "niter": 20,
+      "nthin": 1
+    },
+    "spatCovariates": [],
+    "summarisedLatentPresences": true,
+    "listPriors": {}
+  },
+  "requested_settings": {
+    "occCovariates": [
+      "X_psi.EnvCov.1",
+      "X_psi.EnvCov.2"
+    ],
+    "collCovariates": [],
+    "threshold": 1,
+    "listParams": {
+      "n_factors": 2
+    },
+    "MCMCparams": {
+      "nchain": 2,
+      "nburn": 20,
+      "niter": 20,
+      "nthin": 1
+    }
+  },
+  "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+  "runtime": {
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "R": "R version 4.5.0 (2025-04-11)",
+    "occJSDM_version": "0.1.0",
+    "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+    "renv_version": "1.2.3",
+    "libPaths": [
+      "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
+      "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+    ],
+    "thread_env": {
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "MKL_NUM_THREADS": "",
+      "RCPP_PARALLEL_NUM_THREADS": ""
+    },
+    "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+  },
+  "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "fastmcp_version": "4.0.3",
+  "pydantic_version": "2.13.5",
+  "thread_settings": {
+    "OMP_NUM_THREADS": "",
+    "OPENBLAS_NUM_THREADS": "",
+    "MKL_NUM_THREADS": "",
+    "RCPP_PARALLEL_NUM_THREADS": ""
+  },
+  "warnings": [
+    "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+    "Low ESS in 'B0'. Min ESS < 50",
+    "Convergence issue in 'B_output'. Max R-hat > 1.1",
+    "Low ESS in 'B'. Min ESS < 50",
+    "Convergence issue in 'G_output'. Max R-hat > 1.1",
+    "Low ESS in 'G'. Min ESS < 50",
+    "Convergence issue in 'A_output'. Max R-hat > 1.1",
+    "Low ESS in 'A'. Min ESS < 50",
+    "Convergence issue in 'C_output'. Max R-hat > 1.1",
+    "Low ESS in 'C'. Min ESS < 50",
+    "Convergence issue in 'U_output'. Max R-hat > 1.1",
+    "Low ESS in 'U'. Min ESS < 50",
+    "Convergence issue in 'L_output'. Max R-hat > 1.1",
+    "Low ESS in 'L'. Min ESS < 50",
+    "Low ESS in 'sigmab'. Min ESS < 50",
+    "Low ESS in 'sigmah'. Min ESS < 50"
+  ],
+  "qualifications": [
+    "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+    "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+  ]
+}

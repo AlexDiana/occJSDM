@@ -1,0 +1,208 @@
+[10/06/26 11:10:08] INFO     Starting MCP server 'occJSDM' with transport.py:242
+                             transport 'stdio'                                  
+[10/06/26 11:10:10] WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('seed',), 'msg': 'Input                    
+                             should be a valid integer', 'input':               
+                             True}]                                             
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('seed',), 'msg': 'Input                    
+                             should be a valid integer', 'input':               
+                             True}]                                             
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('seed',), 'msg': 'Input                    
+                             should be a valid integer', 'input':               
+                             1.0}]                                              
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('seed',), 'msg': 'Input                    
+                             should be a valid integer', 'input':               
+                             1.0}]                                              
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('seed',), 'msg': 'Input                    
+                             should be a valid integer', 'input':               
+                             '1702'}]                                           
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('seed',), 'msg': 'Input                    
+                             should be a valid integer', 'input':               
+                             '1702'}]                                           
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'threshold'),                   
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': True}]                          
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'threshold'),                   
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': True}]                          
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'threshold'),                   
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': 1.0}]                           
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'threshold'),                   
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': 1.0}]                           
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'threshold'),                   
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': '1'}]                           
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'threshold'),                   
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': '1'}]                           
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'listParams',                   
+                             'n_factors'), 'msg': 'Input should                 
+                             be a valid integer', 'input':                      
+                             False}]                                            
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'listParams',                   
+                             'n_factors'), 'msg': 'Input should                 
+                             be a valid integer', 'input':                      
+                             False}]                                            
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'listParams',                   
+                             'n_factors'), 'msg': 'Input should                 
+                             be a valid integer', 'input': 2.0}]                
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'listParams',                   
+                             'n_factors'), 'msg': 'Input should                 
+                             be a valid integer', 'input': 2.0}]                
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'MCMCparams',                   
+                             'nchain'), 'msg': 'Input should be a               
+                             valid integer', 'input': 2.0}]                     
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'MCMCparams',                   
+                             'nchain'), 'msg': 'Input should be a               
+                             valid integer', 'input': 2.0}]                     
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'MCMCparams',                   
+                             'nburn'), 'msg': 'Input should be a                
+                             valid integer', 'input': False}]                   
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'MCMCparams',                   
+                             'nburn'), 'msg': 'Input should be a                
+                             valid integer', 'input': False}]                   
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'MCMCparams',                   
+                             'niter'), 'msg': 'Input should be a                
+                             valid integer', 'input': '20'}]                    
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'MCMCparams',                   
+                             'niter'), 'msg': 'Input should be a                
+                             valid integer', 'input': '20'}]                    
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'MCMCparams',                   
+                             'nthin'), 'msg': 'Input should be a                
+                             valid integer', 'input': 1.0}]                     
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('options', 'MCMCparams',                   
+                             'nthin'), 'msg': 'Input should be a                
+                             valid integer', 'input': 1.0}]                     
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'diagnostics': [{'type': 'int_type',               
+                             'loc': ('max_rows',), 'msg': 'Input                
+                             should be a valid integer', 'input':               
+                             True}]                                             
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'diagnostics': [{'type': 'int_type',               
+                             'loc': ('max_rows',), 'msg': 'Input                
+                             should be a valid integer', 'input':               
+                             True}]                                             
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'diagnostics': [{'type': 'int_type',               
+                             'loc': ('max_rows',), 'msg': 'Input                
+                             should be a valid integer', 'input':               
+                             1.0}]                                              
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'diagnostics': [{'type': 'int_type',               
+                             'loc': ('max_rows',), 'msg': 'Input                
+                             should be a valid integer', 'input':               
+                             1.0}]                                              
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'diagnostics': [{'type': 'int_type',               
+                             'loc': ('max_rows',), 'msg': 'Input                
+                             should be a valid integer', 'input':               
+                             '1'}]                                              
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'diagnostics': [{'type': 'int_type',               
+                             'loc': ('max_rows',), 'msg': 'Input                
+                             should be a valid integer', 'input':               
+                             '1'}]                                              
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'summarise_fit': [{'type':                         
+                             'int_type', 'loc': ('max_rows',),                  
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': True}]                          
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'summarise_fit': [{'type':                         
+                             'int_type', 'loc': ('max_rows',),                  
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': True}]                          
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'summarise_fit': [{'type':                         
+                             'int_type', 'loc': ('max_rows',),                  
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': 1.0}]                           
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'summarise_fit': [{'type':                         
+                             'int_type', 'loc': ('max_rows',),                  
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': 1.0}]                           
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'summarise_fit': [{'type':                         
+                             'int_type', 'loc': ('max_rows',),                  
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': '1'}]                           
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'summarise_fit': [{'type':                         
+                             'int_type', 'loc': ('max_rows',),                  
+                             'msg': 'Input should be a valid                    
+                             integer', 'input': '1'}]                           
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'validate_data': [{'type':                         
+                             'list_type', 'loc':                                
+                             ('occCovariates',), 'msg': 'Input                  
+                             should be a valid list', 'input':                  
+                             'X_psi.EnvCov.1'}]                                 
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'validate_data': [{'type':                         
+                             'list_type', 'loc':                                
+                             ('occCovariates',), 'msg': 'Input                  
+                             should be a valid list', 'input':                  
+                             'X_psi.EnvCov.1'}]                                 
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'validate_data': [{'type':                         
+                             'string_type', 'loc':                              
+                             ('occCovariates', 0), 'msg': 'Input                
+                             should be a valid string', 'input':                
+                             1}]                                                
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'validate_data': [{'type':                         
+                             'string_type', 'loc':                              
+                             ('occCovariates', 0), 'msg': 'Input                
+                             should be a valid string', 'input':                
+                             1}]                                                

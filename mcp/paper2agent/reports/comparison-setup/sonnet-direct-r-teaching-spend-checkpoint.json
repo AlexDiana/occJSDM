@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-06",
+  "time_local": "20:56",
+  "source": "Doug supplied weekly usage screenshot after completing C teaching rehearsal",
+  "screenshots": [
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_10yfzA/Screenshot 2026-10-06 at 20.56.56.png"
+  ],
+  "selected_time_window": "This Week's Usage",
+  "displayed_total_USD": 2.48,
+  "displayed_by_model_USD": {
+    "Claude Sonnet 5.5": 2.21,
+    "DeepSeek V4.1 Flash": 0.27,
+    "Apodex 1.1 Mini (free)": 0.0,
+    "Others": 0.0
+  },
+  "previous_total_USD": 2.08,
+  "displayed_increase_USD": 0.4,
+  "previous_Sonnet_USD": 1.81,
+  "Sonnet_displayed_increase_USD": 0.4,
+  "Sonnet_starting_checkpoint_USD": 0.93,
+  "Sonnet_displayed_increase_since_C_start_USD": 1.28,
+  "Sonnet_execution_period_increase_USD": 0.88,
+  "Sonnet_teaching_period_increase_USD": 0.4,
+  "conservative_remaining_USD": 2.52,
+  "amount_precision": "Rounded dashboard totals, not generation receipts",
+  "cost_attribution": "US$0.40 Sonnet increase since execution endpoint coincides with C teaching exchanges. Total US$1.28 increase since C baseline coincides with execution and teaching rehearsal. Exclusive attribution and per-request costs not established. DeepSeek total includes earlier tests, not only A.",
+  "paid_calls_made_by_Codex": 0
+}

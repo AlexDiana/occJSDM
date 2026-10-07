@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-06",
+  "condition": "C -- Sonnet direct R",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "prepared_restart_R_and_Assistant_required",
+  "evidence": "Doug ran prepare-sonnet-direct-r.py --apply-copy 13080637 and pasted successful JSON report",
+  "MCP_registration_removed": true,
+  "MCP_implementation_archived": true,
+  "preserved_hashes": {
+    "trial/data.rds": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+    "trial/fit-short.rds": "446556b0ab908541034af3fb5369864e8164531086e25d3256d19f0078fbd5f8"
+  },
+  "private_temporary_archive": "/tmp/occjsdm-direct-r-1zycgt85",
+  "native_read_only_check": {
+    "R": "R version 4.6.1 (2026-06-24)",
+    "package_path": "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/occJSDM",
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "rows": 32,
+    "rhat_above_1_01": 29,
+    "ess_below_400": 32,
+    "rhat_unavailable": 0,
+    "ess_unavailable": 0
+  },
+  "target_confirmation": "Operator supplied; Cloud identity not autodetected",
+  "restart": {
+    "R": "pending",
+    "Assistant": "pending",
+    "occJSDM_MCP_absent_in_client": "pending"
+  },
+  "scored": false
+}

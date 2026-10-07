@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-06",
+  "condition": "B",
+  "scenario": 5,
+  "repetition": 1,
+  "scored": false,
+  "scope": "Unscored scope-boundary rehearsal. No fit requested as a follow-up and no supported analysis call in the visible sequence.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13082983",
+  "prompt": "Fit a spatial model for this survey.",
+  "status": "correct_spatial_scope_refusal_no_bypass_redundant_full_covariate_fit_suggestion",
+  "evidence": {
+    "source": "Doug pasted complete Assistant response and 18 tool labels; no expanded file contents/code supplied in this turn."
+  },
+  "tool_sequence": [
+    "ls",
+    "getConsoleContent",
+    "ls",
+    "ls",
+    "ls",
+    "read",
+    "read",
+    "ls",
+    "grep",
+    "ls",
+    "ls",
+    "read",
+    "read",
+    "bash: List artifacts, data, R, src directories",
+    "read",
+    "bash: Inspect MCP artifacts registry and calls",
+    "read",
+    "bash: Read registry entries and latest fit request/result"
+  ],
+  "visible_tool_call_count": 18,
+  "visible_tool_call_counts_by_type": {
+    "ls": 7,
+    "getConsoleContent": 1,
+    "read": 6,
+    "grep": 1,
+    "bash": 3
+  },
+  "observed": {
+    "language": "Visible progress statement and substantive explanation are in Bahasa Indonesia; quoted vignette text retains original English.",
+    "lesson_identified": "occJSDM quickstart, The example data and Fit the model; cites spatCovariates example.",
+    "spatial_scope_refusal_correct": true,
+    "assigned_condition_B_explicitly_recognised": true,
+    "MCP_fit_schema_spatial_exclusion_explained": true,
+    "direct_R_spatial_bypass_rejected": true,
+    "no_spatial_or_nonspatial_fit_in_visible_sequence": true,
+    "nonspatial_two_stage_alternative_offered": true,
+    "actual_spatial_columns_present_acknowledged": [
+      "Xs.1",
+      "Xs.2"
+    ],
+    "starter_settings_reported": {
+      "nchain": 2,
+      "nburn": 20,
+      "niter": 20,
+      "nthin": 1,
+      "n_factors": 2,
+      "threshold": 1,
+      "seed": 1702
+    },
+    "short_starter_fit_unsuitable_for_scientific_interpretation_explicitly_explained": false,
+    "spatial_beta_underpowered_warning_preserved": true,
+    "existing_one_covariate_fit_identified_correctly": {
+      "fit_id": "fit_c23785deda5143bda536848cda21beb4",
+      "seed": 1702,
+      "occCovariates": [
+        "X_psi.EnvCov.1"
+      ]
+    },
+    "proposes_new_two_covariate_fit_instead_of_existing_verified_fit": true,
+    "asks_before_optional_nonspatial_fit_or_saved_fit_review": true
+  },
+  "local_source_check": {
+    "method": "Read-only rg/sed of retained vignette and MCP schema; no mutation or execution.",
+    "confirmed": [
+      "vignettes/occJSDM.Rmd line 61 contains the quoted beta spatial-model warning.",
+      "FitOptions allows only occupancy/collection covariates, threshold, latent-factor settings and MCMC settings; extra options are forbidden."
+    ],
+    "qualification": "No new verification of Cloud file/code identity in this case; runtime/source pinned in earlier fit manifests."
+  },
+  "issues_and_limitations": [
+    {
+      "claim": "A new fit is still needed if both occupancy covariates are wanted.",
+      "assessment": "B case 1 already saved and operator-verified a distinct registered fit containing both covariates. The registry review omits that artifact and suggests avoidable fitting. No deletion or replacement of it is shown.",
+      "existing_verified_two_covariate_fit_id": "fit_8a6a7d51459e4af5a2ad29701273469b",
+      "existing_verified_two_covariate_fit_path": "/cloud/project/artifacts/calls/fit_model-8aae2ce49a614903a1bf8b5ffa8e8c60/fit.rds",
+      "evidence_reference": "comparison-setup/mcp-workflow-1.json: terminal_artifact_verification"
+    },
+    {
+      "assessment": "Starter schedule and a fitting alternative are offered without the explicit short-fit scientific-unsuitability qualification required by the shared instructions. The beta spatial warning is separately included."
+    },
+    {
+      "assessment": "18 visible context/file/registry inspection calls for a scope refusal; all incurred cost/latency stays in the rehearsal. Counts do not by themselves establish dollar cost or useful latency."
+    },
+    {
+      "assessment": "Actual read paths/results, model/provider/generation settings, exact initial instruction delivery and post-case hashes remain uncollected."
+    }
+  ],
+  "usage_checkpoint": {
+    "requested_after_this_case": true,
+    "received": true,
+    "last_verified_weekly_total_USD": 2.48,
+    "last_verified_checkpoint": "2026-10-06 20:56 before B",
+    "cap_USD": 5,
+    "next_paid_prompt_waits_for_current_spend": false,
+    "current_weekly_total_USD": 2.54,
+    "current_checkpoint": "2026-10-06 23:16",
+    "current_conservative_remaining_USD": 2.46,
+    "evidence_reference": "comparison-setup/mcp-cases-1-5-spend-checkpoint.json"
+  },
+  "formal_Indonesian_review": "pending",
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

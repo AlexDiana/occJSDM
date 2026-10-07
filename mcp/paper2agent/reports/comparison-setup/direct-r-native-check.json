@@ -1,0 +1,23 @@
+{
+  "MCP_registration_removed": true,
+  "MCP_implementation_archived": true,
+  "preserved_hashes": {
+    "trial/data.rds": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+    "trial/fit-short.rds": "b0b3455ad2069448df95afb1214dc6aa1b084879325d6924cda948a57d910459"
+  },
+  "private_temporary_archive": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/direct-r-native-l53da3cs/private",
+  "status": "passed_local_portability_check",
+  "native_read_only_check": {
+    "R": "R version 4.5.0 (2025-04-11)",
+    "package_path": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/direct-r-native-l53da3cs/project/mcp/paper2agent/cloud-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "rows": 32,
+    "rhat_above_1_01": 27,
+    "ess_below_400": 32,
+    "rhat_unavailable": 0,
+    "ess_unavailable": 0
+  },
+  "source_fixture_preserved": true,
+  "scope": "Copied local R 4.5.0 runtime and saved local fixture; Cloud R 4.6.1 check remains pending",
+  "temporary_fixture": "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/direct-r-native-l53da3cs"
+}

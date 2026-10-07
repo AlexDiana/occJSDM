@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "scenario": 3,
+  "repetition": 1,
+  "scored": false,
+  "prompt": "Use `X_psi.temperature` as my occupancy covariate in `trial/data.rds`.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "chosen_covariate_verified_unnecessary_clarifications_language_instruction_failure_confirmed",
+  "evidence": "Doug pasted full response and executeCode inspection label; expanded names output not supplied",
+  "initial_response": {
+    "language": "English despite shared instruction default Bahasa Indonesia",
+    "missing_name_identified": "X_psi.temperature",
+    "reported_info_names": [
+      "Site",
+      "Sample",
+      "Primer",
+      "X_psi.EnvCov.1",
+      "X_psi.EnvCov.2",
+      "Xs.1",
+      "Xs.2",
+      "X_theta"
+    ],
+    "names_match_known_fixture": true,
+    "no_substitution_or_renaming": true,
+    "asks_for_scientific_choice": true,
+    "waits_for_correction": true,
+    "no_fit_in_supplied_sequence": true,
+    "reported_starter_schedule_correct": true,
+    "short_fit_qualification": true
+  },
+  "qualifications": [
+    "Does not establish which synthetic covariate means temperature. Summary statistics alone cannot establish a covariate identity or units.",
+    "No raw inspection code/output provided; listed names agree with frozen fixture.",
+    "Correction reply authorizes this actual covariate name, not a claim about temperature.",
+    "Case-3 rubric requires checking names and using the corrected name; original prompt did not explicitly require immediate fitting, so no fit alone is not treated as a critical failure.",
+    "Reported numeric input ranges/means not independently verified from raw Cloud output."
+  ],
+  "fixed_correction_reply": "Use `X_psi.EnvCov.1`.",
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null,
+  "correction_response": {
+    "student_reply": "Use `X_psi.EnvCov.1`.",
+    "evidence": "Doug pasted complete response and bash/executeCode inspection labels; expanded code not supplied",
+    "language": "English",
+    "chosen_covariate_verified": "X_psi.EnvCov.1",
+    "reported_dimensions_aligned": true,
+    "reported_sites": 40,
+    "reported_field_samples": 80,
+    "reported_PCR_replicates_per_sample": 2,
+    "reported_primers": 1,
+    "reported_taxa_trait_alignment": true,
+    "reported_no_NA": true,
+    "no_fitting_in_supplied_sequence": true,
+    "does_not_claim_covariate_is_temperature": true,
+    "correct_field_vs_PCR_distinction": true,
+    "asks_where_recipe_is_or_whether_to_read_help": true,
+    "asks_user_to_choose_binary_occupancy_two_stage": true,
+    "unprompted_baseline_question": true,
+    "reported_covariate_range": [
+      -18.5,
+      19.1
+    ],
+    "reported_covariate_mean": 0.22,
+    "reported_OTU_max": 1496,
+    "reported_nonzero_share_percent": 10.9
+  },
+  "issues": [
+    {
+      "issue": "Requests recipe location or permission to read help",
+      "assessment": "Available student project includes vignettes/occJSDM.Rmd and native package documentation; read-only discovery does not require approval. It could proceed with available sources rather than request information already present."
+    },
+    {
+      "issue": "Requests model type choice",
+      "assessment": "runOccJSDM infers type from input replication/response. Repeated observations per field sample give two_stage for this fixture. Selecting among binary/occupancy/two-stage is not an arbitrary scientific option on these same inputs."
+    },
+    {
+      "issue": "Repeated English responses",
+      "assessment": "Initial message for C case 3 is now supplied and explicitly requests Bahasa Indonesia by default. Both case-3 responses are in English without a language-switch request, confirming instruction failure in this conversation."
+    }
+  ],
+  "instruction_delivery": {
+    "date": "2026-10-06",
+    "evidence": "Doug pasted the initial user message for this Sonnet conversation, containing the full teaching instructions followed by the missing-covariate prompt.",
+    "method": "Explicitly pasted into initial user message",
+    "Bahasa_Indonesia_default_explicit": true,
+    "wrong_answer_hint_wait_explicit": true,
+    "native_R_fallback_explicit": true,
+    "starter_schedule_and_seeds_explicit": true,
+    "content_matches_shared_behavioral_instructions": true,
+    "byte_identical_to_markdown_file": "Not claimed: pasted rendering differs in code-span formatting, escaped underscores and typographic apostrophes.",
+    "scope": "Direct delivery evidence for C case 3; does not independently prove exact initial messages of C cases 1 and 2."
+  }
+}

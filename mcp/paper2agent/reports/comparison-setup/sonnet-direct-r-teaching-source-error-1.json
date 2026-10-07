@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "exchange": "teaching-source-error",
+  "repetition": 1,
+  "scored": false,
+  "prompt": "My working directory is the repository root, `/cloud/project`. I ran `source(\"lesson-links.R\")` and got: `cannot open file 'lesson-links.R': No such file or directory`. Explain why and show the correct command for this project. Do not change any files.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "correct_relative_path_and_knitr_hook_explanation_English_default_language_failure",
+  "evidence": "Doug pasted complete response and two bash labels; expanded commands/outputs not supplied.",
+  "observed": {
+    "language": "English throughout despite Bahasa default; English scenario prompt does not itself request language switch",
+    "tool_labels": [
+      "Locate lesson-links.R without modifying anything",
+      "Peek at the script and teaching folders"
+    ],
+    "correct_command": "source(\"vignettes/lesson-links.R\")",
+    "explains_relative_path_from_working_directory": true,
+    "reported_helper_location": "vignettes/lesson-links.R",
+    "explains_knitr_document_hook": true,
+    "explains_HTML_destination_rewriting_without_source_changes": true,
+    "explains_console_sourcing_installs_hook_without_visible_output": true,
+    "mentions_knitr_dependency": true,
+    "no_file_changes_claimed": true,
+    "no_fitting_in_supplied_sequence": true
+  },
+  "issues": [
+    {
+      "claim": "Entire answer in English",
+      "assessment": "Violates shared default-language instruction if delivered as directed; no explicit English-language request in the matched prompt."
+    }
+  ],
+  "qualifications": [
+    "Expanded shell commands and actual listings not provided; corrected path and script behavior independently agree with pinned source.",
+    "Knitting from vignettes commonly uses that directory, but working directory can be overridden; response states it categorically.",
+    "The stated includes/setup alternative is vague; sourcing an R helper in setup is the demonstrated mechanism, not proof that an arbitrary includes reference executes it.",
+    "Not meant to be run by hand describes its rendering purpose; console sourcing is possible, as the response itself correctly explains.",
+    "This is the fixed comparison error scenario, not a new actual user-reported runtime error.",
+    "Initial instruction delivery for this particular conversation not independently pasted; same approved instructions were requested."
+  ],
+  "source_check": {
+    "revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "method": "Read-only git show of vignettes/lesson-links.R",
+    "confirmed": [
+      "local block installs knitr document hook and calls previous hook",
+      "Only supported HTML targets trigger selected lesson .md-to-.html link rewriting",
+      "Code fences and inline code are excluded from rewriting",
+      "No source-file write in script"
+    ]
+  },
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

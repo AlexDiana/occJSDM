@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-06",
+  "condition": "A",
+  "exchange": "teaching-occupancy-detection",
+  "repetition": 1,
+  "scored": false,
+  "prompt": "Using the two-stage model for `trial/data.rds`, explain the difference between occupancy and detection, and between field-sample replication and PCR replication. Do not fit a model or change any files.",
+  "status": "core_hierarchy_correct_false_positive_omission_and_overstatements",
+  "evidence": "Doug pasted full response and tool labels; expanded R code/raw data checks absent",
+  "observed": {
+    "language": "Bahasa Indonesia; English suggested-question preface",
+    "reported_design": {
+      "sites": 40,
+      "field_samples_per_site": 2,
+      "field_samples_total": 80,
+      "PCR_replicates_per_sample": 2,
+      "primers": 1,
+      "species": 4,
+      "rows": 160
+    },
+    "correct_site_sample_PCR_hierarchy": true,
+    "correct_covariate_levels": true,
+    "occupancy_described_as_latent_site_presence": true,
+    "field_and_PCR_false_negatives_explained": true,
+    "no_fitting_in_supplied_sequence": true,
+    "no_file_changes_claimed": true
+  },
+  "issues": [
+    {
+      "claim": "Detection explained conditional on species presence; no false positives discussed",
+      "assessment": "Incomplete for this model. Positive observations can arise despite site absence or absent DNA in the field sample, through false positives at collection or PCR stages. This is not only a false-negative detection model."
+    },
+    {
+      "claim": "Each site has Sample 1 and 2",
+      "assessment": "Two samples per site is correct, but IDs are globally distinct (80 total), not necessarily labels 1 and 2 repeated at each site. Earlier expanded fixture rows show site 2 samples 3 and 4."
+    },
+    {
+      "claim": "Only field-sample replication adds information about collection",
+      "assessment": "Too absolute. PCR replicates do not constitute new field samples, but provide evidence about latent DNA presence in a sample and thereby inform collection inference within the joint two-stage model."
+    },
+    {
+      "claim": "Baseline occupancy is an intercept-based summary for the whole community",
+      "assessment": "Incorrect aggregation: baseline occupancy is computed per species from that species intercept, not one community-wide occupancy probability."
+    },
+    {
+      "claim": "The fixture model is non-spatial",
+      "assessment": "Non-spatial is the configured pilot fit scope, not a property forced by the input; spatial coordinates are present."
+    }
+  ],
+  "source_check": {
+    "revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "method": "Read pinned quickstart and output function",
+    "confirmed": [
+      "Quickstart explicitly describes false positives in field and lab",
+      "returnOccupancyRates returns per-species intercept-only probabilities"
+    ]
+  },
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

@@ -1,0 +1,54 @@
+{
+  "reviewer": "comparison_curation_review",
+  "scope": [
+    "reports/comparison-setup/prepare-comparison-base.py",
+    "tests/code/implementation/test_comparison_curation.py"
+  ],
+  "filesystem_tests": {
+    "passed": 10,
+    "command": "python3 -m pytest -q mcp/paper2agent/tests/code/implementation/test_comparison_curation.py"
+  },
+  "findings": [
+    {
+      "severity": "Important",
+      "lines": [
+        233,
+        234
+      ],
+      "title": "Cross-device archive cleanup failures do not restore the original copy",
+      "evidence": "Forced EXDEV on old dev directory move, copied directory, then simulated partial rmtree cleanup followed by PermissionError. The original dev/grader.txt remained missing after publish_stage returned an error, while backup/original/dev/grader.txt survived. moved_old is updated only when move returns.",
+      "recommendation": "Require same-device atomic rename or support recovery for an archive child whose cross-device move partially cleaned its source; test the failure boundary.",
+      "status": "resolved",
+      "resolution": "Archive copying and complete content verification occur before mutation. Publication and rollback now use atomic os.rename within root and its holding directory. A partial final cleanup failure reports Do not start trials and retains the verified private archive."
+    }
+  ],
+  "remaining_runtime_checks": [
+    "Actual Cloud copied-runtime symlink inventory",
+    "Activation after publication from final path",
+    "All four MCP tools listed without paid calls"
+  ],
+  "limits": [
+    "Cloud login and credentials not accessed",
+    "No implementation modified",
+    "Native R generation checked separately by coordinator"
+  ],
+  "assessment": "No remaining Important or Critical findings in reviewed helper/tests; actual Cloud runtime checks remain separate.",
+  "reviewed_file_sha256": {
+    "reports/comparison-setup/prepare-comparison-base.py": "1d08d189fc5d43a6c2352577b62c30b77e8323e9e41dee4dd49c66aca7b066f0",
+    "tests/code/implementation/test_comparison_curation.py": "dcf43174cd40a07412479f9eb073d1b4a595f029c7c7185f3be651d161e40dea"
+  },
+  "new_findings": [],
+  "final_additions_reviewed": [
+    "Preserved renv/settings.json when present",
+    "Native generator source revision assertion and unsupported-count classification check",
+    "Post-publication native activation/saved-fit read and MCP four-tool metadata inventory with no provider calls",
+    "RemoteSha compared with identical()",
+    "Post-publication library(occJSDM) shared-library load",
+    "Read-only discarded renv sandbox directory cleanup",
+    "Installed DESCRIPTION provenance read with read.dcf across records, requiring unique non-NA RemoteSha to equal the pin"
+  ],
+  "minor_hardening_notes": [],
+  "final_cleanup_review": "Only real directories in the discarded holding tree gain owner rwx, after the complete archive is verified. os.walk(followlinks=False) and the symlink guard keep retained runtime, external link targets and private backup untouched.",
+  "additional_verification": "Temporary publication fixture with external 0555 sandbox-directory symlink retained external target mode 0555 and retained runtime symlink after cleanup.",
+  "dcf_provenance_verification": "Independent R check passed: pin in a second DCF record accepted, absent tag rejected, conflicting tags rejected, duplicate identical tags accepted."
+}
