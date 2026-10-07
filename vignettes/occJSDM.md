@@ -12,6 +12,7 @@ This quickstart shows how the input data must be structured, makes a fitting cal
 ``` r
 library(occJSDM)
 
+sampledata <- sampledata # this loads the package's sampledata into your environment
 str(sampledata, max.level = 1)
 ```
 

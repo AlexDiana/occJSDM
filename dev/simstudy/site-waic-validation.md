@@ -1,6 +1,6 @@
 # Observed-data site WAIC: proposed correction for Alex
 
-Status update, 7 October 2026: Alex approved PR #14 at `3eb9cd3` on 6 October. Conflict resolution against main `66ffa78` is complete and verified; PR #14 remains unmerged. The September checks below remain historical evidence from the two-sample survey; former Lesson 3 model comparison is now in Lesson 4, whose current survey has three samples per site. Factor-count reliability validation remains open.
+Status update, 7 October 2026: Alex approved PR #14 at `3eb9cd3` on 6 October. Conflict resolution against main `66ffa78` was verified; PR #14 merged on 7 October as `a56f554`. The September checks below remain historical evidence from the two-sample survey; former Lesson 3 model comparison is now in Lesson 4, whose current survey has three samples per site. Factor-count reliability validation remains open.
 
 ## What this fixes, in plain words
 
@@ -90,3 +90,41 @@ Merged main `66ffa783991f8b19f9eb85e01ba499ae1db5508c` into the PR branch based 
 - **Diff checks:** no conflict entries remain. Unstaged changes and the staged PR diff against main pass whitespace checks. The full staged merge relative to the old PR head reports whitespace already present in main's archive/generated files; those unrelated files were preserved.
 
 The conflict-resolution commit updates the existing PR only. It does not merge into main, publish lessons or complete factor-count selection. Alex's 6 October approval applies to the original head, not a fresh review of this integration.
+
+
+## Current three-sample teaching survey after merge (7 October 2026)
+
+The non-spatial teaching survey and all six fits were rebuilt from merged `a56f5548e68e09d244513d09fcc04ad52f0caa19` in a fresh archive, `/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-post-pr14-20261007`, with its own installed library. The old archive remains intact. Every rebuilt posterior-results object is identical to its predecessor, with unchanged data, seeds, priors and MCMC schedules. New source hashes, retained thresholds and fit-file hashes supply current provenance. All eleven existing bundle exporters and their independent verifiers passed. The refreshed quickstart detection figure also reflects the accessible palette already present in merged code. This work changes no package estimator or fitting code and does not refresh the separate shipped `sampleresults` or historical spatial/four-package studies.
+
+The current survey has 100 sites, 10 species, three field samples per site, two primers and six PCRs per primer/sample. The default two-factor fit and one-factor comparison use identical observations and 24,000 retained draws each. The following computational checks use evenly spaced subsets from all four chains. They are not a completed model-selection analysis.
+
+| Quantity, 4,000 draws per fit | One factor | Two factors |
+| --- | ---: | ---: |
+| Observed-data site WAIC | 23,121.60 | 23,120.29 |
+| Across-site SE of score | 375.22 | 375.31 |
+| Effective-parameter penalty | 88.84 | 88.69 |
+| Sites with pointwise penalty above 0.4 | 99/100 | 99/100 |
+| Approximate Monte Carlo SE of score | 0.514 | 0.515 |
+| Largest site log-likelihood change with stricter quadrature | 2.09e-6 | 1.97e-6 |
+
+| Draws per fit | Difference, one minus two | Paired across-site SE | Approximate difference MCSE |
+| --- | ---: | ---: | ---: |
+| 1,000 | 0.4713 | 1.3201 | 1.3961 |
+| 4,000 | 1.3114 | 0.7556 | 0.7274 |
+
+The MCSE uses the same delta-method influence calculation as the historical check, preserving iteration order within chains. Difference MCSE assumes independent fitting runs. Both sample sizes agree with `loo::waic()` for score, effective-parameter penalty and across-site SE. Each used default quadrature and a separately started stricter sequence; the largest change in either total score over both checks is 1.91e-8. A larger posterior subset reduces estimated Monte Carlo uncertainty, but the score difference still changes appreciably and 99 of 100 sites remain flagged in each fit.
+
+**Decision: this example does not justify choosing a factor count using WAIC.** Two factors have a small nominal advantage, but numerical correctness does not establish reliability of the WAIC approximation. No held-out observed-survey refits were run here. Their predictive assessment remains necessary before a positive model-selection claim. The independent-site occupancy exercise in Lesson 4 remains a different target. These results neither replace September's historical evidence nor complete the broader release gate.
+
+Reproduce the scoring, export and independent compact-bundle verification from the repository root, with the new archive's library first in `R_LIBS`:
+
+```sh
+Rscript dev/simstudy/vignette-lesson/validate-waic.R ARCHIVE NEW_OUTPUT_1000 250
+Rscript dev/simstudy/vignette-lesson/validate-waic.R ARCHIVE NEW_OUTPUT_4000 1000
+Rscript dev/simstudy/vignette-lesson/export-waic.R ARCHIVE
+Rscript dev/simstudy/vignette-lesson/verify-waic.R ARCHIVE
+```
+
+For the exporter, use `ARCHIVE/waic-1000` and `ARCHIVE/waic-4000` as the two fresh output directories. The validator rejects archive/library or fit/source mismatches and refuses to overwrite an output directory. The September validator is unchanged. The compact `vignettes/teaching-data/site-waic-lesson.rds` records both draw checks, pointwise results, source and input hashes, survey settings and the unresolved reliability conclusion. Machine-readable tables and fit comparisons are in `vignette-lesson/post-pr14-validation/`; full likelihood matrices remain in the archive. The new verifier independently recalculates the WAIC summaries and paired SE from those matrices and checks the compact bundle against its source files and actual fits.
+
+The post-merge delivery checks also pass: lesson helper tests; all eleven existing bundle verifiers and the new WAIC verifier; Markdown and HTML renders of lessons 0-4 and the quickstart; lesson navigation and archive-source-check regressions; and all ten lesson-site JavaScript tests. An independent final reviewer checked all six fits, actual fit hashes, likelihood-matrix arithmetic, across-site SEs against `loo::waic()`, chain grouping, provenance and the statistical interpretation, with no actionable findings. The reviewer did not rerun fitting or quadrature and did not assess held-out predictive performance. Package estimator code and publication configuration are unchanged.

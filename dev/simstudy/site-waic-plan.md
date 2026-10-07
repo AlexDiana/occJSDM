@@ -1,6 +1,6 @@
 # Proposed observed-data, site-level WAIC
 
-Status update, 7 October 2026: Alex approved PR #14 at `3eb9cd3` on 6 October. Conflict resolution against main `66ffa78` is complete and verified; PR #14 remains unmerged. The September checks below remain historical evidence from the two-sample survey; former Lesson 3 model comparison is now in Lesson 4, whose current survey has three samples per site. Factor-count reliability validation remains open.
+Status update, 7 October 2026: Alex approved PR #14 at `3eb9cd3` on 6 October. Conflict resolution against main `66ffa78` was verified; PR #14 merged on 7 October as `a56f554`. The September checks below remain historical evidence from the two-sample survey; former Lesson 3 model comparison is now in Lesson 4, whose current survey has three samples per site. Factor-count reliability validation remains open.
 
 ## Scientific target
 
