@@ -12,6 +12,7 @@ This quickstart shows how the input data must be structured, makes a fitting cal
 ``` r
 library(occJSDM)
 
+sampledata <- sampledata # this loads the package's sampledata into your environment
 str(sampledata, max.level = 1)
 ```
 
@@ -76,6 +77,8 @@ It has three parts:
 ## Fit the model
 
 ``` r
+set.seed(20261007)
+
 fit <- runOccJSDM(
   data = sampledata,
   listParams = list(n_factors = 2),
@@ -95,7 +98,7 @@ fit <- runOccJSDM(
 - `MCMCparams` sets the number of chains, the burn-in and kept iterations, and the thinning.
 - The priors have defaults, which `listPriors` changes. `?runOccJSDM` describes every argument.
 
-This chunk is not run while the vignette is built, because the fit takes several minutes. The package ships its result as `sampleresults`, which the rest of this guide uses.
+This chunk is not run while the vignette is built, because the fit takes several minutes. The package ships its result as `sampleresults`, which the rest of this guide uses. The beta example was refitted with the current package using the seed above, the default priors and one requested computation thread. A fixed seed reproduces the fit on the same software and platform; small numerical differences can occur on other platforms.
 
 ``` r
 fit <- sampleresults
@@ -111,14 +114,14 @@ summary(diagnostics$rhat)
 ```
 
     #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    #>  0.9999  1.0001  1.0008  1.0049  1.0046  1.0802
+    #>  0.9999  1.0002  1.0010  1.0054  1.0053  1.0830
 
 ``` r
 summary(diagnostics$ess)
 ```
 
     #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    #>   90.84  486.07 2015.90 2471.19 3856.91 7824.07
+    #>   137.7   438.0  2169.3  2538.8  4272.3  8402.3
 
 ``` r
 head(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat", "ess")])
@@ -127,14 +130,16 @@ head(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat"
     #> # A tibble: 6 × 5
     #>   param      label1         label2  rhat   ess
     #>   <chr>      <chr>          <chr>  <dbl> <dbl>
-    #> 1 beta_psi   X_psi.EnvCov.2 OTU_8   1.08  90.8
-    #> 2 beta_psi   X_psi.EnvCov.2 OTU_7   1.07 247. 
-    #> 3 beta_psi   X_psi.EnvCov.2 OTU_2   1.05 421. 
-    #> 4 beta_theta X_theta.2      OTU_2   1.04 961. 
-    #> 5 beta_psi   X_psi.EnvCov.1 OTU_8   1.03 201. 
-    #> 6 beta_psi   X_psi.EnvCov.1 OTU_3   1.03 366.
+    #> 1 theta0     OTU_3          1       1.08  269.
+    #> 2 theta0     OTU_5          1       1.04  240.
+    #> 3 beta_psi   X_psi.EnvCov.2 OTU_7   1.04  151.
+    #> 4 beta0_psi  OTU_6          1       1.04  418.
+    #> 5 beta_theta (Intercept)    OTU_7   1.03  807.
+    #> 6 beta_psi   X_psi.EnvCov.2 OTU_5   1.03  148.
 
 `rhat` compares the chains with each other: values close to 1 mean they agree, and larger values call for longer runs or a closer look at the parameters concerned. `ess` is the effective number of independent draws behind each estimate. The table covers the occupancy and detection coefficients; `plotTraceplot()` shows the chains themselves.
+
+The shipped run still has 35 of its 130 reported coefficients above `rhat = 1.01` or below `ess = 400`. Its largest reported Rhat is about 1.083, for the field false-positive rate of `OTU_3`, and fitting also raised warnings about the spatial coefficients. The plots below demonstrate the output functions. Before interpreting flagged estimates in a scientific analysis, run longer chains and check them again; more iterations do not guarantee that the chains will agree.
 
 ## Look at the results
 

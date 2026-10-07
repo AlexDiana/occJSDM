@@ -1,0 +1,307 @@
+Detected repeated observation for some sample
+Count data detected
+occJSDM has inferred two stage (eDNA style) data
+Check your data if this is not what you were expecting!
+Precomputing spatial covariance matrices
+Running MCMC
+Chain 1 - Burn in Iteration 100
+Chain 1 - Burn in Iteration 200
+Chain 1 - Burn in Iteration 300
+Chain 1 - Burn in Iteration 400
+Chain 1 - Burn in Iteration 500
+Chain 1 - Burn in Iteration 600
+Chain 1 - Burn in Iteration 700
+Chain 1 - Burn in Iteration 800
+Chain 1 - Burn in Iteration 900
+Chain 1 - Burn in Iteration 1000
+Chain 1 - Burn in Iteration 1100
+Chain 1 - Burn in Iteration 1200
+Chain 1 - Burn in Iteration 1300
+Chain 1 - Burn in Iteration 1400
+Chain 1 - Burn in Iteration 1500
+Chain 1 - Burn in Iteration 1600
+Chain 1 - Burn in Iteration 1700
+Chain 1 - Burn in Iteration 1800
+Chain 1 - Burn in Iteration 1900
+Chain 1 - Burn in Iteration 2000
+Chain 1 - Burn in Iteration 2100
+Chain 1 - Burn in Iteration 2200
+Chain 1 - Burn in Iteration 2300
+Chain 1 - Burn in Iteration 2400
+Chain 1 - Burn in Iteration 2500
+Chain 1 - Burn in Iteration 2600
+Chain 1 - Burn in Iteration 2700
+Chain 1 - Burn in Iteration 2800
+Chain 1 - Burn in Iteration 2900
+Chain 1 - Burn in Iteration 3000
+Chain 1 - Burn in Iteration 3100
+Chain 1 - Burn in Iteration 3200
+Chain 1 - Burn in Iteration 3300
+Chain 1 - Burn in Iteration 3400
+Chain 1 - Burn in Iteration 3500
+Chain 1 - Burn in Iteration 3600
+Chain 1 - Burn in Iteration 3700
+Chain 1 - Burn in Iteration 3800
+Chain 1 - Burn in Iteration 3900
+Chain 1 - Burn in Iteration 4000
+Chain 1 - Burn in Iteration 4100
+Chain 1 - Burn in Iteration 4200
+Chain 1 - Burn in Iteration 4300
+Chain 1 - Burn in Iteration 4400
+Chain 1 - Burn in Iteration 4500
+Chain 1 - Burn in Iteration 4600
+Chain 1 - Burn in Iteration 4700
+Chain 1 - Burn in Iteration 4800
+Chain 1 - Burn in Iteration 4900
+Chain 1 - Burn in Iteration 5000
+Chain 1 - Iteration 100
+Chain 1 - Iteration 200
+Chain 1 - Iteration 300
+Chain 1 - Iteration 400
+Chain 1 - Iteration 500
+Chain 1 - Iteration 600
+Chain 1 - Iteration 700
+Chain 1 - Iteration 800
+Chain 1 - Iteration 900
+Chain 1 - Iteration 1000
+Chain 1 - Iteration 1100
+Chain 1 - Iteration 1200
+Chain 1 - Iteration 1300
+Chain 1 - Iteration 1400
+Chain 1 - Iteration 1500
+Chain 1 - Iteration 1600
+Chain 1 - Iteration 1700
+Chain 1 - Iteration 1800
+Chain 1 - Iteration 1900
+Chain 1 - Iteration 2000
+Chain 1 - Iteration 2100
+Chain 1 - Iteration 2200
+Chain 1 - Iteration 2300
+Chain 1 - Iteration 2400
+Chain 1 - Iteration 2500
+Chain 1 - Iteration 2600
+Chain 1 - Iteration 2700
+Chain 1 - Iteration 2800
+Chain 1 - Iteration 2900
+Chain 1 - Iteration 3000
+Chain 1 - Iteration 3100
+Chain 1 - Iteration 3200
+Chain 1 - Iteration 3300
+Chain 1 - Iteration 3400
+Chain 1 - Iteration 3500
+Chain 1 - Iteration 3600
+Chain 1 - Iteration 3700
+Chain 1 - Iteration 3800
+Chain 1 - Iteration 3900
+Chain 1 - Iteration 4000
+Chain 1 - Iteration 4100
+Chain 1 - Iteration 4200
+Chain 1 - Iteration 4300
+Chain 1 - Iteration 4400
+Chain 1 - Iteration 4500
+Chain 1 - Iteration 4600
+Chain 1 - Iteration 4700
+Chain 1 - Iteration 4800
+Chain 1 - Iteration 4900
+Chain 1 - Iteration 5000
+Chain 2 - Burn in Iteration 100
+Chain 2 - Burn in Iteration 200
+Chain 2 - Burn in Iteration 300
+Chain 2 - Burn in Iteration 400
+Chain 2 - Burn in Iteration 500
+Chain 2 - Burn in Iteration 600
+Chain 2 - Burn in Iteration 700
+Chain 2 - Burn in Iteration 800
+Chain 2 - Burn in Iteration 900
+Chain 2 - Burn in Iteration 1000
+Chain 2 - Burn in Iteration 1100
+Chain 2 - Burn in Iteration 1200
+Chain 2 - Burn in Iteration 1300
+Chain 2 - Burn in Iteration 1400
+Chain 2 - Burn in Iteration 1500
+Chain 2 - Burn in Iteration 1600
+Chain 2 - Burn in Iteration 1700
+Chain 2 - Burn in Iteration 1800
+Chain 2 - Burn in Iteration 1900
+Chain 2 - Burn in Iteration 2000
+Chain 2 - Burn in Iteration 2100
+Chain 2 - Burn in Iteration 2200
+Chain 2 - Burn in Iteration 2300
+Chain 2 - Burn in Iteration 2400
+Chain 2 - Burn in Iteration 2500
+Chain 2 - Burn in Iteration 2600
+Chain 2 - Burn in Iteration 2700
+Chain 2 - Burn in Iteration 2800
+Chain 2 - Burn in Iteration 2900
+Chain 2 - Burn in Iteration 3000
+Chain 2 - Burn in Iteration 3100
+Chain 2 - Burn in Iteration 3200
+Chain 2 - Burn in Iteration 3300
+Chain 2 - Burn in Iteration 3400
+Chain 2 - Burn in Iteration 3500
+Chain 2 - Burn in Iteration 3600
+Chain 2 - Burn in Iteration 3700
+Chain 2 - Burn in Iteration 3800
+Chain 2 - Burn in Iteration 3900
+Chain 2 - Burn in Iteration 4000
+Chain 2 - Burn in Iteration 4100
+Chain 2 - Burn in Iteration 4200
+Chain 2 - Burn in Iteration 4300
+Chain 2 - Burn in Iteration 4400
+Chain 2 - Burn in Iteration 4500
+Chain 2 - Burn in Iteration 4600
+Chain 2 - Burn in Iteration 4700
+Chain 2 - Burn in Iteration 4800
+Chain 2 - Burn in Iteration 4900
+Chain 2 - Burn in Iteration 5000
+Chain 2 - Iteration 100
+Chain 2 - Iteration 200
+Chain 2 - Iteration 300
+Chain 2 - Iteration 400
+Chain 2 - Iteration 500
+Chain 2 - Iteration 600
+Chain 2 - Iteration 700
+Chain 2 - Iteration 800
+Chain 2 - Iteration 900
+Chain 2 - Iteration 1000
+Chain 2 - Iteration 1100
+Chain 2 - Iteration 1200
+Chain 2 - Iteration 1300
+Chain 2 - Iteration 1400
+Chain 2 - Iteration 1500
+Chain 2 - Iteration 1600
+Chain 2 - Iteration 1700
+Chain 2 - Iteration 1800
+Chain 2 - Iteration 1900
+Chain 2 - Iteration 2000
+Chain 2 - Iteration 2100
+Chain 2 - Iteration 2200
+Chain 2 - Iteration 2300
+Chain 2 - Iteration 2400
+Chain 2 - Iteration 2500
+Chain 2 - Iteration 2600
+Chain 2 - Iteration 2700
+Chain 2 - Iteration 2800
+Chain 2 - Iteration 2900
+Chain 2 - Iteration 3000
+Chain 2 - Iteration 3100
+Chain 2 - Iteration 3200
+Chain 2 - Iteration 3300
+Chain 2 - Iteration 3400
+Chain 2 - Iteration 3500
+Chain 2 - Iteration 3600
+Chain 2 - Iteration 3700
+Chain 2 - Iteration 3800
+Chain 2 - Iteration 3900
+Chain 2 - Iteration 4000
+Chain 2 - Iteration 4100
+Chain 2 - Iteration 4200
+Chain 2 - Iteration 4300
+Chain 2 - Iteration 4400
+Chain 2 - Iteration 4500
+Chain 2 - Iteration 4600
+Chain 2 - Iteration 4700
+Chain 2 - Iteration 4800
+Chain 2 - Iteration 4900
+Chain 2 - Iteration 5000
+
+Parameter Set: beta_theta (Flattened N = 30)
+--------------------------------------------------
+  R-hat | Max:    1.034 | Mean:   1.006
+  ESS   | Min:    371.4 | Mean:  1288.7
+
+Parameter Set: p (Flattened N = 30)
+--------------------------------------------------
+  R-hat | Max:    1.004 | Mean:   1.001
+  ESS   | Min:   2368.4 | Mean:  4206.2
+
+Parameter Set: q (Flattened N = 30)
+--------------------------------------------------
+  R-hat | Max:    1.007 | Mean:   1.001
+  ESS   | Min:   2309.7 | Mean:  4913.2
+
+Parameter Set: theta0 (Flattened N = 10)
+--------------------------------------------------
+  R-hat | Max:    1.083 | Mean:   1.016
+  ESS   | Min:    240.4 | Mean:   874.2
+
+Parameter Set: B0 (Flattened N = 10)
+--------------------------------------------------
+  R-hat | Max:    1.039 | Mean:   1.009
+  ESS   | Min:    224.3 | Mean:   351.1
+
+Parameter Set: B (Flattened N = 20)
+--------------------------------------------------
+  R-hat | Max:    1.040 | Mean:   1.011
+  ESS   | Min:    137.7 | Mean:   277.3
+
+Parameter Set: G (Flattened N = 6)
+--------------------------------------------------
+  R-hat | Max:    1.017 | Mean:   1.009
+  ESS   | Min:    220.9 | Mean:   307.4
+
+Parameter Set: A (Flattened N = 10)
+--------------------------------------------------
+  R-hat | Max:    1.011 | Mean:   1.004
+  ESS   | Min:    293.3 | Mean:   500.9
+
+Parameter Set: C (Flattened N = 2)
+--------------------------------------------------
+  R-hat | Max:    1.010 | Mean:   1.005
+  ESS   | Min:    319.4 | Mean:   347.1
+
+Parameter Set: Bs (Flattened N = 200)
+--------------------------------------------------
+  R-hat | Max:    1.197 | Mean:   1.030
+  ESS   | Min:     41.1 | Mean:   100.3
+
+Parameter Set: Gs (Flattened N = 60)
+--------------------------------------------------
+  R-hat | Max:    1.109 | Mean:   1.020
+  ESS   | Min:     64.4 | Mean:   114.0
+
+Parameter Set: As (Flattened N = 10)
+--------------------------------------------------
+  R-hat | Max:    1.334 | Mean:   1.118
+  ESS   | Min:     26.4 | Mean:    41.3
+
+Parameter Set: Cs (Flattened N = 20)
+--------------------------------------------------
+  R-hat | Max:    1.368 | Mean:   1.054
+  ESS   | Min:     57.2 | Mean:   106.3
+
+Parameter Set: U (Flattened N = 200)
+--------------------------------------------------
+  R-hat | Max:    1.003 | Mean:   1.000
+  ESS   | Min:   6041.6 | Mean:  8126.7
+
+Parameter Set: L (Flattened N = 20)
+--------------------------------------------------
+  R-hat | Max:    1.002 | Mean:   1.000
+  ESS   | Min:   3814.1 | Mean:  5284.6
+
+Parameter Set: sigmab (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.000 | Mean:   1.000
+  ESS   | Min:   2818.6 | Mean:  2818.6
+
+Parameter Set: sigmabs (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.001 | Mean:   1.001
+  ESS   | Min:    432.1 | Mean:   432.1
+
+Parameter Set: sigmah (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.014 | Mean:   1.014
+  ESS   | Min:    392.0 | Mean:   392.0
+
+==================================================
+Warning messages:
+1: Convergence issue in 'Bs_output'. Max R-hat > 1.1 
+2: Low ESS in 'Bs'. Min ESS < 50 
+3: Convergence issue in 'Gs_output'. Max R-hat > 1.1 
+4: Convergence issue in 'As_output'. Max R-hat > 1.1 
+5: Low ESS in 'As'. Min ESS < 50 
+6: Convergence issue in 'Cs_output'. Max R-hat > 1.1 
+REFIT COMPLETE: 130 coefficient diagnostics; 35 flagged at Rhat > 1.01 or ESS < 400.
+Elapsed seconds: 164.673

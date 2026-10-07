@@ -45,6 +45,8 @@ It has three parts:
 ## Fit the model
 
 ```{r fit, eval=FALSE}
+set.seed(20261007)
+
 fit <- runOccJSDM(
   data = sampledata,
   listParams = list(n_factors = 2),
@@ -64,7 +66,7 @@ fit <- runOccJSDM(
 - `MCMCparams` sets the number of chains, the burn-in and kept iterations, and the thinning.
 - The priors have defaults, which `listPriors` changes. `?runOccJSDM` describes every argument.
 
-This chunk is not run while the vignette is built, because the fit takes several minutes. The package ships its result as `sampleresults`, which the rest of this guide uses.
+This chunk is not run while the vignette is built, because the fit takes several minutes. The package ships its result as `sampleresults`, which the rest of this guide uses. The beta example was refitted with the current package using the seed above, the default priors and one requested computation thread. A fixed seed reproduces the fit on the same software and platform; small numerical differences can occur on other platforms.
 
 ```{r load-fit}
 fit <- sampleresults
@@ -82,6 +84,8 @@ head(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat"
 ```
 
 `rhat` compares the chains with each other: values close to 1 mean they agree, and larger values call for longer runs or a closer look at the parameters concerned. `ess` is the effective number of independent draws behind each estimate. The table covers the occupancy and detection coefficients; `plotTraceplot()` shows the chains themselves.
+
+The shipped run still has 35 of its 130 reported coefficients above `rhat = 1.01` or below `ess = 400`. Its largest reported Rhat is about 1.083, for the field false-positive rate of `OTU_3`, and fitting also raised warnings about the spatial coefficients. The plots below demonstrate the output functions. Before interpreting flagged estimates in a scientific analysis, run longer chains and check them again; more iterations do not guarantee that the chains will agree.
 
 ## Look at the results
 

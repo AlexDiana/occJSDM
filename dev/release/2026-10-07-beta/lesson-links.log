@@ -1,0 +1,6 @@
+Verified html links, anchors and literal examples.
+Verified markdown links, anchors and literal examples.
+Verified html links, anchors and literal examples.
+All 9 lesson sources are free of dynamic or encoded link destinations.
+All 9 rendered lessons keep each lesson link on one line for GitHub Pages.
+Shared lesson-link regression checks passed.
