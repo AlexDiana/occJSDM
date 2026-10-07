@@ -422,7 +422,7 @@ Keep `nthin = 1` unless storage is the limiting concern. Discarding additional d
 
 ### Can WAIC compare these fits?
 
-WAIC, the widely applicable information criterion, is meant to estimate how well a model would predict new data, with smaller values better. The package’s current value cannot rank the perfect-observation and PCR fits, which have different response data. It is also not yet a valid guide to prediction between fits of the same data; [Lesson 4](occJSDM-lesson-4.md#check-the-additional-fit-and-understand-the-waic-limitation) explains why and compares models using actual independent sites instead.
+WAIC, the widely applicable information criterion, is meant to estimate how well a model would predict new data, with smaller values better. Neither legacy nor observed-data WAIC can rank the perfect-observation and PCR fits, which have different response data. The legacy stored score is also unsuitable for selecting a model for new sites. The corrected observed-data site criterion compares fits of identical observations and requires numerical and reliability checks; [Lesson 4](occJSDM-lesson-4.md#check-the-additional-fit-and-understand-the-waic-limitation) explains both scores and provides a worked comparison using actual independent sites.
 
 ## How many effects does each fit resolve?
 

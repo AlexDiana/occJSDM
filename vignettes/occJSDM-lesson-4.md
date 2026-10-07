@@ -381,31 +381,43 @@ prediction_examples$diagnostics |>
 
 There are no flagged rows under these checks. For a species’ average predicted probability, the largest Rhat across both fits is 1.007 and the smallest ESS 1,218, both inside the screens. Nevertheless, the largest Monte Carlo standard error (MCSE) of a species’ average predicted probability is about 0.26 percentage points. This measures numerical uncertainty remaining in that posterior mean, not ecological prediction error. Passing the diagnostic thresholds does not make tiny differences between model scores exact.
 
-WAIC, the widely applicable information criterion, is meant to estimate how well a model would predict new observations, with smaller values better. Here is the call that extracts it, followed by the values for these two fits:
+WAIC, the widely applicable information criterion, is meant to estimate how well a model would predict new observations, with smaller values better. The saved teaching bundle contains the older, legacy score. Retrieve it explicitly with `type = "legacy"`; the default `extractWAIC()` now computes an observed-data site score instead:
 
 ``` r
-occJSDM::extractWAIC(fitmodel)
-occJSDM::extractWAIC(fit_one_factor)
+occJSDM::extractWAIC(fitmodel, type = "legacy")
+occJSDM::extractWAIC(fit_one_factor, type = "legacy")
 ```
 
 ``` r
 tibble(
   model = unname(prediction_labels[names(prediction_examples$manifests)]),
-  `Current extractWAIC value` = vapply(
+  `Legacy stored score` = vapply(
     prediction_examples$manifests, function(fit) fit$waic, numeric(1)
   )
 ) |>
   knitr::kable(digits = 2)
 ```
 
-| model                   | Current extractWAIC value |
-|:------------------------|--------------------------:|
-| Two hidden site factors |                  24495.31 |
-| One hidden site factor  |                  24501.00 |
+| model                   | Legacy stored score |
+|:------------------------|--------------------:|
+| Two hidden site factors |            24495.31 |
+| One hidden site factor  |            24501.00 |
 
-**Do not use this table to choose the better model for unsurveyed sites.** In plain terms, the current WAIC rewards fitting the training survey’s own hidden states, not predicting new sites.
+**Do not use this table to choose the better model for unsurveyed sites.** In plain terms, the legacy score rewards fitting the training survey’s own hidden states, not predicting new sites.
 
-The current calculation combines likelihood terms for the sampled, unobserved site and collection states with terms for the PCR observations. Those hidden states are learned using the training observations. The calculation does not average them out to evaluate the probability of new observations at a new site. Matching the training dataset is necessary for comparison, but does not by itself fix this difference in target. The independent-site scores above provide the worked predictive comparison. A validated observed-data WAIC or site-level cross-validation workflow remains separate work.
+The legacy calculation combines likelihood terms for the sampled, unobserved site and collection states with terms for the PCR observations. Those hidden states are learned using the training observations. The calculation does not average them out to evaluate the probability of new observations at a new site. Matching the training dataset is necessary for comparison, but does not by itself fix this difference in target. The independent-site scores above provide the worked predictive comparison. The corrected criterion, `computeSiteWAIC()`, instead scores the complete observed survey at each site. It sums over occupancy and collection states and integrates the shared site factors jointly, preserving the dependence between species. A whole site is one scoring unit, appropriate to predicting an independent site with the same measured covariates and sampling design.
+
+The following example is not run when this lesson renders. These older saved fits used a read threshold of `1`, which must be supplied because they did not record it. New fits retain their threshold. The scorer supports non-spatial binary, occupancy and two-stage models.
+
+``` r
+waic_two <- occJSDM::computeSiteWAIC(fitmodel, threshold = 1)
+waic_one <- occJSDM::computeSiteWAIC(fit_one_factor, threshold = 1)
+occJSDM::compareSiteWAIC(waic_two, waic_one)
+```
+
+The comparison reports the first score minus the second: here, two factors minus one. A negative difference favours two factors because lower WAIC is better. Both fits must describe identical observations. Its paired standard error describes variation in the score difference across sites; it does not measure MCMC error or numerical integration error. Inspect the integration diagnostics and warnings about large pointwise WAIC penalties before interpreting a ranking. A corrected likelihood alone does not ensure a reliable WAIC approximation.
+
+**Factor-count selection remains unfinished.** Alex approved the implementation in PR \#14 on 6 October 2026. The September validation used an earlier survey with two field samples per site; its numerical results do not describe this lesson’s current three-sample survey. Rescoring the current fits and checking the approximation against held-out observed surveys remain separate work. The independent-site scores above remain the worked predictive comparison.
 
 ## Where to go next
 
