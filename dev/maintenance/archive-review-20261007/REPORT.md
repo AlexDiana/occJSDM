@@ -2,7 +2,7 @@
 
 Retain the scientific archives as complete studies, including their initial fits, longer checks, failed attempts and frozen execution records. Compact teaching bundles and report tables already support most routine rendering without loading the large posterior objects. Cold storage is a useful future option; no move, deletion, model fit, numerical reanalysis, package-code edit or commit was performed in this review. A local copy must remain until its replacement has been copied, fully verified and shown to support the required downstream work.
 
-The reviewed root is `/Users/douglasyu/src/occJSDM/dev/simstudy/results`. This report and its scripts are in the separate `post-beta-maintenance` worktree. Applicable repository instructions require preserving raw results, older environments and worktrees, and writing Markdown paragraphs without wrapping or em-dashes.
+The reviewed root is `/Users/douglasyu/src/occJSDM/dev/simstudy/results`. The review was performed in the separate `post-beta-maintenance` worktree; the report and scripts are now integrated into main. The ignored review evidence was preserved in the complete verified worktree archive before that checkout was retired; see the [cleanup record](../post-beta-maintenance-20261007/cleanup-REPORT.md). Applicable repository instructions require preserving raw results, older environments and worktrees, and writing Markdown paragraphs without wrapping or em-dashes.
 
 ## Inventory
 
