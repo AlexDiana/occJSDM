@@ -76,17 +76,33 @@ output: html_document
 
 ## Announcement draft (Doug; updated 7 October 2026; ready to send once recipients and sending account are supplied)
 
-> Subject: occJSDM beta: joint species distribution modelling with two-stage eDNA detection
+> Subject: occJSDM v0.1.0 beta: occupancy modelling for eDNA metabarcoding
 >
-> We are releasing the beta of occJSDM, an R package combining joint species distribution modelling with the two-stage eDNA occupancy model of Ji et al. (2025). It estimates false-negative and false-positive detection at field and lab stages, with primer-specific lab rates.
+> We have released the beta of occJSDM, an R package combining a joint species distribution model with the two-stage eDNA occupancy model of Ji et al. (2025). It estimates occupancy while accounting for false negatives and false positives in field collection and laboratory detection. It returns species-specific true-positive and false-positive field collection probabilities and lab true-positive and false-positive detection probabilities, with the lab probabilities estimated separately for each primer. Studies using multiple primers can therefore be analysed as a single dataset.
 >
-> Features include environmental and collection covariates, species traits, nonlinear environmental responses, spatial effects, ordination, residual species correlations, variation partitioning, and prediction at new sites. Simpler study designs support classical occupancy and JSDM-only models. A quickstart and a simulator guide are available. Teaching lessons comparing fitted results with simulated truth are first drafts only and are awaiting a full line-by-line review.
+> The package supports environmental and collection covariates, species traits, ordination, residual species correlations, prediction at new sites, optional spline-based nonlinear environmental responses, and spatial effects. Spatial inference is still limited in the beta.
 >
-> Validation is still in progress. In our simulations, occupancy probabilities are pulled towards the middle (low ones too high, high ones too low); more field samples or sites reduced this without removing it. Widening the occupancy-baseline prior (experimental `listPriors$sigma_b0`) is not a general fix, so the default is unchanged, and stronger collection priors can hide real collection effects. Interval coverage has not been established, and spatial fields are poorly recovered when sites are far apart relative to the spatial range. See the README's Known limitations for details.
+> occJSDM uses site and sample identifiers to identify the study design. It fits one-stage occupancy models for studies with repeated field samples but only one PCR observation per field sample, or JSDM-only models for one observation per site. With repeated field samples per site, pooling PCR products before sequencing such that only one observation remains per field sample leads to a one-stage model.
 >
-> The default priors assume false positives are uncommon. With much higher contamination, check prior sensitivity and compare results across chains, since chains can then settle on two different explanations of the same data.
+> The one- and two-stage eDNA models analyse binary detections. Read counts can be supplied directly and are converted to detections or non-detections at a user-specified threshold (default 1, meaning even one read counts as a potential detection). Users should not set low-read detections to zero solely because their read counts are low: occJSDM uses all detections to infer false positives. Standard sequence-quality and taxonomy checks still apply. JSDM-only models accept binary presence/absence or continuous observations, using a Gaussian response model for continuous data. Count-response JSDMs and continuous-intensity detection models are not supported in this beta.
 >
-> Installation and examples: <https://github.com/AlexDiana/occJSDM>. Feedback and bug reports are welcome.
+> occJSDM's false-positive inference assumes that practitioners have applied careful field and lab practice, so that contamination probabilities are expected to be truly low. If contamination is high in the dataset, check for disagreement between chains, which can settle on different explanations of the same data.
+>
+> Validation is ongoing. Occupancy probabilities can be pulled towards the middle, interval coverage has not been established, and spatial fields can be poorly recovered when sites are far apart relative to the spatial range. Single-species occupancy fits currently encounter a dimension-handling error; its correction is deferred until after beta. Please read the [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) before using estimates in an analysis.
+>
+> A quickstart and a simulator guide are available. Vignette Lessons 0-7 are first drafts awaiting a line-by-line review.
+>
+> An optional MCP pilot using [Paper2Agent](https://github.com/jmiao24/Paper2Agent) exposes four tools: `validate_data`, `fit_model`, `diagnostics` and `summarise_fit`. It supports non-spatial one-stage occupancy, two-stage eDNA and binary JSDM fits. Continuous JSDM and spatial fitting are available through the ordinary R interface. The pilot uses the verified scientific revision `b7b7001`, pre-dating the beta, and awaits review of scientific explanations and teaching material. Ordinary R installation does not need MCP or Python. Pilot source, a separate download and setup instructions are linked from the release.
+>
+> Install the beta with its vignettes:
+>
+> ```r
+> remotes::install_github("AlexDiana/occJSDM@v0.1.0-beta", build_vignettes = TRUE)
+> vignette("occJSDM", package = "occJSDM")
+> vignette("simulateOccJSDMData", package = "occJSDM")
+> ```
+>
+> [Release notes and downloads](https://github.com/AlexDiana/occJSDM/releases/tag/v0.1.0-beta). Feedback and bug reports are welcome through [GitHub issues](https://github.com/AlexDiana/occJSDM/issues). This is a GitHub beta; CRAN submission and broader interval-calibration work follow later.
 
 # **Future work after beta**
 
@@ -100,6 +116,7 @@ Every outstanding item from the previous TODO is accounted for below or in the r
 
 ## Review and maintenance
 
+- **Fix single-species occupancy fitting (added 7 October 2026; deferred until after beta):** the current beta fails with `incorrect number of dimensions` in [sample_theta0()](R/mcmcfun.R#L120). With one OTU column, `z[idx_z, ]` becomes a vector and the subsequent `z_all[, s]` indexing fails. Reproduced in a non-spatial occupancy fit with 12 sites, three field samples per site, one occupancy covariate, no traits and `listParams = list(n_factors = 0, n_lattrait = 0)`; the corresponding two-species fit completes. Preserve matrix dimensions in the sampler and audit other single-species assumptions. Add regression coverage for single-species occupancy and two-stage fits with the residual species and latent trait factors disabled, retaining a multiple-species comparison.
 - **Document the beta-refit launch command (added 7 October 2026; deferred):** add a complete command for [refit-sampleresults.R](dev/release/2026-10-07-beta/refit-sampleresults.R) that sets `OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS`, `VECLIB_MAXIMUM_THREADS` and `MKL_NUM_THREADS` to 1 before R starts. The script sets the RcppParallel thread count but only records these environment variables. The archived beta refit had all four set to 1, as verified in the [release report](dev/release/2026-10-07-beta/REPORT.md); this is a documentation follow-up, not a defect in the released fit.
 - **Develop the occJSDM MCP as an interactive companion lesson:** after beta, align its guided validate-fit-diagnose-summarise workflow with the vignette lessons, so students and readers of the paper can try supported analyses through natural-language requests. Review lesson sequencing, explanations and limits alongside the tool contract; extend tools only where they serve a clear learning task, and validate each addition against native R results. The current pilot is a starting point, not yet a paper-ready or classroom-ready lesson.
 - **Review the local simulation-output archive (added 5 October 2026; deferred):** inventory the roughly 88 GB in the ignored `dev/simstudy/results/` directory and check which saved fits and other outputs are still needed to rebuild lessons, reports and validation results. Identify what to retain locally, archive or regenerate, preserving the inputs, seeds, code revisions, fitting settings and provenance needed for reproducibility. Verify any archive before removing local copies. Leave these outputs untouched during the current repository cleanup.
