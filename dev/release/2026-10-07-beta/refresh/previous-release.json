@@ -1,0 +1,21 @@
+{
+  "id": 405445864,
+  "tag_name": "v0.1.0-beta",
+  "target_commitish": "63a4faf96f2a4d5c508890b45b246232c26b31d7",
+  "name": "occJSDM 0.1.0 beta",
+  "draft": false,
+  "prerelease": true,
+  "published_at": "2026-10-07T06:26:44Z",
+  "assets": [
+    {
+      "name": "occJSDM_0.1.0.tar.gz",
+      "size": 52573549,
+      "digest": "sha256:2ee848e7c09c8f656456da4488e35abb5eaec55f6adf13f1ec9fb9c9b3a2ef5f"
+    },
+    {
+      "name": "SHA256SUMS",
+      "size": 87,
+      "digest": "sha256:0a30321be8f1d83857178b73f8a2090531206715ca4f0ada86c0605b3fecf13c"
+    }
+  ]
+}

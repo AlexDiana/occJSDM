@@ -1,0 +1,242 @@
+* using log directory ‘/private/tmp/occjsdm-beta-refresh-nc4hh1er/check/occJSDM.Rcheck’
+* using R version 4.5.0 (2025-04-11)
+* using platform: aarch64-apple-darwin20
+* R was compiled by
+    Apple clang version 14.0.0 (clang-1400.0.29.202)
+    GNU Fortran (GCC) 14.2.0
+* running under: macOS 27.0.1
+* using session charset: UTF-8
+* using option ‘--no-manual’
+* checking for file ‘occJSDM/DESCRIPTION’ ... OK
+* checking extension type ... Package
+* this is package ‘occJSDM’ version ‘0.1.0’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ...Warning: unable to access index for repository https://CRAN.R-project.org/src/contrib:
+  cannot open URL 'https://CRAN.R-project.org/src/contrib/PACKAGES'
+Warning: unable to access index for repository https://bioconductor.org/packages/3.21/bioc/src/contrib:
+  cannot open URL 'https://bioconductor.org/packages/3.21/bioc/src/contrib/PACKAGES'
+Warning: unable to access index for repository https://bioconductor.org/packages/3.21/data/annotation/src/contrib:
+  cannot open URL 'https://bioconductor.org/packages/3.21/data/annotation/src/contrib/PACKAGES'
+Warning: unable to access index for repository https://bioconductor.org/packages/3.21/data/experiment/src/contrib:
+  cannot open URL 'https://bioconductor.org/packages/3.21/data/experiment/src/contrib/PACKAGES'
+ OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘occJSDM’ can be installed ... WARNING
+Found the following significant warnings:
+  /Library/Frameworks/R.framework/Resources/include/R_ext/Boolean.h:62:36: warning: unknown warning group '-Wfixed-enum-extension', ignored [-Wunknown-warning-option]
+See ‘/private/tmp/occjsdm-beta-refresh-nc4hh1er/check/occJSDM.Rcheck/00install.out’ for details.
+* used C++ compiler: ‘Apple clang version 21.0.0 (clang-2100.3.34.2)’
+* used SDK: ‘’
+* checking installed package size ... INFO
+  installed size is 52.0Mb
+  sub-directories of 1Mb or more:
+    data  50.5Mb
+* checking package directory ... OK
+* checking ‘build’ directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... NOTE
+File
+  LICENSE
+is not mentioned in the DESCRIPTION file.
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking whether startup messages can be suppressed ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+plotCoefficient: warning in factor(Output, level =
+  outputNames[orderOutputs]): partial argument match of 'level' to
+  'levels'
+plotFPTPStage2Rates: warning in factor(Species, level =
+  speciesNameOrdered): partial argument match of 'level' to 'levels'
+computePredictiveProbs: no visible binding for global variable
+  ‘fitModel’
+computePredictiveProbs: no visible global function definition for
+  ‘transformCoefficients’
+computePredictiveProbs: no visible binding for global variable ‘Ks_new’
+computePredictiveProbs: no visible binding for global variable
+  ‘Xs_centers_new’
+computePredictiveProbs: no visible binding for global variable ‘Tr’
+computePredictiveProbs: no visible binding for global variable ‘X_ord’
+computePredictiveProbs: no visible global function definition for
+  ‘computePsiOutput’
+createSplinesObjects : <anonymous>: no visible global function
+  definition for ‘bs’
+plot_covariate_response: no visible binding for global variable ‘x’
+plot_covariate_response: no visible binding for global variable ‘lower’
+plot_covariate_response: no visible binding for global variable ‘upper’
+plot_covariate_response: no visible binding for global variable
+  ‘Species’
+plot_covariate_response: no visible binding for global variable ‘value’
+plotBiplot: no visible binding for global variable ‘x’
+plotBiplot: no visible binding for global variable ‘y’
+plotBiplot: no visible binding for global variable ‘species’
+plotCoefficient: no visible binding for global variable ‘2.5%’
+plotCoefficient: no visible binding for global variable ‘Output’
+plotCoefficient: no visible binding for global variable ‘97.5%’
+plotCorrelationMatrix: no visible binding for global variable ‘x’
+plotCorrelationMatrix: no visible binding for global variable ‘y’
+plotCorrelationMatrix: no visible binding for global variable ‘label’
+plotCovariateTrend: no visible binding for global variable ‘x’
+plotCovariateTrend: no visible binding for global variable ‘Value’
+plotCovariateTrend: no visible binding for global variable ‘Species’
+plotCumulativeSpeciesDetections: no visible binding for global variable
+  ‘lower’
+plotCumulativeSpeciesDetections: no visible binding for global variable
+  ‘upper’
+plotDetectionRates: no visible binding for global variable ‘Species’
+plotDetectionRates: no visible binding for global variable ‘lower’
+plotDetectionRates: no visible binding for global variable ‘mean_lower’
+plotDetectionRates: no visible binding for global variable ‘upper’
+plotDetectionRates: no visible binding for global variable ‘Primer’
+plotFactorLoadings_jsdm: no visible binding for global variable ‘x’
+plotFactorLoadings_jsdm: no visible binding for global variable ‘y’
+plotFactorLoadings_jsdm: no visible binding for global variable ‘r’
+plotFactorLoadings_jsdm: no visible binding for global variable ‘name’
+plotFactorScores: no visible binding for global variable ‘x’
+plotFactorScores: no visible binding for global variable ‘y’
+plotFactorScores: no visible binding for global variable ‘r’
+plotFactorScores: no visible binding for global variable ‘name’
+plotFPTPStage2Rates: no visible binding for global variable ‘2.5%’
+plotFPTPStage2Rates: no visible binding for global variable ‘97.5%’
+plotFPTPStage2Rates: no visible binding for global variable ‘Species’
+plotFPTPStage2Rates: no visible binding for global variable ‘p1’
+plotFPTPStage2Rates: no visible binding for global variable ‘p2’
+plotFPTPStage2Rates: no visible binding for global variable ‘q1’
+plotFPTPStage2Rates: no visible binding for global variable ‘q2’
+plotLatentPresences: no visible binding for global variable ‘Site’
+plotLatentPresences: no visible binding for global variable ‘Sample’
+plotLatentPresences: no visible binding for global variable ‘Primer’
+plotLatentPresences: no visible binding for global variable
+  ‘site_group’
+plotLatentPresences: no visible binding for global variable
+  ‘sample_group’
+plotLatentPresences: no visible binding for global variable
+  ‘primer_group’
+plotLatentPresences: no visible binding for global variable
+  ‘sample_parity’
+plotLatentPresences: no visible binding for global variable
+  ‘primer_parity’
+plotLatentPresences: no visible binding for global variable
+  ‘site_color_idx’
+plotLatentPresences: no visible binding for global variable
+  ‘shade_level’
+plotOccupancyGradient: no visible binding for global variable ‘species’
+plotOccupancyGradient: no visible binding for global variable ‘x’
+plotOccupancyGradient: no visible binding for global variable ‘med’
+plotOccupancyGradient: no visible binding for global variable ‘low’
+plotOccupancyGradient: no visible binding for global variable ‘high’
+plotSpatialEffect: no visible global function definition for
+  ‘returnSpatialEffect’
+plotSpatialEffect: no visible binding for global variable ‘Bs_output’
+plotSpatialEffect: no visible binding for global variable ‘Ks’
+plotSpeciesRates: no visible binding for global variable ‘Species’
+plotSpeciesRates: no visible binding for global variable ‘Min’
+plotSpeciesRates: no visible binding for global variable ‘Max’
+plotStage2FPRates: no visible binding for global variable ‘Primer’
+plotStage2FPRates: no visible binding for global variable ‘Species’
+plotStage2FPRates: no visible binding for global variable ‘2.5%’
+plotStage2FPRates: no visible binding for global variable ‘97.5%’
+plotTraceplot: no visible binding for global variable ‘label1’
+plotTraceplot: no visible binding for global variable ‘label2’
+plotTraceplot: no visible binding for global variable ‘iter’
+plotTraceplot: no visible binding for global variable ‘value’
+plotTraceplot: no visible binding for global variable ‘chain’
+plotVarPart: no visible binding for global variable ‘Env’
+plotVarPart: no visible binding for global variable ‘Biotic’
+plotVarPart: no visible binding for global variable ‘Spatial’
+returnSpatialEffectMean: no visible binding for global variable
+  ‘Xs_centers’
+runOccJSDM: no visible binding for global variable ‘Site’
+runOccJSDM: no visible binding for global variable ‘Sample’
+runOccJSDM: no visible binding for global variable ‘Primer’
+runOccJSDM: no visible binding for global variable ‘rownum’
+sample_betapsiLL: no visible global function definition for
+  ‘sample_beta_cpp’
+sample_betapsis: no visible global function definition for
+  ‘sample_beta_cpp’
+sample_betatheta: no visible global function definition for
+  ‘sample_beta_nocov_cpp’
+sample_LL: no visible global function definition for ‘sample_beta_cpp’
+sample_pq: no visible binding for global variable ‘S’
+sample_rnb : <anonymous>: no visible global function definition for
+  ‘dnbinom’
+simulateData: no visible binding for global variable ‘list_Xs’
+Undefined global functions or variables:
+  2.5% 97.5% Biotic bs Bs_output chain computePsiOutput dnbinom Env
+  fitModel high iter Ks Ks_new label label1 label2 list_Xs low lower
+  Max mean_lower med Min name Output p1 p2 Primer primer_group
+  primer_parity q1 q2 r returnSpatialEffect rownum S Sample
+  sample_beta_cpp sample_beta_nocov_cpp sample_group sample_parity
+  shade_level Site site_color_idx site_group Spatial species Species Tr
+  transformCoefficients upper value Value x X_ord Xs_centers
+  Xs_centers_new y
+Consider adding
+  importFrom("stats", "dnbinom")
+to your NAMESPACE file.
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in Rd file 'predictNewSites.Rd'
+  ‘verbose’
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of ‘data’ directory ... OK
+* checking data for non-ASCII characters ... OK
+* checking LazyData ... OK
+* checking data for ASCII and uncompressed saves ... OK
+* checking line endings in C/C++/Fortran sources/headers ... OK
+* checking line endings in Makefiles ... OK
+* checking compilation flags in Makevars ... OK
+* checking for GNU extensions in Makefiles ... WARNING
+Found the following file(s) containing GNU extensions:
+  src/Makevars
+Portable Makefiles do not use GNU extensions such as +=, :=, $(shell),
+$(wildcard), ifeq ... endif, .NOTPARALLEL See section ‘Writing portable
+packages’ in the ‘Writing R Extensions’ manual.
+* checking for portable use of $(BLAS_LIBS) and $(LAPACK_LIBS) ... OK
+* checking use of PKG_*FLAGS in Makefiles ... OK
+* checking compiled code ... OK
+* checking installed files from ‘inst/doc’ ... OK
+* checking files in ‘vignettes’ ... OK
+* checking examples ... OK
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ...
+  Running ‘testthat.R’
+ OK
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes ... OK
+* checking re-building of vignette outputs ... OK
+* DONE
+
+Status: 3 WARNINGs, 2 NOTEs
+See
+  ‘/private/tmp/occjsdm-beta-refresh-nc4hh1er/check/occJSDM.Rcheck/00check.log’
+for details.
+

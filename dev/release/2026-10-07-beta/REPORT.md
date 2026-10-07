@@ -1,5 +1,7 @@
 # Beta release refresh, 7 October 2026
 
+The records below describe the initial beta published at `63a4faf`. The [subsequent release refresh](refresh-REPORT.md) includes the pushed MCP and teaching work, its new downloads and fresh package checks; the original fit and verification records are retained.
+
 The beta release refresh uses merged main `a56f5548e68e09d244513d09fcc04ad52f0caa19`, including PR #14. It changes the shipped example and release documentation, not model code, priors or historical scientific evidence. Source tests, the full source-package build, the installed-package check and both installed beta vignettes pass. Independent review found no critical or important issues and judged the change ready to merge. Successful software checks do not establish scientific convergence or remove the limitations below.
 
 ## Refitted example

@@ -1,0 +1,12 @@
+{
+  "R_archive_sha256": "5f5ef1d375f5e3a457a0e32a8d82742fd92d34e2984bae879cc86342eb866e36",
+  "MCP_archive_sha256": "4a7b33b70034897eadf612849159510fc0f03fb00584f964a6b91823b5173fb9",
+  "MCP_entries": 21,
+  "MCP_local_doc_links": 0,
+  "package_vignettes": [
+    "occJSDM",
+    "simulateOccJSDMData"
+  ],
+  "lesson_publication": "withheld",
+  "package_model_code_and_data": "byte-identical to current main and original beta"
+}
