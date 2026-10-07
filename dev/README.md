@@ -9,6 +9,7 @@ This directory holds occJSDM development guides, planning documents, scientific 
 | [parallelisation/](parallelisation/README.md) | Historical parallelisation proposals and reference guides | Tracked |
 | [superpowers/specs/](superpowers/specs/) | New general design documents produced through Superpowers | Tracked |
 | [superpowers/plans/](superpowers/plans/) | New general Superpowers implementation plans | Tracked |
+| [release/](release/2026-10-07-beta/REPORT.md) | Dated release refits, provenance, check reports and announcement drafts | Explicitly tracked |
 | [simstudy/](simstudy/) | Study scripts, plans, reports, audits and compact evidence | Tracked, with explicit output exceptions |
 | [simstudy/vignette-lesson/](simstudy/vignette-lesson/README.md) | Build and verify the numerical teaching examples | Tracked source and compact artifacts |
 | [simstudy/lesson-site/](simstudy/lesson-site/DESIGN.md) | Development and tests for the teaching website | Tracked source; generated preview ignored |
