@@ -17,32 +17,16 @@ sample_z_cpp_parallel <- function(w, psi, theta, theta0, M, sumM) {
     .Call(`_occJSDM_sample_z_cpp_parallel`, w, psi, theta, theta0, M, sumM)
 }
 
-sample_w_cpp <- function(logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z) {
-    .Call(`_occJSDM_sample_w_cpp`, logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z)
-}
-
 sample_w_cim_cipp_parallel <- function(y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, P, primerId, maxL, z) {
     .Call(`_occJSDM_sample_w_cim_cipp_parallel`, y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, P, primerId, maxL, z)
-}
-
-sample_w_cim_cipp <- function(y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, P, primerId, maxL, z) {
-    .Call(`_occJSDM_sample_w_cim_cipp`, y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, P, primerId, maxL, z)
 }
 
 sample_betatheta_cpp <- function(w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta) {
     .Call(`_occJSDM_sample_betatheta_cpp`, w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta)
 }
 
-sample_betatheta_cpp_parallel_old <- function(w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta) {
-    .Call(`_occJSDM_sample_betatheta_cpp_parallel_old`, w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta)
-}
-
 sample_betatheta_cpp_parallel <- function(w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta) {
     .Call(`_occJSDM_sample_betatheta_cpp_parallel`, w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta)
-}
-
-sample_pq_cpp <- function(c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q) {
-    .Call(`_occJSDM_sample_pq_cpp`, c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q)
 }
 
 sample_pq_cpp_parallel <- function(c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q) {
@@ -65,44 +49,8 @@ rinvgamma_cpp <- function(a, b) {
     .Call(`_occJSDM_rinvgamma_cpp`, a, b)
 }
 
-isPointInBandRight <- function(X_tilde, x_grid, y_grid, i, j) {
-    .Call(`_occJSDM_isPointInBandRight`, X_tilde, x_grid, y_grid, i, j)
-}
-
-isPointInBandLeft <- function(X_tilde, x_grid, y_grid, i, j) {
-    .Call(`_occJSDM_isPointInBandLeft`, X_tilde, x_grid, y_grid, i, j)
-}
-
-isPointInBandUp <- function(X_tilde, x_grid, y_grid, i, j) {
-    .Call(`_occJSDM_isPointInBandUp`, X_tilde, x_grid, y_grid, i, j)
-}
-
-isPointInBandDown <- function(X_tilde, x_grid, y_grid, i, j) {
-    .Call(`_occJSDM_isPointInBandDown`, X_tilde, x_grid, y_grid, i, j)
-}
-
-findClosestPoint <- function(XY_sp, X_tilde) {
-    .Call(`_occJSDM_findClosestPoint`, XY_sp, X_tilde)
-}
-
-dist_matrix <- function(coords) {
-    .Call(`_occJSDM_dist_matrix`, coords)
-}
-
-gpCovMatrix <- function(D, sigma2, rho) {
-    .Call(`_occJSDM_gpCovMatrix`, D, sigma2, rho)
-}
-
-K <- function(x1, x2, a, l) {
-    .Call(`_occJSDM_K`, x1, x2, a, l)
-}
-
 K2 <- function(x1, x2, a, l) {
     .Call(`_occJSDM_K2`, x1, x2, a, l)
-}
-
-samplePGvariables <- function(Xbeta) {
-    .Call(`_occJSDM_samplePGvariables`, Xbeta)
 }
 
 samplePGvariables_parallel <- function(Xbeta) {
@@ -113,24 +61,12 @@ computeNewOutputs <- function(X, B0_output, B_output, Ks_all, Bs_output, L_outpu
     .Call(`_occJSDM_computeNewOutputs`, X, B0_output, B_output, Ks_all, Bs_output, L_output, sigmah_output, idx_ls_output, conflevels, useEnvCov, useSpatial, useBiotic, model, verbose)
 }
 
-convert_to_correlation <- function(L_output_vec, niter, S, d) {
-    .Call(`_occJSDM_convert_to_correlation`, L_output_vec, niter, S, d)
-}
-
 sampleBuniv <- function(X, B, b, y, sigma) {
     .Call(`_occJSDM_sampleBuniv`, X, B, b, y, sigma)
 }
 
-sampleB <- function(X, B, b, Omega, k) {
-    .Call(`_occJSDM_sampleB`, X, B, b, Omega, k)
-}
-
 sample_U_cpp <- function(k, L, XB, XsBs, Omega, sigma_h, model) {
     .Call(`_occJSDM_sample_U_cpp`, k, L, XB, XsBs, Omega, sigma_h, model)
-}
-
-XsBs <- function(A, B, X_s_centers) {
-    .Call(`_occJSDM_XsBs`, A, B, X_s_centers)
 }
 
 KsBproduct <- function(Ks, B, X_s_centers) {

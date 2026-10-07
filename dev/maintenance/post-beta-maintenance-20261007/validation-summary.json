@@ -1,0 +1,70 @@
+{
+  "base_revision": "0c5b1ff19c4de43be329fbd06730aee24548ca60",
+  "source_suite": {
+    "passed": 1075,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 1
+  },
+  "fresh_installed_suite": {
+    "passed": 1075,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 1
+  },
+  "R_CMD_check_installed_suite": {
+    "passed": 1039,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 8
+  },
+  "package_checks": {
+    "baseline": {
+      "errors": 0,
+      "warnings": 3,
+      "notes": 3,
+      "warning_sections": [
+        "checking whether package \u2018occJSDM\u2019 can be installed",
+        "checking Rd \\usage sections",
+        "checking for GNU extensions in Makefiles"
+      ],
+      "note_sections": [
+        "checking for hidden files and directories",
+        "checking top-level files",
+        "checking R code for possible problems"
+      ]
+    },
+    "final": {
+      "errors": 0,
+      "warnings": 3,
+      "notes": 3,
+      "warning_sections": [
+        "checking whether package \u2018occJSDM\u2019 can be installed",
+        "checking Rd \\usage sections",
+        "checking for GNU extensions in Makefiles"
+      ],
+      "note_sections": [
+        "checking for hidden files and directories",
+        "checking top-level files",
+        "checking R code for possible problems"
+      ]
+    }
+  },
+  "public_exports": 42,
+  "native_registrations_before": 38,
+  "native_registrations_after": 22,
+  "data_masked_columns": 41,
+  "namespace_usage_diagnostic_lines": {
+    "baseline": 195,
+    "after_cleanup": 178,
+    "after_recognising_declarations": 54
+  },
+  "R_version": "4.5.0",
+  "vignettes": "Both package vignettes built and rebuilt successfully",
+  "limits": [
+    "Opt-in full coverage experiment not run",
+    "Three package warnings unchanged from baseline",
+    "Three notes include the worktree .git-file artifact, LICENSE metadata and genuine retained code problems",
+    "Archive checks are targeted integrity checks, not a full backup/restore or numerical re-audit"
+  ]
+}
