@@ -282,7 +282,10 @@ create_waic_quantities <- function(n_obs){
 #'   \item{n_factors}{Number of latent JSDM factors used for the residual
 #'   species covariance. Capped to the number of species if larger.}
 #'   \item{n_lattrait}{Number of latent trait factors (\code{gt}). Default
-#'   \code{2}.}
+#'   \code{floor(sqrt(min(S, ncov_psi)))}, where \code{S} is the number of
+#'   species and \code{ncov_psi} is the number of columns in the processed
+#'   occupancy-covariate design matrix. Set to \code{0} to disable latent
+#'   trait factors.}
 #'   \item{n_supportpoints}{Number of spatial support points used to
 #'   approximate the Gaussian process over site coordinates when
 #'   \code{spatCovariates} is non-empty. Defaults to
@@ -295,8 +298,11 @@ create_waic_quantities <- function(n_obs){
 #' @param threshold Threshold used to truncate the reads to binary detections
 #' for occupancy/two-stage models. Reads greater than or equal to the
 #' threshold are considered a detection (default \code{1}). Must be
-#' \code{>= 1} -- continuous detection modeling (\code{threshold = 0}) is not
-#' supported; any value less than \code{1} raises an error.
+#' a single positive numeric value. Values between \code{0} and \code{1}
+#' are accepted, but observations are still converted to binary detections.
+#' For integer read counts, positive thresholds up to \code{1} give the
+#' same detections as the default. Continuous detection modeling
+#' (\code{threshold = 0}) is not supported.
 #' @param occCovariates (Optional) vector of the names of the occupancy
 #' covariates (site-level). Names should match column names in
 #' \code{data$info}.

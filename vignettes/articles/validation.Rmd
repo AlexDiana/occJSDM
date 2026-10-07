@@ -1,9 +1,9 @@
 ---
 title: "Checking occJSDM against simulated truth"
 description: >
-  How accurately occJSDM recovers parameters it is given, and how honest the
-  credible intervals around them are. Measured on 1000 simulated datasets
-  across ten scenarios, plus a per-species occupancy check.
+  Historical results: parameter recovery and interval coverage in a saved
+  pre-fix simulation bundle of 1000 datasets across ten scenarios, plus a
+  per-species occupancy check. These results predate the corrected beta code.
 ---
 
 **Historical validation results.** This article displays the previously saved simulation-study bundle and has not been regenerated for the corrected beta code. Its detection-rate comparisons used nominal read-event probabilities rather than positive-read probabilities, and its collection coefficients were not compared on the fitter's standardised scale. Those comparisons cannot support current bias or interval-coverage claims. See the [non-spatial recheck and prior comparisons](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/nonspatial-bias-recheck.md) and the [current-code paired comparison](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/current-main-recheck/REPORT.md) for the targeted assessments. A full coverage rerun remains future work.
@@ -581,7 +581,8 @@ emit(sprintf('<div class="eyebrow">occJSDM &middot; validation &middot; %s</div>
     <p class="standfirst">
       Two questions, asked of the same model: how close its estimates are to the truth,
       and how honest the uncertainty around them is. Neither answer implies the other,
-      and this package is currently better at one than the other.
+      and the archived runs below gave different answers to them. These results
+      predate the corrected beta and do not establish its current performance.
     </p>
   </header>
 
@@ -846,34 +847,32 @@ if (nrow(oc) > 0) {
 
   emit(sprintf('
     <p>
-      <strong>A species is recovered well to the extent its distribution is
-      driven by covariates you measured.</strong> From %s in the least
+      <strong>In these archived runs, species with more of their distribution
+      driven by measured covariates were recovered better.</strong> From %s in the least
       latent-driven fifth to %s in the most: a factor of nearly three, on the
       same model and the same data.
     </p>
     <p>
-      The reason is structural rather than a defect. The environmental part of
-      the linear predictor is a coefficient shared across every site, so a
-      hundred sites all inform it. The latent part is one row per site,
-      informed only by that site&rsquo;s own observations, and no amount of
-      other sites helps. A species living mostly in the latent part is being
-      reconstructed from the weakest-identified piece of the model. The
-      ordination is doing its job -- it represents the residual structure -- but
-      it cannot localise it site by site.
+      The environmental coefficients are shared across sites. The latent
+      pathway combines site-specific scores with species loadings that are
+      also shared across sites, so additional sites can inform that pathway
+      too. These archived associations do not isolate which part of the
+      model caused the difference in recovery.
     </p>
     <p>
-      The second effect is a property of the measurement rather than the model:
+      A second consideration is a property of the measurement:
       a species whose true occupancy barely varies between sites has no pattern
       to find, and the correlation then compares noise with noise. Together
       with the shares above these account for <b>%s</b> of the variation in
-      <code>psi_cor</code>; prevalence adds nothing once they are in.
+      <code>psi_cor</code> in this archived analysis; prevalence adds nothing
+      once they are in.
     </p>
     <p>
-      <strong>For a real survey this is the actionable finding on this page.</strong>
-      occJSDM will place a species well if you measured the covariates that
-      actually govern it. A species responding to something you did not measure
-      is absorbed into the latent factors and recovered at roughly %s rather
-      than %s. That is an argument for covariate choice, not for more sites.
+      <strong>This comparison does not establish current survey guidance.</strong>
+      The most latent-driven group had recovery of roughly %s rather than %s
+      in the least latent-driven group. It motivates checking covariate choice
+      and sampling effort together; it does not show that adding sites cannot
+      help or guarantee recovery in a real survey.
     </p>',
     fmt(agg$psi_cor[1]), fmt(agg$psi_cor[nrow(agg)]),
     pct(r2, 0), fmt(agg$psi_cor[nrow(agg)]), fmt(agg$psi_cor[1])))
@@ -1284,22 +1283,25 @@ cat(html_table(cs,
 
 ```{=html}
     <p>
-      <strong>Most of the model is well calibrated.</strong> <code>B</code>,
-      <code>G</code>, <code>q</code> and <code>B0</code> all sit within noise of the
-      advertised 0.95 in the reference design and in most variants. Combined with the
-      accuracy table, <code>B</code> and <code>G</code> are the parts of this model you
-      can quote with a straight face.
+      <strong>Historical interval coverage.</strong> In this pre-fix bundle,
+      intervals for <code>B</code>, <code>G</code> and <code>B0</code> appeared
+      close to 0.95 in the reference design and in most variants. This does
+      not establish coverage for the corrected beta code. The historical
+      <code>q</code> comparison used the wrong simulated truth; see the
+      opening disclaimer before interpreting these tables.
     </p>
     <p>
-      <strong><code>beta_theta</code> is genuinely overconfident.</strong> A median of
-      0.757 against a promised 0.95 means roughly one interval in four misses when one in
-      twenty should. This is a real defect, localised to the collection-covariate slopes,
-      and it is open.
+      <strong>Historical <code>beta_theta</code> comparison.</strong> The bundle
+      reported median coverage of 0.757, but its collection coefficients were
+      not compared on the fitter's standardised scale. This row cannot establish
+      interval coverage for the corrected beta code; the calibration recheck
+      remains future work.
     </p>
     <p>
-      <strong><code>theta0</code> overcovers at 0.982.</strong> Safe rather than
-      dangerous, but read it alongside the accuracy table: those wide intervals sit around
-      estimates that correlate with truth at 0.342. Honest about being uninformative.
+      <strong>Historical <code>theta0</code> results.</strong> The bundle reported
+      coverage of 0.982 and an estimate-truth correlation of 0.342. These
+      pre-fix results do not establish the accuracy or interval coverage of
+      the corrected beta code.
     </p>
     <p>
       <strong><code>sigma_b</code> reads 1.000 everywhere</strong> because its prior is
@@ -1450,14 +1452,16 @@ if (!is.null(ex)) {
       governed by measured covariates and largest where it is governed by the
       unmeasured, latent part -- the band where the 100-site distribution has
       real mass at and below zero. More sites sharpen the shared loadings that
-      the latent pathway depends on, which is why the species with the least
-      directly usable information gain the most.
+      the latent pathway depends on. A plausible reason for the larger gains
+      among species with less directly usable information is that those species
+      benefit more from improved shared loadings; this mechanism was not tested.
     </p>
     <p>
-      One thing this does <em>not</em> buy: calibration. In the same comparison
-      <code>beta_theta</code> coverage falls from %s to %s. More data makes the
-      estimates better and that parameter&rsquo;s intervals more confidently
-      wrong, which is the open issue described further down.
+      The historical <code>beta_theta</code> comparison reports coverage changing
+      from %s to %s. Its coefficients were not compared on the fitter&rsquo;s
+      standardised scale, so these numbers cannot establish that more data
+      improves or worsens interval coverage. Current calibration needs a
+      corrected recheck.
     </p>',
     fmt(vd$summary$coverage[vd$summary$scenario == vd$example_cell &
                             vd$summary$block == "beta_theta"]),
@@ -1467,9 +1471,11 @@ if (!is.null(ex)) {
 
 ```{=html}
     <p>
-      <strong>The spatial range parameter is not tested at all.</strong> It is never
-      recovered by the current sampler, so it is excluded from every table above. No cell
-      in this study says anything about spatial range.
+      <strong>This historical study does not assess spatial range recovery.</strong>
+      Range estimates were excluded from the saved pre-fix tables after poor
+      recovery in those runs. These tables cannot assess the corrected beta
+      spatial sampler; see the <a href="https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/spatial-beta-recheck.md">current spatial validation report</a> for its
+      tested cases and limitations.
     </p>
   </section>
 
@@ -1492,11 +1498,11 @@ if (!is.null(ex)) {
           <p>
             Checks <em>shape</em> rather than exact numbers, because any legitimate change
             to the sampler moves every number and a suite of stored values would turn each
-            such change into a wall of meaningless failures. It is also partly forced: the
-            model reproduces exactly from a seed on one processor core but not on several,
-            since work goes to whichever core is free first and that order varies. Results
-            are unaffected, but a run that must be repeated exactly has to be pinned, and
-            two tests are.
+            such change into a wall of meaningless failures. The current sampler draws
+            random numbers serially on R&rsquo;s main thread. With the same seed,
+            data, settings and software/platform, changing the requested thread count
+            does not change the sampling stream. The archived study also records its
+            thread settings for reproduction.
           </p>
         </div>
       </div>

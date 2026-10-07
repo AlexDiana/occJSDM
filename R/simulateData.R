@@ -339,7 +339,8 @@ simulateOccJSDMData <- function(list_datasettings,
         })
       })
 
-      # Read-count model (matches the threshold = 0 mode of runOccJSDM()): given
+      # Simulate read counts; runOccJSDM() converts them to binary detections
+      # at a positive threshold rather than fitting continuous intensities. Given
       # a true detection (cimk_true == 1), log(y + 1) ~ Normal(mu1, sigma1); given
       # a false-positive/contamination detection (cimk_true == 2),
       # log(y + 1) ~ Normal(mu0, sigma0). No reads (cimk_true == 0) gives y = 0.

@@ -121,7 +121,7 @@ sample_theta0 <- function(z, w, idx_z, a_theta0, b_theta0){
 
   S <- ncol(z)
 
-  z_all <- z[idx_z,]
+  z_all <- z[idx_z, , drop = FALSE]
 
   theta0 <- rep(NA, S)
 
