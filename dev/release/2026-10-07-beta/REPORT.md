@@ -1,6 +1,6 @@
 # Beta release refresh, 7 October 2026
 
-The beta release refresh uses merged main `a56f5548e68e09d244513d09fcc04ad52f0caa19`, including PR #14. It changes the shipped example and release documentation, not model code, priors or historical scientific evidence. Source tests, the full source-package build, the installed-package check and both installed beta vignettes pass. Independent release-change review is pending. Successful software checks do not establish scientific convergence or remove the limitations below.
+The beta release refresh uses merged main `a56f5548e68e09d244513d09fcc04ad52f0caa19`, including PR #14. It changes the shipped example and release documentation, not model code, priors or historical scientific evidence. Source tests, the full source-package build, the installed-package check and both installed beta vignettes pass. Independent review found no critical or important issues and judged the change ready to merge. Successful software checks do not establish scientific convergence or remove the limitations below.
 
 ## Refitted example
 
@@ -32,7 +32,15 @@ The three warnings are the R header's unsupported clang warning option `-Wfixed-
 
 [verify-installed.log](verify-installed.log) confirms that the checked installation's `sampleresults` is identical to the saved file, its public diagnostics match the CSV, and the only installed vignettes are `occJSDM` and `simulateOccJSDMData`. The lesson-link regression checks pass and all 10 site/publication tests pass; their logs are retained beside this report. Production files, `sampledata`, historical teaching bundles, lesson publication flags and exclusions match the merged base.
 
-The checked source archive is `/private/tmp/occjsdm-beta-release-20261007/occJSDM_0.1.0.tar.gz`, with SHA-256 `2ee848e7c09c8f656456da4488e35abb5eaec55f6adf13f1ec9fb9c9b3a2ef5f`. It contains the refreshed example and the two built beta vignettes, excluding Lessons 0-7, teaching bundles, development evidence and Git/workflow bookkeeping. Independent whole-change review remains pending.
+The checked source archive is `/private/tmp/occjsdm-beta-release-20261007/occJSDM_0.1.0.tar.gz`, with SHA-256 `2ee848e7c09c8f656456da4488e35abb5eaec55f6adf13f1ec9fb9c9b3a2ef5f`. It contains the refreshed example and the two built beta vignettes, excluding Lessons 0-7, teaching bundles, development evidence and Git/workflow bookkeeping.
+
+## Independent review
+
+A fresh reviewer inspected commit `fbaa703` against merged main, independently ran the installed-data verification, confirmed the archive hash and compared its data and vignette sources with the worktree. The reviewer found no critical or important issues and judged the convergence disclosures adequate for a workflow demonstration. The reviewer read the logged suites without rerunning them and visually checked the quickstart figures and simulator trait figure.
+
+One minor reproducibility improvement is deferred: the refit script sets RcppParallel threads but only records the four BLAS/OpenMP environment variables, so a future launch must use the recorded environment to reproduce this artifact's conditions. The checked artifact does record all four as 1. This does not undermine its verification.
+
+Review scope was settled as follows: retain and disclose the existing demonstration schedule instead of certifying scientific convergence; retain the documented prior/model limitations rather than re-investigate unchanged sampler and calibration studies; restrict software claims to the checked macOS environment rather than CRAN acceptance or cross-platform numerical equivalence; treat integration, publication and announcement delivery as subsequent actions under the user's release instruction; preserve the primary checkout by isolation, with its same two modified MCP documents still present; and retain trailing spaces in raw logs and generated output to preserve emitted evidence. Authored source and prose pass the whitespace check when these emitted artifacts are excluded.
 
 ## Publication scope
 
