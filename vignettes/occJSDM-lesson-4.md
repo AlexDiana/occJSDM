@@ -405,19 +405,62 @@ tibble(
 
 **Do not use this table to choose the better model for unsurveyed sites.** In plain terms, the legacy score rewards fitting the training survey’s own hidden states, not predicting new sites.
 
-The legacy calculation combines likelihood terms for the sampled, unobserved site and collection states with terms for the PCR observations. Those hidden states are learned using the training observations. The calculation does not average them out to evaluate the probability of new observations at a new site. Matching the training dataset is necessary for comparison, but does not by itself fix this difference in target. The independent-site scores above provide the worked predictive comparison. The corrected criterion, `computeSiteWAIC()`, instead scores the complete observed survey at each site. It sums over occupancy and collection states and integrates the shared site factors jointly, preserving the dependence between species. A whole site is one scoring unit, appropriate to predicting an independent site with the same measured covariates and sampling design.
+The legacy calculation combines likelihood terms for the sampled, unobserved site and collection states with terms for the PCR observations. Those hidden states are learned using the training observations. The calculation does not average them out to evaluate the probability of new observations at a new site. Matching the training dataset is necessary for comparison, but does not by itself fix this difference in target. The independent-site scores above provide the worked predictive comparison.
 
-The following example is not run when this lesson renders. These older saved fits used a read threshold of `1`, which must be supplied because they did not record it. New fits retain their threshold. The scorer supports non-spatial binary, occupancy and two-stage models.
+The corrected criterion, `computeSiteWAIC()`, instead scores the complete observed survey at each site. It sums over occupancy and collection states and integrates the shared site factors jointly, preserving the dependence between species. A whole site is one scoring unit, appropriate to predicting an independent site with the same measured covariates and sampling design.
+
+The following example is not run when this lesson renders. These fits used a read threshold of `1`. The rebuilt fits record it; older fits without this metadata must be given the threshold originally used in fitting. The scorer supports non-spatial binary, occupancy and two-stage models.
 
 ``` r
 waic_two <- occJSDM::computeSiteWAIC(fitmodel, threshold = 1)
 waic_one <- occJSDM::computeSiteWAIC(fit_one_factor, threshold = 1)
-occJSDM::compareSiteWAIC(waic_two, waic_one)
+occJSDM::compareSiteWAIC(waic_one, waic_two)
 ```
 
-The comparison reports the first score minus the second: here, two factors minus one. A negative difference favours two factors because lower WAIC is better. Both fits must describe identical observations. Its paired standard error describes variation in the score difference across sites; it does not measure MCMC error or numerical integration error. Inspect the integration diagnostics and warnings about large pointwise WAIC penalties before interpreting a ranking. A corrected likelihood alone does not ensure a reliable WAIC approximation.
+The comparison reports the first score minus the second: here, one factor minus two. A positive difference favours two factors because lower WAIC is better. Both fits must describe identical observations. Its paired standard error describes variation in the score difference across sites; it does not measure MCMC error or numerical integration error. Inspect the integration diagnostics and warnings about large pointwise WAIC penalties before interpreting a ranking. A corrected likelihood alone does not ensure a reliable WAIC approximation.
 
-**Factor-count selection remains unfinished.** Alex approved the implementation in PR \#14 on 6 October 2026. The September validation used an earlier survey with two field samples per site; its numerical results do not describe this lesson’s current three-sample survey. Rescoring the current fits and checking the approximation against held-out observed surveys remain separate work. The independent-site scores above remain the worked predictive comparison.
+### What the rebuilt survey tells us about WAIC
+
+PR \#14 merged on 7 October 2026. We rebuilt this three-sample survey with the same seeds, priors and MCMC schedules. All six fits’ posterior results were identical to those in the previous archive. The following scores use the corrected likelihood, checked on 4,000 of each fit’s 24,000 retained draws, evenly spaced across all four chains.
+
+``` r
+waic_validation <- readRDS("teaching-data/site-waic-lesson.rds")
+waic_validation$summaries |>
+  filter(draws == 4000) |>
+  transmute(
+    Model = unname(prediction_labels[model]),
+    `Observed-data site WAIC` = WAIC,
+    `Sites with reliability warnings` = flagged_sites
+  ) |>
+  knitr::kable(digits = 2)
+```
+
+| Model | Observed-data site WAIC | Sites with reliability warnings |
+|:---|---:|---:|
+| One hidden site factor | 23121.60 | 99 |
+| Two hidden site factors | 23120.29 | 99 |
+
+``` r
+waic_validation$comparisons |>
+  transmute(
+    `Draws per model` = draws,
+    `WAIC difference: one minus two` = difference_one_minus_two,
+    `Paired SE across sites` = paired_site_SE,
+    `Approximate Monte Carlo SE` = approximate_difference_MCSE
+  ) |>
+  knitr::kable(digits = 2)
+```
+
+| Draws per model | WAIC difference: one minus two | Paired SE across sites | Approximate Monte Carlo SE |
+|---:|---:|---:|---:|
+| 1000 | 0.47 | 1.32 | 1.40 |
+| 4000 | 1.31 | 0.76 | 0.73 |
+
+Here the reported difference is **one factor minus two factors**, so a positive value favours two factors. The nominal advantage changes from about 0.47 points with 1,000 draws to 1.31 with 4,000. In the larger check, its across-site SE is about 0.76 and its approximate Monte Carlo SE is 0.73. The latter assumes independent fitting runs and measures numerical uncertainty in posterior averaging. Neither quantity accounts for error in WAIC’s approximation to held-out predictive performance.
+
+**Both models flag 99 of the 100 sites.** A flag means that the posterior variance of a site’s log likelihood exceeds 0.4, a diagnostic that WAIC can be unreliable. It is not evidence that a particular site is ecologically abnormal. Stricter quadrature changes either total score by less than 0.000001, and the final WAIC arithmetic agrees with `loo::waic()`. Thus a numerically accurate calculation can still be an unreliable model-selection criterion.
+
+**Factor-count selection remains unfinished.** These checks do not justify choosing two factors, even though two generated the simulation. More posterior draws can reduce Monte Carlo uncertainty; they do not remove the approximation warning. The next scientific check is prediction of complete observed surveys at sites left out of fitting. The independent-site occupancy scores above remain useful, but test a different outcome. September’s earlier two-sample WAIC results remain historical evidence and are not used in this table.
 
 ## Where to go next
 
