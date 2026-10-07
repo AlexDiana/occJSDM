@@ -4,7 +4,7 @@ This GitHub prerelease combines joint species distribution modelling with the tw
 
 The package supports environmental and collection covariates, species traits, nonlinear environmental responses, spatial effects, ordination, residual species correlations, variation partitioning and prediction at new sites. Simpler survey designs support classical occupancy and JSDM-only models.
 
-Recent corrections address collection-covariate alignment, random-number reproducibility, residual correlations, spatial sampling, read thresholds and environmental-response outputs. The shipped example is refitted with the current implementation. The beta includes the quickstart and simulator vignettes; Lessons 0-7 remain under review.
+Recent corrections address collection-covariate alignment, random-number reproducibility, residual correlations, spatial sampling, read thresholds and environmental-response outputs. The shipped example is refitted with the current implementation. A quickstart and a simulator guide are available. Lessons 0-7 are first drafts only and are awaiting a full line-by-line review.
 
 `extractWAIC()` now computes observed-data site-level WAIC by default for non-spatial binary, occupancy and two-stage fits. `computeSiteWAIC()` exposes its diagnostics and `compareSiteWAIC()` compares fits of the same observations. Spatial and continuous fits require explicit legacy extraction, `extractWAIC(fit, type = "legacy")`, whose stored score is unsuitable for choosing models for independent new-site predictions. Older occupancy/two-stage fits require their actual fitting threshold to be supplied. Check the numerical and WAIC reliability warnings before interpreting a comparison; factor-count selection has not yet been validated.
 

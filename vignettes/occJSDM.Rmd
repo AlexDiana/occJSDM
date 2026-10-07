@@ -109,4 +109,4 @@ The package's other `plot...()` and `return...()` functions cover covariate effe
 - `vignette("simulateOccJSDMData", package = "occJSDM")` to simulate a survey whose truth you know, so that you can compare the model's answers with it. The truth behind `sampledata` is not stored with it.
 - The [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) section of the README, before relying on the estimates.
 
-Detailed teaching lessons will follow after the beta.
+The detailed teaching lessons are first drafts only and are awaiting a full line-by-line review.

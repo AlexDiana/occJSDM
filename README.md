@@ -24,7 +24,7 @@ vignette("occJSDM", package = "occJSDM")
 vignette("simulateOccJSDMData", package = "occJSDM")
 ```
 
-Teaching lessons that compare every output with simulated truth are being reviewed and will be published after the beta.
+Teaching lessons that compare every output with simulated truth are first drafts only and are awaiting a full line-by-line review.
 
 ## Known limitations
 
