@@ -1,6 +1,6 @@
 # Beta release refresh implementation plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task by task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Refresh the shipped example and beta vignettes on merged main, verify the installed release package, and prepare reviewable beta release materials.
 
@@ -33,9 +33,9 @@
 
 **Interfaces:** The refit script consumes the repository root, a private installed-package library and an evidence output directory. It produces `sampleresults` in the documented six-element fit format and records source/data hashes, arguments, seeds, threads, warnings and elapsed time.
 
-- [ ] Install main into a private library and run the existing source tests as the baseline. Expected: zero test failures and no new test warnings.
-- [ ] Run the exact quickstart model with the fixed seed and thread settings; validate model identity, dimensions, threshold, default prior metadata, and finite summaries. Expected: a complete two-chain fit and a readable provenance record.
-- [ ] Export convergence diagnostics and inspect flagged parameters before accepting the saved example. Expected: findings disclosed, with a longer run considered only if the example cannot responsibly support the quickstart.
+- [x] Install main into a private library and run the existing source tests as the baseline. Expected: zero test failures and no new test warnings.
+- [x] Run the exact quickstart model with the fixed seed and thread settings; validate model identity, dimensions, threshold, default prior metadata, and finite summaries. Expected: a complete two-chain fit and a readable provenance record.
+- [x] Export convergence diagnostics and inspect flagged parameters before accepting the saved example. Expected: findings disclosed, with a longer run considered only if the example cannot responsibly support the quickstart.
 
 ## Task 2: Refresh beta documentation and release materials
 
@@ -43,9 +43,9 @@
 
 **Interfaces:** Rendering consumes the refreshed installed data. Release notes identify version 0.1.0 and the GitHub prerelease tag `v0.1.0-beta`; the announcement describes the available quickstart and simulator guide and links current limitations.
 
-- [ ] Show the refit seed in the quickstart and document the example's provenance and any meaningful convergence flags without changing the taught model specification. Expected: teaching remains complete and accurate.
-- [ ] Render both beta vignettes to HTML and GitHub Markdown in fresh R sessions, with unwrapped Markdown; visually inspect regenerated plots. Expected: successful standalone rendering and current output.
-- [ ] Mark PR #14 merged and record actual release-check progress in TODO; reconcile the announcement's lesson-publication wording. Expected: no premature release or announcement completion claim.
+- [x] Show the refit seed in the quickstart and document the example's provenance and any meaningful convergence flags without changing the taught model specification. Expected: teaching remains complete and accurate.
+- [x] Render both beta vignettes to HTML and GitHub Markdown in fresh R sessions, with unwrapped Markdown; visually inspect regenerated plots. Expected: successful standalone rendering and current output.
+- [x] Mark PR #14 merged and record actual release-check progress in TODO; reconcile the announcement's lesson-publication wording. Expected: no premature release or announcement completion claim.
 
 ## Task 3: Check the distributable package and prepare integration
 
@@ -53,7 +53,7 @@
 
 **Interfaces:** The release source archive includes the refreshed data and the quickstart/simulator vignettes, excluding all withheld lessons and internal development material.
 
-- [ ] Build and run `R CMD check --no-manual` with vignette construction and rebuilding enabled. Expected: zero errors; inspect and record every warning/note and installed test result.
-- [ ] Verify both installed vignettes and shipped data; run source tests, lesson-link and publication-flag checks on the final tree when relevant changes justify them. Expected: current fit metadata and only the two beta vignettes shipped.
-- [ ] Obtain one independent whole-change review, address material findings, and commit the refresh on a `codex/` branch. Expected: a reviewable release refresh with evidence attached and unrelated work preserved.
-- [ ] Prepare the GitHub release description and announcement for the reviewed release revision. Any final shared-branch integration, release publication or outbound announcement must use established authorization and actual destinations; do not invent announcement recipients.
+- [x] Build and run `R CMD check --no-manual` with vignette construction and rebuilding enabled. Expected: zero errors; inspect and record every warning/note and installed test result.
+- [x] Verify both installed vignettes and shipped data; run source tests, lesson-link and publication-flag checks on the final tree when relevant changes justify them. Expected: current fit metadata and only the two beta vignettes shipped.
+- [x] Obtain one independent whole-change review, address material findings, and commit the refresh on a `codex/` branch. Expected: a reviewable release refresh with evidence attached and unrelated work preserved.
+- [x] Prepare the GitHub release description and announcement for the reviewed release revision. Any final shared-branch integration, release publication or outbound announcement must use established authorization and actual destinations; do not invent announcement recipients.

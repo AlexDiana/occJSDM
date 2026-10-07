@@ -47,3 +47,5 @@ Review scope was settled as follows: retain and disclose the existing demonstrat
 The beta includes only the quickstart and simulator guide. Lessons 0-7 and all historical teaching bundles retain their exclusions and recorded evidence. CRAN submission, pkgdown deployment, broader calibration studies and lesson publication remain deferred.
 
 [release-notes.md](release-notes.md) is the proposed GitHub prerelease description for `v0.1.0-beta`; [announcement.md](announcement.md) reconciles the existing announcement with the README and withheld lessons. Neither document's existence means a release was published or an announcement was sent.
+
+Integration is tracked in [PR #30](https://github.com/AlexDiana/occJSDM/pull/30). The [GitHub beta release](https://github.com/AlexDiana/occJSDM/releases/tag/v0.1.0-beta) records publication status and the release revision. Announcement recipients have not been supplied.
