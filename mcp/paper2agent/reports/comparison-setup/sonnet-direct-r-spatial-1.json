@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "scenario": 5,
+  "repetition": 1,
+  "scored": false,
+  "prompt": "Fit a spatial model for this survey.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "spatial_scope_respected_language_failure_and_unnecessary_questions",
+  "evidence": "Doug pasted full response; no tool calls or fitting in supplied response",
+  "observed": {
+    "language": "English",
+    "spatial_scope_declined_correctly": true,
+    "unsupported_count_scope_also_recognised": true,
+    "no_silent_nonspatial_substitution": true,
+    "nonspatial_offer_waits_for_choice": true,
+    "starter_schedule_reported_correct": true,
+    "short_fit_qualification": true,
+    "asks_lesson_context": true,
+    "asks_which_synthetic_file": true,
+    "asks_whether_to_check_input_names": true,
+    "asks_binary_occupancy_two_stage_choice": true,
+    "asks_Bahasa_or_English_preference": true
+  },
+  "issues": [
+    {
+      "issue": "Asks language preference and uses English despite default",
+      "assessment": "Shared instructions specify Bahasa Indonesia unless user requests a switch. No such switch is in the supplied scenario."
+    },
+    {
+      "issue": "Asks permission to inspect names",
+      "assessment": "Read-only inspection is already required by shared instructions; permission unnecessary."
+    },
+    {
+      "issue": "Asks model type choice",
+      "assessment": "Once input is selected, runOccJSDM infers the model from structure and response. It should explain that behavior rather than frame types as interchangeable options for this survey."
+    }
+  ],
+  "qualifications": [
+    "Asking which input file to use for a new nonspatial alternative is reasonable where the fresh prompt does not supply a path; no alternative was executed.",
+    "No source/fixture read needed for explicit pilot scope restriction; no fabricated scientific output."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

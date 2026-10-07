@@ -1,0 +1,164 @@
+[10/05/26 19:12:59] INFO     Starting MCP server 'occJSDM' with transport.py:242
+                             transport 'stdio'                                  
+/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/../verify_calls.py:26: FastMCPDeprecationWarning: Accessing `Tool.inputSchema` is deprecated; MCP SDK v2 renamed this field to `input_schema`. Update your code to read `.input_schema` instead.
+  results['schemas']={t.name:t.inputSchema for t in ts}
+binary_single_validate passed
+binary_single_fit passed
+binary_single_diagnostics passed
+binary_single_summary passed
+occupancy_changed_validate passed
+occupancy_changed_fit passed
+occupancy_changed_diagnostics passed
+occupancy_changed_summary passed
+two_stage_changed_validate passed
+two_stage_changed_fit passed
+two_stage_changed_diagnostics passed
+two_stage_changed_summary passed
+binary_repeat_fit passed
+summary_repeat passed
+diagnostics_repeat passed
+[10/05/26 19:13:18] Error calling tool 'validate_data'                          
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/tmp/Cloud pilot                        │
+                    │ relocation/occJSDM-mcp/occJSDM-env/lib/python3.14/site-p │
+                    │ ackages/fastmcp/server/server.py:1492 in call_tool       │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/tmp/Cloud pilot                        │
+                    │ relocation/occJSDM-mcp/occJSDM-env/lib/python3.14/site-p │
+                    │ ackages/fastmcp/tools/base.py:440 in _run                │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/tmp/Cloud pilot                        │
+                    │ relocation/occJSDM-mcp/src/tools/quickstart.py:65 in     │
+                    │ validate_data                                            │
+                    │                                                          │
+                    │    62 │   Input is a project-local RDS and covariate nam │
+                    │       without observation values.                        │
+                    │    63 │   """                                            │
+                    │    64 │   covariates(occCovariates,collCovariates)       │
+                    │ ❱  65 │   path = confined_path(data_path)                │
+                    │    66 │   out = fresh_output('validate_data')            │
+                    │    67 │   native = await                                 │
+                    │       run_r('validate_data',dict(data_path=str(path),occ │
+                    │       s=collCovariates),out)                             │
+                    │    68 │   return response('Data are eligible for the sup │
+                    │       native['eligible'] else 'Resolve the reported issu │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/tmp/Cloud pilot                        │
+                    │ relocation/occJSDM-mcp/src/tools/runtime.py:26 in        │
+                    │ confined_path                                            │
+                    │                                                          │
+                    │    23 def confined_path(value: str, *, exists: bool = Tr │
+                    │    24 │   raw = Path(value).expanduser()                 │
+                    │    25 │   if '..' in raw.parts:                          │
+                    │ ❱  26 │   │   raise ValueError('Parent traversal (..) is │
+                    │       project')                                          │
+                    │    27 │   root = project_root()                          │
+                    │    28 │   path = (raw if raw.is_absolute() else root / r │
+                    │    29 │   if not path.is_relative_to(root):              │
+                    ╰──────────────────────────────────────────────────────────╯
+                    ValueError: Parent traversal (..) is not allowed; use a path
+                    within the project                                          
+                    Error calling tool 'validate_data'                          
+traversal_error passed
+                    Error calling tool 'diagnostics'                            
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/tmp/Cloud pilot                        │
+                    │ relocation/occJSDM-mcp/occJSDM-env/lib/python3.14/site-p │
+                    │ ackages/fastmcp/server/server.py:1492 in call_tool       │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/tmp/Cloud pilot                        │
+                    │ relocation/occJSDM-mcp/occJSDM-env/lib/python3.14/site-p │
+                    │ ackages/fastmcp/tools/base.py:440 in _run                │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/tmp/Cloud pilot                        │
+                    │ relocation/occJSDM-mcp/src/tools/quickstart.py:119 in    │
+                    │ diagnostics                                              │
+                    │                                                          │
+                    │   116 │   """Inspect native convergence diagnostics for  │
+                    │       coefficients.                                      │
+                    │   117 │   Input is a completed fit identifier; output is │
+                    │       full native diagnostic CSV.                        │
+                    │   118 │   """                                            │
+                    │ ❱ 119 │   path, manifest = resolve_fit(fit_id)           │
+                    │   120 │   out = fresh_output('diagnostics')              │
+                    │   121 │   native = await run_r('diagnostics',dict(fit_pa │
+                    │   122 │   result = response('Screening covers selected c │
+                    │       diagnostics are inconclusive.',native,out)         │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/tmp/Cloud pilot                        │
+                    │ relocation/occJSDM-mcp/src/tools/runtime.py:125 in       │
+                    │ resolve_fit                                              │
+                    │                                                          │
+                    │   122 def resolve_fit(fit_id: str) -> tuple[Path, dict]: │
+                    │   123 │   # IDs are generated by the server; never accep │
+                    │   124 │   if len(fit_id) != 36 or not fit_id.startswith( │
+                    │       '0123456789abcdef' for c in fit_id[4:]):           │
+                    │ ❱ 125 │   │   raise ValueError('Unknown fit_id; use an i │
+                    │   126 │   index = confined_path('artifacts/registry/'+fi │
+                    │   127 │   record = json.loads(index.read_text())         │
+                    │   128 │   manifest_path = confined_path(record['manifest │
+                    ╰──────────────────────────────────────────────────────────╯
+                    ValueError: Unknown fit_id; use an identifier returned by   
+                    fit_model                                                   
+                    Error calling tool 'diagnostics'                            
+unknown_fit_error passed
+[10/05/26 19:13:18] WARNING  Invalid arguments for tool           server.py:1505
+                             'diagnostics': [{'type':                           
+                             'less_than_equal', 'loc':                          
+                             ('max_rows',), 'msg': 'Input should                
+                             be less than or equal to 20',                      
+                             'input': 21, 'ctx': {'le': 20}}]                   
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'diagnostics': [{'type':                           
+                             'less_than_equal', 'loc':                          
+                             ('max_rows',), 'msg': 'Input should                
+                             be less than or equal to 20',                      
+                             'input': 21, 'ctx': {'le': 20}}]                   
+preview_limit_error passed
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type':                             
+                             'extra_forbidden', 'loc':                          
+                             ('options', 'spatCovariates'),                     
+                             'msg': 'Extra inputs are not                       
+                             permitted', 'input': []}]                          
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type':                             
+                             'extra_forbidden', 'loc':                          
+                             ('options', 'spatCovariates'),                     
+                             'msg': 'Extra inputs are not                       
+                             permitted', 'input': []}]                          
+spatial_option_error passed
+Traceback (most recent call last):
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/../verify_calls.py", line 50, in <module>
+    try:asyncio.run(main())
+        ~~~~~~~~~~~^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py", line 205, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/../verify_calls.py", line 47, in main
+    await call('seed_type_error','fit_model',{'data_path':s['data_path'],'options':s['options'],'seed':True},'valid integer')
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/../verify_calls.py", line 30, in call
+    r=await asyncio.wait_for(client.call_tool(tool,args,raise_on_error=False),600);return record(name,tool,r,error)
+                                                                                          ~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/../verify_calls.py", line 12, in record
+    assert result.is_error and error.lower() in text.lower(),(name,text);row['error_text']=text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('seed_type_error', '{"status":"ok","model":"binary","readback_valid":true,"effective_n_factors":0,"kept_draws_per_chain":20,"total_iterations_per_chain":60,"dimensions":[40,1],"design":{"occupancy_columns":["habitat_changed"],"collection_columns":[],"trait_columns":[],"n_sites":40,"n_samples":null,"n_primers":null,"missing_observations":0,"species_count":1,"observations":40},"runtime":{"source_revision":"b7b7001e56cea8e3931b09c917ea0e29e6cef3c6","R":"R version 4.5.0 (2025-04-11)","occJSDM_version":"0.1.0","occJSDM_path":"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM","renv_version":"1.2.3","libPaths":["/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20","/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"],"thread_env":{"OMP_NUM_THREADS":"","OPENBLAS_NUM_THREADS":"","MKL_NUM_THREADS":"","RCPP_PARALLEL_NUM_THREADS":""},"Rscript":"/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"},"qualifications":["Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.","Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."],"warnings":["Low ESS in \'B\'. Min ESS < 50","Convergence issue in \'A_output\'. Max R-hat > 1.1","Low ESS in \'A\'. Min ESS < 50","Low ESS in \'C\'. Min ESS < 50","Convergence issue in \'sigmab_output\'. Max R-hat > 1.1","Low ESS in \'sigmab\'. Min ESS < 50","Convergence issue in \'sigmah_output\'. Max R-hat > 1.1"],"warning_count":7,"schema_version":1,"message":"Native non-spatial fit saved; inspect convergence before interpretation.","reference":"https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd","artifacts":[{"kind":"log","description":"Captured native R console output","path":"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-f4bdaa875cb44db188cdf516a3c8165c/stdout.log","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},{"kind":"log","description":"Captured native R startup diagnostics","path":"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-f4bdaa875cb44db188cdf516a3c8165c/stderr.log","sha256":"b2ca676557d2df04c1c438db3948332f66d1ef8a3cd28525aa2ac8feb85182bf"},{"kind":"fit","description":"Native occJSDM fit, reload with readRDS","path":"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-f4bdaa875cb44db188cdf516a3c8165c/fit.rds","sha256":"55bef3bc9658318d0994e3a2cc3fba861a9e5e519ad4475f60a6fce6b76023dc"},{"kind":"manifest","description":"Fit provenance and effective settings","path":"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-f4bdaa875cb44db188cdf516a3c8165c/manifest.json","sha256":"826f1061ff7886742367fdc7b810d17fc691a0f32e689122d06c4f60cdc90a9a"}],"fit_id":"fit_4119b8d24ed04612846ccf9f24e84791","settings":{"occCovariates":["habitat_changed"],"collCovariates":[],"threshold":1,"listParams":{"n_factors":0},"MCMCparams":{"nchain":2,"nburn":20,"niter":20,"nthin":2},"spatCovariates":[],"summarisedLatentPresences":true,"listPriors":{}},"input_sha256":"655ded4dd0a6c66e2b5c260ea1263b32a383ea4b4b271c45b2436024d52f6600"}')

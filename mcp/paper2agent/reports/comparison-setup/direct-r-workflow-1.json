@@ -1,0 +1,111 @@
+{
+  "date": "2026-10-06",
+  "condition": "A",
+  "scenario": 1,
+  "repetition": 1,
+  "status": "native_saved_object_comparison_passed_user_reported_overwrite_guard_missing",
+  "scored": false,
+  "scope": "execution rehearsal; no retrospective formal teaching score",
+  "prompt": "Check `trial/data.rds`, then help me fit the non-spatial model using the supplied test settings and seed 1702. Save the new fit to a distinct project file without overwriting existing files. Run diagnostics and summarise baseline occupancy. Report the exact settings, saved fit path, warnings and complete-table diagnostic screening counts, then stop. This is a workflow test only.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13077262",
+  "evidence": "Doug pasted full Assistant response and four expanded-tool screenshots at 12:34:02, 12:34:23, 12:34:39 and 12:34:56",
+  "screenshots": [
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_gbrBOc/Screenshot 2026-10-06 at 12.34.02.png",
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_GZlKbv/Screenshot 2026-10-06 at 12.34.23.png",
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_OFhiQq/Screenshot 2026-10-06 at 12.34.39.png",
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_KT982v/Screenshot 2026-10-06 at 12.34.56.png"
+  ],
+  "observed": {
+    "route": "native R through executeCode, no occJSDM MCP",
+    "instructions_file_read": true,
+    "source_and_vignette_read": true,
+    "data_read": "trial/data.rds",
+    "seed_set_in_code": 1702,
+    "native_fit_called": true,
+    "two_stage_classification_output": true,
+    "warnings_captured": 23,
+    "saved_fit_path": "/cloud/project/trial/fit-workflow-test-1702.rds",
+    "saveRDS_and_file_exists_output_visible": true,
+    "diagnostics_called": true,
+    "complete_object_counts_computed": true,
+    "counts": {
+      "rows": 32,
+      "rhat_above_1_01": 29,
+      "ess_below_400": 32,
+      "rhat_NA": 0,
+      "ess_NA": 0,
+      "either_flagged": 32
+    },
+    "counts_match_Cloud_native_reference": true,
+    "baseline_summary_method": "returnOccupancyRates, apply across species columns, pooled mean and quantiles",
+    "baseline_summary": {
+      "OTU_1": [
+        0.638,
+        0.286,
+        0.861
+      ],
+      "OTU_2": [
+        0.52,
+        0.215,
+        0.792
+      ],
+      "OTU_3": [
+        0.372,
+        0.143,
+        0.639
+      ],
+      "OTU_4": [
+        0.409,
+        0.239,
+        0.676
+      ]
+    },
+    "short_fit_qualification": true,
+    "limited_diagnostic_scope_explained": true,
+    "did_not_claim_convergence_from_no_NA": true,
+    "input_and_reference_preserved": true
+  },
+  "reported_settings": {
+    "n_factors": 2,
+    "threshold": 1,
+    "occCovariates": [
+      "X_psi.EnvCov.1",
+      "X_psi.EnvCov.2"
+    ],
+    "collCovariates": [
+      "X_theta"
+    ],
+    "spatCovariates": [],
+    "nchain": 2,
+    "nburn": 20,
+    "niter": 20,
+    "nthin": 1,
+    "summarisedLatentPresences": true,
+    "seed": 1702
+  },
+  "limitations_and_issues": [
+    "The shown saveRDS call has no file.exists guard before writing. Current input/reference hashes are unchanged, but a repeated call could overwrite the new artifact. This guard issue is retained rather than retrospectively repaired.",
+    "Intermediate commentary uses English despite default Bahasa Indonesia; final explanation uses Bahasa Indonesia.",
+    "Suggested seed-1703 repeat would test a changed random run, not same-seed reproducibility.",
+    "Final prose says almost all flagged, while complete table correctly reports all 32 flagged by at least ESS."
+  ],
+  "formal_Indonesian_review": "pending",
+  "tokens": null,
+  "charge_USD": null,
+  "elapsed_seconds": null,
+  "native_verification": {
+    "evidence": "Screenshot 2026-10-06 at 12.38.28.png, direct user-run R console, not Assistant narrative",
+    "screenshot": "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_NWEP4c/Screenshot 2026-10-06 at 12.38.28.png",
+    "comparison": "all.equal(reference, new_fit, tolerance=0) returned TRUE",
+    "hashes": {
+      "trial/data.rds": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+      "trial/fit-short.rds": "446556b0ab908541034af3fb5369864e8164531086e25d3256d19f0078fbd5f8",
+      "trial/fit-workflow-test-1702.rds": "7e6150ae53bad712417804ef9b58d5aa8c4d3c50052e7181345573e59a7c9c84"
+    },
+    "input_and_reference_hashes_match_frozen_values": true,
+    "all_three_files_unchanged_during_verification": true,
+    "new_serialized_file_differs_from_reference": true,
+    "serialization_difference_cause": "not investigated; object all.equal at zero tolerance, byte identity not claimed",
+    "no_refit_during_verification": true
+  }
+}

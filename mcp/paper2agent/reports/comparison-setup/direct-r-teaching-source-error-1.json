@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-06",
+  "condition": "A",
+  "exchange": "teaching-source-error",
+  "repetition": 1,
+  "scored": false,
+  "prompt": "My working directory is the repository root, `/cloud/project`. I ran `source(\"lesson-links.R\")` and got: `cannot open file 'lesson-links.R': No such file or directory`. Explain why and show the correct command for this project. Do not change any files.",
+  "status": "correct_path_resolution_and_helper_purpose",
+  "evidence": "Doug pasted response and ls/grep/read/executeCode labels; raw session check not expanded",
+  "observed": {
+    "language": "Bahasa Indonesia; English follow-up preface",
+    "getwd_reported": "/cloud/project",
+    "root_helper_exists_reported": false,
+    "vignettes_helper_exists_reported": true,
+    "correct_command": "source(\"vignettes/lesson-links.R\")",
+    "explains_relative_working_directory": true,
+    "explains_knitr_document_hook": true,
+    "explains_local_scope_and_HTML_render_effect": true,
+    "no_fit_in_supplied_sequence": true,
+    "no_changes_claimed": true
+  },
+  "source_check": {
+    "revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "method": "Read pinned vignettes/lesson-links.R",
+    "confirmed": "local block installs knitr document hook; rewrites selected lesson .md links to .html for HTML rendering, preserves code and calls previous hook"
+  },
+  "qualifications": [
+    "The corrected command and helper explanation match pinned source. Actual getwd/file.exists outputs and successful sourcing not provided; response reports checks and gives command rather than demonstrating source execution."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

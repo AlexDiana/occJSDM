@@ -1,0 +1,22 @@
+{
+  "executable": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/bin/python",
+  "prefix": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env",
+  "packages": {
+    "fastmcp": {
+      "version": "4.0.3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/__init__.py"
+    },
+    "pydantic": {
+      "version": "2.13.5",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/pydantic/__init__.py"
+    },
+    "pytest": {
+      "version": "9.1.1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/pytest/__init__.py"
+    },
+    "pytest-asyncio": {
+      "version": "1.4.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/pytest_asyncio/__init__.py"
+    }
+  }
+}

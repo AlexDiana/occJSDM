@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-06",
+  "evidence": "Doug supplied Cloud helper output; unrelated environment dump excluded",
+  "status": "passed_user_reported_restart_confirmed",
+  "publication": {
+    "status": "curated_base_published_restart_R_and_Assistant_required",
+    "project_url": "https://posit.cloud/spaces/828411/content/13076906",
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "fit_sha256": "446556b0ab908541034af3fb5369864e8164531086e25d3256d19f0078fbd5f8",
+    "input_sha256": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+    "retained_symlinks_checked": 33,
+    "teaching_review": "draft_pending_review",
+    "grader_location": "/tmp/occjsdm-comparison-0977fzcp/grader",
+    "backup_location": "/tmp/occjsdm-comparison-0977fzcp",
+    "original_source_project_untouched": true,
+    "condition": "base_not_a_scored_trial",
+    "tool_inventory": [
+      "diagnostics",
+      "fit_model",
+      "summarise_fit",
+      "validate_data"
+    ]
+  },
+  "student_files": 80,
+  "native_reference": {
+    "R": "R version 4.6.1 (2026-06-24)",
+    "package_path": "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/occJSDM",
+    "diagnostics": {
+      "rows": 32,
+      "rhat_above_1_01": 29,
+      "ess_below_400": 32,
+      "rhat_unavailable": 0,
+      "ess_unavailable": 0
+    }
+  },
+  "scored_model_trials_started": false,
+  "restart_confirmed_by": "Doug, 2026-10-06: R and occJSDM through /mcp"
+}

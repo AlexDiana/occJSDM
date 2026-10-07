@@ -1,0 +1,16 @@
+Using Python 3.14.6 environment at: occJSDM-env
+WARN Retry attempt #0. Sleeping 1.877302316s before the next attempt
+WARN Retry attempt #0. Sleeping 1.005055575s before the next attempt
+WARN Retry attempt #0. Sleeping 1.189094849s before the next attempt
+WARN Retry attempt #1. Sleeping 1.470601117s before the next attempt
+WARN Retry attempt #1. Sleeping 3.508614897s before the next attempt
+WARN Retry attempt #1. Sleeping 2.682913014s before the next attempt
+WARN Retry attempt #2. Sleeping 2.681446286s before the next attempt
+WARN Retry attempt #2. Sleeping 3.277460172s before the next attempt
+WARN Retry attempt #2. Sleeping 1.090071822s before the next attempt
+error: Request failed after 3 retries in 5.2s
+  Caused by: Failed to fetch: `https://pypi.org/simple/pytest/`
+  Caused by: error sending request for url (https://pypi.org/simple/pytest/)
+  Caused by: client error (Connect)
+  Caused by: dns error
+  Caused by: failed to lookup address information: nodename nor servname provided, or not known

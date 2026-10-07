@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "scenario": 7,
+  "repetition": 1,
+  "scored": false,
+  "prompt": "Check the diagnostics for my short fit in `trial/fit-short.rds`. Can I interpret the ecology now? Preserve the existing file and do not refit.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "substantially_correct_diagnostic_restraint_beta_limitations_not_discussed",
+  "evidence": "Doug pasted full response and diagnostic/inspection tool labels; expanded computation output not supplied",
+  "observed": {
+    "language": "Bahasa Indonesia",
+    "reads_saved_fit_reported": true,
+    "calls_returnConvergenceDiagnostics_reported": true,
+    "reported_rows": 32,
+    "reported_chains": 2,
+    "reported_kept_iterations_per_chain": 20,
+    "reported_counts": {
+      "rhat_above_1_01": 29,
+      "ess_below_400": 32,
+      "rhat_or_ess_NA": 0
+    },
+    "reported_rhat_max": 6.77,
+    "reported_ess_min_median_max": [
+      5.5,
+      18.0,
+      71.4
+    ],
+    "counts_and_extrema_match_prior_evidence": true,
+    "example_Rhat_beta0_OTU3": 4.29,
+    "example_Rhat_beta_psi_EnvCov1_OTU2": 6.77,
+    "rejects_ecological_interpretation": true,
+    "large_Rhat_not_dismissed_as_noise": true,
+    "low_ESS_distinguished_from_interval_width": true,
+    "short_chain_ESS_unstable": true,
+    "no_NA_not_convergence_proof": true,
+    "selected_diagnostic_scope_recognised": true,
+    "no_fit_in_supplied_sequence": true,
+    "no_writes_claimed": true,
+    "asks_one_chain_Rhat_learning_question": true
+  },
+  "qualifications": [
+    "Numerical report agrees with frozen reference and prior independently checked A output, but newly executed code/raw table not supplied.",
+    "Saved-file preservation is stated and consistent with tool labels, but no per-case before/after hash check supplied.",
+    "Package beta bias and unestablished interval calibration are separate from MCMC convergence; this response does not discuss those limitations."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

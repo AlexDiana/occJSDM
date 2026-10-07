@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-06",
+  "condition": "A",
+  "scenario": 8,
+  "repetition": 1,
+  "prompt": "`trial/diagnostics-unavailable.csv` has blank Rhat values. Does that mean everything converged?",
+  "status": "missing_not_pass_correct_teaching_explanation_incomplete",
+  "scored": false,
+  "evidence": "Doug pasted full response and tool labels; expanded CSV computation output not supplied",
+  "observed": {
+    "read_CSV_per_tool_label": true,
+    "rejected_missing_Rhat_as_convergence_evidence": true,
+    "reported_rows": 32,
+    "reported_nonmissing_rhat": 0,
+    "reported_ess_summary": {
+      "min": 1.29,
+      "median_approx": 5.1,
+      "max": 20,
+      "number_equal_20": 7
+    },
+    "correctly_distinguished_MC_precision_from_posterior_uncertainty": true,
+    "selected_diagnostic_scope_explained": true,
+    "short_fit_not_scientifically_interpretable": true,
+    "no_refit_in_supplied_sequence": true,
+    "language": "Bahasa Indonesia"
+  },
+  "teaching_qualifications": [
+    {
+      "issue": "Did not explain that Rhat compares between-chain and within-chain variation, requires at least two chains, and is unavailable in the supplied one-chain fixture.",
+      "scope": "General missing-not-pass conclusion is correct; explanation of this fixture is incomplete."
+    },
+    {
+      "claim": "ESS exactly equal to kept draws can occur with negative autocorrelation",
+      "assessment": "Not a diagnostic of negative autocorrelation. In coda, an order-zero autoregressive fit can yield ESS equal to draw count. Negative autocorrelation can produce ESS above draw count; neither equality nor a high estimated ESS proves convergence. The actual per-row estimator/order was not checked here."
+    }
+  ],
+  "source_method_check": {
+    "method": "Local Rscript --vanilla printed coda::effectiveSize and coda::spectrum0.ar; no fit run",
+    "findings": "Per-chain ESS from sample variance and estimated spectral density; autoregression selected by AIC. Do not infer negative autocorrelation from reported ESS=N."
+  },
+  "qualifications": [
+    "Reported 32 unavailable Rhat values agree with one-chain fixture preparation; new raw CSV result not supplied.",
+    "Exact ESS summary and equal-20 count not independently checked against actual Cloud CSV."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

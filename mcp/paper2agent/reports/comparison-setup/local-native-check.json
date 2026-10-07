@@ -1,0 +1,34 @@
+{
+  "status": "passed",
+  "platform": "darwin",
+  "R": "R version 4.5.0 (2025-04-11)",
+  "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+  "tools": [
+    "diagnostics",
+    "fit_model",
+    "summarise_fit",
+    "validate_data"
+  ],
+  "scope": "Portable helper check with newly created local fixtures and copied R runtime; Python launcher repaired from placeholder to copied real venv before final inventory. Not verification of Cloud R 4.6.1 deployment.",
+  "temporary_evidence": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/curation-native-tsuaggmz",
+  "native_reference": {
+    "R": "R version 4.5.0 (2025-04-11)",
+    "package_path": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/curation-native-tsuaggmz/project/mcp/paper2agent/cloud-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+    "diagnostics": {
+      "rows": 32,
+      "rhat_above_1_01": 27,
+      "ess_below_400": 32,
+      "rhat_unavailable": 0,
+      "ess_unavailable": 0
+    }
+  },
+  "saved_fit_unchanged": true,
+  "one_chain_missing_rhat": true,
+  "malformed_rows": [
+    160,
+    159
+  ],
+  "count_response_rejected": true,
+  "no_traits_same_observations": true,
+  "read_only_sandbox_cleanup": true
+}

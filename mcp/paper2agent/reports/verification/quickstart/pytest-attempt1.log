@@ -1,0 +1,261 @@
+EEE......E............EEE............                                    [100%]
+==================================== ERRORS ====================================
+________ ERROR at setup of test_full_direct_diagnostics[binary_single] _________
+
+fixturedef = <FixtureDef argname='numerical_audit' scope='session' baseid='tests/code/quickstart'>
+request = <SubRequest 'numerical_audit' for <Function test_full_direct_diagnostics[binary_single]>>
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_fixture_setup(fixturedef: FixtureDef, request) -> object | None:
+        if (
+            fixturedef.argname == "event_loop_policy"
+            and fixturedef.func.__module__ != __name__
+        ):
+            warnings.warn(
+                PytestDeprecationWarning(_EVENT_LOOP_POLICY_FIXTURE_DEPRECATION_WARNING),
+            )
+        asyncio_mode = _get_asyncio_mode(request.config)
+        if not _is_asyncio_fixture_function(fixturedef.func):
+            if asyncio_mode == Mode.STRICT:
+                # Ignore async fixtures without explicit asyncio mark in strict mode
+                # This applies to pytest_trio fixtures, for example
+>               return (yield)
+                        ^^^^^
+
+occJSDM-env/lib/python3.14/site-packages/pytest_asyncio/plugin.py:924: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+exercised = {'binary_single': {'validate_data': {'status': 'ok', 'eligible': True, 'model': 'binary', 'issues': [], ...}, 'fit_mod...1', 'mean': 0.57228921958119, 'median': 0.5626817419269619, 'q2.5': 0.33298717956908497, ...}], 'total_rows': 3, ...}}}
+
+    @pytest.fixture(scope='session')
+    def numerical_audit(exercised):
+        saved=json.loads((ROOT/'notebooks/quickstart/reference/native_execution_results.json').read_text())['cases']
+        selected={}
+        manifests=[json.loads(p.read_text()) for p in (ROOT/'artifacts/calls').glob('fit_model-*/manifest.json')]
+        for name,c in saved.items():
+            if name.startswith('boundary_') and name!='boundary_two_stage_NA_OTU':continue
+            if c['fit']['status']!='ok':continue
+            oc=c['occCovariates'];cc=c['collCovariates']
+            oc=oc if isinstance(oc,list) else [oc];cc=cc if isinstance(cc,list) else [cc]
+            expected=dict(occCovariates=oc,collCovariates=cc,threshold=1,listParams={'n_factors':2},MCMCparams=c['settings'])
+>           candidates=[m for m in manifests if m['input_path']==str(ROOT/f'notebooks/quickstart/data/{name}_data.rds') and m['requested_settings']==expected and m['seed']==c['seed']]
+                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'requested_settings'
+
+tests/code/quickstart/conftest.py:90: KeyError
+---------------------------- Captured stderr setup -----------------------------
+[10/05/26 18:34:33] Error calling tool 'fit_model'                              
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/server/server.py:1492 in call_tool            │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/tools/base.py:440 in _run                     │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/quickstart.py:88 in          │
+                    │ fit_model                                                │
+                    │                                                          │
+                    │    85 │   shutil.copyfile(path,snapshot)                 │
+                    │    86 │   input_hash = digest(snapshot)                  │
+                    │    87 │   requested = options.model_dump()               │
+                    │ ❱  88 │   native = await                                 │
+                    │       run_r('fit_model',dict(data_path=str(snapshot),opt │
+                    │    89 │   pending = out/'fit.rds.pending'                │
+                    │    90 │   if not pending.is_file() or not native.get('re │
+                    │    91 │   │   raise RuntimeError('Native fit did not pas │
+                    │       published')                                        │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/runtime.py:118 in run_r      │
+                    │                                                          │
+                    │   115 │   │   raise RuntimeError(f'Native R startup or o │
+                    │       {process.returncode}); inspect local logs in {out} │
+                    │   116 │   result = json.loads(result_path.read_text(),pa │
+                    │       ()).throw(ValueError('Nonfinite JSON from R')))    │
+                    │   117 │   if process.returncode != 0 or result.get('stat │
+                    │ ❱ 118 │   │   raise RuntimeError('Native R error: ' + re │
+                    │       execution') + f'. Local logs: {out}')              │
+                    │   119 │   return result                                  │
+                    │   120                                                    │
+                    │   121                                                    │
+                    ╰──────────────────────────────────────────────────────────╯
+                    RuntimeError: Native R error: incorrect number of           
+                    dimensions. Local logs:                                     
+                    /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mc
+                    p/paper2agent/artifacts/calls/fit_model-345659b7e88d42cebd9e
+                    3818d5f292e5                                                
+------------------------------ Captured log setup ------------------------------
+ERROR    fastmcp.server.server:server.py:1541 Error calling tool 'fit_model'
+Traceback (most recent call last):
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/server/server.py", line 1492, in call_tool
+    return await tool._run(arguments or {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/base.py", line 440, in _run
+    return await self.run(arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 389, in run
+    result = await self._run_body(
+             ^^^^^^^^^^^^^^^^^^^^^
+        type_adapter, exec_is_async, arguments, strict=strict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 430, in _run_body
+    result = await self._execute(
+             ^^^^^^^^^^^^^^^^^^^^
+        type_adapter, exec_is_async, arguments, strict=strict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 485, in _execute
+    result = await result
+             ^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 82, in wrapper
+    return await fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/quickstart.py", line 88, in fit_model
+    native = await run_r('fit_model',dict(data_path=str(snapshot),options=requested,seed=seed),out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/runtime.py", line 118, in run_r
+    raise RuntimeError('Native R error: ' + result.get('error','unsuccessful execution') + f'. Local logs: {out}')
+RuntimeError: Native R error: incorrect number of dimensions. Local logs: /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-345659b7e88d42cebd9e3818d5f292e5
+______ ERROR at setup of test_full_direct_diagnostics[occupancy_changed] _______
+
+exercised = {'binary_single': {'validate_data': {'status': 'ok', 'eligible': True, 'model': 'binary', 'issues': [], ...}, 'fit_mod...1', 'mean': 0.57228921958119, 'median': 0.5626817419269619, 'q2.5': 0.33298717956908497, ...}], 'total_rows': 3, ...}}}
+
+    @pytest.fixture(scope='session')
+    def numerical_audit(exercised):
+        saved=json.loads((ROOT/'notebooks/quickstart/reference/native_execution_results.json').read_text())['cases']
+        selected={}
+        manifests=[json.loads(p.read_text()) for p in (ROOT/'artifacts/calls').glob('fit_model-*/manifest.json')]
+        for name,c in saved.items():
+            if name.startswith('boundary_') and name!='boundary_two_stage_NA_OTU':continue
+            if c['fit']['status']!='ok':continue
+            oc=c['occCovariates'];cc=c['collCovariates']
+            oc=oc if isinstance(oc,list) else [oc];cc=cc if isinstance(cc,list) else [cc]
+            expected=dict(occCovariates=oc,collCovariates=cc,threshold=1,listParams={'n_factors':2},MCMCparams=c['settings'])
+>           candidates=[m for m in manifests if m['input_path']==str(ROOT/f'notebooks/quickstart/data/{name}_data.rds') and m['requested_settings']==expected and m['seed']==c['seed']]
+                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'requested_settings'
+
+tests/code/quickstart/conftest.py:90: KeyError
+______ ERROR at setup of test_full_direct_diagnostics[two_stage_changed] _______
+
+exercised = {'binary_single': {'validate_data': {'status': 'ok', 'eligible': True, 'model': 'binary', 'issues': [], ...}, 'fit_mod...1', 'mean': 0.57228921958119, 'median': 0.5626817419269619, 'q2.5': 0.33298717956908497, ...}], 'total_rows': 3, ...}}}
+
+    @pytest.fixture(scope='session')
+    def numerical_audit(exercised):
+        saved=json.loads((ROOT/'notebooks/quickstart/reference/native_execution_results.json').read_text())['cases']
+        selected={}
+        manifests=[json.loads(p.read_text()) for p in (ROOT/'artifacts/calls').glob('fit_model-*/manifest.json')]
+        for name,c in saved.items():
+            if name.startswith('boundary_') and name!='boundary_two_stage_NA_OTU':continue
+            if c['fit']['status']!='ok':continue
+            oc=c['occCovariates'];cc=c['collCovariates']
+            oc=oc if isinstance(oc,list) else [oc];cc=cc if isinstance(cc,list) else [cc]
+            expected=dict(occCovariates=oc,collCovariates=cc,threshold=1,listParams={'n_factors':2},MCMCparams=c['settings'])
+>           candidates=[m for m in manifests if m['input_path']==str(ROOT/f'notebooks/quickstart/data/{name}_data.rds') and m['requested_settings']==expected and m['seed']==c['seed']]
+                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'requested_settings'
+
+tests/code/quickstart/conftest.py:90: KeyError
+_________ ERROR at setup of test_full_native_fit_and_installed_source __________
+
+exercised = {'binary_single': {'validate_data': {'status': 'ok', 'eligible': True, 'model': 'binary', 'issues': [], ...}, 'fit_mod...1', 'mean': 0.57228921958119, 'median': 0.5626817419269619, 'q2.5': 0.33298717956908497, ...}], 'total_rows': 3, ...}}}
+
+    @pytest.fixture(scope='session')
+    def numerical_audit(exercised):
+        saved=json.loads((ROOT/'notebooks/quickstart/reference/native_execution_results.json').read_text())['cases']
+        selected={}
+        manifests=[json.loads(p.read_text()) for p in (ROOT/'artifacts/calls').glob('fit_model-*/manifest.json')]
+        for name,c in saved.items():
+            if name.startswith('boundary_') and name!='boundary_two_stage_NA_OTU':continue
+            if c['fit']['status']!='ok':continue
+            oc=c['occCovariates'];cc=c['collCovariates']
+            oc=oc if isinstance(oc,list) else [oc];cc=cc if isinstance(cc,list) else [cc]
+            expected=dict(occCovariates=oc,collCovariates=cc,threshold=1,listParams={'n_factors':2},MCMCparams=c['settings'])
+>           candidates=[m for m in manifests if m['input_path']==str(ROOT/f'notebooks/quickstart/data/{name}_data.rds') and m['requested_settings']==expected and m['seed']==c['seed']]
+                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'requested_settings'
+
+tests/code/quickstart/conftest.py:90: KeyError
+_ ERROR at setup of test_full_baseline_summary_labels_and_single_species[binary_single] _
+
+exercised = {'binary_single': {'validate_data': {'status': 'ok', 'eligible': True, 'model': 'binary', 'issues': [], ...}, 'fit_mod...1', 'mean': 0.57228921958119, 'median': 0.5626817419269619, 'q2.5': 0.33298717956908497, ...}], 'total_rows': 3, ...}}}
+
+    @pytest.fixture(scope='session')
+    def numerical_audit(exercised):
+        saved=json.loads((ROOT/'notebooks/quickstart/reference/native_execution_results.json').read_text())['cases']
+        selected={}
+        manifests=[json.loads(p.read_text()) for p in (ROOT/'artifacts/calls').glob('fit_model-*/manifest.json')]
+        for name,c in saved.items():
+            if name.startswith('boundary_') and name!='boundary_two_stage_NA_OTU':continue
+            if c['fit']['status']!='ok':continue
+            oc=c['occCovariates'];cc=c['collCovariates']
+            oc=oc if isinstance(oc,list) else [oc];cc=cc if isinstance(cc,list) else [cc]
+            expected=dict(occCovariates=oc,collCovariates=cc,threshold=1,listParams={'n_factors':2},MCMCparams=c['settings'])
+>           candidates=[m for m in manifests if m['input_path']==str(ROOT/f'notebooks/quickstart/data/{name}_data.rds') and m['requested_settings']==expected and m['seed']==c['seed']]
+                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'requested_settings'
+
+tests/code/quickstart/conftest.py:90: KeyError
+_ ERROR at setup of test_full_baseline_summary_labels_and_single_species[occupancy_changed] _
+
+exercised = {'binary_single': {'validate_data': {'status': 'ok', 'eligible': True, 'model': 'binary', 'issues': [], ...}, 'fit_mod...1', 'mean': 0.57228921958119, 'median': 0.5626817419269619, 'q2.5': 0.33298717956908497, ...}], 'total_rows': 3, ...}}}
+
+    @pytest.fixture(scope='session')
+    def numerical_audit(exercised):
+        saved=json.loads((ROOT/'notebooks/quickstart/reference/native_execution_results.json').read_text())['cases']
+        selected={}
+        manifests=[json.loads(p.read_text()) for p in (ROOT/'artifacts/calls').glob('fit_model-*/manifest.json')]
+        for name,c in saved.items():
+            if name.startswith('boundary_') and name!='boundary_two_stage_NA_OTU':continue
+            if c['fit']['status']!='ok':continue
+            oc=c['occCovariates'];cc=c['collCovariates']
+            oc=oc if isinstance(oc,list) else [oc];cc=cc if isinstance(cc,list) else [cc]
+            expected=dict(occCovariates=oc,collCovariates=cc,threshold=1,listParams={'n_factors':2},MCMCparams=c['settings'])
+>           candidates=[m for m in manifests if m['input_path']==str(ROOT/f'notebooks/quickstart/data/{name}_data.rds') and m['requested_settings']==expected and m['seed']==c['seed']]
+                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'requested_settings'
+
+tests/code/quickstart/conftest.py:90: KeyError
+_ ERROR at setup of test_full_baseline_summary_labels_and_single_species[two_stage_changed] _
+
+exercised = {'binary_single': {'validate_data': {'status': 'ok', 'eligible': True, 'model': 'binary', 'issues': [], ...}, 'fit_mod...1', 'mean': 0.57228921958119, 'median': 0.5626817419269619, 'q2.5': 0.33298717956908497, ...}], 'total_rows': 3, ...}}}
+
+    @pytest.fixture(scope='session')
+    def numerical_audit(exercised):
+        saved=json.loads((ROOT/'notebooks/quickstart/reference/native_execution_results.json').read_text())['cases']
+        selected={}
+        manifests=[json.loads(p.read_text()) for p in (ROOT/'artifacts/calls').glob('fit_model-*/manifest.json')]
+        for name,c in saved.items():
+            if name.startswith('boundary_') and name!='boundary_two_stage_NA_OTU':continue
+            if c['fit']['status']!='ok':continue
+            oc=c['occCovariates'];cc=c['collCovariates']
+            oc=oc if isinstance(oc,list) else [oc];cc=cc if isinstance(cc,list) else [cc]
+            expected=dict(occCovariates=oc,collCovariates=cc,threshold=1,listParams={'n_factors':2},MCMCparams=c['settings'])
+>           candidates=[m for m in manifests if m['input_path']==str(ROOT/f'notebooks/quickstart/data/{name}_data.rds') and m['requested_settings']==expected and m['seed']==c['seed']]
+                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'requested_settings'
+
+tests/code/quickstart/conftest.py:90: KeyError
+=============================== warnings summary ===============================
+tests/code/quickstart/test_validate_data.py::test_installed_fastmcp_schema_contract
+  /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tests/code/quickstart/test_validate_data.py:14: FastMCPDeprecationWarning: Accessing `Tool.inputSchema` is deprecated; MCP SDK v2 renamed this field to `input_schema`. Update your code to read `.input_schema` instead.
+    tools={t.name:t.inputSchema for t in asyncio.run(read())}
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/code/quickstart/test_diagnostics.py::test_full_direct_diagnostics[binary_single]
+ERROR tests/code/quickstart/test_diagnostics.py::test_full_direct_diagnostics[occupancy_changed]
+ERROR tests/code/quickstart/test_diagnostics.py::test_full_direct_diagnostics[two_stage_changed]
+ERROR tests/code/quickstart/test_fit_model.py::test_full_native_fit_and_installed_source
+ERROR tests/code/quickstart/test_summarise_fit.py::test_full_baseline_summary_labels_and_single_species[binary_single]
+ERROR tests/code/quickstart/test_summarise_fit.py::test_full_baseline_summary_labels_and_single_species[occupancy_changed]
+ERROR tests/code/quickstart/test_summarise_fit.py::test_full_baseline_summary_labels_and_single_species[two_stage_changed]
+30 passed, 1 warning, 7 errors in 66.73s (0:01:06)

@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-06",
+  "time_local": "20:12",
+  "source": "Doug supplied usage and Spend By Model screenshots at 20:12, after C execution case 10 and before C teaching exchanges",
+  "screenshots": [
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_f7fjia/Screenshot 2026-10-06 at 20.12.30.png",
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_VxY32j/Screenshot 2026-10-06 at 20.12.42.png"
+  ],
+  "selected_time_window": "Weekly usage context; title outside latest cropped overview, daily chart Oct 2-6",
+  "displayed_total_USD": 2.08,
+  "displayed_by_model_USD": {
+    "Claude Sonnet 5.5": 1.81,
+    "DeepSeek V4.1 Flash": 0.27,
+    "Apodex 1.1 Mini (free)": 0.0,
+    "Others": 0.0
+  },
+  "previous_total_USD": 1.67,
+  "displayed_increase_USD": 0.41,
+  "previous_Sonnet_USD": 1.4,
+  "Sonnet_displayed_increase_USD": 0.41,
+  "Sonnet_starting_checkpoint_USD": 0.93,
+  "Sonnet_displayed_increase_since_C_start_USD": 0.88,
+  "conservative_remaining_USD": 2.92,
+  "amount_precision": "Rounded dashboard totals and daily aggregates, not generation receipts",
+  "cost_attribution": "Sonnet US$0.88 increase since C baseline coincides with ten execution rehearsal cases; exclusive attribution and per-case costs unavailable. US$0.41 increase since midpoint coincides with C cases 6-10.",
+  "daily_chart_and_table": {
+    "Sonnet_displayed_min_USD": 0.88,
+    "Sonnet_displayed_max_USD": 0.93,
+    "Sonnet_displayed_avg_USD": 0.9,
+    "Sonnet_total_USD": 1.81,
+    "DeepSeek_displayed_min_USD": 0.08,
+    "DeepSeek_displayed_max_USD": 0.19,
+    "DeepSeek_displayed_avg_USD": 0.13,
+    "DeepSeek_total_USD": 0.27,
+    "scope": "Daily aggregates; these are not per-request prices."
+  },
+  "paid_calls_made_by_Codex": 0
+}

@@ -1,0 +1,55 @@
+{
+  "success": true,
+  "tolerance": 0,
+  "cutoff": 1791222016.5617,
+  "R_project": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime",
+  "fits": {
+    "fit_45705046400c4b6c9987c124f49c0069": {
+      "case": "binary_single",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-25ee7130c0854f76b3a751fd3374f306/fit.rds",
+      "full_native_match": true
+    },
+    "fit_f16a902e3eae43a0804604ef56c6180a": {
+      "case": "occupancy_changed",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-3134bf0e3b6c4ead8bb8324b8b3bdbd9/fit.rds",
+      "full_native_match": true
+    },
+    "fit_018d920de3f54a22b5a0e674d43ae791": {
+      "case": "two_stage_changed",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-328cf02a86c2467da328e6f9cef1533e/fit.rds",
+      "full_native_match": true
+    },
+    "fit_94d56be00ad64912b7688935c3defd3e": {
+      "case": "binary_single",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-8e835238b6ad43fda236b72d66250b2d/fit.rds",
+      "full_native_match": true
+    }
+  },
+  "tables": {
+    "diagnostics-685d0749f2b54952ab9dc9b5bc20a069": {
+      "case": "binary_single",
+      "operation": "diagnostics",
+      "full_native_match": true
+    },
+    "diagnostics-db688a826225425a9e163291a2acd52d": {
+      "case": "constant_species",
+      "operation": "diagnostics",
+      "full_native_match": true
+    },
+    "diagnostics-e881032aa9a94223a1b2c17fc239b852": {
+      "case": "binary_single",
+      "operation": "diagnostics",
+      "full_native_match": true
+    },
+    "summarise_fit-d2207f3fb80f411a8b75ce9f6ab487f1": {
+      "case": "binary_single",
+      "operation": "summarise_fit",
+      "full_native_match": true
+    },
+    "summarise_fit-e11a2fe9717348e4a63ecf1d5ca19e3e": {
+      "case": "binary_single",
+      "operation": "summarise_fit",
+      "full_native_match": true
+    }
+  }
+}

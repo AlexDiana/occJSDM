@@ -1,0 +1,196 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "scenario": 1,
+  "repetition": 1,
+  "scored": false,
+  "scope": "execution rehearsal; no retrospective formal teaching score",
+  "prompt": "Check `trial/data.rds`, then help me fit the non-spatial model using the supplied test settings and seed 1702. Save the new fit to a distinct project file without overwriting existing files. Run diagnostics and summarise baseline occupancy. Report the exact settings, saved fit path, warnings and complete-table diagnostic screening counts, then stop. This is a workflow test only.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "native_saved_object_comparison_passed_user_reported_overwrite_guard_verified_teaching_errors_retained",
+  "evidence": {
+    "response": "Doug pasted full response and tool labels; expanded R fitting/save and summary code not supplied",
+    "model_screenshot": "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_znkK30/Screenshot 2026-10-06 at 18.44.49.png",
+    "model_UI_label": "Anthropic: Claude Sonnet 5.5 (Medium)",
+    "UI_token_label": "54K; interpretation/session scope not established"
+  },
+  "observed": {
+    "route": "native R executeCode; no MCP analysis calls in supplied sequence",
+    "language": "English throughout, despite requested shared instruction default Bahasa Indonesia",
+    "reported_design": {
+      "rows": 160,
+      "species": 4,
+      "sites": 40,
+      "field_samples": 80,
+      "PCR_replicates_per_sample": 2,
+      "traits": [
+        4,
+        2
+      ]
+    },
+    "saved_fit_path": "/cloud/project/trial/fit-workflow-test-seed1702.rds",
+    "overwrite_guard_reported": true,
+    "warning_count_reported": 23,
+    "diagnostic_counts_reported": {
+      "rows": 32,
+      "rhat_above_1_01": 29,
+      "ess_below_400": 32,
+      "rhat_NA": 0,
+      "ess_NA": 0,
+      "either_flagged": 32,
+      "both_flagged": 29
+    },
+    "counts_match_reference": true,
+    "baseline_means_reported": [
+      0.64,
+      0.52,
+      0.37,
+      0.41
+    ],
+    "baseline_intervals_reported": [
+      [
+        0.29,
+        0.86
+      ],
+      [
+        0.22,
+        0.79
+      ],
+      [
+        0.14,
+        0.64
+      ],
+      [
+        0.24,
+        0.68
+      ]
+    ],
+    "baseline_matches_reference_at_reported_precision": true,
+    "baseline_function_reported": "returnOccupancyRates, pooled 40 draws per species",
+    "short_fit_not_scientifically_interpretable": true,
+    "large_Rhat_not_dismissed_as_noise": true,
+    "selected_diagnostic_scope_recognised": true,
+    "overwrite_guard_verified": true,
+    "saveRDS_and_file_exists_output_visible": true
+  },
+  "reported_settings": {
+    "seed": 1702,
+    "n_factors": 2,
+    "threshold": 1,
+    "occCovariates": [
+      "X_psi.EnvCov.1",
+      "X_psi.EnvCov.2"
+    ],
+    "collCovariates": [
+      "X_theta"
+    ],
+    "spatCovariates": [],
+    "nchain": 2,
+    "nburn": 20,
+    "niter": 20,
+    "nthin": 1,
+    "listPriors": "defaults",
+    "summarisedLatentPresences": "omitted in reported call; function default TRUE"
+  },
+  "issues": [
+    {
+      "claim": "Inferred two-stage eDNA model is what non-spatial means",
+      "assessment": "Incorrect: two-stage describes collection/PCR detection hierarchy; non-spatial means no spatial field/covariates selected. These are separate settings."
+    },
+    {
+      "claim": "First 11 convergence warnings and other 12 ESS warnings",
+      "assessment": "Listed sets contain 10 Rhat warnings and 13 ESS warnings, agreeing with the frozen seed-1702 reference total 23. Raw captured warnings remain to verify."
+    },
+    {
+      "claim": "Every diagnostic flag fired",
+      "assessment": "All 32 rows flagged by at least one screen, but only 29 exceed Rhat; not every row triggers both screens."
+    },
+    {
+      "claim": "beta0_psi is a related intercept to B0",
+      "assessment": "They are the same stored B0_output array labelled beta0_psi by returnConvergenceDiagnostics."
+    }
+  ],
+  "baseline_source_check": {
+    "revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "confirmed": "process_covariates calls create_covariates_matrix; numeric variables standardized by subtracting mean and dividing by SD. returnOccupancyRates transforms B0 only. With linear numeric terms, zero transformed covariates correspond to raw means, with no latent/spatial contribution. Sonnet average-covariate interpretation is appropriate for this fixture, although it says this was unverified.",
+    "reported_raw_covariate_mean": "X_psi.EnvCov.2 approximately 3.8, not independently verified"
+  },
+  "qualifications": [
+    "Exact fit code, overwrite guard, warning output, input/reference hashes after fitting and saved-object equality not verified from supplied tool labels/prose.",
+    "Model UI label confirms Sonnet Medium, not actual upstream provider route/API generation parameters.",
+    "Shared instruction paste and restarts were requested; exact initial message and explicit client MCP inventory not provided."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null,
+  "expanded_execution_evidence": {
+    "source": "Doug pasted R fitting/save code, native component diagnostics and occupancy-summary output",
+    "fit_code": "out <- \"trial/fit-workflow-test-seed1702.rds\"\nstopifnot(!file.exists(out))\nset.seed(1702)\nwarns <- character()\nfit <- withCallingHandlers(runOccJSDM(d, listParams=list(n_factors=2), threshold=1, occCovariates=c(\"X_psi.EnvCov.1\",\"X_psi.EnvCov.2\"), collCovariates=\"X_theta\", spatCovariates=c(), MCMCparams=list(nchain=2,nburn=20,niter=20,nthin=1)), warning=function(w) { warns <<- c(warns,conditionMessage(w)); invokeRestart(\"muffleWarning\") })",
+    "overwrite_guard_before_fitting": true,
+    "seed": 1702,
+    "settings_match_frozen_starter": true,
+    "save_code": "saveRDS(fit, out, compress = TRUE)",
+    "file_exists_output": true,
+    "normalized_path": "/cloud/project/trial/fit-workflow-test-seed1702.rds",
+    "infos_model": "two_stage",
+    "infos_jsdmModel": "binary",
+    "native_component_diagnostics_match_prior_reference_at_printed_precision": true,
+    "warning_split_supported_by_component_thresholds": {
+      "Rhat_greater_than_1_1": 10,
+      "ESS_less_than_50": 13
+    },
+    "warning_vector_raw_output": "warns expression shown, but actual warning vector not included in pasted output",
+    "occupancy_dimensions": [
+      40,
+      4
+    ],
+    "occupancy_summary_method": "t(apply(occ, 2, mean/median/quantile)); round(3)",
+    "occupancy_summary": {
+      "OTU_1": {
+        "mean": 0.638,
+        "median": 0.642,
+        "q2.5": 0.286,
+        "q97.5": 0.861
+      },
+      "OTU_2": {
+        "mean": 0.52,
+        "median": 0.497,
+        "q2.5": 0.215,
+        "q97.5": 0.792
+      },
+      "OTU_3": {
+        "mean": 0.372,
+        "median": 0.391,
+        "q2.5": 0.143,
+        "q97.5": 0.639
+      },
+      "OTU_4": {
+        "mean": 0.409,
+        "median": 0.376,
+        "q2.5": 0.239,
+        "q97.5": 0.676
+      }
+    },
+    "occupancy_summary_matches_frozen_reference": true,
+    "limits": [
+      "Assignment creating d and occ not shown in expanded blocks; response reports input read and returnOccupancyRates respectively.",
+      "Complete screening-count code not expanded; reported counts agree with reference.",
+      "Saved-object full-precision equality and input/reference hash preservation check pending."
+    ]
+  },
+  "native_verification": {
+    "date": "2026-10-06",
+    "evidence": "Doug pasted direct R console output; not Assistant narrative",
+    "comparison": "all.equal(readRDS(reference), readRDS(new_fit), tolerance=0) returned TRUE",
+    "hashes": {
+      "trial/data.rds": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+      "trial/fit-short.rds": "446556b0ab908541034af3fb5369864e8164531086e25d3256d19f0078fbd5f8",
+      "trial/fit-workflow-test-seed1702.rds": "7e6150de53bad712417804ef9b58d5aa8c4d3c50052e7181345573e59a7a9c84"
+    },
+    "input_and_reference_hashes_match_frozen_values": true,
+    "all_three_files_unchanged_during_verification": true,
+    "new_serialized_file_differs_from_reference": true,
+    "serialization_difference_cause": "Not investigated; loaded-object all.equal at zero tolerance does not require byte equality.",
+    "no_refit_during_verification": true
+  }
+}

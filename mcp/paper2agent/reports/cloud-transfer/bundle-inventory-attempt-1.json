@@ -1,0 +1,33 @@
+{
+  "status": "assembled_pending_extraction_verification",
+  "purpose": "Task 5 Cloud transfer pilot; no workshop adoption or delivery gate completion",
+  "archive_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/dist/occJSDM-cloud-pilot.zip",
+  "archive_sha256": "d3f05b53703336093264acf3768c0dcde97b76ab39b670b60025fc46871839ef",
+  "archive_bytes": 54400969,
+  "files": {
+    "CLOUD-SETUP.md": "88f6f11f45a370ce6e1d03bf2b1989c81d9626aeb7078f52325d3409de797033",
+    "USAGE.md": "566862d68c17197a3477ad8858030f00d90729bafc25085e2f93458c1783f289",
+    "class/assistant-instructions.md": "08a4e50a465167233d45c94f496a64ab9babd3e7557ea39f05cb3c0b83103d21",
+    "class/glossary.md": "8b0cc3063b8ceb319977121c863a74ca50e483fdf567c0fcdd1d60fce34995c0",
+    "class/non-ai-workflow.R": "58061f365d793b182834b0d61e61def9a4c6ae0cabeac2811ea6a04e2829e085",
+    "class/posit-assistant-settings.template.json": "6d0628a842fad7ed5afea5b54366faea49abdb496fd18779cad169f7a443f607",
+    "r-runtime/README.md": "2a0d8bedaaa7e8ff5ea515559678c88af27ac8b261e334528319adf88bc32509",
+    "r-runtime/activate.R": "efbff9abaab1163265e85755a49ab6205b5004b9c5ee19a932797b513165e2c3",
+    "r-runtime/occJSDM-LICENSE": "965c0707dda537eda859f34abba959f07ecdb9d33a389a6c7a8ea1b4b7375223",
+    "r-runtime/renv/activate.R": "51798a35c2772b94b4a73ae7a7cc928975ff6e628a17bad1bc73d30defca82e6",
+    "r-runtime/renv/cellar/occJSDM/occJSDM_0.1.0.tar.gz": "eb9f9004aec5c2b24e404aa7afd795792d9344083a1a441d1262b2ada57bed05",
+    "r-runtime/renv/settings.json": "b10448126e876f35f9932c5ad4efcaf6ea54fb93d4f9608f1b0f9d6abaa862b4",
+    "r-runtime/renv.lock": "9ca6b63b191e675ec283d0e6c2b064c5d405e89b0c6143290262791e190cf651",
+    "r-runtime/restore-runtime.R": "a699a999e3e13e43b3b8a2bd21776e702f8af6a019d7cc07b5e211bb63dc9aff",
+    "r-runtime/source-provenance.json": "7b27f16c6a6057b5bd9286fe7e46a17a5612c89b3f52759e9652f7947926eef1",
+    "src/occJSDM_mcp.py": "48dabef38a3c6383e77cc4cf5460862dccca71d717ff24458783c6a8f6c4e20d",
+    "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7",
+    "src/requirements.txt": "88baf75a05128242f0e1e485330bf272ac296d73ecd16690ae0d060e65432ea3",
+    "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b",
+    "src/tools/quickstart.py": "1b326fa079d421706508c47f2e80be90b711171027c0f8f91714ec3948e3486b",
+    "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04"
+  },
+  "cloud_python_user_report": "3.12.11",
+  "cloud_installation": "not_run",
+  "workflow_complete": false
+}

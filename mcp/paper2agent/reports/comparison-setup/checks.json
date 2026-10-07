@@ -1,0 +1,18 @@
+{
+  "status": "passed_local_and_Cloud_base_preparation",
+  "date": "2026-10-06",
+  "helper_sha256": "1d08d189fc5d43a6c2352577b62c30b77e8323e9e41dee4dd49c66aca7b066f0",
+  "filesystem_tests_passed": 10,
+  "full_project_suite": {
+    "passed": 122,
+    "elapsed_seconds": 508.32,
+    "command": "occJSDM-env/bin/python -m pytest -q",
+    "cwd": "mcp/paper2agent",
+    "scope": "local pinned R runtime, normal filesystem permissions; no provider calls"
+  },
+  "native_check": "local-native-check.json",
+  "independent_review": "review.json",
+  "Cloud_R_4_6_1_validation": "passed_user_reported; see cloud-check.json",
+  "paid_calls": 0,
+  "scientific_package_modified": false
+}

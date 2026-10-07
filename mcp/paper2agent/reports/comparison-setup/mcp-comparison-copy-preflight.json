@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-06",
+  "condition": "B",
+  "project_url": "https://posit.cloud/spaces/828411/content/13082983",
+  "provided_by": "Doug",
+  "project_identity": "Operator-supplied URL; Cloud identity not autodetected",
+  "status": "native_runtime_source_fixture_integrity_passed_user_reported_MCP_availability_self_reported_actual_operation_pending",
+  "base_project_url": "https://posit.cloud/spaces/828411/content/13076906",
+  "expected_model_UI_label": "DeepSeek V4.1 Flash (Medium)",
+  "expected_occJSDM_tools": [
+    "validate_data",
+    "fit_model",
+    "diagnostics",
+    "summarise_fit"
+  ],
+  "MCP_registration_required": true,
+  "expected_R": "R version 4.6.1 (2026-06-24)",
+  "expected_package_version": "0.1.0",
+  "expected_package_path": "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/occJSDM",
+  "expected_source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+  "expected_fixture_sha256": {
+    "trial/data.rds": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+    "trial/fit-short.rds": "446556b0ab908541034af3fb5369864e8164531086e25d3256d19f0078fbd5f8"
+  },
+  "expected_reference_registry_entry": "artifacts/registry/fit_fa9d078129f9450cabc029f0af695958.json",
+  "proposed_readonly_R_console_check": "cat(R.version.string, \"\\n\")\nprint(packageVersion(\"occJSDM\"))\nprint(find.package(\"occJSDM\"))\nprint(read.dcf(file.path(find.package(\"occJSDM\"), \"DESCRIPTION\"), fields = \"RemoteSha\"))\npaths <- c(\"trial/data.rds\", \"trial/fit-short.rds\")\nprint(vapply(paths, function(p) digest::digest(file = p, algo = \"sha256\"), character(1)))\nprint(file.exists(\"artifacts/registry/fit_fa9d078129f9450cabc029f0af695958.json\"))",
+  "R_console_check_purpose": "Operator setup verification outside model trial; no MCMC, no file writes, no supported-analysis MCP bypass by trial model",
+  "copied_registry_integrity": "Existence alone does not prove validity; registry/manifest integrity will need verification before saved-fit MCP analysis.",
+  "fresh_conversation_required_before_rehearsal": true,
+  "shared_instructions_delivery": "Paste full identical approved teaching instructions in first message of each new trial conversation",
+  "paid_calls_made_by_Codex": 0,
+  "scored_trials_started": false,
+  "observed": {
+    "date": "2026-10-06",
+    "source": "Doug pasted full R console output plus Assistant tool-availability screenshot",
+    "R": "R version 4.6.1 (2026-06-24)",
+    "package_version": "0.1.0",
+    "package_path": "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/occJSDM",
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "fixture_sha256": {
+      "trial/data.rds": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+      "trial/fit-short.rds": "446556b0ab908541034af3fb5369864e8164531086e25d3256d19f0078fbd5f8"
+    },
+    "reference_registry_entry_exists": true,
+    "R_runtime_source_package_path_and_fixture_hashes_match": true,
+    "no_new_fit_or_file_write_in_console_check": true,
+    "MCP_availability_evidence": {
+      "screenshot": "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_xc2OFO/Screenshot 2026-10-06 at 22.03.49.png",
+      "user_prompt": "are validate_data, fit_model, diagnostics, and summarise_fit available?",
+      "assistant_reports_all_four_tools_available": true,
+      "reported_tool_names": [
+        "validate_data",
+        "fit_model",
+        "diagnostics",
+        "summarise_fit"
+      ],
+      "visible_calls": [
+        "ls mcp",
+        "ls R",
+        "ls mcp/paper2agent",
+        "grep server source"
+      ],
+      "actual_occJSDM_MCP_operation_in_screenshot": false,
+      "qualification": "Assistant self-report plus filesystem lookup, not expanded MCP inventory or actual analysis-call evidence. First matched workflow must show real supported MCP operations."
+    },
+    "actual_model_UI_label": "Not visible in supplied screenshot; user instructed to select DeepSeek V4.1 Flash (Medium)",
+    "fresh_conversation_and_instruction_delivery_for_first_case": "Requested next; not yet observed",
+    "reference_registry_manifest_integrity": "Existence confirmed only; full integrity check pending before reference-fit MCP analysis",
+    "paid_availability_check": "User sent Assistant tool-availability query; include its cost in B-period dashboard increase; exact charge unavailable"
+  }
+}

@@ -1,0 +1,218 @@
+[10/05/26 18:49:01] INFO     Starting MCP server 'occJSDM' with transport.py:242
+                             transport 'stdio'                                  
+[10/05/26 18:49:29] Error calling tool 'validate_data'                          
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/server/server.py:1492 in call_tool            │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/tools/base.py:440 in _run                     │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/quickstart.py:65 in          │
+                    │ validate_data                                            │
+                    │                                                          │
+                    │    62 │   Input is a project-local RDS and covariate nam │
+                    │       without observation values.                        │
+                    │    63 │   """                                            │
+                    │    64 │   covariates(occCovariates,collCovariates)       │
+                    │ ❱  65 │   path = confined_path(data_path)                │
+                    │    66 │   out = fresh_output('validate_data')            │
+                    │    67 │   native = await                                 │
+                    │       run_r('validate_data',dict(data_path=str(path),occ │
+                    │       s=collCovariates),out)                             │
+                    │    68 │   return response('Data are eligible for the sup │
+                    │       native['eligible'] else 'Resolve the reported issu │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/runtime.py:30 in             │
+                    │ confined_path                                            │
+                    │                                                          │
+                    │    27 │   root = project_root()                          │
+                    │    28 │   path = (raw if raw.is_absolute() else root / r │
+                    │    29 │   if not path.is_relative_to(root):              │
+                    │ ❱  30 │   │   raise ValueError('Path escapes the configu │
+                    │       symlink')                                          │
+                    │    31 │   if exists and not path.is_file():              │
+                    │    32 │   │   raise ValueError('Input must be an existin │
+                    │    33 │   return path                                    │
+                    ╰──────────────────────────────────────────────────────────╯
+                    ValueError: Path escapes the configured project root,       
+                    including through a symlink                                 
+                    Error calling tool 'validate_data'                          
+                    Error calling tool 'summarise_fit'                          
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/server/server.py:1492 in call_tool            │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/tools/base.py:440 in _run                     │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/quickstart.py:136 in         │
+                    │ summarise_fit                                            │
+                    │                                                          │
+                    │   133 │   """Summarise native baseline occupancy draws w │
+                    │   134 │   Input is a completed fit identifier; output is │
+                    │       summaries and full local CSV tables.               │
+                    │   135 │   """                                            │
+                    │ ❱ 136 │   path, manifest = resolve_fit(fit_id)           │
+                    │   137 │   out = fresh_output('summarise_fit')            │
+                    │   138 │   native = await run_r('summarise_fit',dict(fit_ │
+                    │   139 │   result = response('Baseline occupancy summariz │
+                    │       diagnostic qualifications.',native,out)            │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/runtime.py:125 in            │
+                    │ resolve_fit                                              │
+                    │                                                          │
+                    │   122 def resolve_fit(fit_id: str) -> tuple[Path, dict]: │
+                    │   123 │   # IDs are generated by the server; never accep │
+                    │   124 │   if len(fit_id) != 36 or not fit_id.startswith( │
+                    │       '0123456789abcdef' for c in fit_id[4:]):           │
+                    │ ❱ 125 │   │   raise ValueError('Unknown fit_id; use an i │
+                    │   126 │   index = confined_path('artifacts/registry/'+fi │
+                    │   127 │   record = json.loads(index.read_text())         │
+                    │   128 │   manifest_path = confined_path(record['manifest │
+                    ╰──────────────────────────────────────────────────────────╯
+                    ValueError: Unknown fit_id; use an identifier returned by   
+                    fit_model                                                   
+                    Error calling tool 'summarise_fit'                          
+[10/05/26 18:49:29] WARNING  Invalid arguments for tool           server.py:1505
+                             'diagnostics': [{'type':                           
+                             'less_than_equal', 'loc':                          
+                             ('max_rows',), 'msg': 'Input should                
+                             be less than or equal to 20',                      
+                             'input': 21, 'ctx': {'le': 20}}]                   
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'diagnostics': [{'type':                           
+                             'less_than_equal', 'loc':                          
+                             ('max_rows',), 'msg': 'Input should                
+                             be less than or equal to 20',                      
+                             'input': 21, 'ctx': {'le': 20}}]                   
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'summarise_fit': [{'type':                         
+                             'less_than_equal', 'loc':                          
+                             ('max_rows',), 'msg': 'Input should                
+                             be less than or equal to 20',                      
+                             'input': 21, 'ctx': {'le': 20}}]                   
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'summarise_fit': [{'type':                         
+                             'less_than_equal', 'loc':                          
+                             ('max_rows',), 'msg': 'Input should                
+                             be less than or equal to 20',                      
+                             'input': 21, 'ctx': {'le': 20}}]                   
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type':                             
+                             'extra_forbidden', 'loc':                          
+                             ('options', 'spatCovariates'),                     
+                             'msg': 'Extra inputs are not                       
+                             permitted', 'input': ['x', 'y']}]                  
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type':                             
+                             'extra_forbidden', 'loc':                          
+                             ('options', 'spatCovariates'),                     
+                             'msg': 'Extra inputs are not                       
+                             permitted', 'input': ['x', 'y']}]                  
+[10/05/26 18:49:32] Error calling tool 'fit_model'                              
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/server/server.py:1492 in call_tool            │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/tools/base.py:440 in _run                     │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/quickstart.py:88 in          │
+                    │ fit_model                                                │
+                    │                                                          │
+                    │    85 │   shutil.copyfile(path,snapshot)                 │
+                    │    86 │   input_hash = digest(snapshot)                  │
+                    │    87 │   requested = options.model_dump()               │
+                    │ ❱  88 │   native = await                                 │
+                    │       run_r('fit_model',dict(data_path=str(snapshot),opt │
+                    │    89 │   pending = out/'fit.rds.pending'                │
+                    │    90 │   if not pending.is_file() or not native.get('re │
+                    │    91 │   │   raise RuntimeError('Native fit did not pas │
+                    │       published')                                        │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/runtime.py:118 in run_r      │
+                    │                                                          │
+                    │   115 │   │   raise RuntimeError(f'Native R startup or o │
+                    │       {process.returncode}); inspect local logs in {out} │
+                    │   116 │   result = json.loads(result_path.read_text(),pa │
+                    │       ()).throw(ValueError('Nonfinite JSON from R')))    │
+                    │   117 │   if process.returncode != 0 or result.get('stat │
+                    │ ❱ 118 │   │   raise RuntimeError('Native R error: ' + re │
+                    │       execution') + f'. Local logs: {out}')              │
+                    │   119 │   return result                                  │
+                    │   120                                                    │
+                    │   121                                                    │
+                    ╰──────────────────────────────────────────────────────────╯
+                    RuntimeError: Native R error: incorrect number of           
+                    dimensions. Local logs:                                     
+                    /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mc
+                    p/paper2agent/artifacts/calls/fit_model-f128d899784e47878c9a
+                    edee90b93340                                                
+                    Error calling tool 'fit_model'                              
+[10/05/26 18:49:34] Error calling tool 'fit_model'                              
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/server/server.py:1492 in call_tool            │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/tools/base.py:440 in _run                     │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/quickstart.py:88 in          │
+                    │ fit_model                                                │
+                    │                                                          │
+                    │    85 │   shutil.copyfile(path,snapshot)                 │
+                    │    86 │   input_hash = digest(snapshot)                  │
+                    │    87 │   requested = options.model_dump()               │
+                    │ ❱  88 │   native = await                                 │
+                    │       run_r('fit_model',dict(data_path=str(snapshot),opt │
+                    │    89 │   pending = out/'fit.rds.pending'                │
+                    │    90 │   if not pending.is_file() or not native.get('re │
+                    │    91 │   │   raise RuntimeError('Native fit did not pas │
+                    │       published')                                        │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/runtime.py:118 in run_r      │
+                    │                                                          │
+                    │   115 │   │   raise RuntimeError(f'Native R startup or o │
+                    │       {process.returncode}); inspect local logs in {out} │
+                    │   116 │   result = json.loads(result_path.read_text(),pa │
+                    │       ()).throw(ValueError('Nonfinite JSON from R')))    │
+                    │   117 │   if process.returncode != 0 or result.get('stat │
+                    │ ❱ 118 │   │   raise RuntimeError('Native R error: ' + re │
+                    │       execution') + f'. Local logs: {out}')              │
+                    │   119 │   return result                                  │
+                    │   120                                                    │
+                    │   121                                                    │
+                    ╰──────────────────────────────────────────────────────────╯
+                    RuntimeError: Native R error: Supplied row identifiers in   
+                    info and OTU do not match in order; pair the observations   
+                    before saving RDS. Local logs:                              
+                    /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mc
+                    p/paper2agent/artifacts/calls/fit_model-9ce1087d3c934b9a92cb
+                    9fac47c62454                                                
+                    Error calling tool 'fit_model'                              
+{"success": true, "mode": "calls", "cases_checked": 19, "report": "reports/mcp-project-environment.json"}

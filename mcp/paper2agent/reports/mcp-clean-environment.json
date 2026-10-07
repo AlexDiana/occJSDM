@@ -1,0 +1,330 @@
+{
+  "success": true,
+  "mode": "calls",
+  "require_all_tools": true,
+  "server": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/occJSDM_mcp.py",
+  "cwd": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent",
+  "python": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/clean-python-runtime/bin/python",
+  "python_version": "3.14.6",
+  "fastmcp": "4.0.3",
+  "expected": [
+    "diagnostics",
+    "fit_model",
+    "summarise_fit",
+    "validate_data"
+  ],
+  "actual": [
+    "diagnostics",
+    "fit_model",
+    "summarise_fit",
+    "validate_data"
+  ],
+  "missing": [],
+  "unexpected": [],
+  "schemas": {
+    "validate_data": {
+      "input": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data_path": {
+            "description": "Project-local RDS containing native list(info, OTU, traits); no automatic repairs",
+            "type": "string"
+          },
+          "occCovariates": {
+            "description": "Occupancy covariate column names in info, or an explicit empty list",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "collCovariates": {
+            "description": "Collection covariate column names in info, or an explicit empty list",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data_path",
+          "occCovariates",
+          "collCovariates"
+        ]
+      },
+      "output": {
+        "additionalProperties": true,
+        "type": "object"
+      }
+    },
+    "fit_model": {
+      "input": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data_path": {
+            "description": "Project-local RDS containing native occJSDM-ready data",
+            "type": "string"
+          },
+          "options": {
+            "additionalProperties": false,
+            "properties": {
+              "occCovariates": {
+                "description": "Selected occupancy columns in info, or an explicit empty list",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "collCovariates": {
+                "description": "Selected collection columns in info, or an explicit empty list",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "threshold": {
+                "description": "Integer read threshold for replicated observations",
+                "minimum": 1,
+                "type": "integer"
+              },
+              "listParams": {
+                "additionalProperties": false,
+                "properties": {
+                  "n_factors": {
+                    "description": "Number of native latent factors",
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "n_factors"
+                ],
+                "type": "object",
+                "description": "Native latent-factor settings"
+              },
+              "MCMCparams": {
+                "additionalProperties": false,
+                "properties": {
+                  "nchain": {
+                    "description": "Number of chains, at least two for diagnostics",
+                    "minimum": 2,
+                    "type": "integer"
+                  },
+                  "nburn": {
+                    "description": "Discarded burn-in iterations per chain",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "niter": {
+                    "description": "Retained draws per chain; native very-short-fit errors are preserved",
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "nthin": {
+                    "description": "Iterations between retained draws",
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "nchain",
+                  "nburn",
+                  "niter",
+                  "nthin"
+                ],
+                "type": "object",
+                "description": "Explicit native chain settings"
+              }
+            },
+            "required": [
+              "occCovariates",
+              "collCovariates",
+              "threshold",
+              "listParams",
+              "MCMCparams"
+            ],
+            "type": "object",
+            "description": "Explicit covariates, threshold, latent factors and MCMC settings; unknown and spatial options rejected"
+          },
+          "seed": {
+            "description": "Seed passed to native R set.seed before fitting",
+            "maximum": 2147483647,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data_path",
+          "options",
+          "seed"
+        ]
+      },
+      "output": {
+        "additionalProperties": true,
+        "type": "object"
+      }
+    },
+    "diagnostics": {
+      "input": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fit_id": {
+            "description": "Server-owned identifier returned by fit_model",
+            "type": "string"
+          },
+          "max_rows": {
+            "default": 20,
+            "description": "Maximum diagnostic preview rows, capped at 20",
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "fit_id"
+        ]
+      },
+      "output": {
+        "additionalProperties": true,
+        "type": "object"
+      }
+    },
+    "summarise_fit": {
+      "input": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fit_id": {
+            "description": "Server-owned identifier returned by fit_model",
+            "type": "string"
+          },
+          "max_rows": {
+            "default": 20,
+            "description": "Maximum baseline occupancy preview rows, capped at 20",
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "fit_id"
+        ]
+      },
+      "output": {
+        "additionalProperties": true,
+        "type": "object"
+      }
+    }
+  },
+  "cases": [
+    {
+      "name": "validate-binary-single-first",
+      "tool": "validate_data",
+      "success": true,
+      "artifacts_checked": 2
+    },
+    {
+      "name": "validate-binary-single-repeat",
+      "tool": "validate_data",
+      "success": true,
+      "artifacts_checked": 2
+    },
+    {
+      "name": "fit-binary_single",
+      "tool": "fit_model",
+      "success": true,
+      "artifacts_checked": 4
+    },
+    {
+      "name": "fit-occupancy_changed",
+      "tool": "fit_model",
+      "success": true,
+      "artifacts_checked": 4
+    },
+    {
+      "name": "fit-two_stage_changed",
+      "tool": "fit_model",
+      "success": true,
+      "artifacts_checked": 4
+    },
+    {
+      "name": "fit-binary_single-repeat",
+      "tool": "fit_model",
+      "success": true,
+      "artifacts_checked": 4
+    },
+    {
+      "name": "diagnostics-single-first",
+      "tool": "diagnostics",
+      "success": true,
+      "artifacts_checked": 3
+    },
+    {
+      "name": "summary-single-first",
+      "tool": "summarise_fit",
+      "success": true,
+      "artifacts_checked": 4
+    },
+    {
+      "name": "diagnostics-single-repeat",
+      "tool": "diagnostics",
+      "success": true,
+      "artifacts_checked": 3
+    },
+    {
+      "name": "summary-single-repeat",
+      "tool": "summarise_fit",
+      "success": true,
+      "artifacts_checked": 4
+    },
+    {
+      "name": "diagnostics-constant-chain",
+      "tool": "diagnostics",
+      "success": true,
+      "artifacts_checked": 3
+    },
+    {
+      "name": "path-escape",
+      "tool": "validate_data",
+      "success": true
+    },
+    {
+      "name": "unknown-fit",
+      "tool": "summarise_fit",
+      "success": true
+    },
+    {
+      "name": "diagnostics-max21",
+      "tool": "diagnostics",
+      "success": true
+    },
+    {
+      "name": "summary-max21",
+      "tool": "summarise_fit",
+      "success": true
+    },
+    {
+      "name": "unsupported-spatial",
+      "tool": "fit_model",
+      "success": true
+    },
+    {
+      "name": "native-single-two-stage-dimension-error",
+      "tool": "fit_model",
+      "success": true
+    },
+    {
+      "name": "composed-row-identity-failure",
+      "tool": "fit_model",
+      "success": true
+    },
+    {
+      "name": "traits-alias-report",
+      "tool": "validate_data",
+      "success": true,
+      "artifacts_checked": 2
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "production_hashes_unchanged": true,
+  "archive_entries": 21,
+  "excluded_MCP_development_directories": true,
+  "embedded_absolute_developer_paths": false,
+  "upstream_tarball_contains_its_original_package_tests": true,
+  "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+}

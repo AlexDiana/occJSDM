@@ -1,0 +1,28 @@
+{
+  "fits": {
+    "fit-binary_single": {
+      "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "oracle_fit": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/binary_single_oracle_fit.rds"
+    },
+    "fit-occupancy_changed": {
+      "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/occupancy_changed_data.rds",
+      "oracle_fit": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/occupancy_changed_oracle_fit.rds"
+    },
+    "fit-two_stage_changed": {
+      "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/two_stage_changed_data.rds",
+      "oracle_fit": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/two_stage_changed_oracle_fit.rds"
+    },
+    "fit-binary_single-repeat": {
+      "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "oracle_fit": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/binary_single_oracle_fit.rds"
+    }
+  },
+  "known_fit_ids": {
+    "binary_single": "fit_5c45762be4664a4191f49f481277f8b3",
+    "occupancy_changed": "fit_708c3e1a1a55437eb55917d05eebd010",
+    "two_stage_changed": "fit_9221f9d87a504da2b218cf13838c2baf"
+  },
+  "constant_fit_id": "fit_3dca9f1a9f79403d87c898765945509b",
+  "static_dependency": "Downstream cases explicitly consume independently tested registry IDs in this same project root; they do not depend on pytest or runtime case ordering.",
+  "scientific_comparator": "tests/code/quickstart/audit_acceptance_artifacts.R PROJECT_ROOT CUTOFF_UNIX_SECONDS R_PROJECT"
+}

@@ -62,3 +62,6 @@ Rplots.pdf
 
 # Finder metadata is not part of development documentation.
 .DS_Store
+
+# Optional MCP outputs when P2A_PROJECT_ROOT is the repository root.
+/artifacts/

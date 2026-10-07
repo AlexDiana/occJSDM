@@ -1,0 +1,482 @@
+[
+  {
+    "package": "stringi",
+    "version": "1.8.7",
+    "path": "renv/cellar/stringi/stringi_1.8.7.tgz",
+    "sha256": "1bfe0fe0835b966d3a0417ac382eb48f786b5b43baff44e9a86fc676cc574887",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/stringi",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "generics",
+    "version": "0.1.4",
+    "path": "renv/cellar/generics/generics_0.1.4.tgz",
+    "sha256": "9a37108bf25b5a2f1922b50c92c4acb349350f1e39a5e16e6c46ee15ff8d1c91",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/generics",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "stringr",
+    "version": "1.6.0",
+    "path": "renv/cellar/stringr/stringr_1.6.0.tgz",
+    "sha256": "c4a92ea960b9c0b7623f44b204f6564d8a7b1d161a3a4b48ab86b7d20ca220eb",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/stringr",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "MASS",
+    "version": "7.3-66",
+    "path": "renv/cellar/MASS/MASS_7.3-66.tgz",
+    "sha256": "282fecb436dfb42bac6c55f647ac6bc313815ec94a49fc19866d32ad25cbc5d2",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/MASS",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "glue",
+    "version": "1.8.1",
+    "path": "renv/cellar/glue/glue_1.8.1.tgz",
+    "sha256": "c32cfcaa05d894d087d4f3eeece55fd0ffad4f4989272720d90dc2f9638d3a8d",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/glue",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "pkgconfig",
+    "version": "2.0.3",
+    "path": "renv/cellar/pkgconfig/pkgconfig_2.0.3.tgz",
+    "sha256": "2299532c74d2c7890d3249b9411aaa67a70c2e887e99ca7d5c8a8fc049e78d5c",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/pkgconfig",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "jsonlite",
+    "version": "2.0.0",
+    "path": "renv/cellar/jsonlite/jsonlite_2.0.0.tgz",
+    "sha256": "6ba5cc35b595325008264a1759c38a036db49e8e11b0d1034d98b07925253031",
+    "origin": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/jsonlite",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "DEoptimR",
+    "version": "1.2-0",
+    "path": "renv/cellar/DEoptimR/DEoptimR_1.2-0.tgz",
+    "sha256": "6b42488c24d26990e12bc5d37438ece30a68c936a83c05fd1772d8c6abe49273",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/DEoptimR",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "cpp11",
+    "version": "0.5.5",
+    "path": "renv/cellar/cpp11/cpp11_0.5.5.tgz",
+    "sha256": "97d794d2d59aacb0644acca969500fdbb56634995744fbac9ed6eb8637d1566d",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/cpp11",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "gtable",
+    "version": "0.3.6",
+    "path": "renv/cellar/gtable/gtable_0.3.6.tgz",
+    "sha256": "55a6869801f5e67aa8f53c4cc8056d6bfa8ff0de3a4786c96b4b056890a0b827",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/gtable",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "proto",
+    "version": "1.0.0",
+    "path": "renv/cellar/proto/proto_1.0.0.tgz",
+    "sha256": "b9138d6f2d17aaaaf9659efd2118d3b9b68fbef2b6a137685bd364c3e7da004b",
+    "origin": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/proto",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "robustbase",
+    "version": "0.99-7",
+    "path": "renv/cellar/robustbase/robustbase_0.99-7.tgz",
+    "sha256": "0cade9cfdd2907a64111bd5ce573b4bab39655594b6177503b6ae3a4a0962923",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/robustbase",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "utf8",
+    "version": "1.2.6",
+    "path": "renv/cellar/utf8/utf8_1.2.6.tgz",
+    "sha256": "f2736ce06e3c5b3e87bcdf5c7d2504619d8aa18b717b87e2b793c24c08c8fb8c",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/utf8",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "ggcorrplot",
+    "version": "0.2.0",
+    "path": "renv/cellar/ggcorrplot/ggcorrplot_0.2.0.tgz",
+    "sha256": "214a2f1ab74c8a4a244d292ff9ce54902534e7136b95f8d23e0d18235929fd61",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/ggcorrplot",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "rlang",
+    "version": "1.3.0",
+    "path": "renv/cellar/rlang/rlang_1.3.0.tgz",
+    "sha256": "6bfbdd04c2166e6d098d3dcc3c490ba4184169dfd15235c8bfb265f36d707ff3",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/rlang",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "vctrs",
+    "version": "0.7.3",
+    "path": "renv/cellar/vctrs/vctrs_0.7.3.tgz",
+    "sha256": "4f69aacefe797354d973094987439c0ec7cf678b73f3c01a0f24e2e5473b4f46",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/vctrs",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "RcppParallel",
+    "version": "5.1.11-2",
+    "path": "renv/cellar/RcppParallel/RcppParallel_5.1.11-2.tgz",
+    "sha256": "247bcf508b8039f8408855690b1a28a0e413911c5ed997ad74de3524eb157e3e",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/RcppParallel",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "tweenr",
+    "version": "2.0.3",
+    "path": "renv/cellar/tweenr/tweenr_2.0.3.tgz",
+    "sha256": "0ffab94b8f452c01122dd6354ec5d3f1acbb6c140ef583ad0c081f3d9d88c892",
+    "origin": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/tweenr",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "compositions",
+    "version": "2.0-9",
+    "path": "renv/cellar/compositions/compositions_2.0-9.tgz",
+    "sha256": "3d5877164cb30e0e6d7e6ec2f0d38ba5f4ac31e1c5a6892ea3287a66b751bd26",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/compositions",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "latex2exp",
+    "version": "0.9.8",
+    "path": "renv/cellar/latex2exp/latex2exp_0.9.8.tgz",
+    "sha256": "56deb10d3220ee1a831788b1df3f61abb8b18baf249c9410804086e5e4a049d3",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/latex2exp",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "ggplot2",
+    "version": "4.0.3",
+    "path": "renv/cellar/ggplot2/ggplot2_4.0.3.tgz",
+    "sha256": "a91d8673ff6cd71ef31196c8f4109376718c6b1c3e1f8a3942a9571df6ba4c4e",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/ggplot2",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "digest",
+    "version": "0.6.39",
+    "path": "renv/cellar/digest/digest_0.6.39.tgz",
+    "sha256": "5498311f2779e1bb6989e5ec702e00c1997c47bd1ab430ba71da87cba7fed4de",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/digest",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "tidyr",
+    "version": "1.3.2",
+    "path": "renv/cellar/tidyr/tidyr_1.3.2.tgz",
+    "sha256": "6df9866e377b8ef083e299757d0c366a711b62f75e68f91b8c6cd90b65468d4f",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/tidyr",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "labeling",
+    "version": "0.4.3",
+    "path": "renv/cellar/labeling/labeling_0.4.3.tgz",
+    "sha256": "91ae975cc80d3a3ef72d83395536db2c8b204c258360033c6399719bd9b276c6",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/labeling",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "tibble",
+    "version": "3.3.1",
+    "path": "renv/cellar/tibble/tibble_3.3.1.tgz",
+    "sha256": "6f79f986067f6f792390919dd56dde709b4c3f27081179983e06bef65145a3f0",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/tibble",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "farver",
+    "version": "2.1.2",
+    "path": "renv/cellar/farver/farver_2.1.2.tgz",
+    "sha256": "b8ec54695a980c2383ce76be49c792802f76819cab32c3ea5e0fa97cc4f5fd3b",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/farver",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "reshape2",
+    "version": "1.4.5",
+    "path": "renv/cellar/reshape2/reshape2_1.4.5.tgz",
+    "sha256": "003d52d08735c4fe994e92bd596949e50ffdfb048bc654d40fdebae023c2aea4",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/reshape2",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "magrittr",
+    "version": "2.0.5",
+    "path": "renv/cellar/magrittr/magrittr_2.0.5.tgz",
+    "sha256": "bb74e915156503e2cfd826985331359a19fb70db3fe6e4abb59d856162a2a1ce",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/magrittr",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "lifecycle",
+    "version": "1.0.5",
+    "path": "renv/cellar/lifecycle/lifecycle_1.0.5.tgz",
+    "sha256": "48b8b3dcbccf0ee2dfe7809052ea90101d4913b0aa039577489bbb8536a2908c",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/lifecycle",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "tidyselect",
+    "version": "1.2.1",
+    "path": "renv/cellar/tidyselect/tidyselect_1.2.1.tgz",
+    "sha256": "8799791b628f57025fa33d5cb46d95490d84895d01a9737be7e2d79574a7b3fc",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/tidyselect",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "mvtnorm",
+    "version": "1.4-2",
+    "path": "renv/cellar/mvtnorm/mvtnorm_1.4-2.tgz",
+    "sha256": "245f2add736c14e9dfb4c03bd3b2f7b310ea4a8fc399a03a6a583db7190ff796",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/mvtnorm",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "tensorA",
+    "version": "0.36.2.1",
+    "path": "renv/cellar/tensorA/tensorA_0.36.2.1.tgz",
+    "sha256": "dc637509bc99750d5a90941aa8424820f61ee33c56640c3463811cb18a738b8f",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/tensorA",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "cli",
+    "version": "3.6.6",
+    "path": "renv/cellar/cli/cli_3.6.6.tgz",
+    "sha256": "f0ad24553d54606bbdc2fd3c1684125fb5372c24c488f08dd58e02fa8dc29a7c",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/cli",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "R6",
+    "version": "2.6.1",
+    "path": "renv/cellar/R6/R6_2.6.1.tgz",
+    "sha256": "bbb5307ae96736b8b52f8028b1a3046fa369c12677182bbc9905883759622f05",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/R6",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "pillar",
+    "version": "1.11.1",
+    "path": "renv/cellar/pillar/pillar_1.11.1.tgz",
+    "sha256": "1b57b066c7454260a89e02dc1af43490da2488c44fea940308223937bfbde2e0",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/pillar",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "plyr",
+    "version": "1.8.9",
+    "path": "renv/cellar/plyr/plyr_1.8.9.tgz",
+    "sha256": "eb71ebb0e070f2ee6d3f93acb1d4552477f9e48fde1284e82032e74551e4cece",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/plyr",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "scales",
+    "version": "1.4.0",
+    "path": "renv/cellar/scales/scales_1.4.0.tgz",
+    "sha256": "7589b1a8288650a0217af66db1a1a83a2fd8f346ef1d677821f428c2b1593b47",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/scales",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "RcppArmadillo",
+    "version": "15.4.0-1",
+    "path": "renv/cellar/RcppArmadillo/RcppArmadillo_15.4.0-1.tgz",
+    "sha256": "712b83053ca23ac754eb20201ec33796878c5fb71c8f1de4872dc8b05cc26a66",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/RcppArmadillo",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "lattice",
+    "version": "0.22-9",
+    "path": "renv/cellar/lattice/lattice_0.22-9.tgz",
+    "sha256": "7dee2df0672e57a3a9c5c26939a1d137702c9cbd61fbd13807511e46e8dd6265",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/lattice",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "S7",
+    "version": "0.2.2",
+    "path": "renv/cellar/S7/S7_0.2.2.tgz",
+    "sha256": "7d5492b8db5d3f1267315fcfac7768a47c2bf1e886806fdebbdb3187f8997d64",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/S7",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "bayesm",
+    "version": "3.1-7",
+    "path": "renv/cellar/bayesm/bayesm_3.1-7.tgz",
+    "sha256": "5c8866f47c19413ca7e830bb08b936fb19a2b85f407c6f4b1d35355a92c5a2ac",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/bayesm",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "polyclip",
+    "version": "1.10-7",
+    "path": "renv/cellar/polyclip/polyclip_1.10-7.tgz",
+    "sha256": "30e620e97a811dd64c7ff349198d0f41efbdb3f2193d2ef74f87cc658944898f",
+    "origin": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/polyclip",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "FastGP",
+    "version": "1.3",
+    "path": "renv/cellar/FastGP/FastGP_1.3.tgz",
+    "sha256": "6f6b2868cfda560b58f1fd6b8686d238493c2fb074869546aae918b76b3e1438",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/FastGP",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "RColorBrewer",
+    "version": "1.1-3",
+    "path": "renv/cellar/RColorBrewer/RColorBrewer_1.1-3.tgz",
+    "sha256": "9fcacaad441e92a917b5d95bb75179f9c7d4645c49d498ea53b5034cc9cab155",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/RColorBrewer",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "ggrepel",
+    "version": "0.9.8",
+    "path": "renv/cellar/ggrepel/ggrepel_0.9.8.tgz",
+    "sha256": "72a0562e2c791befa5cf5dd67d6bedda1558e24f9dacd04da18ff05987a818b3",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/ggrepel",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "purrr",
+    "version": "1.2.2",
+    "path": "renv/cellar/purrr/purrr_1.2.2.tgz",
+    "sha256": "f04ecfa88be312500dac1a07f19d05761da528e8b38d55dca7de83a62658dd48",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/purrr",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "base64enc",
+    "version": "0.1-6",
+    "path": "renv/cellar/base64enc/base64enc_0.1-6.tgz",
+    "sha256": "e4292b7a6fc403356a532d8e4ae962cb9595ba7986c057d9482444003bf95141",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/base64enc",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "withr",
+    "version": "3.0.3",
+    "path": "renv/cellar/withr/withr_3.0.3.tgz",
+    "sha256": "d3ba9ce62cf6b5a06db7cf8fa6db2395b9849129f0115f40290453fd10232d54",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/withr",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "RcppEigen",
+    "version": "0.3.4.0.2",
+    "path": "renv/cellar/RcppEigen/RcppEigen_0.3.4.0.2.tgz",
+    "sha256": "3fecdc690dfffbb61d00937015dd99018739501224ea7375b3770ea72638a993",
+    "origin": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/RcppEigen",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "dplyr",
+    "version": "1.2.1",
+    "path": "renv/cellar/dplyr/dplyr_1.2.1.tgz",
+    "sha256": "003be4680849cfb9713f6aac8cbe4bf1897f55d5cca9820bed764795dd4081ed",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/dplyr",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "hexbin",
+    "version": "1.28.5",
+    "path": "renv/cellar/hexbin/hexbin_1.28.5.tgz",
+    "sha256": "b1355d09fd766f322906d6283d17bd6e08562ada0cedabf94c85e54358505c7a",
+    "origin": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/hexbin",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "isoband",
+    "version": "0.3.0",
+    "path": "renv/cellar/isoband/isoband_0.3.0.tgz",
+    "sha256": "7207f834d7ea4d8aff3dec87a788e09616638e02a0e4be0cc51a402f4ab3bd13",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/isoband",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "systemfonts",
+    "version": "1.3.2",
+    "path": "renv/cellar/systemfonts/systemfonts_1.3.2.tgz",
+    "sha256": "b4b1f948b3bb2847a0138e213e4efa5a9402c8528e7423d562b571a9d4dc2f2f",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/systemfonts",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "ggtern",
+    "version": "4.0.0",
+    "path": "renv/cellar/ggtern/ggtern_4.0.0.tgz",
+    "sha256": "40400c6e7758a268b811f6d9d359705602f9f77a623e6d5c430478a1a65410b0",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/ggtern",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "renv",
+    "version": "1.2.3",
+    "path": "renv/cellar/renv/renv_1.2.3.tgz",
+    "sha256": "713eec85bfed69c734f24b3769d52e1205c43f25ed3991dc5f032dc2b2c4f920",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/renv",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "ggforce",
+    "version": "0.5.0",
+    "path": "renv/cellar/ggforce/ggforce_0.5.0.tgz",
+    "sha256": "ec0fe93d001c0c0be8637caa441d2d686a20ffb8f27c254abdec8b8741217295",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/ggforce",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "viridisLite",
+    "version": "0.4.3",
+    "path": "renv/cellar/viridisLite/viridisLite_0.4.3.tgz",
+    "sha256": "a783d04fddd45fedf985aede5abe9ae380266296e706999784c1135ec3748ce5",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/viridisLite",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "coda",
+    "version": "0.19-4.1",
+    "path": "renv/cellar/coda/coda_0.19-4.1.tgz",
+    "sha256": "92bd3db1f05d9bca72b76157a95ab8c2d6acdc16be24e04e7b3c6f363d229c98",
+    "origin": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/coda",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "gridExtra",
+    "version": "2.3.1",
+    "path": "renv/cellar/gridExtra/gridExtra_2.3.1.tgz",
+    "sha256": "ad234dc542599e61991d3062173b102303c7779ddeb9416b9ec52b6f4086e870",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/gridExtra",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  },
+  {
+    "package": "Rcpp",
+    "version": "1.1.2",
+    "path": "renv/cellar/Rcpp/Rcpp_1.1.2.tgz",
+    "sha256": "bbce263859b7f0fa5d7ee40a6090515d83d879077f77e587e13a5acb24e02311",
+    "origin": "/Users/douglasyu/Library/R/arm64/4.5/library/Rcpp",
+    "format": "macOS arm64 R 4.5 binary installed-package archive; not source distribution"
+  }
+]

@@ -1,0 +1,101 @@
+{
+  "status": "ok",
+  "screening": {
+    "total_rows": 2,
+    "rhat_flagged": 2,
+    "ess_flagged": 2,
+    "flagged_rows": 2,
+    "unavailable_rhat": 0,
+    "unavailable_ess": 0,
+    "unavailable_rows": 0,
+    "thresholds": {
+      "rhat": 1.01,
+      "ess": 400
+    },
+    "blocks": [
+      "beta0_psi",
+      "beta_psi"
+    ],
+    "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+    "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+  },
+  "rows": [
+    {
+      "param": "beta0_psi",
+      "idx1": 1,
+      "idx2": 1,
+      "label1": "verifier_species_1",
+      "label2": "1",
+      "mean": 0.9507457785510375,
+      "sd": 0.42889591471635885,
+      "q2.5": 0.21154657411337388,
+      "q97.5": 1.8093847135057821,
+      "rhat": 1.0420201460968572,
+      "ess": 67.14864549748029
+    },
+    {
+      "param": "beta_psi",
+      "idx1": 1,
+      "idx2": 1,
+      "label1": "habitat_changed",
+      "label2": "verifier_species_1",
+      "mean": 2.3795990181802136,
+      "sd": 0.5950781403925576,
+      "q2.5": 1.507091586640086,
+      "q97.5": 3.259888129786412,
+      "rhat": 1.0410099509656099,
+      "ess": 9.551490040368229
+    }
+  ],
+  "total_rows": 2,
+  "warnings": [],
+  "warning_count": 0,
+  "schema_version": 1,
+  "message": "Screening covers selected coefficient blocks; unavailable diagnostics are inconclusive.",
+  "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+  "artifacts": [
+    {
+      "kind": "log",
+      "description": "Captured native R console output",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-25aaa5e0240b42d5a043e6051020c81b/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "log",
+      "description": "Captured native R startup diagnostics",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-25aaa5e0240b42d5a043e6051020c81b/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "diagnostics",
+      "description": "Complete native convergence diagnostic table",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-25aaa5e0240b42d5a043e6051020c81b/diagnostics.csv",
+      "sha256": "583cc576d8a4b4a5036e521ae0596cbf701cdb9fe2c544748831027c7e64968f"
+    }
+  ],
+  "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+  "model": "binary",
+  "settings": {
+    "occCovariates": [
+      "habitat_changed"
+    ],
+    "collCovariates": [],
+    "threshold": 1,
+    "listParams": {
+      "n_factors": 0
+    },
+    "MCMCparams": {
+      "nchain": 2,
+      "nburn": 20,
+      "niter": 20,
+      "nthin": 2
+    },
+    "spatCovariates": [],
+    "summarisedLatentPresences": true,
+    "listPriors": {}
+  },
+  "fit_qualifications": [
+    "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+    "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+  ]
+}

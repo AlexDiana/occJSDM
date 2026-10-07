@@ -1,0 +1,6 @@
+args <- commandArgs(trailingOnly = TRUE)
+root <- normalizePath(args[[1]],mustWork=TRUE)
+Sys.setenv(P2A_R_PROJECT=file.path(root,"r-runtime"))
+source(file.path(root,"r-runtime","activate.R"))
+renv::snapshot(project=file.path(root,"r-runtime"),type="all",prompt=FALSE)
+cat("snapshot saved\n")

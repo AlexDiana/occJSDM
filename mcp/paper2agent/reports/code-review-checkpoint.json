@@ -1,0 +1,25 @@
+{
+  "status": "reviewed_for_local_checkpoint",
+  "reviewer": "/root/mcp_checkpoint_review",
+  "recorded_at": "2026-10-05T17:55:44.068133Z",
+  "read_only": true,
+  "critical": [],
+  "important": [],
+  "minor": [
+    {
+      "finding": "Missing workspace trust step in USAGE.md",
+      "resolution": "Added trust and session-panel instructions after checking current official Posit MCP documentation."
+    },
+    {
+      "finding": "Manifest could explicitly name immutable input snapshot path",
+      "resolution": "Documented input.rds alongside fit.rds; explicit manifest field deferred as a nonblocking provenance convenience. No production mutation after verification."
+    }
+  ],
+  "declined_to_judge": [
+    "Cloud/Linux installation and Assistant behaviour",
+    "Python versions other than 3.14.6",
+    "Model-cost and teaching advantage, workshop adoption",
+    "Upstream calibration or single-species two-stage repair",
+    "Main integration or classroom release"
+  ]
+}

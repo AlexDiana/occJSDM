@@ -1,0 +1,71 @@
+{
+  "status": "ok",
+  "model": "binary",
+  "readback_valid": true,
+  "effective_n_factors": 2,
+  "kept_draws_per_chain": 20,
+  "total_iterations_per_chain": 40,
+  "dimensions": [
+    40,
+    4
+  ],
+  "design": {
+    "occupancy_columns": [
+      "X_psi.EnvCov.1",
+      "X_psi.EnvCov.2"
+    ],
+    "collection_columns": [],
+    "trait_columns": [
+      "Trait_1",
+      "Trait_2"
+    ],
+    "n_sites": 40,
+    "n_samples": null,
+    "n_primers": null,
+    "missing_observations": 0,
+    "species_count": 4,
+    "observations": 40
+  },
+  "runtime": {
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "R": "R version 4.5.0 (2025-04-11)",
+    "occJSDM_version": "0.1.0",
+    "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+    "renv_version": "1.2.3",
+    "libPaths": [
+      "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
+      "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+    ],
+    "thread_env": {
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "MKL_NUM_THREADS": "",
+      "RCPP_PARALLEL_NUM_THREADS": ""
+    },
+    "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+  },
+  "qualifications": [
+    "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+    "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+  ],
+  "warnings": [
+    "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+    "Low ESS in 'B0'. Min ESS < 50",
+    "Convergence issue in 'B_output'. Max R-hat > 1.1",
+    "Low ESS in 'B'. Min ESS < 50",
+    "Convergence issue in 'G_output'. Max R-hat > 1.1",
+    "Low ESS in 'G'. Min ESS < 50",
+    "Convergence issue in 'A_output'. Max R-hat > 1.1",
+    "Low ESS in 'A'. Min ESS < 50",
+    "Convergence issue in 'C_output'. Max R-hat > 1.1",
+    "Low ESS in 'C'. Min ESS < 50",
+    "Convergence issue in 'U_output'. Max R-hat > 1.1",
+    "Low ESS in 'U'. Min ESS < 50",
+    "Convergence issue in 'L_output'. Max R-hat > 1.1",
+    "Low ESS in 'L'. Min ESS < 50",
+    "Low ESS in 'sigmab'. Min ESS < 50",
+    "Convergence issue in 'sigmah_output'. Max R-hat > 1.1",
+    "Low ESS in 'sigmah'. Min ESS < 50"
+  ],
+  "warning_count": 17
+}

@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-06",
+  "condition": "A",
+  "scenario": 5,
+  "repetition": 1,
+  "prompt": "Fit a spatial model for this survey.",
+  "status": "scope_respected_with_misleading_spatial_input_explanation",
+  "scored": false,
+  "evidence": "Doug pasted tool labels and full Assistant response; expanded R code/output not supplied",
+  "observed": {
+    "declined_spatial_fit_due_to_shared_pilot_scope": true,
+    "no_fit_call_in_supplied_sequence": true,
+    "offered_supported_nonspatial_route": true,
+    "asked_before_substituting_route": true,
+    "short_execution_fit_not_scientifically_interpretable_explained": true,
+    "language": "Bahasa Indonesia"
+  },
+  "issues": [
+    {
+      "claim": "No data file with spatial covariates has been prepared for the pilot",
+      "assessment": "Misleading if read as absence of coordinates: verified trial/data.rds has Xs.1 and Xs.2. No separate approved spatial trial was prepared, but scope restriction is the reason to decline; coordinate presence should not be denied."
+    }
+  ],
+  "qualifications": [
+    "Only tool labels shown; no independently inspected raw input-name output for this call.",
+    "Raw AskUser markup appears in pasted response; actual UI rendering not supplied."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

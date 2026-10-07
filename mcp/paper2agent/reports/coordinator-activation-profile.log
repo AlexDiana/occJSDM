@@ -1,0 +1,28 @@
+Warning message:
+renv took longer than expected (51 seconds) to activate the sandbox.
+
+The sandbox can be disabled by setting:
+
+    RENV_CONFIG_SANDBOX_ENABLED = FALSE
+
+within an appropriate start-up .Renviron file.
+
+See `?renv::config` for more details. 
+   user  system elapsed 
+ 46.815   4.036  51.505 
+                      total.time total.pct self.time self.pct
+"eval"                     48.42    100.00      2.66     5.49
+"eval.parent"              48.42    100.00      0.00     0.00
+"local"                    48.42    100.00      0.00     0.00
+"renv_bootstrap_exec"      48.42    100.00      0.00     0.00
+"renv_bootstrap_load"      48.42    100.00      0.00     0.00
+"source"                   48.42    100.00      0.00     0.00
+"withVisible"              48.42    100.00      0.00     0.00
+"renv::load"               48.34     99.83      0.00     0.00
+"tryCatch"                 48.22     99.59      0.06     0.12
+"tryCatchList"             48.22     99.59      0.04     0.08
+"tryCatchOne"              48.22     99.59      0.02     0.04
+"doTryCatch"               48.22     99.59      0.00     0.00
+"withCallingHandlers"      48.18     99.50      0.02     0.04
+"catch"                    48.04     99.22      0.00     0.00
+"renv_load_sandbox"        47.96     99.05      0.00     0.00

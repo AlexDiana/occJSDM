@@ -1,0 +1,127 @@
+{
+  "production_before": {
+    "src/tools/quickstart.py": "bfe4a4369d077076c4ba7cb2cb0196c5cdbf59540361c6507a8480ee53c4206e",
+    "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+    "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b",
+    "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7"
+  },
+  "production_after": {
+    "src/tools/quickstart.py": "bfe4a4369d077076c4ba7cb2cb0196c5cdbf59540361c6507a8480ee53c4206e",
+    "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+    "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b",
+    "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7"
+  },
+  "production_unchanged": true,
+  "collected": 66,
+  "shards": [
+    {
+      "command": [
+        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation0]",
+        "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation3]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[binary]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[no_traits]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[categorical_traits]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_global_ordered]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_local_shuffled]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_identifier_covariates]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[wrong_dimensions]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[missing_Primer]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[within_site_covariate_conflict]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[binary_NA_OTU]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[occupancy_localSampleIDs]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[NaN_occupancy_covariate]",
+        "tests/code/implementation/test_quickstart.py::test_input_paths_confined[/etc/passwd]",
+        "tests/code/implementation/test_quickstart.py::test_rows_cap_and_arbitrary_fit_path[0]",
+        "tests/code/implementation/test_quickstart.py::test_effective_factor_cap_and_pinned_runtime_identity",
+        "tests/code/implementation/test_quickstart.py::test_cancellation_reaps_native_child",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[misaligned_rows-False]",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[nonnumeric_otu-False]",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[continuous-False]",
+        "tests/code/implementation/test_quickstart.py::test_changed_fit_options_match_direct_native[0-2-2-20]"
+      ],
+      "returncode": 0,
+      "log": "reports/implementation-green-shard-0.log",
+      "tail": [
+        "......................                                                   [100%]",
+        "22 passed in 186.64s (0:03:06)"
+      ]
+    },
+    {
+      "command": [
+        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation1]",
+        "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation4]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[occupancy]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[renamed_single_covariates]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[changed_seed_thinning2]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_global_shuffled]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_character_ordered]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_occupancy_shuffled]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[missing_covariate]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[NA_site_ID]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[within_sample_covariate_conflict]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[occupancy_NA_OTU]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[NA_occupancy_covariate]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[no_stage_count_response]",
+        "tests/code/implementation/test_quickstart.py::test_input_paths_confined[notebooks/../quickstart/data/two_stage_data.rds]",
+        "tests/code/implementation/test_quickstart.py::test_rows_cap_and_arbitrary_fit_path[21]",
+        "tests/code/implementation/test_quickstart.py::test_constant_chain_null_and_tampered_fit_rejected",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[aligned_rows-True]",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[malformed-False]",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[negative_reads-False]",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[constant_covariate-False]",
+        "tests/code/implementation/test_quickstart.py::test_changed_fit_options_match_direct_native[1-3-3-0]"
+      ],
+      "returncode": 0,
+      "log": "reports/implementation-green-shard-1.log",
+      "tail": [
+        "......................                                                   [100%]",
+        "22 passed in 189.24s (0:03:09)"
+      ]
+    },
+    {
+      "command": [
+        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation2]",
+        "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation5]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[two_stage]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[permuted_trait_rows]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[changed_seed_same_schedule]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_local_ordered]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_character_shuffled]",
+        "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[boundary_two_stage_NA_OTU]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[missing_trait_species]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[duplicated_species]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[infinite_OTU]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[binary_unsorted_uniqueSite]",
+        "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[Inf_occupancy_covariate]",
+        "tests/code/implementation/test_quickstart.py::test_input_paths_confined[../README.md]",
+        "tests/code/implementation/test_quickstart.py::test_symlink_escape",
+        "tests/code/implementation/test_quickstart.py::test_repeated_calls_fresh_artifacts_and_failed_fit_unpublished",
+        "tests/code/implementation/test_quickstart.py::test_timeout_reaps_process_and_keeps_pending_fit_unpublished",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[default_info_otu_rows-True]",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[missing_species-False]",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[nan_reads-False]",
+        "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[traits_alias-False]",
+        "tests/code/implementation/test_quickstart.py::test_short_fit_qualification_persists_in_downstream_results"
+      ],
+      "returncode": 0,
+      "log": "reports/implementation-green-shard-2.log",
+      "tail": [
+        "......................                                                   [100%]",
+        "22 passed in 193.40s (0:03:13)"
+      ]
+    }
+  ],
+  "elapsed_seconds": 194.14534645795356
+}

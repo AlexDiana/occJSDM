@@ -1,0 +1,308 @@
+..............................EEEEE.E.EE...                              [100%]
+==================================== ERRORS ====================================
+________ ERROR at setup of test_full_direct_diagnostics[binary_single] _________
+
+fixturedef = <FixtureDef argname='exercised' scope='session' baseid='tests/code/quickstart'>
+request = <SubRequest 'exercised' for <Function test_full_direct_diagnostics[binary_single]>>
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_fixture_setup(fixturedef: FixtureDef, request) -> object | None:
+        if (
+            fixturedef.argname == "event_loop_policy"
+            and fixturedef.func.__module__ != __name__
+        ):
+            warnings.warn(
+                PytestDeprecationWarning(_EVENT_LOOP_POLICY_FIXTURE_DEPRECATION_WARNING),
+            )
+        asyncio_mode = _get_asyncio_mode(request.config)
+        if not _is_asyncio_fixture_function(fixturedef.func):
+            if asyncio_mode == Mode.STRICT:
+                # Ignore async fixtures without explicit asyncio mark in strict mode
+                # This applies to pytest_trio fixtures, for example
+>               return (yield)
+                        ^^^^^
+
+occJSDM-env/lib/python3.14/site-packages/pytest_asyncio/plugin.py:924: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+specs = {'binary_single': {'data_path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/ver...['collection_changed'], 'threshold': 3, 'listParams': {'n_factors': 1}, ...}, 'seed': 2404, 'model': 'two_stage', ...}}
+
+    @pytest.fixture(scope='session')
+    def exercised(specs):
+        before={c['data_path']:sha(c['data_path']) for c in specs.values()}
+        results={}
+        for name,c in specs.items():
+            opts=c['options']; args=dict(data_path=c['data_path'],occCovariates=opts['occCovariates'],collCovariates=opts['collCovariates'])
+            valid=invoke('validate_data',args)
+            assert valid['eligible'] is True
+            if 'error' in c:
+                old=set((ROOT/'artifacts/registry').glob('*.json'))
+                with pytest.raises(ToolError,match=c['error']):
+                    invoke('fit_model',dict(data_path=c['data_path'],options=opts,seed=c['seed']))
+>               assert set((ROOT/'artifacts/registry').glob('*.json'))==old
+E               AssertionError: assert {PosixPath('/...a.json'), ...} == {PosixPath('/...a.json'), ...}
+E                 
+E                 Extra items in the left set:
+E                 PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/registry/fit_bdfdfc3485254f1d828aefbf0d0d7749.json')
+E                 Use -v to get more diff
+
+tests/code/quickstart/conftest.py:68: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+[10/07/26 08:16:52] Error calling tool 'fit_model'                              
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/server/server.py:1492 in call_tool            │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/tools/base.py:440 in _run                     │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/quickstart.py:88 in          │
+                    │ fit_model                                                │
+                    │                                                          │
+                    │    85 │   shutil.copyfile(path,snapshot)                 │
+                    │    86 │   input_hash = digest(snapshot)                  │
+                    │    87 │   requested = options.model_dump()               │
+                    │ ❱  88 │   native = await                                 │
+                    │       run_r('fit_model',dict(data_path=str(snapshot),opt │
+                    │    89 │   pending = out/'fit.rds.pending'                │
+                    │    90 │   if not pending.is_file() or not native.get('re │
+                    │    91 │   │   raise RuntimeError('Native fit did not pas │
+                    │       published')                                        │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/runtime.py:118 in run_r      │
+                    │                                                          │
+                    │   115 │   │   raise RuntimeError(f'Native R startup or o │
+                    │       {process.returncode}); inspect local logs in {out} │
+                    │   116 │   result = json.loads(result_path.read_text(),pa │
+                    │       ()).throw(ValueError('Nonfinite JSON from R')))    │
+                    │   117 │   if process.returncode != 0 or result.get('stat │
+                    │ ❱ 118 │   │   raise RuntimeError('Native R error: ' + re │
+                    │       execution') + f'. Local logs: {out}')              │
+                    │   119 │   return result                                  │
+                    │   120                                                    │
+                    │   121                                                    │
+                    ╰──────────────────────────────────────────────────────────╯
+                    RuntimeError: Native R error: incorrect number of           
+                    dimensions. Local logs:                                     
+                    /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mc
+                    p/paper2agent/artifacts/calls/fit_model-448b39e444bd414d9207
+                    97dac719646d                                                
+------------------------------ Captured log setup ------------------------------
+ERROR    fastmcp.server.server:server.py:1541 Error calling tool 'fit_model'
+Traceback (most recent call last):
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/server/server.py", line 1492, in call_tool
+    return await tool._run(arguments or {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/base.py", line 440, in _run
+    return await self.run(arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 389, in run
+    result = await self._run_body(
+             ^^^^^^^^^^^^^^^^^^^^^
+        type_adapter, exec_is_async, arguments, strict=strict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 430, in _run_body
+    result = await self._execute(
+             ^^^^^^^^^^^^^^^^^^^^
+        type_adapter, exec_is_async, arguments, strict=strict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 485, in _execute
+    result = await result
+             ^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 82, in wrapper
+    return await fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/quickstart.py", line 88, in fit_model
+    native = await run_r('fit_model',dict(data_path=str(snapshot),options=requested,seed=seed),out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/runtime.py", line 118, in run_r
+    raise RuntimeError('Native R error: ' + result.get('error','unsuccessful execution') + f'. Local logs: {out}')
+RuntimeError: Native R error: incorrect number of dimensions. Local logs: /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-448b39e444bd414d920797dac719646d
+______________ ERROR at setup of test_preview_bounds_valid_fit[0] ______________
+
+specs = {'binary_single': {'data_path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/ver...['collection_changed'], 'threshold': 3, 'listParams': {'n_factors': 1}, ...}, 'seed': 2404, 'model': 'two_stage', ...}}
+
+    @pytest.fixture(scope='session')
+    def exercised(specs):
+        before={c['data_path']:sha(c['data_path']) for c in specs.values()}
+        results={}
+        for name,c in specs.items():
+            opts=c['options']; args=dict(data_path=c['data_path'],occCovariates=opts['occCovariates'],collCovariates=opts['collCovariates'])
+            valid=invoke('validate_data',args)
+            assert valid['eligible'] is True
+            if 'error' in c:
+                old=set((ROOT/'artifacts/registry').glob('*.json'))
+                with pytest.raises(ToolError,match=c['error']):
+                    invoke('fit_model',dict(data_path=c['data_path'],options=opts,seed=c['seed']))
+>               assert set((ROOT/'artifacts/registry').glob('*.json'))==old
+E               AssertionError: assert {PosixPath('/...a.json'), ...} == {PosixPath('/...a.json'), ...}
+E                 
+E                 Extra items in the left set:
+E                 PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/registry/fit_bdfdfc3485254f1d828aefbf0d0d7749.json')
+E                 Use -v to get more diff
+
+tests/code/quickstart/conftest.py:68: AssertionError
+_________ ERROR at setup of test_repeat_diagnostic_artifacts_separate __________
+
+specs = {'binary_single': {'data_path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/ver...['collection_changed'], 'threshold': 3, 'listParams': {'n_factors': 1}, ...}, 'seed': 2404, 'model': 'two_stage', ...}}
+
+    @pytest.fixture(scope='session')
+    def exercised(specs):
+        before={c['data_path']:sha(c['data_path']) for c in specs.values()}
+        results={}
+        for name,c in specs.items():
+            opts=c['options']; args=dict(data_path=c['data_path'],occCovariates=opts['occCovariates'],collCovariates=opts['collCovariates'])
+            valid=invoke('validate_data',args)
+            assert valid['eligible'] is True
+            if 'error' in c:
+                old=set((ROOT/'artifacts/registry').glob('*.json'))
+                with pytest.raises(ToolError,match=c['error']):
+                    invoke('fit_model',dict(data_path=c['data_path'],options=opts,seed=c['seed']))
+>               assert set((ROOT/'artifacts/registry').glob('*.json'))==old
+E               AssertionError: assert {PosixPath('/...a.json'), ...} == {PosixPath('/...a.json'), ...}
+E                 
+E                 Extra items in the left set:
+E                 PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/registry/fit_bdfdfc3485254f1d828aefbf0d0d7749.json')
+E                 Use -v to get more diff
+
+tests/code/quickstart/conftest.py:68: AssertionError
+_________ ERROR at setup of test_full_native_fit_and_installed_source __________
+
+specs = {'binary_single': {'data_path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/ver...['collection_changed'], 'threshold': 3, 'listParams': {'n_factors': 1}, ...}, 'seed': 2404, 'model': 'two_stage', ...}}
+
+    @pytest.fixture(scope='session')
+    def exercised(specs):
+        before={c['data_path']:sha(c['data_path']) for c in specs.values()}
+        results={}
+        for name,c in specs.items():
+            opts=c['options']; args=dict(data_path=c['data_path'],occCovariates=opts['occCovariates'],collCovariates=opts['collCovariates'])
+            valid=invoke('validate_data',args)
+            assert valid['eligible'] is True
+            if 'error' in c:
+                old=set((ROOT/'artifacts/registry').glob('*.json'))
+                with pytest.raises(ToolError,match=c['error']):
+                    invoke('fit_model',dict(data_path=c['data_path'],options=opts,seed=c['seed']))
+>               assert set((ROOT/'artifacts/registry').glob('*.json'))==old
+E               AssertionError: assert {PosixPath('/...a.json'), ...} == {PosixPath('/...a.json'), ...}
+E                 
+E                 Extra items in the left set:
+E                 PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/registry/fit_bdfdfc3485254f1d828aefbf0d0d7749.json')
+E                 Use -v to get more diff
+
+tests/code/quickstart/conftest.py:68: AssertionError
+_ ERROR at setup of test_provenance_effective_settings_qualifications[two_stage_changed] _
+
+specs = {'binary_single': {'data_path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/ver...['collection_changed'], 'threshold': 3, 'listParams': {'n_factors': 1}, ...}, 'seed': 2404, 'model': 'two_stage', ...}}
+
+    @pytest.fixture(scope='session')
+    def exercised(specs):
+        before={c['data_path']:sha(c['data_path']) for c in specs.values()}
+        results={}
+        for name,c in specs.items():
+            opts=c['options']; args=dict(data_path=c['data_path'],occCovariates=opts['occCovariates'],collCovariates=opts['collCovariates'])
+            valid=invoke('validate_data',args)
+            assert valid['eligible'] is True
+            if 'error' in c:
+                old=set((ROOT/'artifacts/registry').glob('*.json'))
+                with pytest.raises(ToolError,match=c['error']):
+                    invoke('fit_model',dict(data_path=c['data_path'],options=opts,seed=c['seed']))
+>               assert set((ROOT/'artifacts/registry').glob('*.json'))==old
+E               AssertionError: assert {PosixPath('/...a.json'), ...} == {PosixPath('/...a.json'), ...}
+E                 
+E                 Extra items in the left set:
+E                 PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/registry/fit_bdfdfc3485254f1d828aefbf0d0d7749.json')
+E                 Use -v to get more diff
+
+tests/code/quickstart/conftest.py:68: AssertionError
+___ ERROR at setup of test_native_single_species_two_stage_failure_retained ____
+
+specs = {'binary_single': {'data_path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/ver...['collection_changed'], 'threshold': 3, 'listParams': {'n_factors': 1}, ...}, 'seed': 2404, 'model': 'two_stage', ...}}
+
+    @pytest.fixture(scope='session')
+    def exercised(specs):
+        before={c['data_path']:sha(c['data_path']) for c in specs.values()}
+        results={}
+        for name,c in specs.items():
+            opts=c['options']; args=dict(data_path=c['data_path'],occCovariates=opts['occCovariates'],collCovariates=opts['collCovariates'])
+            valid=invoke('validate_data',args)
+            assert valid['eligible'] is True
+            if 'error' in c:
+                old=set((ROOT/'artifacts/registry').glob('*.json'))
+                with pytest.raises(ToolError,match=c['error']):
+                    invoke('fit_model',dict(data_path=c['data_path'],options=opts,seed=c['seed']))
+>               assert set((ROOT/'artifacts/registry').glob('*.json'))==old
+E               AssertionError: assert {PosixPath('/...a.json'), ...} == {PosixPath('/...a.json'), ...}
+E                 
+E                 Extra items in the left set:
+E                 PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/registry/fit_bdfdfc3485254f1d828aefbf0d0d7749.json')
+E                 Use -v to get more diff
+
+tests/code/quickstart/conftest.py:68: AssertionError
+_ ERROR at setup of test_full_baseline_summary_labels_and_single_species[two_stage_changed] _
+
+specs = {'binary_single': {'data_path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/ver...['collection_changed'], 'threshold': 3, 'listParams': {'n_factors': 1}, ...}, 'seed': 2404, 'model': 'two_stage', ...}}
+
+    @pytest.fixture(scope='session')
+    def exercised(specs):
+        before={c['data_path']:sha(c['data_path']) for c in specs.values()}
+        results={}
+        for name,c in specs.items():
+            opts=c['options']; args=dict(data_path=c['data_path'],occCovariates=opts['occCovariates'],collCovariates=opts['collCovariates'])
+            valid=invoke('validate_data',args)
+            assert valid['eligible'] is True
+            if 'error' in c:
+                old=set((ROOT/'artifacts/registry').glob('*.json'))
+                with pytest.raises(ToolError,match=c['error']):
+                    invoke('fit_model',dict(data_path=c['data_path'],options=opts,seed=c['seed']))
+>               assert set((ROOT/'artifacts/registry').glob('*.json'))==old
+E               AssertionError: assert {PosixPath('/...a.json'), ...} == {PosixPath('/...a.json'), ...}
+E                 
+E                 Extra items in the left set:
+E                 PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/registry/fit_bdfdfc3485254f1d828aefbf0d0d7749.json')
+E                 Use -v to get more diff
+
+tests/code/quickstart/conftest.py:68: AssertionError
+_____ ERROR at setup of test_fresh_validation_native_design[binary_single] _____
+
+specs = {'binary_single': {'data_path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/ver...['collection_changed'], 'threshold': 3, 'listParams': {'n_factors': 1}, ...}, 'seed': 2404, 'model': 'two_stage', ...}}
+
+    @pytest.fixture(scope='session')
+    def exercised(specs):
+        before={c['data_path']:sha(c['data_path']) for c in specs.values()}
+        results={}
+        for name,c in specs.items():
+            opts=c['options']; args=dict(data_path=c['data_path'],occCovariates=opts['occCovariates'],collCovariates=opts['collCovariates'])
+            valid=invoke('validate_data',args)
+            assert valid['eligible'] is True
+            if 'error' in c:
+                old=set((ROOT/'artifacts/registry').glob('*.json'))
+                with pytest.raises(ToolError,match=c['error']):
+                    invoke('fit_model',dict(data_path=c['data_path'],options=opts,seed=c['seed']))
+>               assert set((ROOT/'artifacts/registry').glob('*.json'))==old
+E               AssertionError: assert {PosixPath('/...a.json'), ...} == {PosixPath('/...a.json'), ...}
+E                 
+E                 Extra items in the left set:
+E                 PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/registry/fit_bdfdfc3485254f1d828aefbf0d0d7749.json')
+E                 Use -v to get more diff
+
+tests/code/quickstart/conftest.py:68: AssertionError
+=========================== short test summary info ============================
+ERROR tests/code/quickstart/test_diagnostics.py::test_full_direct_diagnostics[binary_single]
+ERROR tests/code/quickstart/test_diagnostics.py::test_preview_bounds_valid_fit[0]
+ERROR tests/code/quickstart/test_diagnostics.py::test_repeat_diagnostic_artifacts_separate
+ERROR tests/code/quickstart/test_fit_model.py::test_full_native_fit_and_installed_source
+ERROR tests/code/quickstart/test_fit_model.py::test_provenance_effective_settings_qualifications[two_stage_changed]
+ERROR tests/code/quickstart/test_fit_model.py::test_native_single_species_two_stage_failure_retained
+ERROR tests/code/quickstart/test_summarise_fit.py::test_full_baseline_summary_labels_and_single_species[two_stage_changed]
+ERROR tests/code/quickstart/test_validate_data.py::test_fresh_validation_native_design[binary_single]
+35 passed, 8 errors in 92.25s (0:01:32)

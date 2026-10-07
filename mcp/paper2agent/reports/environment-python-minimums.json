@@ -1,0 +1,18 @@
+{
+  "fastmcp": {
+    "version": "4.0.3",
+    "requires_python": ">=3.10"
+  },
+  "pydantic": {
+    "version": "2.13.5",
+    "requires_python": ">=3.9"
+  },
+  "pytest": {
+    "version": "9.1.1",
+    "requires_python": ">=3.10"
+  },
+  "pytest-asyncio": {
+    "version": "1.4.0",
+    "requires_python": ">=3.10"
+  }
+}

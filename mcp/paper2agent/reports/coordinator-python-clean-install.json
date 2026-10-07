@@ -1,0 +1,10 @@
+{
+  "status": "installed_not_yet_server_accepted",
+  "python": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/clean-python-runtime/bin/python",
+  "version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "fastmcp": "4.0.3",
+  "pydantic": "2.13.5",
+  "runtime_packages": 66,
+  "install_log": "reports/coordinator-python-clean-install.log",
+  "dependency_check_exit": 0
+}
