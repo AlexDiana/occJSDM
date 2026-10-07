@@ -37,32 +37,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sample_w_cpp
-NumericMatrix sample_w_cpp(const NumericMatrix& logy1, double mu0, double sigma0, double mu1, double sigma1, const NumericMatrix& theta, const NumericVector& theta0, const NumericMatrix& p, const NumericMatrix& q, const IntegerVector& M, const IntegerVector& K, const IntegerVector& sumL, const IntegerVector& sumM, const IntegerVector& sumK, int maxL, const NumericMatrix& z);
-RcppExport SEXP _occJSDM_sample_w_cpp(SEXP logy1SEXP, SEXP mu0SEXP, SEXP sigma0SEXP, SEXP mu1SEXP, SEXP sigma1SEXP, SEXP thetaSEXP, SEXP theta0SEXP, SEXP pSEXP, SEXP qSEXP, SEXP MSEXP, SEXP KSEXP, SEXP sumLSEXP, SEXP sumMSEXP, SEXP sumKSEXP, SEXP maxLSEXP, SEXP zSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type logy1(logy1SEXP);
-    Rcpp::traits::input_parameter< double >::type mu0(mu0SEXP);
-    Rcpp::traits::input_parameter< double >::type sigma0(sigma0SEXP);
-    Rcpp::traits::input_parameter< double >::type mu1(mu1SEXP);
-    Rcpp::traits::input_parameter< double >::type sigma1(sigma1SEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type theta0(theta0SEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type p(pSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type q(qSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type M(MSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type sumL(sumLSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type sumM(sumMSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type sumK(sumKSEXP);
-    Rcpp::traits::input_parameter< int >::type maxL(maxLSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type z(zSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_w_cpp(logy1, mu0, sigma0, mu1, sigma1, theta, theta0, p, q, M, K, sumL, sumM, sumK, maxL, z));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sample_w_cim_cipp_parallel
 NumericMatrix sample_w_cim_cipp_parallel(const NumericMatrix& y, const NumericMatrix& y_NA, const NumericMatrix& theta, const NumericVector& theta0, const NumericMatrix& p, const NumericMatrix& q, const IntegerVector& M, const IntegerVector& K, const IntegerVector& sumL, const IntegerVector& sumM, const IntegerVector& sumK, const IntegerVector& P, const IntegerVector& primerId, int maxL, const NumericMatrix& z);
 RcppExport SEXP _occJSDM_sample_w_cim_cipp_parallel(SEXP ySEXP, SEXP y_NASEXP, SEXP thetaSEXP, SEXP theta0SEXP, SEXP pSEXP, SEXP qSEXP, SEXP MSEXP, SEXP KSEXP, SEXP sumLSEXP, SEXP sumMSEXP, SEXP sumKSEXP, SEXP PSEXP, SEXP primerIdSEXP, SEXP maxLSEXP, SEXP zSEXP) {
@@ -88,31 +62,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sample_w_cim_cipp
-NumericMatrix sample_w_cim_cipp(const NumericMatrix& y, const NumericMatrix& y_NA, const NumericMatrix& theta, const NumericVector& theta0, const NumericMatrix& p, const NumericMatrix& q, const IntegerVector& M, const IntegerVector& K, const IntegerVector& sumL, const IntegerVector& sumM, const IntegerVector& sumK, const IntegerVector& P, const IntegerVector& primerId, int maxL, const NumericMatrix& z);
-RcppExport SEXP _occJSDM_sample_w_cim_cipp(SEXP ySEXP, SEXP y_NASEXP, SEXP thetaSEXP, SEXP theta0SEXP, SEXP pSEXP, SEXP qSEXP, SEXP MSEXP, SEXP KSEXP, SEXP sumLSEXP, SEXP sumMSEXP, SEXP sumKSEXP, SEXP PSEXP, SEXP primerIdSEXP, SEXP maxLSEXP, SEXP zSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type y_NA(y_NASEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type theta0(theta0SEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type p(pSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type q(qSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type M(MSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type sumL(sumLSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type sumM(sumMSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type sumK(sumKSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type P(PSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type primerId(primerIdSEXP);
-    Rcpp::traits::input_parameter< int >::type maxL(maxLSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type z(zSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_w_cim_cipp(y, y_NA, theta, theta0, p, q, M, K, sumL, sumM, sumK, P, primerId, maxL, z));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sample_betatheta_cpp
 arma::mat sample_betatheta_cpp(const arma::mat& w, const arma::mat& z, arma::mat beta_theta, const arma::uvec& idx_z, const arma::mat& X_theta, const arma::vec& b_betatheta, const arma::mat& B_betatheta);
 RcppExport SEXP _occJSDM_sample_betatheta_cpp(SEXP wSEXP, SEXP zSEXP, SEXP beta_thetaSEXP, SEXP idx_zSEXP, SEXP X_thetaSEXP, SEXP b_betathetaSEXP, SEXP B_betathetaSEXP) {
@@ -130,23 +79,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sample_betatheta_cpp_parallel_old
-arma::mat sample_betatheta_cpp_parallel_old(const arma::mat& w, const arma::mat& z, arma::mat beta_theta, const arma::uvec& idx_z, const arma::mat& X_theta, const arma::vec& b_betatheta, const arma::mat& B_betatheta);
-RcppExport SEXP _occJSDM_sample_betatheta_cpp_parallel_old(SEXP wSEXP, SEXP zSEXP, SEXP beta_thetaSEXP, SEXP idx_zSEXP, SEXP X_thetaSEXP, SEXP b_betathetaSEXP, SEXP B_betathetaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type z(zSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type beta_theta(beta_thetaSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type idx_z(idx_zSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type X_theta(X_thetaSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type b_betatheta(b_betathetaSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type B_betatheta(B_betathetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_betatheta_cpp_parallel_old(w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sample_betatheta_cpp_parallel
 arma::mat sample_betatheta_cpp_parallel(const arma::mat& w, const arma::mat& z, arma::mat beta_theta, const arma::uvec& idx_z, const arma::mat& X_theta, const arma::vec& b_betatheta, const arma::mat& B_betatheta);
 RcppExport SEXP _occJSDM_sample_betatheta_cpp_parallel(SEXP wSEXP, SEXP zSEXP, SEXP beta_thetaSEXP, SEXP idx_zSEXP, SEXP X_thetaSEXP, SEXP b_betathetaSEXP, SEXP B_betathetaSEXP) {
@@ -161,26 +93,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type b_betatheta(b_betathetaSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type B_betatheta(B_betathetaSEXP);
     rcpp_result_gen = Rcpp::wrap(sample_betatheta_cpp_parallel(w, z, beta_theta, idx_z, X_theta, b_betatheta, B_betatheta));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_pq_cpp
-List sample_pq_cpp(NumericMatrix& c_imk, IntegerMatrix& y_NA, NumericMatrix w, IntegerVector idx_p_k, IntegerVector idx_w_k, int maxP, double a_p, double b_p, double a_q, double b_q);
-RcppExport SEXP _occJSDM_sample_pq_cpp(SEXP c_imkSEXP, SEXP y_NASEXP, SEXP wSEXP, SEXP idx_p_kSEXP, SEXP idx_w_kSEXP, SEXP maxPSEXP, SEXP a_pSEXP, SEXP b_pSEXP, SEXP a_qSEXP, SEXP b_qSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix& >::type c_imk(c_imkSEXP);
-    Rcpp::traits::input_parameter< IntegerMatrix& >::type y_NA(y_NASEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type w(wSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type idx_p_k(idx_p_kSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type idx_w_k(idx_w_kSEXP);
-    Rcpp::traits::input_parameter< int >::type maxP(maxPSEXP);
-    Rcpp::traits::input_parameter< double >::type a_p(a_pSEXP);
-    Rcpp::traits::input_parameter< double >::type b_p(b_pSEXP);
-    Rcpp::traits::input_parameter< double >::type a_q(a_qSEXP);
-    Rcpp::traits::input_parameter< double >::type b_q(b_qSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_pq_cpp(c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -261,116 +173,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// isPointInBandRight
-bool isPointInBandRight(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j);
-RcppExport SEXP _occJSDM_isPointInBandRight(SEXP X_tildeSEXP, SEXP x_gridSEXP, SEXP y_gridSEXP, SEXP iSEXP, SEXP jSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type X_tilde(X_tildeSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type x_grid(x_gridSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type y_grid(y_gridSEXP);
-    Rcpp::traits::input_parameter< int >::type i(iSEXP);
-    Rcpp::traits::input_parameter< int >::type j(jSEXP);
-    rcpp_result_gen = Rcpp::wrap(isPointInBandRight(X_tilde, x_grid, y_grid, i, j));
-    return rcpp_result_gen;
-END_RCPP
-}
-// isPointInBandLeft
-bool isPointInBandLeft(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j);
-RcppExport SEXP _occJSDM_isPointInBandLeft(SEXP X_tildeSEXP, SEXP x_gridSEXP, SEXP y_gridSEXP, SEXP iSEXP, SEXP jSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type X_tilde(X_tildeSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type x_grid(x_gridSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type y_grid(y_gridSEXP);
-    Rcpp::traits::input_parameter< int >::type i(iSEXP);
-    Rcpp::traits::input_parameter< int >::type j(jSEXP);
-    rcpp_result_gen = Rcpp::wrap(isPointInBandLeft(X_tilde, x_grid, y_grid, i, j));
-    return rcpp_result_gen;
-END_RCPP
-}
-// isPointInBandUp
-bool isPointInBandUp(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j);
-RcppExport SEXP _occJSDM_isPointInBandUp(SEXP X_tildeSEXP, SEXP x_gridSEXP, SEXP y_gridSEXP, SEXP iSEXP, SEXP jSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type X_tilde(X_tildeSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type x_grid(x_gridSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type y_grid(y_gridSEXP);
-    Rcpp::traits::input_parameter< int >::type i(iSEXP);
-    Rcpp::traits::input_parameter< int >::type j(jSEXP);
-    rcpp_result_gen = Rcpp::wrap(isPointInBandUp(X_tilde, x_grid, y_grid, i, j));
-    return rcpp_result_gen;
-END_RCPP
-}
-// isPointInBandDown
-bool isPointInBandDown(arma::mat X_tilde, arma::vec x_grid, arma::vec y_grid, int i, int j);
-RcppExport SEXP _occJSDM_isPointInBandDown(SEXP X_tildeSEXP, SEXP x_gridSEXP, SEXP y_gridSEXP, SEXP iSEXP, SEXP jSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type X_tilde(X_tildeSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type x_grid(x_gridSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type y_grid(y_gridSEXP);
-    Rcpp::traits::input_parameter< int >::type i(iSEXP);
-    Rcpp::traits::input_parameter< int >::type j(jSEXP);
-    rcpp_result_gen = Rcpp::wrap(isPointInBandDown(X_tilde, x_grid, y_grid, i, j));
-    return rcpp_result_gen;
-END_RCPP
-}
-// findClosestPoint
-IntegerVector findClosestPoint(arma::mat XY_sp, arma::mat X_tilde);
-RcppExport SEXP _occJSDM_findClosestPoint(SEXP XY_spSEXP, SEXP X_tildeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type XY_sp(XY_spSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X_tilde(X_tildeSEXP);
-    rcpp_result_gen = Rcpp::wrap(findClosestPoint(XY_sp, X_tilde));
-    return rcpp_result_gen;
-END_RCPP
-}
-// dist_matrix
-arma::mat dist_matrix(const arma::mat& coords);
-RcppExport SEXP _occJSDM_dist_matrix(SEXP coordsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type coords(coordsSEXP);
-    rcpp_result_gen = Rcpp::wrap(dist_matrix(coords));
-    return rcpp_result_gen;
-END_RCPP
-}
-// gpCovMatrix
-arma::mat gpCovMatrix(const arma::mat& D, double sigma2, double rho);
-RcppExport SEXP _occJSDM_gpCovMatrix(SEXP DSEXP, SEXP sigma2SEXP, SEXP rhoSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< double >::type sigma2(sigma2SEXP);
-    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(gpCovMatrix(D, sigma2, rho));
-    return rcpp_result_gen;
-END_RCPP
-}
-// K
-arma::mat K(arma::vec x1, arma::vec x2, double a, double l);
-RcppExport SEXP _occJSDM_K(SEXP x1SEXP, SEXP x2SEXP, SEXP aSEXP, SEXP lSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type x1(x1SEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type x2(x2SEXP);
-    Rcpp::traits::input_parameter< double >::type a(aSEXP);
-    Rcpp::traits::input_parameter< double >::type l(lSEXP);
-    rcpp_result_gen = Rcpp::wrap(K(x1, x2, a, l));
-    return rcpp_result_gen;
-END_RCPP
-}
 // K2
 arma::mat K2(arma::mat x1, arma::mat x2, double a, double l);
 RcppExport SEXP _occJSDM_K2(SEXP x1SEXP, SEXP x2SEXP, SEXP aSEXP, SEXP lSEXP) {
@@ -382,17 +184,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type a(aSEXP);
     Rcpp::traits::input_parameter< double >::type l(lSEXP);
     rcpp_result_gen = Rcpp::wrap(K2(x1, x2, a, l));
-    return rcpp_result_gen;
-END_RCPP
-}
-// samplePGvariables
-arma::mat samplePGvariables(arma::mat& Xbeta);
-RcppExport SEXP _occJSDM_samplePGvariables(SEXP XbetaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type Xbeta(XbetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(samplePGvariables(Xbeta));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -431,20 +222,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// convert_to_correlation
-arma::cube convert_to_correlation(arma::cube L_output_vec, int niter, int S, int d);
-RcppExport SEXP _occJSDM_convert_to_correlation(SEXP L_output_vecSEXP, SEXP niterSEXP, SEXP SSEXP, SEXP dSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::cube >::type L_output_vec(L_output_vecSEXP);
-    Rcpp::traits::input_parameter< int >::type niter(niterSEXP);
-    Rcpp::traits::input_parameter< int >::type S(SSEXP);
-    Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    rcpp_result_gen = Rcpp::wrap(convert_to_correlation(L_output_vec, niter, S, d));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sampleBuniv
 arma::vec sampleBuniv(arma::mat& X, arma::mat& B, arma::vec& b, arma::vec& y, double sigma);
 RcppExport SEXP _occJSDM_sampleBuniv(SEXP XSEXP, SEXP BSEXP, SEXP bSEXP, SEXP ySEXP, SEXP sigmaSEXP) {
@@ -457,21 +234,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
     Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
     rcpp_result_gen = Rcpp::wrap(sampleBuniv(X, B, b, y, sigma));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sampleB
-arma::vec sampleB(arma::mat& X, arma::mat& B, arma::vec& b, arma::vec& Omega, arma::vec& k);
-RcppExport SEXP _occJSDM_sampleB(SEXP XSEXP, SEXP BSEXP, SEXP bSEXP, SEXP OmegaSEXP, SEXP kSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type B(BSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type b(bSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type Omega(OmegaSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(sampleB(X, B, b, Omega, k));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -489,19 +251,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type sigma_h(sigma_hSEXP);
     Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
     rcpp_result_gen = Rcpp::wrap(sample_U_cpp(k, L, XB, XsBs, Omega, sigma_h, model));
-    return rcpp_result_gen;
-END_RCPP
-}
-// XsBs
-arma::mat XsBs(arma::mat& A, arma::mat& B, arma::mat& X_s_centers);
-RcppExport SEXP _occJSDM_XsBs(SEXP ASEXP, SEXP BSEXP, SEXP X_s_centersSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type A(ASEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type B(BSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type X_s_centers(X_s_centersSEXP);
-    rcpp_result_gen = Rcpp::wrap(XsBs(A, B, X_s_centers));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -638,35 +387,19 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_occJSDM_setOccJSDMSeed", (DL_FUNC) &_occJSDM_setOccJSDMSeed, 1},
     {"_occJSDM_sample_z_cpp_parallel", (DL_FUNC) &_occJSDM_sample_z_cpp_parallel, 6},
-    {"_occJSDM_sample_w_cpp", (DL_FUNC) &_occJSDM_sample_w_cpp, 16},
     {"_occJSDM_sample_w_cim_cipp_parallel", (DL_FUNC) &_occJSDM_sample_w_cim_cipp_parallel, 15},
-    {"_occJSDM_sample_w_cim_cipp", (DL_FUNC) &_occJSDM_sample_w_cim_cipp, 15},
     {"_occJSDM_sample_betatheta_cpp", (DL_FUNC) &_occJSDM_sample_betatheta_cpp, 7},
-    {"_occJSDM_sample_betatheta_cpp_parallel_old", (DL_FUNC) &_occJSDM_sample_betatheta_cpp_parallel_old, 7},
     {"_occJSDM_sample_betatheta_cpp_parallel", (DL_FUNC) &_occJSDM_sample_betatheta_cpp_parallel, 7},
-    {"_occJSDM_sample_pq_cpp", (DL_FUNC) &_occJSDM_sample_pq_cpp, 10},
     {"_occJSDM_sample_pq_cpp_parallel", (DL_FUNC) &_occJSDM_sample_pq_cpp_parallel, 10},
     {"_occJSDM_computeModelLoglikJSDM_cpp", (DL_FUNC) &_occJSDM_computeModelLoglikJSDM_cpp, 4},
     {"_occJSDM_computeModelLoglikFirstStage_cpp", (DL_FUNC) &_occJSDM_computeModelLoglikFirstStage_cpp, 5},
     {"_occJSDM_computeModelLoglikSecondStage_cpp", (DL_FUNC) &_occJSDM_computeModelLoglikSecondStage_cpp, 6},
     {"_occJSDM_rinvgamma_cpp", (DL_FUNC) &_occJSDM_rinvgamma_cpp, 2},
-    {"_occJSDM_isPointInBandRight", (DL_FUNC) &_occJSDM_isPointInBandRight, 5},
-    {"_occJSDM_isPointInBandLeft", (DL_FUNC) &_occJSDM_isPointInBandLeft, 5},
-    {"_occJSDM_isPointInBandUp", (DL_FUNC) &_occJSDM_isPointInBandUp, 5},
-    {"_occJSDM_isPointInBandDown", (DL_FUNC) &_occJSDM_isPointInBandDown, 5},
-    {"_occJSDM_findClosestPoint", (DL_FUNC) &_occJSDM_findClosestPoint, 2},
-    {"_occJSDM_dist_matrix", (DL_FUNC) &_occJSDM_dist_matrix, 1},
-    {"_occJSDM_gpCovMatrix", (DL_FUNC) &_occJSDM_gpCovMatrix, 3},
-    {"_occJSDM_K", (DL_FUNC) &_occJSDM_K, 4},
     {"_occJSDM_K2", (DL_FUNC) &_occJSDM_K2, 4},
-    {"_occJSDM_samplePGvariables", (DL_FUNC) &_occJSDM_samplePGvariables, 1},
     {"_occJSDM_samplePGvariables_parallel", (DL_FUNC) &_occJSDM_samplePGvariables_parallel, 1},
     {"_occJSDM_computeNewOutputs", (DL_FUNC) &_occJSDM_computeNewOutputs, 14},
-    {"_occJSDM_convert_to_correlation", (DL_FUNC) &_occJSDM_convert_to_correlation, 4},
     {"_occJSDM_sampleBuniv", (DL_FUNC) &_occJSDM_sampleBuniv, 5},
-    {"_occJSDM_sampleB", (DL_FUNC) &_occJSDM_sampleB, 5},
     {"_occJSDM_sample_U_cpp", (DL_FUNC) &_occJSDM_sample_U_cpp, 7},
-    {"_occJSDM_XsBs", (DL_FUNC) &_occJSDM_XsBs, 3},
     {"_occJSDM_KsBproduct", (DL_FUNC) &_occJSDM_KsBproduct, 3},
     {"_occJSDM_XtOmegaX_SoR", (DL_FUNC) &_occJSDM_XtOmegaX_SoR, 5},
     {"_occJSDM_sampleB_SoR", (DL_FUNC) &_occJSDM_sampleB_SoR, 8},

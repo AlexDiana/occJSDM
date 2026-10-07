@@ -10,6 +10,7 @@ This directory holds occJSDM development guides, planning documents, scientific 
 | [superpowers/specs/](superpowers/specs/) | New general design documents produced through Superpowers | Tracked |
 | [superpowers/plans/](superpowers/plans/) | New general Superpowers implementation plans | Tracked |
 | [release/](release/2026-10-07-beta/REPORT.md) | Dated release refits, provenance, check reports and announcement drafts | Explicitly tracked |
+| [maintenance/](maintenance/post-beta-maintenance-20261007/REPORT.md) | Package cleanup audits and local simulation-archive retention review | Explicitly tracked compact records; bulky evidence ignored |
 | [simstudy/](simstudy/) | Study scripts, plans, reports, audits and compact evidence | Tracked, with explicit output exceptions |
 | [simstudy/vignette-lesson/](simstudy/vignette-lesson/README.md) | Build and verify the numerical teaching examples | Tracked source and compact artifacts |
 | [simstudy/lesson-site/](simstudy/lesson-site/DESIGN.md) | Development and tests for the teaching website | Tracked source; generated preview ignored |
@@ -27,4 +28,4 @@ The [MCP class pilot spec](superpowers/specs/2026-10-04-occjsdm-mcp-class-pilot-
 
 Root `docs/` is generated pkgdown website output, not a source-document directory. Teaching sources live under `vignettes/`; development utilities that prepare their verified results stay here. Preserve existing generated results until their dependencies are understood.
 
-The current reorganisation leaves `simstudy/results/` untouched. [TODO.md](../TODO.md#review-and-maintenance) records a deferred review to identify which local outputs are needed for rebuilding lessons, reports and validation results, and which can be archived or regenerated. Verify an archive and preserve reproducibility records before removing local copies.
+The [7 October archive review](maintenance/archive-review-20261007/REPORT.md) inventories 87.53 GiB in `simstudy/results/`, maps the dependencies needed for lessons, reports and numerical audits, and recommends retaining complete scientific studies. All raw outputs remain untouched. Targeted integrity checks are limited to 1.87% of raw bytes; no replacement archive or restore has been verified. [TODO.md](../TODO.md#review-and-maintenance) keeps the unresolved Lesson 7 raw-archive location open. Verify a complete archive and preserve reproducibility records before removing local copies.

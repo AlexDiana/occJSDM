@@ -19,5 +19,6 @@
 #' @importFrom Rcpp evalCpp
 #' @importFrom stats binomial cov cov2cor dbinom dgamma dnorm dpois glm kmeans logLik median predict quantile rbeta rbinom reorder rgamma rnbinom rnorm rpois runif sd setNames var
 #' @importFrom tidyr pivot_longer
+#' @importFrom utils globalVariables
 #' @importFrom RcppParallel RcppParallelLibs
 "_PACKAGE"

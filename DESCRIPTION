@@ -42,7 +42,8 @@ Imports:
     tibble,
     ggrepel,
     FastGP,
-    RcppParallel
+    RcppParallel,
+    utils
 LinkingTo: 
     Rcpp,
     RcppArmadillo,

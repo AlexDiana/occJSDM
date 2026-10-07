@@ -1,0 +1,12 @@
+{
+  "completed_utc": "2026-10-07T14:45:34.073009+00:00",
+  "inventory_files": 14096,
+  "logical_bytes": 93985353133,
+  "manifest_checks": 3945,
+  "checksum_matches": 1432,
+  "existence_checks": 2513,
+  "checksum_issues": 0,
+  "raw_restat_changes": 0,
+  "raw_hash_coverage_fraction": 0.018705587002606213,
+  "scope": "No fitting, raw mutations, package edits, planning-doc edits or commit by archive-review agent. Full numerical audit and replacement restore are unperformed."
+}
