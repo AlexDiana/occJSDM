@@ -20,6 +20,8 @@ RUN is outside the disposable worktree. Its `jobs` symlink points to the externa
 
 ## Live execution
 
+**Resource hold requested on 8 October at 20:07 BST:** Doug needs the laptop at 09:00 BST on Friday 9 October. The main-run continuation has been held by sending SIGSTOP only to its verified driver PID 52765; the pilot coordinator PID 74214 and its workers continue normally. Read `RUN/laptop-deadline-hold.json` before interpreting older status records. A stopped continuation is intentional, not a stalled fit. Finish the pilot, then leave the entire study paused until Doug authorises resumption. Do not resume the existing driver into the main run. The thread heartbeat `pause-spatial-study-before-laptop-use` checks every 15 minutes, targets readiness by 08:30 BST, verifies saved records, and notifies Doug when no study process is using the drive. It must then pause itself. The user should still eject the physical drive normally before unplugging it. The automatic-main-run description below explains the original driver; this resource hold takes precedence.
+
 As of preparation, the stage was `finish_pilot`, the two extended occJSDM GP fits had completed in approximately 110 minutes each, and all 16 Hmsc attempts had been recovered successfully without refitting. Predictions and remaining pilot extensions were proceeding. No scientific recovery scores had been opened by the assistant. The supervisor's stderr was empty.
 
 Use these files as the current source of execution status:

@@ -25,6 +25,8 @@
 
 ## Review Focus
 
+**Resource amendment E13, 8 October:** Doug requires the laptop at 09:00 BST on 9 October. Finish the pilot and hold the full run, targeting verified readiness by 08:30. Resume only after Doug authorises it. Read the run's laptop-deadline-hold.json and the handover before any dispatch; original scientific budgets and settings remain frozen.
+
 **Execution correction E12, 8 October:** recover the pilot's Hmsc version-spelling validation failures from saved native fits before any Hmsc selection. Preserve original error/completion bytes and the immutable scientific snapshot; normalise the loaded version through `package_version()` in a hash-checked execution overlay. Drain the active workers without interrupting their fits, finish the four-worker pilot, and retain the six-worker continuation and conservative four-worker time gate. Label the eight Hmsc extensions as administrative, retain all attempts, and add no refits. Export/report provenance must include E11 and E12, the recovery receipts and the independently observed finish-time upper bounds.
 
 1. Restored folders can be incomplete, and seeded reconstruction is not proof of original-file identity: Task 1 must validate the selected route, reject mismatched evidence and keep the provenance distinction in exports.
