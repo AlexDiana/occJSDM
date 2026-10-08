@@ -865,6 +865,8 @@ At one thread the sampler is bit-for-bit reproducible again (verified: `max diff
 
 ### 16.5 An unlooked-for finding: `B0` undercovers in `continuous`
 
+**Follow-up, 8 October 2026:** the [targeted clean experiment](interval-calibration/REPORT.md#continuous-intercept-experiment) is complete on frozen current code with spatial effects absent. Across 100 paired communities, selected B0 coverage is 95.4% without hidden factors and 96.4% with two factors, with small mean errors. All 200 selected fits clear the B0/tau screen after 77 diagnostic-selected longer fits. These configurations do not reproduce the deficit below; code and configuration both differ from the old arm, so they do not establish a repair or explain its spatial result. The statement below about tau being under-propagated was an untested explanation and must not be treated as a demonstrated mechanism. Keep this interval-width question separate from occupancy/two-stage intercept bias.
+
 `B0` coverage in this arm is **0.879**, against a nominal 0.95 and a coverage SE of about 1.5% at R = 200. That is roughly 4.7 SE low, and it is the **lowest `B0` coverage of any cell measured**: the production grid runs 0.892 (`low_information`) to 0.956, with `binary` at 0.942.
 
 The bias is zero, so this is not the estimate being wrong; it is the interval being too narrow. Note the direction of surprise -- `continuous` is the *only* model type that also estimates the residual variance `tau`, and `tau` carries its own bias here (+0.0370, coverage 0.921), so the extra variance component is being under-propagated into `B0`'s interval rather than widening it.
@@ -1116,6 +1118,8 @@ It is specific rather than general: in the same run `p` and `G` coverage improve
 Neither cell says anything about the multi-threaded configuration: both ran at one thread per fit, like every other result here.
 
 ## 21. `q` at high K: the cost-of-identifiability hypothesis, tested and split (21 August 2026)
+
+**Corrected scoring, 8 October 2026:** the [full historical rescore](interval-calibration/REPORT.md#historical-q-coverage) preserves all 2,400 saved intervals and compares them with recorded-positive-read probability. Corrected qnear K3/K30 coverage is 94.33%/94.67%; qfar K3/K30 is 95.17%/93.00%, with across-community Monte Carlo SE 0.79-1.14 points. The large prior-cost and residual-sampler failure conclusions below are unsupported by these corrected decisions. q uses a conjugate Beta update, not the Polya-Gamma collection update. The historical intervals have no saved draws for a new convergence audit; these corrected results do not certify current-code or universal calibration. Retain the informative detection priors and treat K30 as diagnostic only.
 
 Group B item 7: `q` coverage falls 0.945 -> 0.614 as K rises 3 -> 30 (`PLAN.md` 13.7). Alex sees no implementation defect in `sample_pq_cpp()`; the live hypothesis was cost of identifiability -- the informative `Beta(1, 20)` prior (mean 0.0476) holds the posterior a fixed offset from the truth, and sharpening intervals with K convert that offset into falling coverage.
 

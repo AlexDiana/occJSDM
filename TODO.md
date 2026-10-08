@@ -51,8 +51,6 @@ Outstanding work is listed first. Completed beta preparation and the fixed-bug r
 
 ## Interval calibration
 
-- **Collection-slope and q interval calibration:** interval-width work remains deferred; the targeted beta point-estimate checks are recorded under *Completed work* below. The old q coverage comparison used the wrong simulated truth; rerun it with the corrected positive-read probability before describing either low-q or high-q coverage. The collection row-alignment defect is fixed (see *Fixed bugs* 49), but that does not establish correct interval widths. Keep the two mechanisms separate.
-- **`B0` undercoverage in the continuous model:** defer the second clean-configuration experiment. Its recorded concern is interval width with negligible bias. This is separate from `B0` bias in occupancy/two-stage fits, covered by the occupancy-intercept-prior study, completed 30 September 2026 (completed beta preparation, item 2 below).
 - **`theta0` overcoverage:** defer. The recorded point-estimate bias fell substantially; excess interval width is allowed for beta. If revisited, investigate the previously untested collection-prior mean change rather than tightening `theta0`'s own prior to force a coverage target.
 
 ## Review and maintenance
@@ -76,7 +74,7 @@ Outstanding work is listed first. Completed beta preparation and the fixed-bug r
 - **Pond metacommunity as a detection-model case study (added 2 October 2026):** Cai et al. 2025 handled observation error before the JSDM saw the data: one pooled sample per pond, three twin-tagged PCRs kept only when a sequence appeared in at least two, 23 ponds dropped as false positives where metabarcoding found great crested newt and qPCR did not, and species kept only with at least five occurrences. That is a hand-made version of what the two-stage model fits (M = 1, K = 3, a detection threshold of two, and a false-positive rate q). The raw per-PCR table is on Dryad (doi 10.5061/dryad.nk98sf7vr). Use it in Lesson 2 as the worked contrast between pre-filtering and modelling detection, and consider an occJSDM refit of the 320 ponds and 48 species as the first real-data example; the paper's own discussion asks for exactly this. Its grid design at one pond per square kilometre is also the empirical twin of the sweep's grid control, worth citing in Lesson 7's closing section.
 - **Reproduce the Ecology Letters analyses:** defer the full reproduction and decision about including it in the repository. The targeted beta checks are recorded under *Completed work* below.
 - **Repeat the complete simulation grid after fixes:** defer the comprehensive paper run. For a deliberate production-grid run, specify `base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated`; a bare runner invocation also selects additional experimental cells.
-- **Choose the paper's replicate count:** defer the R = 200-500 calibration study and any claim of nominal coverage. The existing R = 100 study remains a historical baseline.
+- **Choose the paper's replicate count:** defer the R = 200-500 calibration study and any claim of nominal coverage. The existing R = 100 study remains a historical baseline. Reuse the [completed targeted interval follow-up](dev/simstudy/interval-calibration/REPORT.md); broader calibration, including the unresolved historical spatial continuous configuration, belongs in this paper study. Assess low-contamination performance separately from high-contamination prior-mismatch stress tests.
 - **Simulation-study presentation:** already decided: regenerate the pkgdown validation article from `validation-data.rds`. No new presentation decision is required; update its data before quoting new results.
 - **Publish the pkgdown site:** defer as a beta dependency; the README and vignettes can serve beta users. The site scaffolding is built, but publication requires the manual workflow and Alex's Pages configuration change. Include current limitations wherever documentation is published. When it replaces the Jekyll site, also remove the beta site's additions: `_includes/head-custom.html`, `assets/` and their two `.Rbuildignore` lines (see the [lesson site design](dev/simstudy/lesson-site/DESIGN.md)).
 
@@ -459,6 +457,13 @@ Finished work, kept for context rather than as tasks. Bug fixes live under *Fixe
 > ```
 >
 > [Release notes and downloads](https://github.com/AlexDiana/occJSDM/releases/tag/v0.1.0-beta). Feedback and bug reports are welcome through [GitHub issues](https://github.com/AlexDiana/occJSDM/issues). This is a GitHub beta; CRAN submission and broader interval-calibration work follow later.
+
+## Targeted interval follow-up completed 8 October 2026
+
+High-contamination simulations are stress tests of the low-contamination priors. Poor recovery there alone does not establish a model or sampler defect. The report documents that mismatch and keeps low-contamination findings separate, preserving the stress-test results and their numerical diagnostics.
+
+- **Correct historical q scoring and assess selected collection intervals:** [report, scripts and compact evidence](dev/simstudy/interval-calibration/REPORT.md). Preserved and rescored all 2,400 historical q intervals using the positive-read probability; the apparent high-K collapse disappears. Reconstructed fitted-scale collection truth and intervals for all 60 selected ordinary nonspatial fits, preserving convergence flags and a screened sensitivity. Aggregate slope coverage is 95-97%, but sign-specific variation, small community counts and numerical flags remain. No production sampler or prior changed, and the row-alignment fix is a separate mechanism.
+- **Run clean continuous B0 controls:** [report and evidence](dev/simstudy/interval-calibration/REPORT.md#continuous-intercept-experiment). Completed 200 initial fits and 77 diagnostic-selected longer fits under frozen c9ad954 and default priors. The no-factor and two-factor arms give B0 coverage 95.4% and 96.4%, with mean errors +0.00082 and -0.00360. Every selected fit clears the B0/tau screen. Analytic references and the actual Gaussian update are checked separately. Historical spatial undercoverage is preserved and its proposed tau explanation remains unestablished; wider calibration remains open.
 
 ## Maintenance completed 7 October 2026
 
