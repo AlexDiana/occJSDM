@@ -61,7 +61,17 @@ verify_snapshot <- function(run_root) {
 }
 verify_package_identity <- function(record) {
   for(r in record) {
-    if(any(!file.exists(names(r$files))) || any(md5(names(r$files))!=unname(r$files))) stop("Runtime package hash mismatch: ",r$package)
+    actual <- find.package(r$package,quiet=TRUE)
+    if(length(actual)!=1L || !identical(normalizePath(actual),normalizePath(r$path))) stop("Runtime package resolution mismatch: ",r$package)
+    if(!identical(as.character(utils::packageVersion(r$package,lib.loc=dirname(actual))),r$version)) stop("Runtime package version mismatch: ",r$package)
+    if(r$package %in% loadedNamespaces()) {
+      loaded <- getNamespaceInfo(asNamespace(r$package),"path")
+      if(!identical(normalizePath(loaded),normalizePath(r$path)) || !identical(as.character(getNamespaceVersion(r$package)),r$version)) stop("Loaded runtime package mismatch: ",r$package)
+    }
+    files <- list.files(actual,recursive=TRUE,full.names=TRUE)
+    observed <- setNames(md5(files),substring(files,nchar(actual)+2L))
+    expected <- setNames(as.character(r$files),substring(names(r$files),nchar(r$path)+2L))
+    if(!identical(observed,expected)) stop("Runtime package hash mismatch: ",r$package)
   }
   invisible(TRUE)
 }
@@ -83,6 +93,7 @@ freeze_sources <- function(code,repo,run_root) {
   frozen <- c(frozen[!grepl("^rep",frozen)],
     file.path("training",list.files(file.path(run_root,"training"),pattern="rds$")),
     file.path("bases",list.files(file.path(run_root,"bases"),pattern="rds$")),
+    file.path("oracle-inputs",list.files(file.path(run_root,"oracle-inputs"),pattern="rds$")),
     file.path("prediction",list.files(file.path(run_root,"prediction"),pattern="rds$")))
   frozen <- frozen[file.exists(file.path(run_root,frozen))]
   record <- list(schema_version=1L,files=source_manifest(target),frozen_files=setNames(md5(file.path(run_root,frozen)),frozen),config_md5=md5(file.path(run_root,"config.rds")),

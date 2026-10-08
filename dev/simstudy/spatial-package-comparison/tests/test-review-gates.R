@@ -1,0 +1,25 @@
+library(testthat)
+code <- normalizePath("..")
+repo <- normalizePath(file.path(code,"../../.."))
+for(f in c("config.R","archive.R","runner.R")) source(file.path(code,f))
+main <- "/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-package-comparison-20261008"
+test_that("package verification checks actual resolution, not only archived files", {
+  previous <- Sys.getenv("SPATIAL_LIBRARY",unset=NA_character_)
+  on.exit(if(is.na(previous)) Sys.unsetenv("SPATIAL_LIBRARY") else Sys.setenv(SPATIAL_LIBRARY=previous))
+  Sys.setenv(SPATIAL_LIBRARY="/Users/douglasyu/Documents/Codex/2026-09-10/fam/work/lesson-n-environment-20260922/library")
+  command <- sprintf('source(%s); source(%s); verify_package_identity(readRDS(%s))',
+    encodeString(file.path(code,"archive.R"),quote='"'),encodeString(file.path(code,"runner.R"),quote='"'),encodeString(file.path(main,"runtime/package-records.rds"),quote='"'))
+  out <- suppressWarnings(system2(file.path(code,"run-r"),c("-e",shQuote(command)),stdout=TRUE,stderr=TRUE))
+  expect_match(paste(out,collapse="\n"),"Runtime package resolution mismatch")
+  expect_identical(attr(out,"status"),1L)
+})
+test_that("oracle-only known parameters are frozen before first dispatch", {
+  root <- tempfile(); dir.create(file.path(root,"sources/acceptance"),recursive=TRUE)
+  writeLines("source fixture",file.path(root,"sources/acceptance/generator.R"))
+  write_once(study_config(),file.path(root,"config.rds"))
+  path <- file.path(root,"oracle-inputs","rep01-spread.rds")
+  write_once(list(B0=-1,B=.4,range=.03),path)
+  freeze_sources(code,repo,root)
+  saveRDS(list(B0=-2,B=.4,range=.03),path)
+  expect_error(verify_snapshot(root),"Frozen protocol/input identity mismatch")
+})
