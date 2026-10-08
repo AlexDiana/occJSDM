@@ -1,3 +1,5 @@
+# occJSDM (development version)
+
 # occJSDM 0.1.1
 
 Second beta, released on GitHub as `v0.1.1-beta`. The model code, priors and shipped example data are unchanged from 0.1.0.

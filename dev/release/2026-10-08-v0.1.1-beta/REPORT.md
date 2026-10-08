@@ -22,4 +22,4 @@ Lesson rendering, the lesson-site tests and the MCP pilot were not rerun: none o
 
 ## Release contents
 
-The proposed GitHub prerelease description is [release-notes.md](release-notes.md). Proposed assets: the checked `occJSDM_0.1.1.tar.gz` with a `SHA256SUMS` file, and the unchanged `occJSDM-cloud-pilot.zip` carried over from `v0.1.0-beta`. This report does not mean the release has been published.
+The proposed GitHub prerelease description is [release-notes.md](release-notes.md). Proposed assets: the checked `occJSDM_0.1.1.tar.gz` with a `SHA256SUMS` file, and the unchanged `occJSDM-cloud-pilot.zip` carried over from `v0.1.0-beta`. **Published 8 October 2026** as the [GitHub prerelease](https://github.com/AlexDiana/occJSDM/releases/tag/v0.1.1-beta), tag `v0.1.1-beta` on merge commit `cdb29da`, whose package contents are identical to the checked commit. All three assets were downloaded back from the release and match `SHA256SUMS`; the cloud-pilot zip is byte-identical to the v0.1.0-beta asset.
