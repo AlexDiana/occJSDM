@@ -200,7 +200,7 @@ when \code{ds > 0}. To make the spatial signal stronger, raise
 \code{l_s} sets the patch size; values near 1 or more flatten the field
 across the unit square and so weaken it.
 
-Variance partitioning. \code{true_params$jsdmParams_true$varPart} has
+Variation partitioning. \code{true_params$jsdmParams_true$varPart} has
 one row per species. Its \code{Environmental}, \code{Spatial} and
 \code{Biotic} (hidden-factor) columns are relative contributions that
 add up to one for each species; they say which source matters most, but
