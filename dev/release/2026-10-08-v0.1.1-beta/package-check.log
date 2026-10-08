@@ -1,0 +1,129 @@
+* using log directory ‘/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/bd5de39e-eb02-40a3-8e29-59158b2104f2/scratchpad/release-0.1.1/occJSDM.Rcheck’
+* using R version 4.6.1 (2026-06-24)
+* using platform: aarch64-apple-darwin23
+* R was compiled by
+    Apple clang version 17.0.0 (clang-1700.3.19.1)
+    GNU Fortran (GCC) 14.2.0
+* running under: macOS Golden Gate 27.0.1
+* using session charset: UTF-8
+* current time: 2026-10-08 17:43:39 UTC
+* using option ‘--no-manual’
+* checking for file ‘occJSDM/DESCRIPTION’ ... OK
+* checking extension type ... Package
+* this is package ‘occJSDM’ version ‘0.1.1’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘occJSDM’ can be installed ... OK
+* used C++ compiler: ‘Apple clang version 21.0.0 (clang-2100.3.34.2)’
+* used SDK: ‘MacOSX27.0.sdk’
+* checking installed package size ... INFO
+  installed size is 50.9Mb
+  sub-directories of 1Mb or more:
+    data  49.5Mb
+* checking package directory ... OK
+* checking ‘build’ directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... NOTE
+File
+  LICENSE
+is not mentioned in the DESCRIPTION file.
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking whether startup messages can be suppressed ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+plotCoefficient: warning in factor(Output, level =
+  outputNames[orderOutputs]): partial argument match of 'level' to
+  'levels'
+plotFPTPStage2Rates: warning in factor(Species, level =
+  speciesNameOrdered): partial argument match of 'level' to 'levels'
+computePredictiveProbs: no visible binding for global variable
+  ‘fitModel’
+computePredictiveProbs: no visible global function definition for
+  ‘transformCoefficients’
+computePredictiveProbs: no visible binding for global variable ‘Ks_new’
+computePredictiveProbs: no visible binding for global variable
+  ‘Xs_centers_new’
+computePredictiveProbs: no visible binding for global variable ‘Tr’
+computePredictiveProbs: no visible binding for global variable ‘X_ord’
+computePredictiveProbs: no visible global function definition for
+  ‘computePsiOutput’
+plotSpatialEffect: no visible global function definition for
+  ‘returnSpatialEffect’
+plotSpatialEffect: no visible binding for global variable ‘Bs_output’
+plotSpatialEffect: no visible binding for global variable ‘Ks’
+returnSpatialEffectMean: no visible binding for global variable
+  ‘Xs_centers’
+simulateData: no visible binding for global variable ‘list_Xs’
+Undefined global functions or variables:
+  Bs_output Ks Ks_new Tr X_ord Xs_centers Xs_centers_new
+  computePsiOutput fitModel list_Xs returnSpatialEffect
+  transformCoefficients
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in Rd file 'predictNewSites.Rd'
+  ‘verbose’
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of ‘data’ directory ... OK
+* checking data for non-ASCII characters ... OK
+* checking LazyData ... OK
+* checking data for ASCII and uncompressed saves ... OK
+* checking line endings in C/C++/Fortran sources/headers ... OK
+* checking line endings in Makefiles ... OK
+* checking compilation flags in Makevars ... OK
+* checking for GNU extensions in Makefiles ... WARNING
+Found the following file(s) containing GNU extensions:
+  src/Makevars
+Portable Makefiles do not use GNU extensions such as +=, :=, $(shell),
+$(wildcard), ifeq ... endif, .NOTPARALLEL See section ‘Writing portable
+packages’ in the ‘Writing R Extensions’ manual.
+* checking for portable use of $(BLAS_LIBS) and $(LAPACK_LIBS) ... OK
+* checking use of PKG_*FLAGS in Makefiles ... OK
+* checking compiled code ... OK
+* checking installed files from ‘inst/doc’ ... OK
+* checking files in ‘vignettes’ ... OK
+* checking examples ... OK
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ...
+  Running ‘testthat.R’
+ OK
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes ... OK
+* checking re-building of vignette outputs ... OK
+* DONE
+
+Status: 2 WARNINGs, 2 NOTEs
+See
+  ‘/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/bd5de39e-eb02-40a3-8e29-59158b2104f2/scratchpad/release-0.1.1/occJSDM.Rcheck/00check.log’
+for details.
+
