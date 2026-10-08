@@ -65,11 +65,10 @@ site_colours <- c("100" = "#56B4E9", "300" = "#D55E00")
 # The fitted response is shown by line type, so these colours keep one meaning.
 response_linetypes <- c(quadratic = "solid", linear = "dotdash")
 
-# Keep the registered ternary theme elements valid when vignettes share a session.
-theme_set(ggtern::theme_bw(base_size = 12))
+theme_set(ggplot2::theme_bw(base_size = 12))
 ```
 
-The last line sets ggtern's version of `theme_bw()`; [Lesson 3](occJSDM-lesson-3.md#what-this-lesson-answers) explains why the lessons use it.
+The last line sets a white-background theme for all the plots in this lesson. Individual plots can still add their own theme settings.
 
 ## 1. Does more data help when ecology becomes harder?
 

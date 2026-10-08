@@ -20,7 +20,7 @@ You will learn to:
 5.  Separate reliable computation from accurate ecological estimation.
 6.  Use what makes the model joint to predict one species from another.
 
-All teaching code is visible. Knit this file, or run its chunks with `vignettes` as the working directory. Rendering reads a compact results bundle and does **not** fit any models. The optional simulation and fitting chunks are shown with `eval=FALSE`; run them deliberately if you want to repeat the experiment. Knitting needs only the four packages loaded below and ggtern, which installing occJSDM also installs; gllvm, sjSDM and Hmsc are needed only for the optional fits in the appendix.
+All teaching code is visible. Knit this file, or run its chunks with `vignettes` as the working directory. Rendering reads a compact results bundle and does **not** fit any models. The optional simulation and fitting chunks are shown with `eval=FALSE`; run them deliberately if you want to repeat the experiment. Knitting needs only the four packages loaded below; gllvm, sjSDM and Hmsc are needed only for the optional fits in the appendix.
 
 **What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R for Data Science on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. The unusual operations, base R’s `sweep()` and `integrate()`, are explained where they appear.
 
@@ -67,11 +67,10 @@ predictions <- predictions |>
     absolute_error_pp = abs(signed_error_pp)
   )
 
-# This theme also works after occJSDM loads its ternary-plot dependency.
-theme_set(ggtern::theme_bw(base_size = 12))
+theme_set(ggplot2::theme_bw(base_size = 12))
 ```
 
-The last line sets ggtern’s version of `theme_bw()`; [Lesson 3](occJSDM-lesson-3.md#what-this-lesson-answers) explains why the lessons use it.
+The last line sets a white-background theme for all the plots in this lesson. Individual plots can still add their own theme settings.
 
 `comparison` is a list. Here is every element it holds:
 

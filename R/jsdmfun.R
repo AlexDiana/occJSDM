@@ -1761,9 +1761,11 @@ returnVariancePartitioningMatrix <-  function(varPart_output, speciesNames){
 
 plotVarPart <- function(varPart_output, speciesNames){
 
+  load_ggtern_for_plot()
+
   vp <- returnVariancePartitioningMatrix(varPart_output, speciesNames)
 
-  ggtern(vp,
+  ggtern::ggtern(vp,
          aes(x = Env,
              y = Biotic,
              z = Spatial)) +
@@ -1773,8 +1775,8 @@ plotVarPart <- function(varPart_output, speciesNames){
     #   T = "Biotic",
     #   R = "Spatial"
     # ) +
-    theme_bw() +
-    theme_showarrows() +
+    ggtern::theme_bw(base_size = 11) +
+    ggtern::theme_showarrows() +
     theme(
       legend.position = "none",
       tern.axis.title.T = element_text(size = 13),
