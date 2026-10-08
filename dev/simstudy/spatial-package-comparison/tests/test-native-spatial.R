@@ -1,0 +1,35 @@
+library(testthat)
+for(f in c("config.R","basis.R","adapter-contract.R","adapter-occjsdm.R","adapter-hmsc.R","adapter-gllvm.R")) if(file.exists(file.path("..",f))) source(file.path("..",f))
+test_that("conditional moments retain residual and propagated uncertainty", {
+  K <- matrix(c(1,.5,.5,1),2); C <- matrix(c(.2,.04,.04,.3),2)
+  mu <- c(1,-1); cross <- matrix(c(.3,.1),1)
+  a <- cross %*% solve(K)
+  out <- conditional_spatial_moments(mu,C,K,cross,matrix(1,1))
+  expect_equal(out$mean,as.vector(a %*% mu))
+  expect_equal(out$covariance,1-a %*% t(cross)+a %*% C %*% t(a))
+  same <- conditional_spatial_moments(mu,C,K,K,K)
+  expect_equal(same$mean,mu,tolerance=1e-12)
+  expect_equal(same$covariance,C,tolerance=1e-12)
+  far <- conditional_spatial_moments(mu,C,K,matrix(0,1,2),matrix(1,1))
+  expect_equal(far$mean,0); expect_equal(far$covariance,matrix(1,1))
+})
+test_that("normal link integration handles latent uncertainty rather than plug-in means", {
+  mu <- c(-2,0,1.2); sd <- c(.2,1,2)
+  expect_equal(normal_integral(mu,sd,pnorm),pnorm(mu/sqrt(1+sd^2)),tolerance=1e-6)
+  exact <- mapply(function(m,s) integrate(function(z) plogis(m+s*z)*dnorm(z),-Inf,Inf,rel.tol=1e-10)$value,mu,sd)
+  expect_equal(normal_integral(mu,sd,plogis),exact,tolerance=1e-6)
+  expect_gt(abs(normal_integral(1,2,plogis)-plogis(1)),.05)
+})
+test_that("Hmsc and gllvm native fixtures certify fields and prediction targets", {
+  fixture <- "native-spatial-fixture.R"
+  expect_true(file.exists(fixture))
+  if (!file.exists(fixture)) return(invisible(NULL))
+  launcher <- normalizePath("../run-r"); code <- normalizePath("..")
+  root <- Sys.getenv("SPATIAL_NATIVE_SMOKE_ROOT",unset=tempfile()); dir.create(root,recursive=TRUE,showWarnings=FALSE)
+  for(package in c("Hmsc","gllvm")) {
+    result <- suppressWarnings(system2(launcher,c("-f",shQuote(normalizePath(fixture)),"--args",shQuote(code),shQuote(root),package),stdout=TRUE,stderr=TRUE))
+    expect_null(attr(result,"status"),info=paste(tail(result,25),collapse="\n"))
+    again <- suppressWarnings(system2(launcher,c("-f",shQuote(normalizePath(fixture)),"--args",shQuote(code),shQuote(root),package,"predict"),stdout=TRUE,stderr=TRUE))
+    expect_null(attr(again,"status"),info=paste(tail(again,25),collapse="\n"))
+  }
+})
