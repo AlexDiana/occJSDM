@@ -33,3 +33,17 @@ test_that("Hmsc and gllvm native fixtures certify fields and prediction targets"
     expect_null(attr(again,"status"),info=paste(tail(again,25),collapse="\n"))
   }
 })
+test_that("quadrature certifies all targets even with broad Gaussian fields", {
+  mu <- matrix(c(-2,1,12,0),2); sd <- matrix(c(.2,2,20,0),2)
+  exact <- matrix(mapply(function(m,s) integrate(function(z) plogis(m+s*z)*dnorm(z),-Inf,Inf,rel.tol=1e-11)$value,as.vector(mu),as.vector(sd)),2)
+  got <- certified_normal_integral(mu,sd)
+  expect_equal(got$value,exact,tolerance=1e-6)
+  expect_gt(got$adaptive_cells,0L)
+})
+test_that("training moments survive a singular extrapolation kernel", {
+  C <- diag(.2,2)
+  f <- list(training_xy=rbind(c(0,0),c(1,1)),native=list(params=list(theta=matrix(c(1,2),1,2),sigma.lv=c(1,1),rho.lv=c(1e20,1e20)),lvs=matrix(1:4,2),A=array(c(C,C),c(2,2,2))))
+  got <- gllvm_field_moments(f,list(xy=f$training_xy))
+  expect_equal(as.vector(got$mean),as.vector(f$native$lvs %*% matrix(c(1,2),2)))
+  expect_equal(as.vector(got$variance),rep(1,2))
+})

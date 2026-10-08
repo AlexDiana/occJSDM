@@ -75,22 +75,55 @@ summarize_draw_blocks <- function(prediction,extractor,link,conditioning) {
   fields <- c("p_full","p_space_zero","p_env_zero","p_both_zero","field_mean","field_median")
   out <- setNames(lapply(fields,function(x) matrix(NA_real_,n,S)),fields)
   intervals <- setNames(lapply(c("probability_lower","probability_upper","field_lower","field_upper"),function(x) matrix(NA_real_,n,S)),c("probability_lower","probability_upper","field_lower","field_upper"))
+  mcse <- setNames(lapply(c(fields[1:4],"delta_p","field"),function(x) matrix(NA_real_,n,S)),c(fields[1:4],"delta_p","field"))
   for (idx in split(seq_len(n),ceiling(seq_len(n)/25L))) {
+    rng_before <- if(exists(".Random.seed",globalenv(),inherits=FALSE)) get(".Random.seed",globalenv()) else NULL
     draws <- extractor(idx)
+    attr(draws,"rng_before") <- rng_before
+    sink <- getOption("spatial.draw_sink")
+    if(is.function(sink)) sink(prediction$site_id[idx],draws)
+    ni <- dim(draws$p_full)[3]; nc <- dim(draws$p_full)[4]
+    for(nm in names(mcse)) {
+      values <- if(nm=="delta_p") draws$p_full-draws$p_space_zero else draws[[nm]]
+      mcse[[nm]][idx,] <- apply(values,c(1,2),function(x) {
+        if(all(x==x[1])) 0 else suppressWarnings(posterior::mcse_mean(matrix(x,ni,nc)))
+      })
+    }
     for (nm in fields[1:4]) out[[nm]][idx,] <- apply(draws[[nm]],c(1,2),mean)
     out$field_mean[idx,] <- apply(draws$field,c(1,2),mean)
     out$field_median[idx,] <- apply(draws$field,c(1,2),median)
+    if(!is.null(draws$field_raw)) {
+      if(is.null(out$historical_field_median_centered)) out$historical_field_median_centered <- matrix(NA_real_,n,S)
+      out$historical_field_median_centered[idx,] <- apply(draws$field_raw,c(1,2),median)
+    }
     for (pair in list(c("p_full","probability"),c("field","field"))) {
       intervals[[paste0(pair[2],"_lower")]][idx,] <- apply(draws[[pair[1]]],c(1,2),quantile,probs=.025)
       intervals[[paste0(pair[2],"_upper")]][idx,] <- apply(draws[[pair[1]]],c(1,2),quantile,probs=.975)
     }
   }
+  if(!is.null(out$historical_field_median_centered)) out$historical_field_median_centered <- sweep(out$historical_field_median_centered,2,colMeans(out$historical_field_median_centered),"-")
   c(list(schema_version=1L,site_id=prediction$site_id,species_id=prediction$species_id,
     target="realised-landscape occurrence probability",link=link,conditioning=conditioning),out,
-    list(delta_p=out$p_full-out$p_space_zero,intervals=intervals,
+    list(delta_p=out$p_full-out$p_space_zero,intervals=intervals,mcse=mcse,
     uncertainty=list(status="available",reason="Unthinned posterior draws; Bernoulli state uncertainty excluded")))
 }
 subset_prediction <- function(prediction,idx) {
   out <- prediction; out$site_id <- prediction$site_id[idx]
   out$xy <- prediction$xy[idx,,drop=FALSE]; out$environment <- prediction$environment[idx,,drop=FALSE]; out
+}
+certified_normal_integral <- function(mu,sd,inverse_link=plogis) {
+  low <- normal_integral(mu,sd,inverse_link,n=60L); high <- normal_integral(mu,sd,inverse_link,n=100L)
+  error <- abs(low-high); bad <- which(!is.finite(error)|error>1e-6)
+  adaptive_error <- numeric(length(bad))
+  for(k in seq_along(bad)) {
+    i <- bad[k]; m <- mu[i]; s <- sd[i]
+    integrand <- function(z) inverse_link(m+s*z)*dnorm(z)
+    a <- integrate(integrand,-Inf,Inf,rel.tol=1e-9,abs.tol=1e-10,subdivisions=200L)
+    b <- integrate(integrand,-Inf,Inf,rel.tol=1e-11,abs.tol=1e-12,subdivisions=400L)
+    adaptive_error[k] <- max(abs(a$value-b$value),b$abs.error)
+    if(!is.finite(adaptive_error[k])||adaptive_error[k]>1e-6) stop("Adaptive normal quadrature failed certification")
+    high[i] <- b$value
+  }
+  list(value=high,adaptive_cells=length(bad),max_refinement_error=max(c(if(length(bad)) error[-bad] else error,adaptive_error,0)),
+    method="60/100-node Gaussian quadrature with independently refined adaptive integration for discrepant cells")
 }

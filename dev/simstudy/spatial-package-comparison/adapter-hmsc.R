@@ -113,6 +113,7 @@ predict_hmsc <- function(fit_record,prediction,basis) {
   out$site_id <- prediction$site_id
   for(nm in c("p_full","p_space_zero","p_env_zero","p_both_zero","delta_p","field_mean","field_median")) out[[nm]] <- out[[nm]][undo,,drop=FALSE]
   out$intervals <- lapply(out$intervals,function(x) x[undo,,drop=FALSE])
+  out$mcse <- lapply(out$mcse,function(x) x[undo,,drop=FALSE])
   out$prediction_seed <- seed
   validate_prediction(out,prediction); out
 }

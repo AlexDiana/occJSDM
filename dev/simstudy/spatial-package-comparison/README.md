@@ -23,3 +23,28 @@ Use `./dev/simstudy/spatial-package-comparison/run-r -f SCRIPT --args ...`, or i
 Run the archive, runtime and basis tests using the private launcher and `testthat::test_file(..., stop_on_failure=TRUE)`. Runtime acceptance runs the original generator, oracle and score tests from a frozen snapshot, with the rebuilt occJSDM library first. Adapter certification is additional work; acceptance alone does not establish a valid new prediction target.
 
 Scientific dispatch must wait for the adapters, diagnostic selection, runner, launcher and preflight checks. The timing pilot covers all 16 arm types in the first community's spread and clustered arrangements plus 16 oracles. Its conservative remaining wall-time estimate must be at most the agreed 48 hours at four workers before full dispatch. The separate per-attempt resource stop is 24 hours. Both limits and the unchanged 960-attempt ceiling are in the specification. Durable launch commands will be documented only after their dummy-job acceptance tests pass.
+
+## Detached execution
+
+The launcher passed tests for closed stdin, survival after its starting shell exits, owned-process interruption, atomic completion, and deterministic job-level resume. This is not MCMC checkpointing or a guarantee against shutdown or explicit host cleanup. On this Mac the wrapper uses `caffeinate -i -s`; use mains power and keep the lid open. If the host kills detached descendants, use a host-owned launchd job with the same frozen command and logs.
+
+After the independent infrastructure review and adapter certification, run preflight through `run-r`. It verifies the reconstructed inputs and private runtime, prepares common bases and oracle-only inputs, then freezes study sources, protocol, config and public input hashes. Scientific workers use that snapshot. Use absolute paths in the commands below, substituting the actual isolated checkout for `CHECKOUT` and the persistent archive for `RUN`.
+
+```sh
+CHECKOUT/dev/simstudy/spatial-package-comparison/run-r -f CHECKOUT/dev/simstudy/spatial-package-comparison/run.R --args --mode=preflight --input-mode=reconstructed --repo=CHECKOUT --run=RUN
+CHECKOUT/dev/simstudy/spatial-package-comparison/launch.sh RUN/launch-pilot-01 RUN/snapshot/study/run-r -f RUN/snapshot/study/run.R --args --mode=fit --input-mode=reconstructed --phase=pilot --workers=4 --run=RUN
+```
+
+Each launch needs a new log directory. `owner.json` and `child.json` identify only that launch's processes; `stdout.log`, `stderr.log`, `exit.json` and `complete.json` report its outcome. Every worker has separate logs, input request, owned PID and completion hashes. A file named `fit.rds` alone is not a completed attempt. Resume by repeating the frozen command through a new launcher directory; verified completed jobs are not refitted, pending requests retain their original identity, and interrupted attempts remain listed. Resource interruptions at 24 hours require a budget amendment before retrying the cell.
+
+After the pilot completes, run `--mode=checkpoint --run=RUN`. The report budgets every remaining Bayesian extension and six point starts, labels measured versus extrapolated costs, and includes prediction/I/O time. It checks the agreed 48-hour remaining-time limit and available disk space while reserving 10 GiB for the OS and working files. Full dispatch with `--phase=full` is blocked unless both checks pass. The disk guard changes no statistical budget or draw retention. Synthetic `--mode=smoke --phase=smoke` runs use separate explicitly synthetic archives and cannot certify the scientific timing gate.
+
+## Prediction and uncertainty
+
+All four ablations share the same fitted parameters and the same centring over training sites. Probability differences are averaged after inverse-link integration. Hmsc conditional fields use a cached implementation certified against its native Full predictor; covariance factorisation failure is explicit. gllvm uses its full within-factor variational covariance and conditional new-site residual variance, with every probability target checked by refined Gaussian or adaptive quadrature. Its reported spatial intervals omit coefficient, loading and range uncertainty; fixed-basis intervals are unavailable. sjSDM uses the pinned training likelihood's bounded logistic-normal marginal; native ordinary probit predictions are retained separately. No primary sjSDM spatial-probability intervals are claimed.
+
+Lattice summaries use at most 25 sites per draw block. They retain posterior Monte Carlo errors and raw draws at the fixed 50-cell audit grid, with block IDs, draw IDs and RNG state so a fresh process can reconstruct the same conditional draws. Blocks with independently simulated conditional fields are marginal blocks, not a joint draw over the entire lattice. Full native training draws remain losslessly reconstructible. Only the GP and oracle training outputs additionally carry the historical pointwise-median-then-centre summary.
+
+## Archive location
+
+The persistent run index is `/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-package-comparison-20261008`. Its `jobs/` link points to `/Volumes/occJSDM Research/occJSDM/spatial-package-comparison-20261008/jobs`. The research volume UUID is `8667ADC0-D4C2-4B79-85DF-C44B181E8C24`; `storage-record.json` and the archive identity file bind this location before dispatch. Keep the drive connected during fitting. The storage checkpoint measures the jobs volume, whose space is shared with the separate Time Machine volume. Source, certification and independent review records are required before scientific preflight and must match the executed source snapshot.

@@ -52,7 +52,10 @@ gllvm_field_moments <- function(fit_record,prediction) {
     Knt <- exp(-xy_distances(prediction$xy,xy)/range)
     Knn <- exp(-xy_distances(prediction$xy,prediction$xy)/range)
     C <- native$A[,,q]; mu <- native$lvs[,q]
-    conditional <- conditional_spatial_moments(mu,C,Ktt,Knt,Knn)
+    distances <- xy_distances(prediction$xy,xy)
+    matched <- apply(distances,1,function(d) { found <- which(d==0); if(length(found)) found[1] else NA_integer_ })
+    conditional <- if(!anyNA(matched)) list(mean=mu[matched],covariance=C[matched,matched,drop=FALSE],covariance_with_training=C[matched,,drop=FALSE]) else
+      conditional_spatial_moments(mu,C,Ktt,Knt,Knn)
     vc <- mean(C); cross <- rowMeans(conditional$covariance_with_training)
     cv <- pmax(diag(conditional$covariance)+vc-2*cross,0)
     mean <- mean+conditional$mean %o% L[,q]
@@ -81,15 +84,11 @@ predict_gllvm <- function(fit_record,prediction,basis) {
   if(!is.null(native_moments)) {
     variance <- do.call(rbind,lapply(native_moments,`[[`,"variance"))
     sd <- sqrt(variance); center_sd <- matrix(rep(sqrt(native_moments[[1]]$center_variance),each=n),n,S)
-    out$p_full <- normal_integral(terms$intercept+terms$environment+terms$spatial,sd)
-    out$p_env_zero <- normal_integral(terms$intercept+terms$spatial,sd)
-    out$p_space_zero <- normal_integral(terms$intercept+terms$environment,center_sd)
-    out$p_both_zero <- normal_integral(terms$intercept,center_sd)
-    # Compare a higher-order quadrature before reporting supported probabilities.
-    checks <- c(full=max(abs(out$p_full-normal_integral(terms$intercept+terms$environment+terms$spatial,sd,n=100L))),
-      zero=max(abs(out$p_space_zero-normal_integral(terms$intercept+terms$environment,center_sd,n=100L))))
-    if(max(checks)>1e-6) stop("gllvm Gaussian quadrature refinement failed")
-    out$integration_checks <- checks
+    mus <- rbind(terms$intercept+terms$environment+terms$spatial,terms$intercept+terms$environment,
+      terms$intercept+terms$spatial,terms$intercept)
+    quadrature <- certified_normal_integral(mus,rbind(sd,center_sd,sd,center_sd))
+    for(k in 1:4) out[[c("p_full","p_space_zero","p_env_zero","p_both_zero")[k]]] <- quadrature$value[(1:n)+(k-1)*n,,drop=FALSE]
+    out$integration_checks <- quadrature[names(quadrature)!="value"]
     field_sd <- sqrt(do.call(rbind,lapply(native_moments,`[[`,"centered_variance")))
     mu <- terms$intercept+terms$environment+terms$spatial
     out$intervals <- list(probability_lower=plogis(mu-qnorm(.975)*sd),probability_upper=plogis(mu+qnorm(.975)*sd),

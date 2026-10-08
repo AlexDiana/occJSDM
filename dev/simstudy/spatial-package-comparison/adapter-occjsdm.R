@@ -53,6 +53,7 @@ occ_draw_extractor <- function(fit_record,prediction,basis) {
     if(length(idx)>25L) stop("Prediction draw block exceeds 25 sites")
     dims <- c(length(idx),S,ni,nc)
     result <- setNames(lapply(1:5,function(x) array(NA_real_,dims)),c("p_full","p_space_zero","p_env_zero","p_both_zero","field"))
+    if(isTRUE(getOption("spatial.retain_raw_field"))) result$field_raw <- array(NA_real_,dims)
     for (ch in seq_len(nc)) for (it in seq_len(ni)) {
       B <- matrix(js$B_output[,,it,ch],ncol(X),S)
       env <- X[idx,envcol,drop=FALSE] %*% B[envcol,,drop=FALSE]
@@ -69,6 +70,7 @@ occ_draw_extractor <- function(fit_record,prediction,basis) {
       probs <- term_probabilities(terms,plogis)
       for(nm in names(probs)) result[[nm]][,,it,ch] <- probs[[nm]]
       result$field[,,it,ch] <- terms$spatial
+      if(!is.null(result$field_raw)) result$field_raw[,,it,ch] <- sp
     }
     result
   }

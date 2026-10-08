@@ -1,0 +1,15 @@
+library(testthat)
+source("../adapter-contract.R")
+test_that("block summaries retain audit draws and Monte Carlo errors", {
+  n <- 30L; ids <- list(site_id=paste0("s",1:n),species_id="species01")
+  set.seed(76); x <- array(plogis(rnorm(n*100*4)),c(n,1,100,4))
+  ex <- function(idx) list(p_full=x[idx,,,,drop=FALSE],p_space_zero=x[idx,,,,drop=FALSE]*.8,
+    p_env_zero=x[idx,,,,drop=FALSE]*.9,p_both_zero=x[idx,,,,drop=FALSE]*.7,field=x[idx,,,,drop=FALSE])
+  received <- list(); old <- options(spatial.draw_sink=function(ids,d) received[[length(received)+1L]] <<- list(ids=ids,draws=d))
+  on.exit(options(old))
+  p <- summarize_draw_blocks(ids,ex,"logit","synthetic")
+  expect_equal(p$p_full,apply(x,c(1,2),mean))
+  expect_length(received,2L); expect_length(received[[1]]$ids,25L)
+  expect_equal(p$mcse$p_full[1,1],posterior::mcse_mean(matrix(x[1,1,,],100,4)))
+  expect_equal(p$mcse$delta_p[1,1],.2*p$mcse$p_full[1,1],tolerance=1e-12)
+})
