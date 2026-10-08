@@ -9,6 +9,7 @@ stopifnot(unname(tools::md5sum(generator_path)) == unname(b$provenance$script_ha
 source(generator_path)
 tolerance <- 1e-12
 checks <- list()
+replay <- list()
 record <- function(community, check, n, difference = 0, exact = FALSE) {
   stopifnot(is.finite(difference), difference <= if (exact) 0 else tolerance)
   checks[[length(checks) + 1L]] <<- data.frame(community, check, n,
@@ -58,6 +59,25 @@ for (r in 1:3) {
   record(id, "occupied_counts_both_arms", length(occupied), max(abs(occupied - ss$occupied)), TRUE)
   record(id, "detection_counts_both_arms", length(detections), max(abs(detections - ss$detections)), TRUE)
   record(id, "mean_true_probability", length(mean_psi), max(abs(mean_psi - ss$truth)))
+
+  # Replay the generator's data stream through the two environmental normal
+  # vectors and species-field normal matrix, then recover its occupancy uniforms.
+  N <- nrow(inp$landscape$points); S <- length(inp$landscape$species)
+  set.seed(sweep_seed("spatial-design-data", r))
+  invisible(rnorm(N)); invisible(rnorm(N)); invisible(rnorm(N * S))
+  u <- matrix(runif(N * S), N, S)
+  z <- matrix(as.integer(u < inp$landscape$psi), N, S)
+  stopifnot(identical(z, unname(inp$landscape$z)))
+  record(id, "replayed_uniforms_match_regenerated_z", length(z), exact = TRUE)
+  gap <- min(abs(u - inp$landscape$psi))
+  stopifnot(is.finite(gap), gap > tolerance)
+  replay[[r]] <- data.frame(community = id, n = length(u),
+    minimum_uniform_threshold_distance = gap, comparison_tolerance = tolerance)
+  if (r == 1L) {
+    z_saved_psi <- matrix(as.integer(u < b$landscape$psi), N, S)
+    stopifnot(identical(z_saved_psi, unname(inp$landscape$z)))
+    record(id, "saved_original_psi_and_replayed_uniforms_match_z", length(z), exact = TRUE)
+  }
 }
 cat("R: ", R.version.string, "\n", sep = "")
 cat("RNG: ", paste(RNGkind(), collapse = ", "), "\n", sep = "")
@@ -65,5 +85,7 @@ cat("Generator MD5: ", unname(tools::md5sum(generator_path)), "\n", sep = "")
 cat("Bundle MD5: ", unname(tools::md5sum(bundle_path)), "\n", sep = "")
 cat("Original package revision: ", b$provenance$revision, "\n", sep = "")
 write.csv(do.call(rbind, checks), stdout(), row.names = FALSE)
+cat("Replay threshold margins (current stream; full historical probabilities survive only for rep01):\n")
+write.csv(do.call(rbind, replay), stdout(), row.names = FALSE)
 cat("PASS: reconstruction agrees with all checked surviving evidence.\n")
 cat("LIMIT: original full inputs and posterior draws are absent; no original-file or full-response-matrix identity is certified.\n")

@@ -31,6 +31,8 @@ Original package revision: 9af859795974839ee6038d00b6d8422ae77b047f
 "rep01","occupied_counts_both_arms",64,0,"exact"
 "rep01","detection_counts_both_arms",64,0,"exact"
 "rep01","mean_true_probability",64,4.44089209850063e-16,"absolute <= 1e-12"
+"rep01","replayed_uniforms_match_regenerated_z",15360,0,"exact"
+"rep01","saved_original_psi_and_replayed_uniforms_match_z",15360,0,"exact"
 "rep02","survey_coordinates",800,0,"exact"
 "rep02","saved_two_species_fields",800,8.88178419700125e-16,"absolute <= 1e-12"
 "rep02","all_species_zero_field_rmse",32,4.88498130835069e-15,"absolute <= 1e-12"
@@ -46,6 +48,7 @@ Original package revision: 9af859795974839ee6038d00b6d8422ae77b047f
 "rep02","occupied_counts_both_arms",64,0,"exact"
 "rep02","detection_counts_both_arms",64,0,"exact"
 "rep02","mean_true_probability",64,5.55111512312578e-16,"absolute <= 1e-12"
+"rep02","replayed_uniforms_match_regenerated_z",15360,0,"exact"
 "rep03","survey_coordinates",800,0,"exact"
 "rep03","saved_two_species_fields",800,8.88178419700125e-16,"absolute <= 1e-12"
 "rep03","all_species_zero_field_rmse",32,4.66293670342566e-15,"absolute <= 1e-12"
@@ -61,5 +64,11 @@ Original package revision: 9af859795974839ee6038d00b6d8422ae77b047f
 "rep03","occupied_counts_both_arms",64,0,"exact"
 "rep03","detection_counts_both_arms",64,0,"exact"
 "rep03","mean_true_probability",64,4.44089209850063e-16,"absolute <= 1e-12"
+"rep03","replayed_uniforms_match_regenerated_z",15360,0,"exact"
+Replay threshold margins (current stream; full historical probabilities survive only for rep01):
+"community","n","minimum_uniform_threshold_distance","comparison_tolerance"
+"rep01",15360,2.6541097582853e-06,1e-12
+"rep02",15360,2.33175033496624e-05,1e-12
+"rep03",15360,3.2893184673255e-05,1e-12
 PASS: reconstruction agrees with all checked surviving evidence.
 LIMIT: original full inputs and posterior draws are absent; no original-file or full-response-matrix identity is certified.
