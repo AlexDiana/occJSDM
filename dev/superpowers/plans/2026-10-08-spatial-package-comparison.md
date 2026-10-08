@@ -25,6 +25,8 @@
 
 ## Review Focus
 
+**Execution correction E12, 8 October:** recover the pilot's Hmsc version-spelling validation failures from saved native fits before any Hmsc selection. Preserve original error/completion bytes and the immutable scientific snapshot; normalise the loaded version through `package_version()` in a hash-checked execution overlay. Drain the active workers without interrupting their fits, finish the four-worker pilot, and retain the six-worker continuation and conservative four-worker time gate. Label the eight Hmsc extensions as administrative, retain all attempts, and add no refits. Export/report provenance must include E11 and E12, the recovery receipts and the independently observed finish-time upper bounds.
+
 1. Restored folders can be incomplete, and seeded reconstruction is not proof of original-file identity: Task 1 must validate the selected route, reject mismatched evidence and keep the provenance distinction in exports.
 2. Prediction sites can coincide with training sites, lie far away, or encounter neighbour-distance ties: Task 2 must preserve the fitted basis and expose extrapolation rather than recomputing it.
 3. A native `predict()` can silently omit latent fields or use a different probit scale: Tasks 3 and 4 must certify probability targets and conditional variance.

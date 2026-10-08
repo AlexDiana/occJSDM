@@ -66,7 +66,7 @@ verify_package_identity <- function(record) {
     if(!identical(as.character(utils::packageVersion(r$package,lib.loc=dirname(actual))),r$version)) stop("Runtime package version mismatch: ",r$package)
     if(r$package %in% loadedNamespaces()) {
       loaded <- getNamespaceInfo(asNamespace(r$package),"path")
-      if(!identical(normalizePath(loaded),normalizePath(r$path)) || !identical(as.character(getNamespaceVersion(r$package)),r$version)) stop("Loaded runtime package mismatch: ",r$package)
+      if(!identical(normalizePath(loaded),normalizePath(r$path)) || !identical(as.character(package_version(getNamespaceVersion(r$package))),r$version)) stop("Loaded runtime package mismatch: ",r$package)
     }
     files <- list.files(actual,recursive=TRUE,full.names=TRUE)
     observed <- setNames(md5(files),substring(files,nchar(actual)+2L))
