@@ -17,6 +17,7 @@ reference:
   contents:
   - computeDiagnostics
   - returnConvergenceDiagnostics
+  - returnPosteriorDraws
   - plotTraceplot
   - extractWAIC
   - computeSiteWAIC

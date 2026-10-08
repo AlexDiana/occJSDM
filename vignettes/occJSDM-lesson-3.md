@@ -249,7 +249,20 @@ Here the rows identify the actual parameter to investigate. For example, `theta0
 
 ### Read a traceplot for a collection covariate
 
-A traceplot shows the sampled value against iteration, with a colour for each chain. `returnConvergenceDiagnostics()` above is the package’s route to the numbers; `plotTraceplot()` draws the traces from an array of draws that keeps chains separate. The package has no function yet that returns such an array from a fit: the [appendix](#read-trace-draws-from-the-fit-object) shows how to take one from `fitmodel$results_output`, and a per-chain accessor is planned (`TODO.md`).
+A traceplot shows the sampled value against iteration, with a colour for each chain. `returnConvergenceDiagnostics()` above is the package’s route to the numbers. `returnPosteriorDraws()` extracts one parameter’s draws from your fit, keeping chains separate, and `plotTraceplot()` draws their traces. Select a covariate and species by their fitted names; the returned labels are also used in the plot.
+
+``` r
+collection_draws <- occJSDM::returnPosteriorDraws(
+  fitmodel, "beta_theta", covariate = "X_theta",
+  species = c("OTU_1", "OTU_6")
+)
+
+occJSDM::plotTraceplot(
+  collection_draws, param_name = "Collection effect (log-odds)"
+)
+```
+
+The array keeps four dimensions: coefficient or primer, species, saved iteration and chain. A single selection keeps its dimension at length one, so the same code works for one species or one chain. Coefficients remain on the fitted scale, including the standardization of numeric covariates. The [appendix](#read-trace-draws-from-the-fit-object) shows the other parameter names and primer selections.
 
 For this page, the small saved bundle retains all draws and all four chains for OTU_1 and OTU_6 so the panels remain readable. We add the known collection effects on the **fitted standardized-covariate scale**, using the same scale conversion as the collection-coefficient plot below.
 
@@ -349,32 +362,35 @@ The traces make this slow movement visible: each chain spends stretches at relat
 
 In that example the chains explore the same range of values, only slowly. A different failure is possible. Chains can each settle on a different explanation of the same observations, each looking stable on its own, so that the pooled summary averages the two. Rhat compares chains, so it flags this only when chains actually land in different explanations. One of our simulation studies found such a mirror explanation when laboratory contamination was set far above what the default priors assume; the [appendix](#the-mirror-labelling-study) describes it.
 
-To check your own fit, summarise each chain separately for every species. This needs a two-stage or occupancy fit with at least two chains and two species. The collection and field-contamination arrays are `NULL` for a plain JSDM fit, and with one species or one chain the arrays lose a dimension.
+To check your own fit, summarise each chain separately for every species. Comparing chains needs at least two chains. The collection and field-contamination parameters require a two-stage or occupancy fit; `returnPosteriorDraws()` gives an error if a requested parameter has no saved draws. A single species is supported.
 
 ``` r
-results <- fitmodel$results_output
-
-# Summarise over iterations (dimension 2), keeping species and chains apart.
+# Summarise over iterations (dimension 3), keeping species and chains apart.
 chain_summary <- function(draws, statistic = mean) {
-  out <- apply(draws, c(1, 3), statistic)
-  dimnames(out) <- list(fitmodel$infos$speciesNames,
-                        paste0("chain_", seq_len(ncol(out))))
-  round(out, 3)
+  round(apply(draws, c(2, 4), statistic), 3)
 }
 
-chain_summary(results$theta0_output)
-chain_summary(results$theta0_output, sd)
+field_draws <- occJSDM::returnPosteriorDraws(fitmodel, "theta0")
+chain_summary(field_draws)
+chain_summary(field_draws, sd)
 
 # Collection intercept, then the two occupancy slopes.
-chain_summary(results$beta_theta_output[1, , , ])
-chain_summary(results$beta_theta_output[1, , , ], sd)
-chain_summary(results$jsdm_output$B_output[1, , , ])
-chain_summary(results$jsdm_output$B_output[2, , , ])
+intercept_draws <- occJSDM::returnPosteriorDraws(
+  fitmodel, "beta_theta", covariate = "(Intercept)"
+)
+chain_summary(intercept_draws)
+chain_summary(intercept_draws, sd)
+chain_summary(occJSDM::returnPosteriorDraws(
+  fitmodel, "beta_psi", covariate = "X_psi.EnvCov.1"
+))
+chain_summary(occJSDM::returnPosteriorDraws(
+  fitmodel, "beta_psi", covariate = "X_psi.EnvCov.2"
+))
 
-chain_summary(results$jsdm_output$B0_output)
+chain_summary(occJSDM::returnPosteriorDraws(fitmodel, "beta0_psi"))
 ```
 
-`theta0_output` and `jsdm_output$B0_output`, which holds the occupancy intercepts, are species by iteration by chain. The first row of `beta_theta_output` is the collection intercept, on the log-odds scale at the mean of the standardized collection covariates (and reference levels of factors). Rows 1 and 2 of `jsdm_output$B_output` are the occupancy slopes on the first and second environmental covariates.
+Each call above selects one coefficient or species-only parameter, so averaging over iterations leaves one mean per species and chain. `beta0_psi` holds the occupancy intercepts. The collection intercept is on the log-odds scale at the mean of the standardized collection covariates (and reference levels of factors). The two `beta_psi` selections are occupancy slopes on the first and second environmental covariates.
 
 The warning sign is a species whose chains fall into groups with means that differ by far more than each chain’s own standard deviation. In the study the two groups’ `theta0` means were about 0.036 and 0.25, with chain standard deviations of about 0.025 and 0.04.
 
@@ -1665,7 +1681,7 @@ Each question names the functions that answer it and where these lessons check t
 - **What about PCR failures and contamination?** `plotDetectionRates()`, `plotStage1FPRates()`, `plotStage2FPRates()`. Truth check: combined and separate rate plots above; actual cases in Lesson 2.
 - **How does sampling effort affect detection?** `plotCumulativeSpeciesDetections()`. Truth check: package survey-outcome intervals with exact true ranges above.
 - **What happened at a particular site or sample?** `computeConditionalOccupancyProbs()`, `computeConditionalSamplePresenceProbs()`, `computePredictiveOccupancyProbs()`, `returnLatentPresences()`, `plotLatentPresences()`. Truth check: package tables above, with matching states and probabilities.
-- **Can I trust the computation?** `computeDiagnostics()`, `returnConvergenceDiagnostics()`, `plotTraceplot()`, `extractWAIC()`. Truth check: diagnostics at the start of this lesson; these have no single simulated true value.
+- **Can I trust the computation?** `computeDiagnostics()`, `returnConvergenceDiagnostics()`, `returnPosteriorDraws()`, `plotTraceplot()`, `extractWAIC()`. Truth check: diagnostics at the start of this lesson; these have no single simulated true value.
 - **How well does it predict unsurveyed sites?** `predictNewSites()`. Truth check: 300 independent non-spatial sites in [Lesson 4](occJSDM-lesson-4.md), with clearly distinguished probability targets.
 - **What about spatial prediction?** Spatial model outputs. [The spatial lesson](occJSDM-lesson-7.md) works through a site-arrangement sweep; this lesson does not validate spatial outputs.
 
@@ -2015,97 +2031,58 @@ The study also ran 8 chains with a Beta(1, 100) prior on `theta0`. None of them 
 
 ### Read trace draws from the fit object
 
-These are the extraction steps behind the three traceplots in the diagnostics section. They read internal slots of the fit object, which may change between package versions; a per-chain accessor is planned (`TODO.md`).
+Use `returnPosteriorDraws()` to extract the underlying draws for the traceplots and per-chain checks in the diagnostics section. The six supported parameter names are `beta0_psi`, `beta_psi`, `beta_theta`, `p`, `q` and `theta0`. Chains remain separate, and the function preserves all four dimensions when selecting one coefficient, species or primer.
 
 #### A collection covariate
 
-First locate the collection covariate by name. The array has dimensions `[covariate, species, iteration, chain]`; `drop = FALSE` retains those four dimensions after selecting one covariate.
-
-``` r
-collection_name <- "X_theta"
-collection_index <- match(collection_name, colnames(fitmodel$X_theta))
-
-stopifnot(!is.na(collection_index))
-
-collection_draws <- fitmodel$results_output$beta_theta_output[
-  collection_index, , , , drop = FALSE
-]
-
-occJSDM::plotTraceplot(
-  collection_draws,
-  param_name = "Collection effect (log-odds)",
-  dimnames1 = collection_name,
-  dimnames2 = fitmodel$infos$speciesNames
-)
-```
-
-That call plots every species.
+The example in the diagnostics section selects `X_theta` for two species. Leave out `species` to return every species. Use `covariate = "(Intercept)"` to select the collection intercept. Available collection names are in `colnames(fitmodel$X_theta)`; occupancy names for `beta_psi` are in `colnames(fitmodel$X_psi)`.
 
 #### A primer
 
-The same method applies to `p` and `q`, but their first dimension is primer rather than covariate. Primer identifiers may be stored as numbers, so convert their labels to character before matching.
+The same method applies to `p` and `q`, but their first dimension is primer rather than covariate. Select a primer by its identifier from `fitmodel$infos$primerNames`, not its position in that list. A numeric identifier and its character form select the same primer.
 
 ``` r
-primer_name <- "1"
-primer_index <- match(primer_name, as.character(fitmodel$infos$primerNames))
-
-stopifnot(!is.na(primer_index))
-
-primer_draws <- fitmodel$results_output$p_output[
-  primer_index, , , , drop = FALSE
-]
+primer_draws <- occJSDM::returnPosteriorDraws(fitmodel, "p", primer = "1")
 
 occJSDM::plotTraceplot(
   primer_draws,
-  param_name = "PCR detection probability",
-  dimnames1 = primer_name,
-  dimnames2 = fitmodel$infos$speciesNames
+  param_name = "PCR detection probability"
 )
 ```
 
 #### The field-contamination parameter
 
-For a species-only parameter such as `theta0`, the saved array has three dimensions: `[species, iteration, chain]`. Do not apply the four-index expression above to it. The first line loads the archived alternative-prior fit; with your own data, use your own fit instead.
+For species-only parameters `theta0` and `beta0_psi`, the first dimension has length one and is labelled with the parameter name. Species are still on the second axis, iterations on the third and chains on the fourth. The first line below loads the archived alternative-prior fit; with your own data, use your own fit instead.
 
 ``` r
 alternative_fit <- readRDS("/path/to/full-fits/alternative-long-fit.rds")$fit
-species_index <- match("OTU_6", alternative_fit$infos$speciesNames)
-
-stopifnot(!is.na(species_index))
-
-field_draws <- alternative_fit$results_output$theta0_output[
-  species_index, , , drop = FALSE
-]
+field_draws <- occJSDM::returnPosteriorDraws(
+  alternative_fit, "theta0", species = "OTU_6"
+)
 
 occJSDM::plotTraceplot(
   field_draws,
-  param_name = "Field-contamination probability",
-  dimnames1 = "OTU_6"
+  param_name = "Field-contamination probability"
 )
 ```
 
-#### Where to find other parameter draws
+#### Other parameters and newer diagnostics
 
-Start from `fitmodel$results_output`. Keep the iteration and chain dimensions separate when calculating diagnostics; pooling chains into one vector destroys the information Rhat needs. Each bullet names an array within `results_output`, the parameter it holds, and its dimensions before a parameter is selected.
+For an occupancy intercept, use `parameter = "beta0_psi"`; for an environmental effect, use `parameter = "beta_psi"` and select its `covariate`. The accessor currently covers the six occupancy and detection parameter types listed above. Measured trait-effect draws remain in `fitmodel$results_output$jsdm_output$G_output`, with dimensions trait, environmental covariate, iteration and chain.
 
-- `jsdm_output$B0_output`: occupancy intercept; species, iteration, chain.
-- `jsdm_output$B_output`: environmental effect; covariate, species, iteration, chain.
-- `jsdm_output$G_output`: measured trait effect; trait, environmental covariate, iteration, chain.
-- `beta_theta_output`: collection intercept or effect; covariate, species, iteration, chain.
-- `p_output`, `q_output`: PCR detection or false-positive rate; primer, species, iteration, chain.
-- `theta0_output`: field-contamination rate; species, iteration, chain.
+Keep the iteration and chain dimensions separate when calculating diagnostics; pooling chains into one vector destroys the information Rhat needs. The accessor does not recover per-chain draws from stored posterior means of latent states.
 
 For example, direct newer diagnostics for one environmental coefficient use an **iteration-by-chain matrix**. This optional code requires the `posterior` package:
 
 ``` r
-environment_index <- match("X_psi.EnvCov.1", colnames(fitmodel$X_psi))
-species_index <- match("OTU_1", fitmodel$infos$speciesNames)
-
-stopifnot(!anyNA(c(environment_index, species_index)))
-
-coefficient_draws <- fitmodel$results_output$jsdm_output$B_output[
-  environment_index, species_index, ,
-]
+selected_draws <- occJSDM::returnPosteriorDraws(
+  fitmodel, "beta_psi", covariate = "X_psi.EnvCov.1", species = "OTU_1"
+)
+# Select the two length-one axes; keep a matrix even with one chain.
+coefficient_draws <- matrix(
+  selected_draws[1, 1, , , drop = FALSE],
+  nrow = dim(selected_draws)[3], ncol = dim(selected_draws)[4]
+)
 
 tibble(
   Rhat = posterior::rhat(coefficient_draws),

@@ -22,9 +22,13 @@ as4d <- function(param_output) {
   if (nd == 4) {
     return(param_output)
   } else if (nd == 3) {
-    return(array(param_output, dim = c(d[1], 1, d[2], d[3])))
+    dn <- dimnames(param_output)
+    if (!is.null(dn)) dn <- list(dn[[1]], NULL, dn[[2]], dn[[3]])
+    return(array(param_output, dim = c(d[1], 1, d[2], d[3]), dimnames = dn))
   } else if (nd == 2) {
-    return(array(param_output, dim = c(1, 1, d[1], d[2])))
+    dn <- dimnames(param_output)
+    if (!is.null(dn)) dn <- list(NULL, NULL, dn[[1]], dn[[2]])
+    return(array(param_output, dim = c(1, 1, d[1], d[2]), dimnames = dn))
   } else {
     stop("param_output must be an array with 2, 3, or 4 dimensions")
   }
@@ -113,9 +117,9 @@ computeRhat <- function(param_output) {
 #' @param param_output A numeric array with 2, 3, or 4 dimensions.
 #' @param param_name A label for the parameter, stored in the `param` column.
 #' @param dimnames1 Optional labels for the first index dimension (e.g.
-#'   covariate names). Defaults to `1:dim1`.
+#'   covariate names). Defaults to the array's labels, or `1:dim1` if unlabelled.
 #' @param dimnames2 Optional labels for the second index dimension (e.g.
-#'   species names). Defaults to `1:dim2`.
+#'   species names). Defaults to the array's labels, or `1:dim2` if unlabelled.
 #'
 #' @return A tibble with columns `param`, `label1`, `label2`, `chain`, `iter`,
 #'   `value`.
@@ -129,8 +133,10 @@ paramOutputToLong <- function(param_output, param_name = "parameter",
   niter <- dim(param_output)[3]
   nchain <- dim(param_output)[4]
 
-  label1 <- if (!is.null(dimnames1)) dimnames1 else as.character(seq_len(dim1))
-  label2 <- if (!is.null(dimnames2)) dimnames2 else as.character(seq_len(dim2))
+  label1 <- if (!is.null(dimnames1)) dimnames1 else dimnames(param_output)[[1]]
+  label2 <- if (!is.null(dimnames2)) dimnames2 else dimnames(param_output)[[2]]
+  if (is.null(label1)) label1 <- as.character(seq_len(dim1))
+  if (is.null(label2)) label2 <- as.character(seq_len(dim2))
 
   purrr::map_dfr(seq_len(dim1), function(x) {
     purrr::map_dfr(seq_len(dim2), function(y) {
@@ -212,9 +218,9 @@ summarisePosterior <- function(param_output, param_name = "parameter",
 #'   one or both of the leading index dimensions).
 #' @param param_name A label for the parameter, used for the y-axis title.
 #' @param dimnames1 Optional labels for the first index dimension (e.g.
-#'   covariate names). Defaults to `1:dim1`.
+#'   covariate names). Defaults to the array's labels, or `1:dim1` if unlabelled.
 #' @param dimnames2 Optional labels for the second index dimension (e.g.
-#'   species names). Defaults to `1:dim2`.
+#'   species names). Defaults to the array's labels, or `1:dim2` if unlabelled.
 #'
 #' @return A `ggplot` object.
 #' @export
@@ -444,5 +450,3 @@ computeDiagnostics <- function(results_output){
   invisible(NULL)
 
 }
-
-

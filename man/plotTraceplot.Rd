@@ -19,10 +19,10 @@ one or both of the leading index dimensions).}
 \item{param_name}{A label for the parameter, used for the y-axis title.}
 
 \item{dimnames1}{Optional labels for the first index dimension (e.g.
-covariate names). Defaults to `1:dim1`.}
+covariate names). Defaults to the array's labels, or `1:dim1` if unlabelled.}
 
 \item{dimnames2}{Optional labels for the second index dimension (e.g.
-species names). Defaults to `1:dim2`.}
+species names). Defaults to the array's labels, or `1:dim2` if unlabelled.}
 }
 \value{
 A `ggplot` object.
