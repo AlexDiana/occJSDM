@@ -1,0 +1,11 @@
+#!/bin/sh
+# The old Rscript/R shell wrappers follow the global framework symlink.
+# Invoke the matching interpreter directly; never change the system symlink.
+set -eu
+export R_HOME="${SPATIAL_R_HOME:-/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-package-comparison-20261008/runtime/R-home}"
+export R_SHARE_DIR="$R_HOME/share" R_INCLUDE_DIR="$R_HOME/include" R_DOC_DIR="$R_HOME/doc"
+export R_LIBS_USER="${SPATIAL_LIBRARY:-/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-package-comparison-20261008/library}:/Users/douglasyu/Documents/Codex/2026-09-10/fam/work/lesson-n-environment-20260922/library"
+export RETICULATE_PYTHON=/Users/douglasyu/src/s-jSDM/work/mojo-backend/reticulate-venv/bin/python
+export RETICULATE_USE_MANAGED_VENV=no PYTHONDONTWRITEBYTECODE=1 SJSDM_MOJO_BACKEND=0
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1
+exec "$R_HOME/bin/exec/R" --vanilla --slave "$@"
