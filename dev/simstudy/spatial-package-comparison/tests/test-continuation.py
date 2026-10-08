@@ -32,4 +32,29 @@ class ContinuationTests(unittest.TestCase):
         p=subprocess.run([sys.executable,str(source),str(root)],capture_output=True,text=True,timeout=1)
         self.assertEqual(p.returncode,2,p.stderr)
         self.assertFalse((root/'calls.jsonl').exists())
+    def test_six_worker_policy_retains_checkpoint_before_external_controller(self):
+        root=self.fixture(); coordinator=root/'coordinate-six.py'
+        coordinator.write_text('import pathlib,json,sys\nr=pathlib.Path(sys.argv[3])\nwith (r/"calls.jsonl").open("a") as f: f.write(json.dumps(["--mode=external_full",*sys.argv[1:]])+"\\n")\n')
+        import hashlib
+        policy=dict(workers=6,coordinator_path=str(coordinator),coordinator_sha256=hashlib.sha256(coordinator.read_bytes()).hexdigest())
+        (root/'execution-policy.json').write_text(json.dumps(policy))
+        p=self.run_driver(root); self.assertEqual(p.returncode,0,p.stderr)
+        calls=[json.loads(x) for x in (root/'calls.jsonl').read_text().splitlines()]
+        self.assertEqual(calls[2][0],'--mode=external_full')
+        self.assertIn('6',calls[2]); self.assertIn('full',calls[2])
+        self.assertTrue(any('--mode=checkpoint' in x for x in calls[:2]))
+    def test_changed_external_controller_is_rejected(self):
+        root=self.fixture(); coordinator=root/'coordinate-six.py'; coordinator.write_text('raise SystemExit(0)')
+        (root/'execution-policy.json').write_text(json.dumps(dict(workers=6,coordinator_path=str(coordinator),coordinator_sha256='wrong')))
+        p=self.run_driver(root); self.assertEqual(p.returncode,2,p.stderr)
+        self.assertFalse((root/'calls.jsonl').exists())
+    def test_controller_is_rechecked_after_the_wait_and_checkpoint(self):
+        root=self.fixture(); coordinator=root/'coordinate-six.py'; coordinator.write_text('raise SystemExit(0)')
+        import hashlib
+        (root/'execution-policy.json').write_text(json.dumps(dict(workers=6,coordinator_path=str(coordinator),coordinator_sha256=hashlib.sha256(coordinator.read_bytes()).hexdigest())))
+        launcher=root/'snapshot/study/run-r'
+        text=launcher.read_text().replace('raise SystemExit(', 'if "--mode=checkpoint" in sys.argv: (r/"coordinate-six.py").write_text("# changed\\nraise SystemExit(0)")\nraise SystemExit(')
+        launcher.write_text(text)
+        p=self.run_driver(root); self.assertEqual(p.returncode,2,p.stderr)
+        self.assertEqual(len((root/'calls.jsonl').read_text().splitlines()),2)
 if __name__=='__main__': unittest.main()

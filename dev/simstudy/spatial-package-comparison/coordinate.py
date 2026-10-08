@@ -66,5 +66,5 @@ def coordinate(launcher, script, run, phase, workers, kind, jobs):
 if __name__=='__main__':
     launcher,script,run,phase,workers,kind,jobs=sys.argv[1:]
     workers=int(workers)
-    if not 1<=workers<=4: raise SystemExit('Workers must be 1 through 4')
+    if not 1<=workers<=6: raise SystemExit('Workers must be 1 through 6')
     raise SystemExit(coordinate(launcher,script,run,phase,workers,kind,jobs))
