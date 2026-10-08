@@ -2123,10 +2123,10 @@ extractWAIC <- function(fitModel, type = c("site", "legacy"), ...) {
 
 #' returnVariancePartitioning
 #'
-#' Compute the variance partitioning for each species
+#' Compute the variation partitioning for each species
 #'
 #' @details
-#' Compute the variance partitioning for each species
+#' Compute the variation partitioning for each species
 #'
 #' @param fitModel Output from the function runOccJSDM
 #'
@@ -2153,7 +2153,7 @@ returnVariancePartitioning <- function(fitModel){
 
 #' plotVariancePartitioning
 #'
-#' Plot the variance partitioning for each species
+#' Plot the variation partitioning for each species
 #'
 #' @details
 #' This ternary plot uses ggtern, which is loaded when this function is called.

@@ -13,7 +13,7 @@ plotVariancePartitioning(fitModel)
 A ggplot object
 }
 \description{
-Plot the variance partitioning for each species
+Plot the variation partitioning for each species
 }
 \details{
 This ternary plot uses ggtern, which is loaded when this function is called.

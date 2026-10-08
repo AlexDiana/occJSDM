@@ -13,10 +13,10 @@ returnVariancePartitioning(fitModel)
 A matrix of size (species x 4)
 }
 \description{
-Compute the variance partitioning for each species
+Compute the variation partitioning for each species
 }
 \details{
-Compute the variance partitioning for each species
+Compute the variation partitioning for each species
 }
 \examples{
 \dontrun{
