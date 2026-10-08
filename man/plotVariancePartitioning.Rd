@@ -16,7 +16,10 @@ A ggplot object
 Plot the variance partitioning for each species
 }
 \details{
-Plot the variance partitioning for each species
+This ternary plot uses ggtern, which is loaded when this function is called.
+The user's active ggplot2 theme is preserved. With ggtern 4.0.0, the function
+also corrects two invalid ternary tick-length defaults, so ordinary ggplot2
+themes continue to work after drawing the ternary plot.
 }
 \examples{
 \dontrun{

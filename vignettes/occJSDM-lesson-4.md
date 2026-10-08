@@ -26,11 +26,10 @@ lesson <- readRDS("teaching-data/nonspatial-lesson.rds")
 known_truth <- lesson$input$sim$true_params
 species_order <- colnames(lesson$input$sim$data_list$OTU)
 
-# This theme also works after occJSDM loads its ternary-plot dependency.
-theme_set(ggtern::theme_bw(base_size = 12))
+theme_set(ggplot2::theme_bw(base_size = 12))
 ```
 
-The last line sets ggtern’s version of `theme_bw()`; [Lesson 3](occJSDM-lesson-3.md#what-this-lesson-answers) explains why the lessons use it.
+The last line sets a white-background theme for all the plots in this lesson. Individual plots can still add their own theme settings.
 
 `lesson` is the same bundle Lessons 2 and 3 use. This lesson needs only its simulated survey and the generating parameters, `known_truth`, which no fit saw. The new sites and both fits’ predictions there are loaded in the next section.
 

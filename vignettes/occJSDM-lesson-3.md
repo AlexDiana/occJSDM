@@ -55,11 +55,10 @@ n_sites <- n_distinct(lesson$input$sim$data_list$info$Site)
 mirror_chains <- read.csv("teaching-data/mirror-labelling-chains.csv", comment.char = "#")
 mirror_original <- filter(mirror_chains, run == "original 4-chain fit")
 
-# This theme also works after occJSDM loads its ternary-plot dependency.
-theme_set(ggtern::theme_bw(base_size = 12))
+theme_set(ggplot2::theme_bw(base_size = 12))
 ```
 
-The last line of the chunk sets the plotting theme from the ggtern package, which installing occJSDM also installs. occJSDM uses ggtern for its ternary plots, and once ggtern is loaded, `theme_set(ggplot2::theme_bw())` makes the next plot fail ggplot2’s check of a ternary theme element (`tern.axis.ticks.length.major`); ggtern’s own `theme_bw()` draws the same theme with those elements in place, so these lessons use it. If you plot with ggplot2 after loading occJSDM, do the same, or add `theme_bw()` to each plot instead of calling `theme_set()`.
+The last line of the chunk sets a white-background theme for all the plots in this lesson. `theme_set()` selects the shared style; adding a theme to an individual plot changes only that plot.
 
 Here is what the three teaching objects hold, and every column of the coefficient table that several sections use, with its first values.
 
@@ -502,8 +501,7 @@ library(ggplot2)
 
 native_truth <- native_examples$truth
 
-# Compatible with the ternary theme elements registered by occJSDM.
-native_theme <- ggtern::theme_bw(base_size = 12)
+native_theme <- ggplot2::theme_bw(base_size = 12)
 ```
 
 Start with the ordinary call and add the known coefficient as a black cross. Bars are native 95% posterior intervals, where “native”, here and in the captions, means drawn by the package’s own plotting function; these functions do not draw a posterior mean.
@@ -670,7 +668,7 @@ library(dplyr)
 library(ggplot2)
 
 remaining_truth <- remaining_examples$truth
-remaining_theme <- ggtern::theme_bw(base_size = 12)
+remaining_theme <- ggplot2::theme_bw(base_size = 12)
 ```
 
 ``` r
@@ -738,7 +736,7 @@ library(occJSDM)
 library(ggplot2)
 
 covariate_effect_truth <- covariate_effect_examples$truth
-covariate_effect_theme <- ggtern::theme_bw(base_size = 12)
+covariate_effect_theme <- ggplot2::theme_bw(base_size = 12)
 ```
 
 ``` r
@@ -859,11 +857,11 @@ native_trait_truth <- outputs$coefficients |>
   filter(arm == "default", block == "Trait") |>
   select(covariate, trait = term, truth)
 
-native_trait_theme <- ggtern::theme_bw(base_size = 12) +
+native_trait_theme <- ggplot2::theme_bw(base_size = 12) +
   theme(axis.text = element_text(angle = 0))
 ```
 
-The setup takes ggtern’s theme for the reason given at the [start of this lesson](#what-this-lesson-answers), and resets the axis text angle, which the package’s trait plot otherwise turns to vertical.
+The setup resets the axis text angle, which the package’s trait plot otherwise turns to vertical, so the species names are easier to read.
 
 ``` r
 native_traits_1 <- occJSDM::plotTraitsCoefficients(
