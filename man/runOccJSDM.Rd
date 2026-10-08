@@ -215,6 +215,27 @@ does not change the sampling stream. Consecutive fits without resetting the
 seed consume new draws. The calling session's RcppParallel thread setting
 is preserved.
 }
+\section{Field-contamination uncertainty}{
+
+\code{theta0} is the probability that DNA enters a field sample when
+the species is absent from the site. Its default is Beta(1,20), set by
+\code{a_theta0 = 1} and \code{b_theta0 = 20} in \code{listPriors}.
+In targeted low-contamination, non-spatial simulations with ten
+communities per design, its 95\% intervals contained the truth 97-98\%
+of the time. General interval calibration remains unestablished.
+
+Compared with historical Beta(1,30), the current prior produced intervals
+about 10-19\% wider and reduced downward mean error. Average absolute
+error changed little, with no clear advantage for either prior, and some
+validation fits retained numerical diagnostic flags. The default remains
+Beta(1,20). Check chain diagnostics and prior sensitivity; tightening the
+prior solely to reach 95\% coverage in selected simulations is not
+supported by this study. This concerns field contamination, separately
+from the laboratory false-positive rate \code{q}. See the
+\href{https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/theta0-prior-mean/REPORT.md}{prior-sensitivity report}
+and the repository README's Known limitations.
+}
+
 \examples{
 \dontrun{
 # Example usage

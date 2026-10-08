@@ -1,0 +1,13 @@
+low baseline PASS paired change arithmetic, common eligibility, community SE/t intervals; screened n 7 
+low field4 PASS paired change arithmetic, common eligibility, community SE/t intervals; screened n 4 
+low sites300 PASS paired change arithmetic, common eligibility, community SE/t intervals; screened n 2 
+high baseline PASS paired change arithmetic, common eligibility, community SE/t intervals; screened n 6 
+high field4 PASS paired change arithmetic, common eligibility, community SE/t intervals; screened n 4 
+high sites300 PASS paired change arithmetic, common eligibility, community SE/t intervals; screened n 2 
+Initial full comparison max absolute mean difference: 0.003744398 
+Initial full comparison max absolute width difference: 0.02634894 
+Initial comparison max absolute mean difference / sum MCSE: 2.129037 
+baseline known-state coverage 0.96 width 0.07951095 bias -0.001771814 full width/reference 1.641251 
+field4 known-state coverage 0.94 width 0.06014366 bias -0.002246194 full width/reference 1.689159 
+sites300 known-state coverage 0.93 width 0.05032149 bias -0.001928961 full width/reference 1.983365 
+PASS descriptive and paired report numbers independently reconstructed.

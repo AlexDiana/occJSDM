@@ -137,6 +137,8 @@ In the figures, **black crosses or lines show truth**. Coloured or black bars sh
 
 An interval can be wide because the data contain little information, because model components are hard to separate, or because the sampler has not adequately explored its posterior. The figures alone do not distinguish those causes. Check the numerical diagnostics before interpreting uncertainty.
 
+Good Rhat and ESS values tell you about the numerical sampling. They do not establish that 95% intervals will contain the truth in 95% of repeated surveys. For example, intervals for the field-contamination rate `theta0` covered the truth 97-98% of the time in a separate targeted low-contamination study. The default Beta(1,20) remains in place: the historical tighter prior narrowed intervals but shifted estimates down, with little clear difference in average absolute error. See [Lesson 2’s prior explanation](occJSDM-lesson-2.md#why-keep-the-current-field-contamination-prior) and the README’s [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations). Investigate flagged chains before interpreting an interval, then assess its sensitivity to the model assumptions.
+
 Think of each MCMC chain as a separate exploration of the parameter values that could explain the observations. After discarding the initial settling-in period, the chains should explore similar distributions. They need not take the same path or return the true value on every iteration. Our practical sequence is: obtain the diagnostics, identify individual parameters needing attention, inspect their traces, and decide whether further computation or investigation is needed.
 
 ### Start with an overview of each fit

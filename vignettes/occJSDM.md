@@ -141,6 +141,8 @@ head(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat"
 
 The shipped run still has 35 of its 130 reported coefficients above `rhat = 1.01` or below `ess = 400`. Its largest reported Rhat is about 1.083, for the field false-positive rate of `OTU_3`, and fitting also raised warnings about the spatial coefficients. The plots below demonstrate the output functions. Before interpreting flagged estimates in a scientific analysis, run longer chains and check them again; more iterations do not guarantee that the chains will agree.
 
+The field-contamination rate `theta0` has a Beta(1,20) prior. Its 95% intervals contained the truth 97-98% of the time in targeted low-contamination, non-spatial simulations; coverage in other surveys remains unestablished. Keep the current prior for the beta release, and read wide intervals together with chain diagnostics and prior sensitivity. See the [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) and the field-contamination uncertainty section in `?runOccJSDM`.
+
 ## Look at the results
 
 Each species’ baseline occupancy probability, with its credible interval:

@@ -1,0 +1,13 @@
+PASS: 81 disclosure, format and local-link checks.
+PASS: quickstart and Lessons 2 and 3 render to HTML and GitHub Markdown without fitting.
+PASS: shared link regression checks for all nine lesson sources/rendered documents.
+PASS: generated runOccJSDM help parses and passes tools::checkRd.
+PASS: complete R/runOccJSDM.R parsed expressions unchanged by the public-help comments.
+PASS: all 22 original teaching PNGs preserved byte-for-byte.
+PASS: all four unrelated help files restored byte-for-byte to HEAD after the first installed-namespace generation mistake.
+
+Disposition: Doug retains theta0 Beta(1,20); the targeted item is CLOSED in TODO. Wider calibration remains deferred. README, installed quickstart/function help and Lessons 2/3 disclose observed overcoverage, limited designs, prior sensitivity and numerical flags. Lesson publishing settings and the separate pending Alex endorsement of field-blank/control prior advice remain unchanged. The next release notes and paper limitations are recorded as further disclosure locations. No default or executable fitting expression changed.
+
+Rendering used the preserved R 4.5 runtime and private package without refitting. Its existing dependency-version warnings (packages built under R 4.5.2) appear only in raw render logs. Final help generation used the current source namespace; it changed only runOccJSDM.Rd. Raw logs include the mistaken first help pass and the successful current-source pass.
+
+Final wording review: the optional reviewer suggestion is addressed by saying "beta release" in the new retention sentences. The quickstart and Lesson 2 were rerendered after this change; both source and rendered text were checked. Fresh numerical/Rd, preservation, closure, format and shared-link checks passed. An independent public-documentation review found no critical or important issues; its full evidence is in public-disclosure-review.txt.

@@ -1,0 +1,21 @@
+Selected flags: 1 out of 6 
+                                    key max_rhat min_ess
+6 design-qnear_K6-sites300-01-mean1-b20  1.01705 247.463
+Max selected Rhat: 1.02455 
+Selected max absolute mean difference: 0.00425798 
+Selected max absolute width difference: 0.008803108 
+Selected max mean difference / summed MCSE: 2.129037 
+Width differences exceeding 3 times mean MCSE (not a width test): 5 
+PASS final selected numerical claims, subject to explicit mean-only MCSE wording.
+WARNING: unknown option '-'
+
+WARNING: unknown option '-'
+
+Additional raw-posterior audit uses inverse-CDF mass brackets with 1e-12 finite-precision tolerance, allowing an exact probability-boundary next-atom shift.
+design-qnear_K6-field4-01-mean0-b20 PASS selected input/job identity, raw posterior means/quantile brackets and all four diagnostic blocks
+design-qnear_K6-field4-01-mean1-b20 PASS selected input/job identity, raw posterior means/quantile brackets and all four diagnostic blocks
+design-qnear_K6-q20-01-mean0-b20 PASS selected input/job identity, raw posterior means/quantile brackets and all four diagnostic blocks
+design-qnear_K6-q20-01-mean1-b20 PASS selected input/job identity, raw posterior means/quantile brackets and all four diagnostic blocks
+design-qnear_K6-sites300-01-mean0-b20 PASS selected input/job identity, raw posterior means/quantile brackets and all four diagnostic blocks
+design-qnear_K6-sites300-01-mean1-b20 PASS selected input/job identity, raw posterior means/quantile brackets and all four diagnostic blocks
+PASS all six selected fit outputs agree with raw posterior draws and posterior diagnostics.

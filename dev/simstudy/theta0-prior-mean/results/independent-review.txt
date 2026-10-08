@@ -1,0 +1,66 @@
+WARNING: unknown option '-'
+
+01 design-qnear_K6-q20-01 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+02 design-qnear_K6-field4-01 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+03 design-qnear_K6-sites300-01 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+04 design-qnear_K6-q20-02 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+05 design-qnear_K6-field4-02 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+06 design-qnear_K6-sites300-02 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+07 design-qnear_K6-q20-03 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+08 design-qnear_K6-field4-03 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+09 design-qnear_K6-sites300-03 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+10 design-qnear_K6-q20-04 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+11 design-qnear_K6-field4-04 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+12 design-qnear_K6-sites300-04 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+13 design-qnear_K6-q20-05 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+14 design-qnear_K6-field4-05 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+15 design-qnear_K6-sites300-05 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+16 design-qnear_K6-q20-06 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+17 design-qnear_K6-field4-06 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+18 design-qnear_K6-sites300-06 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+19 design-qnear_K6-q20-07 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+20 design-qnear_K6-field4-07 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+21 design-qnear_K6-sites300-07 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+22 design-qnear_K6-q20-08 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+23 design-qnear_K6-field4-08 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+24 design-qnear_K6-sites300-08 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+25 design-qnear_K6-q20-09 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+26 design-qnear_K6-field4-09 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+27 design-qnear_K6-sites300-09 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+28 design-qnear_K6-q20-10 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+29 design-qnear_K6-field4-10 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+30 design-qnear_K6-sites300-10 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+31 design-qfar_K6-q20-01 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+32 design-qfar_K6-field4-01 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+33 design-qfar_K6-sites300-01 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+34 design-qfar_K6-q20-02 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+35 design-qfar_K6-field4-02 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+36 design-qfar_K6-sites300-02 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+37 design-qfar_K6-q20-03 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+38 design-qfar_K6-field4-03 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+39 design-qfar_K6-sites300-03 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+40 design-qfar_K6-q20-04 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+41 design-qfar_K6-field4-04 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+42 design-qfar_K6-sites300-04 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+43 design-qfar_K6-q20-05 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+44 design-qfar_K6-field4-05 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+45 design-qfar_K6-sites300-05 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+46 design-qfar_K6-q20-06 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+47 design-qfar_K6-field4-06 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+48 design-qfar_K6-sites300-06 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+49 design-qfar_K6-q20-07 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+50 design-qfar_K6-field4-07 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+51 design-qfar_K6-sites300-07 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+52 design-qfar_K6-q20-08 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+53 design-qfar_K6-field4-08 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+54 design-qfar_K6-sites300-08 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+55 design-qfar_K6-q20-09 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+56 design-qfar_K6-field4-09 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+57 design-qfar_K6-sites300-09 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+58 design-qfar_K6-q20-10 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+59 design-qfar_K6-field4-10 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+60 design-qfar_K6-sites300-10 PASS info/sample mapping, truth dimensions, known-state Beta, hashes, fit/input identity, source prior provenance
+PASS research function clone restores exactly to exported production fitter body.
+PASS independent iteration/chain joint log-ratio indexing and Normal densities.
+PASS weighted quantiles match expanded weighted sample inverse-CDF independently.
+R: R version 4.5.0 (2025-04-11) ; loo: 2.9.0 ; posterior: 1.7.0 
