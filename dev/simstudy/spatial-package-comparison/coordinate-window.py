@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run an authorised time window through the frozen scientific CLI, then stop."""
+"""Run an authorised window or completion queue through the frozen scientific CLI."""
 import fcntl, hashlib, json, math, os, pathlib, signal, subprocess, sys, time
 from launch import atomic_json
 
@@ -8,9 +8,20 @@ def run_window(launcher, script, run, policy_path, record_path):
     root=pathlib.Path(run).resolve(); policy_path=pathlib.Path(policy_path).resolve()
     policy=json.loads(policy_path.read_text()); record=pathlib.Path(record_path).resolve()
     if pathlib.Path(policy['run_root']).resolve()!=root: raise RuntimeError('Window run identity mismatch')
-    workers=policy['workers']; cutoff=policy['dispatch_until']; deadline=policy['stop_by']
-    if not isinstance(workers,int) or not 1<=workers<=6 or not math.isfinite(deadline) or not math.isfinite(cutoff) or cutoff>deadline:
-        raise RuntimeError('Invalid worker count or deadline')
+    mode=policy.get('mode','bounded_window')
+    if mode not in ('bounded_window','run_to_completion'): raise RuntimeError('Unknown scheduling mode')
+    bounded=mode=='bounded_window';workers=policy['workers']
+    if type(workers) is not int or not 1<=workers<=6: raise RuntimeError('Invalid worker count')
+    if bounded:
+        cutoff=policy['dispatch_until'];deadline=policy['stop_by']
+        if not math.isfinite(deadline) or not math.isfinite(cutoff) or cutoff>deadline:
+            raise RuntimeError('Invalid deadline')
+    else:
+        if 'dispatch_until' in policy or 'stop_by' in policy:
+            raise RuntimeError('Completion mode must not carry window deadlines')
+        cutoff=deadline=float('inf')
+    recorded_deadline=deadline if bounded else None
+    prefix='window' if bounded else 'fit'
     grace=float(policy.get('grace_seconds',10)); poll=float(policy.get('poll_seconds',1))
     if not 0<grace<=10 or not 0<poll<=1: raise RuntimeError('Invalid cleanup timing')
     def verify_control():
@@ -25,7 +36,7 @@ def run_window(launcher, script, run, policy_path, record_path):
     active={}; queue_proc=None; queue_logs=None; completed=[]; interrupted=[]; deferred=[]
     outcome='paused_window'; queue_interrupted=False; error=None
     def update(stage,**extra):
-        atomic_json(root/'continuation-status.json',dict(stage=stage,updated=time.time(),amendment='E14',window_record=str(record),deadline=deadline,**extra))
+        atomic_json(root/'continuation-status.json',dict(stage=stage,updated=time.time(),amendment=policy.get('amendment','E14'),mode=mode,window_record=str(record),deadline=recorded_deadline,**extra))
     def stop_signal(signum,_): raise SystemExit(128+signum)
     old_handlers={s:signal.signal(s,stop_signal) for s in (signal.SIGTERM,signal.SIGINT)}
     def group_members(proc):
@@ -77,7 +88,7 @@ def run_window(launcher, script, run, policy_path, record_path):
         return value if value>0 and math.isfinite(value) else float('inf')
     try:
         while time.time()<cutoff:
-            verify_control();update('window_queue')
+            verify_control();update(prefix+'_queue')
             queue=record/'dispatch.json'
             command=[launcher,'-f',script,'--args','--mode=queue','--run='+str(root),'--phase=full','--kind=all','--output='+str(queue)]
             queue_logs=[(record/'queue-stdout.log').open('ab',buffering=0),(record/'queue-stderr.log').open('ab',buffering=0)]
@@ -97,7 +108,7 @@ def run_window(launcher, script, run, policy_path, record_path):
                 if state['status']!='complete': raise RuntimeError('Scientific queue requires attention: '+state['status'])
                 outcome='complete';break
             pending=list(state['tasks']);ran=False
-            update('window_running',queued=len(pending),workers=workers)
+            update(prefix+'_running',queued=len(pending),workers=workers)
             while pending or active:
                 now=time.time()
                 if now>=deadline:
@@ -106,7 +117,7 @@ def run_window(launcher, script, run, policy_path, record_path):
                     break
                 for task in list(pending):
                     if len(active)>=workers or time.time()>=cutoff: break
-                    if budget(task)>deadline-time.time(): continue
+                    if bounded and budget(task)>deadline-time.time(): continue
                     directory=pathlib.Path(task['directory']);request=pathlib.Path(task['request'])
                     if root.joinpath('jobs').resolve() not in directory.resolve().parents or request.parent.resolve()!=directory.resolve():
                         raise RuntimeError('Task path outside owned job archive')
@@ -126,7 +137,10 @@ def run_window(launcher, script, run, policy_path, record_path):
                 if not active: break
                 time.sleep(poll)
             deferred=[t['directory'] for t in pending]
-            if interrupted or time.time()>=cutoff or not ran: break
+            if interrupted:
+                if not bounded: outcome='needs_attention';error='Per-attempt limit reached; recovery decision required'
+                break
+            if time.time()>=cutoff or not ran: break
             # Revisit the queue after useful work: shorter predictions/other tasks
             # can fit the remaining window even when a long extension cannot.
     except BaseException as exc:
@@ -140,9 +154,9 @@ def run_window(launcher, script, run, policy_path, record_path):
         if active:
             terminate([v[0] for v in active.values()])
             for pid in list(active): finish(pid,'resource_interrupted','window_controller_stopped')
-        result=dict(status=outcome,finished=time.time(),deadline=deadline,completed=completed,interrupted=interrupted,deferred=deferred,queue_interrupted=queue_interrupted,error=error,owned_processes_remaining=0,requires_authorisation_to_resume=True)
+        result=dict(status=outcome,finished=time.time(),mode=mode,deadline=recorded_deadline,completed=completed,interrupted=interrupted,deferred=deferred,queue_interrupted=queue_interrupted,error=error,owned_processes_remaining=0,requires_authorisation_to_resume=(outcome!='complete'))
         atomic_json(record/'complete.json',result)
-        update('paused_by_user' if outcome=='paused_window' else ('window_complete' if outcome=='complete' else 'window_needs_attention'),receipt=str(record/'complete.json'),interrupted=len(interrupted))
+        update('paused_by_user' if outcome=='paused_window' else (prefix+'_complete' if outcome=='complete' else prefix+'_needs_attention'),receipt=str(record/'complete.json'),interrupted=len(interrupted))
         print('SPATIAL WINDOW COMPLETE '+outcome,flush=True)
         for s,h in old_handlers.items(): signal.signal(s,h)
         lock.close()

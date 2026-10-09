@@ -97,7 +97,36 @@ else:
         (self.root/'tasks.json').write_text(json.dumps([t]));p=self.root/'policy.json';p.write_text(json.dumps(self.policy))
         result=subprocess.run([sys.executable,str(SOURCE),str(self.launcher),'unused.R',str(self.root),str(p),str(self.record)],capture_output=True,text=True,timeout=8)
         self.assertNotEqual(result.returncode,0)
+        receipt=json.loads((self.record/'complete.json').read_text())
+        self.assertIn('Scientific queue requires attention',receipt['error'])
         self.assertFalse((pathlib.Path(t['directory'])/'started').exists(),'Runnable task launched despite attention gate')
+    def completion_policy(self):
+        self.policy.update(mode='run_to_completion',amendment='E15')
+        for key in ('dispatch_until','stop_by','budgets'): del self.policy[key]
+    def test_completion_mode_runs_without_deadline_or_admission_budget(self):
+        self.completion_policy();t=self.task('complete',.2)
+        out=self.run_pool([t]);self.assertEqual(out['status'],'complete')
+        self.assertIsNone(out['deadline'])
+        self.assertFalse(out['requires_authorisation_to_resume'])
+        self.assertEqual((pathlib.Path(t['directory'])/'saved-result').read_text(),'finished')
+        status=json.loads((self.root/'continuation-status.json').read_text())
+        self.assertEqual(status['amendment'],'E15');self.assertEqual(status['stage'],'fit_complete')
+    def test_completion_mode_retains_attempt_timeout_and_does_not_retry(self):
+        self.completion_policy();t=self.task('limit',10,True);t['timeout_seconds']=.2
+        out=self.run_pool([t]);self.assertEqual(out['status'],'needs_attention')
+        self.assertEqual(len(out['interrupted']),1);self.assertEqual(out['completed'],[])
+        self.assertEqual(out['interrupted'][0]['reason'],'per_attempt_limit')
+        self.assertTrue(out['requires_authorisation_to_resume'])
+        owner=json.loads((pathlib.Path(t['directory'])/'owner.json').read_text())
+        with self.assertRaises(ProcessLookupError): os.kill(owner['pid'],0)
+    def test_completion_mode_retains_attention_gate(self):
+        self.completion_policy();self.test_attention_queue_stops_before_any_other_worker()
+    def test_completion_mode_rejects_conflicting_deadlines(self):
+        self.policy.update(mode='run_to_completion')
+        (self.root/'tasks.json').write_text('[]');p=self.root/'policy.json';p.write_text(json.dumps(self.policy))
+        result=subprocess.run([sys.executable,str(SOURCE),str(self.launcher),'unused.R',str(self.root),str(p),str(self.record)],capture_output=True,text=True,timeout=8)
+        self.assertNotEqual(result.returncode,0)
+        self.assertFalse((self.record/'owner.json').exists())
     def test_changed_control_is_rejected_before_dispatch(self):
         self.assertTrue(SOURCE.exists(),'Deadline-aware coordinator is not implemented')
         t=self.task('tamper');self.policy['files_sha256']={str(self.launcher):'0'*64}
