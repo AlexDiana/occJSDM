@@ -127,6 +127,23 @@ else:
         result=subprocess.run([sys.executable,str(SOURCE),str(self.launcher),'unused.R',str(self.root),str(p),str(self.record)],capture_output=True,text=True,timeout=8)
         self.assertNotEqual(result.returncode,0)
         self.assertFalse((self.record/'owner.json').exists())
+    def test_completion_mode_eight_workers_overlap_without_ninth(self):
+        self.completion_policy();self.policy['workers']=8
+        tasks=[self.task(str(i),.5) for i in range(9)]
+        out=self.run_pool(tasks);self.assertEqual(len(out['completed']),9)
+        starts=[float((pathlib.Path(t['directory'])/'started').read_text()) for t in tasks]
+        self.assertLess(max(starts[:8])-min(starts[:8]),.45)
+        self.assertGreater(starts[8]-min(starts[:8]),.45)
+    def test_worker_limits_reject_before_starting_any_job(self):
+        for mode,workers in [('bounded_window',7),('run_to_completion',9)]:
+            with self.subTest(mode=mode,workers=workers):
+                self.policy.update(mode=mode,workers=workers)
+                if mode=='run_to_completion':
+                    for key in ('dispatch_until','stop_by','budgets'): self.policy.pop(key,None)
+                p=self.root/'policy.json';p.write_text(json.dumps(self.policy))
+                result=subprocess.run([sys.executable,str(SOURCE),str(self.launcher),'unused.R',str(self.root),str(p),str(self.record)],capture_output=True,text=True,timeout=8)
+                self.assertNotEqual(result.returncode,0)
+                self.assertFalse((self.record/'owner.json').exists())
     def test_changed_control_is_rejected_before_dispatch(self):
         self.assertTrue(SOURCE.exists(),'Deadline-aware coordinator is not implemented')
         t=self.task('tamper');self.policy['files_sha256']={str(self.launcher):'0'*64}

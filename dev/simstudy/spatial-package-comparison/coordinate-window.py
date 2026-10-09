@@ -11,7 +11,7 @@ def run_window(launcher, script, run, policy_path, record_path):
     mode=policy.get('mode','bounded_window')
     if mode not in ('bounded_window','run_to_completion'): raise RuntimeError('Unknown scheduling mode')
     bounded=mode=='bounded_window';workers=policy['workers']
-    if type(workers) is not int or not 1<=workers<=6: raise RuntimeError('Invalid worker count')
+    if type(workers) is not int or not 1<=workers<=(6 if bounded else 8): raise RuntimeError('Invalid worker count')
     if bounded:
         cutoff=policy['dispatch_until'];deadline=policy['stop_by']
         if not math.isfinite(deadline) or not math.isfinite(cutoff) or cutoff>deadline:
