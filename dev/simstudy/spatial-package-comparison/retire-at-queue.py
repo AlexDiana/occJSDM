@@ -27,6 +27,24 @@ def retire(config_path,record_path):
     owner_path=old/'owner.json';owner=read(owner_path);expected=cfg['identity'];pid=expected['pid']
     if owner['pid']!=pid or hashlib.sha256(owner_path.read_bytes()).hexdigest()!=cfg['owner_sha256']:
         raise RuntimeError('Controller ownership changed')
+    caffeinate=cfg.get('caffeinate')
+    if caffeinate:
+        child_path=pathlib.Path(caffeinate['supervisor_child']).resolve()
+        child=read(child_path)
+        if (root not in child_path.parents or child['pid']!=pid or
+            hashlib.sha256(child_path.read_bytes()).hexdigest()!=caffeinate['supervisor_child_sha256'] or
+            child['command'][:3]!=['/usr/bin/caffeinate','-i','-s'] or
+            caffeinate['command']!=' '.join(child['command']) or
+            caffeinate['ppid']!=pid or caffeinate['pid']==pid):
+            raise RuntimeError('Caffeinate ownership mismatch')
+    def verified_helper(table):
+        if not caffeinate or caffeinate['pid'] not in table: return set()
+        row=table[caffeinate['pid']]
+        if (not identity_matches(caffeinate) or row['ppid']!=pid or
+            row['pgid']!=caffeinate['pgid'] or row['pgid']!=table[pid]['pgid'] or
+            any(r['ppid']==row['pid'] for r in table.values())):
+            raise RuntimeError('Caffeinate live identity mismatch')
+        return {row['pid']}
     poll=float(cfg.get('poll_seconds',1));cleanup=float(cfg.get('cleanup_seconds',30))
     queue_wait=float(cfg.get('queue_wait_seconds',1800))
     if not 0<poll<=1 or not 1<=cleanup<=40 or not 1<=queue_wait<=3600: raise RuntimeError('Invalid transition timings')
@@ -76,7 +94,8 @@ def retire(config_path,record_path):
             if queue_owner.get('coordinator_pid')!=pid or '--mode=queue' not in queue_owner.get('command',[]) or not outputs.intersection(queue_owner.get('command',[])):
                 raise RuntimeError('Queue ownership does not match the controller')
             direct={child for child in descendants if table[child]['ppid']==pid}
-            if direct-{queue_owner['pid']}:
+            helpers=verified_helper(table)
+            if direct-{queue_owner['pid']}-helpers:
                 raise RuntimeError('Unexpected live descendant; refusing retirement')
             if queue_owner['pid'] in table:
                 cmd=table[queue_owner['pid']]['command']
@@ -94,7 +113,8 @@ def retire(config_path,record_path):
             table=processes()
             if pid not in table or 'T' not in table[pid]['stat'] or read(root/'continuation-status.json')!=status:
                 raise RuntimeError('Controller resumed or queue generation changed during drain; refusing retirement')
-            if any(row['ppid']==pid or ('--mode=worker' in row['command'] and any(name in row['command'] for name in archive_names)) for row in table.values()):
+            helpers=verified_helper(table)
+            if any((row['ppid']==pid and row['pid'] not in helpers) or ('--mode=worker' in row['command'] and any(name in row['command'] for name in archive_names)) for row in table.values()):
                 raise RuntimeError('A worker or unexpected descendant appeared during drain; refusing retirement')
             queue=old/'dispatch.json'
             if not queue.exists() or queue.stat().st_mtime<queue_owner['started']:

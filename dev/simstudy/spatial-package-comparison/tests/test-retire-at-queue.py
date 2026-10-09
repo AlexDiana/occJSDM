@@ -16,12 +16,16 @@ class RetirementTests(unittest.TestCase):
         while not condition():
             self.assertLess(time.monotonic(),until,'Timed out waiting for process evidence')
             time.sleep(.02)
-    def start_controller(self):
+    def start_controller(self,wrapped=False):
         self.completion_policy();self.task_record=self.task('preserved',.6)
         (self.root/'tasks.json').write_text(json.dumps([self.task_record]))
         p=self.root/'policy.json';p.write_text(json.dumps(self.policy))
         self.logs=(self.root/'controller.log').open('w');self.addCleanup(self.logs.close)
-        self.proc=subprocess.Popen([sys.executable,str(fixture.SOURCE),str(self.launcher),'unused.R',str(self.root),str(p),str(self.record)],stdout=self.logs,stderr=self.logs,start_new_session=True)
+        command=[sys.executable,str(fixture.SOURCE),str(self.launcher),'unused.R',str(self.root),str(p),str(self.record)]
+        if wrapped:
+            self.supervisor=self.root/'supervisor';self.supervisor.mkdir()
+            command=[sys.executable,str(SOURCE.parent/'launch.py'),'--supervise',str(self.supervisor)]+command
+        self.proc=subprocess.Popen(command,stdout=self.logs,stderr=self.logs,start_new_session=True)
         def cleanup():
             if self.proc.poll() is None: self.proc.terminate();self.proc.wait(timeout=4)
         self.addCleanup(cleanup)
@@ -31,9 +35,17 @@ class RetirementTests(unittest.TestCase):
         self.next_task=self.task('next-batch',.2)
         (self.root/'tasks.json').write_text(json.dumps([self.task_record,self.next_task]))
     def config(self,stale=False):
-        line=subprocess.check_output(['/bin/ps','-p',str(self.proc.pid),'-o','lstart=,command='],text=True).strip()
+        controller_pid=json.loads((self.record/'owner.json').read_text())['pid']
+        line=subprocess.check_output(['/bin/ps','-p',str(controller_pid),'-o','lstart=,command='],text=True).strip()
         fields=line.split(None,5)
-        value=dict(run_root=str(self.root),coordinator_record=str(self.record),owner_sha256=hashlib.sha256((self.record/'owner.json').read_bytes()).hexdigest(),identity=dict(pid=self.proc.pid,lstart=' '.join(fields[:5]),command=fields[5]),poll_seconds=.02,cleanup_seconds=4)
+        value=dict(run_root=str(self.root),coordinator_record=str(self.record),owner_sha256=hashlib.sha256((self.record/'owner.json').read_bytes()).hexdigest(),identity=dict(pid=controller_pid,lstart=' '.join(fields[:5]),command=fields[5]),poll_seconds=.02,cleanup_seconds=4)
+        if hasattr(self,'supervisor'):
+            child_path=self.supervisor/'child.json';child=json.loads(child_path.read_text())
+            rows=subprocess.check_output(['/bin/ps','-axo','pid=,ppid=,pgid=,lstart=,command='],text=True)
+            helpers=[row.split(None,8) for row in rows.splitlines() if row.split(None,2)[1]==str(controller_pid)]
+            helpers=[f for f in helpers if f[8]==' '.join(child['command'])]
+            self.assertEqual(len(helpers),1,helpers);f=helpers[0]
+            value['caffeinate']=dict(pid=int(f[0]),ppid=int(f[1]),pgid=int(f[2]),lstart=' '.join(f[3:8]),command=f[8],supervisor_child=str(child_path),supervisor_child_sha256=hashlib.sha256(child_path.read_bytes()).hexdigest())
         if stale: value['identity']['lstart']='stale process identity'
         path=self.root/'transition.json';path.write_text(json.dumps(value));return path
     def retire(self,path):
@@ -55,6 +67,33 @@ class RetirementTests(unittest.TestCase):
         self.assertEqual(queue['tasks'],[self.next_task],'Administrative queue was interrupted before its result was saved')
         self.assertFalse((pathlib.Path(self.next_task['directory'])/'started').exists())
         self.assertFalse((self.root/'successor').exists(),'Retirement must never launch a successor')
+    @unittest.skipUnless(sys.platform=='darwin','macOS caffeinate topology')
+    def test_real_supervisor_caffeinate_exits_after_natural_queue_retirement(self):
+        self.start_controller(wrapped=True);path=self.config();cfg=json.loads(path.read_text())
+        result=self.retire(path);self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(self.proc.wait(timeout=3),143)
+        receipt=json.loads((self.root/'retirement/complete.json').read_text())
+        self.assertTrue(receipt['queue_finished_naturally'])
+        self.assertEqual(json.loads((self.record/'complete.json').read_text())['interrupted'],[])
+        self.assertFalse((pathlib.Path(self.next_task['directory'])/'started').exists())
+        remaining=subprocess.run(['/bin/ps','-p',str(cfg['caffeinate']['pid']),'-o','stat='],capture_output=True,text=True)
+        self.assertTrue(remaining.returncode!=0 or 'Z' in remaining.stdout)
+    @unittest.skipUnless(sys.platform=='darwin','macOS caffeinate topology')
+    def test_caffeinate_stale_identity_refuses_retirement_and_resumes_controller(self):
+        self.start_controller(wrapped=True);path=self.config();cfg=json.loads(path.read_text())
+        cfg['caffeinate']['lstart']='stale helper identity';path.write_text(json.dumps(cfg))
+        result=self.retire(path);self.assertNotEqual(result.returncode,0)
+        self.assertIn('Caffeinate live identity mismatch',result.stderr)
+        state=subprocess.check_output(['/bin/ps','-p',str(cfg['identity']['pid']),'-o','stat='],text=True)
+        self.assertNotIn('T',state)
+        self.assertFalse((self.record/'complete.json').exists())
+    @unittest.skipUnless(sys.platform=='darwin','macOS caffeinate topology')
+    def test_caffeinate_requires_bound_supervisor_child_record(self):
+        self.start_controller(wrapped=True);path=self.config();cfg=json.loads(path.read_text())
+        cfg['caffeinate']['supervisor_child_sha256']='0'*64;path.write_text(json.dumps(cfg))
+        result=self.retire(path);self.assertNotEqual(result.returncode,0)
+        self.assertIn('Caffeinate ownership mismatch',result.stderr)
+        self.assertIsNone(self.proc.poll())
     def test_live_study_worker_guard_resumes_controller_without_signalling_worker(self):
         self.start_controller()
         self.wait_for(lambda:json.loads((self.root/'continuation-status.json').read_text())['stage']=='fit_queue')
