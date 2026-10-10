@@ -1,0 +1,72 @@
+# diagnosis/extended-budget.R on seven jobs, 10 October 2026 evening, run from commit ae13699 through run-r.
+# The seven ran concurrently with other work, so the seconds are inflated by roughly 1.5 to 1.8 times a solo run.
+RESULT t1-r0.08-n300-rep1-uniform n=300 range=0.08 secs=271 pass=36/36 all_pass=TRUE gate_species_pass=27/27 min_bulk=616 min_tail=2193 max_rhat=1.0074 median_bulk=1818 proposals_per_block_step=3.69
+  stored job: phases=extension min_bulk=82 max_rhat=1.0540 median_bulk=149 elapsed=251
+  species effect at sites, stored vs this run: posterior mean correlation min=0.9952 median=0.9981; RMS difference median=0.055 against RMS mean median=0.977
+  training slope (gate species) median stored=0.759 this=0.758 max|diff|=0.014; training correlation median stored=0.855 this=0.860 max|diff|=0.005
+DONE t1-r0.08-n300-rep1-uniform 
+
+RESULT t1-r0.08-n300-rep2-uniform n=300 range=0.08 secs=271 pass=36/36 all_pass=TRUE gate_species_pass=27/27 min_bulk=682 min_tail=1810 max_rhat=1.0059 median_bulk=1603 proposals_per_block_step=3.60
+  stored job: phases=extension min_bulk=82 max_rhat=1.0559 median_bulk=134 elapsed=284
+  species effect at sites, stored vs this run: posterior mean correlation min=0.9966 median=0.9978; RMS difference median=0.059 against RMS mean median=0.891
+  training slope (gate species) median stored=0.763 this=0.754 max|diff|=0.009; training correlation median stored=0.872 this=0.869 max|diff|=0.007
+DONE t1-r0.08-n300-rep2-uniform 
+
+RESULT t1-r0.03-n300-rep1-uniform n=300 range=0.03 secs=271 pass=11/36 all_pass=FALSE gate_species_pass=8/27 min_bulk=284 min_tail=656 max_rhat=1.0224 median_bulk=489 proposals_per_block_step=3.68
+  FAIL field_average species 1 occupancy=0.05 bulk=409 tail=990 rhat=1.0130
+  FAIL field_truth_projection species 1 occupancy=0.05 bulk=284 tail=1127 rhat=1.0161
+  FAIL probability_average species 1 occupancy=0.05 bulk=488 tail=1012 rhat=1.0141
+  FAIL field_average species 2 occupancy=0.05 bulk=490 tail=1182 rhat=1.0141
+  FAIL probability_average species 2 occupancy=0.05 bulk=499 tail=1245 rhat=1.0157
+  FAIL field_truth_projection species 3 occupancy=0.05 bulk=349 tail=988 rhat=1.0201
+  FAIL field_average species 4 occupancy=0.25 bulk=562 tail=1317 rhat=1.0116
+  FAIL field_truth_projection species 4 occupancy=0.25 bulk=375 tail=1106 rhat=1.0067
+  FAIL probability_average species 4 occupancy=0.25 bulk=591 tail=1558 rhat=1.0116
+  FAIL field_truth_projection species 5 occupancy=0.25 bulk=327 tail=813 rhat=1.0141
+  FAIL field_average species 6 occupancy=0.25 bulk=388 tail=892 rhat=1.0188
+  FAIL field_truth_projection species 6 occupancy=0.25 bulk=356 tail=656 rhat=1.0224
+  FAIL probability_average species 6 occupancy=0.25 bulk=411 tail=967 rhat=1.0159
+  FAIL field_average species 7 occupancy=0.50 bulk=562 tail=1314 rhat=1.0122
+  FAIL field_truth_projection species 7 occupancy=0.50 bulk=389 tail=1110 rhat=1.0043
+  FAIL probability_average species 7 occupancy=0.50 bulk=569 tail=1359 rhat=1.0124
+  FAIL field_average species 8 occupancy=0.50 bulk=432 tail=854 rhat=1.0115
+  FAIL field_truth_projection species 8 occupancy=0.50 bulk=290 tail=946 rhat=1.0188
+  FAIL probability_average species 8 occupancy=0.50 bulk=431 tail=910 rhat=1.0136
+  FAIL field_truth_projection species 9 occupancy=0.50 bulk=354 tail=1003 rhat=1.0180
+  FAIL field_truth_projection species 10 occupancy=0.75 bulk=341 tail=828 rhat=1.0161
+  FAIL field_truth_projection species 11 occupancy=0.75 bulk=324 tail=834 rhat=1.0169
+  FAIL field_average species 12 occupancy=0.75 bulk=558 tail=1400 rhat=1.0116
+  FAIL field_truth_projection species 12 occupancy=0.75 bulk=351 tail=791 rhat=1.0048
+  FAIL probability_average species 12 occupancy=0.75 bulk=552 tail=1281 rhat=1.0101
+  stored job: phases=extension min_bulk=38 max_rhat=1.0929 median_bulk=145 elapsed=298
+  species effect at sites, stored vs this run: posterior mean correlation min=0.9909 median=0.9941; RMS difference median=0.074 against RMS mean median=0.690
+  training slope (gate species) median stored=0.471 this=0.483 max|diff|=0.013; training correlation median stored=0.667 this=0.675 max|diff|=0.018
+DONE t1-r0.03-n300-rep1-uniform 
+
+RESULT t1-r0.08-n900-rep1-uniform n=900 range=0.08 secs=1077 pass=33/36 all_pass=FALSE gate_species_pass=27/27 min_bulk=313 min_tail=1118 max_rhat=1.0247 median_bulk=1589 proposals_per_block_step=4.67
+  FAIL field_truth_projection species 1 occupancy=0.05 bulk=313 tail=1118 rhat=1.0247
+  FAIL field_truth_projection species 2 occupancy=0.05 bulk=452 tail=1604 rhat=1.0120
+  FAIL field_truth_projection species 3 occupancy=0.05 bulk=446 tail=1756 rhat=1.0150
+  stored job: phases=extension min_bulk=16 max_rhat=1.1873 median_bulk=49 elapsed=1728
+  species effect at sites, stored vs this run: posterior mean correlation min=0.9910 median=0.9954; RMS difference median=0.069 against RMS mean median=0.751
+  training slope (gate species) median stored=0.718 this=0.722 max|diff|=0.016; training correlation median stored=0.859 this=0.860 max|diff|=0.011
+DONE t1-r0.08-n900-rep1-uniform 
+
+RESULT t1-r0.08-n900-rep2-uniform n=900 range=0.08 secs=1076 pass=35/36 all_pass=FALSE gate_species_pass=26/27 min_bulk=412 min_tail=1517 max_rhat=1.0109 median_bulk=1471 proposals_per_block_step=4.68
+  FAIL field_truth_projection species 12 occupancy=0.75 bulk=759 tail=1900 rhat=1.0109
+  stored job: phases=extension min_bulk=11 max_rhat=1.2722 median_bulk=39 elapsed=1720
+  species effect at sites, stored vs this run: posterior mean correlation min=0.9941 median=0.9968; RMS difference median=0.068 against RMS mean median=0.861
+  training slope (gate species) median stored=0.829 this=0.837 max|diff|=0.016; training correlation median stored=0.905 this=0.905 max|diff|=0.004
+DONE t1-r0.08-n900-rep2-uniform 
+
+RESULT t1-r0.08-n900-rep3-uniform n=900 range=0.08 secs=1074 pass=36/36 all_pass=TRUE gate_species_pass=27/27 min_bulk=569 min_tail=1803 max_rhat=1.0099 median_bulk=1462 proposals_per_block_step=4.66
+  stored job: phases=extension min_bulk=13 max_rhat=1.2387 median_bulk=32 elapsed=1718
+  species effect at sites, stored vs this run: posterior mean correlation min=0.9952 median=0.9967; RMS difference median=0.068 against RMS mean median=0.958
+  training slope (gate species) median stored=0.816 this=0.823 max|diff|=0.012; training correlation median stored=0.896 this=0.899 max|diff|=0.009
+DONE t1-r0.08-n900-rep3-uniform 
+
+RESULT t1-r0.15-n900-rep1-uniform n=900 range=0.15 secs=1068 pass=36/36 all_pass=TRUE gate_species_pass=27/27 min_bulk=1317 min_tail=3922 max_rhat=1.0035 median_bulk=3873 proposals_per_block_step=4.61
+  stored job: phases=extension min_bulk=10 max_rhat=1.3369 median_bulk=67 elapsed=575
+  species effect at sites, stored vs this run: posterior mean correlation min=0.9974 median=0.9987; RMS difference median=0.049 against RMS mean median=1.124
+  training slope (gate species) median stored=0.937 this=0.940 max|diff|=0.013; training correlation median stored=0.961 this=0.961 max|diff|=0.002
+DONE t1-r0.15-n900-rep1-uniform 

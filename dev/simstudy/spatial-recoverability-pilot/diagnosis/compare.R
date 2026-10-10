@@ -1,8 +1,7 @@
 args <- commandArgs(TRUE); job <- args[1]; nburn <- as.integer(args[2]); niter <- as.integer(args[3])
 for (f in c("kernel.R","seeds.R","generator.R","oracle.R")) source(file.path("dev/simstudy/spatial-recoverability-pilot", f))
 suppressWarnings(library(posterior))
-compile_pilot_samplers(".")
-Rcpp::sourceCpp("/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/09b04f53-d80f-4fb3-b6aa-96ede0ede2a5/scratchpad/diag/block-ellipse.cpp")
+compile_pilot_samplers(".")   # compiles ellipse.cpp, joint-ellipse.cpp and the study block-ellipse.cpp
 S0 <- "/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-recoverability-20261010"
 cm <- readRDS(file.path(S0,"inputs",paste0(sub("-(uniform|clustered)$","",job),".rds"))); arr <- sub(".*-(uniform|clustered)$","\\1",job)
 idx <- cm$index[[arr]]; xy <- cm$points[idx,,drop=FALSE]; n <- length(idx); Sp <- nrow(cm$species)

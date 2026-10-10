@@ -1,5 +1,5 @@
 for (f in c("kernel.R","seeds.R","generator.R","oracle.R")) source(file.path("dev/simstudy/spatial-recoverability-pilot", f))
-compile_pilot_samplers("."); Rcpp::sourceCpp("/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/09b04f53-d80f-4fb3-b6aa-96ede0ede2a5/scratchpad/diag/block-ellipse.cpp")
+compile_pilot_samplers(".")   # compiles ellipse.cpp, joint-ellipse.cpp and the study block-ellipse.cpp
 S0 <- "/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-recoverability-20261010"
 cm <- readRDS(file.path(S0,"inputs","t1-r0.08-n100-rep1.rds")); idx <- cm$index$uniform; xy <- cm$points[idx,,drop=FALSE]; n <- length(idx)
 f <- stable_factor(sq_exp(xy,xy,cm$range)); offset <- training_offset(cm, idx); w <- joint_weights(cm); ci <- sqrt(1-cm$shared_fraction)
