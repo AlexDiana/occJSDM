@@ -88,7 +88,7 @@ verify_teaching_bundle <- function(bundle_path,repo_root=NULL) {
           correlation=correlation,attenuation=attenuation,realised_sd=apply(estimate,2,sd),truth_realised_sd=apply(truth,2,sd))
         for(nm in names(metrics)) near(s[[paste0(prefix,nm)]],metrics[[nm]],paste(job$key,scope,prefix,nm))
         status <- if(!compatible) rep("incompatible link scale",length(species)) else ifelse(ec,"constant fitted field",ifelse(tc,"constant true field","available"))
-        check(identical(s[[paste0(prefix,"correlation_status")]],status),paste(job$key,scope,prefix,"correlation status"))
+        check(identical(s[[paste0(prefix,"correlation_status")]],unname(status)),paste(job$key,scope,prefix,"correlation status"))
       }
       verify_field(p$field_mean,true_field,"field_",p$link=="logit")
       verify_field(p$delta_p,delta,"delta_",TRUE)

@@ -48,6 +48,16 @@ test_that("independent compact arithmetic detects inconsistent recovery summarie
   b <- fixture_bundle(); b$scores$species$rmse[1] <- 10
   expect_error(verify_teaching_bundle(b),"rmse")
 })
+test_that("native species dimnames preserve exact correlation status checks", {
+  b <- fixture_bundle(); p <- b$predictions[[1]]$training
+  for(nm in c("p_full","p_space_zero","p_env_zero","p_both_zero","delta_p","field_mean","field_median")) {
+    colnames(p[[nm]]) <- p$species_id
+  }
+  b$predictions[[1]]$training <- p
+  expect_true(all(verify_teaching_bundle(b)$passed))
+  bad <- b; bad$scores$species$delta_correlation_status[1] <- "constant fitted field"
+  expect_error(verify_teaching_bundle(bad),"correlation status")
+})
 test_that("compact verification checks per-site attribution and distance-bin arithmetic", {
   b <- fixture_bundle(); key <- names(b$predictions)[1]; ds <- b$scores$accounting$dataset_id[match(key,b$scores$accounting$key)]
   tv <- b$truth_index[[ds]]; tv$landscape <- b$landscapes[[tv$community]]
