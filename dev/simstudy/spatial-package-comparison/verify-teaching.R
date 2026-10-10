@@ -184,7 +184,7 @@ verify_teaching_bundle <- function(bundle_path,repo_root=NULL) {
     near(g$minimum,if(length(available)) min(available) else NA_real_,paste("group minimum",i))
     near(g$maximum,if(length(available)) max(available) else NA_real_,paste("group maximum",i))
     near(g$communities_expected,3L,paste("group expected communities",i))
-    near(g$rows_expected,3L*if(g$prevalence==.05) 2L else 3L*3L,paste("group expected species rows",i))
+    near(g$rows_expected,3L*(if(g$prevalence==.05) 2L else 3L),paste("group expected species rows",i))
     cells <- a[a$package==g$package & a$arm==g$arm & a$arrangement==g$arrangement,,drop=FALSE]
     near(g$cells_expected,3L,paste("group expected cells",i))
     near(g$cells_available,sum(cells[[paste0(g$scope,"_supported")]]),paste("group available cells",i))

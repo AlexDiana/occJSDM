@@ -75,6 +75,19 @@ test_that("near-zero recovery gains use absolute arithmetic tolerance", {
   bad <- b; bad$scores$species$field_rmse_reduction[1] <- NA_real_
   expect_error(verify_teaching_bundle(bad),"rmse_reduction")
 })
+test_that("group denominators retain two rare and three other species per community", {
+  b <- fixture_bundle(); rows <- lapply(c(.05,.25,.75),function(prevalence) {
+    s <- b$scores$species[b$scores$species$prevalence==prevalence,,drop=FALSE]
+    summary <- equal_community_summary(s,"rmse",3L)
+    summary$rows_expected <- 3L*(if(prevalence==.05) 2L else 3L)
+    cbind(data.frame(package="occJSDM",arm="gp",arrangement="spread",scope="training",prevalence,
+      cells_available=1L,cells_expected=3L),summary)
+  })
+  b$scores$groups <- do.call(rbind,rows)
+  expect_true(all(verify_teaching_bundle(b)$passed))
+  bad <- b; bad$scores$groups$rows_expected[2] <- 27L
+  expect_error(verify_teaching_bundle(bad),"expected species rows")
+})
 test_that("compact verification checks per-site attribution and distance-bin arithmetic", {
   b <- fixture_bundle(); key <- names(b$predictions)[1]; ds <- b$scores$accounting$dataset_id[match(key,b$scores$accounting$key)]
   tv <- b$truth_index[[ds]]; tv$landscape <- b$landscapes[[tv$community]]
