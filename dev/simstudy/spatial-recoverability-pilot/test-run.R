@@ -1,0 +1,51 @@
+# Run: dev/simstudy/spatial-recoverability-pilot/run-r -f dev/simstudy/spatial-recoverability-pilot/test-run.R
+library(testthat)
+source("dev/simstudy/spatial-recoverability-pilot/run.R")
+study <- file.path(tempdir(), paste0("pilot-smoke-", as.integer(Sys.time()))); dir.create(study)
+tiny <- list(nburn = 10L, niter = 40L, thin = 4L, ext_nburn = 20L, ext_niter = 80L)
+
+test_that("prepare writes config before inputs and inputs have hashes", {
+  pilot_prepare(study, communities = 2L, cells = pilot_cells()[pilot_cells()$n == 100L, ],
+                jobs_dir = file.path(study, "jobs-local"), workers = 4L)
+  cfg <- readRDS(file.path(study, "config.rds"))
+  inputs <- list.files(file.path(study, "inputs"), full.names = TRUE)
+  expect_true(file.mtime(file.path(study, "config.rds")) < min(file.mtime(inputs)))
+  expect_equal(cfg$thresholds, default_thresholds()); expect_equal(cfg$budget, default_budget())
+  expect_equal(length(inputs), 4L * 2L)
+  man <- read.csv(file.path(study, "input-manifest.csv"))
+  expect_equal(nrow(man), 8L); expect_true(all(nchar(man$md5) == 32L))
+  expect_false(anyDuplicated(c(man$seed_sites, man$seed_data)) > 0)
+  expect_equal(length(list.files(file.path(study, "logs"), pattern = "^generator-conditioning")), 8L)
+  expect_error(pilot_prepare(study, communities = 2L, jobs_dir = file.path(study, "jobs-local")))   # never re-prepare
+})
+
+test_that("fit runs a tiny budget, reuses existing jobs, and score writes every table", {
+  jobs <- job_table(study)
+  expect_equal(nrow(jobs), 4L * 2L * 2L)
+  r <- pilot_fit(study, truth = "t2", workers = 2L, budget = tiny)
+  expect_equal(unname(r[["fitted"]]), 4L)
+  done <- list.files(file.path(study, "jobs-local"), pattern = "^t2-")
+  expect_equal(length(done), 4L)
+  mt <- file.mtime(file.path(study, "jobs-local", done))
+  r2 <- pilot_fit(study, truth = "t2", workers = 2L, budget = tiny)
+  expect_equal(unname(r2[["existing"]]), 4L)
+  expect_identical(file.mtime(file.path(study, "jobs-local", done)), mt)
+  r3 <- pilot_fit(study, truth = "t1", workers = 4L, budget = tiny)
+  expect_equal(unname(r3[["fitted"]]), 12L)
+  expect_length(list.files(file.path(study, "status"), pattern = "\\.error$"), 0L)
+  job <- readRDS(file.path(study, "jobs-local", done[1]))
+  expect_true(all(c("site_draws", "traces", "prediction", "scores", "screen", "screen_detail", "phases", "factor_records",
+                    "conditional_records", "geometry", "budget", "elapsed_seconds") %in% names(job)))
+  expect_equal(nrow(job$scores), 12L)
+  pilot_score(study)
+  sp <- read.csv(file.path(study, "scores", "species.csv"))
+  expect_equal(nrow(sp), 16L * 12L)
+  expect_true(all(sp$status %in% c("pass", "unresolved")))
+  gate <- read.csv(file.path(study, "scores", "gate.csv"))
+  expect_equal(nrow(gate), 3L + 3L)   # three truth 1 cells at n = 100 plus three classes of the truth 2 cell
+  expect_true(all(gate$decision %in% c("pass", "fail", "unresolved")))
+  for (f in c("aggregate.csv", "map.json", "factors.csv", "conditionals.csv", "geometry.csv", "screen.csv", "jobs.csv"))
+    expect_true(file.exists(file.path(study, "scores", f)))
+  expect_true(jsonlite::fromJSON(file.path(study, "scores", "map.json"))$branch %in% c("both", "truth1_only", "truth2_only", "stop"))
+})
+cat("Run tests passed.\n")
