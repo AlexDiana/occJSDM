@@ -65,3 +65,7 @@ Rplots.pdf
 
 # Optional MCP outputs when P2A_PROJECT_ROOT is the repository root.
 /artifacts/
+# Doug's 10 October decision: the spatial comparison evidence stays on the
+# external research drive. Private local links must never enter Git.
+/vignettes/teaching-data/spatial-package-comparison.rds
+/vignettes/teaching-data/spatial-package-comparison.rds.md5

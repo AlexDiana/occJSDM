@@ -6,6 +6,8 @@ A single fresh-context reviewer examined `0befcae..74cef8f`, including protocol,
 
 Ready as a local scientific draft. No Critical or new Important defect was found. The reviewer independently reproduced selection counts, oracle summaries and every reported percentage-point benefit from saved scores. Numerical/export/process-completion receipts support the reported checks. Ready to merge as the complete teaching delivery: not yet, because the verified 358,611,608-byte bundle is local and repository packaging needs Doug's decision.
 
+**Post-review scope resolution, 10 October (E17):** Doug cancelled repository bundle delivery and requested external-only storage. The verified bundle/sidecar were copied to the UUID-bound research archive and checked before laptop regular files became ignored private links. Original scientific bytes and accepted receipts are unchanged. The prior fresh-clone teaching delivery gate is withdrawn by this explicit scope decision, not claimed to be satisfied. No splitter/loader or teaching publication is planned. No new scientific code was introduced by the move.
+
 ## Deferred minor
 
 `plot.R` averages species-by-arrangement RMSE rows over available nonempty distance bins. Each plotted point is an unweighted mean of available arrangement/species RMSEs within a community, rather than pooled site-level RMSE. Contributing arrangements can change across bins. Clarify this beside the distance figure in Lesson 5. This is a presentation clarification; frozen scores and figures remain preserved.

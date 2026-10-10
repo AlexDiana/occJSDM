@@ -23,6 +23,8 @@
 - The spec is the authoritative proposed protocol; source, budget and scientific changes require dated amendments there and matching plan/manifest changes. Never alter executing snapshots or retroactively revise completed selections.
 - Write planning paragraphs on single lines, use `--` rather than em-dashes, and place new source documents under `dev/` rather than generated `docs/`.
 
+**10 October delivery amendment E17:** Doug chose external-only storage for the verified teaching bundle and cancelled repository bundle delivery. Preserve original bytes/sidecar under the research archive, verify the move against accepted checksums and ignore private local links. No splitter/loader, scientific rerun or teaching publication is required. The earlier bundle-commit requirement is superseded; report/figures/unpublished drafts remain records.
+
 ## Review Focus
 
 **Resource amendment E13, 8 October:** Doug requires the laptop at 09:00 BST on 9 October. Finish the pilot and hold the full run, targeting verified readiness by 08:30. Resume only after Doug authorises it. Read the run's laptop-deadline-hold.json and the handover before any dispatch; original scientific budgets and settings remain frozen.
@@ -135,7 +137,7 @@ Shared R objects have `schema_version = 1L`. `TrainingData` contains `dataset_id
 - [x] Write failing tests for missing second/third communities, lost binary observations, mismatched species order, unsupported outputs falsely marked available, and a summary inconsistent with its saved prediction matrix.
 - [x] Export the bundle with ordinary R objects; independently recompute every reported table without loading any fitting package or the raw archive. Keep a separate archive-required audit for draw-level identities and report which audit was run. Require the 192-row accounting identity and all checked hashes.
 - [x] Generate the six specified figure sets with true and fitted quantities on comparable axes. Use fixed example maps from community 1, species 2 and 6, all four arrangements, rather than selecting the best results. Show per-community points for aggregate recovery and retain rare-species panels and failed-fit counts.
-- [ ] Inspect every image for labels, clipping, legends, link units and missing-data treatment. Write the scientific report distinguishing supported conclusions, failed targets and untested extensions. Commit the compact evidence, not raw fits.
+- [x] Inspect every image for labels, clipping, legends, link units and missing-data treatment. Write the scientific report distinguishing supported conclusions, failed targets and untested extensions. Under E17, archive the verified bundle externally without committing it; commit report and figure records, not raw fits.
 
 ### Task 8: Teach the spatial comparison in Lessons 5 and 7
 
@@ -146,7 +148,7 @@ Shared R objects have `schema_version = 1L`. `TrainingData` contains `dataset_id
 - [x] Add a verifier assertion for the new section anchor, reciprocal Lesson 5/7 links, named fitting calls with `eval=FALSE`, and a visible explanation of link/uncertainty limitations, including the pinned sjSDM fork's internal diagonal option and why ordinary native prediction differs from its training-likelihood marginal probability. Extend `verify-teaching.R` for these source invariants instead of adding implementation-mirroring package tests.
 - [x] Write the lesson explanation first: what a GP, quadratic surface, Moran basis and learned coordinate network assume; how held-out sites differ from fitted sites; and why rare-species spatial attribution needs truth/prediction checks. Explain the deliberate absence of unstructured biotic covariance in this controlled experiment and avoid calling predictive attribution variance explained. Explain regeneration from original seeds and validation once in provenance, retain the precise limitations there, then call them the same seeded communities. Scope the sjSDM prediction warning to the verified pinned version and ordinary prediction method.
 - [x] Copyedit while preserving the teaching, then render HTML and unwrapped Markdown using the established `rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none")` workflow. Inspect HTML structure and figures and verify the compact-data calculations executed during knitting.
-- [ ] Run `Rscript dev/simstudy/vignette-lesson/test_lesson_links.R`, the new teaching verifier in archive-free mode, and `git diff --check`. Confirm the publication flags/site excludes and production source remain unchanged. Commit the reviewed lesson additions; present them to Doug for line-by-line review before any publishing action.
+- [x] Run `Rscript dev/simstudy/vignette-lesson/test_lesson_links.R`, the new teaching verifier in archive-free mode, and `git diff --check`. Confirm the publication flags/site excludes and production source remain unchanged. Commit the reviewed lesson additions; present them to Doug for line-by-line review before any publishing action.
 
 ## Review and execution handoff
 
