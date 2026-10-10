@@ -793,6 +793,8 @@ The last object has one row per surveyed site and one column per species. A one 
 
 A **Gaussian process (GP)** describes a field through a covariance kernel: nearby locations tend to have similar adjustments. Its length scale controls how rapidly similarity falls with distance. occJSDM's spatial arm uses its existing subset-of-regressors approximation. Hmsc and gllvm instead use two spatial latent factors with exponential spatial kernels. These are different models, even though all three use spatial covariance. A fitted exponential range is not the generating squared-exponential range.
 
+The factor count matters. Two spatial factors give species different mixtures of two shared maps. Our generator instead gives the eight species independent maps, so two shared factors cannot generally represent all of them. This is a deliberate restriction of the tested configurations, not a limit on how many factors Hmsc or gllvm can fit. More surveyed sites could improve information about a map, but would not remove this restriction by themselves.
+
 A **quadratic coordinate surface** uses five fixed columns: x, y, x squared, xy and y squared. Each species estimates a coefficient for each column. This can describe a broad bend or gradient, but it cannot freely follow small patches. A **Moran eigenvector basis** starts with a graph connecting training sites to their neighbours, then extracts spatial patterns from that graph. The graph and scaling are fixed from the training sites; prediction extends the same basis to new coordinates. Neither representation estimates a kernel range. The saved Moran summaries describe graph distances and basis amplitudes separately.
 
 A **coordinate neural network** learns nonlinear features of x and y. Its penalties constrain the fitted contribution, but a detailed map is not evidence that the detail is correct. In this experiment only sjSDM has the network arm. The common quadratic and Moran arms let us compare packages with the same spatial columns, alongside their native spatial representations.
@@ -883,6 +885,8 @@ knitr::include_graphics("teaching-data/lesson-5-spatial-uncertainty.png")
 ```
 
 The new oracle references know the generating intercepts, environmental slopes and spatial covariance parameters, but still infer the field from the binary observations at the training sites. Their uncertainty includes conditional variation at unsurveyed locations. They indicate what the sampled data contain when nuisance-parameter estimation is removed. They are a reference for this experiment, not an exact upper bound that every estimated model must fall below in every realised error measure. Negative oracle gaps are retained.
+
+These checks keep the conclusion narrow. Poor recovery at 100 sites does not show that published spatial models are generally underpowered. We have not estimated statistical power. Some fits remain diagnostically unresolved, some representations cannot express the generating structure, and rare species supply little binary information. To separate these explanations, a follow-up would vary sampling density, shared versus independent spatial maps and fitted factor count, with a reliably converged reference. The sjSDM network would also need evaluation beyond the fixed architecture and penalties used here.
 
 ### A rare-species spatial attribution needs a prediction check
 
