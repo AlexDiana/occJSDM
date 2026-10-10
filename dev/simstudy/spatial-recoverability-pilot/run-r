@@ -1,0 +1,10 @@
+#!/bin/sh
+# Pinned R 4.5.0 for the spatial recoverability pilot. Reuses the private
+# R home built for the first spatial comparison; never follows the system
+# framework symlink (system R is 4.6.1). Single-threaded numerics.
+set -eu
+export R_HOME="${PILOT_R_HOME:-/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-package-comparison-20261008/runtime/R-home}"
+export R_SHARE_DIR="$R_HOME/share" R_INCLUDE_DIR="$R_HOME/include" R_DOC_DIR="$R_HOME/doc"
+export R_LIBS_USER="/Users/douglasyu/Library/R/arm64/4.5/library"
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1
+exec "$R_HOME/bin/exec/R" --vanilla --slave "$@"
