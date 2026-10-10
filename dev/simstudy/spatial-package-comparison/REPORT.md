@@ -1,6 +1,6 @@
 # Spatial package comparison
 
-Draft execution and diagnostic report, 10 October 2026. Independent numerical reconstruction is running; truth scoring, recovery conclusions and final teaching exports remain pending. Process completion does not establish diagnostic acceptance or ecological recovery.
+Draft execution and diagnostic report, 10 October 2026. Independent numerical reconstruction passed all 288 jobs. Truth scores are saved; independent compact arithmetic, recovery conclusions and final teaching exports remain pending. Process completion does not establish diagnostic acceptance or ecological recovery.
 
 ## Experiment and provenance
 
@@ -46,7 +46,7 @@ Native logit-field recovery is reported only for matching logit units. Hmsc and 
 
 Bayesian intervals use retained draws. occJSDM's subset-of-regressors prediction has coefficient uncertainty without added full-GP residual conditional variance. Hmsc uses certified conditional latent fields. gllvm's spatial intervals include fitted variational and conditional spatial uncertainty, holding coefficients, loadings and ranges fixed. sjSDM and gllvm fixed-basis arms have no invented spatial-probability intervals. Truth inclusion is descriptive for these landscapes, not a repeated-simulation coverage guarantee.
 
-The archive-required numerical audit reconstructs all supported training summaries, complete point-fit lattice summaries and Bayesian predictions at the prespecified 50 lattice audit sites. It checks unthinned draw IDs, fixed RNG states, means, field medians, contrasts, intervals and Monte Carlo standard errors at absolute tolerance 1e-10. Truth is not opened in this audit. Scoring is gated on its successful completion and verified absence of all owned audit processes.
+The archive-required numerical audit reconstructs all supported training summaries, complete point-fit lattice summaries and Bayesian predictions at the prespecified 50 lattice audit sites. It checks unthinned draw IDs, fixed RNG states, means, field medians, contrasts, intervals and Monte Carlo standard errors at absolute tolerance 1e-10. Truth is not opened in this audit. Scoring is gated on its successful completion and verified absence of all owned audit processes. The audit completed with 554 passed checks and 11 unavailable failed-fit cells, with maximum absolute discrepancy 1.9429e-16. Hash-bound completion records and a fresh process audit confirmed that all audit groups and descendants exited before truth scoring.
 
 ## Recovery, attribution and development recommendation
 
