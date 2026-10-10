@@ -845,6 +845,8 @@ knitr::include_graphics(c(
 ))
 ```
 
+Some fitted gllvm logit fields have extreme errors and attenuation slopes. These values remain on the axes, so the other points are compressed near zero in those panels. They are present, rather than missing. Use the probability-scale plots above and the diagnostic labels alongside these native-field comparisons; an extreme logit field can still produce bounded probabilities after applying the link.
+
 ### Does the spatial term help at unsurveyed sites?
 
 At a training site, a spatial field can use the site's own observed occupancy. At a lattice site it must use the environmental value, coordinates and information borrowed from the surveyed sites. Prediction becomes harder when a new site is far from the nearest surveyed site. A flexible surface may fit the training observations well and still extrapolate poorly.
@@ -885,6 +887,22 @@ knitr::include_graphics("teaching-data/lesson-5-spatial-uncertainty.png")
 ```
 
 The new oracle references know the generating intercepts, environmental slopes and spatial covariance parameters, but still infer the field from the binary observations at the training sites. Their uncertainty includes conditional variation at unsurveyed locations. They indicate what the sampled data contain when nuisance-parameter estimation is removed. They are a reference for this experiment, not an exact upper bound that every estimated model must fall below in every realised error measure. Negative oracle gaps are retained.
+
+```{r spatial-oracle-recovery}
+spatial_comparison$scores$species |>
+  filter(package == "oracle", scope == "lattice") |>
+  group_by(prevalence, community, arrangement) |>
+  summarise(across(c(delta_correlation, delta_rms, truth_delta_rms,
+                     field_attenuation), mean), .groups = "drop") |>
+  group_by(prevalence) |>
+  summarise(across(c(delta_correlation, delta_rms, truth_delta_rms,
+                     field_attenuation), mean),
+            dataset_cells_available = n(), dataset_cells_expected = 12L,
+            .groups = "drop") |>
+  knitr::kable(digits = 3)
+```
+
+The oracle learns little about patch placement and strongly shrinks the native field. Even knowing the generating nuisance parameters does not make this survey recover the spatial map reliably. The small predictive advantage of the occJSDM GP therefore does not establish that its field is well recovered, particularly while all its spatial fits remain diagnostically unresolved. Fixed trends and Moran bases worsen mean held-out prediction in this experiment. The coordinate network has only one unstable supported result out of twelve datasets, so it cannot be ranked against the other arms.
 
 These checks keep the conclusion narrow. Poor recovery at 100 sites does not show that published spatial models are generally underpowered. We have not estimated statistical power. Some fits remain diagnostically unresolved, some representations cannot express the generating structure, and rare species supply little binary information. To separate these explanations, a follow-up would vary sampling density, shared versus independent spatial maps and fitted factor count, with a reliably converged reference. The sjSDM network would also need evaluation beyond the fixed architecture and penalties used here.
 

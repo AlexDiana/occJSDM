@@ -548,6 +548,8 @@ Nothing here validates spatial prediction on real data, or checks whether occJSD
 
 The [four-package spatial comparison in Lesson 5](occJSDM-lesson-5.md#spatial-package-comparison) adds a controlled comparison of other representations on audited reconstructions of these same seeded communities. Its new fits have different budgets, stricter diagnostic rules and explicitly centred probability contrasts. Read it alongside this historical sweep, rather than treating its summaries as replacements for the fits above. The comparison separates numerical completion, diagnostic acceptance and recovery of truth, and asks whether a training-site spatial attribution predicts an improvement at unsurveyed sites. Neither experiment by itself establishes a generally reliable spatial model for a real eDNA survey.
 
+For choosing a spatial representation to develop, the next comparison needs a positive control where the oracle clearly recovers the held-out target before the full package comparison begins. The sampled clustered sites above contain useful information for common species, but that does not establish strong recovery across the unsurveyed landscape. Retaining this difficult scenario alone made the package comparison a stress test rather than a decisive development experiment. Strong variation in a simulated field and strong information in a sampled dataset are different design requirements.
+
 ### What to do on your own survey
 
 For the beta, leave `spatCovariates` out of your own fits, as the quickstart recommends, unless both of these conditions hold:
