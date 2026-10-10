@@ -1409,3 +1409,13 @@ git commit -m "Add the recoverability pilot verification, compact results and re
 - [ ] **Step 7: Request a whole-branch review**
 
 Use superpowers:requesting-code-review on the branch diff against `main`, then address findings before handing Doug the report.
+
+---
+
+## Deviations recorded during execution
+
+- `stable_factor` computes eigenvalues only (not vectors) for the condition number when the Cholesky route is taken, and `prepare` runs communities in parallel with `--workers`, because generating a 3,400-point community takes minutes of dense eigendecomposition.
+- `predict.R` gained `layout_geometry()`, which the spec's section 4 requires and the first draft of Task 5 omitted; each job stores it and `score` writes `geometry.csv`.
+- `score` writes `factors.csv` and `conditionals.csv` separately instead of one combined conditioning file, plus `screen.csv` with the per-quantity diagnostics.
+- Status files and `map.json` are written with `jsonlite`, which is in the pinned library.
+- Tests were written together with their implementations and run once per task rather than first run against the missing file.
