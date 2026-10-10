@@ -94,6 +94,12 @@ test_that("a compact export retains full inputs, all cells and independent arith
   expect_length(bundle$landscapes,3L); expect_length(bundle$training,12L)
   expect_equal(nrow(bundle$scores$accounting),288L); expect_length(bundle$predictions,288L)
   expect_true(all(bundle$verification$compact$passed))
+  bundle$scores$phase <- "full"
+  bundle$scores$species <- complete_species_grid(bundle$scores$species,bundle$scores$accounting,
+    setNames(bundle$landscapes$rep01$prevalence,bundle$config$species))
+  expect_true(all(verify_teaching_bundle(bundle)$passed))
+  bad <- bundle; bad$scores$species <- bad$scores$species[-nrow(bad$scores$species),]
+  expect_error(verify_teaching_bundle(bad),"species denominator")
   expect_length(intersect(setdiff(loadedNamespaces(),before),c("occJSDM","sjSDM","Hmsc","gllvm")),0L)
   target <- file.path(root,"teaching.rds"); save_teaching_bundle(bundle,target)
   expect_true(all(verify_teaching_bundle(target)$passed))

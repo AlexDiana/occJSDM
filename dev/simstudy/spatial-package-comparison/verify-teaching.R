@@ -17,6 +17,17 @@ verify_teaching_bundle <- function(bundle_path,repo_root=NULL) {
   check(setequal(names(b$training),datasets) && setequal(names(b$truth_index),datasets) && setequal(names(b$prediction_data),datasets),"all 12 training and prediction inputs")
   a <- b$scores$accounting
   check(sum(a$kind=="comparison")==192L && !anyDuplicated(a$key),"192 comparison cells accounted for")
+  if(identical(b$scores$phase,"full")) {
+    check(sum(a$kind=="oracle")==96L,"96 oracle cells accounted for")
+    s <- b$scores$species
+    check(nrow(s)==2L*(192L*length(cfg$species)+96L) && !anyDuplicated(s[c("key","scope","species_id")]),"full species denominator")
+    for(i in seq_len(nrow(a))) for(scope in c("training","lattice")) {
+      job <- a[i,]; rows <- s[s$key==job$key & s$scope==scope,,drop=FALSE]
+      species <- if(job$kind=="oracle") job$species else cfg$species
+      check(setequal(rows$species_id,species),paste(job$key,scope,"species denominator"))
+      check(all(rows$prediction_status==if(job[[paste0(scope,"_supported")]]) "available" else "unavailable"),paste(job$key,scope,"species availability denominator"))
+    }
+  }
   for(ds in datasets) {
     tr <- b$training[[ds]]; idx <- b$truth_index[[ds]]; land <- b$landscapes[[idx$community]]
     check(is.matrix(tr$y) && identical(dim(tr$y),c(length(tr$site_id),length(cfg$species))) && all(tr$y %in% 0:1),paste(ds,"binary observations"))
