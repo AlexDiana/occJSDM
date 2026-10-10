@@ -58,6 +58,23 @@ test_that("native species dimnames preserve exact correlation status checks", {
   bad <- b; bad$scores$species$delta_correlation_status[1] <- "constant fitted field"
   expect_error(verify_teaching_bundle(bad),"correlation status")
 })
+test_that("near-zero recovery gains use absolute arithmetic tolerance", {
+  b <- fixture_bundle(); key <- names(b$predictions)[1]
+  ds <- b$scores$accounting$dataset_id[match(key,b$scores$accounting$key)]
+  tv <- b$truth_index[[ds]]; tv$landscape <- b$landscapes[[tv$community]]
+  view <- truth_view(tv,"training"); p <- b$predictions[[key]]$training
+  p$field_mean <- p$field_mean*1e-8
+  b$predictions[[key]]$training <- p
+  s <- score_predictions(p,view)$species
+  for(nm in names(s)) b$scores$species[[nm]] <- s[[nm]]
+  b$scores$species$field_rmse_reduction[1] <- b$scores$species$field_rmse_reduction[1]+1e-15
+  b$scores$species$field_fractional_rmse_reduction[1] <- b$scores$species$field_fractional_rmse_reduction[1]+1e-15
+  expect_true(all(verify_teaching_bundle(b)$passed))
+  bad <- b; bad$scores$species$field_rmse_reduction[1] <- bad$scores$species$field_rmse_reduction[1]+1e-8
+  expect_error(verify_teaching_bundle(bad),"rmse_reduction")
+  bad <- b; bad$scores$species$field_rmse_reduction[1] <- NA_real_
+  expect_error(verify_teaching_bundle(bad),"rmse_reduction")
+})
 test_that("compact verification checks per-site attribution and distance-bin arithmetic", {
   b <- fixture_bundle(); key <- names(b$predictions)[1]; ds <- b$scores$accounting$dataset_id[match(key,b$scores$accounting$key)]
   tv <- b$truth_index[[ds]]; tv$landscape <- b$landscapes[[tv$community]]

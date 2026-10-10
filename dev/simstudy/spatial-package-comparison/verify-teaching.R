@@ -36,7 +36,14 @@ verify_teaching_bundle <- function(bundle_path,repo_root=NULL) {
     check(isTRUE(all.equal(unname(tr$xy),unname(land$points[idx$training_index,,drop=FALSE]),tolerance=0)),paste(ds,"training coordinates"))
     check(all(is.finite(land$psi)) && all(land$psi>=0 & land$psi<=1) && all(land$z %in% 0:1),paste(ds,"complete landscape probabilities and binary states"))
   }
-  near <- function(x,y,label) check(isTRUE(all.equal(unname(x),unname(y),tolerance=1e-10,check.attributes=FALSE)),label)
+  near <- function(x,y,label) {
+    x <- as.vector(x); y <- as.vector(y)
+    same_support <- length(x)==length(y) && identical(is.na(x),is.na(y)) && identical(is.finite(x),is.finite(y))
+    finite <- is.finite(x)
+    # Gains near zero involve cancellation; enforce the absolute bound per value.
+    check(same_support && all(abs(x[finite]-y[finite])<=1e-10) &&
+      all(x[!finite & !is.na(x)]==y[!finite & !is.na(y)]),label)
+  }
   for(i in seq_len(nrow(a))) {
     job <- a[i,]; state <- b$predictions[[job$key]]
     idx <- b$truth_index[[job$dataset_id]]; land <- b$landscapes[[idx$community]]
