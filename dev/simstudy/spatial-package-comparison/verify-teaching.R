@@ -185,3 +185,25 @@ verify_teaching_bundle <- function(bundle_path,repo_root=NULL) {
   labels <- ls(checks,all.names=TRUE)
   data.frame(check=labels,passed=TRUE,assertions=vapply(labels,function(label)checks[[label]],integer(1)))
 }
+
+verify_spatial_lesson_sources <- function(repo_root) {
+  l5 <- paste(readLines(file.path(repo_root,"vignettes/occJSDM-lesson-5.Rmd"),warn=FALSE),collapse="\n")
+  l7 <- paste(readLines(file.path(repo_root,"vignettes/occJSDM-lesson-7.Rmd"),warn=FALSE),collapse="\n")
+  checks <- list()
+  check <- function(ok,label) {
+    if(!isTRUE(ok)) stop("Spatial lesson source verification failed: ",label)
+    checks[[length(checks)+1L]] <<- data.frame(check=label,passed=TRUE)
+  }
+  section <- regexpr("{#spatial-package-comparison}",l5,fixed=TRUE)[1]
+  end <- regexpr("## 10. What this lesson establishes, and what remains open",l5,fixed=TRUE)[1]
+  check(section>0 && section<end,"spatial section precedes existing conclusions")
+  link <- "occJSDM-lesson-5.md#spatial-package-comparison"
+  check(lengths(regmatches(l7,gregexpr(link,l7,fixed=TRUE)))>=2L,"Lesson 7 explanation and closing link to comparison")
+  check(grepl("occJSDM-lesson-7.md#what-the-spatial-component-learns",l5,fixed=TRUE),"Lesson 5 reciprocal spatial concept link")
+  fit <- regmatches(l5,regexpr("(?s)```\\{r spatial-comparison-fits, eval=FALSE\\}.*?```",l5,perl=TRUE))
+  check(length(fit)==1L && nzchar(fit),"long fitting chunk disabled during knitting")
+  for(call in c("fit_occjsdm(","fit_gllvm(","fit_sjsdm(","fit_hmsc(")) check(grepl(call,fit,fixed=TRUE),paste("complete named call",call))
+  for(term in c("probit","fixed coefficient","pinned sjSDM","diag=TRUE","ordinary native prediction","variance explained"))
+    check(grepl(term,l5,fixed=TRUE),paste("visible interpretation",term))
+  do.call(rbind,checks)
+}

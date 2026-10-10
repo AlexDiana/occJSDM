@@ -51,7 +51,8 @@ verify_execution_ready <- function(run_root,code=file.path(run_root,"snapshot/st
 verify_snapshot <- function(run_root) {
   record <- readRDS(file.path(run_root,"snapshot-record.rds"))
   actual <- source_manifest(file.path(run_root,"snapshot"))
-  if(!identical(record$files,actual)) stop("Frozen source hash mismatch")
+  if(anyDuplicated(names(record$files)) || !setequal(names(record$files),names(actual)) ||
+      !identical(record$files,actual[names(record$files)])) stop("Frozen source hash mismatch")
   if(md5(file.path(run_root,"config.rds"))!=record$config_md5) stop("Frozen config hash mismatch")
   if(length(record$frozen_files)) {
     paths <- file.path(run_root,names(record$frozen_files))

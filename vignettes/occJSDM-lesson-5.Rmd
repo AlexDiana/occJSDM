@@ -761,13 +761,185 @@ The scores are close in this pilot. Even the true probability will sometimes giv
 
 To get such scores on your own presence/absence survey, hold out some sites before fitting and predict them with `predictNewSites()`, as [Lesson 4](occJSDM-lesson-4.md#use-the-packages-new-site-prediction-function) shows. Then score the predictions against what was recorded there, as Lesson 4's [model comparison](occJSDM-lesson-4.md#compare-models-using-what-actually-occurred) does. With eDNA data, the detections are not the true presences, so the held-out sites need occupancy that you can establish independently, as [Lesson 4](occJSDM-lesson-4.md#predict-occupancy-at-genuinely-new-sites) cautions.
 
+## Spatial structure: compare representations, prediction and attribution {#spatial-package-comparison}
+
+So far, the models have shared environmental predictors and an unstructured residual association between species. A second experiment asks a different question: if occupancy also varies across space, which representation learns that variation, and does it help predict unsurveyed sites? We disable unstructured residual association in this experiment. Otherwise a spatial effect and a separate species-association term could compete to explain the same pattern. Hmsc and gllvm retain the two spatial factors that define their native spatial arms, but no additional non-spatial latent factors. As before, the observations are the true binary occupancy states, so detection error plays no part here.
+
+The experiment uses three seeded communities, each with eight species, and the spread, grid, paired and clustered arrangements described in [Lesson 7](occJSDM-lesson-7.md#what-the-spatial-component-learns). Each arrangement supplies 100 surveyed sites. The models also predict at 1,600 lattice sites whose occupancy observations were not supplied during fitting. Their environmental values and coordinates are known. We can compare their predicted probabilities with the simulated landscape's probabilities even though a real survey would never reveal that truth.
+
+**Provenance.** The original large input archive was unavailable when this comparison began. The inputs were regenerated from the original generator, settings and seeds, then audited against the surviving records. The audit checked 61 identities and tolerances, including coordinate and binary-state identities and a replay of the random uniforms used to generate occupancy. These are audited reconstructions of the same seeded communities, rather than restored copies of the missing archive. The compact bundle retains that distinction and all three complete landscapes. The new fits use their own frozen schedules and stricter diagnostic rules; they do not replace the historical fits used in Lesson 7.
+
+```{r spatial-comparison-data}
+spatial_comparison_path <- "teaching-data/spatial-package-comparison.rds"
+stopifnot(identical(
+  unname(tools::md5sum(spatial_comparison_path)),
+  readLines(paste0(spatial_comparison_path, ".md5"), warn = FALSE)
+))
+spatial_comparison <- readRDS(spatial_comparison_path)
+stopifnot(
+  sum(spatial_comparison$scores$accounting$kind == "comparison") == 192L,
+  sum(spatial_comparison$scores$accounting$kind == "oracle") == 96L,
+  all(spatial_comparison$verification$compact$passed)
+)
+
+head(spatial_comparison$training[["rep01-spread"]]$xy)
+head(spatial_comparison$training[["rep01-spread"]]$environment)
+head(spatial_comparison$training[["rep01-spread"]]$y)
+```
+
+The last object has one row per surveyed site and one column per species. A one is a known presence and a zero is a known absence. We have removed imperfect observation, but we still observe only one binary outcome per site and species. A rare species can therefore leave very few presences from which to estimate a spatial response.
+
+### What the representations assume
+
+A **Gaussian process (GP)** describes a field through a covariance kernel: nearby locations tend to have similar adjustments. Its length scale controls how rapidly similarity falls with distance. occJSDM's spatial arm uses its existing subset-of-regressors approximation. Hmsc and gllvm instead use two spatial latent factors with exponential spatial kernels. These are different models, even though all three use spatial covariance. A fitted exponential range is not the generating squared-exponential range.
+
+A **quadratic coordinate surface** uses five fixed columns: x, y, x squared, xy and y squared. Each species estimates a coefficient for each column. This can describe a broad bend or gradient, but it cannot freely follow small patches. A **Moran eigenvector basis** starts with a graph connecting training sites to their neighbours, then extracts spatial patterns from that graph. The graph and scaling are fixed from the training sites; prediction extends the same basis to new coordinates. Neither representation estimates a kernel range. The saved Moran summaries describe graph distances and basis amplitudes separately.
+
+A **coordinate neural network** learns nonlinear features of x and y. Its penalties constrain the fitted contribution, but a detailed map is not evidence that the detail is correct. In this experiment only sjSDM has the network arm. The common quadratic and Moran arms let us compare packages with the same spatial columns, alongside their native spatial representations.
+
+```{r spatial-representations, echo=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/lesson-5-spatial-representations.png")
+```
+
+### Compare probabilities before comparing field amplitudes
+
+occJSDM and gllvm use a logit link here; Hmsc and the pinned sjSDM fit use probit-family likelihoods. A field measured in probit units cannot be subtracted from a logit field and called recovery error. We therefore compare native field amplitudes with truth only where their link units match, and compare all packages on the probability scale.
+
+For each posterior draw, the study subtracts the field's mean across training sites and moves that mean into the intercept. Full probabilities stay the same. Zeroing this centred field then removes its spatial variation while retaining the average level learned at the training sites. The spatial probability contrast is
+
+\[
+\Delta p_i = p_i(\text{full model}) - p_i(\text{centred spatial effect set to zero}).
+\]
+
+A positive contrast says that the spatial term raises occupancy probability at that location relative to the fitted model's spatially constant baseline. It does not say that occupancy is high in absolute terms. For Bayesian fits we average the probability computed at each draw. Applying the inverse link to the averaged linear predictor would answer a different question.
+
+The pinned sjSDM fork also needs a specific interpretation. Its internal `diag=TRUE` option disables off-diagonal residual species association, but retains independent unit-normal integration in the training likelihood. This comparison reconstructs that marginal probability from the saved numerical parameters. In this pinned version, **ordinary native prediction** applies the inverse link without the same integration and therefore differs from the probability used in fitting. That difference was checked during adapter certification; it is not a warning about every sjSDM version or every prediction method.
+
+The example maps use community 1 and the prespecified species 6, a common species, under every arrangement. The same colour scale shows truth and fitted contrasts. A row labelled unavailable has no supported saved prediction; it is not a flat fitted field.
+
+```{r spatial-common-maps, echo=FALSE, out.width="100%"}
+knitr::include_graphics(paste0(
+  "teaching-data/lesson-5-spatial-maps-",
+  c("occJSDM", "sjSDM", "Hmsc", "gllvm"), "-species06.png"
+))
+```
+
+A model can recover the locations of patches but shrink their strength. For example, a field that equals one fifth of the true field has correlation one with truth, yet its amplitude is far too small. Read the contrast-error and amplitude plots together. The points keep the three communities separate, rather than pooling all sites into an apparent sample of independent landscapes.
+
+```{r spatial-recovery, echo=FALSE, out.width="100%"}
+knitr::include_graphics(c(
+  "teaching-data/lesson-5-spatial-recovery-delta_rmse.png",
+  "teaching-data/lesson-5-spatial-recovery-delta_rms.png"
+))
+```
+
+### Does the spatial term help at unsurveyed sites?
+
+At a training site, a spatial field can use the site's own observed occupancy. At a lattice site it must use the environmental value, coordinates and information borrowed from the surveyed sites. Prediction becomes harder when a new site is far from the nearest surveyed site. A flexible surface may fit the training observations well and still extrapolate poorly.
+
+We make two comparisons. Setting the selected fit's centred spatial effect to zero measures the contribution of that fit's spatial term. Comparing with a separately fitted environment-only arm asks whether including space improved the fitted model as a whole. The environmental coefficients may change when space is included, so these are different comparisons. A positive RMSE benefit means the spatial prediction has lower error; negative benefits remain visible.
+
+```{r spatial-heldout, echo=FALSE, out.width="100%"}
+knitr::include_graphics(c(
+  "teaching-data/lesson-5-spatial-recovery-rmse.png",
+  "teaching-data/lesson-5-spatial-distance-errors.png"
+))
+```
+
+The table below focuses on the 5% species under the clustered arrangement. RMSE is expressed in probability percentage points. A mean uses the available communities with equal weight. The accompanying denominator shows how many of the three communities supplied that metric; a missing fit does not quietly disappear from the experiment.
+
+```{r spatial-rare-error-table}
+spatial_comparison$scores$groups |>
+  filter(scope == "lattice", prevalence == 0.05,
+         arrangement == "clustered", metric == "rmse") |>
+  transmute(package, arm, rmse_percentage_points = 100 * mean,
+            communities_available, communities_expected,
+            rows_available, rows_expected) |>
+  knitr::kable(digits = 2)
+```
+
+### Keep computation, uncertainty and recovery separate
+
+The diagnostic screens were fixed before recovery scores were opened. Bayesian fits use four chains and screen retained parameters and training targets at Rhat 1.01 and bulk and tail effective sample sizes of 400. One prescribed extension is allowed. Point fits use multiple starts, numerical stationarity checks and agreement rules. The selected numerical result can remain unresolved or unstable after its finite budget; that status stays attached to its predictions. Finishing an R process is therefore different from passing diagnostics, and both are different from recovering truth.
+
+```{r spatial-diagnostics, echo=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/lesson-5-spatial-diagnostics.png")
+```
+
+Supported intervals describe uncertainty in latent occurrence probabilities, rather than the extra randomness of a future binary presence or absence. The gllvm spatial intervals integrate fitted variational and conditional spatial uncertainty but omit fixed coefficient, loading and range uncertainty. Point-only arms have no fabricated intervals. The fraction of this landscape's true probabilities inside an interval is descriptive truth inclusion, not a calibration study showing 95% repeated-simulation coverage.
+
+```{r spatial-uncertainty, echo=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/lesson-5-spatial-uncertainty.png")
+```
+
+The new oracle references know the generating intercepts, environmental slopes and spatial covariance parameters, but still infer the field from the binary observations at the training sites. Their uncertainty includes conditional variation at unsurveyed locations. They indicate what the sampled data contain when nuisance-parameter estimation is removed. They are a reference for this experiment, not an exact upper bound that every estimated model must fall below in every realised error measure. Negative oracle gaps are retained.
+
+### A rare-species spatial attribution needs a prediction check
+
+Recall the predictive attribution in section 8: compare log scores with neither effect, environment only, space only and both effects. Giving environment and space the average of their gains in the two possible orders makes their contributions add to the full-model gain. A spatial contribution can be negative. It is a predictive log-score contribution, not a fraction of **variance explained**.
+
+With simulation truth we can weight the expected log score by the true occupancy probability at each site. We can also score the actual binary states. These answer different questions: a rare realised presence may have a large effect on the observed score even if the underlying probability remains low. The rare-species figure compares expected spatial attribution at training sites with its benefit for held-out prediction. A training attribution alone cannot establish that the model has learned a reliable spatial response.
+
+```{r spatial-attribution, echo=FALSE, out.width="100%"}
+knitr::include_graphics("teaching-data/lesson-5-spatial-rare-species-attribution.png")
+```
+
+The saved per-site attribution tables let you check the additivity directly without loading a fitting package. Choose a supported training result and compare its environment and space contributions with the total log-score gain.
+
+```{r spatial-attribution-check}
+supported_keys <- names(Filter(function(x) !is.null(x$training),
+                               spatial_comparison$site_attribution))
+attribution_example <- spatial_comparison$site_attribution[[supported_keys[1]]]$training$expected
+head(attribution_example[c("site_id", "species_id", "environment", "space", "total_gain")])
+stopifnot(max(abs(attribution_example$environment + attribution_example$space -
+                 attribution_example$total_gain)) < 1e-10)
+```
+
+The prespecified rare example is species 2 in community 1. Its maps use the same four arrangements, packages and colour scale as the common-species maps above. Neither example was chosen for a favourable fit.
+
+```{r spatial-rare-maps, echo=FALSE, out.width="100%"}
+knitr::include_graphics(paste0(
+  "teaching-data/lesson-5-spatial-maps-",
+  c("occJSDM", "sjSDM", "Hmsc", "gllvm"), "-species02.png"
+))
+```
+
+### Repeating the controlled fits
+
+Rendering uses the compact bundle and saved figures. The optional calls below use the study's adapters, which preserve the training transformations, native model definitions, frozen seeds and full initial schedules. They show one native spatial arm per package; the common quadratic and Moran arms are defined in the same study configuration. Repeating the complete experiment also requires its diagnostic selection, bounded prediction and verification steps. Run these expensive calls only deliberately from the source checkout with the compatible pinned R launcher and package library documented in the study README.
+
+```{r spatial-comparison-fits, eval=FALSE}
+study_code <- "../dev/simstudy/spatial-package-comparison"
+source_files <- c("config.R", "basis.R", "adapter-contract.R",
+                  "adapter-occjsdm.R", "adapter-gllvm.R", "adapter-sjsdm.R",
+                  "adapter-hmsc.R", "runner.R")
+for (file in source_files) {
+  source(file.path(study_code, file))
+}
+training <- spatial_comparison$training[["rep01-spread"]]
+settings_for <- function(package_name, arm_name) {
+  accounting <- spatial_comparison$scores$accounting
+  row <- accounting[accounting$package == package_name & accounting$arm == arm_name &
+                      accounting$dataset_id == "rep01-spread", ]
+  stopifnot(nrow(row) == 1L)
+  attempt_settings(package_name, row$job_id, 1L, config = spatial_comparison$config,
+                   source_hashes = tools::md5sum(file.path(study_code, source_files)))
+}
+occ_spatial <- fit_occjsdm(training, fit_basis(training, "gp"), settings_for("occJSDM", "gp"))
+gllvm_spatial <- fit_gllvm(training, fit_basis(training, "spatial2"), settings_for("gllvm", "spatial2"))
+sjsdm_spatial <- fit_sjsdm(training, fit_basis(training, "dnn"), settings_for("sjSDM", "dnn"))
+hmsc_spatial <- fit_hmsc(training, fit_basis(training, "spatial2"), settings_for("Hmsc", "spatial2"))
+```
+
+These results describe three communities, one generating spatial scale and this finite estimation budget. They do not establish a universal package ranking or validate spatial prediction for a real eDNA survey. [Lesson 7](occJSDM-lesson-7.md#what-the-spatial-component-learns) develops the sampling-design question, including the additional cost of imperfect detection. Before adopting a more flexible spatial representation, check whether it improves the prediction task you actually need, whether that improvement repeats across communities, and whether its diagnostics and uncertainty support the interpretation.
+
 ## 10. What this lesson establishes, and what remains open
 
-The four packages can be compared on the same perfectly observed community **when their prediction targets are explicitly matched**. Perfect observation still leaves appreciable probability error. Across this one community, the differences among new-site scores are small, while errors vary among species and probability bands.
+The four packages can be compared on perfectly observed communities **when their prediction targets are explicitly matched**. Perfect observation still leaves appreciable probability error. In the original non-spatial pilot, the differences among new-site scores are small, while errors vary among species and probability bands. The spatial experiment adds three seeded communities and four sampling arrangements, with diagnostics, spatial contrasts and held-out error kept separate.
 
 For an eDNA user the take-home is this: on perfectly observed presence/absence data, occJSDM's ecological model performed like the established packages in this community. The choice among them can therefore rest on whether you need the detection model, which only occJSDM has.
 
-This does not establish a generally superior package, prove that any fitted optimum is global, or demonstrate systematic bias across repeated communities. [Lesson 6](occJSDM-lesson-6.md) adds independent simulated communities, sample-size comparisons and a matched trait example. A broader study still needs both logit- and probit-generating scenarios and sensitivity to priors. Spatial effects, residual-correlation comparisons and variation partitioning require their own matched experiments; they are not included in this pilot.
+This does not establish a generally superior package, prove that any fitted optimum is global, or demonstrate systematic bias across a broad range of communities. [Lesson 6](occJSDM-lesson-6.md) adds independent simulated communities, sample-size comparisons and a matched trait example. A broader study still needs both logit- and probit-generating scenarios and sensitivity to priors. The spatial comparison above addresses one generating scale with unstructured species association disabled. Residual-correlation comparisons and variation partitioning still require their own matched experiments.
 
 Try these exercises with the saved tables, without refitting:
 

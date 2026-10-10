@@ -104,3 +104,19 @@ test_that("a compact export retains full inputs, all cells and independent arith
   target <- file.path(root,"teaching.rds"); save_teaching_bundle(bundle,target)
   expect_true(all(verify_teaching_bundle(target)$passed))
 })
+test_that("lesson sources teach the spatial comparison without fitting while knitting", {
+  repo <- normalizePath(file.path(code,"../../.."))
+  expect_true(all(verify_spatial_lesson_sources(repo)$passed))
+})
+test_that("export CLI creates a verified teaching artifact without running a fit", {
+  repo <- normalizePath(file.path(code,"../../.."))
+  root <- fixture_export_archive(fixture_bundle(),code,repo)
+  on.exit(unlink(root,recursive=TRUE))
+  path <- file.path(root,"cli-teaching.rds")
+  output <- system2(file.path(R.home(),"bin/exec/R"),c("--vanilla","--slave","-f",shQuote(file.path(code,"run.R")),"--args",
+    "--mode=export","--input-mode=reconstructed",shQuote(paste0("--run=",root)),shQuote(paste0("--repo=",repo)),shQuote(paste0("--bundle=",path))),stdout=TRUE,stderr=TRUE)
+  if(!is.null(attr(output,"status"))) cat(paste(output,collapse="\n"),"\n")
+  expect_null(attr(output,"status"))
+  expect_true(file.exists(path))
+  expect_true(all(verify_teaching_bundle(path)$passed))
+})

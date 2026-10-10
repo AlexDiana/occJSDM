@@ -13,7 +13,7 @@ all_args <- commandArgs(); filearg <- grep("^--file=",all_args,value=TRUE)
 script <- if(length(filearg)) sub("^--file=","",filearg[1]) else all_args[match("-f",all_args)+1L]
 if(is.na(script)) stop("Cannot locate script; invoke run-r -f /absolute/path/run.R")
 code <- dirname(normalizePath(script,mustWork=TRUE))
-for(f in c("config.R","archive.R","runtime-record.R","basis.R","adapter-contract.R","adapter-occjsdm.R","adapter-sjsdm.R","adapter-hmsc.R","adapter-gllvm.R","oracle-reference.R","diagnostics.R","select.R","runner.R","score.R","attribution.R","verify.R","native-metadata.R")) source(file.path(code,f))
+for(f in c("config.R","archive.R","runtime-record.R","basis.R","adapter-contract.R","adapter-occjsdm.R","adapter-sjsdm.R","adapter-hmsc.R","adapter-gllvm.R","oracle-reference.R","diagnostics.R","select.R","runner.R","score.R","attribution.R","verify.R","native-metadata.R","verify-teaching.R","export-teaching.R","plot.R")) source(file.path(code,f))
 mode <- cli$mode
 if(is.null(mode)) stop("--mode is required")
 if(mode=="worker") { worker_task(cli$task); quit(status=0L) }
@@ -56,7 +56,19 @@ if(mode=="preflight") {
 } else if(mode=="verify") {
   print(verify_results(root,phase=if(is.null(cli$phase)) "full" else cli$phase))
 } else if(mode=="score") {
+  if(!isTRUE(readRDS(file.path(root,"config.rds"))$smoke_only)) {
+    verification <- readRDS(file.path(root,paste0("verification-",if(is.null(cli$phase)) "full" else cli$phase,".rds")))
+    stopifnot(identical(verification$snapshot_hash,md5(file.path(root,"snapshot-record.rds"))),
+      all(verification$checks$status %in% c("passed","unavailable")))
+  }
   score_run(root,phase=if(is.null(cli$phase)) "full" else cli$phase)
+} else if(mode=="export") {
+  repo <- normalizePath(cli$repo,mustWork=TRUE)
+  bundle <- build_teaching_bundle(root,repo)
+  path <- if(is.null(cli$bundle)) file.path(repo,"vignettes/teaching-data/spatial-package-comparison.rds") else cli$bundle
+  save_teaching_bundle(bundle,path)
+  if(!is.null(cli$figures)) plot_spatial_comparison(bundle,cli$figures)
+  cat("VERIFIED TEACHING EXPORT",normalizePath(path),"\n")
 } else if(mode=="checkpoint") {
   result <- timing_checkpoint(root)
   cat("Remaining conservative wall hours:",result$remaining_hours,"; limit:",result$limit_hours,"; passed:",result$passed,"\n")
