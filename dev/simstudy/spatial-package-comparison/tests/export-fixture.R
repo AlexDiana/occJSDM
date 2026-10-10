@@ -34,6 +34,8 @@ fixture_export_archive <- function(bundle,code,repo) {
       selection$status <- "selected"; selection$selected_attempt <- 1L; selection$attempts <- 1L
       selection$attempt_hashes <- setNames(md5(file.path(ap,"complete.rds")),"1")
       accounting$status[i] <- "selected"; accounting$training_supported[i] <- TRUE
+      tv <- bundle$truth_index[[job$dataset_id]]; tv$landscape <- bundle$landscapes[[tv$community]]
+      write_once(score_predictions(bundle$predictions[[selected_key]]$training,truth_view(tv,"training")),file.path(root,"scores",job$key,"training.rds"))
     }
     write_once(selection,file.path(dir,"selection.rds"))
   }

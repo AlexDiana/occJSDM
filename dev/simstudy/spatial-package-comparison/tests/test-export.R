@@ -48,10 +48,33 @@ test_that("independent compact arithmetic detects inconsistent recovery summarie
   b <- fixture_bundle(); b$scores$species$rmse[1] <- 10
   expect_error(verify_teaching_bundle(b),"rmse")
 })
+test_that("compact verification checks per-site attribution and distance-bin arithmetic", {
+  b <- fixture_bundle(); key <- names(b$predictions)[1]; ds <- b$scores$accounting$dataset_id[match(key,b$scores$accounting$key)]
+  tv <- b$truth_index[[ds]]; tv$landscape <- b$landscapes[[tv$community]]
+  score <- score_predictions(b$predictions[[key]]$training,truth_view(tv,"training"))
+  b$site_attribution <- setNames(list(list(training=score$sites)),key)
+  b$scores$strata <- transform(score$strata,key=key,scope="training")
+  expect_true(all(verify_teaching_bundle(b)$passed))
+  bad <- b; bad$site_attribution[[key]]$training$expected$space[1] <- .01
+  expect_error(verify_teaching_bundle(bad),"attribution")
+  bad <- b; bad$scores$strata$rmse[1] <- 5
+  expect_error(verify_teaching_bundle(bad),"stratum")
+})
 if(file.exists("../export-teaching.R")) source("../export-teaching.R")
 test_that("export refuses archives without independent full-run verification", {
   root <- tempfile(); dir.create(root)
   expect_error(build_teaching_bundle(root,tempdir()),"independent full-run verification")
+})
+test_that("Moran reporting separates graph distance from basis amplitude", {
+  set.seed(441); xy <- matrix(runif(80),40,2)
+  training <- list(dataset_id="fixture",site_id=paste0("t",1:40),xy=xy,environment=matrix(rnorm(40),ncol=1))
+  basis <- fit_basis(training,"mem")
+  prediction <- list(site_id=paste0("n",1:3),xy=rbind(c(0,0),c(.5,.5),c(1,1)))
+  x <- moran_reporting_summary(basis,prediction)
+  expect_equal(x$basis$training_sd,apply(basis$training_matrix,2,sd),ignore_attr=TRUE)
+  expect_equal(x$graph$k,8L); expect_equal(x$graph$components,1L)
+  expect_equal(x$distance$maximum_nearest_training_distance,max(apply(xy_distances(prediction$xy,xy),1,min)))
+  expect_false(x$fitted_range_available)
 })
 test_that("saved bundle checksum is independent of the reader's R serializer", {
   b <- fixture_bundle(); path <- tempfile(fileext=".rds")
