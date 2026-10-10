@@ -25,6 +25,17 @@ test_that("arrangements have the declared counts, separations and axis balance",
   }
 })
 
+test_that("clustered sites near the edge are redrawn, never clipped onto a corner", {
+  for (seed in 1:30) for (n in c(300L, 900L)) {
+    a <- make_arrangements(n, seed = seed)
+    pts <- rbind(a$uniform, a$clustered, pilot_lattice())
+    expect_false(anyDuplicated(pts) > 0)
+    expect_false(any(a$clustered == 0 | a$clustered == 1))
+    centre_of <- rep(seq_len(n / 10L), each = 10L)
+    expect_true(all(sqrt(rowSums((a$clustered - a$centres[centre_of, ])^2)) <= 0.02 + 1e-12))
+  }
+})
+
 test_that("truth 2 community hits its occupancy targets on the lattice", {
   cm <- make_community("t2", n = 100L, replicate = 1L)
   lat <- cm$index$lattice

@@ -44,9 +44,16 @@ make_arrangements <- function(n, seed, cluster_radius = 0.02, max_ratio = 0.1) {
   k <- n %/% 10L; separation <- cluster_separation(k)
   repeat {
     centres <- draw_separated_centres(k, separation)
+    # A point falling outside the unit square is redrawn within its cluster rather than
+    # clipped: clipping stacks points on a corner and produces duplicate sites.
     clustered <- do.call(rbind, lapply(seq_len(k), function(j) {
-      r <- cluster_radius * sqrt(runif(10)); a <- runif(10, 0, 2 * pi)
-      pmin(pmax(cbind(centres[j, 1] + r * cos(a), centres[j, 2] + r * sin(a)), 0), 1)
+      pts <- matrix(NA_real_, 10, 2)
+      for (i in 1:10) repeat {
+        r <- cluster_radius * sqrt(runif(1)); a <- runif(1, 0, 2 * pi)
+        p <- centres[j, ] + r * c(cos(a), sin(a))
+        if (all(p >= 0 & p <= 1)) { pts[i, ] <- p; break }
+      }
+      pts
     }))
     if (axis_ratio_ok(clustered, max_ratio)) break
     rejections <- rejections + 1L
