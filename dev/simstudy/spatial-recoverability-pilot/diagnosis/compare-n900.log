@@ -1,0 +1,20 @@
+This is posterior version 1.7.0
+
+Attaching package: ‘posterior’
+
+The following objects are masked from ‘package:stats’:
+
+    mad, sd, var
+
+The following objects are masked from ‘package:base’:
+
+    %in%, match
+
+t1-r0.08-n900-rep1-uniform nburn 3000 niter 4000 
+joint : secs 120  proposals/step 8.8 
+  ess_med   ess_min  rhat_med  rhat_max frac_pass 
+   12.724     6.919     1.250     1.587     0.000 
+block : secs 161  proposals/block-step 4.67 
+  ess_med   ess_min  rhat_med  rhat_max frac_pass 
+  402.816   114.178     1.008     1.032     0.444 
+ESS per second  joint: 0.11  block: 2.5 
