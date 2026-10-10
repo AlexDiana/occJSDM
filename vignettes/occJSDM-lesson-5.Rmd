@@ -829,7 +829,17 @@ A model can recover the locations of patches but shrink their strength. For exam
 ```{r spatial-recovery, echo=FALSE, out.width="100%"}
 knitr::include_graphics(c(
   "teaching-data/lesson-5-spatial-recovery-delta_rmse.png",
-  "teaching-data/lesson-5-spatial-recovery-delta_rms.png"
+  "teaching-data/lesson-5-spatial-recovery-delta_rms.png",
+  "teaching-data/lesson-5-spatial-recovery-delta_correlation.png"
+))
+```
+
+The black crosses in the amplitude plot show the true contrast amplitudes. The correlation plot describes patch placement, while the RMSE plot also penalises their incorrect strength. For the packages using a logit link, the companion plots below compare the native field with the true centred logit field. An attenuation slope of one means the fitted field has the same amplitude along the true field's direction; it does not guarantee that every patch is correct. Probit fields are excluded from these two comparisons because their units differ.
+
+```{r spatial-native-field, echo=FALSE, out.width="100%"}
+knitr::include_graphics(c(
+  "teaching-data/lesson-5-spatial-recovery-field_rmse.png",
+  "teaching-data/lesson-5-spatial-recovery-field_attenuation.png"
 ))
 ```
 
@@ -876,7 +886,7 @@ The new oracle references know the generating intercepts, environmental slopes a
 
 ### A rare-species spatial attribution needs a prediction check
 
-Recall the predictive attribution in section 8: compare log scores with neither effect, environment only, space only and both effects. Giving environment and space the average of their gains in the two possible orders makes their contributions add to the full-model gain. A spatial contribution can be negative. It is a predictive log-score contribution, not a fraction of **variance explained**.
+The log score in section 9 also lets us ask how the fitted environmental and spatial effects contribute to prediction. Compare four versions of the selected fit: neither effect, environment only, space only and both effects. Here an effect means its variation around the training mean; removing both retains the fitted average baseline. Give environment and space the average of their log-score gains in the two possible orders. Their contributions then add to the full-model gain. A spatial contribution can be negative. It is a predictive log-score contribution, not a fraction of **variance explained**.
 
 With simulation truth we can weight the expected log score by the true occupancy probability at each site. We can also score the actual binary states. These answer different questions: a rare realised presence may have a large effect on the observed score even if the underlying probability remains low. The rare-species figure compares expected spatial attribution at training sites with its benefit for held-out prediction. A training attribution alone cannot establish that the model has learned a reliable spatial response.
 

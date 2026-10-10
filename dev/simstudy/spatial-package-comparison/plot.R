@@ -50,13 +50,18 @@ plot_spatial_comparison <- function(bundle,output_dir) {
   s <- bundle$scores$species; s <- s[s$package!="oracle",,drop=FALSE]
   s$model <- paste(s$package,s$arm,sep=" / ")
   lattice <- s[s$scope=="lattice",,drop=FALSE]
-  for(metric in c("delta_rmse","delta_rms","rmse")) {
+  for(metric in c("delta_rmse","delta_rms","delta_correlation","field_rmse","field_attenuation","rmse")) {
     good <- lattice[is.finite(lattice[[metric]]),,drop=FALSE]
     if(!nrow(good)) next
     d <- aggregate(good[[metric]],good[c("model","community","arrangement","prevalence")],mean); names(d)[5] <- "value"
     p <- ggplot(d,aes(value,model,color=community))+geom_point(position=position_dodge(width=.55),size=1.8)+facet_grid(prevalence~arrangement,scales="free_x")+
-      labs(title=switch(metric,delta_rmse="Spatial-contrast recovery",delta_rms="Estimated spatial-contrast amplitude",rmse="Held-out occupancy-probability error"),
-        subtitle="One point per community and prevalence group; failed predictions are counted separately.",x=switch(metric,delta_rmse="RMSE of delta_p",delta_rms="RMS of fitted delta_p",rmse="RMSE of occurrence probability"),y=NULL,color="Community")
+      labs(title=switch(metric,delta_rmse="Spatial-contrast recovery",delta_rms="Spatial-contrast amplitude",delta_correlation="Spatial-contrast pattern recovery",field_rmse="Native logit-field recovery",field_attenuation="Native logit-field attenuation",rmse="Held-out occupancy-probability error"),
+        subtitle=if(grepl("^field_",metric)) "Only matching logit fields; probit fields have no fabricated recovery scores." else "One point per community and prevalence group; failed predictions are counted separately.",x=switch(metric,delta_rmse="RMSE of delta_p",delta_rms="RMS of delta_p (black crosses: truth)",delta_correlation="Correlation of fitted and true delta_p",field_rmse="RMSE in logit field units",field_attenuation="Slope of fitted field on true field",rmse="RMSE of occurrence probability"),y=NULL,color="Community")
+    if(metric=="delta_rms") {
+      truth <- aggregate(good$truth_delta_rms,good[c("model","community","arrangement","prevalence")],mean); names(truth)[5] <- "value"
+      p <- p+geom_point(data=truth,aes(group=community),shape=4,color="black",size=1.8,position=position_dodge(width=.55))
+    }
+    if(metric=="field_attenuation") p <- p+geom_vline(xintercept=1,linetype=2,color="grey50")
     save_plot(p,paste0("recovery-",metric),14,12)
   }
   bins <- bundle$scores$strata
