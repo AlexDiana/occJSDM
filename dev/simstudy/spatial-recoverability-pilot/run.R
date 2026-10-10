@@ -72,6 +72,7 @@ run_job <- function(study, job, budget) {
                          stringsAsFactors = FALSE)
     oracle <- list(joint = r$fit); phases <- r$phase; factor_records <- r$fit$factor_record
     draws <- r$fit$site_draws; proposals <- r$fit$mean_proposals; screen_detail <- r$screen; traces <- r$fit$traces
+    block_diagnostics <- r$fit[c("block_proposals", "block_mean_abs_angle")]
   } else {
     fits <- lapply(seq_len(S), function(s) fit_with_extension(budget,
       function(nburn, niter, thin, seed) run_species_oracle(cm, arrangement, s, nburn, niter, thin, seed),
@@ -81,7 +82,7 @@ run_job <- function(study, job, budget) {
     factor_records <- do.call(rbind, lapply(fits, function(f) f$fit$factor_record))
     draws <- lapply(fits, function(f) f$fit$site_draws[[1]]); proposals <- vapply(fits, function(f) mean(f$fit$mean_proposals), numeric(1))
     screen_detail <- do.call(rbind, lapply(seq_len(S), function(s) { d <- fits[[s]]$screen; d$species <- s; d }))
-    traces <- lapply(fits, function(f) f$fit$traces)
+    traces <- lapply(fits, function(f) f$fit$traces); block_diagnostics <- NULL
   }
   prediction <- predict_lattice(cm, arrangement, oracle, seed = pilot_seed(pilot_label("lattice", job$job)))
   scores <- score_species(cm, arrangement, prediction, screen)
@@ -90,6 +91,7 @@ run_job <- function(study, job, budget) {
                  site_draws = draws, traces = traces,
                  prediction = prediction[c("probability_mean", "field_mean", "site_field_mean", "site_probability_mean")],
                  scores = scores, screen = screen, screen_detail = screen_detail, phases = phases, mean_proposals = proposals,
+                 block_diagnostics = block_diagnostics,
                  factor_records = factor_records, conditional_records = prediction$conditional_records, geometry = geometry,
                  budget = budget, elapsed_seconds = as.numeric(Sys.time() - t0, units = "secs"), finished = Sys.time())
   tmp <- paste0(out, ".tmp"); saveRDS(result, tmp); file.rename(tmp, out)

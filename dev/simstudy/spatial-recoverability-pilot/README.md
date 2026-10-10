@@ -34,7 +34,8 @@ $P/run-r -f $P/plot.R --args --study=$STUDY
 - `seeds.R`: label-hashed seed namespace, distinct from the sweep's.
 - `kernel.R`: squared-exponential kernel, stable factorisation with Cholesky or truncated-eigen route, lattice conditional, Gauss-Hermite quadrature.
 - `generator.R`: species table, arrangements with scaled cluster separation, both truths, intercept solving.
-- `joint-ellipse.cpp`: joint elliptical slice sampler over two shared fields and twelve independent parts; reduces exactly to the sweep's `ellipse.cpp` for one species and one field.
+- `block-ellipse.cpp`: the truth 1 oracle's sampler since the 10 October evening revision: blockwise elliptical slice sampling over two shared fields and twelve independent parts, one ellipse angle per block; reduces exactly to the sweep's `ellipse.cpp` for one species and one field.
+- `joint-ellipse.cpp`: the sampler the first truth 1 run used, one ellipse angle for all fourteen blocks; kept and compiled for the record. All 180 of its jobs failed the convergence screen; see `DIAGNOSIS-truth1-mixing.md`.
 - `oracle.R`: truth 2 per-species oracle (the sweep's sampler, unmodified), truth 1 joint oracle, convergence screen.
 - `predict.R`: lattice prediction, uninformed reference, layout geometry.
 - `score.R`: per-species scores, aggregation, gate and map reading.
@@ -42,3 +43,4 @@ $P/run-r -f $P/plot.R --args --study=$STUDY
 - `verify.R`: independent recomputation of every gate decision and the map, plus input, seed and conditioning checks.
 - `plot.R`: copies compact results and draws `results/recoverability-map.png`.
 - `test-*.R`: the validation tests, one per module.
+- `diagnosis/`: the truth 1 mixing diagnosis scripts (screen by cell, per-block mixing and angles, joint against blockwise comparison, posterior agreement, extended-budget check) with their logs.

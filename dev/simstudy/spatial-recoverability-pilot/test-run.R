@@ -37,6 +37,10 @@ test_that("fit runs a tiny budget, reuses existing jobs, and score writes every 
   expect_true(all(c("site_draws", "traces", "prediction", "scores", "screen", "screen_detail", "phases", "factor_records",
                     "conditional_records", "geometry", "budget", "elapsed_seconds") %in% names(job)))
   expect_equal(nrow(job$scores), 12L)
+  t1 <- readRDS(file.path(study, "jobs-local", list.files(file.path(study, "jobs-local"), pattern = "^t1-")[1]))
+  expect_equal(dim(t1$block_diagnostics$block_proposals), c(14L, 4L))
+  expect_equal(dim(t1$block_diagnostics$block_mean_abs_angle), c(14L, 4L))
+  expect_null(job$block_diagnostics)   # truth 2 jobs carry none
   pilot_score(study)
   sp <- read.csv(file.path(study, "scores", "species.csv"))
   expect_equal(nrow(sp), 16L * 12L)

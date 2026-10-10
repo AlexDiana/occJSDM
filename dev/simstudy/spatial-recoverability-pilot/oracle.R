@@ -1,11 +1,14 @@
 # Oracle wrappers for the recoverability pilot. Truth 2 uses the sweep's ellipse.cpp
-# unmodified; truth 1 uses joint-ellipse.cpp. Both know every parameter but the fields.
+# unmodified; truth 1 uses block-ellipse.cpp (one ellipse angle per block; see the spec's
+# revision record for 10 October, evening). joint-ellipse.cpp, which the first truth 1 run
+# used, is kept and compiled for the record. All know every parameter but the fields.
 # Requires kernel.R, seeds.R and generator.R to be sourced first.
 ELLIPSE_MD5 <- "8154a611d1b7ab926eb32bf441e9af3e"
 
 pilot_sampler_files <- function(repo = ".") c(
   ellipse = file.path(repo, "dev/simstudy/spatial-amplitude-prior/diagnosis/ellipse.cpp"),
-  joint = file.path(repo, "dev/simstudy/spatial-recoverability-pilot/joint-ellipse.cpp"))
+  joint = file.path(repo, "dev/simstudy/spatial-recoverability-pilot/joint-ellipse.cpp"),
+  block = file.path(repo, "dev/simstudy/spatial-recoverability-pilot/block-ellipse.cpp"))
 
 compile_pilot_samplers <- function(repo = ".", cache = NULL) {
   files <- pilot_sampler_files(repo)
@@ -64,12 +67,13 @@ run_joint_oracle <- function(cm, arrangement, nburn = 3000L, niter = 4000L, thin
   blocks <- 2L + S; d <- blocks * n
   set.seed(seed)
   initial <- cbind(rep(0, d), do.call(rbind, replicate(blocks, f$lower %*% matrix(rnorm(n * (nchain - 1L)), n, nchain - 1L), simplify = FALSE)))
-  fit <- joint_ellipse_draws_cpp(f$lower, cm$z[idx, , drop = FALSE], offset, w, 2L, c_indep, tc, initial, nburn, niter, thin)
+  fit <- block_ellipse_draws_cpp(f$lower, cm$z[idx, , drop = FALSE], offset, w, 2L, c_indep, tc, initial, nburn, niter, thin)
   nkeep <- dim(fit$draws)[2]
   site_draws <- lapply(seq_len(blocks), function(b) matrix(fit$draws[(b - 1L) * n + seq_len(n), , , drop = FALSE], n, nkeep * nchain))
   list(site_draws = site_draws, traces = fit$traces, offset = offset,
        factor_record = factor_record(f, cm$range, paste0("prior-", arrangement, "-joint")),
-       mean_proposals = fit$mean_proposals, nburn = nburn, niter = niter, thin = thin, seed = seed)
+       mean_proposals = fit$mean_proposals, block_proposals = fit$block_proposals,
+       block_mean_abs_angle = fit$block_mean_abs_angle, nburn = nburn, niter = niter, thin = thin, seed = seed)
 }
 
 screen_traces <- function(traces, rhat_max = 1.01, ess_min = 400) {
