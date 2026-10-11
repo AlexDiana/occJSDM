@@ -97,66 +97,85 @@ stage2_timing <- function(study, step = 1L, workers = 5L, mcmc = NULL, slice_sit
 read_attempt_seconds <- function(study, job_id) vapply(read_summaries(study, job_id), function(x) x$elapsed_seconds, numeric(1))
 
 # Micro-timing: one chain, 50 warm-up and 150 retained draws (gllvm: one start, maxit 200) at ladder step 1, on the two 900-site
-# replicate-1 datasets. Nothing here is a study attempt. Extrapolation assumptions are written into the JSON.
-stage2_microtiming <- function(study, workers = 5L) {
-  cfg <- readRDS(file.path(study, "config.rds")); frozen <- ladder_settings(cfg, 1L)
+# replicate-1 datasets. Nothing here is a study attempt. Each micro fit saves its own result under microtiming/ so that one stuck or
+# killed fit never loses the others, and a rerun skips what exists. Extrapolation assumptions are written into the JSON.
+micro_schedule <- c(nchain = 1L, nburn = 50L, niter = 150L, nthin = 1L)
+micro_file <- function(study, job, step = 1L) file.path(study, "microtiming", paste0(job$job_id, if (step == 1L) "" else paste0("--step", step), ".rds"))
+
+stage2_microtime_job <- function(study, job, cfg, frozen, step = 1L) {
+  cm <- readRDS(job$input_file); tr <- load_training(cm, job$dataset_id, job$input_md5); pr <- load_prediction(cm)
+  basis <- fit_basis(tr, job$arm); settings <- attempt_settings(job, 1L, cfg, frozen, list(initial = micro_schedule, extended = micro_schedule))
+  if (job$kind == "point") settings$gllvm$maxit <- 200L
+  t_fit <- system.time(fit <- switch(job$package, occJSDM = fit_occjsdm(tr, basis, settings), Hmsc = fit_hmsc(tr, basis, settings), gllvm = fit_gllvm(tr, basis, settings)))[["elapsed"]]
+  t_diag <- system.time(suppressWarnings(diagnose_fit(fit, tr, basis, study_config())))[["elapsed"]]
+  block <- subset_prediction(pr, seq_len(cfg$prediction_block))
+  t_pred <- system.time(switch(job$package, occJSDM = predict_occjsdm(fit, block, basis), Hmsc = predict_hmsc(fit, block, basis), gllvm = predict_gllvm(fit, block, basis)))[["elapsed"]]
+  data.frame(job_id = job$job_id, key = job$key, truth = job$truth, kind = job$kind, step = step, signature = timing_signature(job$key, frozen), fit_seconds = t_fit, diagnose_seconds = t_diag, block_prediction_seconds = t_pred,
+             gllvm_converged = if (job$kind == "point") isTRUE(fit$native$convergence) else NA, finished = format(Sys.time()), stringsAsFactors = FALSE)
+}
+
+stage2_microtiming <- function(study, workers = 5L, keys = NULL, step = 1L) {
+  cfg <- readRDS(file.path(study, "config.rds")); frozen <- ladder_settings(cfg, step)
+  dir.create(file.path(study, "microtiming"), showWarnings = FALSE)
   jobs <- job_table(study); pick <- jobs[jobs$n == 900L & jobs$replicate == 1L, ]
-  micro <- c(nchain = 1L, nburn = 50L, niter = 150L, nthin = 1L); draws_micro <- 150L
-  t0 <- Sys.time()
-  res <- parallel::mclapply(seq_len(nrow(pick)), function(i) tryCatch({
-    job <- pick[i, ]; cm <- readRDS(job$input_file); tr <- load_training(cm, job$dataset_id, job$input_md5); pr <- load_prediction(cm)
-    basis <- fit_basis(tr, job$arm); settings <- attempt_settings(job, 1L, cfg, frozen, list(initial = micro, extended = micro))
-    if (job$kind == "point") settings$gllvm$maxit <- 200L
-    t_fit <- system.time(fit <- switch(job$package, occJSDM = fit_occjsdm(tr, basis, settings), Hmsc = fit_hmsc(tr, basis, settings), gllvm = fit_gllvm(tr, basis, settings)))[["elapsed"]]
-    t_diag <- system.time(suppressWarnings(diagnose_fit(fit, tr, basis, study_config())))[["elapsed"]]
-    block <- subset_prediction(pr, seq_len(cfg$prediction_block))
-    t_pred <- system.time(switch(job$package, occJSDM = predict_occjsdm(fit, block, basis), Hmsc = predict_hmsc(fit, block, basis), gllvm = predict_gllvm(fit, block, basis)))[["elapsed"]]
-    data.frame(key = job$key, truth = job$truth, kind = job$kind, fit_seconds = t_fit, diagnose_seconds = t_diag, block_prediction_seconds = t_pred,
-               gllvm_hit_iteration_cap = if (job$kind == "point") !isTRUE(fit$native$convergence) else NA, error = NA_character_, stringsAsFactors = FALSE)
-  }, error = function(e) data.frame(key = pick$key[i], truth = pick$truth[i], kind = pick$kind[i], fit_seconds = NA_real_, diagnose_seconds = NA_real_,
-                                    block_prediction_seconds = NA_real_, gllvm_hit_iteration_cap = NA, error = conditionMessage(e), stringsAsFactors = FALSE)),
-    mc.cores = workers, mc.preschedule = FALSE)
-  micro_tab <- do.call(rbind, res)
-  ok <- micro_tab[is.finite(micro_tab$fit_seconds), ]
+  if (!is.null(keys)) pick <- pick[pick$key %in% keys, ]
+  pick <- pick[!file.exists(vapply(seq_len(nrow(pick)), function(i) micro_file(study, pick[i, ], step), "")), ]
+  parallel::mclapply(seq_len(nrow(pick)), function(i) tryCatch({
+    r <- stage2_microtime_job(study, pick[i, ], cfg, frozen, step); tmp <- paste0(micro_file(study, pick[i, ], step), ".tmp"); saveRDS(r, tmp); file.rename(tmp, micro_file(study, pick[i, ], step)); "done"
+  }, error = function(e) { writeLines(conditionMessage(e), paste0(micro_file(study, pick[i, ], step), ".error")); "error" }), mc.cores = workers, mc.preschedule = FALSE)
+  stage2_microtiming_summary(study)
+}
+
+# Prices every arm that has a micro measurement. An arm with no measurement is listed as missing and makes the projection incomplete.
+stage2_microtiming_summary <- function(study) {
+  cfg <- readRDS(file.path(study, "config.rds")); frozen <- ladder_settings(cfg, 1L)
+  files <- list.files(file.path(study, "microtiming"), pattern = "\\.rds$", full.names = TRUE)
+  normalise <- function(f) { r <- readRDS(f); if (!"step" %in% names(r)) r$step <- 1L; if (!"signature" %in% names(r)) r$signature <- timing_signature(r$key, frozen); r }
+  micro_tab <- if (length(files)) do.call(rbind, lapply(files, normalise)) else NULL
+  errors <- list.files(file.path(study, "microtiming"), pattern = "\\.error$", full.names = TRUE)
+  jobs <- job_table(study); n_jobs <- table(jobs$key); micro <- micro_schedule; draws_micro <- micro[["niter"]] * micro[["nchain"]]
   blocks <- ceiling(1600 / cfg$prediction_block)
   draws_prod_init <- cfg$mcmc$initial[["nchain"]] * cfg$mcmc$initial[["niter"]]; draws_prod_ext <- cfg$mcmc$extended[["nchain"]] * cfg$mcmc$extended[["niter"]]
   iters_init <- cfg$mcmc$initial[["nchain"]] * (cfg$mcmc$initial[["nburn"]] + cfg$mcmc$initial[["niter"]])
   per_job_seconds <- function(r, frozen) {
     if (r$kind == "bayesian") {
       per_iter <- r$fit_seconds / (micro[["nburn"]] + micro[["niter"]]); diag_per_draw <- r$diagnose_seconds / draws_micro
-      fit <- per_iter * iters_init * cfg$extension_factor
-      diag <- diag_per_draw * (draws_prod_init + draws_prod_ext)
-      pred <- r$block_prediction_seconds / draws_micro * (draws_prod_ext / frozen$prediction_thin) * blocks
-    } else {
-      fit <- r$fit_seconds / 200 * cfg$gllvm$maxit * cfg$diagnostics$max_starts; diag <- 0; pred <- r$block_prediction_seconds * blocks
-    }
-    c(fit = fit, diagnose = diag, prediction = pred)
+      c(fit = per_iter * iters_init * cfg$extension_factor, diagnose = diag_per_draw * (draws_prod_init + draws_prod_ext),
+        prediction = r$block_prediction_seconds / draws_micro * (draws_prod_ext / frozen$prediction_thin) * blocks)
+    } else c(fit = r$fit_seconds / 200 * cfg$gllvm$maxit * cfg$diagnostics$max_starts, diagnose = 0, prediction = r$block_prediction_seconds * blocks)
   }
-  n_jobs <- table(jobs$key)
-  price <- function(rescale) {
-    arms <- lapply(unique(ok$key), function(k) {
-      rows <- ok[ok$key == k, ]; secs <- do.call(rbind, lapply(seq_len(nrow(rows)), function(i) per_job_seconds(rows[i, ], frozen)))
-      s <- colMeans(secs[which.max(rowSums(secs)), , drop = FALSE]); total <- sum(s) * rescale(k)
-      data.frame(key = k, fit_hours = s[["fit"]] * rescale(k) / 3600, diagnose_hours = s[["diagnose"]] * rescale(k) / 3600, prediction_hours = s[["prediction"]] * rescale(k) / 3600,
-                 job_hours = total / 3600, jobs = as.integer(n_jobs[k]), worker_hours = total / 3600 * as.integer(n_jobs[k]))
+  all_keys <- arm_key(cfg$arms$package, cfg$arms$arm); measured <- if (is.null(micro_tab)) character() else unique(micro_tab$key); missing <- setdiff(all_keys, measured)
+  # For each arm and step: the measurement taken at that step's own setting if there is one, else the step 1 measurement rescaled.
+  price <- function(st, rescale) {
+    basis <- character(); arms <- lapply(measured, function(k) {
+      own <- micro_tab[micro_tab$key == k & micro_tab$signature == timing_signature(k, st), ]
+      if (nrow(own)) { rows <- own; f <- 1; basis[[k]] <<- paste("measured at step", max(own$step)) }
+      else { rows <- micro_tab[micro_tab$key == k & micro_tab$step == 1L, ]; f <- rescale(k); basis[[k]] <<- "rescaled from step 1" }
+      if (!nrow(rows)) return(NULL)
+      rows <- rows[order(rows$step), ]; rows <- rows[!duplicated(rows$truth, fromLast = TRUE), ]
+      secs <- do.call(rbind, lapply(seq_len(nrow(rows)), function(i) per_job_seconds(rows[i, ], frozen))); s <- secs[which.max(rowSums(secs)), ]
+      data.frame(key = k, fit_hours = s[["fit"]] * f / 3600, diagnose_hours = s[["diagnose"]] * f / 3600, prediction_hours = s[["prediction"]] * f / 3600,
+                 job_hours = sum(s) * f / 3600, jobs = as.integer(n_jobs[k]), worker_hours = sum(s) * f / 3600 * as.integer(n_jobs[k]), stringsAsFactors = FALSE)
     })
-    t <- do.call(rbind, arms); list(per_arm = t, worker_hours = sum(t$worker_hours), wall_hours_at_workers = sum(t$worker_hours) / cfg$workers)
+    t <- do.call(rbind, arms)
+    list(per_arm = t, basis = as.list(basis), worker_hours_measured_arms = if (is.null(t)) 0 else sum(t$worker_hours),
+         wall_hours_at_workers = if (is.null(t)) 0 else sum(t$worker_hours) / cfg$workers, complete = length(missing) == 0L)
   }
   steps <- lapply(1:8, function(s) {
     st <- ladder_settings(cfg, s)
     rescale <- function(k) if (k == "occJSDM/gp") (st$support_points_900 / frozen$support_points_900)^2 else
       if (grepl("^Hmsc/", k) && identical(st$hmsc_method, "GPP")) st$hmsc_knots / 900 else 1
-    c(list(step = s, settings = st, assumption = if (s == 1L) "measured" else "rescaled: gp cost by (support points / 900)^2, Hmsc cost by knots / 900 under GPP"), price(rescale))
+    c(list(step = s, settings = st), price(st, rescale))
   })
-  out <- list(micro_fits = micro_tab, assumptions = list(
+  out <- list(micro_fits = micro_tab, missing_arms = missing, error_files = basename(errors), assumptions = list(
     micro_schedule = "one chain, 50 warm-up, 150 retained; gllvm one start with maxit 200",
     bayesian_fit = "per-iteration cost times 4 chains times 7,000 iterations times the extension factor 4.43",
     diagnostics = "per-retained-draw cost times (4 x 4,000 + 4 x 16,000) draws",
     prediction = "per-draw, per-25-site-block cost times 4 x 16,000 / prediction thinning draws times 64 blocks",
     gllvm = "cost per iteration at the cap times maxit 12,000 times 6 starts: a worst case that assumes no start converges early",
-    jobs_priced = "every job at the 900-site cost of its arm, the larger of the two truths (upper bound for the 300-site jobs)"),
-    steps = steps, elapsed_seconds = as.numeric(Sys.time() - t0, units = "secs"))
-  writeLines(jsonlite::toJSON(out, auto_unbox = TRUE, pretty = TRUE, digits = 4, na = "null"), file.path(study, "microtiming.json"))
+    jobs_priced = "every job at the 900-site cost of its arm, the larger of the two truths (upper bound for the 300-site jobs)",
+    missing = "an arm with no measurement is excluded from the totals and the projection is marked incomplete"), steps = steps)
+  writeLines(jsonlite::toJSON(out, auto_unbox = TRUE, pretty = TRUE, digits = NA, na = "null"), file.path(study, "microtiming.json"))
   invisible(out)
 }
 
@@ -219,7 +238,7 @@ if (sys.nframe() == 0L && !interactive()) {
   mode <- get("mode"); study <- get("study")
   switch(mode,
     prepare = stage2_prepare(study, get("pilot"), jobs_dir = get("jobs")),
-    microtiming = print(lapply(stage2_microtiming(study)$steps, function(s) s[c("step", "worker_hours", "wall_hours_at_workers")])),
+    microtiming = { k <- get("keys"); print(lapply(stage2_microtiming(study, keys = if (is.null(k)) NULL else strsplit(k, ",")[[1]], step = as.integer(get("step", "1")))$steps, function(s) s[c("step", "worker_hours_measured_arms", "wall_hours_at_workers", "complete")])) },
     timing = print(stage2_timing(study, step = as.integer(get("step", "1")))[c("settings", "complete", "projected_cpu_hours_upper", "projected_wall_hours_upper", "passes")]),
     freeze = { s <- as.integer(get("step")); t <- jsonlite::fromJSON(file.path(study, sprintf("timing-step%d.json", s))); stopifnot(isTRUE(t$passes))
                stage2_freeze(study, ladder_settings(readRDS(file.path(study, "config.rds")), s), timing = t[c("step", "projected_wall_hours_upper")]) },
