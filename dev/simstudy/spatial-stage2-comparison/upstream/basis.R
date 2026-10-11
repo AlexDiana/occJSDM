@@ -39,14 +39,14 @@ fit_neighbor_graph <- function(xy,site_id,k=8L) {
   list(W=W,k=k,radius=radius,boundary_id=boundary_id,components=graph_components(W))
 }
 fit_basis <- function(training,arm) {
-  if (!arm %in% c("env","trend","mem","dnn","gp","spatial2")) stop("Unknown spatial arm")
+  if (!arm %in% c("env","trend","mem","dnn","gp","spatial2","spatial6")) stop("Unknown spatial arm")
   xy <- as.matrix(training$xy); ids <- as.character(training$site_id); n <- nrow(xy)
   if (ncol(xy)!=2L || any(!is.finite(xy)) || length(ids)!=n || anyNA(ids) || anyDuplicated(ids) || anyDuplicated(xy)) stop("Invalid training coordinates or site IDs")
   b <- list(schema_version=1L,arm=arm,status="available",reason=NA_character_,
     dataset_id=training$dataset_id,training_ids=ids,training_xy=xy,
     environment_transform=fit_transform(training$environment))
   if (arm=="env") b$training_matrix <- matrix(numeric(),n,0L)
-  if (arm %in% c("gp","spatial2")) b$training_matrix <- xy
+  if (arm %in% c("gp","spatial2","spatial6")) b$training_matrix <- xy
   if (arm %in% c("trend","dnn")) {
     b$coordinate_transform <- fit_transform(xy)
     standardized <- apply_transform(xy,b$coordinate_transform)
@@ -88,7 +88,7 @@ predict_basis <- function(basis,prediction) {
   xy <- as.matrix(prediction$xy); n <- nrow(xy)
   if (ncol(xy)!=2L || any(!is.finite(xy))) stop("Invalid prediction coordinates")
   if (basis$arm=="env") return(matrix(numeric(),n,0L))
-  if (basis$arm %in% c("gp","spatial2")) return(xy)
+  if (basis$arm %in% c("gp","spatial2","spatial6")) return(xy)
   if (basis$arm %in% c("trend","dnn")) {
     raw <- apply_transform(xy,basis$coordinate_transform)
     return(if (basis$arm=="trend") apply_transform(trend_columns(raw),basis$column_transform) else raw)

@@ -1,5 +1,5 @@
 library(testthat)
-for (f in c("config.R","basis.R","adapter-contract.R","adapter-occjsdm.R","adapter-sjsdm.R")) if(file.exists(file.path("..",f))) source(file.path("..",f))
+source("../../config.R"); for (f in c("basis.R","adapter-contract.R","adapter-occjsdm.R")) source(file.path("..",f))
 small_training <- function(n=20L) {
   set.seed(341)
   list(schema_version=1L,dataset_id="synthetic",site_id=sprintf("s%03d",1:n),species_id=c("absent","present"),
@@ -26,20 +26,13 @@ test_that("gauge centring preserves full probabilities and retains structural ze
   bad <- rec; bad$species_id <- rev(bad$species_id)
   expect_error(validate_prediction(bad,list(site_id=c("a","b"),species_id=c("u","v"))),"order")
 })
-test_that("sjSDM marginal quadrature matches independent integration including extremes", {
-  mu <- c(-30,-4,-1,0,1,4,30)
-  exact <- vapply(mu,function(m) integrate(function(z) (0.999999*plogis(1.70169*(m+z))+.0000005)*dnorm(z),-Inf,Inf,rel.tol=1e-10)$value,0.)
-  expect_equal(sjsdm_marginal(mu),exact,tolerance=1e-6)
-  expect_gt(abs(sjsdm_marginal(1)-pnorm(1)),.05)
-  expect_equal(sjsdm_marginal(matrix(mu,1)),matrix(exact,1),tolerance=1e-6)
-})
 test_that("native adapters preserve zeros, predictor order, and fresh-process prediction", {
-  launcher <- normalizePath("../run-r"); code <- normalizePath("..")
+  launcher <- normalizePath("../../run-r"); code <- normalizePath("..")
   root <- Sys.getenv("SPATIAL_SMOKE_ROOT",unset=tempfile()); dir.create(root,recursive=TRUE,showWarnings=FALSE); saveRDS(small_training(),file.path(root,"training.rds"))
   fixture <- file.path(code,"tests/native-core-fixture.R")
   expect_true(file.exists(fixture))
   if (!file.exists(fixture)) return(invisible(NULL))
-  for (package in c("occJSDM","sjSDM")) {
+  for (package in c("occJSDM")) {
     out <- suppressWarnings(system2(launcher,c("-f",shQuote(fixture),"--args",shQuote(code),shQuote(root),package,"fit"),stdout=TRUE,stderr=TRUE))
     expect_null(attr(out,"status"),info=paste(tail(out,20),collapse="\n"))
     out <- suppressWarnings(system2(launcher,c("-f",shQuote(fixture),"--args",shQuote(code),shQuote(root),package,"predict"),stdout=TRUE,stderr=TRUE))

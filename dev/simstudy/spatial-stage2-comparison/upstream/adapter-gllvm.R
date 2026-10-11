@@ -10,11 +10,13 @@ fit_gllvm <- function(training,basis,settings) {
   validate_training(training); started <- Sys.time(); warnings <- character()
   set.seed(settings$seed); rng_start <- .Random.seed
   X <- occ_design(training,basis)
+  # Residual starts fail on any dataset with an all-zero training site; random starts fail without latent variables (gllvm 2.0.15).
+  starting_val <- if(basis$arm=="spatial2") "random" else "res"
   args <- list(y=training$y,X=X,family=binomial("logit"),link="logit",
     num.lv=if(basis$arm=="spatial2") 2L else 0L,method="VA",row.eff=FALSE,
     scale.X=FALSE,sd.errors=FALSE,seed=settings$seed,
     control=list(maxit=settings$gllvm$maxit,max.iter=settings$gllvm$maxit),
-    control.start=list(starting.val="res",n.init=1L,jitter.var=.1))
+    control.start=list(starting.val=starting_val,n.init=1L,jitter.var=.1))
   if(basis$arm=="spatial2") {
     args$lvCor <- ~corExp(1|site)
     args$studyDesign <- data.frame(site=factor(training$site_id,levels=training$site_id))
@@ -38,7 +40,7 @@ fit_gllvm <- function(training,basis,settings) {
     covariance_status=if(basis$arm=="spatial2") "variational covariance available; fixed parameter uncertainty omitted" else "fixed parameter uncertainty not estimated",
     kernel="exp(-distance/rho.lv); raw unit-square Euclidean distance; unit marginal latent variance before sigma.lv")
   record_fit("gllvm",training,basis,settings,native,started,warnings,
-    list(rng_start=rng_start,training_environment=training$environment,training_xy=training$xy))
+    list(rng_start=rng_start,training_environment=training$environment,training_xy=training$xy,starting_val=starting_val))
 }
 gllvm_field_moments <- function(fit_record,prediction) {
   native <- fit_record$native; xy <- fit_record$training_xy; n <- nrow(xy)

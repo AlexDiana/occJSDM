@@ -56,7 +56,7 @@ diagnose_fit <- function(fit_record,training,basis,config=study_config()) {
   } else if(f$package=="Hmsc") {
     posts <- f$native$postList; beta <- unlist(lapply(posts,function(ch) lapply(ch,`[[`,"Beta")),use.names=FALSE)
     add_array(array(beta,c(length(posts[[1]][[1]]$Beta),ni,nc)),"coefficient")
-    if(f$arm=="spatial2") {
+    if(grepl("^spatial[0-9]+$", f$arm)) {
       # Species covariance at a fixed raw-coordinate distance is invariant to factor signs/permutations.
       corhalf <- array(NA_real_,c(S,ni,nc))
       for(ch in seq_len(nc)) for(it in seq_len(ni)) {

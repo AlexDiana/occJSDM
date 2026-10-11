@@ -12,7 +12,7 @@ fit_occjsdm <- function(training,basis,settings) {
   X <- occ_design(training,basis)
   input <- list(info=cbind(data.frame(Site=seq_len(nrow(X))),X),OTU=training$y,traits=NULL)
   if (basis$arm=="gp") input$info <- cbind(input$info,longitude=training$xy[,1],latitude=training$xy[,2])
-  args <- list(data=input,listParams=list(n_factors=0L,n_lattrait=0L,n_supportpoints=100L),
+  args <- list(data=input,listParams=list(n_factors=0L,n_lattrait=0L,n_supportpoints=as.integer(settings$support_points)),
     occCovariates=colnames(X),MCMCparams=as.list(settings$mcmc))
   if (basis$arm=="gp") args$spatCovariates <- c("longitude","latitude")
   native <- withCallingHandlers(do.call(occJSDM::runOccJSDM,args),warning=function(w) {
@@ -21,9 +21,10 @@ fit_occjsdm <- function(training,basis,settings) {
   stopifnot(identical(native$infos$speciesNames,training$species_id),native$infos$n_factors==0L,
     nrow(native$X_psi)==nrow(training$y),native$infos$model=="binary",
     identical(native$infos$OTU,training$y))
+  if(basis$arm=="gp") stopifnot(nrow(native$infos$list_Xs$X_tilde)==as.integer(settings$support_points))
   record_fit("occJSDM",training,basis,settings,native,started,warnings,
     list(rng_start=rng_start,coefficient_columns=colnames(native$X_psi),
-         training_environment=training$environment,training_xy=training$xy))
+         training_environment=training$environment,training_xy=training$xy,support_points=settings$support_points))
 }
 occ_gp_bases <- function(fit,xy=NULL) {
   xs <- fit$infos$list_Xs

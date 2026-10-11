@@ -1,5 +1,5 @@
 args <- commandArgs(trailingOnly=TRUE); code <- args[1]; root <- args[2]; package <- args[3]; mode <- args[4]
-for(f in c("config.R","basis.R","adapter-contract.R","adapter-occjsdm.R","adapter-sjsdm.R")) source(file.path(code,f))
+source(file.path(code,"..","config.R")); for(f in c("basis.R","adapter-contract.R","adapter-occjsdm.R")) source(file.path(code,f))
 tr <- readRDS(file.path(root,"training.rds")); pred <- tr; pred$y <- NULL
 cfg <- study_config(); arms <- if(package=="occJSDM") c("env","trend","mem","gp") else c("env","trend","mem","dnn")
 for(arm in arms) {
@@ -7,8 +7,7 @@ for(arm in arms) {
   path <- file.path(root,paste0(package,"-",arm,".rds"))
   if(mode=="fit") {
     settings <- list(seed=289L,job_id=1L,attempt_id=1L,source_hashes=c(fixture="synthetic"),
-      mcmc=c(nchain=2L,nburn=10L,niter=20L,nthin=1L),sjsdm=cfg$sjsdm)
-    settings$sjsdm$epochs <- c(8L,5L); settings$sjsdm$sampling <- 100L
+      mcmc=c(nchain=2L,nburn=10L,niter=20L,nthin=1L),support_points=10L)
     f <- get(paste0("fit_",tolower(package)))(tr,basis,settings)
     p <- get(paste0("predict_",tolower(package)))(f,pred,basis)
     stopifnot(identical(dim(p$p_full),c(nrow(tr$y),2L)),identical(f$species_id,tr$species_id),

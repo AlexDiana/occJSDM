@@ -1,5 +1,5 @@
 library(testthat)
-for(f in c("config.R","basis.R","adapter-contract.R","adapter-occjsdm.R","adapter-hmsc.R","adapter-gllvm.R")) if(file.exists(file.path("..",f))) source(file.path("..",f))
+source("../../config.R"); for(f in c("basis.R","adapter-contract.R","adapter-occjsdm.R","adapter-hmsc.R","adapter-gllvm.R")) source(file.path("..",f))
 test_that("conditional moments retain residual and propagated uncertainty", {
   K <- matrix(c(1,.5,.5,1),2); C <- matrix(c(.2,.04,.04,.3),2)
   mu <- c(1,-1); cross <- matrix(c(.3,.1),1)
@@ -24,7 +24,7 @@ test_that("Hmsc and gllvm native fixtures certify fields and prediction targets"
   fixture <- "native-spatial-fixture.R"
   expect_true(file.exists(fixture))
   if (!file.exists(fixture)) return(invisible(NULL))
-  launcher <- normalizePath("../run-r"); code <- normalizePath("..")
+  launcher <- normalizePath("../../run-r"); code <- normalizePath("..")
   root <- Sys.getenv("SPATIAL_NATIVE_SMOKE_ROOT",unset=tempfile()); dir.create(root,recursive=TRUE,showWarnings=FALSE)
   for(package in c("Hmsc","gllvm")) {
     result <- suppressWarnings(system2(launcher,c("-f",shQuote(normalizePath(fixture)),"--args",shQuote(code),shQuote(root),package),stdout=TRUE,stderr=TRUE))

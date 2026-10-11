@@ -1,11 +1,17 @@
+spatial_factors <- function(arm) { k <- suppressWarnings(as.integer(sub("^spatial", "", arm))); if (is.na(k)) stop("Not a spatial factor arm: ", arm); k }
 fit_hmsc <- function(training,basis,settings) {
   validate_training(training); started <- Sys.time(); warnings <- character()
   set.seed(settings$seed); rng_start <- .Random.seed
   X <- occ_design(training,basis)
   args <- list(Y=training$y,XData=X,XFormula=~.,XScale=FALSE,distr="probit")
-  if(basis$arm=="spatial2") {
-    xy <- training$xy; rownames(xy) <- training$site_id
-    level <- Hmsc::setPriors(Hmsc::HmscRandomLevel(sData=xy,sMethod="Full"),nfMin=2L,nfMax=2L)
+  if(grepl("^spatial[0-9]+$", basis$arm)) {
+    xy <- training$xy; rownames(xy) <- training$site_id; nf <- spatial_factors(basis$arm)
+    method <- if (is.null(settings$hmsc_method)) "Full" else settings$hmsc_method
+    # Hmsc::constructKnots takes a grid density, not a count; k-means with the attempt seed gives an exact, recorded knot set.
+    level <- if (method == "Full") Hmsc::HmscRandomLevel(sData=xy,sMethod="Full") else {
+      set.seed(settings$seed); knots <- stats::kmeans(xy,centers=settings$hmsc_knots,nstart=5L,iter.max=100L)$centers
+      Hmsc::HmscRandomLevel(sData=xy,sMethod="GPP",sKnot=knots) }
+    level <- Hmsc::setPriors(level,nfMin=nf,nfMax=nf)
     args$studyDesign <- data.frame(site=factor(training$site_id,levels=training$site_id))
     args$ranLevels <- list(site=level)
   }
@@ -16,8 +22,8 @@ fit_hmsc <- function(training,basis,settings) {
   },warning=function(w) { warnings <<- c(warnings,conditionMessage(w)); invokeRestart("muffleWarning") })
   stopifnot(identical(native$Y,training$y),max(abs(native$X-cbind(1,as.matrix(X))))<1e-12,
     max(abs(native$X-native$XScaled))<1e-12)
-  if(basis$arm=="spatial2") stopifnot(all(vapply(native$postList,function(ch)
-    all(vapply(ch,function(d) nrow(d$Lambda[[1]])==2L,logical(1))),logical(1))))
+  if(grepl("^spatial[0-9]+$", basis$arm)) stopifnot(all(vapply(native$postList,function(ch)
+    all(vapply(ch,function(d) nrow(d$Lambda[[1]])==spatial_factors(basis$arm),logical(1))),logical(1))))
   record_fit("Hmsc",training,basis,settings,native,started,warnings,
     list(rng_start=rng_start,training_environment=training$environment,training_xy=training$xy))
 }
@@ -68,17 +74,19 @@ hmsc_draw_extractor <- function(fit_record,prediction,basis) {
   ni <- length(fit$postList[[1]]); nc <- length(fit$postList)
   trainX <- fit$X[,-1,drop=FALSE]; envcol <- match("environment",colnames(X))
   spcol <- setdiff(seq_len(ncol(X)),envcol)
-  if(basis$arm=="spatial2") level <- hmsc_prediction_level(fit_record,prediction)
+  if(grepl("^spatial[0-9]+$", basis$arm)) level <- hmsc_prediction_level(fit_record,prediction)
   function(idx) {
     stopifnot(length(idx)<=25L)
     dims <- c(length(idx),S,ni,nc)
     out <- setNames(lapply(1:5,function(x) array(NA_real_,dims)),c("p_full","p_space_zero","p_env_zero","p_both_zero","field"))
     for(ch in seq_len(nc)) {
       post <- fit$postList[[ch]]
-      if(basis$arm=="spatial2") {
-        etas <- hmsc_conditional_draws(unitsPred=level$ids[idx],units=fit_record$site_id,
-          postEta=lapply(post,function(d) d$Eta[[1]]),postAlpha=lapply(post,function(d) d$Alpha[[1]]),
-          level=level$level)
+      if(grepl("^spatial[0-9]+$", basis$arm)) {
+        postEta <- lapply(post,function(d) d$Eta[[1]]); postAlpha <- lapply(post,function(d) d$Alpha[[1]])
+        # GPP fits use Hmsc's own latent-factor predictor; Full fits keep the certified conditional.
+        etas <- if(identical(fit_record$settings$hmsc_method,"GPP"))
+          Hmsc::predictLatentFactor(unitsPred=level$ids[idx],units=fit_record$site_id,postEta=postEta,postAlpha=postAlpha,rL=level$level)
+        else hmsc_conditional_draws(unitsPred=level$ids[idx],units=fit_record$site_id,postEta=postEta,postAlpha=postAlpha,level=level$level)
       }
       for(it in seq_len(ni)) {
         draw <- post[[it]]; B <- draw$Beta[-1,,drop=FALSE]
@@ -88,7 +96,7 @@ hmsc_draw_extractor <- function(fit_record,prediction,basis) {
           sp <- X[idx,spcol,drop=FALSE] %*% B[spcol,,drop=FALSE]
           center <- as.vector(colMeans(trainX)[spcol] %*% B[spcol,,drop=FALSE])
         }
-        if(basis$arm=="spatial2") {
+        if(grepl("^spatial[0-9]+$", basis$arm)) {
           sp <- etas[[it]] %*% draw$Lambda[[1]]
           center <- colMeans(draw$Eta[[1]] %*% draw$Lambda[[1]])
         }
@@ -107,8 +115,10 @@ predict_hmsc <- function(fit_record,prediction,basis) {
   seed <- fit_record$settings$prediction_seed
   if(is.null(seed)) seed <- fit_record$settings$seed
   set.seed(seed)
-  out <- summarize_draw_blocks(canonical,hmsc_draw_extractor(fit_record,canonical,basis),"probit",
-    "Hmsc posterior and certified Full conditional latent fields; blocks are joint internally but independent conditional simulations across blocks")
+  conditioning <- if(identical(fit_record$settings$hmsc_method,"GPP"))
+    "Hmsc posterior and Hmsc predictLatentFactor GPP latent fields; blocks are independent conditional simulations" else
+    "Hmsc posterior and certified Full conditional latent fields; blocks are joint internally but independent conditional simulations across blocks"
+  out <- summarize_draw_blocks(canonical,hmsc_draw_extractor(fit_record,canonical,basis),"probit",conditioning)
   undo <- order(ordering)
   out$site_id <- prediction$site_id
   for(nm in c("p_full","p_space_zero","p_env_zero","p_both_zero","delta_p","field_mean","field_median")) out[[nm]] <- out[[nm]][undo,,drop=FALSE]

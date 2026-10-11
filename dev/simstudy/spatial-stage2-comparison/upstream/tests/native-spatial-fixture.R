@@ -1,5 +1,5 @@
 args <- commandArgs(trailingOnly=TRUE); code <- args[1]; root <- args[2]; package <- args[3]
-for(f in c("config.R","basis.R","adapter-contract.R","adapter-occjsdm.R","adapter-hmsc.R","adapter-gllvm.R")) source(file.path(code,f))
+source(file.path(code,"..","config.R")); for(f in c("basis.R","adapter-contract.R","adapter-occjsdm.R","adapter-hmsc.R","adapter-gllvm.R")) source(file.path(code,f))
 set.seed(7); n <- 20L; S <- 8L
 tr <- list(schema_version=1L,dataset_id="native-synthetic",site_id=sprintf("s%03d",1:n),species_id=paste0("sp",1:S),
   environment=matrix(rnorm(n),ncol=1,dimnames=list(NULL,"environment")),xy=matrix(runif(2*n),n,2),input_hashes=c(synthetic="fixture"))
