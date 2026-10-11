@@ -1007,6 +1007,16 @@ wc -l $STUDY/datasets.csv
 ```
 Expected: 41 lines (header plus 40).
 
+- [ ] **Step 2b: Micro-timing estimate (minutes, not hours)**
+
+Before the ladder, give Doug a run-time estimate cheap enough to make before the laptop is handed over. Add `--mode=microtiming` to `run.R`: for each of the five arms on `t1-r0.08-n900-rep1` and `t2-n900-rep1`, fit with one chain, 50 warm-up and 150 retained iterations (gllvm: one start with `maxit = 200`) under ladder step 1 settings, time the fit and a 25-site prediction block with every retained draw, and extrapolate: per-iteration cost times the full initial schedule (4 chains, 7,000 iterations) times the extension factor 4.43 for Bayesian arms, plus per-block prediction cost times 64 blocks at the ladder's prediction thinning. Price 300-site jobs at the 900-site cost (upper bound). Write `microtiming.json` with per-arm projected hours, the total upper bound in worker-hours and in wall-hours at eight workers, and the same for ladder steps 2 to 4 by rescaling the gp cost with the support-point count squared and the Hmsc cost by the knot count over 900 (recorded as rescaling assumptions, not measurements). Report the table to Doug before anything else runs. The micro fits are discarded, not study attempts.
+
+```bash
+$P/run-r -f $P/run.R --args --mode=microtiming --study=$STUDY
+cat $STUDY/microtiming.json
+```
+Expected: about 10 to 30 minutes of wall time, dominated by the Hmsc six-factor and gp micro fits.
+
 - [ ] **Step 3: Timing ladder**
 
 ```bash
