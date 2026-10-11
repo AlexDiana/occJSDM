@@ -93,7 +93,7 @@ exec "$R_HOME/bin/exec/R" --vanilla --slave "$@"
 
 - [ ] **Step 4: Provision Hmsc and gllvm into the study library**
 
-Two routes; take the first that works and record which in `results/runtime.json` (Task 8 copies it).
+Doug chose Route B on 11 October 2026, and it has been done: Hmsc 3.3.7 and gllvm 2.0.15 were installed as CRAN binaries into `/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-stage2-20261011/library` under the pinned R 4.5.0 (log in that run directory's `logs/install-packages.log`), with TMB 1.9.22 resolved from the user library. These are the same versions the first comparison used. The executor only verifies (Step 6) and records the route in `results/runtime.json` (Task 8). The two routes below are kept for the record.
 
 Route A, the first comparison's library copied out by Doug. Ask Doug to run, in his own shell, `cp -R "/Users/douglasyu/Documents/Codex/2026-09-10/fam/work/lesson-n-environment-20260922/library" /Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-stage2-20261011/library` and to paste the output of `md5 -q` on `library/Hmsc/DESCRIPTION` and `library/gllvm/DESCRIPTION`. Then verify the copy loads (Step 6) and that the versions are Hmsc 3.3-7 and gllvm 2.0.15, as the first comparison recorded.
 
@@ -347,8 +347,10 @@ spatial_factors <- function(arm) { k <- suppressWarnings(as.integer(sub("^spatia
   if(grepl("^spatial[0-9]+$", basis$arm)) {
     xy <- training$xy; rownames(xy) <- training$site_id; nf <- spatial_factors(basis$arm)
     method <- if (is.null(settings$hmsc_method)) "Full" else settings$hmsc_method
-    level <- if (method == "Full") Hmsc::HmscRandomLevel(sData=xy,sMethod="Full") else
-      Hmsc::HmscRandomLevel(sData=xy,sMethod="GPP",sKnot=Hmsc::constructKnots(xy,nKnots=settings$hmsc_knots))
+    # Hmsc::constructKnots takes a grid density, not a count; k-means with the attempt seed gives an exact, recorded knot set.
+    level <- if (method == "Full") Hmsc::HmscRandomLevel(sData=xy,sMethod="Full") else {
+      set.seed(settings$seed); knots <- stats::kmeans(xy,centers=settings$hmsc_knots,nstart=5L,iter.max=100L)$centers
+      Hmsc::HmscRandomLevel(sData=xy,sMethod="GPP",sKnot=knots) }
     level <- Hmsc::setPriors(level,nfMin=nf,nfMax=nf)
     args$studyDesign <- data.frame(site=factor(training$site_id,levels=training$site_id))
     args$ranLevels <- list(site=level)
@@ -358,6 +360,8 @@ spatial_factors <- function(arm) { k <- suppressWarnings(as.integer(sub("^spatia
     all(vapply(ch,function(d) nrow(d$Lambda[[1]])==spatial_factors(basis$arm),logical(1))),logical(1))))
 ```
 and in `hmsc_draw_extractor` replace both `basis$arm=="spatial2"` tests with `grepl("^spatial[0-9]+$", basis$arm)`. The GPP route's conditional prediction must use Hmsc's own `predictLatentFactor`, so when `settings$hmsc_method == "GPP"` the extractor calls `Hmsc::predictLatentFactor(unitsPred, units, postEta, postAlpha, rL)` per chain instead of `hmsc_conditional_draws`, and the conditioning string records "GPP".
+
+In `upstream/adapter-gllvm.R`, replace `control.start=list(starting.val="res",n.init=1L,jitter.var=.1)` with `control.start=list(starting.val="random",n.init=1L,jitter.var=.1)`. The residual start fails with "Calculating starting values failed" on any dataset with a training site where no species is present, and 29 of the 80 pilot inputs at 300 and 900 sites have one; random starts seeded by the attempt seed succeed and make the three-start replication check meaningful. Record `starting_val="random"` in the fit's `extra` list.
 
 In `upstream/adapter-occjsdm.R`, replace `n_supportpoints=100L` with `n_supportpoints=as.integer(settings$support_points)` and add after the fit `stopifnot(nrow(native$infos$list_Xs$X_tilde)==as.integer(settings$support_points))` for the gp arm only; record `support_points=settings$support_points` in the `extra` list.
 
@@ -405,6 +409,12 @@ test_that("occJSDM gp honours the support-point setting and records it", {
   expect_equal(nrow(f$native$infos$list_Xs$X_tilde), 20L); expect_equal(f$support_points, 20L)
   p <- predict_occjsdm(f, pr_small, b); expect_true(validate_prediction(p, pr_small))
   expect_error(fit_occjsdm(small, b, settings(support_points = 41L)))
+})
+
+test_that("gllvm fits a dataset with an all-zero training site", {
+  zero <- small; zero$y[1, ] <- 0L   # a site where no species is present
+  bg <- fit_basis(zero, "spatial2"); fz <- fit_gllvm(zero, bg, settings())
+  expect_identical(fz$starting_val, "random"); expect_true(is.finite(fz$native$objective))
 })
 
 test_that("env and gllvm arms still fit, and diagnostics run for each package", {
