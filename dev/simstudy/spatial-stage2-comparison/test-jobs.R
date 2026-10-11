@@ -56,6 +56,19 @@ test_that("a gp attempt with fewer support points than sites records the realise
   expect_equal(ncol(bases[[1]]), 20L); expect_equal(nrow(bases[[1]]), 1600L)
 })
 
+test_that("an Hmsc job runs with thinned prediction under both spatial methods", {
+  j <- job_table(study); sl <- 4:10
+  for (method in list(list("Full", NA_integer_), list("GPP", 10L))) {
+    frozen <- list(support_points_900 = 300L, hmsc_method = method[[1]], hmsc_knots = method[[2]], prediction_thin = 10L)
+    job <- j[j$dataset_id == "t2-n300-rep3" & j$key == "Hmsc/spatial6", ]; job$job_id <- paste0(job$job_id, "-", method[[1]])
+    r <- run_job(study, job, mcmc = tiny, frozen = frozen, slice_sites = 40L, slice_species = sl)
+    expect_true(r$status %in% c("pass", "unresolved"), info = paste(method[[1]], r$status, r$prediction_error))
+    p <- readRDS(file.path(study, "jobs-local", "predictions", paste0(job$job_id, ".rds")))
+    expect_equal(dim(p$prediction$p_full), c(1600L, 7L)); expect_equal(p$prediction_thin, 10L)
+    expect_match(p$prediction$conditioning, if (method[[1]] == "GPP") "GPP" else "certified Full")
+  }
+})
+
 test_that("a gllvm job runs three starts and selects or marks unstable", {
   j <- job_table(study); job <- j[j$dataset_id == "t2-n300-rep1" & j$key == "gllvm/spatial2", ]
   frozen <- list(support_points_900 = 300L, hmsc_method = "Full", hmsc_knots = NA_integer_, prediction_thin = 1L)
