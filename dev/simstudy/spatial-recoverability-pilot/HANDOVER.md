@@ -4,6 +4,8 @@
 
 The run is complete, scored and verified. What remains is the report and the branch review. This section supersedes the step list below, which is kept as the record of the first handover.
 
+Status, 11 October 2026, evening: the four remaining steps below are done. `REPORT.md` is written, the two `TODO.md` lines are added, the whole-branch review was run and its findings were fixed, except one: the y-axis titles in `results/recoverability-map.png` overprint two row labels, and redrawing the PNG (`plot.R`, a margin change) was left for Doug to approve because the handover said not to re-run anything. What is left is Doug's review of the rendered report and map, and his decisions, which are listed in section 7 of the report.
+
 State:
 
 - Branch `claude/spatial-recoverability-pilot`, head `d7b2b0a`, working tree clean. Every test file passes under `run-r`.

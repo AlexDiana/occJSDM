@@ -20,6 +20,7 @@ JOBS="/Volumes/occJSDM Research/occJSDM/spatial-recoverability-20261010/jobs"
 $P/run-r -f $P/run.R --args --mode=prepare --study=$STUDY --jobs="$JOBS" --workers=8
 $P/run-r -f $P/run.R --args --mode=timing --study=$STUDY
 nohup $P/run-r -f $P/run.R --args --mode=fit --study=$STUDY --truth=t2 --workers=8 > $STUDY/logs/fit-t2.log 2>&1 &
+# wait until fit-t2.log ends with "Completed mode fit" before launching truth 1
 nohup $P/run-r -f $P/run.R --args --mode=fit --study=$STUDY --truth=t1 --workers=8 > $STUDY/logs/fit-t1.log 2>&1 &
 $P/run-r -f $P/run.R --args --mode=score --study=$STUDY
 $P/run-r -f $P/run.R --args --mode=prescribe-resolution --study=$STUDY
@@ -46,5 +47,6 @@ $P/run-r -f $P/plot.R --args --study=$STUDY
 - `resolve.R`: the resolution extension, which prescribes the refit scope and refits it at the larger budget.
 - `verify.R`: independent recomputation of every gate decision and the map, plus input, seed and conditioning checks.
 - `plot.R`: copies compact results and draws `results/recoverability-map.png`.
+- `earlier-readings.R`: copies the first run's and the pre-resolution gate and map, and writes `results/earlier-readings/agreement.csv`, which shows how far the sampler swap and the resolution extension moved the point estimates. Run with `$P/run-r -f $P/earlier-readings.R --args --study=$STUDY`.
 - `test-*.R`: the validation tests, one per module.
 - `diagnosis/`: the truth 1 mixing diagnosis scripts (screen by cell, per-block mixing and angles, joint against blockwise comparison, posterior agreement, extended-budget check) with their logs.
