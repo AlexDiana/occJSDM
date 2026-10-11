@@ -56,7 +56,7 @@ add("generator conditioning logged for every community", length(unique(paste(gen
 fac <- read.csv(file.path(study, "scores", "factors.csv"), stringsAsFactors = FALSE)
 add("prior factor errors within 1e-5", all(fac$error <= 1e-5), sprintf("max %.2e", max(fac$error)))
 
-status_files <- list.files(file.path(study, "status"), pattern = "\\.json$")
+status_files <- grep("\\.resolution\\.json$", list.files(file.path(study, "status"), pattern = "\\.json$"), value = TRUE, invert = TRUE)
 add("every job has a status file", length(status_files) == nrow(man) * 2L, length(status_files))
 add("no job error files", length(list.files(file.path(study, "status"), pattern = "\\.error$")) == 0L)
 jobs <- read.csv(file.path(study, "scores", "jobs.csv"), stringsAsFactors = FALSE)
