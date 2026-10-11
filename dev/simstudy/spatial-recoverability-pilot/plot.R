@@ -15,15 +15,16 @@ agg <- read.csv(file.path(study, "scores", "aggregate.csv"), stringsAsFactors = 
 gate <- read.csv(file.path(study, "scores", "gate.csv"), stringsAsFactors = FALSE)
 cols <- c(pass = "#8fd3c7", fail = "#f4a582", unresolved = "#cccccc")
 png(file.path(out, "recoverability-map.png"), width = 2200, height = 1000, res = 150)
-par(mfrow = c(1, 2), mar = c(4.5, 6, 3.5, 1))
+par(mfrow = c(1, 2), mar = c(4.5, 8, 3.5, 1))
 for (tr in c("t1", "t2")) {
   g <- gate[gate$truth == tr, ]; a <- agg[agg$truth == tr, ]
   rows <- if (tr == "t1") sort(unique(g$range)) else c("short", "medium", "long")
   key <- if (tr == "t1") g$range else g$group
   plot(NA, xlim = c(0.5, 3.5), ylim = c(0.5, length(rows) + 0.5), xaxt = "n", yaxt = "n", xlab = "training sites (random uniform)",
-       ylab = if (tr == "t1") "shared-field range" else "dispersal class",
+       ylab = "",
        main = if (tr == "t1") "Truth 1: common gradients (joint oracle)" else "Truth 2: trait-linked dispersal fields (per-species oracle)")
   axis(1, 1:3, c(100, 300, 900)); axis(2, seq_along(rows), if (tr == "t1") sprintf("l = %.2f", rows) else rows, las = 1)
+  title(ylab = if (tr == "t1") "shared-field range" else "dispersal class", line = 6.5)
   for (i in seq_len(nrow(g))) {
     x <- match(g$n[i], c(100, 300, 900)); y <- match(key[i], rows)
     rect(x - 0.47, y - 0.47, x + 0.47, y + 0.47, col = cols[g$decision[i]], border = "white")

@@ -4,7 +4,7 @@
 
 The run is complete, scored and verified. What remains is the report and the branch review. This section supersedes the step list below, which is kept as the record of the first handover.
 
-Status, 11 October 2026, evening: the four remaining steps below are done. `REPORT.md` is written, the two `TODO.md` lines are added, the whole-branch review was run and its findings were fixed, except one: the y-axis titles in `results/recoverability-map.png` overprint two row labels, and redrawing the PNG (`plot.R`, a margin change) was left for Doug to approve because the handover said not to re-run anything. What is left is Doug's review of the rendered report and map, and his decisions, which are listed in section 7 of the report.
+Status, 11 October 2026, evening: the four remaining steps below are done. `REPORT.md` is written, the two `TODO.md` lines are added, the whole-branch review was run and its findings were fixed. The map's y-axis titles overprinted two row labels; with Doug's approval `plot.R` got a wider left margin and the PNG was redrawn, which changed no other result file. What is left is Doug's review of the rendered report and map, and his decisions, which are listed in section 7 of the report.
 
 State:
 
