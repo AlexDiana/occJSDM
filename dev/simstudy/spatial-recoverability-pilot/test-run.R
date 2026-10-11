@@ -52,4 +52,43 @@ test_that("fit runs a tiny budget, reuses existing jobs, and score writes every 
     expect_true(file.exists(file.path(study, "scores", f)))
   expect_true(jsonlite::fromJSON(file.path(study, "scores", "map.json"))$branch %in% c("both", "truth1_only", "truth2_only", "stop"))
 })
+
+test_that("a prescribed resolution refits only the scoped fits and merges at score time", {
+  scope <- list(t1_ranges = 0.08, t1_n = 100L, t2_n = 100L, t2_classes = c("medium", "long"), gate_occupancy = c(0.25, 0.5, 0.75))
+  p <- pilot_prescribe_resolution(study, scope = scope, multiplier = 2L)
+  expect_true(file.exists(file.path(study, "resolution.json")))
+  expect_error(pilot_prescribe_resolution(study, scope = scope))   # never re-prescribe
+  expect_equal(p$budget$niter, 2L * default_budget()$ext_niter); expect_equal(p$budget$thin, 2L * 4L * default_budget()$thin)
+  # Under the tiny budget every fit is unresolved, so the scope selects all four range 0.08 jobs and all four truth 2 jobs.
+  expect_equal(length(p$t1_jobs), 4L); expect_equal(length(p$t2_jobs), 4L)
+  sp <- pilot_species(); eligible <- sp$species[sp$class %in% c("medium", "long") & sp$occupancy >= 0.25]
+  expect_true(all(vapply(p$t2_refits, function(x) all(x %in% eligible), logical(1))))
+  pr <- read_prescription(study)
+  expect_identical(pr$t2_refits[[pr$t2_jobs[1]]], p$t2_refits[[pr$t2_jobs[1]]])
+  # Run with a tiny budget rather than the prescribed one so that the test stays fast.
+  tiny_res <- list(nburn = 10L, niter = 40L, thin = 4L, multiplier = 2L)
+  for (j in pr$t1_jobs) expect_identical(run_resolution_job(study, j, NULL, tiny_res), "fitted")
+  for (j in pr$t2_jobs) expect_identical(run_resolution_job(study, j, pr$t2_refits[[j]], tiny_res), "fitted")
+  expect_identical(run_resolution_job(study, pr$t1_jobs[1], NULL, tiny_res), "existing")
+  expect_equal(length(list.files(file.path(study, "jobs-resolution"), pattern = "\\.rds$")), 8L)
+  j <- pr$t2_jobs[1]
+  r <- readRDS(file.path(study, "jobs-resolution", paste0(j, ".rds"))); o <- readRDS(file.path(study, "jobs-local", paste0(j, ".rds")))
+  keep <- !(o$scores$species %in% r$resolution$refit_species)
+  expect_true(any(keep) && any(!keep))
+  expect_equal(r$scores[keep, ], o$scores[keep, ], ignore_attr = TRUE)
+  expect_true(all(r$phases[!keep] == "resolution")); expect_true(all(r$phases[keep] != "resolution"))
+  expect_equal(r$site_draws[[which(keep)[1]]], o$site_draws[[which(keep)[1]]])
+  expect_false(isTRUE(all.equal(r$site_draws[[which(!keep)[1]]], o$site_draws[[which(!keep)[1]]])))
+  expect_equal(nrow(r$screen_detail), 36L); expect_equal(nrow(r$scores), 12L)
+  t1 <- readRDS(file.path(study, "jobs-resolution", paste0(pr$t1_jobs[1], ".rds")))
+  expect_identical(t1$phases, "resolution"); expect_length(t1$resolution$refit_species, 12L)
+  expect_equal(dim(t1$block_diagnostics$block_proposals), c(14L, 4L))
+  pilot_score(study)
+  jobs <- read.csv(file.path(study, "scores", "jobs.csv"))
+  expect_setequal(jobs$job[jobs$resolved], c(pr$t1_jobs, pr$t2_jobs))
+  expect_equal(sum(jobs$resolutions[jobs$job %in% pr$t1_jobs]), 4L)   # one joint phase per truth 1 job
+  expect_equal(sum(jobs$resolutions[jobs$job %in% pr$t2_jobs]), sum(lengths(pr$t2_refits)))
+  expect_true(all(is.na(jobs$resolution_seconds[!jobs$resolved])) && all(jobs$resolution_seconds[jobs$resolved] > 0))
+  expect_equal(nrow(read.csv(file.path(study, "scores", "species.csv"))), 16L * 12L)
+})
 cat("Run tests passed.\n")

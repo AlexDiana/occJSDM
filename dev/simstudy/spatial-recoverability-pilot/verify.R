@@ -63,6 +63,36 @@ jobs <- read.csv(file.path(study, "scores", "jobs.csv"), stringsAsFactors = FALS
 add("every job scored", nrow(jobs) == nrow(man) * 2L, nrow(jobs))
 add("unresolved status carried from jobs to species", all((jobs$status == "unresolved") == (tapply(species$status == "unresolved", species$job <- paste0(species$cell, "-rep", species$replicate, "-", species$arrangement), any)[jobs$job])))
 
+# Prescribed resolution extension, if one was run (resolve.R).
+if (file.exists(file.path(study, "resolution.json"))) {
+  p <- jsonlite::fromJSON(file.path(study, "resolution.json"), simplifyVector = TRUE)
+  prescribed <- sort(c(as.character(unlist(p$t1_jobs)), as.character(unlist(p$t2_jobs))))
+  present <- sort(sub("\\.rds$", "", list.files(file.path(study, "jobs-resolution"), pattern = "\\.rds$")))
+  add("resolution refits equal the prescription", identical(prescribed, present), sprintf("%d prescribed, %d present", length(prescribed), length(present)))
+  add("resolution prescribed after first scoring and before refits", {
+    created <- as.POSIXct(p$created); files <- file.path(study, "jobs-resolution", paste0(present, ".rds"))
+    length(files) == 0L || all(file.mtime(files) > created) })
+  add("no resolution error files", length(list.files(file.path(study, "status"), pattern = "\\.resolution\\.error$")) == 0L)
+  carried_ok <- TRUE; refit_ok <- TRUE; multiplier_ok <- TRUE
+  for (j in intersect(present, as.character(unlist(p$t2_jobs)))) {
+    r <- readRDS(file.path(study, "jobs-resolution", paste0(j, ".rds"))); o <- readRDS(file.path(study, "jobs", paste0(j, ".rds")))
+    refit <- r$resolution$refit_species; keep <- !(o$scores$species %in% refit)
+    carried_ok <- carried_ok && isTRUE(all.equal(r$scores[keep, ], o$scores[keep, ], check.attributes = FALSE))
+    refit_ok <- refit_ok && setequal(refit, as.character(unlist(p$t2_refits[[j]]))) && all(r$phases[o$scores$species %in% refit] == "resolution")
+    multiplier_ok <- multiplier_ok && r$resolution$budget$niter == cfg$budget$ext_niter * p$multiplier && r$resolution$budget$nburn == cfg$budget$ext_nburn * p$multiplier
+  }
+  for (j in intersect(present, as.character(unlist(p$t1_jobs)))) {
+    r <- readRDS(file.path(study, "jobs-resolution", paste0(j, ".rds")))
+    refit_ok <- refit_ok && identical(r$phases, "resolution") && length(r$resolution$refit_species) == 12L
+    multiplier_ok <- multiplier_ok && r$resolution$budget$niter == cfg$budget$ext_niter * p$multiplier
+  }
+  add("carried-over truth 2 species keep their original scores exactly", carried_ok)
+  add("refit species match the prescription and are labelled resolution", refit_ok)
+  add("resolution budget is the prescribed multiple of the extension", multiplier_ok)
+  jobs_now <- read.csv(file.path(study, "scores", "jobs.csv"), stringsAsFactors = FALSE)
+  add("jobs.csv marks exactly the prescribed jobs as resolved", setequal(jobs_now$job[jobs_now$resolved], prescribed))
+}
+
 out <- do.call(rbind, checks)
 dir.create("dev/simstudy/spatial-recoverability-pilot/results", showWarnings = FALSE)
 write.csv(out, "dev/simstudy/spatial-recoverability-pilot/results/verification.csv", row.names = FALSE)

@@ -4,7 +4,7 @@
 #   run-r -f run.R --args --mode=fit     --study=DIR --truth=t2 --workers=8
 #   run-r -f run.R --args --mode=score   --study=DIR
 PILOT_DIR <- "dev/simstudy/spatial-recoverability-pilot"
-for (f in c("kernel.R", "seeds.R", "generator.R", "oracle.R", "predict.R", "score.R")) source(file.path(PILOT_DIR, f))
+for (f in c("kernel.R", "seeds.R", "generator.R", "oracle.R", "predict.R", "score.R", "resolve.R")) source(file.path(PILOT_DIR, f))
 
 default_budget <- function() list(nburn = 3000L, niter = 4000L, thin = 10L, ext_nburn = 8000L, ext_niter = 16000L)
 
@@ -130,7 +130,11 @@ pilot_timing <- function(study) {
 
 pilot_score <- function(study) {
   files <- list.files(file.path(study, "jobs"), pattern = "\\.rds$", full.names = TRUE)
-  results <- lapply(files, function(f) { r <- readRDS(f); r$site_draws <- NULL; r$traces <- NULL; r })
+  # A prescribed resolution refit (resolve.R) replaces the original job at score time.
+  results <- lapply(files, function(f) {
+    resolved <- file.path(study, "jobs-resolution", basename(f))
+    r <- readRDS(if (file.exists(resolved)) resolved else f)
+    r$site_draws <- NULL; r$traces <- NULL; r$resolved <- file.exists(resolved); r })
   species <- do.call(rbind, lapply(results, `[[`, "scores"))
   write.csv(species, file.path(study, "scores", "species.csv"), row.names = FALSE)
   agg <- do.call(rbind, lapply(split(species, species$truth), aggregate_scores)); rownames(agg) <- NULL
@@ -149,7 +153,9 @@ pilot_score <- function(study) {
   write.csv(do.call(rbind, lapply(results, function(r) cbind(job = r$job, r$screen_detail))), file.path(study, "scores", "screen.csv"), row.names = FALSE)
   status <- do.call(rbind, lapply(results, function(r) data.frame(job = r$job, truth = r$truth, cell = r$cell, replicate = r$replicate,
     arrangement = r$arrangement, status = if (all(r$screen$status == "pass")) "pass" else "unresolved",
-    extensions = sum(r$phases == "extension"), elapsed_seconds = r$elapsed_seconds, mean_proposals = mean(r$mean_proposals), stringsAsFactors = FALSE)))
+    extensions = sum(r$phases == "extension"), resolutions = sum(r$phases == "resolution"), resolved = isTRUE(r$resolved),
+    elapsed_seconds = r$elapsed_seconds, resolution_seconds = if (is.null(r$resolution)) NA_real_ else r$resolution$elapsed_seconds,
+    mean_proposals = mean(r$mean_proposals), stringsAsFactors = FALSE)))
   write.csv(status, file.path(study, "scores", "jobs.csv"), row.names = FALSE)
   invisible(gate)
 }
@@ -163,6 +169,8 @@ if (sys.nframe() == 0L && !interactive()) {
     timing = print(pilot_timing(study)),
     fit = print(pilot_fit(study, truth = get("truth"), workers = as.integer(get("workers", "8")))),
     score = print(pilot_score(study)),
+    `prescribe-resolution` = print(pilot_prescribe_resolution(study, multiplier = as.integer(get("multiplier", "4")))$counts),
+    resolve = print(pilot_resolve(study, workers = as.integer(get("workers", "8")))),
     stop("Unknown mode ", mode))
   cat("Completed mode", mode, "at", format(Sys.time()), "\n")
 }
