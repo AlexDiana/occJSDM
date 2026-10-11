@@ -1,5 +1,22 @@
 # Handover: running the spatial recoverability pilot
 
+## Second handover, 11 October 2026 (read this first)
+
+The run is complete, scored and verified. What remains is the report and the branch review. This section supersedes the step list below, which is kept as the record of the first handover.
+
+State:
+
+- Branch `claude/spatial-recoverability-pilot`, head `d7b2b0a`, working tree clean. Every test file passes under `run-r`.
+- Sequence of events, all recorded in the spec's revision record: first run (truth 1 joint sampler, all 180 jobs unresolved, map stop); diagnosis in `DIAGNOSIS-truth1-mixing.md`; sampler swap to `block-ellipse.cpp`; truth 1 re-run (map still stop: range 0.08 unresolved, truth 2 medium unresolved at 900); prescribed resolution extension at four times the extension budget, scope in `resolution.json`, 29 refits all passing; final map `both`, recommended n = 900, truth 1 passing at range 0.08 from n = 300.
+- Compact results, the map and the 24-check verification record are committed under `results/`. Three score sets exist in the study directory: `scores-joint-sampler/` (first run), `scores-before-resolution/` (re-run) and `scores/` (final). Job files: `jobs-joint-sampler/`, `jobs/` and `jobs-resolution/` on the research volume. Logs and launch notes are in `logs/`, including `rerun-t1-notes.txt` and `resolve-notes.txt`.
+
+Remaining steps:
+
+1. Write `REPORT.md` following the plan's Task 8 Step 4 outline. Every number comes from `results/gate.csv`, `results/aggregate.csv`, `results/jobs.csv`, `results/screen.csv`, `results/timing.json` and the spec's revision record, never from memory. The report must present three labelled readings of the map: the pre-specified reading before the resolution extension (stop), the reading after resolution (both), and the descriptive reading with all ten communities and their status. It must say that the two computational changes (sampler swap, resolution extension) were post hoc and were expected to change screen status and not posterior means, with the agreement evidence from the diagnosis. It must say that unresolved cells sat where information was highest and are a sampling-cost effect, not a recoverability result. It must say that truth 1's advantage over truth 2 follows from twelve species pooling onto two fields, that the single-season footprint is not evidence of dispersal as a mechanism (verbatim from the spec), that the field summary is the posterior mean, and it must list the factorisation routes used by cell from `results/factors.csv` and `results/conditionals.csv`. Report the slope criterion as the binding one in the range 0.08 at n = 100, long class at n = 100 and medium class at n = 300 failures.
+2. Add one line to `TODO.md` in the spatial section pointing at the report and stating the map outcome, and one line recording that the first spatial package comparison on branch `codex/spatial-comparison-plan` is superseded as a decision input by this pilot.
+3. Commit, then request a whole-branch review against `main` and fix findings.
+4. Hand Doug the report and `results/recoverability-map.png`. He reviews rendered output, not diffs.
+
 Written 10 October 2026 by the session that designed and built the study. Doug decided that the design and critique were the expensive work and that the run itself should be carried out by a cheaper model. This file is the complete state at handover and the exact remaining steps. Read the spec (`dev/superpowers/specs/2026-10-10-spatial-recoverability-pilot-design.md`) and the plan (`dev/superpowers/plans/2026-10-10-spatial-recoverability-pilot.md`) first; the plan's Tasks 1 to 6 and the scripts of Task 8 are complete and tested, and Task 7 is in progress.
 
 ## State at handover
