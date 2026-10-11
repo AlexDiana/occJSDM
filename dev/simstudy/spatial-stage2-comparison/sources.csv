@@ -1,0 +1,12 @@
+file,upstream_path,upstream_commit,md5
+upstream/adapter-contract.R,dev/simstudy/spatial-package-comparison/adapter-contract.R,f7ec48449db4561f450178006ff32cdf54212a05,f9fa1e14404f609813a06f46d230dc4e
+upstream/basis.R,dev/simstudy/spatial-package-comparison/basis.R,f7ec48449db4561f450178006ff32cdf54212a05,1ab32fefa545d1eef4a41a5ab2cdf442
+upstream/adapter-occjsdm.R,dev/simstudy/spatial-package-comparison/adapter-occjsdm.R,f7ec48449db4561f450178006ff32cdf54212a05,0a5d3334428965b738a65195bc1a16db
+upstream/adapter-hmsc.R,dev/simstudy/spatial-package-comparison/adapter-hmsc.R,f7ec48449db4561f450178006ff32cdf54212a05,f6b318b2ec221ad62c33c373ab9b1c65
+upstream/adapter-gllvm.R,dev/simstudy/spatial-package-comparison/adapter-gllvm.R,f7ec48449db4561f450178006ff32cdf54212a05,d2a3177663aa57d34d6c68798eb6dd16
+upstream/diagnostics.R,dev/simstudy/spatial-package-comparison/diagnostics.R,f7ec48449db4561f450178006ff32cdf54212a05,661813343989248c5b910858212d3216
+upstream/select.R,dev/simstudy/spatial-package-comparison/select.R,f7ec48449db4561f450178006ff32cdf54212a05,8bf9546d0d775feecaff1fbcb4408772
+upstream/tests/native-core-fixture.R,dev/simstudy/spatial-package-comparison/tests/native-core-fixture.R,f7ec48449db4561f450178006ff32cdf54212a05,ddb7ce3ac1444cc00eb082af06e060d2
+upstream/tests/native-spatial-fixture.R,dev/simstudy/spatial-package-comparison/tests/native-spatial-fixture.R,f7ec48449db4561f450178006ff32cdf54212a05,0ee97492613321831edb55f603619f18
+upstream/tests/test-core-adapters.R,dev/simstudy/spatial-package-comparison/tests/test-core-adapters.R,f7ec48449db4561f450178006ff32cdf54212a05,0b3ef21d48765984844188d60298d035
+upstream/tests/test-native-spatial.R,dev/simstudy/spatial-package-comparison/tests/test-native-spatial.R,f7ec48449db4561f450178006ff32cdf54212a05,9891106781459cee41704a04bd8efd32

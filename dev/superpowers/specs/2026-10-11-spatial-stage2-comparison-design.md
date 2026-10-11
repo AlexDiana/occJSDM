@@ -112,6 +112,10 @@ Ten communities per cell, paired within community. With a paired SD s of the hea
 - The oracle's headroom uses true intercepts and slopes, so H understates what a perfectly specified fitted model could reach. The report says so.
 - Ten communities resolve differences of about 0.10 and nothing finer.
 
+## Revision record
+
+11 October 2026, at planning. The convergence screen for fitted arms uses the first comparison's truth-free training-side quantities as implemented in its `diagnostics.R`: per-species training probability mean, per-site training field, realised field SD, intercepts, coefficients, spatial prior SD and range (occJSDM), coefficients and the species spatial correlation at distance 0.5 (Hmsc), objective, gradient and native convergence (gllvm). The held-out probability average named in the design is not screened, because held-out prediction runs only after selection. No threshold changes.
+
 ## Future work, out of scope here
 
 - Stage 3: the trait-linked per-species range prototype in occJSDM, with its target set by this study's headroom shares.

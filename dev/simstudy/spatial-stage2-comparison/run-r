@@ -1,0 +1,11 @@
+#!/bin/sh
+# Pinned R 4.5.0 for the stage 2 spatial representation comparison. Reuses the private
+# R home and the occJSDM build from the first comparison; Hmsc and gllvm come from the
+# study library STAGE2_LIBRARY (see test-runtime.R). Single-threaded numerics.
+set -eu
+RUN=/Users/douglasyu/src/occJSDM/dev/simstudy/results
+export R_HOME="${STAGE2_R_HOME:-$RUN/spatial-package-comparison-20261008/runtime/R-home}"
+export R_SHARE_DIR="$R_HOME/share" R_INCLUDE_DIR="$R_HOME/include" R_DOC_DIR="$R_HOME/doc"
+export R_LIBS_USER="${STAGE2_LIBRARY:-$RUN/spatial-stage2-20261011/library}:$RUN/spatial-package-comparison-20261008/library:/Users/douglasyu/Library/R/arm64/4.5/library"
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1
+exec "$R_HOME/bin/exec/R" --vanilla --slave "$@"
