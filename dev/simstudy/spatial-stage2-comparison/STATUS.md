@@ -6,4 +6,4 @@ Branch `claude/spatial-stage2-comparison`, worktree `~/src/occJSDM/.worktrees/sp
 
 ## Current phase
 
-- 11 October 2026, evening: building. Tasks 1 to 4 are committed and tested (launcher, copied adapters with the stage 2 edits, config and data bridge, scoring). The job driver, study driver, verifier and plots are written and under test. Nothing has been fitted yet. Next: the full test run, `prepare`, the micro-timing, then the timing ladder.
+- 11 October 2026, 21:30: built and prepared. Every test file passes under `run-r`, the code is committed, and `prepare` has written the frozen config and the 40-dataset table (hashes checked against the pilot manifest). Nothing has been fitted. Next: the micro-timing, then the timing ladder from step 1.
