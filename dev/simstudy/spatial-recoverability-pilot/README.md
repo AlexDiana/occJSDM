@@ -22,11 +22,14 @@ $P/run-r -f $P/run.R --args --mode=timing --study=$STUDY
 nohup $P/run-r -f $P/run.R --args --mode=fit --study=$STUDY --truth=t2 --workers=8 > $STUDY/logs/fit-t2.log 2>&1 &
 nohup $P/run-r -f $P/run.R --args --mode=fit --study=$STUDY --truth=t1 --workers=8 > $STUDY/logs/fit-t1.log 2>&1 &
 $P/run-r -f $P/run.R --args --mode=score --study=$STUDY
+$P/run-r -f $P/run.R --args --mode=prescribe-resolution --study=$STUDY
+nohup $P/run-r -f $P/run.R --args --mode=resolve --study=$STUDY --workers=8 > $STUDY/logs/resolve.log 2>&1 &
+$P/run-r -f $P/run.R --args --mode=score --study=$STUDY
 $P/run-r -f $P/verify.R --args --study=$STUDY
 $P/run-r -f $P/plot.R --args --study=$STUDY
 ```
 
-`prepare` refuses to run twice on the same study directory, writes the thresholds and budget to `config.rds` before generating any community, and records an MD5 for every input. `fit` never refits a job whose file exists. Each `nohup` step must finish before the next starts; the logs end with a completion line.
+`prepare` refuses to run twice on the same study directory, writes the thresholds and budget to `config.rds` before generating any community, and records an MD5 for every input. `fit` never refits a job whose file exists. Each `nohup` step must finish before the next starts; the logs end with a completion line. The resolution extension (`prescribe-resolution`, then `resolve`) was added after the first scoring: it writes `resolution.json` naming the unresolved jobs and species that decide the map, refits only those at four times the extension budget into `jobs-resolution/`, and the second `score` merges the refits without modifying the original job files. `REPORT.md` section 4.2 records why and when it was added.
 
 ## Files
 
@@ -39,7 +42,8 @@ $P/run-r -f $P/plot.R --args --study=$STUDY
 - `oracle.R`: truth 2 per-species oracle (the sweep's sampler, unmodified), truth 1 joint oracle, convergence screen.
 - `predict.R`: lattice prediction, uninformed reference, layout geometry.
 - `score.R`: per-species scores, aggregation, gate and map reading.
-- `run.R`: driver with modes prepare, timing, fit and score.
+- `run.R`: driver with modes prepare, timing, fit, score, prescribe-resolution and resolve.
+- `resolve.R`: the resolution extension, which prescribes the refit scope and refits it at the larger budget.
 - `verify.R`: independent recomputation of every gate decision and the map, plus input, seed and conditioning checks.
 - `plot.R`: copies compact results and draws `results/recoverability-map.png`.
 - `test-*.R`: the validation tests, one per module.
