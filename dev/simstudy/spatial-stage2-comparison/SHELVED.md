@@ -102,7 +102,7 @@ Each of these changes the specification, which Doug approved, so none was made.
 ## 7. What stands and what does not
 
 - The recoverability pilot's results and its recommendation stand. Stage 2 adds nothing to them yet. Its raw fits were deleted from the research drive on 12 October 2026 (the report, compact results and manifest remain in git), so nothing can be re-scored from them until they are regenerated.
-- The first spatial package comparison remains superseded as a decision input. It did not meet gllvm's memory problem because it fitted gllvm at 100 sites.
+- The first spatial package comparison was discarded on 12 October 2026 as underpowered, and only a record of it is kept (`dev/simstudy/spatial-package-comparison/RECORD.md`). It did not meet gllvm's memory problem because it fitted gllvm at 100 sites.
 - `TODO.md` now lists the spatial-model task under "Not needed for the paper". Lesson 7 stays, but for now teaches only what a spatial submodel can be used for and explains that the model is computationally expensive. The lesson text itself has not been changed.
 - Not done: the real timing ladder, any comparison fit, scores, verification on real results, figures on real results, and the report.
 
