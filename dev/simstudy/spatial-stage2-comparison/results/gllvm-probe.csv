@@ -1,0 +1,7 @@
+dataset,n,maxit,limit_gb,peak_gb,seconds,killed,exit,variant
+t2-n900-rep1,100,30,12,0.664062,18,no,0,unstructured
+t2-n900-rep1,200,30,12,7.0791,267,no,0,unstructured
+t2-n900-rep1,300,30,12,33,31,yes,137,unstructured
+t2-n900-rep1,900,30,14,15,40,yes,137,unstructured
+t2-n900-rep1,300,30,14,0.307617,9,no,0,bdNN
+t2-n900-rep1,900,30,14,0.979492,88,no,0,bdNN
