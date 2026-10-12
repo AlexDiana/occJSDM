@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE, collapse = FALSE, comment = "#>")
 source("lesson-links.R")
 ```
 
-`occJSDM` estimates which species occupy which sites from eDNA surveys. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). It models the species jointly: their responses to the environment, the role of their traits, and associations between species that the covariates do not explain, optionally with a spatial field. It can also analyse ordinary presence/absence surveys, in which each species is recorded as present or absent at each site and the records are assumed to be free of detection error. In that case `occJSDM` fits only a joint species distribution model (JSDM).
+occJSDM uses eDNA surveys to estimate which species occupy which sites. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). It models the species jointly: their responses to the environment, the role of their traits, and associations between species that the covariates do not explain, optionally with a spatial field, although note that the spatial field submodel requires considerable field data. It can also analyse ordinary presence/absence surveys, in which each species is recorded as present or absent at each site and the records are assumed to be free of detection error. In that case occJSDM fits only the joint species distribution model (JSDM).
 
 This quickstart shows how the input data must be structured, makes a fitting call and takes a first look at the output, using the example data shipped with the package.
 
@@ -37,14 +37,24 @@ head(sampledata$traits)
 It has three parts:
 
 - `info` has one row per PCR reaction: the `Site`, the field `Sample` the DNA came from, the `Primer`, and the covariates. Columns beginning `X_psi.` are occupancy covariates, columns beginning `X_theta.` are collection covariates, and `Xs.1` and `Xs.2` are the site coordinates.
-- `OTU` has one column per species and one row for each row of `info`, holding that species' read count in that reaction. Read counts can be supplied as they are, without converting the OTU table first: `runOccJSDM()` converts each count to a detection or non-detection, and a PCR reaction with at least `threshold` reads counts as a detection.
+- `OTU` has one column per species and one row for each row of `info`, holding that species' read count in that reaction. Read counts can be supplied as they are, without converting the OTU table: `runOccJSDM()` converts each count to a binary (detection or non-detection), and a PCR reaction with at least `threshold` reads counts as a detection.
 - `traits` has one row per species.
 
 `runOccJSDM()` uses the structure of `info` to choose which model to fit. Here each sample has several rows, one per primer and PCR replicate, so it fits the two-stage occupancy model. If instead `info` had only one row per site, with no sample or PCR replicates, `runOccJSDM()` would skip the detection stages and fit a JSDM to the observed presence/absence.
 
 ## Fit the model
 
-```{r fit, eval=FALSE}
+You can just load the precomputed results from `sampleresults` or choose to fit the model live, which will take up to several minutes depending on your machine. Fitting live tests whether your machine can run occJSDM, but note that the rest of lesson uses the precomputed `sampleresults`. Note that using the same seed number only produces *exactly* the same results if run on the same machine and software and with the same model arguments (priors, number of chains); running on a different platform will likely result in small numerical differences.
+
+Choose this option
+
+```{r precomputed results}
+fit <- sampleresults
+```
+
+or choose this option
+
+```{r fit live, eval=FALSE}
 set.seed(20261007)
 
 fit <- runOccJSDM(
@@ -59,18 +69,13 @@ fit <- runOccJSDM(
 )
 ```
 
-- `threshold`: a reaction with at least this many reads counts as a detection.
-- `occCovariates`, `collCovariates` and `spatCovariates` name the columns of `info` to use for occupancy, for collection and for the spatial field. The species traits are taken from `sampledata$traits`.
+- `threshold`: a reaction with at least this many reads counts as a detection. This is the recommended default.
+- `occCovariates`, `collCovariates` and `spatCovariates` name the columns in `info` to use for occupancy, for collection and for the spatial field.
   - The example includes the `spatCovariates` line to show how the full model is specified. The beta's spatial model is very underpowered, though, so we recommend leaving that line out of your own fits for now.
+- The optional species trait data are taken from `sampledata$traits`.
 - `n_factors` is the number of latent factors that capture associations between species.
 - `MCMCparams` sets the number of chains, the burn-in and kept iterations, and the thinning.
 - The priors have defaults, which `listPriors` changes. `?runOccJSDM` describes every argument.
-
-This chunk is not run while the vignette is built, because the fit takes several minutes. The package ships its result as `sampleresults`, which the rest of this guide uses. The beta example was refitted with the current package using the seed above, the default priors and one requested computation thread. A fixed seed reproduces the fit on the same software and platform; small numerical differences can occur on other platforms.
-
-```{r load-fit}
-fit <- sampleresults
-```
 
 ## Check that the chains agree
 
@@ -85,7 +90,7 @@ head(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat"
 
 `rhat` compares the chains with each other: values close to 1 mean they agree, and larger values call for longer runs or a closer look at the parameters concerned. `ess` is the effective number of independent draws behind each estimate. The table covers the occupancy and detection coefficients; `plotTraceplot()` shows the chains themselves.
 
-The shipped run still has 35 of its 130 reported coefficients above `rhat = 1.01` or below `ess = 400`. Its largest reported Rhat is about 1.083, for the field false-positive rate of `OTU_3`, and fitting also raised warnings about the spatial coefficients. The plots below demonstrate the output functions. Before interpreting flagged estimates in a scientific analysis, run longer chains and check them again; more iterations do not guarantee that the chains will agree.
+The shipped run still has 35 of its 130 reported coefficients above `rhat = 1.01` or below `ess = 400`. Its largest reported `Rhat` is about 1.083, for the field false-positive rate of `OTU_3`, and fitting also raised warnings about the spatial coefficients. The plots below demonstrate the output functions. Before interpreting flagged estimates in a scientific analysis, run longer chains and check them again. However, more iterations do not guarantee that the chains will agree.
 
 The field-contamination rate `theta0` has a Beta(1,20) prior. Its 95% intervals contained the truth 97-98% of the time in targeted low-contamination, non-spatial simulations; coverage in other surveys remains unestablished. Keep the current prior for the beta release, and read wide intervals together with chain diagnostics and prior sensitivity. See the [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) and the field-contamination uncertainty section in `?runOccJSDM`.
 
