@@ -1,0 +1,595 @@
+{
+  "micro_fits": [
+    {
+      "job_id": "t1-r0.08-n900-rep1--Hmsc-spatial2",
+      "key": "Hmsc/spatial2",
+      "truth": "t1",
+      "kind": "bayesian",
+      "fit_seconds": 330.539,
+      "diagnose_seconds": 10.746,
+      "block_prediction_seconds": 0.257000000000005,
+      "gllvm_converged": null,
+      "finished": "2026-10-11 23:38:34",
+      "step": 1,
+      "signature": "hmsc-Full-NA"
+    },
+    {
+      "job_id": "t1-r0.08-n900-rep1--Hmsc-spatial6",
+      "key": "Hmsc/spatial6",
+      "truth": "t1",
+      "kind": "bayesian",
+      "fit_seconds": 5211.944,
+      "diagnose_seconds": 8.41399999999976,
+      "block_prediction_seconds": 0.246000000000095,
+      "gllvm_converged": null,
+      "finished": "2026-10-12 00:59:53",
+      "step": 1,
+      "signature": "hmsc-Full-NA"
+    },
+    {
+      "job_id": "t1-r0.08-n900-rep1--occJSDM-env",
+      "key": "occJSDM/env",
+      "truth": "t1",
+      "kind": "bayesian",
+      "fit_seconds": 1.557,
+      "diagnose_seconds": 3.58,
+      "block_prediction_seconds": 0.204000000000001,
+      "gllvm_converged": null,
+      "finished": "2026-10-11 23:32:58",
+      "step": 1,
+      "signature": "fixed"
+    },
+    {
+      "job_id": "t1-r0.08-n900-rep1--occJSDM-gp",
+      "key": "occJSDM/gp",
+      "truth": "t1",
+      "kind": "bayesian",
+      "fit_seconds": 2271.365,
+      "diagnose_seconds": 11.8179999999998,
+      "block_prediction_seconds": 1.05600000000004,
+      "gllvm_converged": null,
+      "finished": "2026-10-12 00:20:32",
+      "step": 8,
+      "signature": "support300"
+    },
+    {
+      "job_id": "t1-r0.08-n900-rep1--occJSDM-gp",
+      "key": "occJSDM/gp",
+      "truth": "t1",
+      "kind": "bayesian",
+      "fit_seconds": 17915.052,
+      "diagnose_seconds": 15.7619999999988,
+      "block_prediction_seconds": 6.09999999999854,
+      "gllvm_converged": null,
+      "finished": "2026-10-12 04:31:49",
+      "step": 1,
+      "signature": "support900"
+    },
+    {
+      "job_id": "t2-n900-rep1--Hmsc-spatial2",
+      "key": "Hmsc/spatial2",
+      "truth": "t2",
+      "kind": "bayesian",
+      "fit_seconds": 328.71,
+      "diagnose_seconds": 10.8459999999999,
+      "block_prediction_seconds": 0.271999999999991,
+      "gllvm_converged": null,
+      "finished": "2026-10-11 23:38:33",
+      "step": 1,
+      "signature": "hmsc-Full-NA"
+    },
+    {
+      "job_id": "t2-n900-rep1--Hmsc-spatial6",
+      "key": "Hmsc/spatial6",
+      "truth": "t2",
+      "kind": "bayesian",
+      "fit_seconds": 5207.976,
+      "diagnose_seconds": 8.3110000000006,
+      "block_prediction_seconds": 0.197000000000116,
+      "gllvm_converged": null,
+      "finished": "2026-10-12 00:59:55",
+      "step": 1,
+      "signature": "hmsc-Full-NA"
+    },
+    {
+      "job_id": "t2-n900-rep1--occJSDM-env",
+      "key": "occJSDM/env",
+      "truth": "t2",
+      "kind": "bayesian",
+      "fit_seconds": 1.44500000000005,
+      "diagnose_seconds": 3.36700000000002,
+      "block_prediction_seconds": 0.197000000000003,
+      "gllvm_converged": null,
+      "finished": "2026-10-11 23:38:38",
+      "step": 1,
+      "signature": "fixed"
+    },
+    {
+      "job_id": "t2-n900-rep1--occJSDM-gp",
+      "key": "occJSDM/gp",
+      "truth": "t2",
+      "kind": "bayesian",
+      "fit_seconds": 2269.343,
+      "diagnose_seconds": 11.8080000000004,
+      "block_prediction_seconds": 0.98700000000008,
+      "gllvm_converged": null,
+      "finished": "2026-10-12 00:20:34",
+      "step": 8,
+      "signature": "support300"
+    },
+    {
+      "job_id": "t2-n900-rep1--occJSDM-gp",
+      "key": "occJSDM/gp",
+      "truth": "t2",
+      "kind": "bayesian",
+      "fit_seconds": 17786.931,
+      "diagnose_seconds": 15.3719999999994,
+      "block_prediction_seconds": 5.90699999999924,
+      "gllvm_converged": null,
+      "finished": "2026-10-12 04:35:23",
+      "step": 1,
+      "signature": "support900"
+    }
+  ],
+  "missing_arms": "gllvm/spatial2",
+  "error_files": ["t1-r0.08-n900-rep1--Hmsc-spatial2--step8.rds.error", "t1-r0.08-n900-rep1--Hmsc-spatial6--step8.rds.error", "t2-n900-rep1--Hmsc-spatial2--step8.rds.error", "t2-n900-rep1--Hmsc-spatial6--step8.rds.error"],
+  "assumptions": {
+    "micro_schedule": "one chain, 50 warm-up, 150 retained; gllvm one start with maxit 200",
+    "bayesian_fit": "per-iteration cost times 4 chains times 7,000 iterations times the extension factor 4.43",
+    "diagnostics": "per-retained-draw cost times (4 x 4,000 + 4 x 16,000) draws",
+    "prediction": "per-draw, per-25-site-block cost times 4 x 16,000 / prediction thinning draws times 64 blocks",
+    "gllvm": "cost per iteration at the cap times maxit 12,000 times 6 starts: a worst case that assumes no start converges early",
+    "jobs_priced": "every job at the 900-site cost of its arm, the larger of the two truths (upper bound for the 300-site jobs)",
+    "missing": "an arm with no measurement is excluded from the totals and the projection is marked incomplete"
+  },
+  "steps": [
+    {
+      "step": 1,
+      "settings": {
+        "support_points_900": 900,
+        "hmsc_method": "Full",
+        "hmsc_knots": null,
+        "prediction_thin": 10
+      },
+      "per_arm": [
+        {
+          "key": "Hmsc/spatial2",
+          "fit_hours": 56.9445243888889,
+          "diagnose_hours": 1.592,
+          "prediction_hours": 0.194939259259263,
+          "job_hours": 58.7314636481482,
+          "jobs": 40,
+          "worker_hours": 2349.25854592593
+        },
+        {
+          "key": "Hmsc/spatial6",
+          "fit_hours": 897.902130222222,
+          "diagnose_hours": 1.24651851851848,
+          "prediction_hours": 0.186595555555627,
+          "job_hours": 899.335244296296,
+          "jobs": 40,
+          "worker_hours": 35973.4097718519
+        },
+        {
+          "key": "occJSDM/env",
+          "fit_hours": 0.2682365,
+          "diagnose_hours": 0.53037037037037,
+          "prediction_hours": 0.154737777777778,
+          "job_hours": 0.953344648148149,
+          "jobs": 40,
+          "worker_hours": 38.1337859259259
+        },
+        {
+          "key": "occJSDM/gp",
+          "fit_hours": 3086.36534733333,
+          "diagnose_hours": 2.33511111111093,
+          "prediction_hours": 4.62696296296186,
+          "job_hours": 3093.32742140741,
+          "jobs": 40,
+          "worker_hours": 123733.096856296
+        }
+      ],
+      "basis": {
+        "Hmsc/spatial2": "measured at step 1",
+        "Hmsc/spatial6": "measured at step 1",
+        "occJSDM/env": "measured at step 1",
+        "occJSDM/gp": "measured at step 1"
+      },
+      "worker_hours_measured_arms": 162093.89896,
+      "wall_hours_at_workers": 20261.73737,
+      "complete": false
+    },
+    {
+      "step": 2,
+      "settings": {
+        "support_points_900": 600,
+        "hmsc_method": "Full",
+        "hmsc_knots": null,
+        "prediction_thin": 10
+      },
+      "per_arm": [
+        {
+          "key": "Hmsc/spatial2",
+          "fit_hours": 56.9445243888889,
+          "diagnose_hours": 1.592,
+          "prediction_hours": 0.194939259259263,
+          "job_hours": 58.7314636481482,
+          "jobs": 40,
+          "worker_hours": 2349.25854592593
+        },
+        {
+          "key": "Hmsc/spatial6",
+          "fit_hours": 897.902130222222,
+          "diagnose_hours": 1.24651851851848,
+          "prediction_hours": 0.186595555555627,
+          "job_hours": 899.335244296296,
+          "jobs": 40,
+          "worker_hours": 35973.4097718519
+        },
+        {
+          "key": "occJSDM/env",
+          "fit_hours": 0.2682365,
+          "diagnose_hours": 0.53037037037037,
+          "prediction_hours": 0.154737777777778,
+          "job_hours": 0.953344648148149,
+          "jobs": 40,
+          "worker_hours": 38.1337859259259
+        },
+        {
+          "key": "occJSDM/gp",
+          "fit_hours": 1371.71793214815,
+          "diagnose_hours": 1.03782716049375,
+          "prediction_hours": 2.0564279835386,
+          "job_hours": 1374.81218729218,
+          "jobs": 40,
+          "worker_hours": 54992.4874916872
+        }
+      ],
+      "basis": {
+        "Hmsc/spatial2": "measured at step 1",
+        "Hmsc/spatial6": "measured at step 1",
+        "occJSDM/env": "measured at step 1",
+        "occJSDM/gp": "rescaled from step 1"
+      },
+      "worker_hours_measured_arms": 93353.2895953909,
+      "wall_hours_at_workers": 11669.1611994239,
+      "complete": false
+    },
+    {
+      "step": 3,
+      "settings": {
+        "support_points_900": 900,
+        "hmsc_method": "GPP",
+        "hmsc_knots": 300,
+        "prediction_thin": 10
+      },
+      "per_arm": [
+        {
+          "key": "Hmsc/spatial2",
+          "fit_hours": 18.9815081296296,
+          "diagnose_hours": 0.530666666666666,
+          "prediction_hours": 0.064979753086421,
+          "job_hours": 19.5771545493827,
+          "jobs": 40,
+          "worker_hours": 783.086181975309
+        },
+        {
+          "key": "Hmsc/spatial6",
+          "fit_hours": 299.300710074074,
+          "diagnose_hours": 0.415506172839494,
+          "prediction_hours": 0.0621985185185424,
+          "job_hours": 299.778414765432,
+          "jobs": 40,
+          "worker_hours": 11991.1365906173
+        },
+        {
+          "key": "occJSDM/env",
+          "fit_hours": 0.2682365,
+          "diagnose_hours": 0.53037037037037,
+          "prediction_hours": 0.154737777777778,
+          "job_hours": 0.953344648148149,
+          "jobs": 40,
+          "worker_hours": 38.1337859259259
+        },
+        {
+          "key": "occJSDM/gp",
+          "fit_hours": 3086.36534733333,
+          "diagnose_hours": 2.33511111111093,
+          "prediction_hours": 4.62696296296186,
+          "job_hours": 3093.32742140741,
+          "jobs": 40,
+          "worker_hours": 123733.096856296
+        }
+      ],
+      "basis": {
+        "Hmsc/spatial2": "rescaled from step 1",
+        "Hmsc/spatial6": "rescaled from step 1",
+        "occJSDM/env": "measured at step 1",
+        "occJSDM/gp": "measured at step 1"
+      },
+      "worker_hours_measured_arms": 136545.453414815,
+      "wall_hours_at_workers": 17068.1816768518,
+      "complete": false
+    },
+    {
+      "step": 4,
+      "settings": {
+        "support_points_900": 450,
+        "hmsc_method": "Full",
+        "hmsc_knots": null,
+        "prediction_thin": 10
+      },
+      "per_arm": [
+        {
+          "key": "Hmsc/spatial2",
+          "fit_hours": 56.9445243888889,
+          "diagnose_hours": 1.592,
+          "prediction_hours": 0.194939259259263,
+          "job_hours": 58.7314636481482,
+          "jobs": 40,
+          "worker_hours": 2349.25854592593
+        },
+        {
+          "key": "Hmsc/spatial6",
+          "fit_hours": 897.902130222222,
+          "diagnose_hours": 1.24651851851848,
+          "prediction_hours": 0.186595555555627,
+          "job_hours": 899.335244296296,
+          "jobs": 40,
+          "worker_hours": 35973.4097718519
+        },
+        {
+          "key": "occJSDM/env",
+          "fit_hours": 0.2682365,
+          "diagnose_hours": 0.53037037037037,
+          "prediction_hours": 0.154737777777778,
+          "job_hours": 0.953344648148149,
+          "jobs": 40,
+          "worker_hours": 38.1337859259259
+        },
+        {
+          "key": "occJSDM/gp",
+          "fit_hours": 771.591336833333,
+          "diagnose_hours": 0.583777777777734,
+          "prediction_hours": 1.15674074074046,
+          "job_hours": 773.331855351851,
+          "jobs": 40,
+          "worker_hours": 30933.2742140741
+        }
+      ],
+      "basis": {
+        "Hmsc/spatial2": "measured at step 1",
+        "Hmsc/spatial6": "measured at step 1",
+        "occJSDM/env": "measured at step 1",
+        "occJSDM/gp": "rescaled from step 1"
+      },
+      "worker_hours_measured_arms": 69294.0763177778,
+      "wall_hours_at_workers": 8661.75953972222,
+      "complete": false
+    },
+    {
+      "step": 5,
+      "settings": {
+        "support_points_900": 600,
+        "hmsc_method": "GPP",
+        "hmsc_knots": 300,
+        "prediction_thin": 10
+      },
+      "per_arm": [
+        {
+          "key": "Hmsc/spatial2",
+          "fit_hours": 18.9815081296296,
+          "diagnose_hours": 0.530666666666666,
+          "prediction_hours": 0.064979753086421,
+          "job_hours": 19.5771545493827,
+          "jobs": 40,
+          "worker_hours": 783.086181975309
+        },
+        {
+          "key": "Hmsc/spatial6",
+          "fit_hours": 299.300710074074,
+          "diagnose_hours": 0.415506172839494,
+          "prediction_hours": 0.0621985185185424,
+          "job_hours": 299.778414765432,
+          "jobs": 40,
+          "worker_hours": 11991.1365906173
+        },
+        {
+          "key": "occJSDM/env",
+          "fit_hours": 0.2682365,
+          "diagnose_hours": 0.53037037037037,
+          "prediction_hours": 0.154737777777778,
+          "job_hours": 0.953344648148149,
+          "jobs": 40,
+          "worker_hours": 38.1337859259259
+        },
+        {
+          "key": "occJSDM/gp",
+          "fit_hours": 1371.71793214815,
+          "diagnose_hours": 1.03782716049375,
+          "prediction_hours": 2.0564279835386,
+          "job_hours": 1374.81218729218,
+          "jobs": 40,
+          "worker_hours": 54992.4874916872
+        }
+      ],
+      "basis": {
+        "Hmsc/spatial2": "rescaled from step 1",
+        "Hmsc/spatial6": "rescaled from step 1",
+        "occJSDM/env": "measured at step 1",
+        "occJSDM/gp": "rescaled from step 1"
+      },
+      "worker_hours_measured_arms": 67804.8440502057,
+      "wall_hours_at_workers": 8475.60550627572,
+      "complete": false
+    },
+    {
+      "step": 6,
+      "settings": {
+        "support_points_900": 300,
+        "hmsc_method": "Full",
+        "hmsc_knots": null,
+        "prediction_thin": 10
+      },
+      "per_arm": [
+        {
+          "key": "Hmsc/spatial2",
+          "fit_hours": 56.9445243888889,
+          "diagnose_hours": 1.592,
+          "prediction_hours": 0.194939259259263,
+          "job_hours": 58.7314636481482,
+          "jobs": 40,
+          "worker_hours": 2349.25854592593
+        },
+        {
+          "key": "Hmsc/spatial6",
+          "fit_hours": 897.902130222222,
+          "diagnose_hours": 1.24651851851848,
+          "prediction_hours": 0.186595555555627,
+          "job_hours": 899.335244296296,
+          "jobs": 40,
+          "worker_hours": 35973.4097718519
+        },
+        {
+          "key": "occJSDM/env",
+          "fit_hours": 0.2682365,
+          "diagnose_hours": 0.53037037037037,
+          "prediction_hours": 0.154737777777778,
+          "job_hours": 0.953344648148149,
+          "jobs": 40,
+          "worker_hours": 38.1337859259259
+        },
+        {
+          "key": "occJSDM/gp",
+          "fit_hours": 391.305714722222,
+          "diagnose_hours": 1.75081481481478,
+          "prediction_hours": 0.800995555555586,
+          "job_hours": 393.857525092593,
+          "jobs": 40,
+          "worker_hours": 15754.3010037037
+        }
+      ],
+      "basis": {
+        "Hmsc/spatial2": "measured at step 1",
+        "Hmsc/spatial6": "measured at step 1",
+        "occJSDM/env": "measured at step 1",
+        "occJSDM/gp": "measured at step 8"
+      },
+      "worker_hours_measured_arms": 54115.1031074074,
+      "wall_hours_at_workers": 6764.38788842593,
+      "complete": false
+    },
+    {
+      "step": 7,
+      "settings": {
+        "support_points_900": 450,
+        "hmsc_method": "GPP",
+        "hmsc_knots": 300,
+        "prediction_thin": 10
+      },
+      "per_arm": [
+        {
+          "key": "Hmsc/spatial2",
+          "fit_hours": 18.9815081296296,
+          "diagnose_hours": 0.530666666666666,
+          "prediction_hours": 0.064979753086421,
+          "job_hours": 19.5771545493827,
+          "jobs": 40,
+          "worker_hours": 783.086181975309
+        },
+        {
+          "key": "Hmsc/spatial6",
+          "fit_hours": 299.300710074074,
+          "diagnose_hours": 0.415506172839494,
+          "prediction_hours": 0.0621985185185424,
+          "job_hours": 299.778414765432,
+          "jobs": 40,
+          "worker_hours": 11991.1365906173
+        },
+        {
+          "key": "occJSDM/env",
+          "fit_hours": 0.2682365,
+          "diagnose_hours": 0.53037037037037,
+          "prediction_hours": 0.154737777777778,
+          "job_hours": 0.953344648148149,
+          "jobs": 40,
+          "worker_hours": 38.1337859259259
+        },
+        {
+          "key": "occJSDM/gp",
+          "fit_hours": 771.591336833333,
+          "diagnose_hours": 0.583777777777734,
+          "prediction_hours": 1.15674074074046,
+          "job_hours": 773.331855351851,
+          "jobs": 40,
+          "worker_hours": 30933.2742140741
+        }
+      ],
+      "basis": {
+        "Hmsc/spatial2": "rescaled from step 1",
+        "Hmsc/spatial6": "rescaled from step 1",
+        "occJSDM/env": "measured at step 1",
+        "occJSDM/gp": "rescaled from step 1"
+      },
+      "worker_hours_measured_arms": 43745.6307725926,
+      "wall_hours_at_workers": 5468.20384657407,
+      "complete": false
+    },
+    {
+      "step": 8,
+      "settings": {
+        "support_points_900": 300,
+        "hmsc_method": "GPP",
+        "hmsc_knots": 300,
+        "prediction_thin": 10
+      },
+      "per_arm": [
+        {
+          "key": "Hmsc/spatial2",
+          "fit_hours": 18.9815081296296,
+          "diagnose_hours": 0.530666666666666,
+          "prediction_hours": 0.064979753086421,
+          "job_hours": 19.5771545493827,
+          "jobs": 40,
+          "worker_hours": 783.086181975309
+        },
+        {
+          "key": "Hmsc/spatial6",
+          "fit_hours": 299.300710074074,
+          "diagnose_hours": 0.415506172839494,
+          "prediction_hours": 0.0621985185185424,
+          "job_hours": 299.778414765432,
+          "jobs": 40,
+          "worker_hours": 11991.1365906173
+        },
+        {
+          "key": "occJSDM/env",
+          "fit_hours": 0.2682365,
+          "diagnose_hours": 0.53037037037037,
+          "prediction_hours": 0.154737777777778,
+          "job_hours": 0.953344648148149,
+          "jobs": 40,
+          "worker_hours": 38.1337859259259
+        },
+        {
+          "key": "occJSDM/gp",
+          "fit_hours": 391.305714722222,
+          "diagnose_hours": 1.75081481481478,
+          "prediction_hours": 0.800995555555586,
+          "job_hours": 393.857525092593,
+          "jobs": 40,
+          "worker_hours": 15754.3010037037
+        }
+      ],
+      "basis": {
+        "Hmsc/spatial2": "rescaled from step 1",
+        "Hmsc/spatial6": "rescaled from step 1",
+        "occJSDM/env": "measured at step 1",
+        "occJSDM/gp": "measured at step 8"
+      },
+      "worker_hours_measured_arms": 28566.6575622222,
+      "wall_hours_at_workers": 3570.83219527778,
+      "complete": false
+    }
+  ]
+}

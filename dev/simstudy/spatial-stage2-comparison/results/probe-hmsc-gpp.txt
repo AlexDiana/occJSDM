@@ -1,0 +1,5 @@
+Hmsc GPP probe on t2-n900-rep1 (900 sites, 12 species), k-means knots, one chain, 5 warm-up and 5 retained draws, nf = 2 
+knots 50, minimum knot distance 0.0931: ran, 2.1 seconds for 10 iterations 
+knots 100, minimum knot distance 0.0457: ran, 4.3 seconds for 10 iterations 
+knots 200, minimum knot distance 0.0233: ERROR: error in evaluating the argument 'x' in selecting a method for function 't': the leading minor of order 2 is not positive 
+knots 300, minimum knot distance 0.0079: ERROR: error in evaluating the argument 'x' in selecting a method for function 't': the leading minor of order 2 is not positive 

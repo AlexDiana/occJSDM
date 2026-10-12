@@ -1,0 +1,5 @@
+microtiming launched pid 88583 at 2026-10-11 21:28:36
+microtiming run 1 killed 2026-10-11 23:31:13: two gllvm/spatial2 n900 workers held ~38 GB each (MEM column of top, 34-37 GB compressed), swap 28 of 28.6 GB used, workers I/O stuck at 12-22 percent CPU; results are held in the parent until every job ends so nothing was recoverable. Discarded by design.
+microtiming run 2 (non-gllvm arms, per-job files) launched pid 4994 at 2026-10-11 23:32:52
+probe loop stopped 23:38:36 (n=450 and 600 add nothing after n=300 exceeded 33 GB)
+microtiming step 8 (gp at 300 support points, Hmsc GPP 300 knots) launched pid 6910 at 2026-10-11 23:42:28

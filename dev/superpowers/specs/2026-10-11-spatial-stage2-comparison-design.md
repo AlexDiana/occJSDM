@@ -112,6 +112,12 @@ Ten communities per cell, paired within community. With a paired SD s of the hea
 - The oracle's headroom uses true intercepts and slopes, so H understates what a perfectly specified fitted model could reach. The report says so.
 - Ten communities resolve differences of about 0.10 and nothing finer.
 
+## Revision record
+
+11 October 2026, at planning. The convergence screen for fitted arms uses the first comparison's truth-free training-side quantities as implemented in its `diagnostics.R`: per-species training probability mean, per-site training field, realised field SD, intercepts, coefficients, spatial prior SD and range (occJSDM), coefficients and the species spatial correlation at distance 0.5 (Hmsc), objective, gradient and native convergence (gllvm). The held-out probability average named in the design is not screened, because held-out prediction runs only after selection. No threshold changes.
+
+12 October 2026, shelved at the run-time check. The micro-timing step found that the study as specified cannot be dispatched on the laptop it was built on (Apple M4, 10 cores, 32 GB), so no comparison fit was run and the dispatch rule was not reached. The gllvm arm with the first comparison's full variational covariance needs more than 33 GB at 300 sites; the Hmsc arms under the Full method and the gp arm cost thousands of wall-hours at 900 sites against the 48-hour limit; and Hmsc with the GPP method fails at 200 or more knots. No cell, arm, budget, threshold or diagnostic was changed. The study waits for server time, and resuming needs a decision on the gllvm arm (gllvm 2.0.15 offers a sparse nearest-neighbour variational covariance that fits in memory and is not yet validated) and on the Hmsc and gp settings, each of which is a spec amendment. The measurements, what was built and how to resume are in `dev/simstudy/spatial-stage2-comparison/SHELVED.md`.
+
 ## Future work, out of scope here
 
 - Stage 3: the trait-linked per-species range prototype in occJSDM, with its target set by this study's headroom shares.
