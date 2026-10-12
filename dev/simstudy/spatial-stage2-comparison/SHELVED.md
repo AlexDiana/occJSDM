@@ -22,7 +22,7 @@ Stage 2 asked the next question: given real models that must estimate what the o
 
 ## 3. What was built
 
-All of it is committed on branch `claude/spatial-stage2-comparison`, under `dev/simstudy/spatial-stage2-comparison/`, and every test file passes under the pinned launcher `run-r`.
+All of it is on `main`, under `dev/simstudy/spatial-stage2-comparison/` (it was built on the branch `claude/spatial-stage2-comparison` and merged on 12 October 2026, after which the branch was deleted, so the commit hashes below are still valid), and every test file passes under the pinned launcher `run-r`.
 
 - **Launcher and sources.** `run-r` is the pinned R 4.5.0 launcher with a study library holding Hmsc 3.3.7 and gllvm 2.0.15 (TMB 1.9.22 and posterior 1.7.0 come from the user library; occJSDM is 0.1.0). `upstream/` holds the first comparison's adapters, basis, diagnostics, selection code and certification tests, copied with hashes in `sources.csv` (commit `39c703c`).
 - **Config and data bridge** (`config.R`, `data.R`; `b68152b`). The frozen protocol, and the bridge from the pilot's community files to the adapter contract plus the oracle reference.
@@ -95,23 +95,23 @@ Each of these changes the specification, which Doug approved, so none was made.
 
 - Read this file, then `dev/superpowers/specs/2026-10-11-spatial-stage2-comparison-design.md` and the plan.
 - Amend the spec with a dated revision record for whatever is decided in section 5. If the configuration changes, make a new study directory, because `prepare` refuses to reuse one that has a frozen configuration, and a new jobs directory on the server's storage.
-- On a server, install R 4.5 with occJSDM 0.1.0, Hmsc 3.3.7, gllvm 2.0.15, TMB 1.9.22 and posterior 1.7.0 (the versions the study was built against). `run-r` has absolute laptop paths, with `STAGE2_R_HOME` and `STAGE2_LIBRARY` to override them. Copy the pilot's inputs and its `jobs/` and `jobs-resolution/` fits (the oracle references, with the hashes in the pilot's `input-manifest.csv`) and point the dataset table at them.
+- On a server, install R 4.5 with occJSDM 0.1.0, Hmsc 3.3.7, gllvm 2.0.15, TMB 1.9.22 and posterior 1.7.0 (the versions the study was built against). `run-r` has absolute laptop paths, with `STAGE2_R_HOME` and `STAGE2_LIBRARY` to override them. Stage 2 scores every arm against the pilot's oracle fits, and those fits were deleted from the research drive on 12 October 2026, so they must be regenerated first. Use the pilot's own code in a new study directory: `run.R` modes `prepare` (the communities, which can be checked against the hashes in the pilot's committed `results/input-manifest.csv`), `fit` (truth 2, then truth 1), `prescribe-resolution` and `resolve`, as its `README.md` lists. The pilot report's section 4.4 puts that at about 62 CPU-hours, and its committed `results/gate.csv` is the check that the regenerated fits agree. Then point the stage 2 dataset table at the new study's `jobs/` and `jobs-resolution/` folders and its inputs.
 - Follow `README.md` from the test sweep onwards: tests, `prepare`, `microtiming`, the timing ladder, `freeze`, `fit`, `score`, `verify`, `plot`. `fit` can be relaunched after any interruption, since completed attempts are reused. Keep an eye on memory: the micro-timing workers reached about 4 GB each, and full-length fits will hold more.
 - Still to do after the fits: `REPORT.md` (pedagogical, every number from `results/`), the two figures, the README's results pointer, the `TODO.md` line, and the whole-branch review (plan Task 8).
 
 ## 7. What stands and what does not
 
-- The recoverability pilot's results and its recommendation stand. Stage 2 adds nothing to them yet.
+- The recoverability pilot's results and its recommendation stand. Stage 2 adds nothing to them yet. Its raw fits were deleted from the research drive on 12 October 2026 (the report, compact results and manifest remain in git), so nothing can be re-scored from them until they are regenerated.
 - The first spatial package comparison remains superseded as a decision input. It did not meet gllvm's memory problem because it fitted gllvm at 100 sites.
 - `TODO.md` now lists the spatial-model task under "Not needed for the paper". Lesson 7 stays, but for now teaches only what a spatial submodel can be used for and explains that the model is computationally expensive. The lesson text itself has not been changed.
 - Not done: the real timing ladder, any comparison fit, scores, verification on real results, figures on real results, and the report.
 
 ## 8. Where everything is
 
-- **Repository.** Branch `claude/spatial-stage2-comparison` (built on `claude/spatial-recoverability-pilot`, both unmerged). Code, tests, this report, `STATUS.md` and `README.md` are in `dev/simstudy/spatial-stage2-comparison/`. The design and plan are in `dev/superpowers/`. Outside `dev/`, the two branches change only `TODO.md`.
+- **Repository.** `main`. The stage 2 branch `claude/spatial-stage2-comparison` and the pilot branch `claude/spatial-recoverability-pilot` were merged on 12 October 2026 and then deleted. Code, tests, this report, `STATUS.md` and `README.md` are in `dev/simstudy/spatial-stage2-comparison/`. The design and plan are in `dev/superpowers/`. Outside `dev/`, the two branches changed only `TODO.md`.
 - **Evidence.** `results/microtiming.json`, `results/gllvm-probe.csv`, `results/probe-hmsc-gpp.txt`, `results/probe-gp-slope.txt`, `results/microtiming-notes.txt`. In `gllvm-probe.csv`, the `limit_gb` column is the watchdog cap, `peak_gb` the largest footprint it saw, and `exit` 137 means it was killed.
 - **Laptop only (git-ignored).** The study directory `dev/simstudy/results/spatial-stage2-20261011/`: the frozen `config.rds`, `datasets.csv`, the per-job micro-timing results in `microtiming/`, the logs, and the Hmsc and gllvm package library. Its `jobs` link points at an empty folder on the research drive.
-- **Research drive.** `/Volumes/occJSDM Research/occJSDM/`, whose `README.md` explains each folder, including the empty stage 2 skeleton and the pilot fits that stage 2 would read.
+- **Research drive.** `/Volumes/occJSDM Research/occJSDM/`, whose `README.md` explains each folder, including the empty stage 2 skeleton and the emptied pilot folder.
 
 ## Glossary
 
