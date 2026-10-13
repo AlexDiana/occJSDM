@@ -25,7 +25,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' \
   > "$OUT/launch.log" 2>&1 < /dev/null &
 ```
 
-The run takes roughly 90 minutes. `launch.sh` refuses to reuse a run directory that already holds a build, results or a reference.
+The full run takes about 35 minutes (36 minutes on 13 October 2026). `launch.sh` refuses to reuse a run directory that already holds a build, results or a reference.
 
 To run only some configurations, name their labels after the run directory, for example `sh dev/simstudy/parallel-chains/launch.sh "$OUT" serial-ambient`; with none named all five run, and an unknown label stops the run before any fit.
 
@@ -42,4 +42,4 @@ Everything goes under the run directory, which is git-ignored (`dev/simstudy/res
 
 ## After the run
 
-`Rscript dev/simstudy/parallel-chains/summarise.R "$OUT"` prints the bullet lists that `REPORT.md` is written from. `REPORT.md` and copies of `results.csv`, `blas-evidence.rds` and `blas-declaration-basis.txt` are kept in this folder.
+`Rscript dev/simstudy/parallel-chains/summarise.R "$OUT"` prints the bullet lists that `REPORT.md` is written from. The 13 October 2026 results are kept in this folder: `REPORT.md` (what was run, the BLAS evidence and declaration, the results, the rerun and the limits), `results.csv` (the full run), `rerun-results.csv` (the later rerun of the two ambient serial fits, made with the label selector), `blas-evidence.rds` and `blas-declaration-basis.txt`. The run directories themselves stay under the ignored `dev/simstudy/results/`.
