@@ -57,6 +57,7 @@ Suggests:
     gt,
     knitr,
     patchwork,
+    pkgload,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr

@@ -201,6 +201,9 @@ bootstrap_chain_worker <- function(libpaths, threads, dev_path) {
   if (is.null(dev_path)) {
     loadNamespace("occJSDM")
   } else {
+    if (!requireNamespace("pkgload", quietly = TRUE)) {
+      stop("The parent session loaded occJSDM with pkgload, but pkgload is not installed on the workers' library paths", call. = FALSE)
+    }
     # compile = FALSE: never compile in a worker; load the shared object the
     # parent built. Other arguments stay at pkgload's defaults so that the
     # worker's namespace holds the same functions as a parent loaded with
