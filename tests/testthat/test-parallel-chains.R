@@ -565,6 +565,11 @@ test_that("an interrupted fit leaves the session RNG where a completed fit leave
   on.exit(do.call(RNGkind, as.list(old_kind)), add = TRUE)
   sim <- simulate_fixture(model = "two_stage", P = 2L)
   start <- function(seed, prime) { set.seed(seed); if (prime) invisible(rnorm(1)) }
+  # Each SIGINT comes from a background shell whose PID is kept, so a signal
+  # still pending when a fit ends early, or when the test stops, is cancelled
+  # rather than landing in later code.
+  timers <- integer()
+  on.exit(if (length(timers)) tools::pskill(timers), add = TRUE)
   for (normal_kind in c("Inversion", "Box-Muller")) {
     RNGkind("Mersenne-Twister", normal_kind, "Rejection")
     prime <- normal_kind == "Box-Muller"
@@ -574,7 +579,8 @@ test_that("an interrupted fit leaves the session RNG where a completed fit leave
     for (ncores in c(1L, 2L)) {
       start(606, prime)
       msgs <- character()
-      system(sprintf("(sleep 5; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))   # lands after the cluster is up and chains are running
+      timer <- as.integer(system(sprintf("(sleep 5; kill -INT %d) > /dev/null 2>&1 & echo $!", Sys.getpid()), intern = TRUE))   # lands after the cluster is up and chains are running
+      timers <- c(timers, timer)
       # runOccJSDM() is called directly, with the fixture's arguments, because
       # fit_fixture() wraps it in suppressMessages() and the start line would
       # never reach the handler below.
@@ -585,6 +591,7 @@ test_that("an interrupted fit leaves the session RNG where a completed fit leave
           MCMCparams = list(nchain = 2, nburn = 3000, niter = 3000, nthin = 1, ncores = ncores))); "completed"
       }, message = function(m) { msgs <<- c(msgs, conditionMessage(m)); invokeRestart("muffleMessage") }),
       interrupt = function(c) "interrupted")
+      tools::pskill(timer)   # a no-op once the signal has been sent
       label <- paste(normal_kind, "ncores", ncores)
       expect_identical(outcome, "interrupted", info = label)
       expect_identical(list(state = get(".Random.seed", envir = globalenv()), draws = next_draws()), completed, info = label)
@@ -600,8 +607,11 @@ test_that("an interrupted fit leaves the session RNG where a completed fit leave
           progress_file <- sub(".*tail -f ", "", trimws(started))
           Sys.sleep(0.5)
           # pgrep exits with status 1 when nothing matches, the passing case,
-          # and system2(stdout = TRUE) warns about any non-zero status.
-          expect_length(suppressWarnings(system2("pgrep", c("-f", shQuote(paste0("OUT=", progress_file))), stdout = TRUE, stderr = FALSE)), 0L)
+          # and system2(stdout = TRUE) warns about any non-zero status. The
+          # status is asserted so that a failing pgrep cannot pass vacuously.
+          out <- suppressWarnings(system2("pgrep", c("-f", shQuote(paste0("OUT=", progress_file))), stdout = TRUE, stderr = FALSE))
+          expect_length(out, 0L)
+          expect_identical(attr(out, "status"), 1L)
         }
       }
     }
@@ -627,21 +637,29 @@ test_that("a two-stage spatial fit is identical at ncores = 1 and ncores = 2", {
 })
 
 test_that("a binary fit is identical at ncores = 1 and ncores = 2", {
-  skip_unless_declared_blas(); skip_on_cran()
+  skip_unless_declared_blas()
   sim <- simulate_fixture(model = "binary", M = 1L, P = 1L, K = 1L)
   same_fit(fit_at(sim, 1L, spatial = FALSE)$fit, fit_at(sim, 2L, spatial = FALSE)$fit)
 })
 
 test_that("the same seed reproduces a parallel fit and a different seed changes it", {
   sim <- simulate_fixture(model = "two_stage", P = 2L)
-  a <- fit_at(sim, 2L, seed = 4242); b <- fit_at(sim, 2L, seed = 4242); d <- fit_at(sim, 2L, seed = 9999)
+  # Different seeds differ in any mode, so d runs in process: one cluster start fewer.
+  a <- fit_at(sim, 2L, seed = 4242); b <- fit_at(sim, 2L, seed = 4242); d <- fit_at(sim, 1L, seed = 9999)
   same_fit(a$fit, b$fit)
   expect_false(identical(a$fit$results_output$jsdm_output$B0_output, d$fit$results_output$jsdm_output$B0_output))
   expect_false(exists("setup", envir = occJSDM:::chain_env, inherits = FALSE))
+  # The execution record of a cluster fit, independent of the BLAS.
+  ex <- a$fit$infos$execution
+  expect_length(ex$worker_pids, 2L)
+  expect_false(any(ex$worker_pids == Sys.getpid()))
+  expect_identical(ex[c("workers", "threads_per_worker", "thread_setting")],
+                   list(workers = 2L, threads_per_worker = 1L, thread_setting = "budget"))
+  expect_identical(ex$blas_threads_requested, occJSDM:::blas_thread_variables())
+  expect_true(file.exists(ex$progress_file))
 })
 
 test_that("a parallel fit announces the progress file and the workers write to it", {
-  skip_on_cran()
   sim <- simulate_fixture(model = "two_stage", P = 1L)
   set.seed(5)
   msgs <- capture_messages(fit <- suppressWarnings(runOccJSDM(sim$data_list,
@@ -663,9 +681,18 @@ test_that("one chain with ncores > 1 stays in process with the thread budget app
   on.exit(for (nm in names(saved)) if (is.na(saved[[nm]])) Sys.unsetenv(nm) else do.call(Sys.setenv, as.list(setNames(saved[[nm]], nm))), add = TRUE)
   Sys.setenv(RCPP_PARALLEL_STACK_SIZE = "8388608")   # a custom setting the fit must leave alone
   before <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_)
+  # The count the chain itself sees, read in the namespace where
+  # run_chain_task() looks run_one_chain() up.
+  seen <- NA_character_
+  original <- occJSDM:::run_one_chain
+  local_mocked_bindings(run_one_chain = function(setup, seed_r, seed_cpp, chain) {
+    seen <<- Sys.getenv("RCPP_PARALLEL_NUM_THREADS")
+    original(setup, seed_r, seed_cpp, chain)
+  }, .package = "occJSDM")
   set.seed(12)
   msgs <- capture_messages(fit <- fit_fixture(sim, spatial = FALSE,
     MCMCparams = list(nchain = 1, nburn = 20, niter = 20, nthin = 1, ncores = 2)))
+  expect_identical(seen, "2")
   expect_false(any(grepl("Follow progress", msgs)))
   ex <- fit$infos$execution
   expect_identical(ex[c("ncores", "workers", "threads_per_worker", "thread_setting")],

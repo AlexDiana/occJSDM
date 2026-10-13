@@ -1038,8 +1038,10 @@ runOccJSDM <- function(data,
   progress_file <- NULL
   if (budget$workers > 1L) {
     progress_file <- tempfile("occJSDM-progress-", fileext = ".log")
-    handle <- start_chain_cluster(budget$workers, budget$threads_per_worker, progress_file)
+    # Registered before the cluster exists: handle is read at exit and a NULL
+    # handle is a no-op, so no moment leaves a started cluster without a stop.
     on.exit(stop_chain_cluster(handle), add = TRUE)
+    handle <- start_chain_cluster(budget$workers, budget$threads_per_worker, progress_file)
     check_worker_builds(handle)
     send_chain_setup(handle, setup)
     message(sprintf("Running %d chains on %d workers, %d RcppParallel thread%s each. Follow progress with: tail -f %s",

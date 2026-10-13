@@ -294,6 +294,7 @@ check_worker_builds <- function(handle) {
 stop_chain_cluster <- function(handle) {
   if (is.null(handle) || isTRUE(handle$state$stopped)) return(invisible(NULL))
   on.exit({
+    assign("stopped", TRUE, envir = handle$state)
     if (length(handle$pids)) tools::pskill(handle$pids)
     for (node in handle$cl) if (is_live_connection(node$con)) try(close(node$con), silent = TRUE)
   }, add = TRUE)
