@@ -5,7 +5,7 @@
 alive <- function(pids) vapply(pids, function(p) isTRUE(tools::pskill(p, signal = 0L)), logical(1))
 
 test_that("MCMCparams$ncores is validated", {
-  for (bad in list(0, 1.5, "2", c(1, 2), NA_real_, Inf)) {
+  for (bad in list(0, 1.5, "2", c(1, 2), NA_real_, Inf, 1e10)) {   # 1e10: whole, but beyond the integer range
     expect_error(occJSDM:::resolve_ncores(list(ncores = bad)), "single whole number")
   }
   expect_identical(occJSDM:::resolve_ncores(list()), 1L)
@@ -275,6 +275,16 @@ test_that("the R-code fingerprint matches across fresh workers and changes when 
   expect_identical(handle$worker_threads, c("1", "1"))
   expect_identical(length(handle$pids), 2L)
   expect_true(all(alive(handle$pids)))
+  # negative case on a toy namespace-like environment, before the skip below
+  # so that it runs on every machine
+  fp <- function(env) {
+    nms <- sort(ls(env, all.names = TRUE))
+    text <- unlist(lapply(nms, function(n) c(n, deparse(get(n, envir = env)))))
+    tmp <- tempfile(); on.exit(unlink(tmp)); writeLines(text, tmp); unname(tools::md5sum(tmp))
+  }
+  e1 <- new.env(); e1$f <- function(x) x + 1
+  e2 <- new.env(); e2$f <- function(x) x + 2
+  expect_false(identical(fp(e1), fp(e2)))
   # The name order does not follow the session's collation: a parent that
   # changed LC_COLLATE still matches the fresh workers. testthat sets
   # LC_COLLATE = C, in the environment too, so the workers start in C and
@@ -287,15 +297,29 @@ test_that("the R-code fingerprint matches across fresh workers and changes when 
           paste(new_collate, "is not available"))
   for (w in workers) expect_identical(w, occJSDM:::package_fingerprint())
   expect_true(occJSDM:::check_worker_builds(handle))
-  # negative case on a toy namespace-like environment
-  fp <- function(env) {
-    nms <- sort(ls(env, all.names = TRUE))
-    text <- unlist(lapply(nms, function(n) c(n, deparse(get(n, envir = env)))))
-    tmp <- tempfile(); on.exit(unlink(tmp)); writeLines(text, tmp); unname(tools::md5sum(tmp))
-  }
-  e1 <- new.env(); e1$f <- function(x) x + 1
-  e2 <- new.env(); e2$f <- function(x) x + 2
-  expect_false(identical(fp(e1), fp(e2)))
+})
+
+test_that("a parent with a non-default scipen still matches fresh workers", {
+  skip_on_cran()
+  # deparse() formats numeric literals through options(scipen), which a fresh
+  # worker has at its default, so the fingerprint pins it. The option is set
+  # before the workers start, as in a session that set it, and the first
+  # expectation shows that the package's own code deparses differently under
+  # it, so the case cannot pass vacuously.
+  ns <- asNamespace("occJSDM")
+  funs <- Filter(is.function, mget(ls(ns, all.names = TRUE), envir = ns))
+  at_default <- local({ o <- options(scipen = 0); on.exit(options(o)); lapply(funs, deparse) })
+  old_scipen <- options(scipen = 999L)
+  on.exit(options(old_scipen), add = TRUE)
+  expect_false(identical(lapply(funs, deparse), at_default))
+  handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile("occJSDM-progress-", fileext = ".log"))
+  on.exit(occJSDM:::stop_chain_cluster(handle), add = TRUE)
+  expect_true(occJSDM:::check_worker_builds(handle))
+  parent <- occJSDM:::package_fingerprint()
+  workers <- parallel::clusterCall(handle$cl, occJSDM:::package_fingerprint)
+  expect_length(workers, 2L)
+  for (w in workers) expect_identical(w, parent)
+  expect_identical(getOption("scipen"), 999L)        # the fingerprint puts the parent's option back
 })
 
 test_that("an error or an interrupt during worker start-up leaves no worker alive", {
@@ -356,6 +380,23 @@ test_that("a chain that fails in a worker is reported by number and no worker su
   occJSDM:::stop_chain_cluster(handle)
   Sys.sleep(0.5)
   expect_false(any(alive(pids)))
+})
+
+test_that("a chain error in process reaches the caller as the chain raised it", {
+  # The in-process path (handle = NULL, the default ncores = 1) runs
+  # run_chain_direct(), which does not catch: the error keeps its class and
+  # call, so traceback() and options(error = recover) reach the frame that
+  # raised it. A setup with every field NULL fails at the chain body's first
+  # use of model.
+  saved <- occJSDM:::save_session_rng()
+  on.exit(occJSDM:::restore_session_rng(saved), add = TRUE)
+  on.exit(occJSDM:::clear_chain_setup(), add = TRUE)
+  occJSDM:::set_chain_setup(list())
+  seeds <- matrix(1:2, 2, dimnames = list(c("r", "cpp"), NULL))
+  err <- tryCatch(occJSDM:::run_chain_batch(NULL, 1L, seeds), error = function(e) e)
+  expect_identical(class(err), c("simpleError", "error", "condition"))
+  expect_false(grepl("^Chain 1 failed:", conditionMessage(err)))
+  expect_false(is.null(conditionCall(err)))
 })
 
 test_that("cleanup kills every worker even when stopCluster() itself errors", {
@@ -683,7 +724,7 @@ test_that("one chain with ncores > 1 stays in process with the thread budget app
   # Not the "2" the fit applies, so a restore that does nothing cannot pass.
   Sys.setenv(RCPP_PARALLEL_NUM_THREADS = "3")
   # The count the chain itself sees, read in the namespace where
-  # run_chain_task() looks run_one_chain() up.
+  # run_chain_direct() looks run_one_chain() up.
   seen <- NA_character_
   original <- occJSDM:::run_one_chain
   local_mocked_bindings(run_one_chain = function(setup, seed_r, seed_cpp, chain) {

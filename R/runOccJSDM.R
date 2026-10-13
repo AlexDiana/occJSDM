@@ -505,7 +505,9 @@ create_waic_quantities <- function(n_obs){
 #'
 #' A parallel fit prints one line naming its progress file, which the workers'
 #' iteration messages go to; use the \code{tail -f} command it shows to watch
-#' them.
+#' them. Warnings raised inside a chain in a parallel fit also go to that file,
+#' where each worker prints them when it stops at the end of the fit, and they
+#' are not raised again in this session.
 #'
 #' @examples
 #' \dontrun{

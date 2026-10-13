@@ -13,7 +13,7 @@ chain_env <- new.env(parent = emptyenv())
 resolve_ncores <- function(MCMCparams, available = parallel::detectCores()) {
   ncores <- get_param(MCMCparams, "ncores", 1)
   if (!is.numeric(ncores) || length(ncores) != 1L || !is.finite(ncores) ||
-      ncores < 1 || ncores != floor(ncores)) {
+      ncores < 1 || ncores != floor(ncores) || ncores > .Machine$integer.max) {
     stop("MCMCparams$ncores must be a single whole number of at least 1", call. = FALSE)
   }
   ncores <- as.integer(ncores)
@@ -61,8 +61,9 @@ merge_waic_parts <- function(parts) {
 
 # Per-chain sums of the retained latent states, added in chain order. A name
 # that is NULL or absent on either side comes out NULL, so a shape mismatch
-# between chains cannot produce a silently partial sum. NULL entries are kept
-# in the result (`[<-` with list(NULL), not `[[<-` with NULL), so the names
+# between chains cannot produce a silently partial sum. The result starts as
+# vector("list", n) named by the union of the names, and only the non-NULL
+# sums are assigned into it, so a NULL entry keeps its place and the names
 # stay the same however many parts are folded in.
 add_latent_sums <- function(total, part) {
   if (is.null(part)) return(total)
@@ -149,18 +150,30 @@ stop_if_chain_failed <- function(res) {
   res
 }
 
-# The task a worker (or the in-process loop) runs for one chain. Package
-# level, so it crosses the socket as a namespace reference; setup is read
-# from chain_env, which the bootstrap filled.
+# The task a worker runs for one chain. Package level, so it crosses the
+# socket as a namespace reference; setup is read from chain_env, which
+# send_chain_setup() filled. An error comes back as a structured failure that
+# names the chain, in place of the generic node error parallel would raise.
 run_chain_task <- function(k, seeds) {
   tryCatch(run_one_chain(get("setup", envir = chain_env, inherits = FALSE),
                          seeds["r", k], seeds["cpp", k], k),
            error = function(e) chain_failure(k, conditionMessage(e)))
 }
 
-# With handle = NULL this is the in-process path; the cluster branch is
-# exercised from Task 4 onward.
-run_chain_batch <- function(handle, batch, seeds, task = run_chain_task) {
+# The task the in-process loop runs for one chain. No tryCatch(): an error
+# reaches the caller with its own class and call, so traceback() and
+# options(error = recover) still reach the sampler's frame.
+run_chain_direct <- function(k, seeds) {
+  run_one_chain(get("setup", envir = chain_env, inherits = FALSE),
+                seeds["r", k], seeds["cpp", k], k)
+}
+
+# With handle = NULL the chains run one after another in this process,
+# through run_chain_direct(); otherwise on the cluster, through
+# run_chain_task(). `task` is an argument so that tests can inject a failing
+# or slow task into either branch.
+run_chain_batch <- function(handle, batch, seeds,
+                            task = if (is.null(handle)) run_chain_direct else run_chain_task) {
   if (is.null(handle)) return(lapply(batch, task, seeds = seeds))
   parallel::clusterApplyLB(handle$cl, batch, task, seeds = seeds)
 }
@@ -206,9 +219,12 @@ bootstrap_chain_worker <- function(libpaths, threads, dev_path) {
       stop("The parent session loaded occJSDM with pkgload, but pkgload is not installed on the workers' library paths", call. = FALSE)
     }
     # compile = FALSE: never compile in a worker; load the shared object the
-    # parent built. Other arguments stay at pkgload's defaults so that the
-    # worker's namespace holds the same functions as a parent loaded with
-    # devtools::load_all(); the code fingerprint compares exactly that.
+    # parent built. quiet = TRUE keeps the load's messages out of the progress
+    # file and attach = FALSE leaves the worker's search path alone; both act
+    # outside the namespace. Every other argument stays at pkgload's default
+    # so that the worker's namespace holds the same functions as a parent
+    # loaded with devtools::load_all(); the code fingerprint compares exactly
+    # that.
     # (pkgload 1.5.3 sources test helpers into the attached package
     # environment, not the namespace, so the helpers argument cannot
     # change the fingerprint; checked 13 October 2026.)
@@ -251,7 +267,14 @@ send_chain_setup <- function(handle, setup) {
 # "Build identity check"). The names are sorted by radix, which is the C
 # locale's order whatever the session's collation: a parent that changed
 # LC_COLLATE would otherwise order them differently from a fresh worker.
+# scipen is pinned to its default for the same reason: deparse() formats
+# numeric literals through it, so a parent with scipen = 999 would write
+# 1e-12 as 0.000000000001 where a fresh worker does not. digits, OutDec,
+# width and keep.source do not change deparse()'s output (checked
+# 13 October 2026).
 package_fingerprint <- function() {
+  old <- options(scipen = 0L)
+  on.exit(options(old), add = TRUE)
   ns <- asNamespace("occJSDM")
   nms <- sort(ls(ns, all.names = TRUE, sorted = FALSE), method = "radix")
   funs <- nms[vapply(nms, function(n) is.function(get(n, envir = ns)), logical(1))]
