@@ -7,7 +7,7 @@ Suppose we know with certainty which species occupy each surveyed site. Can a jo
 
 We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated observations**. gllvm fits generalised linear latent variable models by approximate likelihood. sjSDM is a fast JSDM fitted by optimisation in PyTorch, a Python machine-learning library. Hmsc is a Bayesian hierarchical JSDM widely used in community ecology.
 
-Why compare an eDNA package with packages that have no detection model? Only occJSDM models detection error. This lesson checks that its ecological core, the part it shares with these established JSDMs, does as well as theirs on perfectly observed data. Here there is no DNA collection failure, PCR detection error or false positive. As the [quickstart](occJSDM.md#the-example-data) notes, when `info` has only one row per site, `runOccJSDM()` skips the detection stages and fits a JSDM to the observed presence/absence. That is the mode used here. The detection processes matter in [Lesson 2](occJSDM-lesson-2.md), but here we remove them to examine the ecological model itself.
+Why compare an eDNA package with packages that have no detection model? Only occJSDM models detection error. This lesson checks that its ecological core, the part it shares with these established JSDMs, does as well as theirs on perfectly observed data. Here there is no DNA collection failure, PCR detection error or false positive. As the [quickstart](occJSDM-00-quickstart.md#the-example-data) notes, when `info` has only one row per site, `runOccJSDM()` skips the detection stages and fits a JSDM to the observed presence/absence. That is the mode used here. The detection processes matter in [Lesson 2](occJSDM-lesson-2.md), but here we remove them to examine the ecological model itself.
 
 This lesson works through **one community**. [Lesson 6](occJSDM-lesson-6.md) repeats the experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits. Section 5 explains why the sjSDM fit needed several starts and what its two solutions mean.
 
@@ -919,7 +919,7 @@ Try these exercises with the saved tables, without refitting:
 
 The appendix below holds each package’s fitting call and what the runs cost, the evidence for the two sjSDM optima, and the reproduction record.
 
-Continue to [Lesson 6](occJSDM-lesson-6.md), or return to the [Quickstart](occJSDM.md), [Lesson 2](occJSDM-lesson-2.md) or [Lesson 3](occJSDM-lesson-3.md).
+Continue to [Lesson 6](occJSDM-lesson-6.md), or return to the [Quickstart](occJSDM-00-quickstart.md), [Lesson 2](occJSDM-lesson-2.md) or [Lesson 3](occJSDM-lesson-3.md).
 
 ## Appendix: evidence and reproduction
 
