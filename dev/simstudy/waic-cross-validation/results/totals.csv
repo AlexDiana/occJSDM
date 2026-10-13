@@ -1,0 +1,3 @@
+"method","elpd_one","elpd_two","difference_one_minus_two","paired_se","monte_carlo_se","verdict","deviance_difference"
+"ten-fold cross-validation",-11567.5418718544,-11566.950271688,-0.591600166392681,0.269483150292997,0.201989770767128,"no meaningful difference",1.18320033278536
+"WAIC (full-data refits)",-11560.5700822741,-11559.9129079531,-0.657174320931432,0.299635315392169,0.213301262362828,"no meaningful difference",1.31434864186286

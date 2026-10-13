@@ -1,0 +1,8 @@
+Cross-validation verdict: no meaningful difference
+WAIC verdict: no meaningful difference
+WAIC agrees with cross-validation: TRUE
+Cross-validation verdict unchanged by +/- 2 Monte Carlo SE: TRUE (no meaningful difference; no meaningful difference)
+Every single-chain recomputation gives the same verdict: TRUE
+Step 1 unclear: FALSE
+Step 2 needed: FALSE
+Largest quadrature change over all fits: 2.83e-06
