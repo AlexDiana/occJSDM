@@ -1,0 +1,3 @@
+"stage","identical","max_abs_beta","max_abs_loading","max_abs_covariance","aligned_distance","max_abs_history"
+"after 3,000 epochs",TRUE,0,0,0,9.76624666951952e-16,0
+"after continuation",TRUE,0,0,0,2.79715755706988e-17,0
