@@ -293,11 +293,11 @@ check_worker_builds <- function(handle) {
 # never write into a connection that has since taken its number.
 stop_chain_cluster <- function(handle) {
   if (is.null(handle) || isTRUE(handle$state$stopped)) return(invisible(NULL))
-  assign("stopped", TRUE, envir = handle$state)
   on.exit({
     if (length(handle$pids)) tools::pskill(handle$pids)
     for (node in handle$cl) if (is_live_connection(node$con)) try(close(node$con), silent = TRUE)
   }, add = TRUE)
+  assign("stopped", TRUE, envir = handle$state)
   try(parallel::stopCluster(handle$cl), silent = TRUE)
   invisible(NULL)
 }

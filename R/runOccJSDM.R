@@ -1036,6 +1036,19 @@ runOccJSDM <- function(data,
   budget <- plan_chain_budget(nchain, ncores)
   handle <- NULL
   progress_file <- NULL
+  if (budget$workers > 1L) {
+    progress_file <- tempfile("occJSDM-progress-", fileext = ".log")
+    handle <- start_chain_cluster(budget$workers, budget$threads_per_worker, progress_file)
+    on.exit(stop_chain_cluster(handle), add = TRUE)
+    check_worker_builds(handle)
+    send_chain_setup(handle, setup)
+    message(sprintf("Running %d chains on %d workers, %d RcppParallel thread%s each. Follow progress with: tail -f %s",
+                    nchain, budget$workers, budget$threads_per_worker,
+                    if (budget$threads_per_worker == 1L) "" else "s", progress_file))
+  } else if (budget$ncores > 1L) {
+    restore_threads <- pin_session_threads(budget$ncores)
+    on.exit(restore_threads(), add = TRUE)
+  }
 
   latent_sums <- NULL
   waic_parts <- vector("list", nchain)

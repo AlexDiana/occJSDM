@@ -520,3 +520,187 @@ test_that("cleanup closes the sockets that stopCluster() leaves open when it giv
   expect_false(occJSDM:::is_live_connection(a))
   expect_true(occJSDM:::is_live_connection(b))
 })
+
+skip_unless_declared_blas <- function() {
+  if (!nzchar(Sys.getenv("OCCJSDM_REFERENCE_BLAS"))) {
+    skip(paste0("fit identity across worker counts needs a provenance-checked single-threaded BLAS ",
+                "(set OCCJSDM_REFERENCE_BLAS after checking); BLAS in use, as an indication only: ",
+                extSoftVersion()[["BLAS"]]))
+  }
+}
+same_fit <- function(a, b) expect_identical(occJSDM:::drop_execution(a), occJSDM:::drop_execution(b))
+next_draws <- function() list(rnorm(3), runif(3), sample(100, 3))
+fit_at <- function(sim, ncores, nchain = 2, seed = 2024, spatial = TRUE, prime = FALSE, ...) {
+  set.seed(seed)
+  if (prime) invisible(rnorm(1))   # under Box-Muller this leaves a cached deviate pending at the moment the fit starts
+  fit <- fit_fixture(sim, spatial = spatial,
+                     MCMCparams = list(nchain = nchain, nburn = 20, niter = 20, nthin = 1, ncores = ncores), ...)
+  list(fit = fit, seed_state = get(".Random.seed", envir = globalenv()), draws = next_draws(), kinds = RNGkind())
+}
+
+test_that("the session RNG agrees across ncores, under the default kinds and under L'Ecuyer with Box-Muller", {
+  # RNG assertions only, deliberately outside the BLAS identity gate.
+  old_kind <- RNGkind()
+  on.exit(do.call(RNGkind, as.list(old_kind)), add = TRUE)
+  sim <- simulate_fixture(model = "binary", M = 1L, P = 1L, K = 1L)
+  for (kinds in list(c("Mersenne-Twister", "Inversion", "Rejection"), c("L'Ecuyer-CMRG", "Box-Muller", "Rejection"))) {
+    do.call(RNGkind, as.list(kinds))
+    serial <- fit_at(sim, 1L, spatial = FALSE, seed = 99, prime = TRUE)
+    parallel <- fit_at(sim, 2L, spatial = FALSE, seed = 99, prime = TRUE)
+    expect_identical(serial$seed_state, parallel$seed_state)
+    expect_identical(serial$draws, parallel$draws)
+    expect_identical(serial$kinds[1:3], kinds)
+    expect_identical(parallel$kinds[1:3], kinds)
+  }
+})
+
+test_that("an interrupted fit leaves the session RNG where a completed fit leaves it, at every ncores", {
+  skip_on_cran(); skip_on_os("windows")
+  # Production orchestration under a real interrupt: the on.exit() handler in
+  # runOccJSDM() must restore the state after the seed draws, which is the
+  # state any completed fit of the same seed ends in, whatever the schedule.
+  # Run under the default kinds and under Box-Muller with a cached deviate
+  # pending at the moment the fit starts.
+  old_kind <- RNGkind()
+  on.exit(do.call(RNGkind, as.list(old_kind)), add = TRUE)
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  start <- function(seed, prime) { set.seed(seed); if (prime) invisible(rnorm(1)) }
+  for (normal_kind in c("Inversion", "Box-Muller")) {
+    RNGkind("Mersenne-Twister", normal_kind, "Rejection")
+    prime <- normal_kind == "Box-Muller"
+    start(606, prime)
+    invisible(fit_fixture(sim, MCMCparams = list(nchain = 2, nburn = 20, niter = 20, nthin = 1)))
+    completed <- list(state = get(".Random.seed", envir = globalenv()), draws = next_draws())
+    for (ncores in c(1L, 2L)) {
+      start(606, prime)
+      msgs <- character()
+      system(sprintf("(sleep 5; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))   # lands after the cluster is up and chains are running
+      # runOccJSDM() is called directly, with the fixture's arguments, because
+      # fit_fixture() wraps it in suppressMessages() and the start line would
+      # never reach the handler below.
+      outcome <- tryCatch(withCallingHandlers({
+        suppressWarnings(runOccJSDM(sim$data_list,
+          listParams = list(n_factors = 2, n_supportpoints = FIXTURE_KNOTS),
+          occCovariates = fixture_occ_covariates(), spatCovariates = fixture_spat_covariates(),
+          MCMCparams = list(nchain = 2, nburn = 3000, niter = 3000, nthin = 1, ncores = ncores))); "completed"
+      }, message = function(m) { msgs <<- c(msgs, conditionMessage(m)); invokeRestart("muffleMessage") }),
+      interrupt = function(c) "interrupted")
+      label <- paste(normal_kind, "ncores", ncores)
+      expect_identical(outcome, "interrupted", info = label)
+      expect_identical(list(state = get(".Random.seed", envir = globalenv()), draws = next_draws()), completed, info = label)
+      expect_false(exists("setup", envir = occJSDM:::chain_env, inherits = FALSE), info = label)
+      if (ncores == 2L) {
+        # Only this fit's workers are checked: a PSOCK worker's command line
+        # names its progress file as OUT=<file>, and the start line announced
+        # that file, so an unrelated cluster elsewhere on the machine is
+        # neither counted nor touched (checked 13 October 2026).
+        started <- grep("Follow progress with: tail -f ", msgs, fixed = TRUE, value = TRUE)
+        expect_length(started, 1L)
+        if (length(started) == 1L) {   # no query with an invalid identifier if the start line was not seen
+          progress_file <- sub(".*tail -f ", "", trimws(started))
+          Sys.sleep(0.5)
+          # pgrep exits with status 1 when nothing matches, the passing case,
+          # and system2(stdout = TRUE) warns about any non-zero status.
+          expect_length(suppressWarnings(system2("pgrep", c("-f", shQuote(paste0("OUT=", progress_file))), stdout = TRUE, stderr = FALSE)), 0L)
+        }
+      }
+    }
+  }
+})
+
+test_that("a two-stage spatial fit is identical at ncores = 1 and ncores = 2", {
+  skip_unless_declared_blas()
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  serial <- fit_at(sim, 1L)
+  parallel <- fit_at(sim, 2L)
+  same_fit(serial$fit, parallel$fit)
+  expect_identical(serial$seed_state, parallel$seed_state)
+  expect_identical(serial$draws, parallel$draws)
+  ex <- parallel$fit$infos$execution
+  expect_identical(ex[c("ncores", "workers", "threads_per_worker", "thread_setting")],
+                   list(ncores = 2L, workers = 2L, threads_per_worker = 1L, thread_setting = "budget"))
+  expect_true(file.exists(ex$progress_file))
+  expect_identical(ex$blas_threads_requested, occJSDM:::blas_thread_variables())
+  expect_true(ex$blas_declared)
+  expect_identical(serial$fit$infos$execution$thread_setting, "ambient")
+  expect_null(serial$fit$infos$execution$progress_file)
+})
+
+test_that("a binary fit is identical at ncores = 1 and ncores = 2", {
+  skip_unless_declared_blas(); skip_on_cran()
+  sim <- simulate_fixture(model = "binary", M = 1L, P = 1L, K = 1L)
+  same_fit(fit_at(sim, 1L, spatial = FALSE)$fit, fit_at(sim, 2L, spatial = FALSE)$fit)
+})
+
+test_that("the same seed reproduces a parallel fit and a different seed changes it", {
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  a <- fit_at(sim, 2L, seed = 4242); b <- fit_at(sim, 2L, seed = 4242); d <- fit_at(sim, 2L, seed = 9999)
+  same_fit(a$fit, b$fit)
+  expect_false(identical(a$fit$results_output$jsdm_output$B0_output, d$fit$results_output$jsdm_output$B0_output))
+  expect_false(exists("setup", envir = occJSDM:::chain_env, inherits = FALSE))
+})
+
+test_that("a parallel fit announces the progress file and the workers write to it", {
+  skip_on_cran()
+  sim <- simulate_fixture(model = "two_stage", P = 1L)
+  set.seed(5)
+  msgs <- capture_messages(fit <- suppressWarnings(runOccJSDM(sim$data_list,
+    listParams = list(n_factors = 2), occCovariates = fixture_occ_covariates(),
+    MCMCparams = list(nchain = 2, nburn = 100, niter = 100, nthin = 1, ncores = 2))))
+  expect_true(any(grepl("Running 2 chains on 2 workers, 1 RcppParallel thread each. Follow progress with: tail -f ", msgs, fixed = TRUE)))
+  expect_true(any(grepl("^Chain 2 finished in [0-9.]+ s", msgs)))
+  pf <- fit$infos$execution$progress_file
+  expect_true(file.exists(pf))
+  lines <- readLines(pf)
+  expect_true(any(grepl("Chain 1 - Burn in Iteration 100", lines, fixed = TRUE)))
+  expect_true(any(grepl("Chain 2 - Iteration 100", lines, fixed = TRUE)))
+})
+
+test_that("one chain with ncores > 1 stays in process with the thread budget applied and restored", {
+  sim <- simulate_fixture(model = "binary", M = 1L, P = 1L, K = 1L)
+  vars <- c("RCPP_PARALLEL_NUM_THREADS", "RCPP_PARALLEL_STACK_SIZE")
+  saved <- Sys.getenv(vars, unset = NA_character_, names = TRUE)
+  on.exit(for (nm in names(saved)) if (is.na(saved[[nm]])) Sys.unsetenv(nm) else do.call(Sys.setenv, as.list(setNames(saved[[nm]], nm))), add = TRUE)
+  Sys.setenv(RCPP_PARALLEL_STACK_SIZE = "8388608")   # a custom setting the fit must leave alone
+  before <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_)
+  set.seed(12)
+  msgs <- capture_messages(fit <- fit_fixture(sim, spatial = FALSE,
+    MCMCparams = list(nchain = 1, nburn = 20, niter = 20, nthin = 1, ncores = 2)))
+  expect_false(any(grepl("Follow progress", msgs)))
+  ex <- fit$infos$execution
+  expect_identical(ex[c("ncores", "workers", "threads_per_worker", "thread_setting")],
+                   list(ncores = 2L, workers = 1L, threads_per_worker = 2L, thread_setting = "budget"))
+  expect_null(ex$progress_file); expect_null(ex$blas_threads_requested)
+  expect_identical(Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_), before)
+  expect_identical(Sys.getenv("RCPP_PARALLEL_STACK_SIZE"), "8388608")
+})
+
+test_that("non-default RNG kinds give the same fit at every ncores", {
+  skip_unless_declared_blas(); skip_on_cran()
+  old_kind <- RNGkind()
+  on.exit(do.call(RNGkind, as.list(old_kind)), add = TRUE)
+  RNGkind("L'Ecuyer-CMRG", "Box-Muller", "Rejection")
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  same_fit(fit_at(sim, 1L, seed = 99, prime = TRUE)$fit, fit_at(sim, 2L, seed = 99, prime = TRUE)$fit)
+})
+
+test_that("three chains on two workers and unsummarised latent states are identical to the in-process fit", {
+  skip_unless_declared_blas(); skip_on_cran()
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  same_fit(fit_at(sim, 1L, nchain = 3)$fit, fit_at(sim, 2L, nchain = 3)$fit)
+  run <- function(ncores) {
+    set.seed(8)
+    suppressMessages(suppressWarnings(runOccJSDM(sim$data_list,
+      listParams = list(n_factors = 2, n_supportpoints = FIXTURE_KNOTS),
+      occCovariates = fixture_occ_covariates(), spatCovariates = fixture_spat_covariates(),
+      MCMCparams = list(nchain = 2, nburn = 20, niter = 20, nthin = 1, ncores = ncores),
+      summarisedLatentPresences = FALSE)))
+  }
+  a <- run(1L); b <- run(2L)
+  same_fit(a, b)
+  expect_identical(dim(b$results_output$z_output), c(FIXTURE_N, FIXTURE_S, 20L, 2L))
+  for (model in c("continuous", "occupancy")) {
+    s <- simulate_fixture(model = model, M = if (model == "occupancy") 2L else 1L, P = 1L, K = 1L)
+    same_fit(fit_at(s, 1L, spatial = FALSE, seed = 3)$fit, fit_at(s, 2L, spatial = FALSE, seed = 3)$fit)
+  }
+})
