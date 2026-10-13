@@ -43,7 +43,9 @@ Imports:
     ggrepel,
     FastGP,
     RcppParallel,
-    utils
+    utils,
+    parallel,
+    tools
 LinkingTo: 
     Rcpp,
     RcppArmadillo,
