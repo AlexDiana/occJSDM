@@ -959,36 +959,15 @@ runOccJSDM <- function(data,
     )
   }
 
-  # WAIC calculation
-  {
-
-    list_waic_jsdm <- create_waic_quantities(n * S)
-
-    if(model %in% c("occupancy","two_stage")){
-      list_waic_w <- create_waic_quantities(N * S)
-    }
-
-    if(model %in% "two_stage"){
-      list_waic_y <- create_waic_quantities(N3 * S)
-    }
-
-    currentWAICiter <- 1
-
-  }
-
   # chain output
   {
     if(model %in% c("occupancy","two_stage")){
       beta_theta_output <- array(NA, dim = c(ncov_theta, S, niter, nchain))
       theta0_output <- array(NA, dim = c(S, niter, nchain))
-      if(summarisedLatentPresences){
-        z_output_mean <- matrix(0, n, S)
-        psi_output_mean <- matrix(0, n, S)
-      } else {
+      if(!summarisedLatentPresences){
         z_output <- array(NA, dim = c(n, S, niter, nchain))
         psi_output <- array(NA, dim = c(n, S, niter, nchain))
       }
-      theta_output_mean <- matrix(0, N, S)
 
     } else {
       beta_theta_output <- NULL
@@ -1007,7 +986,6 @@ runOccJSDM <- function(data,
     if(model == "two_stage"){
       p_output <- array(NA, dim = c(maxP, S, niter, nchain))
       q_output <- array(NA, dim = c(maxP, S, niter, nchain))
-      w_output_mean <- matrix(0, N, S)
     } else {
       p_output <- NULL
       q_output <- NULL
@@ -1061,7 +1039,7 @@ runOccJSDM <- function(data,
 
   latent_sums <- NULL
   waic_parts <- vector("list", nchain)
-  elapsed <- numeric(nchain)
+  elapsed <- rep(NA_real_, nchain)
   batches <- split(seq_len(nchain), ceiling(seq_len(nchain) / budget$workers))
   for (batch in batches) {
     results <- run_chain_batch(handle, batch, seeds)
@@ -1106,11 +1084,18 @@ runOccJSDM <- function(data,
       }
 
       latent_sums <- add_latent_sums(latent_sums, res$latent_sums)
-      waic_parts[[chain]] <- res$waic
+      waic_parts[chain] <- list(res$waic)
       elapsed[chain] <- res$elapsed
       rm(dr)
     }
     rm(results, res)
+  }
+
+  # Every chain must have returned a result before anything is combined.
+  missing_chains <- which(is.na(elapsed) | vapply(waic_parts, is.null, logical(1)))
+  if (length(missing_chains) > 0L) {
+    stop(sprintf("No result was returned for chain(s) %s", paste(missing_chains, collapse = ", ")),
+         call. = FALSE)
   }
   for (chain in seq_len(nchain)) message(sprintf("Chain %d finished in %.1f s", chain, elapsed[chain]))
 
@@ -1127,7 +1112,15 @@ runOccJSDM <- function(data,
   # compute WAIC
   {
     numIters <- niter * nchain
-    for (part in waic_parts) if (part$jsdm$n != niter) stop("Current wAIC iter wrong")
+    for (chain in seq_len(nchain)) {
+      for (nm in names(waic_parts[[chain]])) {
+        part <- waic_parts[[chain]][[nm]]
+        if (!is.null(part) && !isTRUE(part$n == niter)) {
+          stop(sprintf("Current wAIC iter wrong: chain %d recorded %s %s draws, expected %s",
+                       chain, deparse(part$n), nm, format(niter)), call. = FALSE)
+        }
+      }
+    }
     WAIC_jsdm <- compute_waic(merge_waic_parts(lapply(waic_parts, `[[`, "jsdm")), numIters)
 
     if(model %in% c("occupancy","two_stage")){

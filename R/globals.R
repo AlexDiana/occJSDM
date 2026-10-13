@@ -45,18 +45,3 @@ utils::globalVariables(c(
   "x",
   "y"
 ))
-
-# Fields of the setup list that run_one_chain() in R/chains.R unpacks into its
-# frame with list2env(); the moved chain body reads them as plain names.
-# Keep in step with chain_setup_fields().
-utils::globalVariables(c(
-  "model", "jsdmModel", "threshold",
-  "y", "y_NA", "z", "w", "M", "K", "P", "sumM", "sumP", "sumK", "maxP", "primerId_p",
-  "idx_w_k", "idx_p_k", "idx_z_w", "list_idx",
-  "n", "N", "N3", "S", "d", "g", "gt", "ps", "ncov_theta", "ncov_psi",
-  "X_theta", "X_psi", "Tr",
-  "list_Xs", "list_SoRSummaries",
-  "list_data", "list_priors", "spatial_sd_prior",
-  "a_theta0", "b_theta0", "a_p", "b_p", "a_q", "b_q", "b_betatheta", "B_betatheta",
-  "nburn", "niter", "nthin", "summarisedLatentPresences"
-))

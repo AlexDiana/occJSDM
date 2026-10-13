@@ -158,7 +158,8 @@ run_chain_task <- function(k, seeds) {
            error = function(e) chain_failure(k, conditionMessage(e)))
 }
 
-# Task 4 adds the cluster branch; with handle = NULL this is the in-process path.
+# With handle = NULL this is the in-process path; the cluster branch is
+# exercised from Task 4 onward.
 run_chain_batch <- function(handle, batch, seeds, task = run_chain_task) {
   if (is.null(handle)) return(lapply(batch, task, seeds = seeds))
   parallel::clusterApplyLB(handle$cl, batch, task, seeds = seeds)
@@ -175,7 +176,59 @@ drop_execution <- function(fit) {
 # alone: it does not continue any other chain's stream, in process or not.
 run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
   started <- proc.time()[["elapsed"]]
-  list2env(setup, envir = environment())
+  # Unpack setup, one field per line in the order of chain_setup_fields(), from
+  # which this block was generated: keep the two in step when a field changes.
+  # Explicit assignments rather than list2env(), so that R CMD check's code
+  # analysis sees every name defined here. A NULL field assigns NULL.
+  model <- setup$model
+  jsdmModel <- setup$jsdmModel
+  threshold <- setup$threshold
+  y <- setup$y
+  y_NA <- setup$y_NA
+  z <- setup$z
+  w <- setup$w
+  M <- setup$M
+  K <- setup$K
+  P <- setup$P
+  sumM <- setup$sumM
+  sumP <- setup$sumP
+  sumK <- setup$sumK
+  maxP <- setup$maxP
+  primerId_p <- setup$primerId_p
+  idx_w_k <- setup$idx_w_k
+  idx_p_k <- setup$idx_p_k
+  idx_z_w <- setup$idx_z_w
+  list_idx <- setup$list_idx
+  n <- setup$n
+  N <- setup$N
+  N3 <- setup$N3
+  S <- setup$S
+  d <- setup$d
+  g <- setup$g
+  gt <- setup$gt
+  ps <- setup$ps
+  ncov_theta <- setup$ncov_theta
+  ncov_psi <- setup$ncov_psi
+  X_theta <- setup$X_theta
+  X_psi <- setup$X_psi
+  Tr <- setup$Tr
+  list_Xs <- setup$list_Xs
+  list_SoRSummaries <- setup$list_SoRSummaries
+  list_data <- setup$list_data
+  list_priors <- setup$list_priors
+  spatial_sd_prior <- setup$spatial_sd_prior
+  a_theta0 <- setup$a_theta0
+  b_theta0 <- setup$b_theta0
+  a_p <- setup$a_p
+  b_p <- setup$b_p
+  a_q <- setup$a_q
+  b_q <- setup$b_q
+  b_betatheta <- setup$b_betatheta
+  B_betatheta <- setup$B_betatheta
+  nburn <- setup$nburn
+  niter <- setup$niter
+  nthin <- setup$nthin
+  summarisedLatentPresences <- setup$summarisedLatentPresences
   seed_chain_rng(seed_r, seed_cpp)
 
   # ---- moved from runOccJSDM(): chain output, starting values, iteration loop ----
@@ -514,6 +567,10 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
     z_output_chain <- NULL; psi_output_chain <- NULL
   }
 
+  # The number of WAIC accumulator updates that actually happened. The parent
+  # checks it against niter for every part before merging by it.
+  n_waic <- currentWAICiter - 1
+
   list(
     chain = chain, seed_r = seed_r, seed_cpp = seed_cpp,
     elapsed = proc.time()[["elapsed"]] - started,
@@ -527,7 +584,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
       sigmab = sigmab_output_chain, sigmabs = sigmabs_output_chain, sigmah = sigmah_output_chain,
       idx_ls = idx_ls_output_chain, varPart = varPart_output_chain, tau = tau_output_chain),
     latent_sums = list(z = z_sum, psi = psi_sum, theta = theta_sum, w = w_sum),
-    waic = list(jsdm = c(list_waic_jsdm, list(n = niter)),
-                w = if (is.null(list_waic_w)) NULL else c(list_waic_w, list(n = niter)),
-                y = if (is.null(list_waic_y)) NULL else c(list_waic_y, list(n = niter))))
+    waic = list(jsdm = c(list_waic_jsdm, list(n = n_waic)),
+                w = if (is.null(list_waic_w)) NULL else c(list_waic_w, list(n = n_waic)),
+                y = if (is.null(list_waic_y)) NULL else c(list_waic_y, list(n = n_waic))))
 }

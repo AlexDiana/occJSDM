@@ -209,6 +209,57 @@ test_that("summarised latent means equal the mean over all retained draws", {
     MCMCparams = mc, summarisedLatentPresences = FALSE)))
   z_mean <- apply(full$results_output$z_output, c(1, 2), mean)
   expect_equal(summarised$results_output$z_output, z_mean, tolerance = 1e-12)
+  psi_mean <- apply(full$results_output$psi_output, c(1, 2), mean)
+  # The running sum keeps psi's dimnames, the per-draw array does not.
+  expect_equal(unname(summarised$results_output$psi_output), psi_mean, tolerance = 1e-12)
+  expect_identical(summarised$results_output$theta_output, full$results_output$theta_output)
+  expect_identical(summarised$results_output$w_output, full$results_output$w_output)
   expect_identical(summarised$results_output$WAIC, full$results_output$WAIC)
   expect_identical(summarised$results_output$jsdm_output$B0_output, full$results_output$jsdm_output$B0_output)
+})
+
+test_that("every WAIC part of every chain records the draws it accumulated", {
+  # The parent checks each non-NULL part's draw count, w and y included, so a
+  # chain that accumulated a different number of draws cannot be merged with
+  # the wrong weight.
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  mc <- list(nchain = 2, nburn = 2, niter = 3, nthin = 1)
+  original <- occJSDM:::run_chain_batch
+  seen <- list()
+  local_mocked_bindings(run_chain_batch = function(handle, batch, seeds, task = occJSDM:::run_chain_task) {
+    res <- original(handle, batch, seeds)
+    seen <<- c(seen, res)
+    res
+  }, .package = "occJSDM")
+  set.seed(2); fit_fixture(sim, MCMCparams = mc)
+  expect_length(seen, 2L)
+  for (res in seen) for (nm in c("jsdm", "w", "y")) expect_equal(res$waic[[nm]]$n, 3, info = nm)
+
+  local_mocked_bindings(run_chain_batch = function(handle, batch, seeds, task = occJSDM:::run_chain_task) {
+    res <- original(handle, batch, seeds)
+    for (i in seq_along(res)) if (res[[i]]$chain == 2L) res[[i]]$waic$y$n <- res[[i]]$waic$y$n - 1
+    res
+  }, .package = "occJSDM")
+  set.seed(2); expect_error(fit_fixture(sim, MCMCparams = mc), "Current wAIC iter wrong")
+  expect_false(exists("setup", envir = occJSDM:::chain_env, inherits = FALSE))
+})
+
+test_that("a chain that returns no result stops the fit with a clear message", {
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  mc <- list(nchain = 2, nburn = 2, niter = 3, nthin = 1)
+  original <- occJSDM:::run_chain_batch
+  # A batch that comes back without one of its chains.
+  local_mocked_bindings(run_chain_batch = function(handle, batch, seeds, task = occJSDM:::run_chain_task) {
+    res <- original(handle, batch, seeds)
+    Filter(function(r) r$chain != 2L, res)
+  }, .package = "occJSDM")
+  set.seed(2); expect_error(fit_fixture(sim, MCMCparams = mc), "No result was returned for chain(s) 2", fixed = TRUE)
+  # A chain whose result arrives without its WAIC parts.
+  local_mocked_bindings(run_chain_batch = function(handle, batch, seeds, task = occJSDM:::run_chain_task) {
+    res <- original(handle, batch, seeds)
+    for (i in seq_along(res)) if (res[[i]]$chain == 2L) res[[i]]["waic"] <- list(NULL)
+    res
+  }, .package = "occJSDM")
+  set.seed(2); expect_error(fit_fixture(sim, MCMCparams = mc), "No result was returned for chain(s) 2", fixed = TRUE)
+  expect_false(exists("setup", envir = occJSDM:::chain_env, inherits = FALSE))
 })
