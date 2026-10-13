@@ -1,6 +1,6 @@
 # Launching the parallel-chains example refit
 
-Run this from the root of the isolated worktree for the parallel-chains branch. The script replaces `data/sampleresults.rda` in the checkout it is given, so it must be run in the worktree and never in your ordinary working copy. It needs an installed copy of the package built from the same frozen source, a fresh evidence directory, and a BLAS evidence file from the benchmark that used that installation.
+Run this from the root of the isolated worktree for the parallel-chains branch. The script replaces `data/sampleresults.rda` in the checkout it is given, so it must be run in the worktree and never in your ordinary working copy. It needs an installed copy of the package built from the same frozen source, a fresh evidence directory, and a BLAS evidence file collected for that installation by the benchmark's `blas-provenance.R` script.
 
 The refit fits the quickstart example twice under per-chain seeding, once with one core and once with two, requires the two fits to be identical apart from the execution record, and ships the two-core object. Per-chain seeding changes the numbers of every seeded fit, which is why the example had to be refitted.
 
