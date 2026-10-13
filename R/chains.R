@@ -191,7 +191,8 @@ is_dev_loaded <- function() {
 }
 
 # Runs inside a fresh worker before occJSDM exists there, so it is sent with
-# globalenv() as its environment and uses only base, RcppParallel and pkgload.
+# globalenv() as its environment and uses only base and, in the dev branch
+# only, pkgload.
 bootstrap_chain_worker <- function(libpaths, threads, dev_path) {
   .libPaths(libpaths)
   # The environment variable is all RcppParallel consults for the thread
