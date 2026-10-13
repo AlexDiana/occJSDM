@@ -72,3 +72,38 @@ test_that("latent-state sums add elementwise and tolerate absent parts", {
   expect_null(s$theta)
   expect_null(occJSDM:::add_latent_sums(NULL, NULL))
 })
+
+test_that("latent-state sums return the other side for an absent part", {
+  a <- list(z = matrix(1, 2, 2), psi = matrix(2, 2, 2), theta = NULL, w = NULL)
+  expect_identical(occJSDM:::add_latent_sums(a, NULL), a)
+  expect_identical(occJSDM:::add_latent_sums(NULL, a), a)
+})
+
+test_that("a latent-state name missing or NULL on either side sums to NULL", {
+  total <- list(z = matrix(1, 2, 2), psi = matrix(2, 2, 2))
+  part <- list(z = matrix(3, 2, 2), theta = matrix(5, 2, 2))
+  s <- occJSDM:::add_latent_sums(total, part)
+  expect_equal(s$z, matrix(4, 2, 2))
+  expect_null(s$psi)       # in total, absent from part: not left as total's unsummed matrix
+  expect_null(s$theta)     # in part, absent from total: not silently dropped into a partial sum
+  expect_setequal(names(s), c("z", "psi", "theta"))
+  # The same holds when the name is present on one side as an explicit NULL.
+  s2 <- occJSDM:::add_latent_sums(list(z = matrix(1, 2, 2), psi = matrix(2, 2, 2)),
+                                  list(z = matrix(3, 2, 2), psi = NULL))
+  expect_equal(s2$z, matrix(4, 2, 2))
+  expect_null(s2$psi)
+  s3 <- occJSDM:::add_latent_sums(list(z = matrix(1, 2, 2), psi = NULL),
+                                  list(z = matrix(3, 2, 2), psi = matrix(2, 2, 2)))
+  expect_null(s3$psi)
+})
+
+test_that("latent-state sums fold over three parts and keep their names", {
+  mk <- function(zv, pv) list(z = matrix(zv, 2, 2), psi = matrix(pv, 2, 2), theta = NULL, w = NULL)
+  total <- NULL
+  for (part in list(mk(1, 2), mk(3, 4), mk(5, 6))) total <- occJSDM:::add_latent_sums(total, part)
+  expect_equal(total$z, matrix(9, 2, 2))
+  expect_equal(total$psi, matrix(12, 2, 2))
+  expect_null(total$theta)
+  expect_null(total$w)
+  expect_named(total, c("z", "psi", "theta", "w"))   # NULL entries survive a second and a third add
+})

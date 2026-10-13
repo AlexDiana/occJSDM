@@ -59,13 +59,18 @@ merge_waic_parts <- function(parts) {
   Reduce(merge_waic_pair, parts, accumulate = FALSE)
 }
 
-# Per-chain sums of the retained latent states, added in chain order.
+# Per-chain sums of the retained latent states, added in chain order. A name
+# that is NULL or absent on either side comes out NULL, so a shape mismatch
+# between chains cannot produce a silently partial sum. NULL entries are kept
+# in the result (`[<-` with list(NULL), not `[[<-` with NULL), so the names
+# stay the same however many parts are folded in.
 add_latent_sums <- function(total, part) {
   if (is.null(part)) return(total)
   if (is.null(total)) return(part)
-  out <- total
-  for (nm in names(part)) {
-    out[[nm]] <- if (is.null(total[[nm]]) || is.null(part[[nm]])) NULL else total[[nm]] + part[[nm]]
+  nms <- union(names(total), names(part))
+  out <- stats::setNames(vector("list", length(nms)), nms)
+  for (nm in nms) {
+    if (!is.null(total[[nm]]) && !is.null(part[[nm]])) out[[nm]] <- total[[nm]] + part[[nm]]
   }
   out
 }
