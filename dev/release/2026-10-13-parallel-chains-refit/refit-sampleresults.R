@@ -36,10 +36,22 @@ fit_at <- function(ncores) {
 }
 one <- fit_at(1L)
 two <- fit_at(2L)
+# The identity gate, then the execution records' fields that the core
+# budget fixes, for both fits, before anything is saved.
+ex1 <- one$fit$infos$execution
+ex2 <- two$fit$infos$execution
+blas_vars <- c(OMP_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1", MKL_NUM_THREADS = "1",
+               MKL_DOMAIN_NUM_THREADS = "MKL_DOMAIN_ALL=1", VECLIB_MAXIMUM_THREADS = "1")
 stopifnot(identical(occJSDM:::drop_execution(one$fit), occJSDM:::drop_execution(two$fit)),
           identical(one$seed_state, two$seed_state),
-          two$fit$infos$execution$workers == 2L, two$fit$infos$execution$threads_per_worker == 1L,
-          one$fit$infos$execution$workers == 1L)
+          identical(ex1$ncores, 1L), identical(ex2$ncores, 2L),
+          identical(ex1$workers, 1L), identical(ex2$workers, 2L), identical(ex2$threads_per_worker, 1L),
+          identical(ex1$thread_setting, "ambient"), identical(ex2$thread_setting, "budget"),
+          isTRUE(ex1$blas_declared), isTRUE(ex2$blas_declared),
+          is.null(ex1$progress_file), is.character(ex2$progress_file), length(ex2$progress_file) == 1L,
+          file.exists(ex2$progress_file),
+          is.null(ex1$blas_threads_requested), identical(ex2$blas_threads_requested, blas_vars),
+          is.null(ex1$worker_pids), length(ex2$worker_pids) == 2L)
 sampleresults <- two$fit
 stopifnot(
   identical(sampleresults$infos$model, "two_stage"), sampleresults$infos$n == 100L,

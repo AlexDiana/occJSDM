@@ -10,7 +10,7 @@ This folder holds the scripts that time and measure the quickstart fit at severa
 
 ## The BLAS declaration
 
-The declaration is a person's decision, made after reading the evidence. Run the provenance script on its own first, compare the output with what is known about the installation, and only then launch with `OCCJSDM_REFERENCE_BLAS` and `OCCJSDM_REFERENCE_BLAS_BASIS` set in the environment. `launch.sh` refuses to start without both, and `benchmark.R` writes the basis to `blas-declaration-basis.txt`. The identity claims in the report hold under that declaration only.
+The declaration is the operator's decision, made after reading the evidence. For the 13 October 2026 runs the implementation plan prescribed it, and Claude made it once every recorded fact matched. Run the provenance script on its own first, compare the output with what is known about the installation, and only then launch with `OCCJSDM_REFERENCE_BLAS` and `OCCJSDM_REFERENCE_BLAS_BASIS` set in the environment. `launch.sh` refuses to start without both, and `benchmark.R` writes the basis to `blas-declaration-basis.txt`. The identity claims in the report hold under that declaration only.
 
 ## How to launch
 

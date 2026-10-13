@@ -4,7 +4,7 @@ Run this from the root of the isolated worktree for the parallel-chains branch. 
 
 The refit fits the quickstart example twice under per-chain seeding, once with one core and once with two, requires the two fits to be identical apart from the execution record, and ships the two-core object. Per-chain seeding changes the numbers of every seeded fit, which is why the example had to be refitted.
 
-The `OCCJSDM_REFERENCE_BLAS` variable must be set in the launching shell, before R starts. The script refuses to run without it and refuses an evidence directory that already holds a `provenance.rds`, so make a fresh directory for every run. `OUT` is the Task 7 benchmark output directory, which holds the frozen `library`, `blas-evidence.rds` and `blas-declaration-basis.txt`.
+The `OCCJSDM_REFERENCE_BLAS` variable must be set in the launching shell, before R starts. The script refuses to run without it and refuses an evidence directory that already holds a `provenance.rds`, so make a fresh directory for every run. `OUT` is the benchmark output directory, which holds the frozen `library`, `blas-evidence.rds` and `blas-declaration-basis.txt`, or a directory prepared the same way from a later export, as for the second refit described in `REPORT.md`.
 
 ```sh
 cd /Users/douglasyu/src/occJSDM/.worktrees/parallel-chains
@@ -15,7 +15,7 @@ cp "$OUT/blas-declaration-basis.txt" "$EV/"
 
 The script takes four arguments, in this order: `REPO` (the checkout whose `data/sampleresults.rda` is replaced), `LIB` (the frozen library), `EVIDENCE` (the fresh evidence directory) and `BLAS_EVIDENCE_RDS` (the benchmark's `blas-evidence.rds`, copied into the evidence directory as `blas-evidence.rds`).
 
-Wait for `REFIT COMPLETE` in `$EV/refit.log`. Two fits of the quickstart size take roughly 20 to 30 minutes. Then copy the evidence into this folder and run the verify script against the checkout.
+Wait for `REFIT COMPLETE` in `$EV/refit.log`. Two fits of the quickstart size take about five minutes. Then copy the evidence into this folder and run the verify script against the checkout.
 
 ```sh
 cp "$EV"/provenance.rds "$EV"/session-info.txt "$EV"/diagnostics*.csv "$EV"/blas-evidence.rds "$EV"/blas-declaration-basis.txt dev/release/2026-10-13-parallel-chains-refit/

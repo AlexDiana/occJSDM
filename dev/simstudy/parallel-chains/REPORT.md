@@ -85,6 +85,7 @@ This paragraph is interpretation, not result. Four single-threaded workers gave 
 ## Limits
 
 - Windows was not run.
+- After the benchmark the hashed set (`R/`, `src/`, `DESCRIPTION`, `NAMESPACE`) changed once more, for the build fingerprint and the in-process error path, neither of which touches sampling. The benchmark was not rerun for that change; the redone refit of the shipped example re-certifies identity at one and two cores at production size (see the refit's `REPORT.md` under `dev/release/`).
 - No threaded BLAS was available, so nothing was measured about BLAS threads competing with the workers; the identity claims hold for the declared reference BLAS only.
 - Two repeats per configuration, on one machine. The repeats of one configuration differ by up to 9 percent (`serial-1thread`), which is as large as most differences between the serial timings.
 - Workers were identified by their command line (`workRSOCK`) and kept only if the fit's recorded PIDs named them; memory is resident set size at one-second sampling, so a peak shorter than a second can be missed.
