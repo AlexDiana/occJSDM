@@ -28,7 +28,7 @@ Verified on 13 October 2026 against `main` at `d72daaf`. Line numbers refer to `
 - `ncores` is the total core budget: workers = min(nchain, ncores), and each worker gets floor(ncores / workers) RcppParallel threads.
 - A parallel fit shows a progress file plus a summary. The start message includes the `tail` command.
 - The shipped `sampleresults` is refitted in this pull request under the new code.
-- Architecture: one single-chain function, driven by `lapply()` for serial fits and by `parLapply()` on a PSOCK cluster for parallel fits. Two alternatives were considered. Recursive single-chain calls of `runOccJSDM()` stitched together by the parent were rejected because the data preparation would repeat per chain, the scalar WAIC cannot be merged exactly, and the serial path would also have to recurse. Partial combination inside the workers was rejected as premature because the parent holds every chain's arrays either way.
+- Architecture: one single-chain function, driven by `lapply()` for serial fits and by `clusterApplyLB()` on a PSOCK cluster for parallel fits, one chain per task. Two alternatives were considered. Recursive single-chain calls of `runOccJSDM()` stitched together by the parent were rejected because the data preparation would repeat per chain, the scalar WAIC cannot be merged exactly, and the serial path would also have to recurse. Partial combination inside the workers was rejected as premature because the parent holds every chain's arrays either way.
 - Doug's approvals are provisional until this spec has been through an external review.
 
 ## Non-goals
@@ -138,7 +138,7 @@ In `dev/simstudy/parallel-chains/`, following the repository's study layout.
 
 - The tier-1 time budget: cluster starts in the always-on tests are measured during implementation, and more cases move under `skip_on_cran()` if the 30 seconds are exceeded.
 - Worker start-up never compiles, because the workers call `load_all(compile = FALSE)`. A parent whose loaded R code no longer matches its source tree is stopped by the fingerprint check rather than silently mixed with workers on the newer code. A parent whose shared object is stale relative to `src/` is not detected, because the workers load the same stale object; that is the developer's ordinary reload discipline and is not guarded.
-- The parent's peak memory at assembly, about twice the draws, is the price of returning whole chains through `parLapply()`. If the benchmark shows it matters at realistic sizes, chains could be collected one at a time with the lower-level functions of `parallel` in a later change.
+- The parent's peak memory at assembly, one batch of `workers` chains beyond the full arrays, so about twice the draws when `nchain = workers`, is the price of collecting whole chains through the public `parallel` API. If the benchmark shows it matters at realistic sizes, chains could be collected one at a time with the lower-level functions of `parallel` in a later change.
 - Windows: `makeCluster()`, `outfile` and `tools::pskill()` are documented to work there; not run here.
 - The WAIC merge changes the floating-point path of a value that also changes with the seeds; its correctness is covered by the unit test against the single pass.
 
