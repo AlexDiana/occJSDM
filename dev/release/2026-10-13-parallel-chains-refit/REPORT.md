@@ -2,6 +2,8 @@
 
 This folder records the refit of the shipped example `data/sampleresults.rda` under per-chain seeding. It changes the shipped example and its evidence, not model code, priors or the input data. The refit is a workflow example whose convergence flags are disclosed. It is not a certified or fully converged fit, and successful scripts do not establish scientific convergence.
 
+This is the second refit of 13 October 2026, redone because the build-fingerprint and in-process error-path fix (`a02d49a`) changed the hashed set, so the provenance had to be re-established on the fixed build. The first refit ran at revision `70d1166` and shipped the fit with md5 `93af272acbe1e2068b1f5168a2510920`. Neither change touches sampling, and the redone fit is identical to the first apart from its execution record: the same chain seeds, the same draws (checked once with `identical()` after dropping `infos$execution`, outside the scripts) and a byte-identical `diagnostics.csv`. Everything below describes the second refit.
+
 ## Why the example was refitted
 
 Per-chain seeding changes the numbers of every seeded fit. Each chain now draws its own R and C++ seeds from the session's random number stream, so a fit made with the same seed before and after the change is not the same fit. The 7 October example was made under the old scheme, so it no longer matches what the package returns for the quickstart call. The old file is replaced rather than kept beside the new one.
@@ -14,28 +16,29 @@ The refit reuses the quickstart's call, the seed `20261007` and the unchanged `d
 - No prior override was supplied, so the default priors apply.
 - MCMC: two chains, 5,000 burn-in iterations and 5,000 retained iterations per chain, thinning 1.
 - Random number generator: Mersenne-Twister, Inversion and Rejection, seed `20261007`.
-- Software: R 4.6.1 on aarch64-apple-darwin23, package version 0.1.1, installed from the frozen export at `dev/simstudy/results/parallel-chains-20261013-wL6Toy/library`. The full session is in [session-info.txt](session-info.txt).
+- Software: R 4.6.1 on aarch64-apple-darwin23, package version 0.1.1, installed from the frozen export at `dev/simstudy/results/parallel-chains-20261013-4WOVWS/library`. The full session is in [session-info.txt](session-info.txt).
 
 ## The two fits
 
-The script fitted the example twice from the same seed, once with `ncores = 1` and once with `ncores = 2`, and stopped unless the two fits were identical apart from the execution record. They were: the gate passed (`identical()` on the fits with `infos$execution` removed, and on the session random number state after each fit), and the script's own assertions on the execution records held.
+The script fitted the example twice from the same seed, once with `ncores = 1` and once with `ncores = 2`, and stopped unless the two fits were identical apart from the execution record. They were: the gate passed (`identical()` on the fits with `infos$execution` removed, and on the session random number state after each fit), and the script's assertions on both execution records held: the core budget, the workers, the threads per worker, the thread setting, the BLAS declaration, the progress file, the requested BLAS thread variables and the worker process ids.
 
-- One core: one worker in the parent process, thread setting "ambient", so RcppParallel used its default of 10 threads on this machine. Elapsed 159.95 seconds in all (the two chains took 79.2 and 78.0 seconds).
-- Two cores: two workers of one thread each, thread setting "budget". Elapsed 91.58 seconds in all (88.2 seconds per chain, run concurrently).
-- The two-core object is the one shipped. Its worker process ids were 5907 and 5908.
+- One core: one worker in the parent process, thread setting "ambient", so RcppParallel used its default of 10 threads on this machine. Elapsed 159.06 seconds in all (the two chains took 78.5 and 77.8 seconds).
+- Two cores: two workers of one thread each, thread setting "budget". Elapsed 86.64 seconds in all (83.5 and 83.3 seconds per chain, run concurrently).
+- The two-core object is the one shipped. Its worker process ids were 22161 and 22162.
+- The first refit took 159.95 and 91.58 seconds.
 
 The identity holds with the reference BLAS declared below. It is not a claim about any other BLAS.
 
 ## Chain seeds
 
-The seeds are recorded in `infos$chain_seeds` of the shipped fit and in the provenance. Row `r` is the R seed and row `cpp` the C++ seed of each chain.
+The seeds are recorded in `infos$chain_seeds` of the shipped fit and in the provenance. Row `r` is the R seed and row `cpp` the C++ seed of each chain. They are identical to the first refit's, as they must be: the seed and the order of the draws are unchanged.
 
 - Chain 1: `r` 1972798908, `cpp` 2045380901.
 - Chain 2: `r` 1724957942, `cpp` 252297060.
 
 ## BLAS evidence and declaration
 
-The facts come from [blas-evidence.rds](blas-evidence.rds), which is the benchmark's evidence file (collected at 20:41 UTC on 13 October 2026) copied unchanged: its md5 is `cb726c3269a177729ad3889d5f30ec17` in both places. The refit did not collect the evidence again. Both execution records in the refit's provenance name the same BLAS and LAPACK libraries, and the BLAS file's md5 is still the recorded one at the time of writing.
+The facts come from [blas-evidence.rds](blas-evidence.rds), collected afresh for this refit by the benchmark's `blas-provenance.R` at 22:40 UTC on 13 October 2026, after the fresh export was installed, and copied unchanged into the evidence directory and here: its md5 is `04cd9a698e8ee17ea236cdc5a591640a` in all three places. Apart from its timestamp it is identical to the benchmark's evidence file (collected at 20:41 UTC), which the first refit reused. Both execution records in the refit's provenance name the same BLAS and LAPACK libraries, and the BLAS file's md5 is still the recorded one at the time of writing.
 
 - The BLAS R loads is `/Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRblas.0.dylib`, and LAPACK is `libRlapack.dylib` in the same folder (LAPACK 3.12.1).
 - It is a regular file, not a symlink, 209,392 bytes, with md5 `9dfbe56d4ceb13138673fdaf297b4b56`.
@@ -52,7 +55,7 @@ R 4.6.1 installed by the CRAN installer package org.R-project.R.fw.pkg, whose re
 
 ## Warnings seen
 
-Each fit raised the same seven fitting warnings, in the same order (provenance field `warnings`, one list per fit):
+Each fit raised the same seven fitting warnings, in the same order (provenance field `warnings`, one list per fit), as in the first refit:
 
 - Convergence issue in `theta0_output`, Max R-hat above 1.1.
 - Convergence issue in `Bs_output`, Max R-hat above 1.1.
@@ -66,7 +69,7 @@ The `Bs`, `Gs`, `As` and `Cs` blocks are the spatial blocks, which the public oc
 
 ## Convergence limits
 
-This is a workflow example, not a fully converged scientific analysis. Of the 130 rows returned by `returnConvergenceDiagnostics()`, 31 exceed Rhat 1.01 or fall below ESS 400 (the 7 October fit had 35 of 130). The rows are in [diagnostics.csv](diagnostics.csv) and the flagged ones in [diagnostics-flagged.csv](diagnostics-flagged.csv).
+This is a workflow example, not a fully converged scientific analysis. Of the 130 rows returned by `returnConvergenceDiagnostics()`, 31 exceed Rhat 1.01 or fall below ESS 400 (the 7 October fit had 35 of 130). The counts below were recomputed from this refit's file and equal the first refit's, as expected. The rows are in [diagnostics.csv](diagnostics.csv) and the flagged ones in [diagnostics-flagged.csv](diagnostics-flagged.csv).
 
 - 23 rows have Rhat above 1.01 and 24 have ESS below 400; 16 have both.
 - By parameter, the flagged rows are 17 of 20 `beta_psi`, 7 of 10 `beta0_psi`, 4 of 30 `beta_theta` and 3 of 10 `theta0`. None of the 30 `p` and 30 `q` rows is flagged: their Rhats are at most 1.0018 and their ESS values at least 2,126.
@@ -76,9 +79,10 @@ The existing two-chain schedule is kept so the saved result matches the teaching
 
 ## Hashes and revision
 
-- Previous fit (7 October refit): `01ed6e3da2347ddd99c2643ffc285180`, 52,102,192 bytes.
-- New fit: `93af272acbe1e2068b1f5168a2510920`, 51,924,360 bytes.
-- The refit ran at repository revision `70d116603ff01112b442f49d49d007b27b1022f2`, which is the branch HEAD at the time and is recorded in the provenance. The production files it hashes (`R/`, `src/`, `DESCRIPTION`, `NAMESPACE`, 25 files) are unchanged since `f9fc489`, and the later commits touch only benchmark and release scripts and their records. The script confirmed the hashes were unchanged after the fits.
+- The 7 October fit, which the first refit replaced: `01ed6e3da2347ddd99c2643ffc285180`, 52,102,192 bytes.
+- Previous fit (the first refit of 13 October): `93af272acbe1e2068b1f5168a2510920`, 51,924,360 bytes.
+- New fit: `d78e9ab78cab9c1fc5473f1f1e533caf`, 51,924,368 bytes. It differs from the previous fit only in its execution record (worker process ids, progress file path and timings).
+- The refit ran at repository revision `cac97a78c3865b51330403630c492e5827064cdd` (tree `c42f3825cf2efd90c8b7ab288c6b99ca273a7159`), which is the branch HEAD at the time and is recorded in the provenance. The production files it hashes (`R/`, `src/`, `DESCRIPTION`, `NAMESPACE`, 25 files) last changed in `a02d49a`, the fingerprint and error-path fix; against the first refit's provenance only `R/chains.R` and `R/runOccJSDM.R` differ. The script confirmed the hashes were unchanged after the fits.
 
 ## Relation to the 7 October refit
 
