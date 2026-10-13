@@ -37,7 +37,7 @@ head(sampledata$traits)
 It has three parts:
 
 - `info` has one row per PCR reaction: the `Site`, the field `Sample` the DNA came from, the `Primer`, and the covariates. Columns beginning `X_psi.` are occupancy covariates, columns beginning `X_theta.` are collection covariates, and `Xs.1` and `Xs.2` are the site coordinates.
-- Look at the `info` dataframe in detail. How many rows are there per site? Why?
+- Look at the `info` dataframe in detail. How many rows are there per site? Can you see why the number of PCRs per sample is `K = 2`?
 
 ```{r, eval=FALSE}
 View(sampledata$info)
@@ -95,12 +95,13 @@ summary(diagnostics$ess)
 head(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat", "ess")])
 ```
 
-`summary()` is base R's own function, not occJSDM's, so its help page is `?base::summary`. For a numeric column it reports the minimum, the quartiles, the mean and the maximum.
+`summary()` is base R's own function, and for a numeric column it reports the minimum, the quartiles, the mean and the maximum.
 
 To browse the whole table, sorted with the worst `rhat` first:
 
 ```{r view diagnostics, eval=FALSE}
-View(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat", "ess")])
+View(diagnostics[order(-diagnostics$rhat), 
+                 c("param", "label1", "label2", "rhat", "ess")])
 ```
 
 `rhat` compares the chains with each other: values close to 1 mean they agree, and larger values call for longer runs or a closer look at the parameters concerned.
@@ -110,8 +111,9 @@ View(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat"
 A common rule of thumb flags any coefficient with `rhat > 1.01` or `ess < 400`:
 
 ```{r flagged}
-nonconvergedcoefs <- diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat", "ess")] |>
-  dplyr::filter(rhat > 1.01 | ess < 400)
+nonconvergedcoefs <- diagnostics[order(-diagnostics$rhat), 
+                          c("param", "label1", "label2", "rhat", "ess")] |>
+          dplyr::filter(rhat > 1.01 | ess < 400)
 nrow(nonconvergedcoefs)
 head(nonconvergedcoefs)
 ```
