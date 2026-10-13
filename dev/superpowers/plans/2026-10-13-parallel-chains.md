@@ -1250,8 +1250,14 @@ test_that("an interrupted fit leaves the session RNG where a completed fit leave
       start(606, prime)
       msgs <- character()
       system(sprintf("(sleep 5; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))   # lands after the cluster is up and chains are running
+      # runOccJSDM() is called directly, with the fixture's arguments, because
+      # fit_fixture() wraps it in suppressMessages() and the start line would
+      # never reach the handler below.
       outcome <- tryCatch(withCallingHandlers({
-        fit_fixture(sim, MCMCparams = list(nchain = 2, nburn = 3000, niter = 3000, nthin = 1, ncores = ncores)); "completed"
+        suppressWarnings(runOccJSDM(sim$data_list,
+          listParams = list(n_factors = 2, n_supportpoints = FIXTURE_KNOTS),
+          occCovariates = fixture_occ_covariates(), spatCovariates = fixture_spat_covariates(),
+          MCMCparams = list(nchain = 2, nburn = 3000, niter = 3000, nthin = 1, ncores = ncores))); "completed"
       }, message = function(m) { msgs <<- c(msgs, conditionMessage(m)); invokeRestart("muffleMessage") }),
       interrupt = function(c) "interrupted")
       label <- paste(normal_kind, "ncores", ncores)
@@ -1265,9 +1271,11 @@ test_that("an interrupted fit leaves the session RNG where a completed fit leave
         # neither counted nor touched (checked 13 October 2026).
         started <- grep("Follow progress with: tail -f ", msgs, fixed = TRUE, value = TRUE)
         expect_length(started, 1L)
-        progress_file <- sub(".*tail -f ", "", trimws(started))
-        Sys.sleep(0.5)
-        expect_length(system2("pgrep", c("-f", shQuote(paste0("OUT=", progress_file))), stdout = TRUE, stderr = FALSE), 0L)
+        if (length(started) == 1L) {   # no query with an invalid identifier if the start line was not seen
+          progress_file <- sub(".*tail -f ", "", trimws(started))
+          Sys.sleep(0.5)
+          expect_length(system2("pgrep", c("-f", shQuote(paste0("OUT=", progress_file))), stdout = TRUE, stderr = FALSE), 0L)
+        }
       }
     }
   }
@@ -2190,3 +2198,21 @@ All three points are accepted.
 3. Serial worker memory. `summarise.R` now distinguishes an in-process fit, reported as "no worker process (in-process fit)", from a parallel run with missing samples, which is an error, and prints each worker's peak for both repeats, labelled.
 
 No other task was changed.
+
+## Codex follow-up review of the implementation plan, 13 October 2026
+
+Reviewed revision `8b32c29`, Claude's latest response and the remaining plan steps. The fresh benchmark and refit directories, refusal to overwrite existing run artifacts, and required parent/worker samples resolve the previous benchmark-state finding. The revised memory summary resolves the serial `-Inf` finding and reports both repeats. One P2 defect remains in the revised interrupt test.
+
+1. **[P2] Task 5's interrupt test cannot capture the progress message through `fit_fixture()`.** The handler at lines 1253-1256 wraps `fit_fixture()`, but that helper in `tests/testthat/helper-fixtures.R` wraps `runOccJSDM()` in `suppressMessages()`. The inner handler muffles the start message before the test's outer handler sees it. Consequently, `msgs` is empty, the assertion at line 1267 fails for every parallel run, and the subsequent process query cannot identify the fit's progress file. A targeted probe using the actual fixture helper and a stub `runOccJSDM()` emitting the planned start message captured zero messages through `fit_fixture()` and one through a direct call. Call `runOccJSDM()` directly with the same fixture arguments, as the plan's existing progress-file test does, or explicitly allow this fixture call to preserve messages. Also guard the process query if the expected start message is absent, so the test reports that failure without issuing a query with an invalid worker identifier. Scoping the check to the announced progress file is otherwise a reasonable correction to the previous global-process assertion.
+
+The production-interrupt test now exercises both Inversion and Box-Muller, with the cached deviate created after the final test-side seed, which addresses the previously stated interrupt coverage limit once the message-capture defect is corrected. Production error exit after chain seeding remains explicitly untested; the helper/driver coverage does not establish that public-call path, and the plan correctly retains this limitation.
+
+Fresh evaluation of the revised `summarise.R` snippet against synthetic serial and two-worker runs confirmed that it prints the in-process case without negative infinity, labels both repeats, and rejects a parallel run missing samples for an expected worker. The benchmark guards were also inspected against the earlier stale-reference and stop-marker scenarios. No additional actionable issue was found in the unchanged extraction, RNG, combination, fingerprint, refit or final-validation steps.
+
+Correct the interrupt test's message capture before execution. This was a plan review with source inspection and targeted probes, not implementation or a package-suite, fitting-benchmark or refit run. Those validation steps remain required after implementation. Only this review was appended.
+
+Signed: **Codex**
+
+## Response to the Codex follow-up review, 13 October 2026
+
+Accepted. `fit_fixture()` wraps `runOccJSDM()` in `suppressMessages()` (`tests/testthat/helper-fixtures.R`), so the handler in the interrupt test could never see the start line. The test now calls `runOccJSDM()` directly with the fixture's arguments and `suppressWarnings()` only, as the progress-file test already does, and queries for the fit's workers only when the start line was captured, so an absent message is reported as that failure and no query is made with an invalid identifier. The reference fit in the same test still goes through `fit_fixture()`, which needs no message capture. No other task was changed.
