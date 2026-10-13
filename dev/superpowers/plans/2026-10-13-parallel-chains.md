@@ -29,7 +29,7 @@
 - `summarisedLatentPresences = FALSE` with workers: the full `z` and `psi` arrays cross the socket and land in the right chain slot; the fit is identical to the in-process fit. Test added to Task 5.
 - A session in a non-default RNG kind (for example `L'Ecuyer-CMRG` after `mclapply()`, with Box-Muller normals) gets the same fit at every `ncores` and has its kinds back afterwards. Test added to Task 5.
 - `ncores` given as a double such as `2`, or larger than `nchain`, is accepted and the budget remainder goes to threads, never to extra workers. Tests added to Tasks 1 and 5.
-- After any exit, normal, error or interrupt, nothing leaks: the setup environment is empty, the BLAS thread variables and the RcppParallel variable are back to their previous values, and no worker process survives. Tests added to Tasks 4 and 5.
+- After any exit, normal, error or interrupt, including an interrupt while the workers are still starting up, nothing leaks: the setup environment is empty, the BLAS thread variables and the RcppParallel variable are back to their previous values, the session RNG is where a completed fit leaves it, and no worker process survives. Tests added to Tasks 4 and 5.
 
 ---
 
@@ -366,6 +366,24 @@ test_that("chain 1 of a two-chain fit equals the one-chain fit under the same se
   expect_false(identical(two$results_output$jsdm_output$B0_output[, , 1], two$results_output$jsdm_output$B0_output[, , 2]))
 })
 
+test_that("every model type fits through run_one_chain() in process", {
+  # Direct coverage of the extraction for all four models, so that a missing
+  # setup field (such as the z or w state the parent sets from y) is caught
+  # here and not only by the wider suite.
+  for (model in c("binary", "continuous", "occupancy", "two_stage")) {
+    sim <- simulate_fixture(model = model,
+                            M = if (model %in% c("occupancy", "two_stage")) 2L else 1L,
+                            P = if (model == "two_stage") 2L else 1L,
+                            K = if (model == "two_stage") 2L else 1L)
+    set.seed(1)
+    fit <- fit_fixture(sim, spatial = FALSE, MCMCparams = list(nchain = 2, nburn = 5, niter = 5, nthin = 1))
+    expect_identical(fit$infos$model, model, info = model)
+    expect_identical(dim(fit$results_output$jsdm_output$B0_output), c(FIXTURE_S, 5L, 2L), info = model)
+    expect_true(is.finite(fit$results_output$WAIC), info = model)
+    expect_identical(dim(fit$infos$chain_seeds), c(2L, 2L), info = model)
+  }
+})
+
 test_that("a fit leaves the session RNG just after its seed draws and clears the setup", {
   # The state after a fit is the state after the chain seeds were drawn, so a
   # third chain's seeds, had one been requested, are exactly the next draws.
@@ -425,12 +443,15 @@ Expected: the new tests fail ("object 'draw_chain_seeds' not found", `infos$MCMC
 
 ```r
 # The fields the chain body reads from runOccJSDM()'s frame. Computed on
-# 13 October 2026 with codetools::findGlobals() on the loop body plus the
-# three names it both reads and assigns (list_data) or reads inside a call
-# (Tr, N3). A PSOCK worker enforces completeness: a missing field is an error.
+# 13 October 2026 with codetools::findGlobals() on the loop body, plus the
+# names that analysis misses because the body also assigns them: list_data,
+# and the states z and w, which runOccJSDM() sets from y before the loop for
+# the binary, continuous and occupancy models (R/runOccJSDM.R:601-604) and
+# which the body only assigns for the other models; plus Tr and N3, read
+# inside calls. A PSOCK worker enforces completeness: a missing field is an error.
 chain_setup_fields <- function() c(
   "model", "jsdmModel", "threshold",
-  "y", "y_NA", "M", "K", "P", "sumM", "sumP", "sumK", "maxP", "primerId_p",
+  "y", "y_NA", "z", "w", "M", "K", "P", "sumM", "sumP", "sumK", "maxP", "primerId_p",
   "idx_w_k", "idx_p_k", "idx_z_w", "list_idx",
   "n", "N", "N3", "S", "d", "g", "gt", "ps", "ncov_theta", "ncov_psi",
   "X_theta", "X_psi", "Tr",
@@ -766,6 +787,7 @@ Then, after the `infos$intercept_prior <- intercept_prior` line near the end, ad
     threads_per_worker = if (budget$thread_setting == "ambient") ambient_rcpp_threads() else budget$threads_per_worker,
     thread_setting = budget$thread_setting,
     blas_threads_requested = if (is.null(handle)) NULL else handle$blas_threads_requested,
+    worker_pids = if (is.null(handle)) NULL else handle$pids,
     blas_declared = nzchar(Sys.getenv("OCCJSDM_REFERENCE_BLAS")),
     blas = unname(extSoftVersion()[["BLAS"]]),
     lapack = La_library(),
@@ -783,7 +805,7 @@ Then, after the `infos$intercept_prior <- intercept_prior` line near the end, ad
 # Keep in step with chain_setup_fields().
 utils::globalVariables(c(
   "model", "jsdmModel", "threshold",
-  "y", "y_NA", "M", "K", "P", "sumM", "sumP", "sumK", "maxP", "primerId_p",
+  "y", "y_NA", "z", "w", "M", "K", "P", "sumM", "sumP", "sumK", "maxP", "primerId_p",
   "idx_w_k", "idx_p_k", "idx_z_w", "list_idx",
   "n", "N", "N3", "S", "d", "g", "gt", "ps", "ncov_theta", "ncov_psi",
   "X_theta", "X_psi", "Tr",
@@ -855,6 +877,44 @@ test_that("the R-code fingerprint matches across fresh workers and changes when 
   expect_false(identical(fp(e1), fp(e2)))
 })
 
+test_that("an error or an interrupt during worker start-up leaves no worker alive", {
+  skip_on_cran()
+  # The injected bootstraps run in the workers with globalenv() as their
+  # environment, so they learn where to record their PID from an environment
+  # variable, which the workers inherit at process start.
+  pid_dir <- tempfile("worker-pids-"); dir.create(pid_dir)
+  Sys.setenv(OCCJSDM_TEST_PIDDIR = pid_dir)
+  on.exit(Sys.unsetenv("OCCJSDM_TEST_PIDDIR"), add = TRUE)
+  record_pid <- function() {
+    d <- Sys.getenv("OCCJSDM_TEST_PIDDIR"); writeLines(as.character(Sys.getpid()), file.path(d, as.character(Sys.getpid())))
+  }
+  failing_boot <- function(libpaths, threads, dev_path) {
+    d <- Sys.getenv("OCCJSDM_TEST_PIDDIR"); writeLines(as.character(Sys.getpid()), file.path(d, as.character(Sys.getpid())))
+    stop("boot failed")
+  }
+  expect_error(occJSDM:::start_chain_cluster(2L, 1L, tempfile(fileext = ".log"), bootstrap = failing_boot), "boot failed")
+  Sys.sleep(0.5)
+  pids <- as.integer(list.files(pid_dir))
+  expect_length(pids, 2L)
+  expect_false(any(alive(pids)))
+  unlink(file.path(pid_dir, list.files(pid_dir)))
+
+  skip_on_os("windows")
+  slow_boot <- function(libpaths, threads, dev_path) {
+    d <- Sys.getenv("OCCJSDM_TEST_PIDDIR"); writeLines(as.character(Sys.getpid()), file.path(d, as.character(Sys.getpid())))
+    Sys.sleep(10); list(pid = Sys.getpid(), threads = "1")
+  }
+  system(sprintf("(sleep 2; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))
+  outcome <- tryCatch({
+    occJSDM:::start_chain_cluster(2L, 1L, tempfile(fileext = ".log"), bootstrap = slow_boot); "completed"
+  }, interrupt = function(c) "interrupted")
+  expect_identical(outcome, "interrupted")
+  Sys.sleep(0.5)
+  pids <- as.integer(list.files(pid_dir))
+  expect_length(pids, 2L)
+  expect_false(any(alive(pids)))
+})
+
 test_that("a build mismatch is reported with both paths and the differing field", {
   parent <- list(path = "/a/occJSDM", version = "0.1.1", dll_md5 = "x", code_md5 = "y")
   expect_true(occJSDM:::compare_fingerprints(parent, parent, 1L))
@@ -919,8 +979,12 @@ test_that("the BLAS thread variables are set for the workers only", {
   expect_identical(handle$blas_threads_requested, occJSDM:::blas_thread_variables())
 })
 
-test_that("the session RNG is the same after an error exit or an interrupt in either driver", {
-  skip_on_cran(); skip_on_os("windows")
+test_that("the reset-then-restore helper leaves the same state after an error in either driver", {
+  # Helper-level: it checks save_session_rng() and restore_session_rng()
+  # around a failing batch in both drivers. The production orchestration,
+  # which registers the same helper with on.exit() in runOccJSDM(), is
+  # exercised with a real interrupt in Task 5's tests.
+  skip_on_cran()
   old_kind <- RNGkind()
   on.exit(do.call(RNGkind, as.list(old_kind)), add = TRUE)
   run_guarded <- function(driver) {
@@ -1005,18 +1069,25 @@ bootstrap_chain_worker <- function(libpaths, threads, dev_path) {
   list(pid = Sys.getpid(), threads = Sys.getenv("RCPP_PARALLEL_NUM_THREADS"))
 }
 
-start_chain_cluster <- function(workers, threads, progress_file) {
+# Start-up owns its own cleanup until it hands the handle to the caller: the
+# on.exit() below runs on an error or an interrupt during bootstrap, and the
+# PIDs are fetched before the slow package loading so that pskill() has
+# targets. `bootstrap` is an argument only so that tests can inject a failing
+# or slow bootstrap.
+start_chain_cluster <- function(workers, threads, progress_file, bootstrap = bootstrap_chain_worker) {
   cl <- with_worker_environment(parallel::makeCluster(workers, outfile = progress_file))
   handle <- list(cl = cl, pids = integer(0), worker_threads = character(0),
                  progress_file = progress_file, blas_threads_requested = blas_thread_variables(),
                  threads = as.integer(threads))
-  boot <- bootstrap_chain_worker
+  started <- FALSE
+  on.exit(if (!started) stop_chain_cluster(handle), add = TRUE)
+  handle$pids <- vapply(parallel::clusterCall(cl, Sys.getpid), as.integer, integer(1))
+  boot <- bootstrap
   environment(boot) <- globalenv()
   dev_path <- if (is_dev_loaded()) getNamespaceInfo("occJSDM", "path") else NULL
-  info <- tryCatch(parallel::clusterCall(cl, boot, .libPaths(), threads, dev_path),
-                   error = function(e) { stop_chain_cluster(handle); stop(e) })
-  handle$pids <- vapply(info, function(x) as.integer(x$pid), integer(1))
+  info <- parallel::clusterCall(cl, boot, .libPaths(), threads, dev_path)
   handle$worker_threads <- vapply(info, function(x) x$threads, character(1))
+  started <- TRUE
   handle
 }
 
@@ -1134,12 +1205,53 @@ skip_unless_declared_blas <- function() {
 }
 same_fit <- function(a, b) expect_identical(occJSDM:::drop_execution(a), occJSDM:::drop_execution(b))
 next_draws <- function() list(rnorm(3), runif(3), sample(100, 3))
-fit_at <- function(sim, ncores, nchain = 2, seed = 2024, spatial = TRUE, ...) {
+fit_at <- function(sim, ncores, nchain = 2, seed = 2024, spatial = TRUE, prime = FALSE, ...) {
   set.seed(seed)
+  if (prime) invisible(rnorm(1))   # under Box-Muller this leaves a cached deviate pending at the moment the fit starts
   fit <- fit_fixture(sim, spatial = spatial,
                      MCMCparams = list(nchain = nchain, nburn = 20, niter = 20, nthin = 1, ncores = ncores), ...)
-  list(fit = fit, seed_state = get(".Random.seed", envir = globalenv()), draws = next_draws())
+  list(fit = fit, seed_state = get(".Random.seed", envir = globalenv()), draws = next_draws(), kinds = RNGkind())
 }
+
+test_that("the session RNG agrees across ncores, under the default kinds and under L'Ecuyer with Box-Muller", {
+  # RNG assertions only, deliberately outside the BLAS identity gate.
+  old_kind <- RNGkind()
+  on.exit(do.call(RNGkind, as.list(old_kind)), add = TRUE)
+  sim <- simulate_fixture(model = "binary", M = 1L, P = 1L, K = 1L)
+  for (kinds in list(c("Mersenne-Twister", "Inversion", "Rejection"), c("L'Ecuyer-CMRG", "Box-Muller", "Rejection"))) {
+    do.call(RNGkind, as.list(kinds))
+    serial <- fit_at(sim, 1L, spatial = FALSE, seed = 99, prime = TRUE)
+    parallel <- fit_at(sim, 2L, spatial = FALSE, seed = 99, prime = TRUE)
+    expect_identical(serial$seed_state, parallel$seed_state)
+    expect_identical(serial$draws, parallel$draws)
+    expect_identical(serial$kinds[1:3], kinds)
+    expect_identical(parallel$kinds[1:3], kinds)
+  }
+})
+
+test_that("an interrupted fit leaves the session RNG where a completed fit leaves it, at every ncores", {
+  skip_on_cran(); skip_on_os("windows")
+  # Production orchestration under a real interrupt: the on.exit() handler in
+  # runOccJSDM() must restore the state after the seed draws, which is the
+  # state any completed fit of the same seed ends in, whatever the schedule.
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  set.seed(606)
+  invisible(fit_fixture(sim, MCMCparams = list(nchain = 2, nburn = 20, niter = 20, nthin = 1)))
+  completed <- list(state = get(".Random.seed", envir = globalenv()), draws = next_draws())
+  for (ncores in c(1L, 2L)) {
+    set.seed(606)
+    system(sprintf("(sleep 3; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))
+    outcome <- tryCatch({
+      fit_fixture(sim, MCMCparams = list(nchain = 2, nburn = 3000, niter = 3000, nthin = 1, ncores = ncores)); "completed"
+    }, interrupt = function(c) "interrupted")
+    expect_identical(outcome, "interrupted", info = ncores)
+    expect_identical(list(state = get(".Random.seed", envir = globalenv()), draws = next_draws()), completed, info = ncores)
+    expect_false(exists("setup", envir = occJSDM:::chain_env, inherits = FALSE), info = ncores)
+  }
+  Sys.sleep(0.5)
+  # No PSOCK worker of this package should survive; nothing else in the suite runs a cluster at this point.
+  expect_length(system2("pgrep", c("-f", "workRSOCK"), stdout = TRUE, stderr = FALSE), 0L)
+})
 
 test_that("a two-stage spatial fit is identical at ncores = 1 and ncores = 2", {
   skip_unless_declared_blas()
@@ -1202,18 +1314,13 @@ test_that("one chain with ncores > 1 stays in process with the thread budget app
   expect_identical(Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_), before)
 })
 
-test_that("non-default RNG kinds give the same fit at every ncores and come back afterwards", {
+test_that("non-default RNG kinds give the same fit at every ncores", {
   skip_unless_declared_blas(); skip_on_cran()
   old_kind <- RNGkind()
   on.exit(do.call(RNGkind, as.list(old_kind)), add = TRUE)
   RNGkind("L'Ecuyer-CMRG", "Box-Muller", "Rejection")
   sim <- simulate_fixture(model = "two_stage", P = 2L)
-  set.seed(99); invisible(rnorm(1))                   # a cached Box-Muller deviate is pending
-  serial <- fit_at(sim, 1L, seed = 99)
-  expect_identical(RNGkind()[1:3], c("L'Ecuyer-CMRG", "Box-Muller", "Rejection"))
-  parallel <- fit_at(sim, 2L, seed = 99)
-  same_fit(serial$fit, parallel$fit)
-  expect_identical(serial$draws, parallel$draws)
+  same_fit(fit_at(sim, 1L, seed = 99, prime = TRUE)$fit, fit_at(sim, 2L, seed = 99, prime = TRUE)$fit)
 })
 
 test_that("three chains on two workers and unsummarised latent states are identical to the in-process fit", {
@@ -1280,10 +1387,10 @@ with
 ```bash
 OCCJSDM_REFERENCE_BLAS=1 Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-parallel-chains.R")'
 OCCJSDM_REFERENCE_BLAS=1 Rscript -e 'devtools::test()' 2>&1 | tail -25
-NOT_CRAN=false Rscript -e 'devtools::load_all(quiet = TRUE); t0 <- Sys.time(); testthat::test_file("tests/testthat/test-parallel-chains.R"); print(Sys.time() - t0)'
+OCCJSDM_REFERENCE_BLAS=1 NOT_CRAN=false Rscript -e 'devtools::load_all(quiet = TRUE); t0 <- Sys.time(); testthat::test_dir("tests/testthat"); print(Sys.time() - t0)'
 ```
 
-Expected: all pass; the third command runs only the always-on tests (`skip_on_cran()` cases skip because `NOT_CRAN` is false) and must finish in well under 30 seconds. If it does not, move the slowest always-on case (the progress-file fit, then the binary identity) under `skip_on_cran()` and record the measured time in the commit message.
+Expected: all pass. The third command times the whole tier-1 tier as it runs under check: `test_dir()` does not touch `NOT_CRAN`, so the `skip_on_cran()` cases skip, while the declaration keeps the always-on identity fits enabled, exactly as the evidence runs in Tasks 6 and 9 have them. The whole tier must stay within the 30-second budget in `helper-fixtures.R`. If it does not, move the slowest always-on case (the progress-file fit, then the binary identity) under `skip_on_cran()` and record the measured time in the commit message.
 
 - [ ] **Step 5: Commit**
 
@@ -1350,12 +1457,14 @@ After this task nothing under `R/`, `src/`, `DESCRIPTION` or `NAMESPACE` changes
 #' unpinned OpenBLAS, MKL or Accelerate an in-process fit can differ from
 #' worker fits.
 #'
-#' After a fit the session's random number state is restored, so later draws
-#' are as if the fit had not happened, with one exception: under the
-#' Box-Muller normal kind R keeps a cached deviate outside
-#' \code{.Random.seed}, which the fit discards. A parallel fit prints one line
-#' naming its progress file, which the workers' iteration messages go to; use
-#' the \code{tail -f} command it shows to watch them.
+#' A fit advances the session's random number stream by its data preparation
+#' and by the chain seeds it draws, and no further: running the chains, in
+#' process or in workers, does not move it, so the session ends the fit in the
+#' same state at every \code{ncores} and consecutive fits receive different
+#' seeds. One caveat: under the Box-Muller normal kind R keeps a cached deviate
+#' outside \code{.Random.seed}, which a fit discards. A parallel fit prints one
+#' line naming its progress file, which the workers' iteration messages go to;
+#' use the \code{tail -f} command it shows to watch them.
 ```
 
 - [ ] **Step 3: Extend the `@return` entry for `infos`**
@@ -1373,8 +1482,9 @@ Replace the `\item{infos}{...}` entry with:
 #'   \code{niter} and \code{nthin}), \code{chain_seeds} (a 2 by \code{nchain}
 #'   matrix of the R and C++ seeds of each chain) and \code{execution} (how
 #'   the fit was run: \code{ncores}, \code{workers}, \code{threads_per_worker},
-#'   the BLAS thread settings requested of the workers, the BLAS and LAPACK in
-#'   use, the elapsed seconds per chain and the progress file). Only
+#'   the BLAS thread settings requested of the workers, the worker process
+#'   ids, the BLAS and LAPACK in use, the elapsed seconds per chain and the
+#'   progress file). Only
 #'   \code{execution} may differ between two fits of the same seed at
 #'   different \code{ncores}.}
 ```
@@ -1459,35 +1569,46 @@ Expected: the recorded baseline, 0 errors, with the same warnings and notes as `
 `dev/simstudy/parallel-chains/blas-provenance.R`:
 
 ```r
-# Establish, by inspection rather than by name, that this R uses its reference
-# BLAS, which is single-threaded. Writes the facts as JSON and exits non-zero
-# otherwise. Spec: "Tests", the OCCJSDM_REFERENCE_BLAS declaration.
+# Collect evidence about the BLAS this R uses: where it is, whether the file
+# is a symlink, what it links to, whether it defines the BLAS symbols itself,
+# its md5, and, on macOS, the installer receipt that lists it. This script
+# makes no verdict and sets no variable. A person reads the evidence and
+# declares OCCJSDM_REFERENCE_BLAS in the launching environment, with the basis
+# of the declaration in OCCJSDM_REFERENCE_BLAS_BASIS; the launcher records both.
+# Spec: "Tests", the declaration.
 args <- commandArgs(TRUE)
 stopifnot(length(args) == 1L)
 out <- args[[1]]
+darwin <- Sys.info()[["sysname"]] == "Darwin"
 blas <- unname(extSoftVersion()[["BLAS"]])
 lapack <- La_library()
 info <- Sys.readlink(blas)
-is_link <- nzchar(info)
-linkage <- if (Sys.info()[["sysname"]] == "Darwin") system2("otool", c("-L", shQuote(blas)), stdout = TRUE) else system2("ldd", shQuote(blas), stdout = TRUE)
-foreign <- any(grepl("accelerate|veclib|openblas|mkl|blis|atlas", linkage, ignore.case = TRUE))
-defines_dgemm <- if (Sys.info()[["sysname"]] == "Darwin") {
-  any(grepl(" T _dgemm_$", system2("nm", c("-gU", shQuote(blas)), stdout = TRUE)))
-} else {
-  any(grepl(" T dgemm_$", system2("nm", c("-D", shQuote(blas)), stdout = TRUE)))
+linkage <- if (darwin) system2("otool", c("-L", shQuote(blas)), stdout = TRUE) else system2("ldd", shQuote(blas), stdout = TRUE)
+symbols <- if (darwin) system2("nm", c("-gU", shQuote(blas)), stdout = TRUE) else system2("nm", c("-D", shQuote(blas)), stdout = TRUE)
+receipt <- NULL
+if (darwin) {
+  pkgs <- system2("pkgutil", "--pkgs", stdout = TRUE)
+  fw <- grep("^org[.]R-project[.]R[.]fw[.]pkg$", pkgs, value = TRUE)
+  if (length(fw) == 1L) {
+    receipt <- list(package = fw,
+                    info = system2("pkgutil", c("--pkg-info", fw), stdout = TRUE),
+                    lists_blas = any(grepl(basename(blas), system2("pkgutil", c("--files", fw), stdout = TRUE), fixed = TRUE)))
+  }
 }
-facts <- list(blas = blas, lapack = lapack, blas_is_symlink = is_link, symlink_target = info,
-              linkage = linkage, foreign_blas_linked = foreign, defines_dgemm = defines_dgemm,
-              blas_md5 = unname(tools::md5sum(blas)), r_version = R.version.string,
-              checked_utc = format(Sys.time(), tz = "UTC", usetz = TRUE))
-reference <- grepl("libRblas", basename(blas)) && !is_link && !foreign && defines_dgemm
-facts$verdict <- if (reference) "reference" else "unverified"
-writeLines(jsonlite::toJSON(facts, auto_unbox = TRUE, pretty = TRUE), out)
-cat("BLAS provenance:", facts$verdict, "\n")
-if (!reference) quit(status = 1L)
+facts <- list(blas = blas, lapack = lapack, blas_is_symlink = nzchar(info), symlink_target = info,
+              file_info = unclass(file.info(blas))[c("size", "mtime", "uid", "gid")],
+              linkage = linkage,
+              names_other_blas = any(grepl("accelerate|veclib|openblas|mkl|blis|atlas", linkage, ignore.case = TRUE)),
+              defines_dgemm = any(grepl(if (darwin) " T _dgemm_$" else " T dgemm_$", symbols)),
+              blas_md5 = unname(tools::md5sum(blas)), installer_receipt = receipt,
+              r_version = R.version.string, checked_utc = format(Sys.time(), tz = "UTC", usetz = TRUE))
+saveRDS(facts, out)
+cat("BLAS evidence written to", out, "\n")
+cat("  library:", blas, "\n  symlink:", facts$blas_is_symlink, "\n  links to another BLAS by name:", facts$names_other_blas,
+    "\n  defines dgemm_ itself:", facts$defines_dgemm, "\n  md5:", facts$blas_md5,
+    "\n  installer receipt lists it:", if (is.null(receipt)) "not available" else receipt$lists_blas, "\n")
+cat("No verdict is made here. Declare OCCJSDM_REFERENCE_BLAS yourself, with the basis in OCCJSDM_REFERENCE_BLAS_BASIS, if the evidence and the installation's provenance warrant it.\n")
 ```
-
-If `jsonlite` is not installed, replace the `writeLines(...)` line with `saveRDS(facts, sub("[.]json$", ".rds", out))` and adjust the readers below.
 
 - [ ] **Step 2: Write the memory sampler**
 
@@ -1495,15 +1616,19 @@ If `jsonlite` is not installed, replace the `writeLines(...)` line with `saveRDS
 
 ```sh
 #!/bin/sh
-# Sample resident memory (KB) of a parent R process and its children once a
-# second, until OUT.csv.stop appears or the parent exits.
+# Sample resident memory (KB) of a parent R process and of every PSOCK worker
+# on the machine once a second, until OUT.csv.stop appears or the parent exits.
+# PSOCK workers are not children of the parent (makeCluster() launches them
+# through a shell that exits, so they are reparented to PID 1; checked
+# 13 October 2026), so they are found by their command line, which contains
+# workRSOCK. summarise.R keeps only the PIDs the fit's execution record names.
 # Usage: sample-rss.sh PID OUT.csv
 PID="$1"; OUT="$2"
 echo "time,pid,role,rss_kb" > "$OUT"
 while [ ! -f "$OUT.stop" ] && kill -0 "$PID" 2> /dev/null; do
   now=$(date +%s)
   ps -o rss= -p "$PID" | awk -v t="$now" -v p="$PID" '{print t","p",parent,"$1}' >> "$OUT"
-  for c in $(pgrep -P "$PID"); do
+  for c in $(pgrep -f workRSOCK 2> /dev/null); do
     ps -o rss= -p "$c" | awk -v t="$now" -v p="$c" '{print t","p",worker,"$1}' >> "$OUT"
   done
   sleep 1
@@ -1525,8 +1650,11 @@ lib <- file.path(outdir, "library")
 .libPaths(c(lib, .libPaths()))
 suppressPackageStartupMessages(library(occJSDM))
 stopifnot(normalizePath(find.package("occJSDM")) == file.path(lib, "occJSDM"),
-          nzchar(Sys.getenv("OCCJSDM_REFERENCE_BLAS")))
+          nzchar(Sys.getenv("OCCJSDM_REFERENCE_BLAS")), nzchar(Sys.getenv("OCCJSDM_REFERENCE_BLAS_BASIS")))
+writeLines(Sys.getenv("OCCJSDM_REFERENCE_BLAS_BASIS"), file.path(outdir, "blas-declaration-basis.txt"))
 sampler <- file.path(outdir, "scripts", "sample-rss.sh")
+reference_fit <- file.path(outdir, "reference-fit.rds")       # kept on disk, never resident during a measured fit
+reference_rng <- file.path(outdir, "reference-rng.rds")
 configs <- list(
   list(label = "serial-ambient", ncores = 1L, pin_one_thread = FALSE),
   list(label = "serial-1thread", ncores = 1L, pin_one_thread = TRUE),
@@ -1543,7 +1671,6 @@ fit_once <- function(ncores) {
                     summarisedLatentPresences = TRUE)
   list(fit = fit, seed_state = get(".Random.seed", envir = globalenv()), draws = list(rnorm(3), runif(3), sample(100, 3)))
 }
-reference <- NULL
 rows <- list()
 for (cfg in configs) for (rep in 1:2) {
   tag <- sprintf("%s-rep%d", cfg$label, rep)
@@ -1553,12 +1680,17 @@ for (cfg in configs) for (rep in 1:2) {
   t0 <- Sys.time()
   res <- suppressMessages(suppressWarnings(fit_once(cfg$ncores)))
   wall <- as.numeric(Sys.time() - t0, units = "secs")
-  file.create(paste0(rss, ".stop"))               # ends this configuration's sampler
+  file.create(paste0(rss, ".stop"))               # ends this configuration's sampler before anything else is loaded
   Sys.sleep(2)
   if (cfg$pin_one_thread) { Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS"); RcppParallel::setThreadOptions(numThreads = "auto") }
-  if (is.null(reference)) reference <- res
-  identical_fit <- identical(occJSDM:::drop_execution(res$fit), occJSDM:::drop_execution(reference$fit))
-  identical_rng <- identical(res$seed_state, reference$seed_state) && identical(res$draws, reference$draws)
+  if (!file.exists(reference_fit)) {
+    saveRDS(occJSDM:::drop_execution(res$fit), reference_fit)
+    saveRDS(list(seed_state = res$seed_state, draws = res$draws), reference_rng)
+  }
+  reference <- readRDS(reference_fit); rng_ref <- readRDS(reference_rng)   # outside the measured interval
+  identical_fit <- identical(occJSDM:::drop_execution(res$fit), reference)
+  identical_rng <- identical(res$seed_state, rng_ref$seed_state) && identical(res$draws, rng_ref$draws)
+  rm(reference, rng_ref)
   ex <- res$fit$infos$execution
   rows[[tag]] <- data.frame(tag = tag, label = cfg$label, rep = rep, ncores = cfg$ncores, workers = ex$workers,
                             threads_per_worker = ex$threads_per_worker, wall_s = wall,
@@ -1580,8 +1712,12 @@ cat("ALL DONE\n")
 
 ```sh
 #!/bin/sh
-# Freeze the build from a git archive export, check BLAS provenance, run the
-# benchmark detached. Run from the worktree root, from a non-interactive shell:
+# Freeze the build from a git archive export, collect BLAS evidence, run the
+# benchmark detached. The BLAS declaration is the operator's, made in the
+# launching environment after reading the evidence from a first run of
+# blas-provenance.R; this script never sets it. Run from the worktree root,
+# from a non-interactive shell:
+#   OCCJSDM_REFERENCE_BLAS=1 OCCJSDM_REFERENCE_BLAS_BASIS="..." \
 #   nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' \
 #     sh dev/simstudy/parallel-chains/launch.sh OUTDIR \
 #     > OUTDIR/launch.log 2>&1 < /dev/null &
@@ -1589,20 +1725,19 @@ set -eu
 OUT="$1"
 REPO="$(pwd -P)"
 RSCRIPT=/usr/local/bin/Rscript
+: "${OCCJSDM_REFERENCE_BLAS:?declare the BLAS yourself after reading the evidence}"
+: "${OCCJSDM_REFERENCE_BLAS_BASIS:?state the basis of the declaration}"
 mkdir -p "$OUT/src-export" "$OUT/library" "$OUT/scripts" "$OUT/rss" "$OUT/execution"
 cp "$REPO"/dev/simstudy/parallel-chains/*.R "$REPO"/dev/simstudy/parallel-chains/*.sh "$OUT/scripts/"
 git -C "$REPO" rev-parse HEAD > "$OUT/revision.txt"
 git -C "$REPO" archive HEAD | tar -x -C "$OUT/src-export"
 R CMD INSTALL --library="$OUT/library" "$OUT/src-export" > "$OUT/install.log" 2>&1
-"$RSCRIPT" "$OUT/scripts/blas-provenance.R" "$OUT/provenance.json"
-export OCCJSDM_REFERENCE_BLAS=1
+"$RSCRIPT" "$OUT/scripts/blas-provenance.R" "$OUT/blas-evidence.rds" > "$OUT/blas-evidence.log" 2>&1
 caffeinate -i -w $$ &
 echo $$ > "$OUT/launcher.pid"
 "$RSCRIPT" "$OUT/scripts/benchmark.R" "$OUT" > "$OUT/benchmark.log" 2>&1
 echo "ALL DONE $(date '+%F %T')"
 ```
-
-The `export OCCJSDM_REFERENCE_BLAS=1` line runs only if `blas-provenance.R` exited zero, because of `set -e`.
 
 - [ ] **Step 5: Write the summariser**
 
@@ -1613,37 +1748,58 @@ The `export OCCJSDM_REFERENCE_BLAS=1` line runs only if `blas-provenance.R` exit
 args <- commandArgs(TRUE)
 outdir <- normalizePath(args[[1]], mustWork = TRUE)
 r <- read.csv(file.path(outdir, "results.csv"), stringsAsFactors = FALSE)
-peak <- function(tag, role) {
-  f <- file.path(outdir, "rss", paste0(tag, ".csv"))
-  x <- read.csv(f); x <- x[x$role == role, ]
-  if (!nrow(x)) return(NA_real_)
-  by_t <- tapply(x$rss_kb, x$time, sum)           # all workers alive at that second, summed
-  max(by_t) / 1024
+samples <- function(tag, role) {
+  x <- read.csv(file.path(outdir, "rss", paste0(tag, ".csv"))); x <- x[x$role == role, ]
+  if (role == "worker") {                          # keep only this fit's workers, from its execution record
+    pids <- readRDS(file.path(outdir, "execution", paste0(tag, ".rds")))$worker_pids
+    x <- x[x$pid %in% pids, ]
+  }
+  x
 }
-r$parent_peak_mb <- vapply(r$tag, peak, numeric(1), role = "parent")
-r$workers_peak_mb <- vapply(r$tag, peak, numeric(1), role = "worker")
+peak_total <- function(tag, role) {
+  x <- samples(tag, role)
+  if (!nrow(x)) return(NA_real_)
+  max(tapply(x$rss_kb, x$time, sum)) / 1024       # every sampled process at that second, summed
+}
+peak_each <- function(tag) {
+  x <- samples(tag, "worker")
+  if (!nrow(x)) return("none")
+  paste(round(tapply(x$rss_kb, x$pid, max) / 1024), collapse = "/")
+}
+r$parent_peak_mb <- vapply(r$tag, peak_total, numeric(1), role = "parent")
+r$workers_peak_mb <- vapply(r$tag, peak_total, numeric(1), role = "worker")
+r$worker_peaks_mb <- vapply(r$tag, peak_each, character(1))
 base <- mean(r$wall_s[r$label == "serial-ambient"])
 for (lab in unique(r$label)) {
   s <- r[r$label == lab, ]
-  cat(sprintf("- **%s** (ncores %d, %d worker%s, %d thread%s each): wall %.0f s and %.0f s (speed-up %.2fx over serial-ambient), parent peak %.0f MB, workers peak %.0f MB, identical fit %s, identical RNG %s.\n",
+  cat(sprintf("- **%s** (ncores %d, %d worker%s, %d thread%s each): wall %.0f s and %.0f s (speed-up %.2fx over serial-ambient), parent peak %.0f MB, workers together %.0f MB, each worker %s MB, identical fit %s, identical RNG %s.\n",
               lab, s$ncores[1], s$workers[1], if (s$workers[1] == 1) "" else "s", s$threads_per_worker[1],
               if (s$threads_per_worker[1] == 1) "" else "s", s$wall_s[1], s$wall_s[2], base / mean(s$wall_s),
-              max(s$parent_peak_mb), max(s$workers_peak_mb, na.rm = TRUE),
+              max(s$parent_peak_mb), max(s$workers_peak_mb, na.rm = TRUE), s$worker_peaks_mb[1],
               paste(s$identical_fit, collapse = "/"), paste(s$identical_rng, collapse = "/")))
 }
+cat("\nDeclaration basis:", readLines(file.path(outdir, "blas-declaration-basis.txt")), "\n")
 ```
 
-- [ ] **Step 6: Launch, from a non-interactive shell, on mains power with the lid open**
+- [ ] **Step 6: Read the BLAS evidence, make the declaration, then launch from a non-interactive shell, on mains power with the lid open**
+
+First collect the evidence on its own and read it:
 
 ```bash
 cd /Users/douglasyu/src/occJSDM/.worktrees/parallel-chains
 OUT=/Users/douglasyu/src/occJSDM/dev/simstudy/results/parallel-chains-$(date +%Y%m%d)
 mkdir -p "$OUT"
-nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh dev/simstudy/parallel-chains/launch.sh "$OUT" > "$OUT/launch.log" 2>&1 < /dev/null &
-sleep 5; cat "$OUT/launch.log"; cat "$OUT/provenance.json" | head -20
+Rscript dev/simstudy/parallel-chains/blas-provenance.R "$OUT/blas-evidence-preview.rds"
 ```
 
-Expected: `BLAS provenance: reference`, then the benchmark starts. Wait with a `Monitor` or by checking `tail -3 "$OUT/benchmark.log"` every 20 minutes; it ends with `ALL DONE`. Roughly 90 minutes.
+The declaration is warranted on this machine when the evidence matches what was established on 13 October 2026: the library is `libRblas.0.dylib` under `R.framework/Versions/4.6`, a regular file, not a symlink, linking only to `libgfortran`, `libquadmath` and `libSystem`, defining `dgemm_` itself, with md5 `9dfbe56d4ceb13138673fdaf297b4b56`, and listed in the installer receipt `org.R-project.R.fw.pkg` version 4.6.1, which is the CRAN installer package for R. Those facts together are documented installation provenance, not a filename. If any of them differs, stop and say so rather than declaring. Then launch with the declaration and its basis in the environment:
+
+```bash
+OCCJSDM_REFERENCE_BLAS=1 OCCJSDM_REFERENCE_BLAS_BASIS="R 4.6.1 installed by the CRAN installer package org.R-project.R.fw.pkg, whose receipt lists libRblas.0.dylib; the file is regular, not a symlink, links only to libgfortran, libquadmath and libSystem, defines dgemm_ itself, md5 9dfbe56d4ceb13138673fdaf297b4b56; declared by Doug Yu and Claude on $(date +%F)" nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh dev/simstudy/parallel-chains/launch.sh "$OUT" > "$OUT/launch.log" 2>&1 < /dev/null &
+sleep 5; cat "$OUT/launch.log"; cat "$OUT/blas-evidence.log"
+```
+
+Expected: the evidence lines, then the benchmark starts. Wait with a `Monitor` or by checking `tail -3 "$OUT/benchmark.log"` every 20 minutes; it ends with `ALL DONE`. Roughly 90 minutes.
 
 - [ ] **Step 7: Summarise and write the report**
 
@@ -1651,7 +1807,7 @@ Expected: `BLAS provenance: reference`, then the benchmark starts. Wait with a `
 Rscript dev/simstudy/parallel-chains/summarise.R "$OUT"
 ```
 
-Write `dev/simstudy/parallel-chains/REPORT.md` by hand from the output, one line per paragraph, bullet lists only, no tables, no em-dashes, with these sections: what was run (the quickstart call, four chains, the five configurations twice, this laptop, R 4.6.1, the frozen revision from `revision.txt`, the install from the export); BLAS provenance (every fact from `provenance.json`, stated as facts, the verdict, and that identity claims hold on this BLAS); results (the bullet per configuration from `summarise.R`); the chains-outnumber-workers case (the `ncores-2` run's worker and parent peaks on their own); limits (Windows not run, no threaded BLAS available, two repeats only). Copy `results.csv` and `provenance.json` next to the report. Write `README.md` in the same folder saying how to launch and where results land.
+Write `dev/simstudy/parallel-chains/REPORT.md` by hand from the output, one line per paragraph, bullet lists only, no tables, no em-dashes, with these sections: what was run (the quickstart call, four chains, the five configurations twice, this laptop, R 4.6.1, the frozen revision from `revision.txt`, the install from the export); BLAS evidence and declaration (every fact from `blas-evidence.rds` stated as a fact, the installer receipt, then the declaration and its basis from `blas-declaration-basis.txt`, and that the identity claims below hold under that declaration); results (the bullet per configuration from `summarise.R`, with each worker's peak as well as the total); the chains-outnumber-workers case (the `ncores-2` run's worker and parent peaks on their own); limits (Windows not run, no threaded BLAS available, two repeats only, workers identified by their command line and filtered by the recorded PIDs). Copy `results.csv`, `blas-evidence.rds` and `blas-declaration-basis.txt` next to the report. Write `README.md` in the same folder saying how to launch and where results land.
 
 - [ ] **Step 8: Commit**
 
@@ -1674,7 +1830,7 @@ Nothing under `R/`, `src/`, `DESCRIPTION` or `NAMESPACE` has changed since Task 
 - Create: `dev/release/2026-10-13-parallel-chains-refit/refit-README.md`
 - Create: `dev/release/2026-10-13-parallel-chains-refit/REPORT.md`
 - Modify: `data/sampleresults.rda` (replaced by the refit)
-- Evidence files written by the scripts: `provenance.rds`, `session-info.txt`, `diagnostics.csv`, `diagnostics-flagged.csv`, `blas-provenance.json`.
+- Evidence files written by the scripts: `provenance.rds`, `session-info.txt`, `diagnostics.csv`, `diagnostics-flagged.csv`, `blas-evidence.rds`, `blas-declaration-basis.txt`.
 
 - [ ] **Step 1: Write the refit script**
 
@@ -1683,7 +1839,7 @@ Nothing under `R/`, `src/`, `DESCRIPTION` or `NAMESPACE` has changed since Task 
 ```r
 # Refit the quickstart's shipped example under per-chain seeding, twice (one
 # core and two cores), require identity apart from the execution record, and
-# ship the two-core object. Rscript refit-sampleresults.R REPO LIB EVIDENCE PROVENANCE_JSON
+# ship the two-core object. Rscript refit-sampleresults.R REPO LIB EVIDENCE BLAS_EVIDENCE_RDS
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 4L)
 repo <- normalizePath(args[[1]], mustWork = TRUE)
@@ -1735,7 +1891,7 @@ write.csv(diagnostics, file.path(evidence, "diagnostics.csv"), row.names = FALSE
 candidate <- tempfile(".sampleresults-", tmpdir = file.path(repo, "data"), fileext = ".rda")
 save(sampleresults, file = candidate, compress = "xz")
 stopifnot(file.rename(candidate, file.path(repo, "data/sampleresults.rda")))
-file.copy(blas_json, file.path(evidence, "blas-provenance.json"), overwrite = TRUE)
+file.copy(blas_json, file.path(evidence, "blas-evidence.rds"), overwrite = TRUE)
 provenance <- list(
   revision = system2("git", c("-C", shQuote(repo), "rev-parse", "HEAD"), stdout = TRUE),
   source_hashes = source_hashes,
@@ -1746,7 +1902,7 @@ provenance <- list(
   chain_seeds = sampleresults$infos$chain_seeds,
   execution_one_core = one$fit$infos$execution, execution_two_cores = two$fit$infos$execution,
   identical_apart_from_execution = TRUE,
-  blas_provenance_file = "blas-provenance.json",
+  blas_evidence_file = "blas-evidence.rds", blas_declaration_basis = "blas-declaration-basis.txt",
   elapsed_seconds = c(one_core = as.numeric(difftime(one$finished, one$started, units = "secs")),
                       two_cores = as.numeric(difftime(two$finished, two$started, units = "secs"))),
   warnings = list(one_core = one$warnings, two_cores = two$warnings),
@@ -1803,13 +1959,14 @@ cat("Refit provenance, source hashes, seed, settings and data identity verified.
 ```bash
 cd /Users/douglasyu/src/occJSDM/.worktrees/parallel-chains
 EV=/Users/douglasyu/src/occJSDM/dev/simstudy/results/parallel-chains-refit-$(date +%Y%m%d); mkdir -p "$EV"
-nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' env OCCJSDM_REFERENCE_BLAS=1 /usr/local/bin/Rscript --vanilla dev/release/2026-10-13-parallel-chains-refit/refit-sampleresults.R "$(pwd -P)" "$OUT/library" "$EV" "$OUT/provenance.json" > "$EV/refit.log" 2>&1 < /dev/null &
+nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' env OCCJSDM_REFERENCE_BLAS=1 /usr/local/bin/Rscript --vanilla dev/release/2026-10-13-parallel-chains-refit/refit-sampleresults.R "$(pwd -P)" "$OUT/library" "$EV" "$OUT/blas-evidence.rds" > "$EV/refit.log" 2>&1 < /dev/null &
+cp "$OUT/blas-declaration-basis.txt" "$EV/"
 ```
 
 Wait for `REFIT COMPLETE` in `$EV/refit.log` (two fits of the quickstart size, so roughly 20 to 30 minutes). Then copy `provenance.rds`, `session-info.txt`, `diagnostics.csv`, `diagnostics-flagged.csv` and `blas-provenance.json` from `$EV` into `dev/release/2026-10-13-parallel-chains-refit/`, and run the verify script against the frozen library:
 
 ```bash
-cp "$EV"/provenance.rds "$EV"/session-info.txt "$EV"/diagnostics*.csv "$EV"/blas-provenance.json dev/release/2026-10-13-parallel-chains-refit/
+cp "$EV"/provenance.rds "$EV"/session-info.txt "$EV"/diagnostics*.csv "$EV"/blas-evidence.rds "$EV"/blas-declaration-basis.txt dev/release/2026-10-13-parallel-chains-refit/
 Rscript dev/release/2026-10-13-parallel-chains-refit/verify-release.R "$(pwd -P)"
 ```
 
@@ -1920,3 +2077,41 @@ Use the ccd_pr tools: `get_status`, and `bind_pr` if the PR is not reported. The
 - [ ] **Step 3: Record the state**
 
 Update the memory file `parallel-chains-spec-status.md` to say the PR is open and awaiting Alex, and that `TODO.md` is edited only after the merge, in its own commit on `main`, as the spec's "Documentation changes" describes.
+
+---
+
+## Codex implementation-plan review, 13 October 2026
+
+Reviewed the full plan at revision `d2abf9f` against the specification at `bc3694b`, the current sampler, the fixture helpers and the installed R/parallel implementations. The overall extraction, per-chain seeding, chain-order combination and frozen-build release sequence follow the design, but the following issues should be corrected before executing the plan.
+
+1. **[P1] Task 3 omits model state required by three supported models.** The explicit `chain_setup_fields()` at line 431 omits `z` and `w`. The current parent sets `z <- y` for binary/continuous models and `w <- y` for occupancy models at `R/runOccJSDM.R:602-604`, before the block being moved. The moved starting-values block reads `w` for occupancy, and the iteration loop reads `z` for binary/continuous. A probe using the proposed setup fields and the actual moved body reproduced `object 'z' not found` for binary and continuous and `object 'w' not found` for occupancy. Include these states in the setup where applicable, or explicitly initialise them from `y` inside `run_one_chain()` before the moved body. Add direct extraction tests covering all four models; do not leave this to the fallback instruction to add fields after failures.
+
+2. **[P2] Task 4 leaves a cleanup gap during worker bootstrap.** `start_chain_cluster()` at lines 1008-1020 registers no `on.exit()` cleanup and catches only errors around `clusterCall()`. Task 5 registers the caller's cleanup only after this function returns, while the worker PIDs are obtained only after the entire bootstrap finishes. An interrupt during bootstrap therefore bypasses both cleanup paths; an error while another worker is still bootstrapping also leaves the error handler without PIDs to terminate it. Running the planned helper with a controlled slow bootstrap and interrupt left both workers alive after the helper exited. The probe then explicitly stopped both and verified that neither survived. Register startup cleanup immediately after cluster creation, obtain the PIDs before potentially slow package loading, and transfer ownership to the caller only after successful startup. Add a bootstrap-interruption test, separate from interruption during chain dispatch.
+
+3. **[P2] Task 7's memory sampler does not find the PSOCK workers, and its parent measurement retains an unrelated fit.** `sample-rss.sh` at line 1506 searches only direct children with `pgrep -P`. A local two-worker PSOCK probe showed both workers had parent PID 1, while `pgrep -P` on the fitting process returned no workers. The resulting report would omit the worker memory it is meant to measure. Sample the PIDs recorded by the cluster bootstrap, and report each worker's peak as well as the aggregate. Also, `reference <- res` at line 1559 keeps the first complete fit resident throughout subsequent measurements, adding a full posterior object to their parent peaks. Store the reference on disk and compare outside the measurement interval, or run each measured fit in a fresh process and compare its output afterwards.
+
+4. **[P2] The proposed RNG tests do not exercise the promised failure and Box-Muller cases.** Task 4's exceptional-exit test at lines 926-946 installs its own restoration handler in `run_guarded()`, so it can pass even if the production caller omits cleanup. Its failing task never seeds or draws, and despite the test title it never interrupts either driver. Task 5's Box-Muller test leaves a cached deviate at line 1211, but `fit_at()` immediately calls `set.seed()` again, clearing that cache before fitting. Exercise the production orchestration with an error after chain seeding and a real interrupt, comparing the saved state and subsequent draws for both execution modes. Arrange any pending Box-Muller deviate after the final test-side `set.seed()` and immediately before the production fit. Keep RNG-restoration assertions independent of the BLAS identity gate, as the spec requires.
+
+5. **[P2] Task 6 documents the wrong subsequent-RNG contract.** The proposed help at lines 1353-1356 says later draws are as if the fit had not happened, apart from Box-Muller. The implementation intentionally restores the state after the chain seeds were drawn, and any earlier setup draws have already occurred. Even with default Inversion normals, fitting advances the caller's stream by those draws. State that chain execution does not further advance the caller's R RNG beyond setup and seed allocation, and retain the separate Box-Muller cache caveat. This also keeps the documentation consistent with Task 3's seed-consumption test and with consecutive fits receiving different seeds.
+
+6. **[P2] Task 7's automatic BLAS verdict still does not establish provenance.** The predicate at line 1483 treats a regular file named `libRblas`, a self-defined `dgemm` symbol and the absence of selected dependency names as proof of reference BLAS; the launcher then automatically sets `OCCJSDM_REFERENCE_BLAS=1`. Those properties are not unique to reference BLAS. For example, on Linux a renamed, self-contained threaded BLAS can export `dgemm_` without linking another library whose name matches the blacklist. Recording an md5 without comparing it to a trusted reference does not resolve that ambiguity. Keep these checks as evidence collection and require documented installation/build provenance or an independently established reference hash before making the declaration. This preserves the spec's distinction between an external declaration and automatic backend detection; no universal BLAS detector is needed.
+
+One additional validation correction: Task 5's timing command at line 1283 omits `OCCJSDM_REFERENCE_BLAS=1`, while the later evidence checks set it. It therefore skips the always-on identity fits and understates the test workload used in those checks. Time the same enabled test set, and assess the whole tier-1 budget described by `helper-fixtures.R`, not just the new file.
+
+This was a plan review with source inspection and targeted probes, not execution of the implementation plan. No package source, shipped data or release artifacts were changed. The planned full suite, fitting benchmark and refit remain to be performed after the plan is corrected.
+
+Signed: **Codex**
+
+## Response to the Codex implementation-plan review, 13 October 2026
+
+All six points and the validation correction are accepted. Each was checked where a local check was possible.
+
+1. Missing `z` and `w`. Confirmed at `R/runOccJSDM.R:601-604`: the parent sets `z <- y` for binary and continuous and `w <- y` for occupancy, and the moved body reads them before assigning them, which is why `codetools::findGlobals()` reported them as local. Task 3's `chain_setup_fields()` and `R/globals.R` now carry both, with the reason, and Task 3 gains a direct test that fits every model type through `run_one_chain()`.
+2. Start-up cleanup. Task 4's `start_chain_cluster()` now registers its own `on.exit()` right after `makeCluster()`, fetches the PIDs with a cheap `clusterCall(cl, Sys.getpid)` before the package loading, and clears the handler only when start-up has completed, so an error or interrupt during bootstrap kills the workers before the caller ever sees a handle. It takes a `bootstrap` argument for tests, and Task 4 gains a test that injects a failing bootstrap and, on Unix, a slow one interrupted by SIGINT, with the workers recording their PIDs through an environment variable so that survival is checked by PID, not by guesswork.
+3. Memory sampler and the resident reference. Confirmed with a probe: both PSOCK workers had parent PID 1 and `pgrep -P` on the parent found nothing, while their command line contains `workRSOCK`. The sampler now finds workers by that string and `summarise.R` keeps only the PIDs the fit's execution record names, which the execution record now includes (`worker_pids`, added to the spec's *Interface* as well), and reports each worker's peak beside the total. The reference fit is written to disk after the first configuration and read back only after the sampler has been stopped, so no second posterior object is resident during a measured fit.
+4. RNG tests. Task 4's helper-level test is retitled as the helper test it is. Task 5 gains two production-level tests: an always-on comparison of the session state, the next draws and the RNG kinds across `ncores` under the default kinds and under L'Ecuyer with Box-Muller, outside the BLAS gate as the spec requires, with the cached deviate created after the test's final `set.seed()` and immediately before the fit; and, under `skip_on_cran()` on Unix, a real SIGINT during a long fit at `ncores` 1 and 2, asserting that the session ends where a completed fit of the same seed ends, that the setup environment is empty and that no worker survives. An error after chain seeding cannot be induced through the public interface without a test hook, so the error path stays covered at the driver level by the same `on.exit()` helper, and the plan says so.
+5. The RNG contract in the help page. Rewritten in Task 6: a fit advances the stream by its data preparation and its seed draws and no further, so the state is the same at every `ncores` and consecutive fits get different seeds; the Box-Muller cache caveat stays. The spec's "What restoring `.Random.seed` cannot do" bullet, which said "an untouched session", is corrected to the same statement.
+6. BLAS declaration. The provenance script now collects evidence only, including on macOS the installer receipt from `pkgutil`, and makes no verdict; the launcher refuses to run unless the operator has set `OCCJSDM_REFERENCE_BLAS` and a free-text `OCCJSDM_REFERENCE_BLAS_BASIS`, which the benchmark and the refit record beside the evidence and the report prints. Checked on this machine: the receipt `org.R-project.R.fw.pkg` version 4.6.1, the CRAN installer package, lists `libRblas.0.dylib`, which is the documented installation provenance the review asked for. The spec's *Tests* bullet is amended to say the declaration is a person's, made on the evidence plus the installation record, and that no single property proves a reference BLAS.
+7. Timing. Task 5 now times the whole tier-1 tier with `test_dir()` under `NOT_CRAN=false` and with the declaration set, so the measured set is the one the evidence runs use.
+
+No other task was changed.
