@@ -279,12 +279,24 @@ check_worker_builds <- function(handle) {
 
 # stopCluster() throws on a broken connection; the try() keeps the PID step
 # reachable. pskill() ends a worker that is mid-chain, which would otherwise
-# only read the stop message when its chain finished.
+# only read the stop message when its chain finished. stopCluster() gives up
+# at the first broken connection, so the sockets of the nodes after it are
+# closed here; left open, the garbage collector would close them later with
+# a warning at some unrelated point.
 stop_chain_cluster <- function(handle) {
   if (is.null(handle)) return(invisible(NULL))
   try(parallel::stopCluster(handle$cl), silent = TRUE)
   if (length(handle$pids)) tools::pskill(handle$pids)
+  for (node in handle$cl) if (is_live_connection(node$con)) try(close(node$con), silent = TRUE)
   invisible(NULL)
+}
+
+# TRUE when con is still open as this very connection. R reuses a closed
+# connection's number and does not check it, so close() on a stale
+# connection object would close whichever connection holds the number now.
+is_live_connection <- function(con) {
+  current <- tryCatch(getConnection(as.integer(con)), error = function(e) NULL)
+  !is.null(current) && identical(attr(current, "conn_id"), attr(con, "conn_id"))
 }
 
 # ncores > 1 with one chain runs in process with the session's RcppParallel

@@ -445,3 +445,24 @@ test_that("the reset-then-restore helper leaves the same state after an error in
     expect_identical(after_serial, after_parallel)
   }
 })
+
+test_that("cleanup closes the sockets that stopCluster() leaves open when it gives up", {
+  skip_on_cran()
+  before <- getAllConnections()
+  handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile("occJSDM-progress-", fileext = ".log"))
+  close(handle$cl[[1]]$con)                          # stopCluster() throws here, before it reaches node 2
+  occJSDM:::stop_chain_cluster(handle)
+  # Node 2's socket is closed now, not by the garbage collector later, with a warning.
+  expect_identical(getAllConnections(), before)
+  # Cleanup closes only a connection that is still the node's own: R reuses a
+  # closed connection's number, and close() on the stale object would close
+  # whichever connection holds that number now.
+  a <- file(tempfile(), "wb")
+  expect_true(occJSDM:::is_live_connection(a))
+  close(a)
+  b <- file(tempfile(), "wb")
+  on.exit(close(b), add = TRUE)
+  expect_identical(as.integer(b), as.integer(a))     # b has taken a's number
+  expect_false(occJSDM:::is_live_connection(a))
+  expect_true(occJSDM:::is_live_connection(b))
+})
