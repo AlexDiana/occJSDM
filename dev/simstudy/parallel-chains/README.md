@@ -14,10 +14,10 @@ The declaration is a person's decision, made after reading the evidence. Run the
 
 ## How to launch
 
-Use a fresh run directory every time, from a non-interactive shell, on mains power with the lid open, from the worktree root.
+Use a fresh run directory every time, from a non-interactive shell, on mains power with the lid open, from the worktree root. The run directory goes in the main checkout's results folder, given as an absolute path below, because `dev/simstudy/results/` is git-ignored and does not exist inside a worktree: a relative path there makes `mktemp` fail and leaves `OUT` empty.
 
 ```sh
-OUT=$(mktemp -d "dev/simstudy/results/parallel-chains-$(date +%Y%m%d)-XXXXXX")
+OUT=$(mktemp -d "/Users/douglasyu/src/occJSDM/dev/simstudy/results/parallel-chains-$(date +%Y%m%d)-XXXXXX")
 Rscript dev/simstudy/parallel-chains/blas-provenance.R "$OUT/blas-evidence-preview.rds"
 OCCJSDM_REFERENCE_BLAS=1 OCCJSDM_REFERENCE_BLAS_BASIS="..." \
 nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' \
@@ -27,11 +27,11 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' \
 
 The full run takes about 35 minutes (36 minutes on 13 October 2026). `launch.sh` refuses to reuse a run directory that already holds a build, results or a reference.
 
-To run only some configurations, name their labels after the run directory, for example `sh dev/simstudy/parallel-chains/launch.sh "$OUT" serial-ambient`; with none named all five run, and an unknown label stops the run before any fit.
+To run only some configurations, name their labels after the run directory, for example `sh dev/simstudy/parallel-chains/launch.sh "$OUT" serial-ambient`; with none named all five run, and an unknown label stops the run before any fit. The configurations run in their fixed order and the first one to run becomes the identity reference that every later fit is compared with, so a subset that omits `serial-ambient` is compared with its own first fit (which may be a worker fit) rather than with the in-process fit; `benchmark.R` does not warn about this, so include `serial-ambient` unless that is intended.
 
 ## Where results land
 
-Everything goes under the run directory, which is git-ignored (`dev/simstudy/results/`):
+Everything goes under the run directory, which is in the main checkout's git-ignored `dev/simstudy/results/` folder:
 
 - `launcher.pid`, `launch.log`, `install.log`, `benchmark.log`: the launch and its progress. The benchmark log ends with `ALL DONE`.
 - `revision.txt`, `src-export/`, `library/`, `scripts/`: the frozen build and a copy of these scripts.
@@ -42,4 +42,4 @@ Everything goes under the run directory, which is git-ignored (`dev/simstudy/res
 
 ## After the run
 
-`Rscript dev/simstudy/parallel-chains/summarise.R "$OUT"` prints the bullet lists that `REPORT.md` is written from. The 13 October 2026 results are kept in this folder: `REPORT.md` (what was run, the BLAS evidence and declaration, the results, the rerun and the limits), `results.csv` (the full run), `rerun-results.csv` (the later rerun of the two ambient serial fits, made with the label selector), `blas-evidence.rds` and `blas-declaration-basis.txt`. The run directories themselves stay under the ignored `dev/simstudy/results/`.
+`Rscript dev/simstudy/parallel-chains/summarise.R "$OUT"` prints the bullet lists that `REPORT.md` is written from. The 13 October 2026 results are kept in this folder: `REPORT.md` (what was run, the BLAS evidence and declaration, the results, the rerun and the limits), `results.csv` (the full run), `rerun-results.csv` (the later rerun of the two ambient serial fits, made with the label selector), `blas-evidence.rds` and `blas-declaration-basis.txt`. The run directories themselves stay in the main checkout's ignored `dev/simstudy/results/`.
