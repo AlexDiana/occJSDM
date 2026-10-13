@@ -1562,7 +1562,7 @@ Expected: the recorded baseline, 0 errors, with the same warnings and notes as `
 
 **Interfaces:**
 - Consumes: the installed package from the frozen export; `occJSDM:::drop_execution()`.
-- Produces: the frozen export directory and library that Task 8 reuses; `results.csv`, `rss.csv`, `provenance.json`; `REPORT.md`.
+- Produces: the frozen export directory and library that Task 8 reuses; `results.csv`, `rss.csv`, `blas-evidence.rds`, `blas-declaration-basis.txt`; `REPORT.md`.
 
 - [ ] **Step 1: Write the provenance check**
 
@@ -1963,7 +1963,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' env OCCJSDM_RE
 cp "$OUT/blas-declaration-basis.txt" "$EV/"
 ```
 
-Wait for `REFIT COMPLETE` in `$EV/refit.log` (two fits of the quickstart size, so roughly 20 to 30 minutes). Then copy `provenance.rds`, `session-info.txt`, `diagnostics.csv`, `diagnostics-flagged.csv` and `blas-provenance.json` from `$EV` into `dev/release/2026-10-13-parallel-chains-refit/`, and run the verify script against the frozen library:
+Wait for `REFIT COMPLETE` in `$EV/refit.log` (two fits of the quickstart size, so roughly 20 to 30 minutes). Then copy `provenance.rds`, `session-info.txt`, `diagnostics.csv`, `diagnostics-flagged.csv` `blas-evidence.rds` and `blas-declaration-basis.txt` from `$EV` into `dev/release/2026-10-13-parallel-chains-refit/`, and run the verify script against the frozen library:
 
 ```bash
 cp "$EV"/provenance.rds "$EV"/session-info.txt "$EV"/diagnostics*.csv "$EV"/blas-evidence.rds "$EV"/blas-declaration-basis.txt dev/release/2026-10-13-parallel-chains-refit/
