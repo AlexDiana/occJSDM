@@ -64,7 +64,12 @@ test_that("MCMCparams$ncores is validated", {
   expect_identical(occJSDM:::resolve_ncores(list()), 1L)
   expect_identical(occJSDM:::resolve_ncores(list(ncores = 2)), 2L)      # a double is accepted
   expect_identical(occJSDM:::resolve_ncores(list(ncores = 3L)), 3L)
-  expect_warning(occJSDM:::resolve_ncores(list(ncores = parallel::detectCores() + 1L)), "exceeds")
+  # The detected count is injected: detectCores() can return NA on some
+  # systems, and the warning must not depend on what the operating system says.
+  expect_warning(occJSDM:::resolve_ncores(list(ncores = 5), available = 4L), "exceeds the 4 cores")
+  expect_silent(occJSDM:::resolve_ncores(list(ncores = 4), available = 4L))
+  expect_silent(occJSDM:::resolve_ncores(list(ncores = 64), available = NA_integer_))
+  expect_identical(occJSDM:::resolve_ncores(list(ncores = 64), available = NA_integer_), 64L)
 })
 
 test_that("the core budget splits into workers and threads per worker", {
@@ -110,14 +115,16 @@ Expected: three failures, each "object 'resolve_ncores' not found" or similar.
 # function arrives as a reference to the namespace.
 chain_env <- new.env(parent = emptyenv())
 
-resolve_ncores <- function(MCMCparams) {
+# `available` is an argument so that the warning can be tested without
+# depending on the operating system: parallel::detectCores() is documented to
+# return NA when the count is unknown, and then no warning is possible.
+resolve_ncores <- function(MCMCparams, available = parallel::detectCores()) {
   ncores <- get_param(MCMCparams, "ncores", 1)
   if (!is.numeric(ncores) || length(ncores) != 1L || !is.finite(ncores) ||
       ncores < 1 || ncores != floor(ncores)) {
     stop("MCMCparams$ncores must be a single whole number of at least 1", call. = FALSE)
   }
   ncores <- as.integer(ncores)
-  available <- parallel::detectCores()
   if (!is.na(available) && ncores > available) {
     warning(sprintf("MCMCparams$ncores = %d exceeds the %d cores detected on this machine",
                     ncores, available), call. = FALSE)
@@ -979,6 +986,32 @@ test_that("the BLAS thread variables are set for the workers only", {
   expect_identical(handle$blas_threads_requested, occJSDM:::blas_thread_variables())
 })
 
+test_that("the RcppParallel stack size survives the in-process thread pin and reaches the workers", {
+  skip_on_cran()
+  vars <- c("RCPP_PARALLEL_NUM_THREADS", "RCPP_PARALLEL_STACK_SIZE")
+  old <- Sys.getenv(vars, unset = NA_character_, names = TRUE)
+  on.exit(for (nm in names(old)) if (is.na(old[[nm]])) Sys.unsetenv(nm) else do.call(Sys.setenv, as.list(setNames(old[[nm]], nm))), add = TRUE)
+  Sys.setenv(RCPP_PARALLEL_NUM_THREADS = "3", RCPP_PARALLEL_STACK_SIZE = "8388608")
+  restore <- occJSDM:::pin_session_threads(2L)
+  expect_identical(unname(Sys.getenv(vars)), c("2", "8388608"))
+  restore()
+  expect_identical(unname(Sys.getenv(vars)), c("3", "8388608"))
+  # cleanup after an error, registered the way runOccJSDM() registers it
+  f <- function() { restore <- occJSDM:::pin_session_threads(2L); on.exit(restore(), add = TRUE); stop("boom") }
+  expect_error(f(), "boom")
+  expect_identical(unname(Sys.getenv(vars)), c("3", "8388608"))
+  # an unset thread count comes back unset, the stack size untouched
+  Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS")
+  restore <- occJSDM:::pin_session_threads(2L); restore()
+  expect_identical(Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_), NA_character_)
+  expect_identical(Sys.getenv("RCPP_PARALLEL_STACK_SIZE"), "8388608")
+  # workers get the budget's thread count and inherit the stack size
+  handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile(fileext = ".log"))
+  on.exit(occJSDM:::stop_chain_cluster(handle), add = TRUE)
+  seen <- parallel::clusterCall(handle$cl, function(v) Sys.getenv(v), vars)
+  for (s in seen) expect_identical(unname(s), c("1", "8388608"))
+})
+
 test_that("the reset-then-restore helper leaves the same state after an error in either driver", {
   # Helper-level: it checks save_session_rng() and restore_session_rng()
   # around a failing batch in both drivers. The production orchestration,
@@ -1052,8 +1085,10 @@ is_dev_loaded <- function() {
 # globalenv() as its environment and uses only base, RcppParallel and pkgload.
 bootstrap_chain_worker <- function(libpaths, threads, dev_path) {
   .libPaths(libpaths)
+  # The environment variable is all RcppParallel consults for the thread
+  # count; setThreadOptions() would also unset RCPP_PARALLEL_STACK_SIZE, which
+  # the worker inherited from the parent and keeps on purpose.
   Sys.setenv(RCPP_PARALLEL_NUM_THREADS = as.character(threads))
-  RcppParallel::setThreadOptions(numThreads = threads)
   if (is.null(dev_path)) {
     loadNamespace("occJSDM")
   } else {
@@ -1145,18 +1180,16 @@ stop_chain_cluster <- function(handle) {
 
 # ncores > 1 with one chain runs in process with the session's RcppParallel
 # count set to the budget for the fit; the returned function puts it back.
+# Only the thread-count variable is touched. RcppParallel::setThreadOptions()
+# itself does nothing but set or unset RCPP_PARALLEL_NUM_THREADS and
+# RCPP_PARALLEL_STACK_SIZE (checked 13 October 2026), and with its default
+# stackSize = "auto" it unsets the stack size, so calling it here would clear
+# a custom stack size the session had set for other RcppParallel work.
 pin_session_threads <- function(threads) {
   old <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_)
   Sys.setenv(RCPP_PARALLEL_NUM_THREADS = as.character(threads))
-  RcppParallel::setThreadOptions(numThreads = threads)
   function() {
-    if (is.na(old)) {
-      Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS")
-      RcppParallel::setThreadOptions(numThreads = "auto")
-    } else {
-      Sys.setenv(RCPP_PARALLEL_NUM_THREADS = old)
-      RcppParallel::setThreadOptions(numThreads = as.integer(old))
-    }
+    if (is.na(old)) Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS") else Sys.setenv(RCPP_PARALLEL_NUM_THREADS = old)
     invisible(NULL)
   }
 }
@@ -1330,6 +1363,10 @@ test_that("a parallel fit announces the progress file and the workers write to i
 
 test_that("one chain with ncores > 1 stays in process with the thread budget applied and restored", {
   sim <- simulate_fixture(model = "binary", M = 1L, P = 1L, K = 1L)
+  vars <- c("RCPP_PARALLEL_NUM_THREADS", "RCPP_PARALLEL_STACK_SIZE")
+  saved <- Sys.getenv(vars, unset = NA_character_, names = TRUE)
+  on.exit(for (nm in names(saved)) if (is.na(saved[[nm]])) Sys.unsetenv(nm) else do.call(Sys.setenv, as.list(setNames(saved[[nm]], nm))), add = TRUE)
+  Sys.setenv(RCPP_PARALLEL_STACK_SIZE = "8388608")   # a custom setting the fit must leave alone
   before <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_)
   set.seed(12)
   msgs <- capture_messages(fit <- fit_fixture(sim, spatial = FALSE,
@@ -1340,6 +1377,7 @@ test_that("one chain with ncores > 1 stays in process with the thread budget app
                    list(ncores = 2L, workers = 1L, threads_per_worker = 2L, thread_setting = "budget"))
   expect_null(ex$progress_file); expect_null(ex$blas_threads_requested)
   expect_identical(Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_), before)
+  expect_identical(Sys.getenv("RCPP_PARALLEL_STACK_SIZE"), "8388608")
 })
 
 test_that("non-default RNG kinds give the same fit at every ncores", {
@@ -1456,8 +1494,11 @@ After this task nothing under `R/`, `src/`, `DESCRIPTION` or `NAMESPACE` changes
 #' \code{min(nchain, ncores)} worker processes, each with
 #' \code{floor(ncores / workers)} RcppParallel threads; for example four chains
 #' with \code{ncores = 4} run on four single-threaded workers and with
-#' \code{ncores = 8} on four workers of two threads. Defaults to
-#' \code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1, ncores = 1)}.
+#' \code{ncores = 8} on four workers of two threads. A single chain never
+#' leaves this process: with \code{nchain = 1} and \code{ncores > 1} the fit
+#' runs here with its RcppParallel thread count set to \code{ncores} for the
+#' duration and restored afterwards, and no progress file is written. Defaults
+#' to \code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1, ncores = 1)}.
 ```
 
 - [ ] **Step 2: Replace the `@details` paragraph**
@@ -2216,3 +2257,29 @@ Signed: **Codex**
 ## Response to the Codex follow-up review, 13 October 2026
 
 Accepted. `fit_fixture()` wraps `runOccJSDM()` in `suppressMessages()` (`tests/testthat/helper-fixtures.R`), so the handler in the interrupt test could never see the start line. The test now calls `runOccJSDM()` directly with the fixture's arguments and `suppressWarnings()` only, as the progress-file test already does, and queries for the fit's workers only when the start line was captured, so an absent message is reported as that failure and no query is made with an invalid identifier. The reference fit in the same test still goes through `fit_fixture()`, which needs no message capture. No other task was changed.
+
+## Codex whole-plan review, 13 October 2026
+
+Reviewed all ten tasks at revision `65d1c51`, including the proposed implementation, tests, documentation, benchmark, refit, final validation and PR steps, against the design and current source. The latest direct call to `runOccJSDM()` and guarded process query resolve the previous message-capture finding. The earlier setup-state, bootstrap-cleanup, benchmark-run isolation and memory-reporting corrections remain in place. This fresh review found two P2 issues and one documentation correction.
+
+1. **[P2] Task 4's in-process thread helper permanently clears a custom RcppParallel stack size.** At lines 1148-1158, `pin_session_threads()` saves only `RCPP_PARALLEL_NUM_THREADS` and calls `RcppParallel::setThreadOptions()` without `stackSize`, both when pinning and when restoring. The installed implementation defaults `stackSize` to `"auto"` and consequently unsets `RCPP_PARALLEL_STACK_SIZE`. A direct probe of the exact planned helper started with thread count `3` and stack size `8388608`, observed count `2` and an unset stack size during the pin, and count `3` with the stack size still unset after restoration. Thus a one-chain fit with `ncores > 1` changes another session setting, including for later RcppParallel work that needed the custom stack. Preserve that setting during the fit and restore it on every exit, either by limiting the helper to the thread-count setting or by explicitly preserving both settings when calling the API. Add coverage with a nondefault stack size, including cleanup after an error. The worker bootstrap also calls this API without `stackSize`; decide explicitly whether workers should retain the inherited stack setting rather than clearing it incidentally.
+
+2. **[P2] Task 1's warning test fails when core detection is unavailable.** Line 67 unconditionally passes `parallel::detectCores() + 1L` to `resolve_ncores()` and expects a warning. `detectCores()` returned `NA` in this review's restricted R process, so the actual extracted test instead failed with the validator's "single whole number" error. The production helper already handles an unknown detected count correctly; the test should not require the operating system to supply one. Exercise the warning with a controlled detected count, or condition only that assertion on a known count, and retain a separate check that a valid explicit budget is accepted when detection returns `NA`. Do not skip the other validation assertions when detection is unavailable.
+
+3. **[P3] Task 6's replacement help omits the single-chain exception.** Lines 1455-1457 say every `ncores > 1` fit runs on worker processes. Task 5 deliberately keeps `nchain = 1` in the calling process, pins its RcppParallel thread count and creates no progress file. State that exception in the public argument documentation, alongside the unchanged ambient-thread behavior at `ncores = 1`, so the documented process model agrees with the implementation and its tests.
+
+Validation in this review: all 32 R code fences parsed successfully. The exact planned core-validation test produced nine successful assertions and the core-detection failure above; the seven other extracted helper test blocks passed all 30 assertions, covering budget arithmetic, ambient thread reporting, WAIC merging, latent sums, seed shape/prefix behavior and RNG restoration. The stack-size probe independently reproduced finding 1. These probes evaluated the plan's helper definitions in a temporary R environment against the installed package's existing dependencies; they did not install or implement the proposed feature.
+
+No further actionable issue was found in the moved sampling body, chain-order assembly, common RNG cleanup, build fingerprint, benchmark/refit ordering or final export workflow. The production error-exit coverage limit remains explicitly documented. Correct the findings above before executing the plan; the complete package suite, worker integration tests, benchmark and refit still need to run on the implemented change. No production source or data was changed, and no long fitting job was started. Only this review was appended.
+
+Signed: **Codex**
+
+## Response to the Codex whole-plan review, 13 October 2026
+
+All three points are accepted.
+
+1. Stack size. Confirmed from the installed source: `RcppParallel::setThreadOptions()` does nothing but set or unset `RCPP_PARALLEL_NUM_THREADS` and `RCPP_PARALLEL_STACK_SIZE`, and its default `stackSize = "auto"` unsets the latter. Since the environment variable is all RcppParallel consults, the in-process pin and the worker bootstrap now set the thread-count variable directly and never call that function, so a custom stack size is left alone in the session and inherited by the workers. Task 4 gains a test with a nondefault stack size covering the pin, its restore, the restore after an error registered the way `runOccJSDM()` registers it, the unset case, and what the workers see; Task 5's one-chain test asserts the stack size is unchanged after a fit. The spec's budget sentence is amended to match.
+2. Core detection. `resolve_ncores()` takes the detected count as an argument defaulting to `parallel::detectCores()`, which is documented to return `NA` when unknown. Task 1's test now exercises the warning with an injected count of 4, the boundary at 4 without a warning, and an explicit budget of 64 accepted silently when detection returns `NA`; the other validation assertions are unchanged and unconditional.
+3. Help text. Task 6's `MCMCparams` entry now states the single-chain exception beside the ambient behaviour at `ncores = 1`.
+
+No other task was changed.
