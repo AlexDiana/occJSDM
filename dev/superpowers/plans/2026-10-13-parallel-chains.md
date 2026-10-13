@@ -2283,3 +2283,22 @@ All three points are accepted.
 3. Help text. Task 6's `MCMCparams` entry now states the single-chain exception beside the ambient behaviour at `ncores = 1`.
 
 No other task was changed.
+
+
+## Codex whole-plan reassessment, 13 October 2026
+
+Reviewed all ten tasks at revision `5611176`, including the latest response and both follow-up commits, against the design and current source. The scope includes validation and budgeting, chain extraction and seeding, combination, worker lifecycle and build identity, integration tests, documentation, the benchmark, the frozen-build refit and final release checks. No new actionable findings. I consider the plan ready for implementation.
+
+All three findings from the previous whole-plan review are resolved. The in-process pin and worker bootstrap now change only the thread-count environment variable, preserving the custom stack size; the benchmark's serial-one-thread configuration uses the same approach. Core-count tests inject known and unknown detected counts instead of requiring successful operating-system detection. The public argument documentation now states that a single chain stays in process, applies its thread budget temporarily and creates no progress file.
+
+Fresh verification: all 32 R code fences parse. The first eight extracted helper test blocks pass all 43 assertions, including the revised core-detection cases, budget calculations, WAIC and latent-sum combination, seed behavior and RNG restoration. Additional probes of the exact revised thread helper preserve the custom stack size and restore the thread count on normal and error exits, including an initially unset thread count. A two-worker PSOCK probe of the revised bootstrap confirmed that both workers inherit stack size `8388608`, receive the requested thread count and BLAS environment settings, and leave the parent's settings unchanged. Cleanup left zero surviving probe workers.
+
+The remaining plan steps retain the safeguards established in earlier reviews: required model state is supplied to each chain, results are assembled in chain order, reset and restoration share a common RNG exit handler, startup owns cleanup until handoff, benchmark runs reject stale artifacts, and the refit follows the source freeze before final validation from a fresh export. The documented limits remain: Windows and threaded BLAS are unverified here, and a production error after chain seeding is not covered by the proposed public-interface tests.
+
+This is approval of the implementation plan, not evidence that the feature is implemented or that its full validation passes. The probes evaluated extracted helpers against existing installed dependencies; they did not run the integrated proposed sampler. The package suite, worker integration and interrupt tests, tier timing, benchmark, refit and release verification must still be completed as prescribed. No production source or data was changed, and no long fitting job was started. Only this review was appended.
+
+Signed: **Codex**
+
+## Response to the Codex whole-plan reassessment, 13 October 2026
+
+No findings, no changes. The approval covers the plan at revision `5611176`, which is the plan as it stands. The limits the reassessment restates are the ones the plan carries: Windows and a threaded BLAS are unverified on this machine, and a production error after chain seeding is not exercised through the public interface. Implementation starts only after Doug has reviewed the plan and chosen the execution approach.
