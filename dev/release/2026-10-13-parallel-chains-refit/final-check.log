@@ -1,4 +1,4 @@
-* using log directory ‘/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/20c0db62-035a-40e6-b4ff-8dc2f5ddd47d/scratchpad/final-export/build/occJSDM.Rcheck’
+* using log directory ‘/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/20c0db62-035a-40e6-b4ff-8dc2f5ddd47d/scratchpad/final-export2/build/occJSDM.Rcheck’
 * using R version 4.6.1 (2026-06-24)
 * using platform: aarch64-apple-darwin23
 * R was compiled by
@@ -6,18 +6,18 @@
     GNU Fortran (GCC) 14.2.0
 * running under: macOS Golden Gate 27.0.1
 * using session charset: UTF-8
-* current time: 2026-10-13 21:58:31 UTC
+* current time: 2026-10-13 22:48:30 UTC
 * using option ‘--as-cran’
 * checking for file ‘occJSDM/DESCRIPTION’ ... OK
 * checking extension type ... Package
 * this is package ‘occJSDM’ version ‘0.1.1’
 * package encoding: UTF-8
-* checking CRAN incoming feasibility ... [2s/17s] NOTE
+* checking CRAN incoming feasibility ... [3s/13s] NOTE
 Maintainer: ‘Alex Diana <Alex.diana92@yahoo.it>’
 
 New submission
 
-Size of tarball: 52524590 bytes
+Size of tarball: 52525739 bytes
 * checking package namespace information ... OK
 * checking package dependencies ... OK
 * checking if this is a source package ... OK
@@ -26,7 +26,7 @@ Size of tarball: 52524590 bytes
 * checking for hidden files and directories ... OK
 * checking for portable file names ... OK
 * checking for sufficient/correct file permissions ... OK
-* checking whether package ‘occJSDM’ can be installed ... [26s/26s] OK
+* checking whether package ‘occJSDM’ can be installed ... [47s/49s] OK
 * used C++ compiler: ‘Apple clang version 21.0.0 (clang-2100.3.34.2)’
 * used SDK: ‘MacOSX27.0.sdk’
 * checking installed package size ... INFO
@@ -58,7 +58,7 @@ is not mentioned in the DESCRIPTION file.
 * checking S3 generic/method consistency ... OK
 * checking replacement functions ... OK
 * checking foreign function calls ... OK
-* checking R code for possible problems ... NOTE
+* checking R code for possible problems ... [10s/10s] NOTE
 plotCoefficient: warning in factor(Output, level =
   outputNames[orderOutputs]): partial argument match of 'level' to
   'levels'
@@ -127,8 +127,8 @@ packages’ in the ‘Writing R Extensions’ manual.
 * checking examples ... OK
 * checking for unstated dependencies in ‘tests’ ... OK
 * checking tests ...
-  Running ‘testthat.R’ [30s/35s]
- [30s/35s] OK
+  Running ‘testthat.R’ [56s/67s]
+ [57s/67s] OK
 * checking for unstated dependencies in vignettes ... OK
 * checking package vignettes ... OK
 * checking re-building of vignette outputs ... OK
@@ -143,6 +143,6 @@ release or compiling the source code from <https://www.html-tidy.org/>.
 
 Status: 2 WARNINGs, 4 NOTEs
 See
-  ‘/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/20c0db62-035a-40e6-b4ff-8dc2f5ddd47d/scratchpad/final-export/build/occJSDM.Rcheck/00check.log’
+  ‘/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/20c0db62-035a-40e6-b4ff-8dc2f5ddd47d/scratchpad/final-export2/build/occJSDM.Rcheck/00check.log’
 for details.
 
