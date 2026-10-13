@@ -904,6 +904,7 @@ runOccJSDM <- function(data,
     nburn <- get_param(MCMCparams, "nburn", 1000)
     niter <- get_param(MCMCparams, "niter", 1000)
     nthin <- get_param(MCMCparams, "nthin", 1)
+    ncores <- resolve_ncores(MCMCparams)
   }
 
   # precompute spatial quantities
@@ -1040,382 +1041,102 @@ runOccJSDM <- function(data,
   # run MCMC
   message("Running MCMC")
 
-  # Seed the serial C++ sampling stream from R's RNG. All random draws stay
-  # on the main thread regardless of RcppParallel's requested thread count;
-  # deterministic probability calculations can still run in parallel.
-  # Drawing the seed here
-  # rather than using a constant also makes two consecutive fits in the same
-  # session independent. Chains deliberately share the draw: each continues the
-  # stream where the previous one stopped, so they differ from one another
-  # while the fit as a whole stays reproducible.
-  setOccJSDMSeed(sample.int(.Machine$integer.max, 1L))
+  # Every chain gets its own R seed and C++ seed, drawn here from R's RNG, so
+  # set.seed() before the fit reproduces it and consecutive fits differ. A
+  # chain's draws then depend on its two seeds alone, not on which chains ran
+  # before it or in which process, which is what makes a fit identical whatever
+  # MCMCparams$ncores says. The session's RNG is reset and restored on every
+  # exit. Spec: dev/superpowers/specs/2026-10-13-parallel-chains-design.md.
+  seeds <- draw_chain_seeds(nchain)
+  rng_saved <- save_session_rng()
+  on.exit(restore_session_rng(rng_saved), add = TRUE)
 
-  for (chain in 1:nchain) {
+  setup <- mget(chain_setup_fields(), envir = environment(), ifnotfound = list(NULL))
+  set_chain_setup(setup)
+  on.exit(clear_chain_setup(), add = TRUE)
 
-    # chain output
-    {
+  budget <- plan_chain_budget(nchain, ncores)
+  handle <- NULL
+  progress_file <- NULL
+
+  latent_sums <- NULL
+  waic_parts <- vector("list", nchain)
+  elapsed <- numeric(nchain)
+  batches <- split(seq_len(nchain), ceiling(seq_len(nchain) / budget$workers))
+  for (batch in batches) {
+    results <- run_chain_batch(handle, batch, seeds)
+    for (res in results) {
+      res <- stop_if_chain_failed(res)
+      chain <- res$chain
+      dr <- res$draws
+
       if(model %in% c("occupancy","two_stage")){
-        beta_theta_output_chain <- array(NA, dim = c(ncov_theta, S, niter))
-        theta0_output_chain <- array(NA, dim = c(S, niter))
+        beta_theta_output[,,,chain] <- dr$beta_theta
+        theta0_output[,,chain] <- dr$theta0
         if(!summarisedLatentPresences){
-          z_output_chain <- array(NA, dim = c(n, S, niter))
-          psi_output_chain <- array(NA, dim = c(n, S, niter))
-          theta_output_chain <- array(NA, dim = c(N, S, niter))
+          z_output[,,,chain] <- dr$z
+          psi_output[,,,chain] <- dr$psi
         }
       }
 
       if(model == "two_stage"){
-        p_output_chain <- array(NA, dim = c(maxP, S, niter))
-        q_output_chain <- array(NA, dim = c(maxP, S, niter))
+        p_output[,,,chain] <- dr$p
+        q_output[,,,chain] <- dr$q
       }
 
-      # jsdm params
+      # save jsdm params
       {
-        B0_output_chain <- array(NA, dim = c(S, niter))
-        B_output_chain <- array(NA, dim = c(ncov_psi, S, niter))
-        G_output_chain <- array(NA, dim = c(g, ncov_psi, niter))
-        A_output_chain <- array(NA, dim = c(S, gt, niter))
-        C_output_chain <- array(NA, dim = c(gt, ncov_psi, niter))
-        Bs_output_chain <- array(NA, dim = c(ps, S, niter))
-        Gs_output_chain <- array(NA, dim = c(g, ps, niter))
-        As_output_chain <- array(NA, dim = c(S, gt, niter))
-        Cs_output_chain <- array(NA, dim = c(gt, ps, niter))
-        U_output_chain <- array(NA, dim = c(n, d, niter))
-        L_output_chain <- array(NA, dim = c(d, S, niter))
-        sigmab_output_chain <- rep(NA, niter)
-        sigmabs_output_chain <- rep(NA, niter)
-        sigmah_output_chain <- rep(NA, niter)
-        idx_ls_output_chain <- rep(NA, niter)
-        tau_output_chain <- matrix(NA, S, niter)
-        varPart_output_chain <-  array(NA, dim = c(S, 4, niter))
+        B0_output[,,chain] <- dr$B0
+        B_output[,,,chain] <- dr$B
+        G_output[,,,chain] <- dr$G
+        A_output[,,,chain] <- dr$A
+        C_output[,,,chain] <- dr$C
+        Bs_output[,,,chain] <- dr$Bs
+        Gs_output[,,,chain] <- dr$Gs
+        As_output[,,,chain] <- dr$As
+        Cs_output[,,,chain] <- dr$Cs
+        U_output[,,,chain] <- dr$U
+        L_output[,,,chain] <- dr$L
+        sigmab_output[,chain] <- dr$sigmab
+        sigmabs_output[,chain] <- dr$sigmabs
+        sigmah_output[,chain] <- dr$sigmah
+        idx_ls_output[,chain] <- dr$idx_ls
+        varPart_output[,,,chain] <- dr$varPart
+        tau_output[,,chain] <- dr$tau
       }
 
+      latent_sums <- add_latent_sums(latent_sums, res$latent_sums)
+      waic_parts[[chain]] <- res$waic
+      elapsed[chain] <- res$elapsed
+      rm(dr)
     }
-
-    # starting values
-    {
-      if(model == "two_stage"){
-
-        w <- matrix(NA, N, S)
-
-        for (s in 1:S) {
-          for (i in 1:n) {
-            for (m in 1:M[i]) {
-              idx_im1 <- sumK[sumP[sumM[i] + m] + 1] + 1
-              idx_im2 <- sumK[sumP[sumM[i] + m] + P[sumM[i] + m]] +
-                K[sumP[sumM[i] + m] + P[sumM[i] + m]]
-              y_subset <- y[idx_im1:idx_im2,s]
-              y_subset <- y_subset[!is.na(y_subset)]
-              if(length(y_subset) > 0){
-                w[sumM[i] + m,s] <- as.numeric(any(y_subset > 0))
-              } else {
-                w[sumM[i] + m,s] <- 1
-              }
-            }
-          }
-        }
-
-        c_imk <- array(as.numeric(y > 0), dim = dim(y), dimnames = dimnames(y))
-
-        p <- matrix(.9, maxP, S)
-        q <- matrix(.05, maxP, S)
-
-        y_pos <- (y > 0)
-
-      }
-
-      if(model %in% c("occupancy","two_stage")){
-
-        z <- matrix(NA, n, S)
-
-        for (s in 1:S) {
-          for (i in 1:n) {
-            idx_i1 <- sumM[i] + 1
-            idx_i2 <- sumM[i] + M[i]
-
-            z[i,s] <- as.numeric(any(w[idx_i1:idx_i2, s] > 0))
-          }
-        }
-
-        beta_theta <- matrix(0, ncov_theta, S)
-        theta <- computeTheta(X_theta, beta_theta)
-        theta0 <- rep(.05, S)
-      }
-
-      # jsdmParams
-      {
-        B0 <- rep(0, S)
-        B <- matrix(0, ncov_psi, S)
-        Bs <- matrix(0, ps, S)
-        L <- matrix(1, d, S)
-        diag(L) <- 1
-        L[lower.tri(L)] <- 0
-        G <- matrix(0, g, ncov_psi)
-        C <- matrix(1, gt, ncov_psi)
-        diag(C) <- 1
-        C[lower.tri(C)] <- 0
-        A <- matrix(0, S, gt)
-        Gs <- matrix(0, g, ps)
-        Cs <- matrix(1, gt, ps)
-        diag(Cs) <- 1
-        Cs[lower.tri(Cs)] <- 0
-        As <- matrix(0, S, gt)
-        U <- matrix(0, n, d)
-        sigma_b <- 1
-        sigma_bs <- if (identical(spatial_sd_prior$type,"half_cauchy"))
-          spatial_sd_prior$scale else .001
-        sigma_h <- 1
-        idx_ls <- 3 # dim(list_SoRSummaries$Ks_all)[3][5]
-        tau <- rep(1, S)
-
-        Bt <- t(B) - computeBtcoef(G, Tr, A, C, matrix(0, S, ncov_psi))
-        Bst <- t(Bs) - computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps))
-
-        Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=n)
-
-        list_jSDMparams <- list(
-          "B0" = B0,
-          "B" = B,
-          "G" = G,
-          "A" = A,
-          "C" = C,
-          "Bt" = Bt,
-          "Bs" = Bs,
-          "Gs" = Gs,
-          "As" = As,
-          "Cs" = Cs,
-          "Bst" = Bst,
-          "U" = U,
-          "L" = L,
-          "sigma_b" = sigma_b,
-          "sigma_bs" = sigma_bs,
-          "sigma_h" = sigma_h,
-          "idx_ls" = idx_ls,
-          "tau" = tau
-        )
-
-        list_psiCoef <- computePsiCoef(
-          X_psi, Ks, list_Xs$Xs_centers, Tr,
-          B0, G, A, C, Bt,
-          Gs, As, Cs, Bst,
-          U, L)
-
-      }
-
-      psi <- logistic(list_psiCoef$eta)
-
-    }
-
-    for (iter in 1:(nburn + niter * nthin)) {
-
-      if(iter > nburn){
-        currentIter <- (iter - nburn) / nthin
-        if(currentIter %% 100 == 0){
-          message(paste0("Chain ", chain, " - Iteration ",currentIter))
-        }
-      } else {
-        if(iter %% 100 == 0){
-          message(paste0("Chain ", chain, " - Burn in Iteration ",iter))
-        }
-      }
-
-      # sample z
-      if(model %in% c("occupancy","two_stage")){
-        z <- sample_z_cpp_parallel(w, psi, theta, theta0, M, sumM)
-      }
-
-      # sample jsdm coef
-      {
-        list_data$z <- z
-
-        list_jSDMparams <- update_jSDMcoef(
-          list_data,
-          list_jSDMparams,
-          list_priors,
-          list_Xs,
-          list_SoRSummaries,
-          model = jsdmModel,
-          computeVarPart = (iter > nburn & (iter - nburn) %% nthin == 0)
-        )
-        psi <- list_jSDMparams$psi
-        eta <- list_jSDMparams$eta
-      }
-
-      # sample w
-      if(model == "two_stage"){
-        if(threshold > 0){
-
-          w <- sample_w_cim_cipp_parallel(y, y_NA, theta, theta0, p, q,
-                                 M, K, sumP, sumM, sumK, P, primerId_p, maxP, z)
-
-        }
-      }
-
-      # sample cimk
-      if(model == "two_stage"){
-        if (threshold > 0) {
-
-          w_all <- w[idx_w_k,,drop=F]
-
-          # faster way to assign c_imk to 1 if logy1 > 0 for w_all = 1 and to 2
-          # if log1 > 0 when w_all = 0
-          c_imk <- y_pos * (2 - (w_all == 1))
-
-        }
-      }
-
-      # sample theta
-      if(model %in% c("occupancy","two_stage")){
-        # beta_theta <- sample_betatheta_cpp(w, z, beta_theta, idx_z_w, X_theta,
-        #                                    b_betatheta, B_betatheta)
-        beta_theta <- sample_betatheta_cpp_parallel(w, z, beta_theta, idx_z_w, X_theta,
-                                           b_betatheta, B_betatheta)
-        theta <- computeTheta(X_theta, beta_theta)
-      }
-
-      # sample pq
-      if(model == "two_stage"){
-        list_pq <- sample_pq_cpp_parallel(c_imk, y_NA, w, idx_p_k, idx_w_k, maxP, a_p, b_p, a_q, b_q)
-        p <- list_pq$p
-        q <- list_pq$q
-      }
-
-      # sample theta0
-      if(model %in% c("occupancy","two_stage")){
-        theta0 <- sample_theta0(z, w, idx_z_w, a_theta0, b_theta0)
-      }
-
-      {
-
-        if(iter > nburn & (iter - nburn) %% nthin == 0){
-          currentIter <- (iter - nburn) / nthin
-
-          if(model %in% c("occupancy","two_stage")){
-            beta_theta_output_chain[,,currentIter] <- beta_theta
-            theta0_output_chain[,currentIter] <- theta0
-            if(summarisedLatentPresences){
-              z_output_mean <- z_output_mean +
-                (1 / (niter * nchain)) * z
-              psi_output_mean <- psi_output_mean +
-                (1 / (niter * nchain)) * psi
-            } else {
-              z_output_chain[,,currentIter] <- z
-              psi_output_chain[,,currentIter] <- psi
-            }
-            theta_output_mean <- theta_output_mean +
-              (1 / (niter * nchain)) * theta
-          }
-
-          if(model == "two_stage"){
-            p_output_chain[,,currentIter] <- p
-            q_output_chain[,,currentIter] <- q
-            w_output_mean <- w_output_mean +
-              (1 / (niter * nchain)) * w
-          }
-
-          # save jsdm params
-          {
-            B0_output_chain[,currentIter] <- list_jSDMparams$B0
-            B_output_chain[,,currentIter] <- list_jSDMparams$B
-            G_output_chain[,,currentIter] <- list_jSDMparams$G
-            A_output_chain[,,currentIter] <- list_jSDMparams$A
-            C_output_chain[,,currentIter] <- list_jSDMparams$C
-            Bs_output_chain[,,currentIter] <- list_jSDMparams$Bs
-            Gs_output_chain[,,currentIter] <- list_jSDMparams$Gs
-            As_output_chain[,,currentIter] <- list_jSDMparams$As
-            Cs_output_chain[,,currentIter] <- list_jSDMparams$Cs
-            U_output_chain[,,currentIter] <- list_jSDMparams$U
-            L_output_chain[,,currentIter] <- list_jSDMparams$L
-            sigmab_output_chain[currentIter] <- list_jSDMparams$sigma_b
-            sigmabs_output_chain[currentIter] <- list_jSDMparams$sigma_bs
-            sigmah_output_chain[currentIter] <- list_jSDMparams$sigma_h
-            idx_ls_output_chain[currentIter] <- list_jSDMparams$idx_ls
-            if(model == "continuous") tau_output_chain[,currentIter] <- list_jSDMparams$tau
-
-            varPart_output_chain[,,currentIter] <-
-              as.matrix(list_jSDMparams$variancePartitioning)
-          }
-
-          # update WIAC
-          {
-
-            loglik_jsdm <- computeModelLoglikJSDM_cpp(z, eta, jsdmModel, tau)
-            list_waic_jsdm <- update_waic_summary(loglik_jsdm, list_waic_jsdm, currentWAICiter)
-
-            if(model %in% c("occupancy","two_stage")){
-              logliks_firststage <- computeModelLoglikFirstStage_cpp(w, z, theta, theta0,
-                                                                 list_idx$idx_z_w)
-              list_waic_w <- update_waic_summary(logliks_firststage, list_waic_w, currentWAICiter)
-            }
-
-            if(model == "two_stage"){
-              logliks_secondstage <- computeModelLoglikSecondStage_cpp(y, w, p, q,
-                                                                   list_idx$idx_w_k,
-                                                                   list_idx$idx_p_k)
-              list_waic_y <- update_waic_summary(logliks_secondstage, list_waic_y, currentWAICiter)
-            }
-
-            currentWAICiter <- currentWAICiter + 1
-
-          }
-
-        }
-
-      }
-
-    }
-
-    if(model %in% c("occupancy","two_stage")){
-      beta_theta_output[,,,chain] <- beta_theta_output_chain
-      theta0_output[,,chain] <- theta0_output_chain
-      if(!summarisedLatentPresences){
-        z_output[,,,chain] <- z_output_chain
-        psi_output[,,,chain] <- psi_output_chain
-      }
-    }
-
-    if(model == "two_stage"){
-      p_output[,,,chain] <- p_output_chain
-      q_output[,,,chain] <- q_output_chain
-    }
-
-    # save jsdm params
-    {
-      B0_output[,,chain] <- B0_output_chain
-      B_output[,,,chain] <- B_output_chain
-      G_output[,,,chain] <- G_output_chain
-      A_output[,,,chain] <- A_output_chain
-      C_output[,,,chain] <- C_output_chain
-      Bs_output[,,,chain] <- Bs_output_chain
-      Gs_output[,,,chain] <- Gs_output_chain
-      As_output[,,,chain] <- As_output_chain
-      Cs_output[,,,chain] <- Cs_output_chain
-      U_output[,,,chain] <- U_output_chain
-      L_output[,,,chain] <- L_output_chain
-      sigmab_output[,chain] <- sigmab_output_chain
-      sigmabs_output[,chain] <- sigmabs_output_chain
-      sigmah_output[,chain] <- sigmah_output_chain
-      idx_ls_output[,chain] <- idx_ls_output_chain
-      varPart_output[,,,chain] <- varPart_output_chain
-      tau_output[,,chain] <- tau_output_chain
-
-    }
-
+    rm(results, res)
   }
+  for (chain in seq_len(nchain)) message(sprintf("Chain %d finished in %.1f s", chain, elapsed[chain]))
+
+  # latent-state means, from the per-chain sums
+  if (model %in% c("occupancy","two_stage")) {
+    if (summarisedLatentPresences) {
+      z_output_mean <- latent_sums$z / (niter * nchain)
+      psi_output_mean <- latent_sums$psi / (niter * nchain)
+    }
+    theta_output_mean <- latent_sums$theta / (niter * nchain)
+  }
+  if (model == "two_stage") w_output_mean <- latent_sums$w / (niter * nchain)
 
   # compute WAIC
   {
     numIters <- niter * nchain
-    if(numIters != (currentWAICiter-1)) stop("Current wAIC iter wrong")
-    WAIC_jsdm <- compute_waic(list_waic_jsdm, numIters)
+    for (part in waic_parts) if (part$jsdm$n != niter) stop("Current wAIC iter wrong")
+    WAIC_jsdm <- compute_waic(merge_waic_parts(lapply(waic_parts, `[[`, "jsdm")), numIters)
 
     if(model %in% c("occupancy","two_stage")){
-      WAIC_w <- compute_waic(list_waic_w, numIters)
+      WAIC_w <- compute_waic(merge_waic_parts(lapply(waic_parts, `[[`, "w")), numIters)
     } else {
       WAIC_w <- 0
     }
     if(model %in% "two_stage"){
-      WAIC_y <- compute_waic(list_waic_y, numIters)
+      WAIC_y <- compute_waic(merge_waic_parts(lapply(waic_parts, `[[`, "y")), numIters)
     } else {
       WAIC_y <- 0
     }
@@ -1515,6 +1236,21 @@ runOccJSDM <- function(data,
   infos$noise_prior <- noise_prior
   infos$spatial_sd_prior <- spatial_sd_prior
   infos$intercept_prior <- intercept_prior
+  infos$MCMCparams <- list(nchain = as.integer(nchain), nburn = as.integer(nburn),
+                           niter = as.integer(niter), nthin = as.integer(nthin))
+  infos$chain_seeds <- seeds
+  infos$execution <- list(
+    ncores = budget$ncores,
+    workers = budget$workers,
+    threads_per_worker = if (budget$thread_setting == "ambient") ambient_rcpp_threads() else budget$threads_per_worker,
+    thread_setting = budget$thread_setting,
+    blas_threads_requested = if (is.null(handle)) NULL else handle$blas_threads_requested,
+    worker_pids = if (is.null(handle)) NULL else handle$pids,
+    blas_declared = nzchar(Sys.getenv("OCCJSDM_REFERENCE_BLAS")),
+    blas = unname(extSoftVersion()[["BLAS"]]),
+    lapack = La_library(),
+    elapsed = elapsed,
+    progress_file = progress_file)
 
   list(
     "results_output" = results_output,

@@ -107,3 +107,108 @@ test_that("latent-state sums fold over three parts and keep their names", {
   expect_null(total$w)
   expect_named(total, c("z", "psi", "theta", "w"))   # NULL entries survive a second and a third add
 })
+
+test_that("chain seeds are a 2 by nchain integer matrix drawn from R's RNG", {
+  set.seed(3); a <- occJSDM:::draw_chain_seeds(3L)
+  set.seed(3); b <- occJSDM:::draw_chain_seeds(3L)
+  expect_identical(a, b)
+  expect_identical(dim(a), c(2L, 3L))
+  expect_identical(rownames(a), c("r", "cpp"))
+  expect_type(a, "integer")
+  expect_false(anyDuplicated(as.vector(a)) > 0)
+  set.seed(4); expect_false(identical(occJSDM:::draw_chain_seeds(3L), a))
+})
+
+test_that("a chain's seeds do not depend on how many chains follow it", {
+  set.seed(8); one <- occJSDM:::draw_chain_seeds(1L)
+  set.seed(8); two <- occJSDM:::draw_chain_seeds(2L)
+  expect_identical(one[, 1], two[, 1])
+})
+
+test_that("restoring the session RNG puts the value and the kinds back", {
+  old_kind <- RNGkind()
+  on.exit(do.call(RNGkind, as.list(old_kind)))
+  RNGkind("L'Ecuyer-CMRG", "Inversion", "Rejection")
+  set.seed(9); invisible(runif(2))
+  saved <- occJSDM:::save_session_rng()
+  expected <- runif(3)
+  occJSDM:::seed_chain_rng(123L, 456L)       # pins Mersenne-Twister etc., as a chain does
+  invisible(rnorm(5))
+  occJSDM:::restore_session_rng(saved)
+  expect_identical(RNGkind()[1:3], c("L'Ecuyer-CMRG", "Inversion", "Rejection"))
+  expect_identical(runif(3), expected)
+})
+
+test_that("chain 1 of a two-chain fit equals the one-chain fit under the same seed", {
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  set.seed(515); one <- fit_fixture(sim, MCMCparams = list(nchain = 1, nburn = 20, niter = 20, nthin = 1))
+  set.seed(515); two <- fit_fixture(sim, MCMCparams = list(nchain = 2, nburn = 20, niter = 20, nthin = 1))
+  expect_identical(one$results_output$jsdm_output$B0_output[, , 1], two$results_output$jsdm_output$B0_output[, , 1])
+  expect_identical(one$results_output$p_output[, , , 1], two$results_output$p_output[, , , 1])
+  expect_identical(one$infos$chain_seeds[, 1], two$infos$chain_seeds[, 1])
+  expect_false(identical(two$results_output$jsdm_output$B0_output[, , 1], two$results_output$jsdm_output$B0_output[, , 2]))
+})
+
+test_that("every model type fits through run_one_chain() in process", {
+  # Direct coverage of the extraction for all four models, so that a missing
+  # setup field (such as the z or w state the parent sets from y) is caught
+  # here and not only by the wider suite.
+  for (model in c("binary", "continuous", "occupancy", "two_stage")) {
+    sim <- simulate_fixture(model = model,
+                            M = if (model %in% c("occupancy", "two_stage")) 2L else 1L,
+                            P = if (model == "two_stage") 2L else 1L,
+                            K = if (model == "two_stage") 2L else 1L)
+    set.seed(1)
+    fit <- fit_fixture(sim, spatial = FALSE, MCMCparams = list(nchain = 2, nburn = 5, niter = 5, nthin = 1))
+    expect_identical(fit$infos$model, model, info = model)
+    expect_identical(dim(fit$results_output$jsdm_output$B0_output), c(FIXTURE_S, 5L, 2L), info = model)
+    expect_true(is.finite(fit$results_output$WAIC), info = model)
+    expect_identical(dim(fit$infos$chain_seeds), c(2L, 2L), info = model)
+  }
+})
+
+test_that("a fit leaves the session RNG just after its seed draws and clears the setup", {
+  # The state after a fit is the state after the chain seeds were drawn, so a
+  # third chain's seeds, had one been requested, are exactly the next draws.
+  # Comparing two fits rather than replaying the draws by hand keeps the test
+  # true even if the data preparation before the loop uses R's RNG.
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  set.seed(21); two <- fit_fixture(sim, MCMCparams = list(nchain = 2, nburn = 20, niter = 20, nthin = 1))
+  next_pair <- sample.int(.Machine$integer.max, 2L)
+  set.seed(21); three <- fit_fixture(sim, MCMCparams = list(nchain = 3, nburn = 20, niter = 20, nthin = 1))
+  expect_identical(unname(three$infos$chain_seeds[, 3]), next_pair)
+  expect_identical(two$infos$chain_seeds, three$infos$chain_seeds[, 1:2])
+  expect_false(exists("setup", envir = occJSDM:::chain_env, inherits = FALSE))
+})
+
+test_that("the new infos fields record the sampling settings, seeds and execution", {
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  set.seed(6); fit <- fit_fixture(sim, MCMCparams = list(nchain = 2, nburn = 20, niter = 20, nthin = 1))
+  expect_identical(fit$infos$MCMCparams, list(nchain = 2L, nburn = 20L, niter = 20L, nthin = 1L))
+  expect_identical(dim(fit$infos$chain_seeds), c(2L, 2L))
+  ex <- fit$infos$execution
+  expect_identical(ex$ncores, 1L); expect_identical(ex$workers, 1L)
+  expect_identical(ex$thread_setting, "ambient")
+  expect_identical(ex$threads_per_worker, occJSDM:::ambient_rcpp_threads())
+  expect_null(ex$progress_file); expect_null(ex$blas_threads_requested)
+  expect_identical(ex$blas_declared, nzchar(Sys.getenv("OCCJSDM_REFERENCE_BLAS")))
+  expect_length(ex$elapsed, 2L)
+  expect_null(occJSDM:::drop_execution(fit)$infos$execution)
+})
+
+test_that("summarised latent means equal the mean over all retained draws", {
+  sim <- simulate_fixture(model = "two_stage", P = 2L)
+  mc <- list(nchain = 2, nburn = 20, niter = 20, nthin = 1)
+  set.seed(31); summarised <- suppressMessages(suppressWarnings(runOccJSDM(sim$data_list,
+    listParams = list(n_factors = 2, n_supportpoints = FIXTURE_KNOTS),
+    occCovariates = fixture_occ_covariates(), spatCovariates = fixture_spat_covariates(),
+    MCMCparams = mc, summarisedLatentPresences = TRUE)))
+  set.seed(31); full <- suppressMessages(suppressWarnings(runOccJSDM(sim$data_list,
+    listParams = list(n_factors = 2, n_supportpoints = FIXTURE_KNOTS),
+    occCovariates = fixture_occ_covariates(), spatCovariates = fixture_spat_covariates(),
+    MCMCparams = mc, summarisedLatentPresences = FALSE)))
+  z_mean <- apply(full$results_output$z_output, c(1, 2), mean)
+  expect_equal(summarised$results_output$z_output, z_mean, tolerance = 1e-12)
+  expect_identical(summarised$results_output$WAIC, full$results_output$WAIC)
+  expect_identical(summarised$results_output$jsdm_output$B0_output, full$results_output$jsdm_output$B0_output)
+})
