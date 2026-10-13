@@ -39,3 +39,33 @@ ambient_rcpp_threads <- function() {
   env <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = "")
   if (nzchar(env)) as.integer(env) else as.integer(RcppParallel::defaultNumThreads())
 }
+
+# Merge two Welford accumulators (running mean, M2 and mean likelihood per
+# observation, each over n draws) exactly, with the standard pairwise formula.
+# Chains are merged in chain order by merge_waic_parts(), so the result cannot
+# depend on which worker produced which chain.
+merge_waic_pair <- function(a, b) {
+  if (is.null(a)) return(b)
+  if (is.null(b)) return(a)
+  n <- a$n + b$n
+  delta <- b$mean_log - a$mean_log
+  list(M2 = a$M2 + b$M2 + delta^2 * a$n * b$n / n,
+       mean_log = a$mean_log + delta * b$n / n,
+       mean_lik = (a$n * a$mean_lik + b$n * b$mean_lik) / n,
+       n = n)
+}
+
+merge_waic_parts <- function(parts) {
+  Reduce(merge_waic_pair, parts, accumulate = FALSE)
+}
+
+# Per-chain sums of the retained latent states, added in chain order.
+add_latent_sums <- function(total, part) {
+  if (is.null(part)) return(total)
+  if (is.null(total)) return(part)
+  out <- total
+  for (nm in names(part)) {
+    out[[nm]] <- if (is.null(total[[nm]]) || is.null(part[[nm]])) NULL else total[[nm]] + part[[nm]]
+  }
+  out
+}
