@@ -217,12 +217,13 @@ bootstrap_chain_worker <- function(libpaths, threads, dev_path) {
 # on.exit() below runs on an error or an interrupt during bootstrap, and the
 # PIDs are fetched before the slow package loading so that pskill() has
 # targets. `bootstrap` is an argument only so that tests can inject a failing
-# or slow bootstrap.
+# or slow bootstrap. `state` is an environment, so that every copy of the
+# handle sees stop_chain_cluster() mark it stopped.
 start_chain_cluster <- function(workers, threads, progress_file, bootstrap = bootstrap_chain_worker) {
   cl <- with_worker_environment(parallel::makeCluster(workers, outfile = progress_file))
   handle <- list(cl = cl, pids = integer(0), worker_threads = character(0),
                  progress_file = progress_file, blas_threads_requested = blas_thread_variables(),
-                 threads = as.integer(threads))
+                 threads = as.integer(threads), state = new.env(parent = emptyenv()))
   started <- FALSE
   on.exit(if (!started) stop_chain_cluster(handle), add = TRUE)
   handle$pids <- vapply(parallel::clusterCall(cl, Sys.getpid), as.integer, integer(1))
@@ -243,10 +244,12 @@ send_chain_setup <- function(handle, setup) {
 # Four things identify a build: namespace path, version, the loaded shared
 # object's md5, and a digest of every function's deparsed code. Functions
 # only: native-routine bindings carry process-specific pointers (spec,
-# "Build identity check").
+# "Build identity check"). The names are sorted by radix, which is the C
+# locale's order whatever the session's collation: a parent that changed
+# LC_COLLATE would otherwise order them differently from a fresh worker.
 package_fingerprint <- function() {
   ns <- asNamespace("occJSDM")
-  nms <- sort(ls(ns, all.names = TRUE))
+  nms <- sort(ls(ns, all.names = TRUE, sorted = FALSE), method = "radix")
   funs <- nms[vapply(nms, function(n) is.function(get(n, envir = ns)), logical(1))]
   text <- unlist(lapply(funs, function(n) c(n, deparse(get(n, envir = ns)))))
   tmp <- tempfile()
@@ -277,17 +280,25 @@ check_worker_builds <- function(handle) {
   invisible(TRUE)
 }
 
-# stopCluster() throws on a broken connection; the try() keeps the PID step
-# reachable. pskill() ends a worker that is mid-chain, which would otherwise
-# only read the stop message when its chain finished. stopCluster() gives up
-# at the first broken connection, so the sockets of the nodes after it are
-# closed here; left open, the garbage collector would close them later with
-# a warning at some unrelated point.
+# On R 4.6.1 stopCluster() sends "DONE" to every node before it closes any
+# socket, so a throw at one broken node leaves every socket open; and it then
+# waits up to 5 s for the workers to close theirs, which busy workers do not
+# do. try() catches the throw but not a second interrupt in that wait, so the
+# kill and the socket close are registered with on.exit() before
+# stopCluster() is called: pskill() is what guarantees that no worker
+# survives, including one that is mid-chain and would otherwise only read the
+# stop message when its chain finished. Sockets left open would be closed
+# later by the garbage collector, with a warning at some unrelated point.
+# A second call returns at once, so a node's stale connection object can
+# never write into a connection that has since taken its number.
 stop_chain_cluster <- function(handle) {
-  if (is.null(handle)) return(invisible(NULL))
+  if (is.null(handle) || isTRUE(handle$state$stopped)) return(invisible(NULL))
+  assign("stopped", TRUE, envir = handle$state)
+  on.exit({
+    if (length(handle$pids)) tools::pskill(handle$pids)
+    for (node in handle$cl) if (is_live_connection(node$con)) try(close(node$con), silent = TRUE)
+  }, add = TRUE)
   try(parallel::stopCluster(handle$cl), silent = TRUE)
-  if (length(handle$pids)) tools::pskill(handle$pids)
-  for (node in handle$cl) if (is_live_connection(node$con)) try(close(node$con), silent = TRUE)
   invisible(NULL)
 }
 

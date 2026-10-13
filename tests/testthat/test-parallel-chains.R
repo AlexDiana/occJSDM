@@ -275,6 +275,18 @@ test_that("the R-code fingerprint matches across fresh workers and changes when 
   expect_identical(handle$worker_threads, c("1", "1"))
   expect_identical(length(handle$pids), 2L)
   expect_true(all(alive(handle$pids)))
+  # The name order does not follow the session's collation: a parent that
+  # changed LC_COLLATE still matches the fresh workers. testthat sets
+  # LC_COLLATE = C, in the environment too, so the workers start in C and
+  # the parent switches to a collation that orders the names differently.
+  old_collate <- Sys.getlocale("LC_COLLATE")
+  on.exit(Sys.setlocale("LC_COLLATE", old_collate), add = TRUE)
+  worker_collate <- parallel::clusterCall(handle$cl, Sys.getlocale, "LC_COLLATE")[[1]]
+  new_collate <- if (identical(worker_collate, "C")) "en_US.UTF-8" else "C"
+  skip_if(identical(suppressWarnings(Sys.setlocale("LC_COLLATE", new_collate)), ""),
+          paste(new_collate, "is not available"))
+  for (w in workers) expect_identical(w, occJSDM:::package_fingerprint())
+  expect_true(occJSDM:::check_worker_builds(handle))
   # negative case on a toy namespace-like environment
   fp <- function(env) {
     nms <- sort(ls(env, all.names = TRUE))
@@ -289,14 +301,12 @@ test_that("the R-code fingerprint matches across fresh workers and changes when 
 test_that("an error or an interrupt during worker start-up leaves no worker alive", {
   skip_on_cran()
   # The injected bootstraps run in the workers with globalenv() as their
-  # environment, so they learn where to record their PID from an environment
-  # variable, which the workers inherit at process start.
+  # environment, so they learn where to record their PID, and which process
+  # to interrupt, from environment variables, which the workers inherit at
+  # process start.
   pid_dir <- tempfile("worker-pids-"); dir.create(pid_dir)
-  Sys.setenv(OCCJSDM_TEST_PIDDIR = pid_dir)
-  on.exit(Sys.unsetenv("OCCJSDM_TEST_PIDDIR"), add = TRUE)
-  record_pid <- function() {
-    d <- Sys.getenv("OCCJSDM_TEST_PIDDIR"); writeLines(as.character(Sys.getpid()), file.path(d, as.character(Sys.getpid())))
-  }
+  Sys.setenv(OCCJSDM_TEST_PIDDIR = pid_dir, OCCJSDM_TEST_PARENT_PID = Sys.getpid())
+  on.exit(Sys.unsetenv(c("OCCJSDM_TEST_PIDDIR", "OCCJSDM_TEST_PARENT_PID")), add = TRUE)
   failing_boot <- function(libpaths, threads, dev_path) {
     d <- Sys.getenv("OCCJSDM_TEST_PIDDIR"); writeLines(as.character(Sys.getpid()), file.path(d, as.character(Sys.getpid())))
     stop("boot failed")
@@ -309,11 +319,13 @@ test_that("an error or an interrupt during worker start-up leaves no worker aliv
   unlink(file.path(pid_dir, list.files(pid_dir)))
 
   skip_on_os("windows")
+  # Interrupts the parent itself once its PID is recorded, so the interrupt
+  # always lands while the parent waits on the bootstrap.
   slow_boot <- function(libpaths, threads, dev_path) {
     d <- Sys.getenv("OCCJSDM_TEST_PIDDIR"); writeLines(as.character(Sys.getpid()), file.path(d, as.character(Sys.getpid())))
+    system(sprintf("kill -INT %s", Sys.getenv("OCCJSDM_TEST_PARENT_PID")))
     Sys.sleep(10); list(pid = Sys.getpid(), threads = "1")
   }
-  system(sprintf("(sleep 2; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))
   outcome <- tryCatch({
     occJSDM:::start_chain_cluster(2L, 1L, tempfile(fileext = ".log"), bootstrap = slow_boot); "completed"
   }, interrupt = function(c) "interrupted")
@@ -335,6 +347,7 @@ test_that("a build mismatch is reported with both paths and the differing field"
 
 test_that("a chain that fails in a worker is reported by number and no worker survives", {
   handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile("occJSDM-progress-", fileext = ".log"))
+  on.exit(occJSDM:::stop_chain_cluster(handle), add = TRUE)
   pids <- handle$pids
   occJSDM:::clear_chain_setup()                      # the real task will fail: no setup in the workers
   res <- occJSDM:::run_chain_batch(handle, 1:2, matrix(1:4, 2, dimnames = list(c("r", "cpp"), NULL)))
@@ -372,6 +385,35 @@ test_that("abandoning running workers leaves no worker process alive", {
   expect_lt(waited, 8)                               # the workers were still busy when cleanup begins
   expect_true(all(alive(pids)))
   occJSDM:::stop_chain_cluster(handle)
+  Sys.sleep(0.5)
+  expect_false(any(alive(pids)))
+})
+
+test_that("an interrupt during shutdown still kills every worker", {
+  skip_on_cran(); skip_on_os("windows")
+  handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile("occJSDM-progress-", fileext = ".log"))
+  on.exit(occJSDM:::stop_chain_cluster(handle), add = TRUE)
+  pids <- handle$pids
+  # Abandon both workers in a 30-second task, as an interrupted fit does.
+  system(sprintf("(sleep 1; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))
+  abandoned <- tryCatch({
+    occJSDM:::run_chain_batch(handle, 1:2, matrix(1:4, 2), task = function(k, seeds) { Sys.sleep(30); k })
+    FALSE
+  }, interrupt = function(c) TRUE)
+  expect_true(abandoned)
+  expect_true(all(alive(pids)))
+  # stopCluster() now waits up to 5 s for the busy workers to close their
+  # sockets; a second interrupt arrives 1 s into that wait.
+  system(sprintf("(sleep 1; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))
+  returned <- FALSE
+  outcome <- tryCatch({
+    occJSDM:::stop_chain_cluster(handle)
+    returned <- TRUE
+    Sys.sleep(5)                                     # absorbs the signal should stop_chain_cluster() return first
+    "completed"
+  }, interrupt = function(c) "interrupted")
+  expect_identical(outcome, "interrupted")
+  expect_false(returned)                             # the interrupt landed inside stop_chain_cluster()
   Sys.sleep(0.5)
   expect_false(any(alive(pids)))
 })
@@ -448,12 +490,24 @@ test_that("the reset-then-restore helper leaves the same state after an error in
 
 test_that("cleanup closes the sockets that stopCluster() leaves open when it gives up", {
   skip_on_cran()
-  before <- getAllConnections()
   handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile("occJSDM-progress-", fileext = ".log"))
-  close(handle$cl[[1]]$con)                          # stopCluster() throws here, before it reaches node 2
+  close(handle$cl[[1]]$con)                          # stopCluster() throws here
   occJSDM:::stop_chain_cluster(handle)
   # Node 2's socket is closed now, not by the garbage collector later, with a warning.
-  expect_identical(getAllConnections(), before)
+  expect_false(any(vapply(handle$cl, function(n) occJSDM:::is_live_connection(n$con), logical(1))))
+  # A second call is a no-op: a node's stale connection object must not write
+  # into a connection that has since taken its number.
+  numbers <- vapply(handle$cl, function(n) as.integer(n$con), integer(1))
+  opened <- list()
+  repeat {                                           # R hands out the lowest free number
+    path <- tempfile()
+    opened <- c(opened, list(file(path, "wb")))
+    if (as.integer(opened[[length(opened)]]) %in% numbers) break
+  }
+  on.exit(for (con in opened) close(con), add = TRUE)
+  occJSDM:::stop_chain_cluster(handle)
+  flush(opened[[length(opened)]])
+  expect_identical(file.size(path), 0)
   # Cleanup closes only a connection that is still the node's own: R reuses a
   # closed connection's number, and close() on the stale object would close
   # whichever connection holds that number now.
