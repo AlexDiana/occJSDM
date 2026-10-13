@@ -1747,7 +1747,7 @@ fit_once <- function(ncores) {
 rows <- list()
 for (cfg in configs) for (rep in 1:2) {
   tag <- sprintf("%s-rep%d", cfg$label, rep)
-  if (cfg$pin_one_thread) { Sys.setenv(RCPP_PARALLEL_NUM_THREADS = "1"); RcppParallel::setThreadOptions(numThreads = 1L) }
+  if (cfg$pin_one_thread) Sys.setenv(RCPP_PARALLEL_NUM_THREADS = "1")   # the variable is all RcppParallel consults
   rss <- file.path(outdir, "rss", paste0(tag, ".csv"))
   stopifnot(!file.exists(rss), !file.exists(paste0(rss, ".stop")))
   system2("sh", c(sampler, Sys.getpid(), shQuote(rss)), wait = FALSE)
@@ -1756,7 +1756,7 @@ for (cfg in configs) for (rep in 1:2) {
   wall <- as.numeric(Sys.time() - t0, units = "secs")
   file.create(paste0(rss, ".stop"))               # ends this configuration's sampler before anything else is loaded
   Sys.sleep(2)
-  if (cfg$pin_one_thread) { Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS"); RcppParallel::setThreadOptions(numThreads = "auto") }
+  if (cfg$pin_one_thread) Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS")
   if (!file.exists(reference_fit)) {
     saveRDS(occJSDM:::drop_execution(res$fit), reference_fit)
     saveRDS(list(seed_state = res$seed_state, draws = res$draws), reference_rng)
