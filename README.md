@@ -59,7 +59,7 @@ occJSDM is beta software and validation is still in progress. These limitations 
 
 - **Model selection is not validated.** `extractWAIC()` now defaults to an observed-data, site-level WAIC. Its reliability is still being validated, and a historical comparison of one-factor and two-factor fits carried substantial reliability warnings, so a lower score does not show that a model is the generating model or that its factor count is right. See [Lesson 4](vignettes/occJSDM-lesson-4.md) and the [integration validation](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/site-waic-validation.md#integration-validation-7-october-2026).
 - **Count responses are not supported.** Models for count data are rejected. Read counts can be supplied for eDNA fits and are converted to detections at a threshold; continuous and binary responses are supported for JSDM-only models.
-- **The shipped example fit has convergence flags.** `sampleresults` was refitted for the beta and retains some diagnostic flags, which the quickstart discloses. Use it to learn the workflow, not as an inference-ready result. See the [release report](dev/release/2026-10-07-beta/REPORT.md).
+- **The shipped example fit has convergence flags.** `sampleresults` was refitted under per-chain seeding and retains some diagnostic flags, which the quickstart discloses. Use it to learn the workflow, not as an inference-ready result. See the [refit report](dev/release/2026-10-13-parallel-chains-refit/REPORT.md).
 
 ## How to cite
 
