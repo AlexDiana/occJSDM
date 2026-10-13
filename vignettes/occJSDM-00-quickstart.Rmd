@@ -16,8 +16,6 @@ knitr::opts_chunk$set(echo = TRUE, collapse = FALSE, comment = "#>")
 source("lesson-links.R")
 ```
 
-<!--# occJSDM.Rmd sorts to the bottom in the Files window. Because it is a quickstart, it should have a filename that sorts it to the top, so that it is one of the first things that a student sees. -->
-
 occJSDM uses eDNA surveys to estimate which species occupy which sites. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). It models the species jointly: their responses to the environment, the role of their traits, and associations between species that the covariates do not explain, optionally with a spatial field, although note that the spatial field submodel requires considerable field data. It can also analyse ordinary presence/absence surveys, in which each species is recorded as present or absent at each site and the records are assumed to be free of detection error. In that case occJSDM fits only the joint species distribution model (JSDM).
 
 This quickstart shows how the input data must be structured, makes a fitting call and takes a first look at the output, using the example data shipped with the package.

@@ -1,7 +1,7 @@
 # Keep ordinary .md lesson links editable in RStudio's Visual mode. Only the
 # generated HTML needs different destinations; never rewrite the source files.
 local({
-  lessons <- c("occJSDM", "occJSDM-lesson-0", "occJSDM-lesson-1",
+  lessons <- c("occJSDM-00-quickstart", "occJSDM-lesson-0", "occJSDM-lesson-1",
                "occJSDM-lesson-2", "occJSDM-lesson-3", "occJSDM-lesson-4",
                "occJSDM-lesson-5", "occJSDM-lesson-6", "occJSDM-lesson-7")
 

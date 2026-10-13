@@ -16,7 +16,7 @@ The aim is to help an empirical ecologist understand what occJSDM does, read and
 
 ## At a glance
 
-- **Quickstart** (`occJSDM.Rmd`): Built; merged in PR #12. A short fitting example, lesson navigation and where to start. It replaces the old standalone output tour.
+- **Quickstart** (`occJSDM-00-quickstart.Rmd`): Built; merged in PR #12. A short fitting example, lesson navigation and where to start. It replaces the old standalone output tour.
 - **Lesson 0 (optional): Create and explore a simulated survey** (`occJSDM-lesson-0.Rmd`): Built on main, including the unbalanced-data extension. An optional introduction to sites, samples, primers, PCR replicates, covariates, traits and maps, and to removing whole samples while preserving paired rows.
 - **Lesson 1: What occupancy models and joint species distribution models do** (`occJSDM-lesson-1.Rmd`): Built in Phase A of the lesson rewrite, merged in PR #19; Phase B numbered it. It explains by hand, without fitting a model, what a single-season occupancy model does with replicate samples and what a joint species distribution model adds to modelling each species on its own.
 - **Lesson 2: Fit the model and compare its answers with truth** (`occJSDM-lesson-2.Rmd`): Built on main, including the fitting reference and the unbalanced fit. Perfect-observation and PCR fits, occupancy errors, false positives, prior sensitivity and unequal field replication.
@@ -114,7 +114,7 @@ Assess faithful computation, whether changed inputs really produce new calculati
 
 The audit compares `vignettes/occJSDM.Rmd` at revision `8654ff1` with the teaching lessons. Lesson 3 is a rewrite and redistribution, not a complete transfer of every worked example. Listing a function in its index is not the same as teaching its use. Preserve useful workflows while replacing stale argument names, unmatched examples and unsupported claims.
 
-The original walkthrough was deleted on 4 October 2026 after its remaining material was ported (git history before that pull request holds it). The current `occJSDM.Rmd` remains the Quickstart.
+The original walkthrough was deleted on 4 October 2026 after its remaining material was ported (git history before that pull request holds it). The current `occJSDM-00-quickstart.Rmd` (renamed from `occJSDM.Rmd` on 13 October 2026) remains the Quickstart.
 
 - **Input structure and fitting arguments:** Lessons 0 and 2 plus the Quickstart show current fitting code. Lesson 2 now includes a concise reference for model inference, identifiers, covariates, traits, priors, threshold, missingness and retained latent output. Remaining work: keep it aligned with the current API, including `n_lattrait` for fitting and the limited scope of `summarisedLatentPresences = FALSE`.
 - **Unbalanced study design created by dropping whole field samples:** Lesson 0 removes one whole sample at each of three declared sites, retaining 297 samples and 3,564 PCR rows. Lesson 2 presents a separate matching fit and its diagnostics against unchanged truth. Remaining work: keep the example limited to handling unequal effort. One removal pattern and fit cannot estimate the general consequences of sample loss.

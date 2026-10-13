@@ -15,7 +15,7 @@
   // unpublished lessons; the same test checks that. During the beta the
   // lessons are withheld until Doug has reviewed them.
   var LESSONS = [
-    { stem: "occJSDM", label: "Quickstart", title: "occJSDM: quickstart", published: true },
+    { stem: "occJSDM-00-quickstart", label: "Quickstart", title: "occJSDM: quickstart", published: true },
     { stem: "occJSDM-lesson-0", label: "Lesson 0", title: "Lesson 0 (optional): Create and explore a simulated survey", published: false },
     { stem: "occJSDM-lesson-1", label: "Lesson 1", title: "Lesson 1: What occupancy models and joint species distribution models do", published: false },
     { stem: "occJSDM-lesson-2", label: "Lesson 2", title: "Lesson 2: Fit the model and compare its answers with truth", published: false },

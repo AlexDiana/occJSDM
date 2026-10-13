@@ -13,14 +13,14 @@ Validation is still in progress. Read the [Known limitations](#known-limitations
 remotes::install_github("AlexDiana/occJSDM", build_vignettes = TRUE)
 ```
 
-Note the `build_vignettes = TRUE` -- without it, `remotes::install_github()` skips building vignettes by default, and `vignette("occJSDM", package = "occJSDM")` will report that no vignette was found.
+Note the `build_vignettes = TRUE` -- without it, `remotes::install_github()` skips building vignettes by default, and `vignette("occJSDM-00-quickstart", package = "occJSDM")` will report that no vignette was found.
 
 ## Getting started
 
-The [quickstart](vignettes/occJSDM.md) shows the input data, a fitting call and a first look at the output. The simulator guide shows how to simulate a survey whose truth you know. After installing with vignettes, open them in R:
+The [quickstart](vignettes/occJSDM-00-quickstart.md) shows the input data, a fitting call and a first look at the output. The simulator guide shows how to simulate a survey whose truth you know. After installing with vignettes, open them in R:
 
 ``` r
-vignette("occJSDM", package = "occJSDM")
+vignette("occJSDM-00-quickstart", package = "occJSDM")
 vignette("simulateOccJSDMData", package = "occJSDM")
 ```
 

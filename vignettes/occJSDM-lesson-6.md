@@ -449,7 +449,7 @@ fit_with_traits <- occJSDM::runOccJSDM(
 )
 ```
 
-As in [Lesson 5](occJSDM-lesson-5.md), `info` has one row per site, so `runOccJSDM()` fits a JSDM to the observed presence/absence with no detection stages. `traits` has one row per species, as in the [quickstart](occJSDM.md). `n_lattrait = 0` turns off occJSDM’s optional latent species-trait factors in both arms, so only the measured traits differ between them (`extension/PLAN.md`, line 11). The MCMC settings are the first attempt’s; a fit that failed its checks was rerun with `nburn = 8000` and `niter = 16000`.
+As in [Lesson 5](occJSDM-lesson-5.md), `info` has one row per site, so `runOccJSDM()` fits a JSDM to the observed presence/absence with no detection stages. `traits` has one row per species, as in the [quickstart](occJSDM-00-quickstart.md). `n_lattrait = 0` turns off occJSDM’s optional latent species-trait factors in both arms, so only the measured traits differ between them (`extension/PLAN.md`, line 11). The MCMC settings are the first attempt’s; a fit that failed its checks was rerun with `nburn = 8000` and `niter = 16000`.
 
 ``` r
 if (nrow(extension$overall) > 0) {
@@ -724,7 +724,7 @@ A larger coverage study should add independent communities, assess marginal-prob
 
 The appendix below holds six things. They are the acceptance rules for each fit, the detailed prediction errors, the interval widths and coverage by community, the diagnostic sensitivity, the trait relationships, and how to filter the saved results yourself.
 
-Continue to [Lesson 7](occJSDM-lesson-7.md), on spatial landscapes and survey design, or return to [Lesson 5](occJSDM-lesson-5.md) or the [Quickstart](occJSDM.md).
+Continue to [Lesson 7](occJSDM-lesson-7.md), on spatial landscapes and survey design, or return to [Lesson 5](occJSDM-lesson-5.md) or the [Quickstart](occJSDM-00-quickstart.md).
 
 ## Appendix: evidence and reproduction
 

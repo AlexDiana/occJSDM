@@ -27,7 +27,7 @@ An environmental effect can be real in the simulation and still be estimated imp
 
 Start with [Lesson 2](occJSDM-lesson-2.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
 
-The [quickstart's](occJSDM.md) `sampledata` also has three field samples per site, but three primers with two PCRs each. The model reads the structure of the survey, repeated samples within sites and repeated PCRs within samples, not fixed counts, as Lesson 2's [fitting reference](occJSDM-lesson-2.md#fitting-your-own-data-what-the-call-needs) explains.
+The [quickstart's](occJSDM-00-quickstart.md) `sampledata` also has three field samples per site, but three primers with two PCRs each. The model reads the structure of the survey, repeated samples within sites and repeated PCRs within samples, not fixed counts, as Lesson 2's [fitting reference](occJSDM-lesson-2.md#fitting-your-own-data-what-the-call-needs) explains.
 
 We compare two existing fits of that community: one given the actual presence/absence matrix (**perfect observation**) and one given the PCR observations. The perfect-observation fit shows what the occupancy part of the model recovers once detection error is removed, so the gap between the two fits is the cost of imperfect detection.
 

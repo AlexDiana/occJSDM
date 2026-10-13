@@ -1,8 +1,6 @@
 occJSDM: quickstart
 ================
 
-<!--# occJSDM.Rmd sorts to the bottom in the Files window. Because it is a quickstart, it should have a filename that sorts it to the top, so that it is one of the first things that a student sees. -->
-
 occJSDM uses eDNA surveys to estimate which species occupy which sites. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). It models the species jointly: their responses to the environment, the role of their traits, and associations between species that the covariates do not explain, optionally with a spatial field, although note that the spatial field submodel requires considerable field data. It can also analyse ordinary presence/absence surveys, in which each species is recorded as present or absent at each site and the records are assumed to be free of detection error. In that case occJSDM fits only the joint species distribution model (JSDM).
 
 This quickstart shows how the input data must be structured, makes a fitting call and takes a first look at the output, using the example data shipped with the package.
@@ -198,7 +196,7 @@ plotTraceplot(theta0_draws[c(3, 1), , , drop = FALSE],
               dimnames1 = fit$infos$speciesNames[c(3, 1)])
 ```
 
-![](occJSDM_files/figure-gfm/traceplot-1.png)<!-- -->
+![](occJSDM-00-quickstart_files/figure-gfm/traceplot-1.png)<!-- -->
 
 For `OTU_1` the two chains overlap throughout. For `OTU_3`, chain 1 wanders upwards near the end of the run while chain 2 does not, and that disagreement is what `rhat` measures.
 
@@ -216,7 +214,7 @@ Each species’ baseline occupancy probability, with its 95% credible interval. 
 plotOccupancyRates(fit, idx_species = 1:10)
 ```
 
-![](occJSDM_files/figure-gfm/occupancy-1.png)<!-- -->
+![](occJSDM-00-quickstart_files/figure-gfm/occupancy-1.png)<!-- -->
 
 Each species’ probability, for each primer, that a PCR reaction detects its DNA when that DNA is present in the sample. This is `p` in the diagnostics table:
 
@@ -224,7 +222,7 @@ Each species’ probability, for each primer, that a PCR reaction detects its DN
 plotDetectionRates(fit, idx_species = 1:10)
 ```
 
-![](occJSDM_files/figure-gfm/detection-1.png)<!-- -->
+![](occJSDM-00-quickstart_files/figure-gfm/detection-1.png)<!-- -->
 
 In this example, no primer is best for every species. Primer 3 has the highest detection rate for `OTU_1`, with an interval that barely overlaps primer 1’s, but it is clearly worse than primer 2 at detecting `OTU_10`.
 
