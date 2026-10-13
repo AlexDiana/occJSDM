@@ -39,7 +39,7 @@ Verified on 13 October 2026 against `main` at `d72daaf`. Line numbers refer to `
 - No fail-fast across chains beyond what base `parallel` allows.
 - No change to the lessons' teaching archives, and no `TODO.md` edit in the pull request.
 - No Windows benchmark. The mechanisms are cross-platform, and the report says it was not run there.
-- No dependency beyond base `parallel`. `pkgload` is used only when the parent itself was loaded by it.
+- No dependency beyond base `parallel` and `tools`. `pkgload` is used only when the parent itself was loaded by it, and is listed under `Suggests` because `R CMD check` warns on a qualified call to an undeclared package (found during implementation, 13 October 2026); it is never required for an installed package.
 
 ## Interface
 
