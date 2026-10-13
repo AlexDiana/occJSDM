@@ -51,7 +51,7 @@ View(sampledata$info)
 
 ## Fit the model
 
-You can either load the precomputed model results from `sampleresults` or fit the model live. Fitting live will take up to several minutes depending on your machine but has the advantage of testing whether your machine can run occJSDM. On the other hand, using the same seed number only produces *exactly* the same results as in `sampleresults` if run on the same machine and software (M4 MacBook Air, macOS 27.0.1, R 4.5.0) and with the same model arguments (priors, number of chains). Running on a different platform could result in small numerical differences.
+You can either load the precomputed model results from `sampleresults` or fit the model live. Fitting live will take up to several minutes depending on your machine but has the advantage of testing whether your machine can run occJSDM. On the other hand, using the same seed number only produces *exactly* the same results as in `sampleresults` if run on the same machine and software (M4 MacBook Air, macOS 27.0.1, R 4.6.1) and with the same model arguments (priors, number of chains). Running on a different platform could result in small numerical differences.
 
 Choose this option
 
@@ -75,7 +75,7 @@ fit <- runOccJSDM(
   - The example includes the `spatCovariates` line to show how the full model is specified. The beta's spatial model is very underpowered, though, so we recommend leaving that line out of your own fits for now.
 - The optional species trait data are taken from `sampledata$traits`.
 - `n_factors` is the number of latent factors that capture associations between species.
-- `MCMCparams` sets the number of chains, the burn-in and kept iterations, and the thinning.
+- `MCMCparams` sets the number of chains, the burn-in and kept iterations, and the thinning. Adding `ncores = 2` to the list runs the two chains on two cores at once; `ncores` is the total number of cores the fit may use.
 - The priors have defaults, which `listPriors` changes. `?runOccJSDM` describes every argument.
 
 Or choose this option. The rest of the lesson uses these precomputed results.
@@ -118,9 +118,9 @@ nrow(nonconvergedcoefs)
 head(nonconvergedcoefs)
 ```
 
-In this quickstart example, 35 of the 130 reported coefficients are flagged, which means that they are deemed not to have converged (i.e. are not reliable). The largest `rhat` is about 1.083, for the field false-positive rate (`theta0`) of `OTU_3`.
+In this quickstart example, 31 of the 130 reported coefficients are flagged, which means that they are deemed not to have converged (i.e. are not reliable). The largest `rhat` is about 1.10, for the field false-positive rate (`theta0`) of `OTU_3`.
 
-`plotTraceplot()` shows the chains themselves. Here are the `theta0` draws for `OTU_3` and, for comparison, `OTU_1`, whose `rhat` is 1.00:
+`plotTraceplot()` shows the chains themselves. Here are the `theta0` draws for `OTU_3` and, for comparison, `OTU_1`, whose `rhat` is 1.006:
 
 ```{r traceplot, fig.width=7, fig.height=3}
 theta0_draws <- fit$results_output$theta0_output
@@ -129,9 +129,9 @@ plotTraceplot(theta0_draws[c(3, 1), , , drop = FALSE],
               dimnames1 = fit$infos$speciesNames[c(3, 1)])
 ```
 
-For `OTU_1` the two chains overlap throughout. For `OTU_3`, chain 1 wanders upwards near the end of the run while chain 2 does not, and that disagreement is what `rhat` measures.
+For `OTU_1` the two chains overlap throughout. For `OTU_3`, chain 2 wanders upwards near the end of the run while chain 1 does not, and that disagreement is what `rhat` measures.
 
-The table does not cover every parameter. When it finishes, `runOccJSDM()` checks each block of parameters and warns about any block whose largest `rhat` exceeds 1.1 or whose smallest `ess` is below 50. For this fit it warned about the spatial-field coefficients (`Bs`) and the trait terms attached to them (`Gs`, `As`, `Cs`). You see these warnings only if you fit live, and they are another reason to leave the spatial field out of your own fits for now.
+The table does not cover every parameter. When it finishes, `runOccJSDM()` checks each block of parameters and warns about any block whose largest `rhat` exceeds 1.1 or whose smallest `ess` is below 50. For this fit it warned about the field false-positive rates (`theta0`), whose largest `rhat`, for `OTU_3`, is just above 1.1, and about the spatial-field coefficients (`Bs`) and the trait terms attached to them (`Gs`, `As`, `Cs`). You see these warnings only if you fit live. The spatial-field warnings are another reason to leave the spatial field out of your own fits for now.
 
 Normally, before going on, you would run longer chains and check them again, but note that more iterations do not guarantee that the chains will agree.
 
