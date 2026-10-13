@@ -263,3 +263,185 @@ test_that("a chain that returns no result stops the fit with a clear message", {
   set.seed(2); expect_error(fit_fixture(sim, MCMCparams = mc), "No result was returned for chain(s) 2", fixed = TRUE)
   expect_false(exists("setup", envir = occJSDM:::chain_env, inherits = FALSE))
 })
+
+test_that("the R-code fingerprint matches across fresh workers and changes when a body changes", {
+  skip_on_cran()
+  handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile("occJSDM-progress-", fileext = ".log"))
+  on.exit(occJSDM:::stop_chain_cluster(handle), add = TRUE)
+  parent <- occJSDM:::package_fingerprint()
+  workers <- parallel::clusterCall(handle$cl, occJSDM:::package_fingerprint)
+  for (w in workers) expect_identical(w, parent)
+  expect_true(occJSDM:::check_worker_builds(handle))
+  expect_identical(handle$worker_threads, c("1", "1"))
+  expect_identical(length(handle$pids), 2L)
+  expect_true(all(alive(handle$pids)))
+  # negative case on a toy namespace-like environment
+  fp <- function(env) {
+    nms <- sort(ls(env, all.names = TRUE))
+    text <- unlist(lapply(nms, function(n) c(n, deparse(get(n, envir = env)))))
+    tmp <- tempfile(); on.exit(unlink(tmp)); writeLines(text, tmp); unname(tools::md5sum(tmp))
+  }
+  e1 <- new.env(); e1$f <- function(x) x + 1
+  e2 <- new.env(); e2$f <- function(x) x + 2
+  expect_false(identical(fp(e1), fp(e2)))
+})
+
+test_that("an error or an interrupt during worker start-up leaves no worker alive", {
+  skip_on_cran()
+  # The injected bootstraps run in the workers with globalenv() as their
+  # environment, so they learn where to record their PID from an environment
+  # variable, which the workers inherit at process start.
+  pid_dir <- tempfile("worker-pids-"); dir.create(pid_dir)
+  Sys.setenv(OCCJSDM_TEST_PIDDIR = pid_dir)
+  on.exit(Sys.unsetenv("OCCJSDM_TEST_PIDDIR"), add = TRUE)
+  record_pid <- function() {
+    d <- Sys.getenv("OCCJSDM_TEST_PIDDIR"); writeLines(as.character(Sys.getpid()), file.path(d, as.character(Sys.getpid())))
+  }
+  failing_boot <- function(libpaths, threads, dev_path) {
+    d <- Sys.getenv("OCCJSDM_TEST_PIDDIR"); writeLines(as.character(Sys.getpid()), file.path(d, as.character(Sys.getpid())))
+    stop("boot failed")
+  }
+  expect_error(occJSDM:::start_chain_cluster(2L, 1L, tempfile(fileext = ".log"), bootstrap = failing_boot), "boot failed")
+  Sys.sleep(0.5)
+  pids <- as.integer(list.files(pid_dir))
+  expect_length(pids, 2L)
+  expect_false(any(alive(pids)))
+  unlink(file.path(pid_dir, list.files(pid_dir)))
+
+  skip_on_os("windows")
+  slow_boot <- function(libpaths, threads, dev_path) {
+    d <- Sys.getenv("OCCJSDM_TEST_PIDDIR"); writeLines(as.character(Sys.getpid()), file.path(d, as.character(Sys.getpid())))
+    Sys.sleep(10); list(pid = Sys.getpid(), threads = "1")
+  }
+  system(sprintf("(sleep 2; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))
+  outcome <- tryCatch({
+    occJSDM:::start_chain_cluster(2L, 1L, tempfile(fileext = ".log"), bootstrap = slow_boot); "completed"
+  }, interrupt = function(c) "interrupted")
+  expect_identical(outcome, "interrupted")
+  Sys.sleep(0.5)
+  pids <- as.integer(list.files(pid_dir))
+  expect_length(pids, 2L)
+  expect_false(any(alive(pids)))
+})
+
+test_that("a build mismatch is reported with both paths and the differing field", {
+  parent <- list(path = "/a/occJSDM", version = "0.1.1", dll_md5 = "x", code_md5 = "y")
+  expect_true(occJSDM:::compare_fingerprints(parent, parent, 1L))
+  worker <- parent; worker$code_md5 <- "z"; worker$path <- "/b/occJSDM"
+  expect_error(occJSDM:::compare_fingerprints(parent, worker, 2L), "Worker 2 .*path.*/a/occJSDM.*/b/occJSDM")
+  worker <- parent; worker$dll_md5 <- "q"
+  expect_error(occJSDM:::compare_fingerprints(parent, worker, 1L), "dll_md5")
+})
+
+test_that("a chain that fails in a worker is reported by number and no worker survives", {
+  handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile("occJSDM-progress-", fileext = ".log"))
+  pids <- handle$pids
+  occJSDM:::clear_chain_setup()                      # the real task will fail: no setup in the workers
+  res <- occJSDM:::run_chain_batch(handle, 1:2, matrix(1:4, 2, dimnames = list(c("r", "cpp"), NULL)))
+  expect_s3_class(res[[2]], "occJSDM_chain_failure")
+  expect_error(occJSDM:::stop_if_chain_failed(res[[2]]), "^Chain 2 failed: ")
+  occJSDM:::stop_chain_cluster(handle)
+  Sys.sleep(0.5)
+  expect_false(any(alive(pids)))
+})
+
+test_that("cleanup kills every worker even when stopCluster() itself errors", {
+  skip_on_cran()
+  handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile("occJSDM-progress-", fileext = ".log"))
+  pids <- handle$pids
+  close(handle$cl[[1]]$con)                          # a broken connection makes stopCluster() throw
+  expect_true(alive(pids[2]))
+  expect_silent(occJSDM:::stop_chain_cluster(handle))
+  Sys.sleep(0.5)
+  expect_false(any(alive(pids)))
+})
+
+test_that("abandoning running workers leaves no worker process alive", {
+  skip_on_cran(); skip_on_os("windows")
+  handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile("occJSDM-progress-", fileext = ".log"))
+  on.exit(occJSDM:::stop_chain_cluster(handle), add = TRUE)
+  pids <- handle$pids
+  system(sprintf("(sleep 1; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))   # timer starts after the cluster is up
+  t0 <- Sys.time()
+  outcome <- tryCatch({
+    occJSDM:::run_chain_batch(handle, 1:2, matrix(1:4, 2), task = function(k, seeds) { Sys.sleep(10); k })
+    "completed"
+  }, interrupt = function(c) "interrupted")
+  waited <- as.numeric(Sys.time() - t0, units = "secs")
+  expect_identical(outcome, "interrupted")
+  expect_lt(waited, 8)                               # the workers were still busy when cleanup begins
+  expect_true(all(alive(pids)))
+  occJSDM:::stop_chain_cluster(handle)
+  Sys.sleep(0.5)
+  expect_false(any(alive(pids)))
+})
+
+test_that("the BLAS thread variables are set for the workers only", {
+  skip_on_cran()
+  vars <- names(occJSDM:::blas_thread_variables())
+  before <- Sys.getenv(vars, unset = NA_character_, names = TRUE)
+  handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile("occJSDM-progress-", fileext = ".log"))
+  on.exit(occJSDM:::stop_chain_cluster(handle), add = TRUE)
+  expect_identical(Sys.getenv(vars, unset = NA_character_, names = TRUE), before)
+  seen <- parallel::clusterCall(handle$cl, function(v) Sys.getenv(v, names = TRUE), vars)
+  for (s in seen) expect_identical(unname(s), unname(occJSDM:::blas_thread_variables()))
+  expect_identical(handle$blas_threads_requested, occJSDM:::blas_thread_variables())
+})
+
+test_that("the RcppParallel stack size survives the in-process thread pin and reaches the workers", {
+  skip_on_cran()
+  vars <- c("RCPP_PARALLEL_NUM_THREADS", "RCPP_PARALLEL_STACK_SIZE")
+  old <- Sys.getenv(vars, unset = NA_character_, names = TRUE)
+  on.exit(for (nm in names(old)) if (is.na(old[[nm]])) Sys.unsetenv(nm) else do.call(Sys.setenv, as.list(setNames(old[[nm]], nm))), add = TRUE)
+  Sys.setenv(RCPP_PARALLEL_NUM_THREADS = "3", RCPP_PARALLEL_STACK_SIZE = "8388608")
+  restore <- occJSDM:::pin_session_threads(2L)
+  expect_identical(unname(Sys.getenv(vars)), c("2", "8388608"))
+  restore()
+  expect_identical(unname(Sys.getenv(vars)), c("3", "8388608"))
+  # cleanup after an error, registered the way runOccJSDM() registers it
+  f <- function() { restore <- occJSDM:::pin_session_threads(2L); on.exit(restore(), add = TRUE); stop("boom") }
+  expect_error(f(), "boom")
+  expect_identical(unname(Sys.getenv(vars)), c("3", "8388608"))
+  # an unset thread count comes back unset, the stack size untouched
+  Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS")
+  restore <- occJSDM:::pin_session_threads(2L); restore()
+  expect_identical(Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_), NA_character_)
+  expect_identical(Sys.getenv("RCPP_PARALLEL_STACK_SIZE"), "8388608")
+  # workers get the budget's thread count and inherit the stack size
+  handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile(fileext = ".log"))
+  on.exit(occJSDM:::stop_chain_cluster(handle), add = TRUE)
+  seen <- parallel::clusterCall(handle$cl, function(v) Sys.getenv(v), vars)
+  for (s in seen) expect_identical(unname(s), c("1", "8388608"))
+})
+
+test_that("the reset-then-restore helper leaves the same state after an error in either driver", {
+  # Helper-level: it checks save_session_rng() and restore_session_rng()
+  # around a failing batch in both drivers. The production orchestration,
+  # which registers the same helper with on.exit() in runOccJSDM(), is
+  # exercised with a real interrupt in Task 5's tests.
+  skip_on_cran()
+  old_kind <- RNGkind()
+  on.exit(do.call(RNGkind, as.list(old_kind)), add = TRUE)
+  run_guarded <- function(driver) {
+    saved <- occJSDM:::save_session_rng()
+    on.exit(occJSDM:::restore_session_rng(saved))
+    driver()
+  }
+  seeds <- matrix(1:4, 2, dimnames = list(c("r", "cpp"), NULL))
+  failing <- function(k, seeds) occJSDM:::chain_failure(k, "boom")
+  serial_error <- function() for (r in occJSDM:::run_chain_batch(NULL, 1:2, seeds, task = failing)) occJSDM:::stop_if_chain_failed(r)
+  parallel_error <- function() {
+    handle <- occJSDM:::start_chain_cluster(2L, 1L, tempfile(fileext = ".log"))
+    on.exit(occJSDM:::stop_chain_cluster(handle))
+    for (r in occJSDM:::run_chain_batch(handle, 1:2, seeds, task = failing)) occJSDM:::stop_if_chain_failed(r)
+  }
+  next_draws <- function() list(rnorm(3), runif(3), sample(100, 3))
+  for (normal_kind in c("Inversion", "Box-Muller")) {
+    RNGkind("Mersenne-Twister", normal_kind, "Rejection")
+    set.seed(77); invisible(rnorm(1))                 # under Box-Muller this leaves a cached deviate pending
+    expect_error(run_guarded(serial_error), "Chain 1 failed: boom"); after_serial <- next_draws()
+    set.seed(77); invisible(rnorm(1))
+    expect_error(run_guarded(parallel_error), "Chain 1 failed: boom"); after_parallel <- next_draws()
+    expect_identical(after_serial, after_parallel)
+  }
+})

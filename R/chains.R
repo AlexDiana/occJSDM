@@ -165,6 +165,144 @@ run_chain_batch <- function(handle, batch, seeds, task = run_chain_task) {
   parallel::clusterApplyLB(handle$cl, batch, task, seeds = seeds)
 }
 
+# Workers are asked to run their BLAS single-threaded whatever ncores is; a
+# BLAS thread count that varied with ncores would make results vary with it.
+# These are requests the package cannot verify (spec, "Interface").
+blas_thread_variables <- function() c(
+  OMP_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1", MKL_NUM_THREADS = "1",
+  MKL_DOMAIN_NUM_THREADS = "MKL_DOMAIN_ALL=1", VECLIB_MAXIMUM_THREADS = "1")
+
+# Set the thread variables in this process only while expr runs (the workers
+# read them at process start), then put the previous values back.
+with_worker_environment <- function(expr) {
+  vars <- blas_thread_variables()
+  old <- Sys.getenv(names(vars), unset = NA_character_, names = TRUE)
+  on.exit({
+    for (nm in names(old)) {
+      if (is.na(old[[nm]])) Sys.unsetenv(nm) else do.call(Sys.setenv, as.list(stats::setNames(old[[nm]], nm)))
+    }
+  }, add = TRUE)
+  do.call(Sys.setenv, as.list(vars))
+  force(expr)
+}
+
+is_dev_loaded <- function() {
+  exists(".__DEVTOOLS__", envir = asNamespace("occJSDM"), inherits = FALSE)
+}
+
+# Runs inside a fresh worker before occJSDM exists there, so it is sent with
+# globalenv() as its environment and uses only base, RcppParallel and pkgload.
+bootstrap_chain_worker <- function(libpaths, threads, dev_path) {
+  .libPaths(libpaths)
+  # The environment variable is all RcppParallel consults for the thread
+  # count; setThreadOptions() would also unset RCPP_PARALLEL_STACK_SIZE, which
+  # the worker inherited from the parent and keeps on purpose.
+  Sys.setenv(RCPP_PARALLEL_NUM_THREADS = as.character(threads))
+  if (is.null(dev_path)) {
+    loadNamespace("occJSDM")
+  } else {
+    # compile = FALSE: never compile in a worker; load the shared object the
+    # parent built. Other arguments stay at pkgload's defaults so that the
+    # worker's namespace holds the same functions as a parent loaded with
+    # devtools::load_all(); the code fingerprint compares exactly that.
+    # (pkgload 1.5.3 sources test helpers into the attached package
+    # environment, not the namespace, so the helpers argument cannot
+    # change the fingerprint; checked 13 October 2026.)
+    pkgload::load_all(dev_path, compile = FALSE, quiet = TRUE, attach = FALSE)
+  }
+  list(pid = Sys.getpid(), threads = Sys.getenv("RCPP_PARALLEL_NUM_THREADS"))
+}
+
+# Start-up owns its own cleanup until it hands the handle to the caller: the
+# on.exit() below runs on an error or an interrupt during bootstrap, and the
+# PIDs are fetched before the slow package loading so that pskill() has
+# targets. `bootstrap` is an argument only so that tests can inject a failing
+# or slow bootstrap.
+start_chain_cluster <- function(workers, threads, progress_file, bootstrap = bootstrap_chain_worker) {
+  cl <- with_worker_environment(parallel::makeCluster(workers, outfile = progress_file))
+  handle <- list(cl = cl, pids = integer(0), worker_threads = character(0),
+                 progress_file = progress_file, blas_threads_requested = blas_thread_variables(),
+                 threads = as.integer(threads))
+  started <- FALSE
+  on.exit(if (!started) stop_chain_cluster(handle), add = TRUE)
+  handle$pids <- vapply(parallel::clusterCall(cl, Sys.getpid), as.integer, integer(1))
+  boot <- bootstrap
+  environment(boot) <- globalenv()
+  dev_path <- if (is_dev_loaded()) getNamespaceInfo("occJSDM", "path") else NULL
+  info <- parallel::clusterCall(cl, boot, .libPaths(), threads, dev_path)
+  handle$worker_threads <- vapply(info, function(x) x$threads, character(1))
+  started <- TRUE
+  handle
+}
+
+send_chain_setup <- function(handle, setup) {
+  parallel::clusterCall(handle$cl, set_chain_setup, setup)   # a namespace function, so no frame is serialised
+  invisible(NULL)
+}
+
+# Four things identify a build: namespace path, version, the loaded shared
+# object's md5, and a digest of every function's deparsed code. Functions
+# only: native-routine bindings carry process-specific pointers (spec,
+# "Build identity check").
+package_fingerprint <- function() {
+  ns <- asNamespace("occJSDM")
+  nms <- sort(ls(ns, all.names = TRUE))
+  funs <- nms[vapply(nms, function(n) is.function(get(n, envir = ns)), logical(1))]
+  text <- unlist(lapply(funs, function(n) c(n, deparse(get(n, envir = ns)))))
+  tmp <- tempfile()
+  on.exit(unlink(tmp), add = TRUE)
+  writeLines(text, tmp)
+  dll <- getLoadedDLLs()[["occJSDM"]]
+  list(path = normalizePath(getNamespaceInfo(ns, "path")),
+       version = as.character(getNamespaceVersion(ns)),
+       dll_md5 = unname(tools::md5sum(dll[["path"]])),
+       code_md5 = unname(tools::md5sum(tmp)))
+}
+
+compare_fingerprints <- function(parent, worker, index) {
+  for (field in c("path", "version", "dll_md5", "code_md5")) {
+    if (!identical(parent[[field]], worker[[field]])) {
+      stop(sprintf(paste0("Worker %d loaded a different occJSDM build (%s differs): parent %s, worker %s. ",
+                          "Reload or reinstall so that the parent and the workers run the same code."),
+                   index, field, parent$path, worker$path), call. = FALSE)
+    }
+  }
+  invisible(TRUE)
+}
+
+check_worker_builds <- function(handle) {
+  parent <- package_fingerprint()
+  workers <- parallel::clusterCall(handle$cl, package_fingerprint)
+  for (i in seq_along(workers)) compare_fingerprints(parent, workers[[i]], i)
+  invisible(TRUE)
+}
+
+# stopCluster() throws on a broken connection; the try() keeps the PID step
+# reachable. pskill() ends a worker that is mid-chain, which would otherwise
+# only read the stop message when its chain finished.
+stop_chain_cluster <- function(handle) {
+  if (is.null(handle)) return(invisible(NULL))
+  try(parallel::stopCluster(handle$cl), silent = TRUE)
+  if (length(handle$pids)) tools::pskill(handle$pids)
+  invisible(NULL)
+}
+
+# ncores > 1 with one chain runs in process with the session's RcppParallel
+# count set to the budget for the fit; the returned function puts it back.
+# Only the thread-count variable is touched. RcppParallel::setThreadOptions()
+# itself does nothing but set or unset RCPP_PARALLEL_NUM_THREADS and
+# RCPP_PARALLEL_STACK_SIZE (checked 13 October 2026), and with its default
+# stackSize = "auto" it unsets the stack size, so calling it here would clear
+# a custom stack size the session had set for other RcppParallel work.
+pin_session_threads <- function(threads) {
+  old <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_)
+  Sys.setenv(RCPP_PARALLEL_NUM_THREADS = as.character(threads))
+  function() {
+    if (is.na(old)) Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS") else Sys.setenv(RCPP_PARALLEL_NUM_THREADS = old)
+    invisible(NULL)
+  }
+}
+
 drop_execution <- function(fit) {
   fit$infos$execution <- NULL
   fit
