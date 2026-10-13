@@ -1,0 +1,43 @@
+# Parallel-chains benchmark
+
+This folder holds the scripts that time and measure the quickstart fit at several core budgets (`MCMCparams$ncores`), check that the fit and the random-number stream are identical across worker counts, and record the provenance of the BLAS the run used.
+
+## What a run does
+
+- Freezes the build: `launch.sh` exports `HEAD` with `git archive`, installs the export into a dedicated library under the run directory, and records the commit in `revision.txt`. The benchmark and the later refit both run from that one library, never from the working tree.
+- Collects BLAS evidence with `blas-provenance.R` (location, symlink status, linkage, whether the file defines `dgemm_` itself, md5, and the macOS installer receipt). The script makes no verdict.
+- Runs `benchmark.R`: four chains at five core budgets (`serial-ambient`, `serial-1thread`, `ncores-2`, `ncores-4`, `ncores-8`), two repeats each, with `sample-rss.sh` sampling resident memory of the parent and of every PSOCK worker once a second.
+
+## The BLAS declaration
+
+The declaration is a person's decision, made after reading the evidence. Run the provenance script on its own first, compare the output with what is known about the installation, and only then launch with `OCCJSDM_REFERENCE_BLAS` and `OCCJSDM_REFERENCE_BLAS_BASIS` set in the environment. `launch.sh` refuses to start without both, and `benchmark.R` writes the basis to `blas-declaration-basis.txt`. The identity claims in the report hold under that declaration only.
+
+## How to launch
+
+Use a fresh run directory every time, from a non-interactive shell, on mains power with the lid open, from the worktree root.
+
+```sh
+OUT=$(mktemp -d "dev/simstudy/results/parallel-chains-$(date +%Y%m%d)-XXXXXX")
+Rscript dev/simstudy/parallel-chains/blas-provenance.R "$OUT/blas-evidence-preview.rds"
+OCCJSDM_REFERENCE_BLAS=1 OCCJSDM_REFERENCE_BLAS_BASIS="..." \
+nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' \
+  sh dev/simstudy/parallel-chains/launch.sh "$OUT" \
+  > "$OUT/launch.log" 2>&1 < /dev/null &
+```
+
+The run takes roughly 90 minutes. `launch.sh` refuses to reuse a run directory that already holds a build, results or a reference.
+
+## Where results land
+
+Everything goes under the run directory, which is git-ignored (`dev/simstudy/results/`):
+
+- `launcher.pid`, `launch.log`, `install.log`, `benchmark.log`: the launch and its progress. The benchmark log ends with `ALL DONE`.
+- `revision.txt`, `src-export/`, `library/`, `scripts/`: the frozen build and a copy of these scripts.
+- `blas-evidence.rds`, `blas-evidence.log`, `blas-declaration-basis.txt`: the BLAS evidence and the declaration.
+- `results.csv`, `rss/`, `execution/`: timings and identity checks, per-configuration memory samples, and each fit's execution record.
+- `reference-fit.rds`, `reference-rng.rds`: the first fit and its random-number state, which every later fit is compared against.
+- `session-info.txt`: written when the benchmark finishes.
+
+## After the run
+
+`Rscript dev/simstudy/parallel-chains/summarise.R "$OUT"` prints the bullet lists that `REPORT.md` is written from. `REPORT.md` and copies of `results.csv`, `blas-evidence.rds` and `blas-declaration-basis.txt` are kept in this folder.
