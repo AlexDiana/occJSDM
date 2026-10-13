@@ -1,8 +1,10 @@
 # Time and measure the quickstart fit at several core budgets, twice each, and
 # check identity against the in-process fit. Run detached through launch.sh.
-# Rscript benchmark.R OUTDIR
+# Rscript benchmark.R OUTDIR [LABEL ...]
+# With no labels all configurations run; otherwise only the named ones do, and
+# an unknown label stops the run before any fit.
 args <- commandArgs(TRUE)
-stopifnot(length(args) == 1L)
+stopifnot(length(args) >= 1L)
 outdir <- normalizePath(args[[1]], mustWork = TRUE)
 lib <- file.path(outdir, "library")
 .libPaths(c(lib, .libPaths()))
@@ -23,6 +25,13 @@ configs <- list(
   list(label = "ncores-2", ncores = 2L, pin_one_thread = FALSE),
   list(label = "ncores-4", ncores = 4L, pin_one_thread = FALSE),
   list(label = "ncores-8", ncores = 8L, pin_one_thread = FALSE))
+requested <- args[-1L]
+if (length(requested)) {
+  known <- vapply(configs, function(cfg) cfg$label, "")
+  unknown <- setdiff(requested, known)
+  if (length(unknown)) stop("unknown configuration label(s): ", paste(unknown, collapse = ", "), "; known labels: ", paste(known, collapse = ", "))
+  configs <- Filter(function(cfg) cfg$label %in% requested, configs)
+}
 fit_once <- function(ncores) {
   set.seed(20261007)
   fit <- runOccJSDM(data = sampledata, listParams = list(n_factors = 2), threshold = 1,

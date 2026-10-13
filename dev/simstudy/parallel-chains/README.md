@@ -27,6 +27,8 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' \
 
 The run takes roughly 90 minutes. `launch.sh` refuses to reuse a run directory that already holds a build, results or a reference.
 
+To run only some configurations, name their labels after the run directory, for example `sh dev/simstudy/parallel-chains/launch.sh "$OUT" serial-ambient`; with none named all five run, and an unknown label stops the run before any fit.
+
 ## Where results land
 
 Everything goes under the run directory, which is git-ignored (`dev/simstudy/results/`):

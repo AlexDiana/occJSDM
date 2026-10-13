@@ -6,10 +6,13 @@
 # from a non-interactive shell:
 #   OCCJSDM_REFERENCE_BLAS=1 OCCJSDM_REFERENCE_BLAS_BASIS="..." \
 #   nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' \
-#     sh dev/simstudy/parallel-chains/launch.sh OUTDIR \
+#     sh dev/simstudy/parallel-chains/launch.sh OUTDIR [LABEL ...] \
 #     > OUTDIR/launch.log 2>&1 < /dev/null &
+# Labels after OUTDIR are passed to benchmark.R, which then runs only those
+# configurations.
 set -eu
 OUT="$1"
+shift
 REPO="$(pwd -P)"
 RSCRIPT=/usr/local/bin/Rscript
 : "${OCCJSDM_REFERENCE_BLAS:?declare the BLAS yourself after reading the evidence}"
@@ -28,5 +31,5 @@ R CMD INSTALL --library="$OUT/library" "$OUT/src-export" > "$OUT/install.log" 2>
 "$RSCRIPT" "$OUT/scripts/blas-provenance.R" "$OUT/blas-evidence.rds" > "$OUT/blas-evidence.log" 2>&1
 caffeinate -i -w $$ &
 echo $$ > "$OUT/launcher.pid"
-"$RSCRIPT" "$OUT/scripts/benchmark.R" "$OUT" > "$OUT/benchmark.log" 2>&1
+"$RSCRIPT" "$OUT/scripts/benchmark.R" "$OUT" "$@" > "$OUT/benchmark.log" 2>&1
 echo "ALL DONE $(date '+%F %T')"
