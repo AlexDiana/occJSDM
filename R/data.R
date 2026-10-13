@@ -49,10 +49,11 @@
 #'
 #' Output of \code{\link{runOccJSDM}} fit to \code{\link{sampledata}} (10
 #' species, 100 sites, up to 3 primers per sample), with
-#' \code{MCMCparams = list(nchain = 2, nburn = 5000, niter = 5000, nthin =
-#' 1)}. Shipped so that \code{vignettes/occJSDM-00-quickstart.Rmd} can load a precomputed
-#' fit rather than re-running \code{runOccJSDM()} (which takes several
-#' minutes) at vignette build time.
+#' \code{MCMCparams = list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1,
+#' ncores = 2)}, seed \code{20261007} and R 4.6.1, as in the quickstart's
+#' fit-live chunk. Shipped so that \code{vignettes/occJSDM-00-quickstart.Rmd}
+#' can load a precomputed fit rather than re-running \code{runOccJSDM()}
+#' (which takes several minutes) at vignette build time.
 #'
 #' @format A list with six elements:
 #' \describe{

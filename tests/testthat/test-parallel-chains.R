@@ -680,7 +680,8 @@ test_that("one chain with ncores > 1 stays in process with the thread budget app
   saved <- Sys.getenv(vars, unset = NA_character_, names = TRUE)
   on.exit(for (nm in names(saved)) if (is.na(saved[[nm]])) Sys.unsetenv(nm) else do.call(Sys.setenv, as.list(setNames(saved[[nm]], nm))), add = TRUE)
   Sys.setenv(RCPP_PARALLEL_STACK_SIZE = "8388608")   # a custom setting the fit must leave alone
-  before <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_)
+  # Not the "2" the fit applies, so a restore that does nothing cannot pass.
+  Sys.setenv(RCPP_PARALLEL_NUM_THREADS = "3")
   # The count the chain itself sees, read in the namespace where
   # run_chain_task() looks run_one_chain() up.
   seen <- NA_character_
@@ -698,7 +699,7 @@ test_that("one chain with ncores > 1 stays in process with the thread budget app
   expect_identical(ex[c("ncores", "workers", "threads_per_worker", "thread_setting")],
                    list(ncores = 2L, workers = 1L, threads_per_worker = 2L, thread_setting = "budget"))
   expect_null(ex$progress_file); expect_null(ex$blas_threads_requested)
-  expect_identical(Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_), before)
+  expect_identical(Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_), "3")
   expect_identical(Sys.getenv("RCPP_PARALLEL_STACK_SIZE"), "8388608")
 })
 
