@@ -13,7 +13,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' env OCCJSDM_RE
 cp "$OUT/blas-declaration-basis.txt" "$EV/"
 ```
 
-The script takes four arguments, in this order: `REPO` (the checkout whose `data/sampleresults.rda` is replaced), `LIB` (the frozen library), `EVIDENCE` (the fresh evidence directory) and `BLAS_EVIDENCE_RDS` (the benchmark's `blas-evidence.rds`, copied into the evidence directory as `blas-evidence.rds`).
+The script takes four arguments, in this order: `REPO` (the checkout whose `data/sampleresults.rda` is replaced), `LIB` (the frozen library), `EVIDENCE` (the fresh evidence directory) and `BLAS_EVIDENCE_RDS` (a `blas-evidence.rds` collected by the benchmark's `blas-provenance.R` for the frozen library, copied into the evidence directory as `blas-evidence.rds`).
 
 Wait for `REFIT COMPLETE` in `$EV/refit.log`. Two fits of the quickstart size take about five minutes. Then copy the evidence into this folder and run the verify script against the checkout.
 
