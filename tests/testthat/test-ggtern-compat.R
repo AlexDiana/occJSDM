@@ -32,7 +32,7 @@ test_that("a first ternary plot preserves the theme and later ordinary plots", {
       ))
     )
     ternary_error <- tryCatch({
-      render_plot(occJSDM::plotVariancePartitioning(fit))
+      render_plot(occJSDM::plotVariationPartitioning(fit))
     }, error = function(e) conditionMessage(e))
     preserved <- identical(selected, ggplot2::theme_get())
     errors <- vapply(c("theme_bw", "theme_gray", "theme_minimal", "theme_void"),
@@ -70,7 +70,7 @@ test_that("ternary plotting repairs an already loaded ggtern without resetting e
       ))
     )
     errors <- vapply(1:2, function(i) {
-      tryCatch(render_plot(occJSDM::plotVariancePartitioning(fit)),
+      tryCatch(render_plot(occJSDM::plotVariationPartitioning(fit)),
                error = function(e) conditionMessage(e))
     }, character(1))
     list(errors = errors,
@@ -89,7 +89,7 @@ test_that("ternary plotting repairs an already loaded ggtern without resetting e
 test_that("an unavailable ggtern gives installation advice and preserves the theme", {
   selected <- ggplot2::theme_get()
   local_mocked_bindings(requireNamespace = function(...) FALSE, .package = "base")
-  expect_error(plotVariancePartitioning(variance_partitioning_plot_fixture()),
+  expect_error(plotVariationPartitioning(variance_partitioning_plot_fixture()),
                "install.packages.*ggtern")
   expect_identical(ggplot2::theme_get(), selected)
 })

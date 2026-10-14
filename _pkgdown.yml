@@ -72,8 +72,8 @@ reference:
   - plotOrdinationScores
   - returnResidualCorrelationMatrix
   - plotResidualCorrelationMatrix
-  - returnVariancePartitioning
-  - plotVariancePartitioning
+  - returnVariationPartitioning
+  - plotVariationPartitioning
 
 - title: Example data
   desc: Shipped with the package; used by the vignettes.

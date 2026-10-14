@@ -4,7 +4,7 @@ load_ggtern_for_plot <- function() {
   on.exit(ggplot2::theme_set(selected_theme), add = TRUE)
 
   if (!requireNamespace("ggtern", quietly = TRUE)) {
-    stop("Package 'ggtern' is required for plotVariancePartitioning(). ",
+    stop("Package 'ggtern' is required for plotVariationPartitioning(). ",
          "Install it with install.packages('ggtern').", call. = FALSE)
   }
 
