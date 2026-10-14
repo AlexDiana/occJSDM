@@ -1,0 +1,31 @@
+Analysis of sampling R (pid 57354) every 1 millisecond
+Process:         R [57354]
+Path:            /Library/Frameworks/R.framework/Versions/4.6/Resources/bin/exec/R
+Date/Time:       2026-10-14 11:37:36.051 +0100
+
+Sort by top of stack, same collapsed (when >= 5):
+        __workq_kernreturn  (in libsystem_kernel.dylib)        32339
+        __semwait_signal  (in libsystem_kernel.dylib)        32335
+        dgemm_  (in libRblas.0.dylib)        30866
+        dsyrk_  (in libRblas.0.dylib)        226
+        RunGenCollect  (in libR.dylib)        220
+        dtrsm_  (in libRblas.0.dylib)        207
+        R_binary  (in libR.dylib)        181
+        do_matprod  (in libR.dylib)        73
+        do_transpose  (in libR.dylib)        47
+        do_subset_dflt  (in libR.dylib)        37
+        hasFullSpatialBasis(arma::Mat<double> const&, arma::Mat<double> const&, unsigned int)  (in occJSDM.so)        36
+        _platform_memmove  (in libsystem_platform.dylib)        33
+        arma::arrayops::inplace_mul_base<double>(double*, double const*, unsigned int)  (in occJSDM.so)        28
+        VectorAssign  (in libR.dylib)        27
+        arma::op_strans::apply_mat_noalias<double, arma::Mat<double>>(arma::Mat<double>&, arma::Mat<double> const&)  (in occJSDM.so)        19
+        DATAPTR_RW  (in libR.dylib)        18
+        Rf_mat2indsub  (in libR.dylib)        18
+        bcEval_loop  (in libR.dylib)        17
+        dgemv_  (in libRblas.0.dylib)        17
+        arma::eglue_core<arma::eglue_plus>::apply<arma::Mat<double>, arma::Mat<double>, arma::Mat<double>>(arma::Mat<double>&, arma::eGlue<arma::Mat<double>, arma::Mat<double>, arma::eglue_plus> const&)  (in occJSDM.so)        15
+        R_HashGet  (in libR.dylib)        14
+        integerSubscript  (in libR.dylib)        13
+        ALTVEC_DATAPTR  (in libR.dylib)        12
+        dtrsv_  (in libRblas.0.dylib)        12
+        Rf_copyVector  (in libR.dylib)        9
