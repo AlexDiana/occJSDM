@@ -1104,6 +1104,15 @@ loglik_spatialEffect <- function(KsBs_s, Lm1, logdet, sigma_s){
   loglikelihood
 }
 
+# The weighted Gram matrix Z' diag(w) Z, formed with the symmetric BLAS
+# routine: scaling the rows by sqrt(w) and multiplying the result by its own
+# transpose (dsyrk) does half the arithmetic of crossprod(Z, w * Z) (dgemm)
+# and returns an exactly symmetric matrix. XtOmegaX_SoR() does the same in
+# C++, so the two agree bit for bit on the full basis layout.
+weighted_gram <- function(Z, w) {
+  crossprod(sqrt(w) * Z)
+}
+
 # Integrate the jointly Gaussian B0/B/L/Bs block before choosing a range.
 # The prior is range-independent, while the observation design depends on it.
 # Its Gaussian normalizer avoids holding whitened Bs fixed during a range move.
@@ -1134,21 +1143,30 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
     }
   }
   grid <- list_SoRSummaries$l_s_grid
+  # Formed once rather than once per grid point and species: the prior
+  # precision matrix, the non-spatial design block, and whether the spatial
+  # basis has the full layout (every site uses every coefficient column, in
+  # order), in which case the basis slice is already the design block H.
+  P <- diag(prior_precision, length(prior_precision))
+  A <- cbind(1, X, U)
+  full_basis <- ncol(Xs_centers) == ps && all(Xs_centers == rep(seq_len(ps), each = n))
   vapply(seq_along(grid), function(j) {
     Ks <- matrix(list_SoRSummaries$Ks_all[,,j], nrow=n)
-    H <- matrix(0,n,ps)
-    H[cbind(rep(seq_len(n),ncol(Xs_centers)),as.vector(Xs_centers))] <- as.vector(Ks)
-    Z <- cbind(1,X,U,H)
+    if (full_basis) {
+      H <- Ks
+    } else {
+      H <- matrix(0,n,ps)
+      H[cbind(rep(seq_len(n),ncol(Xs_centers)),as.vector(Xs_centers))] <- as.vector(Ks)
+    }
+    Z <- cbind(A, H)
     # Continuous outcomes share an unweighted Gram matrix across species.
     # Binary augmentation retains the heterogeneous weighted calculation.
     gram <- if (any(constant_omega)) crossprod(Z) else NULL
     linear <- crossprod(Z,kappa) + prior_linear
     score <- vapply(seq_len(S), function(s) {
-      Q <- if (constant_omega[s]) Omega[1,s]*gram else crossprod(Z,Omega[,s]*Z)
-      Q <- Q + diag(prior_precision)
-      h <- linear[,s]
-      C <- chol(Q)
-      v <- forwardsolve(t(C),h)
+      Q <- if (constant_omega[s]) Omega[1,s]*gram else weighted_gram(Z, Omega[,s])
+      C <- chol(Q + P)
+      v <- backsolve(C, linear[,s], transpose = TRUE)
       .5*sum(v^2) - sum(log(diag(C)))
     },numeric(1))
     sum(score) + dgamma(grid[j],a_l_s,b_l_s,log=TRUE)
@@ -1179,7 +1197,7 @@ spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
   group_kappa <- rowsum(kappa,group,reorder=FALSE)
   linear_A <- crossprod(A,kappa)
   weighted_A <- lapply(seq_len(S),function(s) Omega[,s]*A)
-  AA <- lapply(weighted_A,function(wA) crossprod(A,wA))
+  AA <- lapply(seq_len(S),function(s) weighted_gram(A,Omega[,s]))
   group_weighted_A <- lapply(weighted_A,function(wA) rowsum(wA,group,reorder=FALSE))
 
   grid <- list_SoRSummaries$l_s_grid
@@ -1195,7 +1213,7 @@ spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
     linear_H <- crossprod(Hu,group_kappa)
     score <- vapply(seq_len(S),function(s) {
       AH <- crossprod(group_weighted_A[[s]],Hu)
-      HH <- crossprod(Hu,group_weight[,s]*Hu)
+      HH <- weighted_gram(Hu,group_weight[,s])
       Q <- rbind(cbind(AA[[s]],AH),cbind(t(AH),HH))+diagonal_precision
       h <- c(linear_A[,s],linear_H[,s])+prior_linear[,s]
       C <- chol(Q)
