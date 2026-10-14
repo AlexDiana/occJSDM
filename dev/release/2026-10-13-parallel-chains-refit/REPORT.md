@@ -50,7 +50,7 @@ The facts come from [blas-evidence.rds](blas-evidence.rds), collected afresh for
 R 4.6.1 installed by the CRAN installer package org.R-project.R.fw.pkg, whose receipt lists libRblas.0.dylib; the file is regular, not a symlink, links only to libgfortran, libquadmath and libSystem, defines dgemm_ itself, md5 9dfbe56d4ceb13138673fdaf297b4b56; declared by Doug Yu and Claude on 2026-10-13
 ```
 
-- The declaration was made by Claude, as the approved implementation plan prescribes: the plan fixes the basis text, which names Doug Yu and Claude, and has the declaration made once every fact matches the facts recorded in the design spec. Every fact matched, so the declaration was made for this run on the same basis as the benchmark's. The scripts themselves make no verdict.
+- The declaration was made by Claude, as the approved implementation plan prescribes: the plan fixes the basis text, which names Doug Yu and Claude, and has the declaration made once every fact matches the facts recorded in the design spec. Every fact matched, so the declaration was made for this run on the same basis as the benchmark's. The scripts themselves make no verdict. Doug Yu ratified the declaration on 14 October 2026, after reading the evidence above.
 - The workers were asked to run their BLAS single-threaded: the two-core execution record lists `OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS`, `MKL_NUM_THREADS` and `VECLIB_MAXIMUM_THREADS` as 1 and `MKL_DOMAIN_NUM_THREADS` as `MKL_DOMAIN_ALL=1`. These are requests the package cannot verify. The one-core fit requests nothing of its own process. No threaded BLAS was available, so nothing was measured about BLAS threads.
 
 ## Warnings seen
