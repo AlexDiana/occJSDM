@@ -1,0 +1,42 @@
+Analysis of sampling R (pid 64157) every 1 millisecond
+Process:         R [64157]
+Path:            /Library/Frameworks/R.framework/Versions/4.6/Resources/bin/exec/R
+Date/Time:       2026-10-14 12:34:23.456 +0100
+# 15 s native-stack sample of the unprofiled binary900 fit under Accelerate; counts are 1 ms samples; the two kernel wait entries are the idle TBB threads.
+
+Sort by top of stack, same collapsed (when >= 5):
+        __semwait_signal  (in libsystem_kernel.dylib)        9964
+        __workq_kernreturn  (in libsystem_kernel.dylib)        9964
+        RunGenCollect  (in libR.dylib)        1513
+        R_binary  (in libR.dylib)        1308
+        ???  (in libBLAS.dylib)  load address 0x1a002d000 + 0x4f10b8  [0x1a051e0b8]        1285
+        do_matprod  (in libR.dylib)        616
+        do_transpose  (in libR.dylib)        344
+        do_subset_dflt  (in libR.dylib)        298
+        hasFullSpatialBasis(arma::Mat<double> const&, arma::Mat<double> const&, unsigned int)  (in occJSDM.so)        266
+        arma::arrayops::inplace_mul_base<double>(double*, double const*, unsigned int)  (in occJSDM.so)        247
+        VectorAssign  (in libR.dylib)        205
+        Rf_mat2indsub  (in libR.dylib)        197
+        arma::op_strans::apply_mat_noalias<double, arma::Mat<double>>(arma::Mat<double>&, arma::Mat<double> const&)  (in occJSDM.so)        182
+        _platform_memmove  (in libsystem_platform.dylib)        159
+        DATAPTR_RW  (in libR.dylib)        128
+        arma::eglue_core<arma::eglue_plus>::apply<arma::Mat<double>, arma::Mat<double>, arma::Mat<double>>(arma::Mat<double>&, arma::eGlue<arma::Mat<double>, arma::Mat<double>, arma::eglue_plus> const&)  (in occJSDM.so)        122
+        ???  (in libBLAS.dylib)  load address 0x1a002d000 + 0x4fcc18  [0x1a0529c18]        115
+        ALTVEC_DATAPTR  (in libR.dylib)        105
+        ???  (in libBLAS.dylib)  load address 0x1a002d000 + 0x734040  [0x1a0761040]        103
+        integerSubscript  (in libR.dylib)        83
+        ???  (in libBLAS.dylib)  load address 0x1a002d000 + 0x4fcd68  [0x1a0529d68]        71
+        ???  (in libBLAS.dylib)  load address 0x1a002d000 + 0x73407c  [0x1a076107c]        70
+        bcEval_loop  (in libR.dylib)        67
+        ???  (in libBLAS.dylib)  load address 0x1a002d000 + 0x734198  [0x1a0761198]        58
+        mod_do_lapack  (in lapack.so)        53
+        compact_intseq_Dataptr  (in libR.dylib)        44
+        ???  (in libBLAS.dylib)  load address 0x1a002d000 + 0x7341f4  [0x1a07611f4]        42
+        rep3  (in libR.dylib)        42
+        ???  (in libBLAS.dylib)  load address 0x1a002d000 + 0x73413c  [0x1a076113c]        41
+        xcopyRealWithRecycle  (in libR.dylib)        38
+        Rf_copyVector  (in libR.dylib)        37
+        exp  (in libsystem_m.dylib)        32
+        std::mersenne_twister_engine<unsigned int, 32ul, 624ul, 397ul, 31ul, 2567483615u, 11ul, 4294967295u, 7ul, 2636928640u, 15ul, 4022730752u, 18ul, 1812433253u>::operator()[abi:nqe220106]()  (in occJSDM.so)        32
+        ???  (in libBLAS.dylib)  load address 0x1a002d000 + 0x7340e0  [0x1a07610e0]        31
+        xcopyIntegerWithRecycle  (in libR.dylib)        31
