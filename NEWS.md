@@ -1,5 +1,9 @@
 # occJSDM (development version)
 
+## Deprecations
+
+-   `returnVariancePartitioning()` and `plotVariancePartitioning()` are renamed `returnVariationPartitioning()` and `plotVariationPartitioning()`, to match the documentation. The old names still work but give a deprecation warning and will be removed in a future release.
+
 # occJSDM 0.1.1
 
 Second beta, released on GitHub as `v0.1.1-beta`. The model code, priors and shipped example data are unchanged from 0.1.0.
