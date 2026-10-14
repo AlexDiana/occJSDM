@@ -8,6 +8,10 @@
 
 -   Every chain is now seeded on its own, so a fit is identical whatever `ncores` says and no chain continues another's random stream. Because of this, a fit under a given `set.seed()` value gives different numbers from version 0.1.1; the shipped `sampleresults` was refitted under the new seeding with the same seed and settings. Identity across `ncores` is stated for a single-threaded BLAS; see `?runOccJSDM`.
 
+## Deprecations
+
+-   `returnVariancePartitioning()` and `plotVariancePartitioning()` are renamed `returnVariationPartitioning()` and `plotVariationPartitioning()`, to match the documentation. The old names still work but give a deprecation warning and will be removed in a future release.
+
 # occJSDM 0.1.1
 
 Second beta, released on GitHub as `v0.1.1-beta`. The model code, priors and shipped example data are unchanged from 0.1.0.

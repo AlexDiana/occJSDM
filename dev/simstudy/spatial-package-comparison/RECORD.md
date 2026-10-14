@@ -1,6 +1,6 @@
 # First spatial package comparison: record
 
-Written 12 October 2026. On that day Doug decided that this study is not worth keeping: it was underpowered, so its fits, inputs and scores are being discarded and only this record is kept. The spatial model work begins with the recoverability pilot (`dev/simstudy/spatial-recoverability-pilot/REPORT.md`), which is the positive control this study lacked.
+Written 12 October 2026. On that day Doug decided that this study is not worth keeping: it was underpowered, so its fits, inputs and scores were discarded and only this record was kept. The spatial model work begins with the recoverability pilot (`dev/simstudy/spatial-recoverability-pilot/REPORT.md`), which is the positive control this study lacked.
 
 ## What it was
 
@@ -26,4 +26,4 @@ The design had no positive control: no setting in which the oracle was shown to 
 
 - **Kept.** This record. The adapters, basis, diagnostics and selection code that the pilot and the shelved stage 2 reused, which are copied into `dev/simstudy/spatial-stage2-comparison/upstream/` with their hashes in `sources.csv`. The pinned R 4.5.0 home and the occJSDM library (the `runtime/` and `library/` folders of the laptop's git-ignored folder `dev/simstudy/results/spatial-package-comparison-20261008/`), because the pilot's and stage 2's launchers (`run-r`) point at them. The full report, design, code and a Lesson 5 draft section with 19 figures are reachable through the local tag `archive/first-spatial-comparison` (commit `f7ec484`). That tag has never been pushed, and the branch was never merged or pushed.
 - **Discarded on 12 October 2026.** The laptop's run index apart from the two folders above (reconstructed inputs, truth, bases, scores and verification files, about 2.1 GB). The branch `codex/spatial-comparison-plan` and its worktree. The Lesson 5 draft section and its figures were only ever on that branch, so no lesson on `main` depended on this study.
-- **To be discarded when the research drive is reconnected** (it was unavailable on 12 October 2026): the 288 fit directories and the 342 MB teaching bundle `spatial-package-comparison.rds` (358,611,608 bytes) in `/Volumes/occJSDM Research/occJSDM/spatial-package-comparison-20261008/`. This record will be updated when that is done.
+- **Discarded on 13 October 2026, when the research drive was reconnected.** The 288 fit directories and the 342 MB teaching bundle `spatial-package-comparison.rds` (358,611,608 bytes) in `/Volumes/occJSDM Research/occJSDM/spatial-package-comparison-20261008/`, together with that folder's sentinel file. Nothing of this study is now on the research drive.

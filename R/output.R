@@ -2121,7 +2121,7 @@ extractWAIC <- function(fitModel, type = c("site", "legacy"), ...) {
   computeSiteWAIC(fitModel, ...)$WAIC
 }
 
-#' returnVariancePartitioning
+#' returnVariationPartitioning
 #'
 #' Compute the variation partitioning for each species
 #'
@@ -2134,14 +2134,14 @@ extractWAIC <- function(fitModel, type = c("site", "legacy"), ...) {
 #'
 #' @examples
 #' \dontrun{
-#' returnVariancePartitioning(fitModel)
+#' returnVariationPartitioning(fitModel)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-returnVariancePartitioning <- function(fitModel){
+returnVariationPartitioning <- function(fitModel){
 
   varPart_output <- fitModel$results_output$jsdm_output$varPart_output
 
@@ -2151,7 +2151,7 @@ returnVariancePartitioning <- function(fitModel){
 
 }
 
-#' plotVariancePartitioning
+#' plotVariationPartitioning
 #'
 #' Plot the variation partitioning for each species
 #'
@@ -2167,14 +2167,14 @@ returnVariancePartitioning <- function(fitModel){
 #'
 #' @examples
 #' \dontrun{
-#' plotVariancePartitioning(fitModel)
+#' plotVariationPartitioning(fitModel)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-plotVariancePartitioning <- function(fitModel){
+plotVariationPartitioning <- function(fitModel){
 
   varPart_output <- fitModel$results_output$jsdm_output$varPart_output
 
@@ -2182,6 +2182,35 @@ plotVariancePartitioning <- function(fitModel){
 
   plotVarPart(varPart_output, speciesNames)
 
+}
+
+#' Deprecated variation-partitioning names
+#'
+#' `returnVariancePartitioning()` and `plotVariancePartitioning()` are the
+#' old names of [returnVariationPartitioning()] and
+#' [plotVariationPartitioning()]. They still work, but warn and will be
+#' removed in a future release.
+#'
+#' @param fitModel Output from the function runOccJSDM
+#'
+#' @return As for the new functions.
+#'
+#' @name variance-partitioning-deprecated
+#' @keywords internal
+NULL
+
+#' @rdname variance-partitioning-deprecated
+#' @export
+returnVariancePartitioning <- function(fitModel){
+  .Deprecated("returnVariationPartitioning", package = "occJSDM")
+  returnVariationPartitioning(fitModel)
+}
+
+#' @rdname variance-partitioning-deprecated
+#' @export
+plotVariancePartitioning <- function(fitModel){
+  .Deprecated("plotVariationPartitioning", package = "occJSDM")
+  plotVariationPartitioning(fitModel)
 }
 
 

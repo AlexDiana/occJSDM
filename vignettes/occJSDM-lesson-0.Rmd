@@ -23,15 +23,15 @@ source("lesson-links.R")
 
 ## Where this lesson fits
 
-We will learn occJSDM using a community whose true distribution is known. A real survey never reveals which sites a species truly occupies, so it cannot show whether a model's answers are right. A simulation keeps those answers, so every estimate the model makes can be checked against the truth that generated the data. occJSDM estimates which species occupy which sites from eDNA surveys. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). The [quickstart](occJSDM-00-quickstart.md) shows a first fit on the package's example data. This lesson creates and explores the survey, and [Lesson 2](occJSDM-lesson-2.md) fits the model. [Lesson 1](occJSDM-lesson-1.md) works through, by hand, what an occupancy model and a joint species distribution model do; it is the first required lesson, so every reader starts there, before Lesson 2.
+occJSDM uses the results from eDNA survey to estimate which species occupy which sites. It allows for false negatives (from imperfect field collection, imperfect PCR detection, or both) and for false positives (from contamination in the field, in the lab or both). The [quickstart](occJSDM-00-quickstart.md) lesson shows a first fit on the package's example data.
 
-You can skip Lesson 0 and start Lesson 2 with the supplied dataset. Read this lesson if you want to understand where that dataset came from, change the simulation settings, or learn how to prepare the tables and figures yourself.
+**This is Lesson 0, and it is optional because it is somewhat technical**. Read this lesson if you want to understand where that simulated dataset came from, change the simulation settings, or learn how to prepare the tables and figures yourself. The reason that we simulate a dataset is because a real survey does not know which sites a species truly occupies, so a real survey cannot know whether a model's answers are right. A simulation knows which species are in which sites, so model estimates can be checked against the truth that generated the data. This survey has no spatial structure. Its sites have coordinates, which let us draw maps, but location does not generate its environmental values or enter its fitted model. That makes it a good place to start: the model's answers can be checked without also asking whether it has captured a spatial pattern.
 
-This survey has no spatial structure. Its sites have coordinates, which let us draw maps, but location does not generate its environmental values or enter its fitted model. That makes it a good place to start: the model's answers can be checked without also asking whether it has captured a spatial pattern. The spatial lesson deliberately changes that.
+[Lesson 1](occJSDM-lesson-1.md) **is the normal starting point and explains step by step what an occupancy model and a joint species distribution model do**. If you are already familiar with occupancy and joint species distribution models, you can skip directly to [Lesson 2](occJSDM-lesson-2.md), where we will fit the occJSDM model to the simulated dataset that we create in this lesson.
 
 ## Load the teaching data and the R tools
 
-The teaching data are in the occJSDM repository, not in the installed package, so first clone or download [the repository from GitHub](https://github.com/AlexDiana/occJSDM). Run the code with the repository's `vignettes` directory as your working directory. Knitting this document uses that directory automatically. In RStudio, opening the `.Rmd` file and choosing **Session \> Set Working Directory \> To Source File Location** gives the same starting point for running chunks interactively.
+The teaching data are in the occJSDM repository, not in the installed package, so first clone or download [the repository from GitHub](https://github.com/AlexDiana/occJSDM). The code reads the data by paths relative to the repository's `vignettes` directory, so that directory must be your working directory. Knitting this document, and running a chunk with its green arrow in RStudio, both use that directory automatically. Sending lines to the console one at a time does not: the console keeps its own working directory, which in an RStudio project is the repository root, and the data are then not found. Before running code that way, open the `.Rmd` file and choose **Session \> Set Working Directory \> To Source File Location**, or run `setwd("vignettes")` from the repository root.
 
 **What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R **for Data Science** on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. Operations that are unusual, such as joining two tables on species identity, are explained where they appear.
 
@@ -58,7 +58,9 @@ format_percent <- function(probability, digits = 1) {
 }
 ```
 
-`format_percent()` prints probabilities as percentages in the text. Here is what the saved file holds.
+`format_percent()` prints probabilities as percentages in the text.
+
+Here is what the saved file holds.
 
 ```{r lesson-contents}
 names(lesson)
@@ -66,7 +68,11 @@ str(survey_data, max.level = 1)
 names(known_truth)
 ```
 
-`lesson` is the saved file that Lesson 2 also reads. `input` holds the simulation, and `cases` the four detection examples that Lesson 2 selected. Most of the other components summarise Lesson 2's model fits, which this lesson does not use. `survey_data` is what the two-stage model receives: the three tables `info`, `OTU` and `traits`, which "Understand the three input objects" describes. `known_truth` is what the simulation knew and the model never sees. `z_true` records whether each species truly occupies each site, and `w_true` whether its DNA truly entered each field sample. `jsdmParams_true` holds the ecological model's coefficients and each site's true occupancy score for each species. `beta_theta_true` holds the collection coefficients, and `p_true` and `q_true` the laboratory rates. "Decide how collection and PCR can fail" explains the two-stage process that these truths describe.
+`lesson` is the saved file that Lesson 2 also reads. `input` holds the simulation. `cases` holds the four detection examples that Lesson 2 selected. Most of the other components summarise Lesson 2's model fits, which this lesson does not use.
+
+`survey_data` is what the two-stage model receives: the three tables `info`, `OTU` and `traits`, which "Understand the three input objects" describes.
+
+`known_truth` is what the simulation knows and the model never sees. `z_true` records whether each species truly occupies each site, and `w_true` whether its DNA truly entered each field sample. `jsdmParams_true` holds the ecological model's coefficients and each site's true occupancy score for each species. `beta_theta_true` holds the collection coefficients, and `p_true` and `q_true` the laboratory rates. "Decide how collection and PCR can fail" explains the two-stage process that these truths describe.
 
 occJSDM takes the read counts as a matrix with one column per species, which is how `survey_data$OTU` stores them. To explore the observations we reshape a copy into a long table, with one row per species and PCR.
 
@@ -90,11 +96,11 @@ tibble(
 )
 ```
 
-There are `r n_field_samples` field samples and `r format(n_pcr_observations, big.mark = ",")` PCR reactions. As in metabarcoding, each reaction yields a read count for every species, so there are not separate PCRs for each species. Six PCR replicates means **six per primer per field sample**, not six divided between the two primers.
+There are `r n_field_samples` field samples and `r format(n_pcr_observations, big.mark = ",")` PCR reactions. In metabarcoding, each PCR reaction yields multiple read counts, one for every detected species, so there are not separate PCRs per species. Six PCR replicates means **six per primer per field sample**, not six divided between the two primers.
 
-These numbers are a choice made for teaching. One hundred sites and ten species make a community small enough for the lessons to display every site and species. Three field samples per site matches the quickstart's `sampledata`. Field replication is what lets the model weigh a sample's positive against the site's other samples. [Lesson 2's appendix](occJSDM-lesson-2.md#why-the-survey-has-three-field-samples-per-site) records why two samples per site were not enough. Two primers with six PCRs each give every sample `r n_primers * pcrs_per_primer` PCRs, many repeated laboratory results from which to learn the laboratory rates. On your own survey these numbers are whatever your field and laboratory design produced; you do not choose them for occJSDM.
+These numbers are chosen for teaching. One hundred sites and ten species make a community small enough for the lessons to display every site and species. Three field samples per site matches the quickstart's `sampledata`. Field replication is what lets the model weigh a sample's positive against the site's other samples and infer false positives. ([Lesson 2's appendix](occJSDM-lesson-2.md#why-the-survey-has-three-field-samples-per-site) records why two samples per site were not enough.) Two primers with six PCRs each give every sample `r n_primers * pcrs_per_primer` PCRs, many repeated laboratory results from which to learn the laboratory rates. On your own surveys, these numbers are whatever your field and laboratory design produced.
 
-The simulator uses shorter argument names. This list translates our decisions into its interface. `M` and `K` are vectors rather than single numbers. `M` holds the number of field samples at each site, and `K` the number of PCRs for each combination of field sample and primer. `K` runs through the samples in order, with each sample's primers together. Vectors are what allow unequal replication, which "Unequal numbers of field samples" prepares. Here every value of `K` is six, so their order does not matter. A **trait** is a measured property of each species, such as body size. An **occupancy covariate** describes the habitat at a site, such as water temperature. A **collection covariate** describes how each field sample was taken, such as the volume of water filtered. It changes how likely a sample is to capture DNA, not whether the species is there.
+The simulator software uses shorter argument names: `M` and `K` are vectors rather than single numbers. `M` holds the number of field samples at each site, and `K` the number of PCRs for each combination of field sample and primer. `K` runs through the samples in order, with each sample's primers together. Vectors are what allow unequal replication, which "Unequal numbers of field samples" prepares. Here every value of `K` is six, so their order does not matter. A **trait** is a measured property of each species, such as body size. An **occupancy covariate** describes the habitat at a site, such as water temperature. A **collection covariate** describes how each field sample was taken, such as the volume of water filtered. It changes how likely a sample is to capture DNA, not whether the species is there.
 
 ```{r simulator-settings}
 survey_settings <- list(
@@ -122,9 +128,9 @@ An eDNA survey is a **two-stage process**: DNA is collected in the field, then d
 - `p`: the probability that a PCR detects the species when its DNA is in the sample. A PCR failure, a false negative at the laboratory stage, has probability `1 - p`.
 - `q`: the probability that a PCR reports the species when its DNA is not in the sample, the laboratory false positive.
 
-[Lesson 1](occJSDM-lesson-1.md#what-an-occupancy-model-does) shows the one-stage version of this process, with a single detection probability and no false positives. [Lesson 2](occJSDM-lesson-2.md#three-questions-three-different-truths) explains the full model.
+[Lesson 1](occJSDM-lesson-1.md#what-an-occupancy-model-does) runs a greatly simplified version of this process, with a single detection probability and no false positives. [Lesson 2](occJSDM-lesson-2.md#three-questions-three-different-truths) runs the full model.
 
-We deliberately let species differ in how reliably they are collected and detected. For example, the probability that primer 1 detects DNA in the sample rises from `r lesson$input$params$p[1, 1]` to `r lesson$input$params$p[1, n_species]` across the ten species. The second primer has somewhat higher probabilities. These are assigned simulation settings, not findings about real primers.
+In the simulation, we let the species differ in how reliably they are collected and detected. For example, the probability that primer 1 detects DNA in the sample rises from `r lesson$input$params$p[1, 1]` to `r lesson$input$params$p[1, n_species]` across the ten species. The second primer has generally slightly higher probabilities. These are assigned simulation settings, not real primers.
 
 ```{r observation-settings}
 primer_1_detection <- seq(0.35, 0.85, length.out = n_species)

@@ -15,6 +15,23 @@ remotes::install_github("AlexDiana/occJSDM", build_vignettes = TRUE)
 
 Note the `build_vignettes = TRUE` -- without it, `remotes::install_github()` skips building vignettes by default, and `vignette("occJSDM-00-quickstart", package = "occJSDM")` will report that no vignette was found.
 
+### Speed: use an optimised BLAS
+
+The sampler spends most of its time in matrix products, and almost all of it once a fit has spatial coordinates, so the BLAS library that R uses decides how long a fit takes. R's own reference BLAS is slow: on an Apple M4 laptop, switching to Apple's Accelerate made a 900-site spatial fit about 25 times faster per iteration and the quickstart fit about 1.5 times faster ([profile](dev/profiling/2026-10-14-cpu-profile/REPORT.md)). Check which BLAS your R loads with `extSoftVersion()["BLAS"]` (or `sessionInfo()`).
+
+- **macOS, CRAN build of R.** R ships both libraries, and a symlink in the R framework chooses between them. To use Accelerate, run the first command below in Terminal (the directory is writable by administrators, so `sudo` is not normally needed); the second command reverts to the reference BLAS. Afterwards `extSoftVersion()["BLAS"]` names Accelerate's `libBLAS.dylib`. Do not point the link at that system library yourself: the path exists only inside macOS's shared library cache, so R will not start; `libRblas.vecLib.dylib` is the shim R ships to reach it. Every R upgrade from the CRAN installer resets the link, so repeat the switch after upgrading. The R for macOS FAQ documents the switch and notes that Accelerate is outside the R project's control.
+
+``` sh
+cd /Library/Frameworks/R.framework/Resources/lib
+ln -sf libRblas.vecLib.dylib libRblas.dylib   # Accelerate
+ln -sf libRblas.0.dylib libRblas.dylib        # back to the reference BLAS
+```
+
+- **Linux.** Install R linked against OpenBLAS or Intel MKL (for example the `libopenblas-dev` package and `update-alternatives --config libblas.so.3` on Debian and Ubuntu, or the R builds that come with them).
+- **Windows.** The CRAN build uses the reference BLAS; an OpenBLAS replacement for `Rblas.dll` is possible but outside what this package documents.
+
+Results under different BLAS libraries agree to rounding error, not bit for bit, so a seeded fit is reproducible under one BLAS but will not match the same seed under another. With a threaded BLAS, set its thread limit to 1 (for Accelerate, `VECLIB_MAXIMUM_THREADS=1`) when you need the same numbers from run to run.
+
 ## Getting started
 
 The [quickstart](vignettes/occJSDM-00-quickstart.md) shows the input data, a fitting call and a first look at the output. The simulator guide shows how to simulate a survey whose truth you know. After installing with vignettes, open them in R:

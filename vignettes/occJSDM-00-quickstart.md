@@ -83,7 +83,7 @@ View(sampledata$info)
 
 ## Fit the model
 
-You can either load the precomputed model results from `sampleresults` or fit the model live. Fitting live will take up to several minutes depending on your machine but has the advantage of testing whether your machine can run occJSDM. On the other hand, using the same seed number only produces *exactly* the same results as in `sampleresults` if run on the same machine and software (M4 MacBook Air, macOS 27.0.1, R 4.6.1) and with the same model arguments (priors, number of chains). Running on a different platform could result in small numerical differences.
+You can either load the precomputed model results from `sampleresults` or fit the model live. Fitting live will take up to several minutes depending on your machine but has the advantage of testing whether your machine can run occJSDM. How long it takes depends mostly on the BLAS library your R uses: the README's *Speed: use an optimised BLAS* section shows how to check it and, on a Mac, how to switch to Apple's Accelerate, which made this fit about 1.5 times faster and spatial fits far faster; the BLAS is also part of the "same software" in the next sentence. On the other hand, using the same seed number only produces *exactly* the same results as in `sampleresults` if run on the same machine and software (M4 MacBook Air, macOS 27.0.1, R 4.6.1) and with the same model arguments (priors, number of chains). Running on a different platform could result in small numerical differences.
 
 Choose this option
 

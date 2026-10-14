@@ -1,0 +1,42 @@
+Analysis of sampling R (pid 64289) every 1 millisecond
+Process:         R [64289]
+Path:            /Library/Frameworks/R.framework/Versions/4.6/Resources/bin/exec/R
+Date/Time:       2026-10-14 12:35:01.923 +0100
+# 15 s native-stack sample of the unprofiled quickstart fit under Accelerate; counts are 1 ms samples; the two kernel wait entries are the idle TBB threads.
+
+Sort by top of stack, same collapsed (when >= 5):
+        __workq_kernreturn  (in libsystem_kernel.dylib)        10509
+        __semwait_signal  (in libsystem_kernel.dylib)        10507
+        RunGenCollect  (in libR.dylib)        586
+        bcEval_loop  (in libR.dylib)        513
+        R_binary  (in libR.dylib)        393
+        Rf_findVarInFrame3  (in libR.dylib)        276
+        log  (in libsystem_m.dylib)        270
+        RcppParallel::RMatrix<double>::operator()(unsigned long, unsigned long) const  (in occJSDM.so)        261
+        BetaParamWorker::operator()(unsigned long, unsigned long)  (in occJSDM.so)        260
+        DYLD-STUB$$RcppParallel::RVector<int>::operator[](unsigned long) const  (in occJSDM.so)        208
+        DYLD-STUB$$RcppParallel::RMatrix<double>::operator()(unsigned long, unsigned long) const  (in occJSDM.so)        204
+        do_matprod  (in libR.dylib)        166
+        do_subset_dflt  (in libR.dylib)        156
+        RcppParallel::RVector<int>::operator[](unsigned long) const  (in occJSDM.so)        146
+        samplepg_fast(double)  (in occJSDM.so)        145
+        findVarLocInFrame  (in libR.dylib)        134
+        std::mersenne_twister_engine<unsigned int, 32ul, 624ul, 397ul, 31ul, 2567483615u, 11ul, 4294967295u, 7ul, 2636928640u, 15ul, 4022730752u, 18ul, 1812433253u>::operator()[abi:nqe220106]()  (in occJSDM.so)        134
+        do_transpose  (in libR.dylib)        130
+        Rf_allocVector3  (in libR.dylib)        126
+        Rf_matchArgs_NR  (in libR.dylib)        119
+        exp  (in libsystem_m.dylib)        116
+        R_HashGet  (in libR.dylib)        111
+        CONS_NR  (in libR.dylib)        109
+        arma::op_strans::apply_mat_noalias<double, arma::Mat<double>>(arma::Mat<double>&, arma::Mat<double> const&)  (in occJSDM.so)        103
+        ProbWorker::operator()(unsigned long, unsigned long)  (in occJSDM.so)        95
+        arma::arrayops::inplace_mul_base<double>(double*, double const*, unsigned int)  (in occJSDM.so)        95
+        SETCAR  (in libR.dylib)        91
+        _platform_memmove  (in libsystem_platform.dylib)        91
+        std::generate_canonical[abi:nqe220106]<double, 53ul, std::mersenne_twister_engine<unsigned int, 32ul, 624ul, 397ul, 31ul, 2567483615u, 11ul, 4294967295u, 7ul, 2636928640u, 15ul, 4022730752u, 18ul, 1812433253u>>(std::mersenne_twister_engine<unsigned int, 32ul, 624ul, 397ul, 31ul, 2567483615u, 11ul, 4294967295u, 7ul, 2636928640u, 15ul, 4022730752u, 18ul, 1812433253u>&)  (in occJSDM.so)        89
+        Rf_cons  (in libR.dylib)        88
+        _xzm_free_main  (in libsystem_malloc.dylib)        78
+        mach_absolute_time  (in libsystem_kernel.dylib)        75
+        Rf_eval  (in libR.dylib)        66
+        _platform_memset  (in libsystem_platform.dylib)        63
+        SET_TAG  (in libR.dylib)        62

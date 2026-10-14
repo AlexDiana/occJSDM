@@ -11,6 +11,7 @@ This directory holds occJSDM development guides, planning documents, scientific 
 | [superpowers/plans/](superpowers/plans/) | New general Superpowers implementation plans | Tracked |
 | [release/](release/2026-10-07-beta/REPORT.md) | Dated release refits, provenance, check reports and announcement drafts | Explicitly tracked |
 | [maintenance/](maintenance/post-beta-maintenance-20261007/REPORT.md) | Package cleanup audits and local simulation-archive retention review | Explicitly tracked compact records; bulky evidence ignored |
+| [profiling/](profiling/2026-10-14-cpu-profile/REPORT.md) | Dated CPU profiles of the sampler and the ranked optimisation candidates they support | Tracked compact records and scripts |
 | [simstudy/](simstudy/) | Study scripts, plans, reports, audits and compact evidence | Tracked, with explicit output exceptions |
 | [simstudy/vignette-lesson/](simstudy/vignette-lesson/README.md) | Build and verify the numerical teaching examples | Tracked source and compact artifacts |
 | [simstudy/lesson-site/](simstudy/lesson-site/DESIGN.md) | Development and tests for the teaching website | Tracked source; generated preview ignored |

@@ -7,7 +7,7 @@ R package for fitting occupancy models to eDNA metabarcoding reads data (joint s
 - `R/runOccJSDM.R` -- main model-fitting entry point (`runOccJSDM()`), plus data-prep helpers (`process_covariates()`, `createDataIdx()`, `get_param()`).
 - `R/jsdmfun.R` -- core JSDM machinery, including `simulateData()` (the lower-level data simulator) and coefficient/variation-partitioning helpers (`computeBtcoef()`, `computePsiCoef()`, `computeVariancePartitioning()`).
 - `R/simulateData.R` -- exports `simulateOccJSDMData()`, which now takes an explicit `model` argument (`"binary"`, `"occupancy"`, `"continuous"`, or `"two_stage"`) and directly returns `data_list` already in the `runOccJSDM()`-ready `info`/`OTU`/`traits` shape (as of Alex's `a9700ab` refactor, below). This merged the former `simulateOccJSDMDataGeneral()` into `simulateOccJSDMData()` and **removed** the separate `toRunOccJSDMFormat()` conversion step entirely -- neither `simulateOccJSDMDataGeneral()` nor `toRunOccJSDMFormat()` exist in the source anymore (dropped from `NAMESPACE` too), even though `tests/testthat/test-toRunOccJSDMFormat.R` and a `\link{toRunOccJSDMFormat}` in `R/data.R`'s roxygen docs still reference the removed function. **This is a live regression** -- the old two-step simulate-then-convert workflow described in `vignettes/simulateOccJSDMData.Rmd` may now be stale; check/update that vignette and the orphaned test before relying on either.
-- `R/mcmcfun.R`, `R/output.R`, `R/diagnostics.R` -- MCMC sampling and post-processing/output/plotting functions used after `runOccJSDM()` (e.g. `returnOccupancyCovariates()`, `plotVariancePartitioning()`, `returnLatentPresences()`, `plotResidualCorrelationMatrix()`, `returnOrdinationScores()`/`plotOrdinationScores()`/`returnFactorLoadings()`/`plotFactorLoadings()`; see NAMESPACE for the full exported list).
+- `R/mcmcfun.R`, `R/output.R`, `R/diagnostics.R` -- MCMC sampling and post-processing/output/plotting functions used after `runOccJSDM()` (e.g. `returnOccupancyCovariates()`, `plotVariationPartitioning()`, `returnLatentPresences()`, `plotResidualCorrelationMatrix()`, `returnOrdinationScores()`/`plotOrdinationScores()`/`returnFactorLoadings()`/`plotFactorLoadings()`; see NAMESPACE for the full exported list).
 - `src/jsdm.cpp`, `src/functions.cpp` (via `RcppExports.R`) -- Rcpp/Armadillo backend, including the spatial kernel `K2()` (squared-exponential GP kernel over site coordinates) and `sample_w_cpp()` (samples latent collection state `w` from continuous read intensities; currently unused in `runOccJSDM()` since `threshold < 1` is unsupported).
 - `vignettes/occJSDM-00-quickstart.Rmd` (formerly `occJSDM.Rmd`) -- walkthrough of fitting a model with `runOccJSDM()` and using the output/plotting functions.
 - `vignettes/simulateOccJSDMData.Rmd` -- walkthrough of `simulateOccJSDMData()`: parameter lists, simulating with/without spatial autocorrelation via `useSpatField`, checking variation partitioning, visualizing occupancy and the linear predictor spatially, and how trait covariates (`Tr`) shape species-specific occupancy coefficients via the `G` matrix. **Likely stale**: as of Alex's `a9700ab` refactor, `simulateOccJSDMData()` takes a `model` argument and returns `runOccJSDM()`-ready data directly, so any vignette content describing a separate `toRunOccJSDMFormat()` conversion step needs updating.
@@ -81,7 +81,7 @@ Not ported: `compare_to_true()`/`plot_estimated_vs_true()` from GLGS-eDNA, since
 
 ## Output functions of note
 
-- `returnVariancePartitioning(fitModel)` -- per-species table of (Env, Spatial, Biotic, StDev) variance fractions; feeds `plotVariancePartitioning()`.
+- `returnVariationPartitioning(fitModel)` -- per-species table of (Env, Spatial, Biotic, StDev) variance fractions; feeds `plotVariationPartitioning()`.
 - `returnResidualCorrelationMatrix(fitModel, confidence = .95)` -- returns a 3 × S × S array (quantile × species × species) of posterior credible intervals for pairwise residual correlations. The 50% slice gives the median correlation matrix; comparing bounds' signs gives a significance flag.
 - `plotCumulativeSpeciesDetections(fitModel, K, primer = 0, alpha = .95)` -- credible interval for cumulative species detected as a function of PCR replicates (K), via bootstrapped per-species Beta-distributed detection probabilities. No M-based (sample/visit-level) equivalent exists yet (TODO.md, MEE paper / Alex to dos).
 - Ordination is now more complete (as of Alex's `a9700ab` refactor): `returnOrdinationScores()`/`plotOrdinationScores()` (renamed from `returnOrdination()`) cover site factor scores, and new `returnFactorLoadings()`/`plotFactorLoadings()` cover species loading scores -- both exported with roxygen docs. The former TODO.md item calling for this has been removed accordingly.
@@ -230,7 +230,7 @@ This was applied on 4 August 2026 to the `thinOutput()` rewrite, which had been 
 
 ## ggtern and plotting
 
-- `plotVariancePartitioning()` (via `plotVarPart()` in `R/jsdmfun.R`, line 1466) produces a warning: "Ignoring unknown labels: L, T, R" because it calls `labs(L = "Environment", T = "Biotic", R = "Spatial")`. The `ggplot2::labs()` function doesn't recognize ternary-axis parameters `L`, `T`, `R`. **Fix**: Remove the `labs()` call entirely -- the axis labels are correctly set by the aesthetic names (`Env`, `Biotic`, `Spatial`) in the `aes()` mapping and don't require additional specification. The theme elements `tern.axis.title.T`, `tern.axis.title.L`, `tern.axis.title.R` already control styling.
+- `plotVariationPartitioning()` (via `plotVarPart()` in `R/jsdmfun.R`, line 1466) produces a warning: "Ignoring unknown labels: L, T, R" because it calls `labs(L = "Environment", T = "Biotic", R = "Spatial")`. The `ggplot2::labs()` function doesn't recognize ternary-axis parameters `L`, `T`, `R`. **Fix**: Remove the `labs()` call entirely -- the axis labels are correctly set by the aesthetic names (`Env`, `Biotic`, `Spatial`) in the `aes()` mapping and don't require additional specification. The theme elements `tern.axis.title.T`, `tern.axis.title.L`, `tern.axis.title.R` already control styling.
 
 ## Detail behind Fixed bugs 43-46 and the new group B item, moved out of TODO
 
@@ -834,7 +834,7 @@ Tests in this file load a pre-fitted fixture to avoid re-running MCMC. The fixtu
 | Traits | `returnTraitsCoeff`, `plotTraitsCoefficients` | Returns data.frame; only run when traits present |
 | Residual correlation | `returnResidualCorrelationMatrix`, `plotResidualCorrelationMatrix` | Returns 3×S×S array; median slice is symmetric |
 | Ordination | `returnOrdinationScores`, `plotOrdinationScores`, `returnFactorLoadings`, `plotFactorLoadings` | Returns data.frame/ggplot; nrow == n_sites / n_species |
-| Variation partitioning | `returnVariancePartitioning`, `plotVariancePartitioning` | Row fractions sum to \~1 per species |
+| Variation partitioning | `returnVariationPartitioning`, `plotVariationPartitioning` | Row fractions sum to \~1 per species |
 | Prediction | `predictNewSites`, `computePredictiveOccupancyProbs` | Returns matrix with nrow == n_sites; values in [0,1] |
 | Latent state | `returnLatentPresences`, `plotLatentPresences`, `computeAverageCollectionProbs`, `computeConditionalSamplePresenceProbs` | Dimensions match n_species / n_sites |
 | Diagnostics | `returnConvergenceDiagnostics`, `plotTraceplot` | Columns rhat/ess present; no NA rows for well-behaved chains |
@@ -845,8 +845,8 @@ Tests in this file load a pre-fitted fixture to avoid re-running MCMC. The fixtu
 # Load fixture once for all output tests
 fit_ts <- readRDS(testthat::test_path("fixtures/fit_twostage.rds"))
 
-test_that("returnVariancePartitioning fractions sum to approximately 1", {
-  vp <- returnVariancePartitioning(fit_ts)
+test_that("returnVariationPartitioning fractions sum to approximately 1", {
+  vp <- returnVariationPartitioning(fit_ts)
   frac_cols <- c("Env", "Spatial", "Biotic")
   row_sums <- rowSums(vp[, frac_cols])
   expect_true(all(abs(row_sums - 1) < 0.01))
@@ -875,7 +875,7 @@ test_that("simulate -> fit -> output pipeline completes without error", {
   sim  <- do.call(simulateOccJSDMData, args)
   fit  <- runOccJSDM(sim$data_list, MCMCparams = minimal_mcmc)
 
-  expect_no_error(returnVariancePartitioning(fit))
+  expect_no_error(returnVariationPartitioning(fit))
   expect_no_error(returnConvergenceDiagnostics(fit))
   expect_no_error(returnResidualCorrelationMatrix(fit))
   expect_no_error(returnLatentPresences(fit, idx_species = 1))
