@@ -360,6 +360,53 @@ test_that("an error or an interrupt during worker start-up leaves no worker aliv
   expect_false(any(alive(pids)))
 })
 
+test_that("an interrupt while makeCluster() is still waiting for the workers leaves no worker alive", {
+  skip_on_cran(); skip_on_os("windows")
+  # The cases above interrupt once the cluster exists and its PIDs are known.
+  # Here the workers interrupt the parent from their start-up profile, before
+  # either has connected, so the interrupt lands inside
+  # parallel::makeCluster(): the cleanup then has neither a cluster nor a PID
+  # and must find the workers in the process table. The profile reaches the
+  # workers through R_PROFILE_USER, which they read at process start like
+  # the other variables. Only the worker that records the second PID sends
+  # the signal, through an atomic dir.create() lock, so that a second SIGINT
+  # cannot land inside the parent's cleanup.
+  pid_dir <- tempfile("worker-pids-"); dir.create(pid_dir)
+  profile <- tempfile("worker-profile-", fileext = ".R")
+  writeLines(c(
+    'local({',
+    '  d <- Sys.getenv("OCCJSDM_TEST_PIDDIR")',
+    '  writeLines(as.character(Sys.getpid()), file.path(d, as.character(Sys.getpid())))',
+    '  if (length(list.files(d, pattern = "^[0-9]+$")) >= 2L && dir.create(file.path(d, "signalled"), showWarnings = FALSE)) {',
+    '    system(sprintf("kill -INT %s", Sys.getenv("OCCJSDM_TEST_PARENT_PID")))',
+    '  }',
+    '  Sys.sleep(5)   # neither worker connects before the parent, interrupted, has cleaned up',
+    '})'), profile)
+  old_profile <- Sys.getenv("R_PROFILE_USER", unset = NA_character_)
+  Sys.setenv(OCCJSDM_TEST_PIDDIR = pid_dir, OCCJSDM_TEST_PARENT_PID = Sys.getpid(), R_PROFILE_USER = profile)
+  on.exit({
+    Sys.unsetenv(c("OCCJSDM_TEST_PIDDIR", "OCCJSDM_TEST_PARENT_PID"))
+    if (is.na(old_profile)) Sys.unsetenv("R_PROFILE_USER") else Sys.setenv(R_PROFILE_USER = old_profile)
+  }, add = TRUE)
+  progress_file <- tempfile(fileext = ".log")
+  frames <- character()
+  outcome <- tryCatch(withCallingHandlers({
+    occJSDM:::start_chain_cluster(2L, 1L, progress_file); "completed"
+  }, interrupt = function(c) frames <<- vapply(sys.calls(), function(call) deparse(call[[1]])[1], character(1))),
+  interrupt = function(c) "interrupted")
+  expect_identical(outcome, "interrupted")
+  expect_true("makePSOCKcluster" %in% frames)   # the interrupt landed inside cluster creation
+  Sys.sleep(0.5)
+  pids <- as.integer(list.files(pid_dir, pattern = "^[0-9]+$"))
+  expect_length(pids, 2L)
+  expect_false(any(alive(pids)))
+  # The same check the production test makes: nothing on the machine still
+  # names this fit's progress file as its OUT= argument.
+  out <- suppressWarnings(system2("pgrep", c("-f", shQuote(paste0("OUT=", progress_file))), stdout = TRUE, stderr = FALSE))
+  expect_length(out, 0L)
+  expect_identical(attr(out, "status"), 1L)
+})
+
 test_that("a build mismatch is reported with both paths and the differing field", {
   parent <- list(path = "/a/occJSDM", version = "0.1.1", dll_md5 = "x", code_md5 = "y")
   expect_true(occJSDM:::compare_fingerprints(parent, parent, 1L))
@@ -595,8 +642,25 @@ test_that("the session RNG agrees across ncores, under the default kinds and und
   }
 })
 
+# The in-process arms of the test below need SIGINT to reach the R code of
+# the sampler loop. A process started as a background job from a
+# non-interactive shell has SIGINT ignored, and then a busy R loop never
+# sees the signal although Sys.sleep() and socket waits still do (measured
+# 14 October 2026 under R 4.6.1): the parallel arms would pass and the
+# in-process arms would report a completed fit. Skip with that reason
+# rather than fail.
+skip_if_sigint_ignored <- function() {
+  if (.Platform$OS.type != "unix") return(invisible(NULL))
+  system(sprintf("(sleep 0.2; kill -INT %d) > /dev/null 2>&1 &", Sys.getpid()))
+  seen <- tryCatch({
+    t0 <- Sys.time(); while (as.numeric(Sys.time() - t0, units = "secs") < 2) NULL; FALSE
+  }, interrupt = function(c) TRUE)
+  if (!seen) skip("SIGINT does not reach a busy R loop in this process (started as a background job?)")
+  invisible(NULL)
+}
+
 test_that("an interrupted fit leaves the session RNG where a completed fit leaves it, at every ncores", {
-  skip_on_cran(); skip_on_os("windows")
+  skip_on_cran(); skip_on_os("windows"); skip_if_sigint_ignored()
   # Production orchestration under a real interrupt: the on.exit() handler in
   # runOccJSDM() must restore the state after the seed draws, which is the
   # state any completed fit of the same seed ends in, whatever the schedule.
@@ -608,9 +672,21 @@ test_that("an interrupted fit leaves the session RNG where a completed fit leave
   start <- function(seed, prime) { set.seed(seed); if (prime) invisible(rnorm(1)) }
   # Each SIGINT comes from a background shell whose PID is kept, so a signal
   # still pending when a fit ends early, or when the test stops, is cancelled
-  # rather than landing in later code.
+  # rather than landing in later code. The shell is armed by the fit's own
+  # progress, not by a fixed delay from the call: a five-second delay landed
+  # in worker start-up, before the start line, once start-up took longer than
+  # that (seen 14 October 2026, on a busy machine and then on this one). In
+  # process the trigger is the first burn-in progress message; with workers
+  # the shell waits for the first iteration line in the progress file that
+  # the start line names. Either way a chain is running when the signal is
+  # sent, with thousands of iterations still to go.
   timers <- integer()
   on.exit(if (length(timers)) tools::pskill(timers), add = TRUE)
+  arm <- function(wait) {
+    timer <- as.integer(system(sprintf("(%s; kill -INT %d) > /dev/null 2>&1 & echo $!", wait, Sys.getpid()), intern = TRUE))
+    timers <<- c(timers, timer)
+    timer
+  }
   for (normal_kind in c("Inversion", "Box-Muller")) {
     RNGkind("Mersenne-Twister", normal_kind, "Rejection")
     prime <- normal_kind == "Box-Muller"
@@ -619,41 +695,46 @@ test_that("an interrupted fit leaves the session RNG where a completed fit leave
     completed <- list(state = get(".Random.seed", envir = globalenv()), draws = next_draws())
     for (ncores in c(1L, 2L)) {
       start(606, prime)
-      msgs <- character()
-      timer <- as.integer(system(sprintf("(sleep 5; kill -INT %d) > /dev/null 2>&1 & echo $!", Sys.getpid()), intern = TRUE))   # lands after the cluster is up and chains are running
-      timers <- c(timers, timer)
+      timer <- NA_integer_
+      progress_file <- NULL
       # runOccJSDM() is called directly, with the fixture's arguments, because
-      # fit_fixture() wraps it in suppressMessages() and the start line would
-      # never reach the handler below.
+      # fit_fixture() wraps it in suppressMessages() and the trigger messages
+      # would never reach the handler below.
       outcome <- tryCatch(withCallingHandlers({
         suppressWarnings(runOccJSDM(sim$data_list,
           listParams = list(n_factors = 2, n_supportpoints = FIXTURE_KNOTS),
           occCovariates = fixture_occ_covariates(), spatCovariates = fixture_spat_covariates(),
           MCMCparams = list(nchain = 2, nburn = 3000, niter = 3000, nthin = 1, ncores = ncores))); "completed"
-      }, message = function(m) { msgs <<- c(msgs, conditionMessage(m)); invokeRestart("muffleMessage") }),
+      }, message = function(m) {
+        msg <- conditionMessage(m)
+        if (is.na(timer) && ncores == 1L && grepl("Burn in Iteration 100", msg, fixed = TRUE)) {
+          timer <<- arm("sleep 0.2")   # lands once this handler has returned and the chain is running again
+        }
+        if (is.na(timer) && ncores == 2L && grepl("Follow progress with: tail -f ", msg, fixed = TRUE)) {
+          progress_file <<- sub(".*tail -f ", "", trimws(msg))
+          timer <<- arm(sprintf("until grep -q Iteration %s 2> /dev/null; do sleep 0.1; done", shQuote(progress_file)))
+        }
+        invokeRestart("muffleMessage")
+      }),
       interrupt = function(c) "interrupted")
-      tools::pskill(timer)   # a no-op once the signal has been sent
+      if (!is.na(timer)) tools::pskill(timer)   # a no-op once the signal has been sent
       label <- paste(normal_kind, "ncores", ncores)
+      expect_false(is.na(timer), info = label)   # the trigger was seen, so the interrupt was sent to a running chain
       expect_identical(outcome, "interrupted", info = label)
       expect_identical(list(state = get(".Random.seed", envir = globalenv()), draws = next_draws()), completed, info = label)
       expect_false(exists("setup", envir = occJSDM:::chain_env, inherits = FALSE), info = label)
-      if (ncores == 2L) {
+      if (ncores == 2L && !is.null(progress_file)) {   # no query with an invalid identifier if the start line was not seen
         # Only this fit's workers are checked: a PSOCK worker's command line
         # names its progress file as OUT=<file>, and the start line announced
         # that file, so an unrelated cluster elsewhere on the machine is
         # neither counted nor touched (checked 13 October 2026).
-        started <- grep("Follow progress with: tail -f ", msgs, fixed = TRUE, value = TRUE)
-        expect_length(started, 1L)
-        if (length(started) == 1L) {   # no query with an invalid identifier if the start line was not seen
-          progress_file <- sub(".*tail -f ", "", trimws(started))
-          Sys.sleep(0.5)
-          # pgrep exits with status 1 when nothing matches, the passing case,
-          # and system2(stdout = TRUE) warns about any non-zero status. The
-          # status is asserted so that a failing pgrep cannot pass vacuously.
-          out <- suppressWarnings(system2("pgrep", c("-f", shQuote(paste0("OUT=", progress_file))), stdout = TRUE, stderr = FALSE))
-          expect_length(out, 0L)
-          expect_identical(attr(out, "status"), 1L)
-        }
+        Sys.sleep(0.5)
+        # pgrep exits with status 1 when nothing matches, the passing case,
+        # and system2(stdout = TRUE) warns about any non-zero status. The
+        # status is asserted so that a failing pgrep cannot pass vacuously.
+        out <- suppressWarnings(system2("pgrep", c("-f", shQuote(paste0("OUT=", progress_file))), stdout = TRUE, stderr = FALSE))
+        expect_length(out, 0L)
+        expect_identical(attr(out, "status"), 1L)
       }
     }
   }

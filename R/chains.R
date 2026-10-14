@@ -234,23 +234,27 @@ bootstrap_chain_worker <- function(libpaths, threads, dev_path) {
 }
 
 # Start-up owns its own cleanup until it hands the handle to the caller: the
-# on.exit() below runs on an error or an interrupt during bootstrap, and the
-# PIDs are fetched before the slow package loading so that pskill() has
-# targets. `bootstrap` is an argument only so that tests can inject a failing
-# or slow bootstrap. `state` is an environment, so that every copy of the
-# handle sees stop_chain_cluster() mark it stopped.
+# handle exists, and the on.exit() below is registered, before the cluster
+# does, so an error or an interrupt anywhere in start-up reaches
+# stop_chain_cluster(). While makeCluster() runs the handle has no cluster
+# and no PIDs, and the process-table sweep in stop_chain_cluster() is what
+# ends the workers already launched; the PIDs are fetched before the slow
+# package loading so that pskill() has exact targets from then on.
+# `bootstrap` is an argument only so that tests can inject a failing or slow
+# bootstrap. `state` is an environment, so that every copy of the handle sees
+# stop_chain_cluster() mark it stopped.
 start_chain_cluster <- function(workers, threads, progress_file, bootstrap = bootstrap_chain_worker) {
-  cl <- with_worker_environment(parallel::makeCluster(workers, outfile = progress_file))
-  handle <- list(cl = cl, pids = integer(0), worker_threads = character(0),
+  handle <- list(cl = NULL, pids = integer(0), worker_threads = character(0),
                  progress_file = progress_file, blas_threads_requested = blas_thread_variables(),
                  threads = as.integer(threads), state = new.env(parent = emptyenv()))
   started <- FALSE
   on.exit(if (!started) stop_chain_cluster(handle), add = TRUE)
-  handle$pids <- vapply(parallel::clusterCall(cl, Sys.getpid), as.integer, integer(1))
+  handle$cl <- with_worker_environment(parallel::makeCluster(workers, outfile = progress_file))
+  handle$pids <- vapply(parallel::clusterCall(handle$cl, Sys.getpid), as.integer, integer(1))
   boot <- bootstrap
   environment(boot) <- globalenv()
   dev_path <- if (is_dev_loaded()) getNamespaceInfo("occJSDM", "path") else NULL
-  info <- parallel::clusterCall(cl, boot, .libPaths(), threads, dev_path)
+  info <- parallel::clusterCall(handle$cl, boot, .libPaths(), threads, dev_path)
   handle$worker_threads <- vapply(info, function(x) x$threads, character(1))
   started <- TRUE
   handle
@@ -317,17 +321,43 @@ check_worker_builds <- function(handle) {
 # stop message when its chain finished. Sockets left open would be closed
 # later by the garbage collector, with a warning at some unrelated point.
 # A second call returns at once, so a node's stale connection object can
-# never write into a connection that has since taken its number.
+# never write into a connection that has since taken its number. A handle
+# whose PIDs were never fetched, because start-up ended inside makeCluster()
+# or in the PID call itself, has its workers found by progress file instead.
 stop_chain_cluster <- function(handle) {
   if (is.null(handle) || isTRUE(handle$state$stopped)) return(invisible(NULL))
   on.exit({
     assign("stopped", TRUE, envir = handle$state)
-    if (length(handle$pids)) tools::pskill(handle$pids)
+    pids <- if (length(handle$pids)) handle$pids else find_chain_workers(handle$progress_file)
+    if (length(pids)) tools::pskill(pids)
     for (node in handle$cl) if (is_live_connection(node$con)) try(close(node$con), silent = TRUE)
   }, add = TRUE)
   assign("stopped", TRUE, envir = handle$state)
-  try(parallel::stopCluster(handle$cl), silent = TRUE)
+  if (!is.null(handle$cl)) try(parallel::stopCluster(handle$cl), silent = TRUE)
   invisible(NULL)
+}
+
+# The workers of one fit, found in the process table without their PIDs. A
+# PSOCK worker's command line names its progress file as OUT=<file>, a fresh
+# tempfile for every fit, and calls parallel's socket worker (.workRSOCK;
+# .slaveRSOCK before R 4.0); both are required, so that a process whose
+# command line merely quotes the file name, such as a shell wrapper around a
+# command that names it, cannot match. The guard on the file name matters:
+# "OUT=" alone would match every PSOCK worker on the machine. Unix only. On Windows nothing is found,
+# and a worker abandoned inside makeCluster() ends by itself: one that never
+# connected gives up after parallel's setup_timeout, 120 s by default, and
+# one that had connected exits when the parent's garbage collector closes
+# its socket.
+find_chain_workers <- function(progress_file) {
+  if (.Platform$OS.type != "unix" || !is.character(progress_file) ||
+      length(progress_file) != 1L || is.na(progress_file) || !nzchar(progress_file)) {
+    return(integer(0))
+  }
+  out <- tryCatch(suppressWarnings(system2("ps", c("-e", "-o", "pid=", "-o", "args="), stdout = TRUE, stderr = FALSE)),
+                  error = function(e) character(0))
+  hit <- grepl(paste0("OUT=", progress_file), out, fixed = TRUE) & grepl("RSOCK", out, fixed = TRUE)
+  pids <- suppressWarnings(as.integer(sub("^[[:space:]]*([0-9]+)[[:space:]].*$", "\\1", out[hit])))
+  pids[!is.na(pids) & pids != Sys.getpid()]
 }
 
 # TRUE when con is still open as this very connection. R reuses a closed
