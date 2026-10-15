@@ -29,4 +29,4 @@ Monitor with `tail -f run.log`. The log, provenance and results are ignored whil
 
 ## Results
 
-Filled in after the run.
+The run finished on 15 October 2026 at 22:22 with all 300 fits and no failures. An unmodelled field does not measurably reduce B coverage at the strength the study simulates, and B undercovers most when there is no spatial component at all. The findings are in [REPORT.md](REPORT.md).

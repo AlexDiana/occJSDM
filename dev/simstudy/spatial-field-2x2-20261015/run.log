@@ -1,0 +1,91 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 3 scenario(s), R = 100, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  [  5%] 15/300 replicates | 2 min elapsed | ~30 min left | cpu/wall 3.9x
+  [ 10%] 30/300 replicates | 3 min elapsed | ~31 min left | cpu/wall 3.7x
+  [ 15%] 45/300 replicates | 5 min elapsed | ~29 min left | cpu/wall 3.7x
+  [ 20%] 60/300 replicates | 6 min elapsed | ~26 min left | cpu/wall 3.8x
+  [ 25%] 75/300 replicates | 8 min elapsed | ~24 min left | cpu/wall 3.9x
+  [ 30%] 90/300 replicates | 9 min elapsed | ~21 min left | cpu/wall 4.0x
+  [ 35%] 105/300 replicates | 11 min elapsed | ~20 min left | cpu/wall 3.9x
+  [ 40%] 120/300 replicates | 13 min elapsed | ~20 min left | cpu/wall 3.9x
+  [ 45%] 135/300 replicates | 16 min elapsed | ~20 min left | cpu/wall 3.9x
+  [ 50%] 150/300 replicates | 18 min elapsed | ~21 min left | cpu/wall 3.8x
+  [ 55%] 165/300 replicates | 22 min elapsed | ~22 min left | cpu/wall 3.7x
+  [ 60%] 180/300 replicates | 24 min elapsed | ~21 min left | cpu/wall 3.6x
+  [ 65%] 195/300 replicates | 27 min elapsed | ~19 min left | cpu/wall 3.6x
+  [ 70%] 210/300 replicates | 30 min elapsed | ~17 min left | cpu/wall 3.6x
+  [ 75%] 225/300 replicates | 32 min elapsed | ~14 min left | cpu/wall 3.6x
+  [ 80%] 240/300 replicates | 35 min elapsed | ~10 min left | cpu/wall 3.6x
+  [ 85%] 255/300 replicates | 37 min elapsed | ~8 min left | cpu/wall 3.6x
+  [ 90%] 270/300 replicates | 40 min elapsed | ~5 min left | cpu/wall 3.6x
+  [ 95%] 285/300 replicates | 42 min elapsed | ~2 min left | cpu/wall 3.6x
+  [100%] 300/300 replicates | 45 min elapsed | ~0 min left | cpu/wall 3.6x
+
+done in 44.6 min; 0 replicate(s) failed
+       scenario      block n_element   R n_checked  coverage          bias
+ field_unfitted          B        20 100      2000 0.9150000 -0.0064077752
+ field_unfitted         B0        10 100      1000 0.9300000 -0.1426253166
+ field_unfitted beta_theta        20 100      2000 0.9650000  0.0009918356
+ field_unfitted          G         4 100       400 0.9350000 -0.0339225207
+ field_unfitted          p        20 100      2000 0.9015000  0.0391136864
+ field_unfitted          q        20 100      2000 0.9455000  0.0030968185
+ field_unfitted  resid_cor        45 100      3762 0.7631579  0.0083225726
+ field_unfitted    sigma_b         1 100       100 1.0000000 -0.0217493392
+ field_unfitted     theta0        10 100      1000 0.9800000 -0.0059289989
+     no_spatial          B        20 100      2000 0.9060000  0.0044057699
+     no_spatial         B0        10 100      1000 0.9280000 -0.1539954788
+     no_spatial beta_theta        20 100      2000 0.9580000 -0.0004596965
+     no_spatial          G         4 100       400 0.9450000 -0.0106938069
+     no_spatial          p        20 100      2000 0.9005000  0.0374120561
+     no_spatial          q        20 100      2000 0.9475000  0.0031768352
+     no_spatial  resid_cor        45 100      3762 0.7631579  0.0056908703
+     no_spatial    sigma_b         1 100       100 1.0000000 -0.0206754543
+     no_spatial     theta0        10 100      1000 0.9640000 -0.0055017441
+ nofield_fitted          B        20 100      2000 0.9190000  0.0096467315
+ nofield_fitted         B0        10 100      1000 0.9330000 -0.1472779094
+ nofield_fitted beta_theta        20 100      2000 0.9545000 -0.0080982095
+ nofield_fitted          G         4 100       400 0.9500000 -0.0049435362
+ nofield_fitted          p        20 100      2000 0.9015000  0.0373237225
+ nofield_fitted          q        20 100      2000 0.9460000  0.0031642896
+ nofield_fitted  resid_cor        45 100      3762 0.7631579  0.0047419617
+ nofield_fitted    sigma_b         1 100       100 1.0000000 -0.0205916767
+ nofield_fitted     theta0        10 100      1000 0.9600000 -0.0054168057
+        rmse
+ 0.850212563
+ 0.810995356
+ 0.394550748
+ 0.451416413
+ 0.069305725
+ 0.009578367
+ 0.692580602
+ 0.022097767
+ 0.029031765
+ 0.888666383
+ 0.816369618
+ 0.401095833
+ 0.458761550
+ 0.070456549
+ 0.009715140
+ 0.694042956
+ 0.021010403
+ 0.028790980
+ 0.892977374
+ 0.813743415
+ 0.401997998
+ 0.478113410
+ 0.070391640
+ 0.009700446
+ 0.694975321
+ 0.020908487
+ 0.029309749
+
+written to /Users/douglasyu/src/occJSDM/.worktrees/spatial-field-2x2/dev/simstudy/spatial-field-2x2-20261015/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 100 gives a coverage SE of 2.2%; do not read differences smaller than that.
+ALL DONE 2026-10-15 22:22:35 status 0

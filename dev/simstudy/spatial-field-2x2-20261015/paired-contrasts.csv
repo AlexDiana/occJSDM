@@ -1,0 +1,11 @@
+"block","contrast","minuend","subtrahend","R","coverage_diff","coverage_diff_se","width_ratio","slope_minuend","slope_subtrahend"
+"B","fitting a spatial term, field present","base","field_unfitted",100,0.021,0.00599578976862056,1.04484501285288,0.705540174494729,0.666408657074889
+"B","fitting a spatial term, no field","nofield_fitted","no_spatial",100,0.013,0.00588698272942648,1.03718672158192,0.707174362072583,0.673956917525074
+"B","the field, spatial term fitted","base","nofield_fitted",100,0.017,0.00829445476194667,1.01155876028351,0.705540174494729,0.707174362072583
+"B","the field, no spatial term","field_unfitted","no_spatial",100,0.00900000000000001,0.00977990105504471,1.00414444377853,0.666408657074889,0.673956917525074
+"B0","fitting a spatial term, field present","base","field_unfitted",100,0.009,0.00587667878442862,1.02203727083322,0.348038868833141,0.349449963943685
+"B0","fitting a spatial term, no field","nofield_fitted","no_spatial",100,0.00499999999999999,0.00538891492235719,1.01989310178916,0.367480731113136,0.370937633048973
+"B0","the field, spatial term fitted","base","nofield_fitted",100,0.006,0.00776159933534476,1.00727362079643,0.348038868833141,0.367480731113136
+"B0","the field, no spatial term","field_unfitted","no_spatial",100,0.002,0.00828531620678804,1.00516042494904,0.349449963943685,0.370937633048973
+"B","interaction","(base - field_unfitted)","(nofield_fitted - no_spatial)",100,0.008,0.00777590164962536,NA,NA,NA
+"B0","interaction","(base - field_unfitted)","(nofield_fitted - no_spatial)",100,0.004,0.00723627226986633,NA,NA,NA

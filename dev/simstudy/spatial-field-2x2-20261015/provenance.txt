@@ -1,0 +1,11 @@
+launched: 2026-10-15 21:37:58
+revision: 01c55a12cc190925ddde72b9288a82f6b480ed38
+branch: claude/spatial-field-2x2
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+cells: field_unfitted,no_spatial,nofield_fitted
+settings: R = 100 per cell, cores = 5, threads = 1, nburn = 1000, niter = 1000, nchain = 2
+exit status: 0 at 2026-10-15 22:22:35
