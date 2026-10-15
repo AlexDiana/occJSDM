@@ -137,9 +137,20 @@ if (nzchar(which_sc)) {
 
 MCMCparams <- list(nchain = 2, nburn = nburn, niter = niter, nthin = 1)
 
+# Cells that carry their own MCMC settings, which simstudy_replicate() uses in
+# place of the runner's. Named by cell label; empty for every production cell.
+cell_MCMCparams <- Filter(Negate(is.null), stats::setNames(
+  lapply(scenarios, `[[`, "MCMCparams"),
+  vapply(scenarios, function(s) s$label, "")))
+cell_mcmc_text <- vapply(cell_MCMCparams, function(m)
+  sprintf("%d+%d x %d", m$nburn, m$niter, m$nchain), "")
+
 message(sprintf(
   "simstudy: %d scenario(s), R = %d, %d core(s), %d thread(s)/fit, MCMC %d+%d x 2",
   length(scenarios), R_reps, n_cores, threads, nburn, niter))
+if (length(cell_mcmc_text))
+  message("  own MCMC settings: ",
+          paste(names(cell_mcmc_text), cell_mcmc_text, sep = " ", collapse = ", "))
 
 # --- run -----------------------------------------------------------------
 
@@ -207,6 +218,13 @@ ckpt_labels <- sort(vapply(scenarios, function(s) s$label, ""))
 ckpt_key <- sprintf("%s|R=%d|nburn=%d|niter=%d|nchain=%d",
                     paste(ckpt_labels, collapse = ","),
                     R_reps, nburn, niter, MCMCparams$nchain)
+# Appended only when a cell has its own settings, so every earlier grid keeps
+# the checkpoint name it already has.
+if (length(cell_mcmc_text)) {
+  k <- sort(names(cell_mcmc_text))
+  ckpt_key <- paste0(ckpt_key, "|cell MCMC: ",
+                     paste(k, cell_mcmc_text[k], collapse = ","))
+}
 
 # A short, stable digest of that key. tools::md5sum() works on files, not
 # strings, so hash via a tempfile rather than taking a dependency on digest
@@ -429,6 +447,8 @@ provenance <- list(
              error = function(e) NA_character_) else as.character(threads),
   scenarios   = vapply(scenarios, function(s) s$label, ""),
   nburn = nburn, niter = niter, R = R_reps,
+  # The cells that ignored nburn and niter above and ran their own settings.
+  cell_MCMCparams = cell_MCMCparams,
   elapsed_min = elapsed,
   started  = t0,
   finished = Sys.time()

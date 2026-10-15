@@ -32,6 +32,9 @@ SIMSTUDY_BASE <- list(
   fit_traits = TRUE,       # FALSE drops data$traits before fitting
   fit_spatial = NULL,      # NULL = fit a spatial term exactly when one is
                            # simulated; TRUE or FALSE decouples the two
+  fit_gt = NULL,           # NULL = fit at the simulated gt
+  MCMCparams = NULL,       # NULL = the runner's MCMC settings; a list
+                           # replaces them for this cell only
   p_range = c(0.3, 0.6),
   theta_baseline_range = c(0.2, 0.5)
 )
@@ -125,6 +128,45 @@ simstudy_scenarios <- function() {
     mk("field_unfitted", fit_spatial = FALSE, seed_label = "base"),
     mk("nofield_fitted", useSpatField = FALSE, fit_spatial = TRUE,
                          seed_label = "base"),
+
+    # Non-spatial candidates for B's undercoverage (15 October 2026). The
+    # spatial 2x2 found B covering worst with no spatial component anywhere,
+    # 0.906 in no_spatial (dev/simstudy/spatial-field-2x2-20261015/REPORT.md).
+    # Each arm changes one non-spatial thing against no_spatial, at
+    # seed_label "base", so every arm draws base's truth.
+    #
+    # no_spatial_long: Monte Carlo error. no_spatial's datasets, fitted with
+    #   5,000 burn-in and 5,000 sampling iterations per chain instead of 1,000
+    #   and 1,000. The cell's MCMCparams replace the runner's.
+    # no_factors: no latent factors in the truth or the fit (d = 0). The
+    #   simulator draws B0, G, A, C and B before the factor scores and
+    #   loadings, so B's truth is no_spatial's; the data differ, because the
+    #   factors leave the linear predictor and the draws after them shift.
+    # no_factors_fit2: no_factors' datasets fitted with 2 factors. Against
+    #   no_factors it isolates fitting factors that are not there, on
+    #   identical data; against no_spatial, factors that are there.
+    # no_spatial_notraits: no_spatial's datasets fitted without the traits,
+    #   so B's prior mean loses its measured-trait part.
+    # no_spatial_gt4: no_spatial's datasets fitted with 4 latent traits
+    #   instead of 2. listPriors cannot loosen sigma_b's InvGamma(10, 1),
+    #   which runOccJSDM() hard-codes, so this is the looser hierarchical
+    #   prior on B available without changing package code: with N(0, 1)
+    #   priors on A and C, each latent trait adds 1 to every B element's
+    #   prior variance.
+    #
+    # NOT production cells: name them with --scenarios.
+    mk("no_spatial_long",     useSpatField = FALSE, n_supportpoints = NULL,
+                              seed_label = "base",
+                              MCMCparams = list(nchain = 2, nburn = 5000,
+                                                niter = 5000, nthin = 1)),
+    mk("no_factors",          useSpatField = FALSE, n_supportpoints = NULL,
+                              d = 0L, seed_label = "base"),
+    mk("no_factors_fit2",     useSpatField = FALSE, n_supportpoints = NULL,
+                              d = 0L, fit_d = 2L, seed_label = "base"),
+    mk("no_spatial_notraits", useSpatField = FALSE, n_supportpoints = NULL,
+                              fit_traits = FALSE, seed_label = "base"),
+    mk("no_spatial_gt4",      useSpatField = FALSE, n_supportpoints = NULL,
+                              fit_gt = 4L, seed_label = "base"),
 
     # Environmental covariate count. Never varied anywhere before: ncov_psi is
     # 2 in all 21 existing cells, so nothing in the study has ever spoken to
@@ -448,7 +490,8 @@ simstudy_fits_spatial <- function(scenario) {
 simstudy_fit_args <- function(sim, scenario) {
   d_fit <- scenario$fit_d %||% scenario$d
 
-  listParams <- list(n_factors = d_fit, n_lattrait = scenario$gt)
+  listParams <- list(n_factors = d_fit,
+                     n_lattrait = scenario$fit_gt %||% scenario$gt)
   spatCovariates <- NULL
   if (simstudy_fits_spatial(scenario)) {
     spatCovariates <- c("Xs.1", "Xs.2")
@@ -863,6 +906,9 @@ simstudy_occupancy_rows <- function(fit, sim, scenario, replicate) {
 #' on that function. Callers that only want the old behaviour take `$params`.
 simstudy_replicate <- function(scenario, replicate, MCMCparams = NULL,
                                statistic = statistic_coverage) {
+  # A cell that carries its own MCMC settings keeps them whatever the caller
+  # passes, so its chain length is part of the cell's definition.
+  if (!is.null(scenario$MCMCparams)) MCMCparams <- scenario$MCMCparams
   seed <- simstudy_seed_for(scenario, replicate)
   truth <- draw_truth(scenario, seed)
   sim <- simstudy_simulate(truth)
