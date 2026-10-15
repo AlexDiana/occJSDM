@@ -30,6 +30,8 @@ SIMSTUDY_BASE <- list(
   n_supportpoints = 20L,   # pinned, never left to the default (PLAN.md 5.4)
   fit_d = NULL,            # NULL = fit at the simulated d
   fit_traits = TRUE,       # FALSE drops data$traits before fitting
+  fit_spatial = NULL,      # NULL = fit a spatial term exactly when one is
+                           # simulated; TRUE or FALSE decouples the two
   p_range = c(0.3, 0.6),
   theta_baseline_range = c(0.2, 0.5)
 )
@@ -101,6 +103,28 @@ simstudy_scenarios <- function() {
     # with runs on disk, so this cell is added rather than that one renamed.
     mk("no_spatial",    useSpatField = FALSE, n_supportpoints = NULL,
                         seed_label = "base"),
+
+    # The spatial 2x2 (15 October 2026). `base` simulates a spatial field
+    # and fits a spatial term; `no_spatial` does neither. These two arms
+    # decouple the two, so the four together separate the effect of an
+    # unmodelled field on B and B0 from the effect of fitting a spatial term
+    # at all. Commissioned after the R = 300 paper study found B undercovering
+    # in every cell (dev/simstudy/paper-study-20261015/REPORT.md).
+    #
+    # Pairing, all at seed_label "base": every arm draws base's truth, and
+    # simulateData() draws B0, B, G, A, C, L and the factor scores before the
+    # spatial field, so the whole JSDM layer is bit-identical across the four.
+    # field_unfitted simulates exactly what base simulates (fit_spatial only
+    # touches the fit), so its datasets are bit-identical to base's;
+    # nofield_fitted and no_spatial likewise share datasets, because the
+    # simulator never reads n_supportpoints. Between the field and no-field
+    # pairs the data differ: the field's own draws shift the random stream
+    # before occupancy and detection are simulated.
+    #
+    # NOT production cells: name them with --scenarios.
+    mk("field_unfitted", fit_spatial = FALSE, seed_label = "base"),
+    mk("nofield_fitted", useSpatField = FALSE, fit_spatial = TRUE,
+                         seed_label = "base"),
 
     # Environmental covariate count. Never varied anywhere before: ncov_psi is
     # 2 in all 21 existing cells, so nothing in the study has ever spoken to
@@ -398,11 +422,35 @@ simstudy_simulate <- function(truth) {
 simstudy_fit <- function(sim, scenario,
                          MCMCparams = list(nchain = 2, nburn = 1000,
                                            niter = 1000, nthin = 1)) {
+  a <- simstudy_fit_args(sim, scenario)
+  suppressMessages(suppressWarnings(
+    runOccJSDM(a$data,
+               listParams     = a$listParams,
+               listPriors     = a$listPriors,
+               occCovariates  = a$occCovariates,
+               collCovariates = a$collCovariates,
+               spatCovariates = a$spatCovariates,
+               MCMCparams     = MCMCparams)
+  ))
+}
+
+#' Whether a cell's fit includes a spatial term. fit_spatial = NULL keeps the
+#' historical rule, a spatial term exactly when a field is simulated, so every
+#' cell that does not set it fits as it always has.
+simstudy_fits_spatial <- function(scenario) {
+  if (is.null(scenario$fit_spatial)) isTRUE(scenario$useSpatField)
+  else isTRUE(scenario$fit_spatial)
+}
+
+#' Everything simstudy_fit() passes to runOccJSDM() except the MCMC settings.
+#' Split out so a test can check what each cell hands the fitter without
+#' running a fit.
+simstudy_fit_args <- function(sim, scenario) {
   d_fit <- scenario$fit_d %||% scenario$d
 
   listParams <- list(n_factors = d_fit, n_lattrait = scenario$gt)
   spatCovariates <- NULL
-  if (isTRUE(scenario$useSpatField)) {
+  if (simstudy_fits_spatial(scenario)) {
     spatCovariates <- c("Xs.1", "Xs.2")
     listParams$n_supportpoints <- scenario$n_supportpoints
   }
@@ -423,15 +471,12 @@ simstudy_fit <- function(sim, scenario,
   dat <- sim$data_list
   if (!isTRUE(scenario$fit_traits)) dat$traits <- NULL
 
-  suppressMessages(suppressWarnings(
-    runOccJSDM(dat,
-               listParams     = listParams,
-               listPriors     = scenario$listPriors %||% list(),
-               occCovariates  = occCov,
-               collCovariates = collCov,
-               spatCovariates = spatCovariates,
-               MCMCparams     = MCMCparams)
-  ))
+  list(data           = dat,
+       listParams     = listParams,
+       listPriors     = scenario$listPriors %||% list(),
+       occCovariates  = occCov,
+       collCovariates = collCov,
+       spatCovariates = spatCovariates)
 }
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
