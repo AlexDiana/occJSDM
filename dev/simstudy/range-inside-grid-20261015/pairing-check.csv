@@ -1,0 +1,13 @@
+"scenario","parent","block","elements","max_abs_truth_diff"
+"base_ls05","base","B0",500,0
+"base_ls05","base","B",1000,0
+"base_ls05","base","G",200,0
+"base_ls075","base","B0",500,0
+"base_ls075","base","B",1000,0
+"base_ls075","base","G",200,0
+"binary_ls05","binary","B0",500,0
+"binary_ls05","binary","B",1000,0
+"binary_ls05","binary","G",200,0
+"binary_ls075","binary","B0",500,0
+"binary_ls075","binary","B",1000,0
+"binary_ls075","binary","G",200,0

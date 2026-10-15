@@ -1,0 +1,13 @@
+launched: 2026-10-15 20:59:51
+worktree: /Users/douglasyu/src/occJSDM/.claude/worktrees/gracious-heyrovsky-2adc4e
+revision: f4d7a64823da7cd45814c730ee33847a4d769f22
+branch: claude/range-inside-grid
+dirty files: 0
+package code (R/, src/) identical to the production run's f3668e0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+cells: base_ls05,binary_ls05,base_ls075,binary_ls075
+settings: R = 50 per cell, cores = 5, threads = 1, nburn = 1000, niter = 1000, nchain = 2, no cap
+exit status: 0 at 2026-10-15 21:23:34

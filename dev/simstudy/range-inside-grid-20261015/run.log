@@ -1,0 +1,93 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 4 scenario(s), R = 50, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  [  5%] 10/200 replicates | 1 min elapsed | ~22 min left | cpu/wall 4.6x
+  [ 10%] 20/200 replicates | 2 min elapsed | ~19 min left | cpu/wall 4.5x
+  [ 15%] 30/200 replicates | 3 min elapsed | ~19 min left | cpu/wall 4.6x
+  [ 20%] 40/200 replicates | 4 min elapsed | ~17 min left | cpu/wall 4.6x
+  [ 25%] 50/200 replicates | 6 min elapsed | ~17 min left | cpu/wall 4.7x
+  [ 30%] 60/200 replicates | 7 min elapsed | ~15 min left | cpu/wall 4.6x
+  [ 35%] 70/200 replicates | 8 min elapsed | ~14 min left | cpu/wall 4.6x
+  [ 40%] 80/200 replicates | 9 min elapsed | ~13 min left | cpu/wall 4.6x
+  [ 45%] 90/200 replicates | 10 min elapsed | ~13 min left | cpu/wall 4.5x
+  [ 50%] 100/200 replicates | 11 min elapsed | ~12 min left | cpu/wall 4.6x
+  [ 55%] 110/200 replicates | 12 min elapsed | ~10 min left | cpu/wall 4.6x
+  [ 60%] 120/200 replicates | 14 min elapsed | ~9 min left | cpu/wall 4.6x
+  [ 65%] 130/200 replicates | 15 min elapsed | ~8 min left | cpu/wall 4.5x
+  [ 70%] 140/200 replicates | 16 min elapsed | ~7 min left | cpu/wall 4.5x
+  [ 75%] 150/200 replicates | 17 min elapsed | ~6 min left | cpu/wall 4.5x
+  [ 80%] 160/200 replicates | 18 min elapsed | ~5 min left | cpu/wall 4.5x
+  [ 85%] 170/200 replicates | 20 min elapsed | ~4 min left | cpu/wall 4.5x
+  [ 90%] 180/200 replicates | 21 min elapsed | ~2 min left | cpu/wall 4.5x
+  [ 95%] 190/200 replicates | 22 min elapsed | ~1 min left | cpu/wall 4.5x
+  [100%] 200/200 replicates | 24 min elapsed | ~0 min left | cpu/wall 4.5x
+
+done in 23.7 min; 0 replicate(s) failed
+     scenario      block n_element  R n_checked  coverage         bias
+    base_ls05          B        20 50      1000 0.9140000 -0.038282673
+    base_ls05         B0        10 50       500 0.9460000 -0.122455778
+    base_ls05 beta_theta        20 50      1000 0.9680000  0.013342164
+    base_ls05          G         4 50       200 0.9450000 -0.039295478
+    base_ls05          p        20 50      1000 0.9140000  0.037199621
+    base_ls05          q        20 50      1000 0.9430000  0.003205743
+    base_ls05  resid_cor        45 50      1900 0.7647368  0.001809553
+    base_ls05    sigma_b         1 50        50 1.0000000 -0.021459415
+    base_ls05     theta0        10 50       500 0.9800000 -0.003461959
+   base_ls075          B        20 50      1000 0.9280000 -0.030166332
+   base_ls075         B0        10 50       500 0.9460000 -0.144075962
+   base_ls075 beta_theta        20 50      1000 0.9650000  0.011051613
+   base_ls075          G         4 50       200 0.9450000 -0.040771560
+   base_ls075          p        20 50      1000 0.9070000  0.037789001
+   base_ls075          q        20 50      1000 0.9450000  0.003193940
+   base_ls075  resid_cor        45 50      1900 0.7647368  0.001441894
+   base_ls075    sigma_b         1 50        50 1.0000000 -0.020900568
+   base_ls075     theta0        10 50       500 0.9820000 -0.002888213
+  binary_ls05          B        20 50      1000 0.8960000  0.008022825
+  binary_ls05         B0        10 50       500 0.8900000 -0.013248152
+  binary_ls05          G         4 50       200 0.9500000  0.015892443
+  binary_ls05  resid_cor        45 50      1841 0.7452471 -0.003003759
+  binary_ls05    sigma_b         1 50        50 1.0000000 -0.016073009
+ binary_ls075          B        20 50      1000 0.9160000  0.010364410
+ binary_ls075         B0        10 50       500 0.9020000 -0.006858450
+ binary_ls075          G         4 50       200 0.9400000  0.013720252
+ binary_ls075  resid_cor        45 50      1841 0.7463335  0.001760980
+ binary_ls075    sigma_b         1 50        50 1.0000000 -0.016566309
+        rmse
+ 0.877526433
+ 0.825530487
+ 0.392577319
+ 0.467350841
+ 0.067781028
+ 0.009633087
+ 0.695776656
+ 0.021716356
+ 0.029730199
+ 0.881305814
+ 0.836397412
+ 0.389099933
+ 0.462602686
+ 0.068693025
+ 0.009525579
+ 0.696506188
+ 0.021273249
+ 0.030489777
+ 0.440253648
+ 0.355609720
+ 0.396411366
+ 0.494957671
+ 0.016425028
+ 0.428909486
+ 0.355365205
+ 0.395204469
+ 0.482628644
+ 0.016895030
+
+written to /Users/douglasyu/src/occJSDM/.claude/worktrees/gracious-heyrovsky-2adc4e/dev/simstudy/range-inside-grid-20261015/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 50 gives a coverage SE of 3.1%; do not read differences smaller than that.
+ALL DONE 2026-10-15 21:23:34 status 0
