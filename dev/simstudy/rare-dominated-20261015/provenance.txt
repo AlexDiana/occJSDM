@@ -1,0 +1,11 @@
+launched: 2026-10-15 23:43:30
+revision: b0d581189ac0717d350845fae5e15b9526222092
+branch: claude/rare-dominated-occupancy
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+cells: base_rare,binary_rare,occupancy_rare
+settings: R = 100 per cell, cores = 5, threads = 1, nburn = 1000, niter = 1000, nchain = 2
+exit status: 0 at 2026-10-16 00:38:51

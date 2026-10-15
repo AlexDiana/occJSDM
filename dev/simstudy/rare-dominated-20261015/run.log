@@ -1,0 +1,79 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 3 scenario(s), R = 100, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  [  5%] 15/300 replicates | 3 min elapsed | ~61 min left | cpu/wall 3.7x
+  [ 10%] 30/300 replicates | 6 min elapsed | ~53 min left | cpu/wall 3.7x
+  [ 15%] 45/300 replicates | 9 min elapsed | ~49 min left | cpu/wall 3.8x
+  [ 20%] 60/300 replicates | 12 min elapsed | ~47 min left | cpu/wall 3.7x
+  [ 25%] 75/300 replicates | 15 min elapsed | ~44 min left | cpu/wall 3.7x
+  [ 30%] 90/300 replicates | 18 min elapsed | ~42 min left | cpu/wall 3.7x
+  [ 35%] 105/300 replicates | 21 min elapsed | ~39 min left | cpu/wall 3.7x
+  [ 40%] 120/300 replicates | 24 min elapsed | ~35 min left | cpu/wall 3.7x
+  [ 45%] 135/300 replicates | 27 min elapsed | ~33 min left | cpu/wall 3.7x
+  [ 50%] 150/300 replicates | 30 min elapsed | ~30 min left | cpu/wall 3.7x
+  [ 55%] 165/300 replicates | 32 min elapsed | ~26 min left | cpu/wall 3.7x
+  [ 60%] 180/300 replicates | 35 min elapsed | ~22 min left | cpu/wall 3.7x
+  [ 65%] 195/300 replicates | 37 min elapsed | ~19 min left | cpu/wall 3.8x
+  [ 70%] 210/300 replicates | 40 min elapsed | ~16 min left | cpu/wall 3.8x
+  [ 75%] 225/300 replicates | 43 min elapsed | ~13 min left | cpu/wall 3.8x
+  [ 80%] 240/300 replicates | 45 min elapsed | ~10 min left | cpu/wall 3.8x
+  [ 85%] 255/300 replicates | 47 min elapsed | ~7 min left | cpu/wall 3.8x
+  [ 90%] 270/300 replicates | 50 min elapsed | ~5 min left | cpu/wall 3.8x
+  [ 95%] 285/300 replicates | 53 min elapsed | ~3 min left | cpu/wall 3.8x
+  [100%] 300/300 replicates | 55 min elapsed | ~0 min left | cpu/wall 3.8x
+
+done in 55.1 min; 0 replicate(s) failed
+       scenario      block n_element   R n_checked  coverage          bias
+      base_rare          B        20 100      2000 0.8890000  0.0147746170
+      base_rare         B0        10 100      1000 0.4220000  1.8938506962
+      base_rare beta_theta        20 100      2000 0.9210000 -0.2316317648
+      base_rare          G         4 100       400 0.9400000 -0.0286253578
+      base_rare          p        20 100      2000 0.8880000  0.0662086198
+      base_rare          q        20 100      2000 0.9500000  0.0024237774
+      base_rare  resid_cor        45 100      3762 0.7631579  0.0099757875
+      base_rare    sigma_b         1 100       100 1.0000000 -0.0230715387
+      base_rare     theta0        10 100      1000 0.9220000 -0.0227286535
+    binary_rare          B        20 100      2000 0.7950000  0.0126338489
+    binary_rare         B0        10 100      1000 0.4490000  0.7754712314
+    binary_rare          G         4 100       400 0.9000000  0.0119297239
+    binary_rare  resid_cor        45 100      3746 0.7522691  0.0191425205
+    binary_rare    sigma_b         1 100       100 1.0000000 -0.0196102104
+ occupancy_rare          B        20 100      2000 0.8765000  0.0003067857
+ occupancy_rare         B0        10 100      1000 0.3930000  1.8711566436
+ occupancy_rare beta_theta        20 100      2000 0.9035000 -0.1909130674
+ occupancy_rare          G         4 100       400 0.9400000 -0.0098178872
+ occupancy_rare  resid_cor        45 100      3783 0.7613006 -0.0027988451
+ occupancy_rare    sigma_b         1 100       100 1.0000000 -0.0225749795
+ occupancy_rare     theta0        10 100      1000 0.9460000 -0.0179279599
+        rmse
+ 1.001090154
+ 2.137796781
+ 0.655704340
+ 0.489126515
+ 0.103439755
+ 0.008217264
+ 0.699578437
+ 0.023353321
+ 0.030928099
+ 0.597137844
+ 0.938386877
+ 0.418917832
+ 0.614931292
+ 0.020430882
+ 0.982099704
+ 2.125661457
+ 0.598565350
+ 0.476472737
+ 0.700700152
+ 0.022896064
+ 0.026305102
+
+written to /Users/douglasyu/src/occJSDM/.worktrees/rare-dominated/dev/simstudy/rare-dominated-20261015/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 100 gives a coverage SE of 2.2%; do not read differences smaller than that.
+ALL DONE 2026-10-16 00:38:51 status 0

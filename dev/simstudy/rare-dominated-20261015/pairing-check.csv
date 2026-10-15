@@ -1,0 +1,16 @@
+"arm","block","n","max_abs_diff_from_expected"
+"base_rare","B0",1000,0
+"base_rare","B",2000,0
+"base_rare","G",400,0
+"base_rare","beta_theta",2000,0
+"base_rare","theta0",1000,0
+"base_rare","p",2000,0
+"base_rare","q",2000,0
+"occupancy_rare","B0",1000,0
+"occupancy_rare","B",2000,0
+"occupancy_rare","G",400,0
+"occupancy_rare","beta_theta",2000,0
+"occupancy_rare","theta0",1000,0
+"binary_rare","B0",1000,0
+"binary_rare","B",2000,0
+"binary_rare","G",400,0

@@ -33,3 +33,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh launch.sh >
 ```
 
 Monitor with `tail -f run.log`. The log, provenance and results are ignored while the run is in flight so the runner records a clean tree.
+
+## Results
+
+The run finished on 16 October 2026 at 00:38 with all 300 fits and no failures. In the two eDNA cells, species with true occupancy under 0.1 are estimated at about 0.34 whatever their truth, and the community's mean occupancy at 0.37 against a true 0.20; at a given true occupancy the bias matches the parent cells'. The findings, and a question for Alex on estimating the community mean of B0, are in [REPORT.md](REPORT.md).
