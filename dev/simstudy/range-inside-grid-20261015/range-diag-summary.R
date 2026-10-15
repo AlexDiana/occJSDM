@@ -17,6 +17,9 @@ runr <- readRDS(list.files(file.path(run_dir, "results"), "^simstudy-.*\\.rds$",
 ref <- rbind(prod[prod$scenario %in% c("base", "binary") & prod$replicate <= 10, ],
              runr[runr$replicate <= 10, names(prod)])
 key <- function(x) paste(x$scenario, x$replicate, x$block, x$element, sep = "|")
+# Draws are stored chain after chain (niter x nchain, flattened), 2 chains.
+rhat <- function(x) posterior::rhat(matrix(x, ncol = 2))
+ess <- function(x) posterior::ess_bulk(matrix(x, ncol = 2))
 
 out <- do.call(rbind, lapply(d, function(x) {
   rows <- x$rows[x$rows$block %in% c("B0", "B"), ]
@@ -31,7 +34,9 @@ out <- do.call(rbind, lapply(d, function(x) {
              share_at_grid_min = mean(x$l_s_draws == min(grid)),
              share_within_one_step = mean(abs(x$l_s_draws - mean(x$l_s_std)) <=
                                             diff(grid)[1] + 1e-12),
+             l_s_rhat = rhat(x$l_s_draws), l_s_ess = ess(x$l_s_draws),
              sigma_bs_mean = mean(x$sigma_bs_draws),
+             sigma_bs_rhat = rhat(x$sigma_bs_draws), sigma_bs_ess = ess(x$sigma_bs_draws),
              max_abs_post_mean_diff_vs_run = max(abs(rows$post_mean - ref$post_mean[m])))
 }))
 out <- out[order(match(out$scenario, c("base", "base_ls075", "base_ls05", "binary",
@@ -47,6 +52,9 @@ agg <- do.call(rbind, lapply(split(out, out$scenario), function(x) data.frame(
   at_max = round(mean(x$share_at_grid_max), 3),
   at_min = round(mean(x$share_at_grid_min), 3),
   within_step = round(mean(x$share_within_one_step), 3),
+  l_s_rhat_median = round(median(x$l_s_rhat), 2),
+  l_s_ess_median = round(median(x$l_s_ess), 1),
   sigma_bs = round(mean(x$sigma_bs_mean), 3),
+  sigma_bs_rhat_median = round(median(x$sigma_bs_rhat), 2),
   max_diff_vs_run = signif(max(x$max_abs_post_mean_diff_vs_run), 2))))
 print(agg[order(match(agg$scenario, unique(out$scenario))), ], row.names = FALSE)
