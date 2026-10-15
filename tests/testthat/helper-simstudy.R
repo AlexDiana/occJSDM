@@ -318,7 +318,34 @@ simstudy_scenarios <- function() {
     mk("qnear_K3",  K = 3L,                        seed_label = "qtest"),
     mk("qnear_K30", K = 30L,                       seed_label = "qtest"),
     mk("qfar_K3",   K = 3L,  q_range = c(.15, .3), seed_label = "qtest"),
-    mk("qfar_K30",  K = 30L, q_range = c(.15, .3), seed_label = "qtest"))
+    mk("qfar_K30",  K = 30L, q_range = c(.15, .3), seed_label = "qtest"),
+
+    # --- Spatial range inside the fitted grid (diagnostic) ---------------
+    #
+    # The 15 October 2026 calibration report
+    # (dev/simstudy/paper-study-20261015/REPORT.md) traced the B
+    # undercoverage, and B0's in `binary`, to f1d2e12, and left one leading
+    # explanation untested: every spatial cell simulates l_s = 0.15 on the raw
+    # unit square, about 0.48 to 0.54 on the standardised coordinates the
+    # fitter uses, while the fitter's range grid stops at 0.30
+    # (R/runOccJSDM.R, l_s_grid). These cells copy `base` and `binary` but
+    # simulate a range inside that grid: 0.05 raw (about 0.17 standardised,
+    # mid-grid) and 0.075 raw (about 0.24 to 0.29, near the top, a smoother
+    # field; 0.08 reached 0.31 on some replicates). Two ranges so that a
+    # recovery at 0.05 alone cannot be put down to the field merely being
+    # rougher.
+    #
+    # seed_label is the parent's label, so each arm draws the parent's seed.
+    # The simulator's RNG consumption does not depend on l_s (it only rescales
+    # the kernel before the same chol() and rnorm() calls), so B0, B, G, L and
+    # the site coordinates are bit-identical to the parent's at every
+    # replicate; only the spatial field, and hence the data, differ.
+    #
+    # NOT production cells: name them with --scenarios.
+    mk("base_ls05",   l_s = 0.05, seed_label = "base"),
+    mk("binary_ls05", model = "binary", l_s = 0.05, seed_label = "binary"),
+    mk("base_ls075",   l_s = 0.075, seed_label = "base"),
+    mk("binary_ls075", model = "binary", l_s = 0.075, seed_label = "binary"))
 }
 
 # --- Seam 1: how the true parameters are chosen --------------------------
@@ -360,7 +387,11 @@ draw_truth <- function(scenario, seed) {
                       # the note above simstudy_param_blocks() on why a truth
                       # far from the prior makes this block uninterpretable.
                       sigma_b = 0.35, sigma_bs = 0.5, sigma_ts = 0.5,
-                      sigma_h = 1, sigma_s = 0.5, l_s = 0.15,
+                      # l_s is optional and defaults to the historical 0.15
+                      # on the raw unit square. Only the range diagnostic
+                      # cells set it; it adds no RNG draws.
+                      sigma_h = 1, sigma_s = 0.5,
+                      l_s = if (!is.null(scenario$l_s)) scenario$l_s else 0.15,
                       tau = rep(1, S),
                       useSpatField = scenario$useSpatField),
     params = list(
