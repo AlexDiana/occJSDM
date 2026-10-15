@@ -1,0 +1,15 @@
+launched: 2026-10-15 21:47:47
+worktree: /Users/douglasyu/src/occJSDM/.claude/worktrees/gracious-heyrovsky-2adc4e
+revision: 8a2c628fb25bf62a79a730a1e12c3efe134f991c
+branch: claude/amplitude-prior-check
+dirty files: 0
+package code (R/, src/) identical to the production run's f3668e0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+cells: base_hc,binary_hc,base_ls075_hc,binary_ls075_hc
+settings: R = 50 per cell, cores = 5, threads = 1, nburn = 1000, niter = 1000, nchain = 2, no cap
+run exit status: 0 at 2026-10-15 22:23:58
+amp-diag start: 2026-10-15 22:23:58
+amp-diag exit status: 0 at 2026-10-15 22:34:53

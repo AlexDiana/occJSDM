@@ -1,0 +1,94 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 4 scenario(s), R = 50, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  [  5%] 10/200 replicates | 2 min elapsed | ~36 min left | cpu/wall 4.3x
+  [ 10%] 20/200 replicates | 4 min elapsed | ~32 min left | cpu/wall 4.1x
+  [ 15%] 30/200 replicates | 6 min elapsed | ~31 min left | cpu/wall 4.1x
+  [ 20%] 40/200 replicates | 8 min elapsed | ~31 min left | cpu/wall 4.0x
+  [ 25%] 50/200 replicates | 10 min elapsed | ~29 min left | cpu/wall 4.0x
+  [ 30%] 60/200 replicates | 11 min elapsed | ~26 min left | cpu/wall 4.1x
+  [ 35%] 70/200 replicates | 13 min elapsed | ~23 min left | cpu/wall 4.1x
+  [ 40%] 80/200 replicates | 14 min elapsed | ~21 min left | cpu/wall 4.2x
+  [ 45%] 90/200 replicates | 16 min elapsed | ~19 min left | cpu/wall 4.1x
+  [ 50%] 100/200 replicates | 18 min elapsed | ~17 min left | cpu/wall 4.1x
+  [ 55%] 110/200 replicates | 20 min elapsed | ~16 min left | cpu/wall 4.1x
+  [ 60%] 120/200 replicates | 22 min elapsed | ~14 min left | cpu/wall 4.1x
+  [ 65%] 130/200 replicates | 23 min elapsed | ~13 min left | cpu/wall 4.1x
+  [ 70%] 140/200 replicates | 25 min elapsed | ~11 min left | cpu/wall 4.1x
+  [ 75%] 150/200 replicates | 27 min elapsed | ~9 min left | cpu/wall 4.1x
+  [ 80%] 160/200 replicates | 29 min elapsed | ~7 min left | cpu/wall 4.1x
+  [ 85%] 170/200 replicates | 31 min elapsed | ~5 min left | cpu/wall 4.2x
+  [ 90%] 180/200 replicates | 32 min elapsed | ~4 min left | cpu/wall 4.2x
+  [ 95%] 190/200 replicates | 34 min elapsed | ~2 min left | cpu/wall 4.2x
+  [100%] 200/200 replicates | 36 min elapsed | ~0 min left | cpu/wall 4.2x
+
+done in 36.1 min; 0 replicate(s) failed
+        scenario      block n_element  R n_checked  coverage         bias
+         base_hc          B        20 50      1000 0.9300000 -0.041549135
+         base_hc         B0        10 50       500 0.9280000 -0.131909682
+         base_hc beta_theta        20 50      1000 0.9640000  0.003102818
+         base_hc          G         4 50       200 0.9250000 -0.038156837
+         base_hc          p        20 50      1000 0.9140000  0.037431757
+         base_hc          q        20 50      1000 0.9420000  0.003265875
+         base_hc  resid_cor        45 50      1900 0.7647368  0.002539472
+         base_hc    sigma_b         1 50        50 1.0000000 -0.021168194
+         base_hc     theta0        10 50       500 0.9740000 -0.003499270
+   base_ls075_hc          B        20 50      1000 0.9300000 -0.036000100
+   base_ls075_hc         B0        10 50       500 0.9340000 -0.140229788
+   base_ls075_hc beta_theta        20 50      1000 0.9640000  0.007627611
+   base_ls075_hc          G         4 50       200 0.9350000 -0.043761886
+   base_ls075_hc          p        20 50      1000 0.9110000  0.038064776
+   base_ls075_hc          q        20 50      1000 0.9470000  0.003252926
+   base_ls075_hc  resid_cor        45 50      1900 0.7647368  0.003692429
+   base_ls075_hc    sigma_b         1 50        50 1.0000000 -0.020660592
+   base_ls075_hc     theta0        10 50       500 0.9840000 -0.002449846
+       binary_hc          B        20 50      1000 0.9170000  0.009248186
+       binary_hc         B0        10 50       500 0.8680000  0.002968457
+       binary_hc          G         4 50       200 0.9250000  0.022316565
+       binary_hc  resid_cor        45 50      1841 0.7452471 -0.001613217
+       binary_hc    sigma_b         1 50        50 1.0000000 -0.016810539
+ binary_ls075_hc          B        20 50      1000 0.9110000  0.010655223
+ binary_ls075_hc         B0        10 50       500 0.8960000 -0.006596382
+ binary_ls075_hc          G         4 50       200 0.9450000  0.008969082
+ binary_ls075_hc  resid_cor        45 50      1841 0.7463335  0.004527450
+ binary_ls075_hc    sigma_b         1 50        50 1.0000000 -0.017450148
+        rmse
+ 0.874547414
+ 0.854523574
+ 0.388870684
+ 0.471411779
+ 0.067783194
+ 0.009541826
+ 0.695839872
+ 0.021499047
+ 0.030491072
+ 0.883184593
+ 0.843380577
+ 0.392255649
+ 0.472977262
+ 0.068700895
+ 0.009568897
+ 0.695475726
+ 0.021031931
+ 0.030858238
+ 0.428937866
+ 0.392225219
+ 0.407600205
+ 0.476822954
+ 0.017142123
+ 0.429974925
+ 0.355431820
+ 0.398993470
+ 0.481003980
+ 0.017929934
+
+written to /Users/douglasyu/src/occJSDM/.claude/worktrees/gracious-heyrovsky-2adc4e/dev/simstudy/amplitude-prior-20261015/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 50 gives a coverage SE of 3.1%; do not read differences smaller than that.
+RUN DONE 2026-10-15 22:23:58 status 0
+ALL DONE 2026-10-15 22:34:53 status 0
