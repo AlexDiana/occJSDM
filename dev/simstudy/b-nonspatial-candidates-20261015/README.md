@@ -30,3 +30,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh launch.sh >
 ```
 
 Monitor with `tail -f run.log`. The log, provenance and results are ignored while the run is in flight so the runner records a clean tree.
+
+## Results
+
+The run finished on 16 October 2026 at 00:41 with all 600 fits and no failures. B's hierarchical prior accounts for most of B's shortfall: fitting 4 latent traits instead of 2 raised B coverage from 0.906 to 0.936 on identical datasets. Chains of 5,000 + 5,000 iterations added a smaller part, +0.017, and B has not converged at the study's 1,000 + 1,000. Fitting latent factors that are not there costs nothing. The findings are in [REPORT.md](REPORT.md).

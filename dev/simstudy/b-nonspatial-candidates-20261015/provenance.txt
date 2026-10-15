@@ -1,0 +1,11 @@
+launched: 2026-10-15 23:04:28
+revision: c40f385cc5873afa3656b4558e6244bfa72a7fa9
+branch: claude/b-nonspatial-candidates
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+cells: no_spatial,no_spatial_long,no_factors,no_factors_fit2,no_spatial_notraits,no_spatial_gt4
+settings: R = 100 per cell, cores = 5, threads = 1, nburn = 1000, niter = 1000, nchain = 2; no_spatial_long nburn = 5000, niter = 5000, nchain = 2
+exit status: 0 at 2026-10-16 00:41:16

@@ -1,0 +1,150 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 6 scenario(s), R = 100, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  own MCMC settings: no_spatial_long 5000+5000 x 2
+  [  3%] 20/600 replicates | 2 min elapsed | ~71 min left | cpu/wall 3.7x
+  [  7%] 40/600 replicates | 5 min elapsed | ~65 min left | cpu/wall 4.1x
+  [ 10%] 60/600 replicates | 7 min elapsed | ~55 min left | cpu/wall 4.1x
+  [ 13%] 80/600 replicates | 8 min elapsed | ~51 min left | cpu/wall 4.2x
+  [ 17%] 100/600 replicates | 12 min elapsed | ~57 min left | cpu/wall 4.0x
+  [ 20%] 120/600 replicates | 15 min elapsed | ~61 min left | cpu/wall 4.0x
+  [ 23%] 140/600 replicates | 18 min elapsed | ~59 min left | cpu/wall 4.0x
+  [ 27%] 160/600 replicates | 20 min elapsed | ~60 min left | cpu/wall 4.0x
+  [ 30%] 180/600 replicates | 23 min elapsed | ~60 min left | cpu/wall 4.0x
+  [ 33%] 200/600 replicates | 25 min elapsed | ~54 min left | cpu/wall 3.9x
+  [ 37%] 220/600 replicates | 29 min elapsed | ~53 min left | cpu/wall 4.0x
+  [ 40%] 240/600 replicates | 31 min elapsed | ~49 min left | cpu/wall 3.9x
+  [ 43%] 260/600 replicates | 34 min elapsed | ~49 min left | cpu/wall 3.9x
+  [ 47%] 280/600 replicates | 37 min elapsed | ~45 min left | cpu/wall 3.9x
+  [ 50%] 300/600 replicates | 41 min elapsed | ~47 min left | cpu/wall 3.9x
+  [ 53%] 320/600 replicates | 44 min elapsed | ~43 min left | cpu/wall 3.9x
+  [ 57%] 340/600 replicates | 49 min elapsed | ~45 min left | cpu/wall 3.9x
+  [ 60%] 360/600 replicates | 53 min elapsed | ~46 min left | cpu/wall 3.9x
+  [ 63%] 380/600 replicates | 58 min elapsed | ~47 min left | cpu/wall 3.8x
+  [ 67%] 400/600 replicates | 63 min elapsed | ~44 min left | cpu/wall 3.8x
+  [ 70%] 420/600 replicates | 67 min elapsed | ~41 min left | cpu/wall 3.7x
+  [ 73%] 440/600 replicates | 72 min elapsed | ~36 min left | cpu/wall 3.7x
+  [ 77%] 460/600 replicates | 74 min elapsed | ~29 min left | cpu/wall 3.7x
+  [ 80%] 480/600 replicates | 77 min elapsed | ~23 min left | cpu/wall 3.7x
+  [ 83%] 500/600 replicates | 82 min elapsed | ~19 min left | cpu/wall 3.7x
+  [ 87%] 520/600 replicates | 85 min elapsed | ~14 min left | cpu/wall 3.7x
+  [ 90%] 540/600 replicates | 89 min elapsed | ~10 min left | cpu/wall 3.7x
+  [ 93%] 560/600 replicates | 91 min elapsed | ~7 min left | cpu/wall 3.7x
+  [ 97%] 580/600 replicates | 95 min elapsed | ~3 min left | cpu/wall 3.7x
+  [100%] 600/600 replicates | 97 min elapsed | ~0 min left | cpu/wall 3.7x
+
+done in 96.7 min; 0 replicate(s) failed
+            scenario      block n_element   R n_checked  coverage          bias
+          no_factors          B        20 100      2000 0.9225000 -0.0059423533
+          no_factors         B0        10 100      1000 0.9500000 -0.1183122222
+          no_factors beta_theta        20 100      2000 0.9600000 -0.0167426424
+          no_factors          G         4 100       400 0.9475000 -0.0283757748
+          no_factors          p        20 100      2000 0.9125000  0.0376484564
+          no_factors          q        20 100      2000 0.9430000  0.0029974610
+          no_factors    sigma_b         1 100       100 1.0000000 -0.0209119239
+          no_factors     theta0        10 100      1000 0.9770000 -0.0070105009
+     no_factors_fit2          B        20 100      2000 0.9240000 -0.0042200034
+     no_factors_fit2         B0        10 100      1000 0.9490000 -0.1284279933
+     no_factors_fit2 beta_theta        20 100      2000 0.9565000 -0.0144570446
+     no_factors_fit2          G         4 100       400 0.9400000 -0.0250949814
+     no_factors_fit2          p        20 100      2000 0.9145000  0.0374335401
+     no_factors_fit2          q        20 100      2000 0.9430000  0.0029624227
+     no_factors_fit2    sigma_b         1 100       100 1.0000000 -0.0205958508
+     no_factors_fit2     theta0        10 100      1000 0.9790000 -0.0072156986
+          no_spatial          B        20 100      2000 0.9060000  0.0044057699
+          no_spatial         B0        10 100      1000 0.9280000 -0.1539954788
+          no_spatial beta_theta        20 100      2000 0.9580000 -0.0004596965
+          no_spatial          G         4 100       400 0.9450000 -0.0106938069
+          no_spatial          p        20 100      2000 0.9005000  0.0374120561
+          no_spatial          q        20 100      2000 0.9475000  0.0031768352
+          no_spatial  resid_cor        45 100      3762 0.7631579  0.0056908703
+          no_spatial    sigma_b         1 100       100 1.0000000 -0.0206754543
+          no_spatial     theta0        10 100      1000 0.9640000 -0.0055017441
+      no_spatial_gt4          B        20 100      2000 0.9355000  0.0129212837
+      no_spatial_gt4         B0        10 100      1000 0.9300000 -0.1290914692
+      no_spatial_gt4 beta_theta        20 100      2000 0.9565000 -0.0134327820
+      no_spatial_gt4          G         4 100       400 0.9725000 -0.0047671143
+      no_spatial_gt4          p        20 100      2000 0.9010000  0.0373679577
+      no_spatial_gt4          q        20 100      2000 0.9425000  0.0031817909
+      no_spatial_gt4  resid_cor        45 100      3762 0.7631579  0.0062110274
+      no_spatial_gt4    sigma_b         1 100       100 1.0000000 -0.0227836468
+      no_spatial_gt4     theta0        10 100      1000 0.9680000 -0.0042299538
+     no_spatial_long          B        20 100      2000 0.9225000  0.0107713821
+     no_spatial_long         B0        10 100      1000 0.9340000 -0.1485845666
+     no_spatial_long beta_theta        20 100      2000 0.9585000 -0.0031773678
+     no_spatial_long          G         4 100       400 0.9550000 -0.0092053645
+     no_spatial_long          p        20 100      2000 0.9000000  0.0373670741
+     no_spatial_long          q        20 100      2000 0.9470000  0.0031629140
+     no_spatial_long  resid_cor        45 100      3762 0.7631579  0.0054417902
+     no_spatial_long    sigma_b         1 100       100 1.0000000 -0.0211348861
+     no_spatial_long     theta0        10 100      1000 0.9660000 -0.0053900653
+ no_spatial_notraits          B        20 100      2000 0.8705000 -0.0086699451
+ no_spatial_notraits         B0        10 100      1000 0.9140000 -0.1724956177
+ no_spatial_notraits beta_theta        20 100      2000 0.9605000  0.0115114551
+ no_spatial_notraits          p        20 100      2000 0.8985000  0.0372906970
+ no_spatial_notraits          q        20 100      2000 0.9455000  0.0031298533
+ no_spatial_notraits  resid_cor        45 100      3762 0.7631579  0.0067281427
+ no_spatial_notraits    sigma_b         1 100       100 1.0000000 -0.0185311615
+ no_spatial_notraits     theta0        10 100      1000 0.9660000 -0.0073277240
+        rmse
+ 0.859821073
+ 0.759233089
+ 0.412002955
+ 0.467642138
+ 0.068823516
+ 0.009637755
+ 0.021287601
+ 0.028027735
+ 0.850565929
+ 0.761409891
+ 0.411917290
+ 0.460724685
+ 0.068943332
+ 0.009625126
+ 0.020941173
+ 0.028088353
+ 0.888666383
+ 0.816369618
+ 0.401095833
+ 0.458761550
+ 0.070456549
+ 0.009715140
+ 0.694042956
+ 0.021010403
+ 0.028790980
+ 0.884813133
+ 0.816543807
+ 0.399290861
+ 0.462237242
+ 0.070487696
+ 0.009709266
+ 0.694955658
+ 0.022932469
+ 0.028870759
+ 0.875709918
+ 0.809634803
+ 0.402090463
+ 0.458732453
+ 0.070363716
+ 0.009695115
+ 0.692061583
+ 0.021433345
+ 0.028512598
+ 0.982644271
+ 0.812727281
+ 0.406149805
+ 0.070419871
+ 0.009668965
+ 0.693235559
+ 0.019001548
+ 0.028198681
+
+written to /Users/douglasyu/src/occJSDM/.claude/worktrees/friendly-kare-a720b8/dev/simstudy/b-nonspatial-candidates-20261015/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 100 gives a coverage SE of 2.2%; do not read differences smaller than that.
+ALL DONE 2026-10-16 00:41:16 status 0
