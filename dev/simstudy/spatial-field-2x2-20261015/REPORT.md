@@ -61,6 +61,7 @@ The truths of B, B0, G, `theta0`, `p` and `q` are identical, element for element
 ## What this changes
 
 -   **The paper's B caveat stands,** but it should not be put down to the spatial field. B undercovers without any spatial component, and most in that case.
+-   **The calibration report's leading explanation is weaker for B.** It proposed that a range beyond the fitted grid leaves spatial variation unmodelled and so attenuates B. Here, leaving the whole field unmodelled made no measurable difference to B, so a partly captured field is unlikely to explain B's shortfall. This says nothing yet about B0 in the `binary` cell, which was not run.
 -   **The next candidates are non-spatial:** the latent factors competing with the covariates, the hierarchical prior on B with `sigma_b` held near its prior mean, and Monte Carlo error from 2 chains of 1,000 draws. Each can be tested as an arm paired with `no_spatial`: longer chains, no latent factors in the truth and the fit, and traits left out.
 
 ## Files and reproduction
