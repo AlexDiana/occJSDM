@@ -345,7 +345,30 @@ simstudy_scenarios <- function() {
     mk("base_ls05",   l_s = 0.05, seed_label = "base"),
     mk("binary_ls05", model = "binary", l_s = 0.05, seed_label = "binary"),
     mk("base_ls075",   l_s = 0.075, seed_label = "base"),
-    mk("binary_ls075", model = "binary", l_s = 0.075, seed_label = "binary"))
+    mk("binary_ls075", model = "binary", l_s = 0.075, seed_label = "binary"),
+
+    # --- Free spatial amplitude (diagnostic) -----------------------------
+    #
+    # In the range cells above and in production, the fitted spatial
+    # amplitude sigma_bs sat at the mean of its InvGamma(10, 1) prior (0.33)
+    # in every fit. That prior's shape and rate are hard-coded in
+    # runOccJSDM(), so the only way to free the amplitude without a package
+    # change is the experimental half-Cauchy prior (scale 1 by default).
+    # These cells repeat `base` and `binary` with it, at the production range
+    # and at the in-grid 0.075, so prior and range can be read together.
+    # Same data as the parent at every replicate (seed_label); only the fit
+    # differs. NOT production cells: name them with --scenarios.
+    mk("base_hc", listPriors = list(sigma_bs_prior = "half_cauchy"),
+                  seed_label = "base"),
+    mk("binary_hc", model = "binary",
+                    listPriors = list(sigma_bs_prior = "half_cauchy"),
+                    seed_label = "binary"),
+    mk("base_ls075_hc", l_s = 0.075,
+                        listPriors = list(sigma_bs_prior = "half_cauchy"),
+                        seed_label = "base"),
+    mk("binary_ls075_hc", model = "binary", l_s = 0.075,
+                          listPriors = list(sigma_bs_prior = "half_cauchy"),
+                          seed_label = "binary"))
 }
 
 # --- Seam 1: how the true parameters are chosen --------------------------
