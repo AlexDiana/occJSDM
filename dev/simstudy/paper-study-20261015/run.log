@@ -1,0 +1,334 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 10 scenario(s), R = 300, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  [  1%] 20/3000 replicates | 5 min elapsed | ~734 min left | cpu/wall 4.0x
+  [  1%] 40/3000 replicates | 10 min elapsed | ~764 min left | cpu/wall 3.8x
+  [  2%] 60/3000 replicates | 16 min elapsed | ~840 min left | cpu/wall 3.8x
+  [  3%] 80/3000 replicates | 22 min elapsed | ~840 min left | cpu/wall 3.8x
+  [  3%] 100/3000 replicates | 29 min elapsed | ~887 min left | cpu/wall 3.7x
+  [  4%] 120/3000 replicates | 35 min elapsed | ~878 min left | cpu/wall 3.8x
+  [  5%] 140/3000 replicates | 43 min elapsed | ~931 min left | cpu/wall 3.7x
+  [  5%] 160/3000 replicates | 51 min elapsed | ~971 min left | cpu/wall 3.7x
+  [  6%] 180/3000 replicates | 56 min elapsed | ~945 min left | cpu/wall 3.7x
+  [  7%] 200/3000 replicates | 58 min elapsed | ~804 min left | cpu/wall 3.7x
+  [  7%] 220/3000 replicates | 60 min elapsed | ~687 min left | cpu/wall 3.7x
+  [  8%] 240/3000 replicates | 63 min elapsed | ~549 min left | cpu/wall 3.7x
+  [  9%] 260/3000 replicates | 66 min elapsed | ~410 min left | cpu/wall 3.8x
+  [  9%] 280/3000 replicates | 69 min elapsed | ~359 min left | cpu/wall 3.8x
+  [ 10%] 300/3000 replicates | 71 min elapsed | ~355 min left | cpu/wall 3.8x
+  [ 11%] 320/3000 replicates | 75 min elapsed | ~386 min left | cpu/wall 3.8x
+  [ 11%] 340/3000 replicates | 77 min elapsed | ~392 min left | cpu/wall 3.8x
+  [ 12%] 360/3000 replicates | 80 min elapsed | ~388 min left | cpu/wall 3.8x
+  [ 13%] 380/3000 replicates | 83 min elapsed | ~357 min left | cpu/wall 3.9x
+  [ 13%] 400/3000 replicates | 85 min elapsed | ~360 min left | cpu/wall 3.9x
+  [ 14%] 420/3000 replicates | 88 min elapsed | ~348 min left | cpu/wall 3.9x
+  [ 15%] 440/3000 replicates | 90 min elapsed | ~332 min left | cpu/wall 3.9x
+  [ 15%] 460/3000 replicates | 93 min elapsed | ~315 min left | cpu/wall 3.9x
+  [ 16%] 480/3000 replicates | 96 min elapsed | ~329 min left | cpu/wall 3.9x
+  [ 17%] 500/3000 replicates | 99 min elapsed | ~338 min left | cpu/wall 3.9x
+  [ 17%] 520/3000 replicates | 102 min elapsed | ~337 min left | cpu/wall 3.9x
+  [ 18%] 540/3000 replicates | 104 min elapsed | ~348 min left | cpu/wall 4.0x
+  [ 19%] 560/3000 replicates | 107 min elapsed | ~360 min left | cpu/wall 4.0x
+  [ 19%] 580/3000 replicates | 110 min elapsed | ~354 min left | cpu/wall 4.0x
+  [ 20%] 600/3000 replicates | 113 min elapsed | ~348 min left | cpu/wall 4.0x
+  [ 21%] 620/3000 replicates | 116 min elapsed | ~345 min left | cpu/wall 4.0x
+ALL DONE 2026-10-15 11:39:19 status 143
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 10 scenario(s), R = 300, 7 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  resuming: 620 of 3000 replicates already in checkpoint-base-binary-d-overfit-d-underfit-a16add71.rds
+  [  1%] 28/2380 replicates | 4 min elapsed | ~299 min left | cpu/wall 6.0x
+  [  2%] 56/2380 replicates | 8 min elapsed | ~333 min left | cpu/wall 5.7x
+  [  4%] 84/2380 replicates | 11 min elapsed | ~308 min left | cpu/wall 5.7x
+  [  5%] 112/2380 replicates | 14 min elapsed | ~286 min left | cpu/wall 5.7x
+  [  6%] 140/2380 replicates | 18 min elapsed | ~281 min left | cpu/wall 5.7x
+  [  7%] 168/2380 replicates | 20 min elapsed | ~265 min left | cpu/wall 5.8x
+  [  8%] 196/2380 replicates | 23 min elapsed | ~247 min left | cpu/wall 5.9x
+  [  9%] 224/2380 replicates | 26 min elapsed | ~236 min left | cpu/wall 5.9x
+  [ 11%] 252/2380 replicates | 30 min elapsed | ~237 min left | cpu/wall 6.0x
+  [ 12%] 280/2380 replicates | 33 min elapsed | ~236 min left | cpu/wall 5.9x
+  [ 13%] 308/2380 replicates | 37 min elapsed | ~242 min left | cpu/wall 5.9x
+  [ 14%] 336/2380 replicates | 41 min elapsed | ~256 min left | cpu/wall 5.9x
+  [ 15%] 364/2380 replicates | 45 min elapsed | ~270 min left | cpu/wall 5.8x
+  [ 16%] 392/2380 replicates | 49 min elapsed | ~274 min left | cpu/wall 5.8x
+  [ 18%] 420/2380 replicates | 53 min elapsed | ~276 min left | cpu/wall 5.8x
+  [ 19%] 448/2380 replicates | 57 min elapsed | ~282 min left | cpu/wall 5.8x
+  [ 20%] 476/2380 replicates | 61 min elapsed | ~277 min left | cpu/wall 5.8x
+  [ 21%] 504/2380 replicates | 66 min elapsed | ~286 min left | cpu/wall 5.8x
+  [ 22%] 532/2380 replicates | 72 min elapsed | ~299 min left | cpu/wall 5.7x
+  [ 24%] 560/2380 replicates | 76 min elapsed | ~298 min left | cpu/wall 5.7x
+  [ 25%] 588/2380 replicates | 80 min elapsed | ~293 min left | cpu/wall 5.7x
+  [ 26%] 616/2380 replicates | 84 min elapsed | ~280 min left | cpu/wall 5.7x
+  [ 27%] 644/2380 replicates | 88 min elapsed | ~262 min left | cpu/wall 5.7x
+ALL DONE 2026-10-15 13:07:02 status 143
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 10 scenario(s), R = 300, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  resuming: 1264 of 3000 replicates already in checkpoint-base-binary-d-overfit-d-underfit-a16add71.rds
+  [  1%] 20/1736 replicates | 4 min elapsed | ~331 min left | cpu/wall 3.8x
+  [  2%] 40/1736 replicates | 7 min elapsed | ~280 min left | cpu/wall 4.1x
+  [  3%] 60/1736 replicates | 11 min elapsed | ~289 min left | cpu/wall 4.2x
+  [  5%] 80/1736 replicates | 15 min elapsed | ~296 min left | cpu/wall 4.2x
+  [  6%] 100/1736 replicates | 18 min elapsed | ~295 min left | cpu/wall 4.2x
+  [  7%] 120/1736 replicates | 22 min elapsed | ~299 min left | cpu/wall 4.2x
+  [  8%] 140/1736 replicates | 26 min elapsed | ~298 min left | cpu/wall 4.2x
+  [  9%] 160/1736 replicates | 29 min elapsed | ~289 min left | cpu/wall 4.2x
+  [ 10%] 180/1736 replicates | 32 min elapsed | ~278 min left | cpu/wall 4.2x
+  [ 12%] 200/1736 replicates | 35 min elapsed | ~258 min left | cpu/wall 4.2x
+  [ 13%] 220/1736 replicates | 39 min elapsed | ~247 min left | cpu/wall 4.2x
+  [ 14%] 240/1736 replicates | 42 min elapsed | ~241 min left | cpu/wall 4.2x
+  [ 15%] 260/1736 replicates | 45 min elapsed | ~233 min left | cpu/wall 4.2x
+  [ 16%] 280/1736 replicates | 48 min elapsed | ~220 min left | cpu/wall 4.2x
+  [ 17%] 300/1736 replicates | 51 min elapsed | ~222 min left | cpu/wall 4.2x
+  [ 18%] 320/1736 replicates | 54 min elapsed | ~211 min left | cpu/wall 4.3x
+  [ 20%] 340/1736 replicates | 57 min elapsed | ~206 min left | cpu/wall 4.3x
+  [ 21%] 360/1736 replicates | 60 min elapsed | ~204 min left | cpu/wall 4.3x
+  [ 22%] 380/1736 replicates | 62 min elapsed | ~199 min left | cpu/wall 4.3x
+  [ 23%] 400/1736 replicates | 65 min elapsed | ~190 min left | cpu/wall 4.3x
+  [ 24%] 420/1736 replicates | 67 min elapsed | ~178 min left | cpu/wall 4.3x
+  [ 25%] 440/1736 replicates | 71 min elapsed | ~182 min left | cpu/wall 4.2x
+  [ 26%] 460/1736 replicates | 74 min elapsed | ~186 min left | cpu/wall 4.2x
+  [ 28%] 480/1736 replicates | 78 min elapsed | ~200 min left | cpu/wall 4.2x
+  [ 29%] 500/1736 replicates | 81 min elapsed | ~200 min left | cpu/wall 4.2x
+  [ 30%] 520/1736 replicates | 84 min elapsed | ~199 min left | cpu/wall 4.2x
+  [ 31%] 540/1736 replicates | 86 min elapsed | ~186 min left | cpu/wall 4.2x
+  [ 32%] 560/1736 replicates | 90 min elapsed | ~179 min left | cpu/wall 4.2x
+  [ 33%] 580/1736 replicates | 93 min elapsed | ~170 min left | cpu/wall 4.2x
+  [ 35%] 600/1736 replicates | 95 min elapsed | ~164 min left | cpu/wall 4.2x
+  [ 36%] 620/1736 replicates | 98 min elapsed | ~163 min left | cpu/wall 4.3x
+  [ 37%] 640/1736 replicates | 101 min elapsed | ~157 min left | cpu/wall 4.3x
+  [ 38%] 660/1736 replicates | 104 min elapsed | ~155 min left | cpu/wall 4.3x
+  [ 39%] 680/1736 replicates | 107 min elapsed | ~149 min left | cpu/wall 4.3x
+  [ 40%] 700/1736 replicates | 110 min elapsed | ~147 min left | cpu/wall 4.3x
+  [ 41%] 720/1736 replicates | 113 min elapsed | ~148 min left | cpu/wall 4.3x
+  [ 43%] 740/1736 replicates | 115 min elapsed | ~143 min left | cpu/wall 4.3x
+  [ 44%] 760/1736 replicates | 119 min elapsed | ~144 min left | cpu/wall 4.3x
+  [ 45%] 780/1736 replicates | 122 min elapsed | ~140 min left | cpu/wall 4.3x
+  [ 46%] 800/1736 replicates | 125 min elapsed | ~141 min left | cpu/wall 4.3x
+  [ 47%] 820/1736 replicates | 128 min elapsed | ~142 min left | cpu/wall 4.3x
+  [ 48%] 840/1736 replicates | 132 min elapsed | ~148 min left | cpu/wall 4.3x
+  [ 50%] 860/1736 replicates | 135 min elapsed | ~141 min left | cpu/wall 4.3x
+  [ 51%] 880/1736 replicates | 138 min elapsed | ~142 min left | cpu/wall 4.3x
+  [ 52%] 900/1736 replicates | 141 min elapsed | ~133 min left | cpu/wall 4.3x
+  [ 53%] 920/1736 replicates | 144 min elapsed | ~128 min left | cpu/wall 4.3x
+  [ 54%] 940/1736 replicates | 147 min elapsed | ~119 min left | cpu/wall 4.3x
+  [ 55%] 960/1736 replicates | 150 min elapsed | ~118 min left | cpu/wall 4.3x
+  [ 56%] 980/1736 replicates | 153 min elapsed | ~111 min left | cpu/wall 4.3x
+  [ 58%] 1000/1736 replicates | 156 min elapsed | ~112 min left | cpu/wall 4.3x
+  [ 59%] 1020/1736 replicates | 159 min elapsed | ~108 min left | cpu/wall 4.3x
+  [ 60%] 1040/1736 replicates | 162 min elapsed | ~109 min left | cpu/wall 4.3x
+  [ 61%] 1060/1736 replicates | 165 min elapsed | ~100 min left | cpu/wall 4.3x
+  [ 62%] 1080/1736 replicates | 168 min elapsed | ~99 min left | cpu/wall 4.3x
+  [ 63%] 1100/1736 replicates | 171 min elapsed | ~96 min left | cpu/wall 4.3x
+  [ 65%] 1120/1736 replicates | 174 min elapsed | ~94 min left | cpu/wall 4.3x
+  [ 66%] 1140/1736 replicates | 177 min elapsed | ~89 min left | cpu/wall 4.3x
+  [ 67%] 1160/1736 replicates | 180 min elapsed | ~89 min left | cpu/wall 4.3x
+  [ 68%] 1180/1736 replicates | 183 min elapsed | ~85 min left | cpu/wall 4.3x
+  [ 69%] 1200/1736 replicates | 186 min elapsed | ~81 min left | cpu/wall 4.3x
+  [ 70%] 1220/1736 replicates | 189 min elapsed | ~75 min left | cpu/wall 4.3x
+  [ 71%] 1240/1736 replicates | 192 min elapsed | ~72 min left | cpu/wall 4.3x
+  [ 73%] 1260/1736 replicates | 194 min elapsed | ~67 min left | cpu/wall 4.3x
+  [ 74%] 1280/1736 replicates | 198 min elapsed | ~66 min left | cpu/wall 4.3x
+  [ 75%] 1300/1736 replicates | 201 min elapsed | ~65 min left | cpu/wall 4.3x
+  [ 76%] 1320/1736 replicates | 205 min elapsed | ~66 min left | cpu/wall 4.3x
+  [ 77%] 1340/1736 replicates | 208 min elapsed | ~62 min left | cpu/wall 4.3x
+  [ 78%] 1360/1736 replicates | 210 min elapsed | ~59 min left | cpu/wall 4.3x
+  [ 79%] 1380/1736 replicates | 213 min elapsed | ~55 min left | cpu/wall 4.3x
+  [ 81%] 1400/1736 replicates | 216 min elapsed | ~52 min left | cpu/wall 4.3x
+  [ 82%] 1420/1736 replicates | 219 min elapsed | ~47 min left | cpu/wall 4.3x
+  [ 83%] 1440/1736 replicates | 222 min elapsed | ~43 min left | cpu/wall 4.3x
+  [ 84%] 1460/1736 replicates | 224 min elapsed | ~39 min left | cpu/wall 4.3x
+  [ 85%] 1480/1736 replicates | 227 min elapsed | ~36 min left | cpu/wall 4.3x
+  [ 86%] 1500/1736 replicates | 230 min elapsed | ~31 min left | cpu/wall 4.3x
+  [ 88%] 1520/1736 replicates | 232 min elapsed | ~27 min left | cpu/wall 4.3x
+  [ 89%] 1540/1736 replicates | 235 min elapsed | ~25 min left | cpu/wall 4.3x
+  [ 90%] 1560/1736 replicates | 237 min elapsed | ~22 min left | cpu/wall 4.3x
+  [ 91%] 1580/1736 replicates | 240 min elapsed | ~20 min left | cpu/wall 4.3x
+  [ 92%] 1600/1736 replicates | 242 min elapsed | ~18 min left | cpu/wall 4.3x
+  [ 93%] 1620/1736 replicates | 245 min elapsed | ~15 min left | cpu/wall 4.3x
+  [ 94%] 1640/1736 replicates | 248 min elapsed | ~13 min left | cpu/wall 4.3x
+  [ 96%] 1660/1736 replicates | 251 min elapsed | ~10 min left | cpu/wall 4.3x
+  [ 97%] 1680/1736 replicates | 253 min elapsed | ~8 min left | cpu/wall 4.3x
+  [ 98%] 1700/1736 replicates | 257 min elapsed | ~5 min left | cpu/wall 4.3x
+  [ 99%] 1720/1736 replicates | 259 min elapsed | ~2 min left | cpu/wall 4.3x
+  [100%] 1736/1736 replicates | 261 min elapsed | ~0 min left | cpu/wall 4.3x
+
+done in 261.5 min; 0 replicate(s) failed
+         scenario      block n_element   R n_checked  coverage          bias
+             base          B        20 300      6000 0.9271667  9.876978e-03
+             base         B0        10 300      3000 0.9423333 -1.166990e-01
+             base beta_theta        20 300      6000 0.9631667  5.510390e-04
+             base          G         4 300      1200 0.9550000 -1.362654e-02
+             base          p        20 300      6000 0.9110000  3.747860e-02
+             base          q        20 300      6000 0.9448333  3.075721e-03
+             base  resid_cor        45 300     11274 0.7611318  8.546498e-03
+             base    sigma_b         1 300       300 1.0000000 -2.081259e-02
+             base     theta0        10 300      3000 0.9763333 -5.784836e-03
+           binary          B        20 300      6000 0.9021667  2.690718e-03
+           binary         B0        10 300      3000 0.8680000  5.811509e-03
+           binary          G         4 300      1200 0.9508333  8.651291e-03
+           binary  resid_cor        45 300     11226 0.7509353 -2.129048e-04
+           binary    sigma_b         1 300       300 1.0000000 -1.765629e-02
+        d_overfit          B        20 300      6000 0.9145000  6.809766e-03
+        d_overfit         B0        10 300      3000 0.9326667 -1.131902e-01
+        d_overfit beta_theta        20 300      6000 0.9626667 -2.991503e-03
+        d_overfit          G         4 300      1200 0.9400000  7.367028e-03
+        d_overfit          p        20 300      6000 0.9083333  3.859234e-02
+        d_overfit          q        20 300      6000 0.9393333  3.372221e-03
+        d_overfit  resid_cor        45 300     11353 0.7583018  8.338203e-04
+        d_overfit    sigma_b         1 300       300 1.0000000 -2.109420e-02
+        d_overfit     theta0        10 300      3000 0.9740000 -6.124698e-03
+       d_underfit          B        20 300      6000 0.9008333  9.506099e-03
+       d_underfit         B0        10 300      3000 0.9290000 -1.037089e-01
+       d_underfit beta_theta        20 300      6000 0.9645000 -5.162597e-03
+       d_underfit          G         4 300      1200 0.9375000 -2.545683e-02
+       d_underfit          p        20 300      6000 0.9078333  3.769791e-02
+       d_underfit          q        20 300      6000 0.9466667  3.216580e-03
+       d_underfit  resid_cor        45 300     13330 0.9790698  7.418792e-03
+       d_underfit    sigma_b         1 300       300 1.0000000 -2.172281e-02
+       d_underfit     theta0        10 300      3000 0.9830000 -4.236304e-03
+  low_information          B        20 300      6000 0.7990000  9.475310e-03
+  low_information         B0        10 300      3000 0.8453333 -1.188887e+00
+  low_information beta_theta        20 300      6000 0.9945000  1.530231e-01
+  low_information          G         4 300      1200 0.8383333  5.822127e-03
+  low_information          p        20 300      6000 0.1033333  4.921473e-01
+  low_information          q        20 300      6000 0.8665000  1.062982e-02
+  low_information  resid_cor        45 300     10745 0.7513262  7.334909e-04
+  low_information    sigma_b         1 300       300 1.0000000 -2.522661e-02
+  low_information     theta0        10 300      3000 0.6036667 -4.103022e-02
+        occupancy          B        20 300      6000 0.9163333  1.088491e-02
+        occupancy         B0        10 300      3000 0.9293333 -6.455868e-02
+        occupancy beta_theta        20 300      6000 0.9610000  2.329272e-02
+        occupancy          G         4 300      1200 0.9558333  9.119985e-03
+        occupancy  resid_cor        45 300     11127 0.7575267 -1.684062e-03
+        occupancy    sigma_b         1 300       300 1.0000000 -2.089111e-02
+        occupancy     theta0        10 300      3000 0.9786667 -7.182516e-04
+        primers_3          B        20 300      6000 0.9175000  9.924359e-03
+        primers_3         B0        10 300      3000 0.9370000 -6.256573e-02
+        primers_3 beta_theta        20 300      6000 0.9620000  1.190726e-02
+        primers_3          G         4 300      1200 0.9508333  5.797518e-03
+        primers_3          p        30 300      9000 0.9214444  2.759989e-02
+        primers_3          q        30 300      9000 0.9461111  2.037836e-03
+        primers_3  resid_cor        45 300     11199 0.7659612  8.147124e-03
+        primers_3    sigma_b         1 300       300 1.0000000 -2.079543e-02
+        primers_3     theta0        10 300      3000 0.9783333 -2.144599e-03
+ spatial_isolated          B        20 300      6000 0.8751667  1.927838e-02
+ spatial_isolated         B0        10 300      3000 0.9350000 -1.332469e-01
+ spatial_isolated beta_theta        20 300      6000 0.9666667  1.435500e-02
+ spatial_isolated          p        20 300      6000 0.9148333  3.828190e-02
+ spatial_isolated          q        20 300      6000 0.9488333  3.185443e-03
+ spatial_isolated  resid_cor        45 300     11068 0.7605710  6.319531e-03
+ spatial_isolated    sigma_b         1 300       300 1.0000000 -1.892698e-02
+ spatial_isolated     theta0        10 300      3000 0.9813333 -7.435861e-03
+       species_20          B        40 300     12000 0.8841667 -3.184029e-03
+       species_20         B0        20 300      6000 0.9298333 -1.120671e-01
+       species_20 beta_theta        40 300     12000 0.9602500  1.201730e-02
+       species_20          G         4 300      1200 0.9125000  3.234648e-03
+       species_20          p        40 300     12000 0.9111667  3.707977e-02
+       species_20          q        40 300     12000 0.9479167  2.947016e-03
+       species_20  resid_cor       190 300     46825 0.7511372  4.802322e-03
+       species_20    sigma_b         1 300       300 1.0000000 -2.038690e-02
+       species_20     theta0        20 300      6000 0.9778333 -5.927723e-03
+  traits_isolated          B        20 300      6000 0.9090000  1.039491e-02
+  traits_isolated         B0        10 300      3000 0.9330000 -1.132937e-01
+  traits_isolated beta_theta        20 300      6000 0.9626667  8.551777e-05
+  traits_isolated          G         4 300      1200 0.9458333  3.127938e-02
+  traits_isolated          p        20 300      6000 0.9090000  3.825267e-02
+  traits_isolated          q        20 300      6000 0.9456667  3.261280e-03
+  traits_isolated  resid_cor        45 300     11135 0.7547373  3.609494e-03
+  traits_isolated    sigma_b         1 300       300 1.0000000 -2.144920e-02
+  traits_isolated     theta0        10 300      3000 0.9753333 -5.615635e-03
+        rmse
+ 0.866647812
+ 0.806562081
+ 0.393059948
+ 0.452139512
+ 0.067727115
+ 0.009572995
+ 0.697340576
+ 0.021135069
+ 0.029020046
+ 0.430041661
+ 0.379243881
+ 0.381148808
+ 0.482110276
+ 0.018346669
+ 0.887113397
+ 0.818090721
+ 0.405244165
+ 0.482052057
+ 0.069657741
+ 0.009854968
+ 0.700031108
+ 0.021472580
+ 0.029230639
+ 0.918671348
+ 0.830298237
+ 0.401759183
+ 0.481866686
+ 0.068753893
+ 0.009676888
+ 0.497553932
+ 0.022062055
+ 0.027852486
+ 1.622926348
+ 1.575037048
+ 0.649131239
+ 0.798201058
+ 0.512415578
+ 0.016442805
+ 0.709037734
+ 0.025327736
+ 0.047319740
+ 0.833825332
+ 0.781419956
+ 0.346950479
+ 0.446367149
+ 0.693084925
+ 0.021334227
+ 0.028817705
+ 0.859809206
+ 0.785689006
+ 0.374963140
+ 0.452998173
+ 0.056704821
+ 0.008171708
+ 0.692663353
+ 0.021166165
+ 0.028626183
+ 0.966484131
+ 0.803641980
+ 0.401728107
+ 0.067965497
+ 0.009593266
+ 0.696681085
+ 0.019394713
+ 0.028087744
+ 0.861544891
+ 0.812158770
+ 0.406531316
+ 0.358855109
+ 0.068261518
+ 0.009539913
+ 0.700522125
+ 0.021170571
+ 0.028290977
+ 0.888623791
+ 0.803733513
+ 0.404681020
+ 0.478811437
+ 0.070303184
+ 0.009714410
+ 0.697721025
+ 0.021810892
+ 0.028558997
+
+written to /Users/douglasyu/src/occJSDM/.worktrees/paper-study-combined/dev/simstudy/paper-study-20261015/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 300 gives a coverage SE of 1.3%; do not read differences smaller than that.
+ALL DONE 2026-10-15 17:28:35 status 0
