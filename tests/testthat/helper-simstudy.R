@@ -32,6 +32,9 @@ SIMSTUDY_BASE <- list(
   fit_traits = TRUE,       # FALSE drops data$traits before fitting
   fit_spatial = NULL,      # NULL = fit a spatial term exactly when one is
                            # simulated; TRUE or FALSE decouples the two
+  b0_mean = NULL,          # NULL = the simulator's own Normal(0, 1) draw of
+                           # B0; a number moves that draw's mean (see
+                           # simstudy_shifted_simulator())
   p_range = c(0.3, 0.6),
   theta_baseline_range = c(0.2, 0.5)
 )
@@ -125,6 +128,32 @@ simstudy_scenarios <- function() {
     mk("field_unfitted", fit_spatial = FALSE, seed_label = "base"),
     mk("nofield_fitted", useSpatField = FALSE, fit_spatial = TRUE,
                          seed_label = "base"),
+
+    # Rare-dominated communities (15 October 2026). The simulator draws true
+    # B0 from Normal(0, 1), the same distribution as the fitter's fixed B0
+    # prior, so in the production cells fewer than 3% of species have true
+    # occupancy under 0.2. The R = 300 paper study nevertheless found
+    # occupancy compressed towards the middle in the two-stage cells, rare
+    # species estimated too common and common ones too rare. Real eDNA
+    # communities are mostly rare species, where that pull biases most
+    # species the same way instead of cancelling.
+    #
+    # These arms move the mean of the B0 draw to -2.75. That gives a median
+    # true occupancy (the share of sites occupied) of about 0.18 and puts
+    # about 57% of species under 0.2: well below plogis(-2.75) = 0.06, the
+    # occupancy at the intercept, because the covariates, latent factors and
+    # field spread eta and lift a rare species' average. Measured over
+    # replicates 1 to 100 without fitting.
+    #
+    # Each arm takes its parent's seeds, so its B0 is the parent's minus 2.75,
+    # element for element, and everything else in the truth is identical; see
+    # simstudy_shifted_simulator(). NOT production cells: name them with
+    # --scenarios.
+    mk("base_rare",      b0_mean = -2.75, seed_label = "base"),
+    mk("occupancy_rare", model = "occupancy", b0_mean = -2.75,
+                         seed_label = "occupancy"),
+    mk("binary_rare",    model = "binary", b0_mean = -2.75,
+                         seed_label = "binary"),
 
     # Environmental covariate count. Never varied anywhere before: ncov_psi is
     # 2 in all 21 existing cells, so nothing in the study has ever spoken to
@@ -373,7 +402,7 @@ draw_truth <- function(scenario, seed) {
     rep(1L, N * P)
   }
 
-  list(
+  truth <- list(
     model = scenario$model,
     datasettings = list(n = scenario$n, S = S, g = scenario$g,
                         M = M_vec, P = P, K = K_vec,
@@ -403,13 +432,71 @@ draw_truth <- function(scenario, seed) {
                                     scenario$theta_baseline_range[2])
     )
   )
+  # Carried only when set, and with no draw, so a cell without it returns the
+  # same truth object as before and every cell consumes the same RNG.
+  if (!is.null(scenario$b0_mean)) truth$b0_mean <- scenario$b0_mean
+  truth
 }
 
 # --- Simulate and fit ----------------------------------------------------
 
 simstudy_simulate <- function(truth) {
-  simulateOccJSDMData(truth$datasettings, truth$params, truth$jsdmParams,
-                      model = truth$model)
+  simulate <- if (is.null(truth$b0_mean)) simulateOccJSDMData else
+    simstudy_shifted_simulator(truth$b0_mean)
+  simulate(truth$datasettings, truth$params, truth$jsdmParams,
+           model = truth$model)
+}
+
+#' simulateOccJSDMData() with the mean of the true B0 draw moved to `b0_mean`.
+#'
+#' The simulator draws every species' B0 from Normal(0, 1) inside its internal
+#' simulateData(), with no argument to move it, and B0 is not one of
+#' draw_truth()'s draws. Rather than change package code, this returns a copy
+#' of simulateOccJSDMData() that calls a copy of simulateData() whose B0 line
+#' is `B0 <- rnorm(S, sd = 1) + b0_mean`. Nothing in the namespace is modified,
+#' so other callers, and other cells on the same worker, are unaffected.
+#'
+#' Pairing with the unshifted parent at the same seed: B0 consumes the same S
+#' normals, so B0 is the parent's plus `b0_mean`, element for element, and
+#' every other draw up to the occupancy states (covariates, traits, B, G, A,
+#' C, U, L, coordinates and the spatial field) is identical. z, w and the PCR
+#' detections each take one uniform per element for any probability strictly
+#' between 0 and 1, so the collection covariates and beta_theta are identical
+#' too. Only the number of read-count normals depends on the detections, and
+#' the simulator draws nothing after those. The occupancy states, and so the
+#' data, differ, as they must: that is the point of the shift.
+#'
+#' Errors unless the B0 line is found exactly once, so a change to the
+#' simulator cannot silently leave a "shifted" arm unshifted.
+simstudy_shifted_simulator <- function(b0_mean) {
+  stopifnot(is.numeric(b0_mean), length(b0_mean) == 1L, is.finite(b0_mean))
+  ns <- asNamespace("occJSDM")
+  target <- quote(B0 <- rnorm(S, sd = 1))
+  replacement <- bquote(B0 <- rnorm(S, sd = 1) + .(b0_mean))
+  hits <- 0L
+  swap <- function(e) {
+    if (identical(e, target)) {
+      hits <<- hits + 1L
+      return(replacement)
+    }
+    # Only calls can contain the target. Testing e[[i]] in place, rather than
+    # binding it, keeps empty arguments such as the one in x[, 1] harmless.
+    for (i in seq_along(e)) if (is.call(e[[i]])) e[[i]] <- swap(e[[i]])
+    e
+  }
+  inner <- utils::removeSource(get("simulateData", envir = ns))
+  body(inner) <- swap(body(inner))
+  if (hits != 1L) {
+    stop("simstudy_shifted_simulator(): expected the line `B0 <- rnorm(S, ",
+         "sd = 1)` once in occJSDM's simulateData(), found it ", hits,
+         " times. Has the simulator changed?")
+  }
+  environment(inner) <- ns
+  env <- new.env(parent = ns)
+  assign("simulateData", inner, envir = env)
+  outer <- get("simulateOccJSDMData", envir = ns)
+  environment(outer) <- env
+  outer
 }
 
 #' Fit one simulated dataset.
