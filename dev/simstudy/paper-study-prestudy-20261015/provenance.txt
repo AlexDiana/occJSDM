@@ -1,0 +1,13 @@
+launched: 2026-10-15 08:13:41
+worktree: /Users/douglasyu/src/occJSDM/.worktrees/paper-study-combined
+revision: ca42d3bf09c6b789ccab65fe6b186504755d0cb2
+branch: claude/paper-study-combined
+dirty files: 0
+merged PR heads: 7a47d1b (PR 31, claude/parallel-chains) and 375b387 (PR 32, claude/symmetric-gram) onto main d156492
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+cells: base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated
+settings: R = 7 per cell, cores = 5, threads = 1, nburn = 1000, niter = 1000, nchain = 2, cap = 1800 s
+exit status: 0 at 2026-10-15 08:24:06 (124 means the 30-minute cap fired)

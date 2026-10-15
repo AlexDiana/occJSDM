@@ -1,0 +1,6 @@
+*.pid
+launch.log
+run.log
+provenance.txt
+results/
+aborted-*/
