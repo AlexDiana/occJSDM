@@ -43,7 +43,9 @@ Imports:
     ggrepel,
     FastGP,
     RcppParallel,
-    utils
+    utils,
+    parallel,
+    tools
 LinkingTo: 
     Rcpp,
     RcppArmadillo,
@@ -55,6 +57,7 @@ Suggests:
     gt,
     knitr,
     patchwork,
+    pkgload,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr

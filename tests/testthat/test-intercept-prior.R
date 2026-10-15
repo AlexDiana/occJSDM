@@ -248,10 +248,9 @@ test_that("the MCMC coefficient update forwards sigma_b0 to every intercept site
       original_range(...)
     }
     environment(update) <- update_env
+    # Mocked in the namespace, where run_one_chain() looks it up.
+    local_mocked_bindings(update_jSDMcoef = update, .package = "occJSDM")
     fitter <- runOccJSDM
-    fit_env <- new.env(parent = environment(fitter))
-    fit_env$update_jSDMcoef <- update
-    environment(fitter) <- fit_env
     sim <- simulate_fixture(model = "binary")
     suppressMessages(suppressWarnings(fitter(sim$data_list,
       occCovariates = fixture_occ_covariates(),
@@ -284,13 +283,12 @@ test_that("the coefficient update fails clearly without a stored intercept prior
   # A hand-built list_priors that lacks intercept_prior must not fall back to a
   # silent default or reach the samplers with a NULL prior SD.
   original_update <- update_jSDMcoef
-  fitter <- runOccJSDM
-  fit_env <- new.env(parent = environment(fitter))
-  fit_env$update_jSDMcoef <- function(list_data, list_params, list_priors, ...) {
+  # Mocked in the namespace, where run_one_chain() looks it up.
+  local_mocked_bindings(update_jSDMcoef = function(list_data, list_params, list_priors, ...) {
     list_priors$intercept_prior <- NULL
     original_update(list_data, list_params, list_priors, ...)
-  }
-  environment(fitter) <- fit_env
+  }, .package = "occJSDM")
+  fitter <- runOccJSDM
   sim <- simulate_fixture(model = "binary")
   expect_error(suppressMessages(suppressWarnings(fitter(sim$data_list,
     occCovariates = fixture_occ_covariates(),
