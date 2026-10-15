@@ -1,0 +1,1 @@
+R 4.6.1 installed by the CRAN installer package org.R-project.R.fw.pkg, whose receipt lists libRblas.0.dylib; the file is regular, not a symlink, links only to libgfortran, libquadmath and libSystem, defines dgemm_ itself, md5 9dfbe56d4ceb13138673fdaf297b4b56; declared by Doug Yu and Claude on 2026-10-13
