@@ -56,12 +56,12 @@ The truths of B, B0, G, `theta0`, `p` and `q` are identical, element for element
 -   **Small effects.** At 100 replicates a contrast of about 2 points is detectable and one of 1 point is not.
 -   **Why an unmodelled field does so little.** One plausible reason, not tested here, is that the model's two latent factors are site-level and can absorb part of a site-level field. The study's `d_underfit` cell, where the truth has 4 factors and the fit 2, loses B coverage by a similar amount.
 -   **An unexplained difference in error.** B's RMSE is about 0.04 higher in the two no-field arms than in the two field arms (per-replicate difference +0.041, SE 0.018, and +0.038, SE 0.018), while fitting a spatial term leaves it unchanged. That is about two standard errors in one of several comparisons, so it may be chance.
--   **The range question.** Whether a range inside the fitted grid changes the picture is being tested separately, on branch `claude/range-inside-grid`.
+-   **The range question.** That was tested separately the same evening, on branch `claude/range-inside-grid`. With the range inside the fitted grid, B did not recover and B0 in `binary` recovered only partly.
 
 ## What this changes
 
 -   **The paper's B caveat stands,** but it should not be put down to the spatial field. B undercovers without any spatial component, and most in that case.
--   **The calibration report's leading explanation is weaker for B.** It proposed that a range beyond the fitted grid leaves spatial variation unmodelled and so attenuates B. Here, leaving the whole field unmodelled made no measurable difference to B, so a partly captured field is unlikely to explain B's shortfall. This says nothing yet about B0 in the `binary` cell, which was not run.
+-   **Two tests now point the same way for B.** The calibration report proposed that a range beyond the fitted grid leaves spatial variation unmodelled and so attenuates B. The range test found B unchanged with the range inside the grid, and here leaving the whole field unmodelled made no measurable difference. By inference, a field captured only in part, whether through the range grid or through the spatial amplitude held at its prior mean, is unlikely to explain B's shortfall either. B0 in `binary` is a separate question that neither test settles.
 -   **The next candidates are non-spatial:** the latent factors competing with the covariates, the hierarchical prior on B with `sigma_b` held near its prior mean, and Monte Carlo error from 2 chains of 1,000 draws. Each can be tested as an arm paired with `no_spatial`: longer chains, no latent factors in the truth and the fit, and traits left out.
 
 ## Files and reproduction
