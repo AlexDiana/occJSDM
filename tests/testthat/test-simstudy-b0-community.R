@@ -18,7 +18,7 @@ test_that("cells without fit_b0_prior hand the fitter the priors they always did
   sc <- sc_cm()
   sim <- simstudy_simulate(draw_truth(sc$base, simstudy_seed_for(sc$base, 1L)))
   # The both-means arms are tested in test-simstudy-theta-community.R and the
-  # M = 3 arms in test-simstudy-rare-m3.R.
+  # M = 3 arms in test-simstudy-rare-m3.R and test-simstudy-ordinary-m3.R.
   for (s in sc) if (!s$label %in% names(cm_counterparts) &&
                     is.null(s$fit_theta_intercept_prior) &&
                     !grepl("_m3$", s$label)) {
