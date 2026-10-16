@@ -236,6 +236,19 @@ simstudy_scenarios <- function() {
                                     fit_theta_intercept_prior = "community",
                                     seed_label = "occupancy"),
 
+    # Their parents at 3 field samples per site (16 October 2026): base and
+    # occupancy (true B0 drawn around 0) under the default prior and B0's
+    # community mean, to test whether the community mean costs ordinary
+    # communities anything at M = 3. The two priors share their datasets, and
+    # with the parents' seed labels B0, eta and the true occupancy states are
+    # also identical to base's and occupancy's at M = 2. NOT production cells:
+    # name them with --scenarios.
+    mk("base_m3",         M = 3L, seed_label = "base"),
+    mk("occupancy_m3",    model = "occupancy", M = 3L, seed_label = "occupancy"),
+    mk("base_cm_m3",      M = 3L, fit_b0_prior = "community", seed_label = "base"),
+    mk("occupancy_cm_m3", model = "occupancy", M = 3L, fit_b0_prior = "community",
+                          seed_label = "occupancy"),
+
     # Environmental covariate count. Never varied anywhere before: ncov_psi is
     # 2 in all 21 existing cells, so nothing in the study has ever spoken to
     # how covariate richness affects recovery.

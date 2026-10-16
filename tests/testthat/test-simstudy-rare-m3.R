@@ -22,7 +22,8 @@ m3_arms <- list(
 
 test_that("each M = 3 arm is its M = 2 counterpart with 3 field samples per site", {
   sc <- sc_m3()
-  expect_setequal(grep("_m3$", names(sc), value = TRUE), names(m3_arms))
+  # The ordinary-community M = 3 arms are tested in test-simstudy-ordinary-m3.R.
+  expect_setequal(grep("_rare.*_m3$", names(sc), value = TRUE), names(m3_arms))
   for (arm in names(m3_arms)) {
     a <- sc[[arm]]; p <- sc[[m3_arms[[arm]][[1]]]]
     expect_identical(a$M, 3L, label = arm)
