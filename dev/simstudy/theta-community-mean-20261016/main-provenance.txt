@@ -1,0 +1,11 @@
+step: main
+launched: 2026-10-16 12:06:35
+revision: 05ea03cb0909f8a7b2cba5ac2b9d30d7330dad66
+branch: claude/theta-community-mean
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+settings: cells base_cm_both,occupancy_cm_both,base_rare_cm_both,occupancy_rare_cm_both,base_rare_cm_both_wide,occupancy_rare_cm_both_wide, R = 100 per cell, nburn = 1000, niter = 1000, nchain = 2, cores = 5, threads = 1
+exit status: 0 at 2026-10-16 13:29:57

@@ -92,6 +92,7 @@ chain_setup_fields <- function() c(
   "list_Xs", "list_SoRSummaries",
   "list_data", "list_priors", "spatial_sd_prior",
   "a_theta0", "b_theta0", "a_p", "b_p", "a_q", "b_q", "b_betatheta", "B_betatheta",
+  "collection_intercept_prior",
   "nburn", "niter", "nthin", "summarisedLatentPresences")
 
 set_chain_setup <- function(setup) {
@@ -444,6 +445,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
   b_q <- setup$b_q
   b_betatheta <- setup$b_betatheta
   B_betatheta <- setup$B_betatheta
+  collection_intercept_prior <- setup$collection_intercept_prior
   nburn <- setup$nburn
   niter <- setup$niter
   nthin <- setup$nthin
@@ -454,6 +456,10 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
   # (lines 1055 to 1366 of R/runOccJSDM.R before this change, edited per the plan)
     # chain output
     {
+      # Only the experimental theta_intercept_prior = "community" estimates mu_theta.
+      community_theta <- identical(collection_intercept_prior$type, "community")
+      mu_theta_output_chain <- if (community_theta) rep(NA, niter) else NULL
+
       if(model %in% c("occupancy","two_stage")){
         beta_theta_output_chain <- array(NA, dim = c(ncov_theta, S, niter))
         theta0_output_chain <- array(NA, dim = c(S, niter))
@@ -558,6 +564,9 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
         beta_theta <- matrix(0, ncov_theta, S)
         theta <- computeTheta(X_theta, beta_theta)
         theta0 <- rep(.05, S)
+        # The collection intercepts' community mean, estimated only by
+        # theta_intercept_prior = "community"; it starts at the fixed prior's 0.
+        mu_theta <- 0
       }
 
       # jsdmParams
@@ -685,10 +694,19 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
 
       # sample theta
       if(model %in% c("occupancy","two_stage")){
+        # The community option centres the collection intercepts' prior on the
+        # mu_theta drawn in the iteration before.
+        if (community_theta) b_betatheta[1] <- mu_theta
         # beta_theta <- sample_betatheta_cpp(w, z, beta_theta, idx_z_w, X_theta,
         #                                    b_betatheta, B_betatheta)
         beta_theta <- sample_betatheta_cpp_parallel(w, z, beta_theta, idx_z_w, X_theta,
                                            b_betatheta, B_betatheta)
+        if (community_theta) {
+          beta_theta <- sample_betatheta_unoccupied(beta_theta, z, idx_z_w,
+                                                    b_betatheta, B_betatheta)
+          mu_theta <- sample_mu_theta(beta_theta[1, ], sqrt(B_betatheta[1, 1]),
+                                      collection_intercept_prior$mu_theta_sd)
+        }
         theta <- computeTheta(X_theta, beta_theta)
       }
 
@@ -712,6 +730,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
           if(model %in% c("occupancy","two_stage")){
             beta_theta_output_chain[,,currentIter] <- beta_theta
             theta0_output_chain[,currentIter] <- theta0
+            if (community_theta) mu_theta_output_chain[currentIter] <- mu_theta
             if(summarisedLatentPresences){
               z_sum <- z_sum + z
               psi_sum <- psi_sum + psi
@@ -800,6 +819,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
     elapsed = proc.time()[["elapsed"]] - started,
     draws = list(
       beta_theta = beta_theta_output_chain, theta0 = theta0_output_chain,
+      mu_theta = mu_theta_output_chain,
       z = z_output_chain, psi = psi_output_chain,
       p = p_output_chain, q = q_output_chain,
       B0 = B0_output_chain, B = B_output_chain, G = G_output_chain, A = A_output_chain,

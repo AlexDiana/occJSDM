@@ -192,7 +192,33 @@ leaves fits unchanged; \code{mu_b0_sd} requires \code{"community"} and must
 be a finite positive number. With few species the community mean is weakly
 determined, and in occupancy and two-stage fits it can trade off against
 the collection intercepts, so check the convergence of \code{mu_b0} and
-\code{B0}. This option is under review and is not a recommended setting.}
+\code{B0}. This option is under review and is not a recommended setting.
+
+\code{theta_intercept_prior = "community"} (experimental, off by default)
+does the same for the collection intercepts, \code{beta_theta[1, ]}, of
+occupancy and two-stage fits. Each has a fixed Normal(0, 1) prior by
+default; with this option it has a Normal(\code{mu_theta}, 1) prior, and
+the community mean \code{mu_theta} has a Normal(0, \code{mu_theta_sd}^2)
+prior with \code{mu_theta_sd} defaulting to \code{2}. \code{mu_theta} is
+drawn from its conjugate conditional distribution each iteration, after the
+collection coefficients, and a species with no occupied site in an
+iteration has its collection coefficients drawn from their prior. Its
+draws are returned in \code{results_output$mu_theta_output}, a
+\code{niter} by \code{nchain} array, and the applied prior is saved in
+\code{infos$collection_intercept_prior}. It can be used alone or with
+\code{b0_prior = "community"}, so that neither the occupancy nor the
+collection side has a fixed prior centre. The default,
+\code{theta_intercept_prior = "fixed"}, leaves fits unchanged;
+\code{mu_theta_sd} requires \code{"community"} and must be a finite
+positive number, and binary and continuous fits, which have no collection
+stage, reject the option. In simulations of rare-dominated communities
+with 2 and 3 field samples per site, the two options together placed the
+community's occupancy close to the truth, but the rarest species were
+still estimated too common and their collection intercepts too low; at 3
+field samples per site \code{b0_prior = "community"} alone did better.
+\code{mu_b0} mixed slowly in both: use chains of at least the default
+length and check the convergence of \code{mu_theta}, \code{mu_b0} and the
+intercepts. This option is under review and is not a recommended setting.}
 }
 \value{
 A list with:

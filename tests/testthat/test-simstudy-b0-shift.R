@@ -19,8 +19,13 @@ rare_parents <- c(base_rare = "base", occupancy_rare = "occupancy",
 test_that("cells without b0_mean simulate exactly as before", {
   sc <- sc_b0()
   # The rare arms' community-mean refits share their b0_mean
-  # (test-simstudy-b0-community.R).
-  shifted <- c(names(rare_parents), paste0(names(rare_parents), "_cm"))
+  # (test-simstudy-b0-community.R, test-simstudy-theta-community.R and
+  # test-simstudy-rare-m3.R).
+  shifted <- c(names(rare_parents), paste0(names(rare_parents), "_cm"),
+               "base_rare_cm_both", "occupancy_rare_cm_both",
+               "base_rare_cm_both_wide", "occupancy_rare_cm_both_wide",
+               paste0(c("base_rare", "occupancy_rare"),
+                      rep(c("_m3", "_cm_m3", "_cm_both_m3"), each = 2)))
   for (s in sc) if (!s$label %in% shifted)
     expect_null(s$b0_mean, label = s$label)
 

@@ -37,6 +37,10 @@ SIMSTUDY_BASE <- list(
                            # simstudy_shifted_simulator())
   fit_b0_prior = NULL,     # NULL = the fitter's default B0 prior; a value is
                            # passed as listPriors$b0_prior (fit only)
+  fit_theta_intercept_prior = NULL,
+                           # NULL = the fitter's default collection-intercept
+                           # prior; a value is passed as
+                           # listPriors$theta_intercept_prior (fit only)
   p_range = c(0.3, 0.6),
   theta_baseline_range = c(0.2, 0.5)
 )
@@ -175,6 +179,62 @@ simstudy_scenarios <- function() {
                             fit_b0_prior = "community", seed_label = "occupancy"),
     mk("binary_rare_cm",    model = "binary", b0_mean = -2.75,
                             fit_b0_prior = "community", seed_label = "binary"),
+
+    # Both community means (16 October 2026). With only B0's centre estimated,
+    # the collection intercepts' fixed Normal(0, 1) prior decided the
+    # occupancy-collection split and the collection intercepts overshot. These
+    # arms also estimate the collection intercepts' centre
+    # (listPriors$theta_intercept_prior = "community"), so neither side has a
+    # fixed centre. The _wide arms widen both hyperpriors from sd 2 to sd 5:
+    # if the data identify the split, little should move. Each takes its
+    # counterpart's seed label and b0_mean, so its datasets are bit-identical
+    # to the default and B0-only arms'. Binary cells have no collection stage.
+    # NOT production cells: name them with --scenarios.
+    mk("base_cm_both",           fit_b0_prior = "community",
+                                 fit_theta_intercept_prior = "community",
+                                 seed_label = "base"),
+    mk("occupancy_cm_both",      model = "occupancy", fit_b0_prior = "community",
+                                 fit_theta_intercept_prior = "community",
+                                 seed_label = "occupancy"),
+    mk("base_rare_cm_both",      b0_mean = -2.75, fit_b0_prior = "community",
+                                 fit_theta_intercept_prior = "community",
+                                 seed_label = "base"),
+    mk("occupancy_rare_cm_both", model = "occupancy", b0_mean = -2.75,
+                                 fit_b0_prior = "community",
+                                 fit_theta_intercept_prior = "community",
+                                 seed_label = "occupancy"),
+    mk("base_rare_cm_both_wide", b0_mean = -2.75, fit_b0_prior = "community",
+                                 fit_theta_intercept_prior = "community",
+                                 listPriors = list(mu_b0_sd = 5, mu_theta_sd = 5),
+                                 seed_label = "base"),
+    mk("occupancy_rare_cm_both_wide", model = "occupancy", b0_mean = -2.75,
+                                 fit_b0_prior = "community",
+                                 fit_theta_intercept_prior = "community",
+                                 listPriors = list(mu_b0_sd = 5, mu_theta_sd = 5),
+                                 seed_label = "occupancy"),
+
+    # The rare arms at 3 field samples per site (16 October 2026), a more
+    # realistic design than the base's 2, under the default prior, B0's
+    # community mean alone and both community means. The three priors share
+    # their datasets. With the same seed labels as the M = 2 arms, the truth
+    # drawn before simulation (p, q, theta0, the collection rates) and the
+    # simulator's B0, eta and true occupancy states are also identical to the
+    # M = 2 arms'; the field samples and the collection slopes are not.
+    # NOT production cells: name them with --scenarios.
+    mk("base_rare_m3",              M = 3L, b0_mean = -2.75, seed_label = "base"),
+    mk("occupancy_rare_m3",         model = "occupancy", M = 3L, b0_mean = -2.75,
+                                    seed_label = "occupancy"),
+    mk("base_rare_cm_m3",           M = 3L, b0_mean = -2.75, fit_b0_prior = "community",
+                                    seed_label = "base"),
+    mk("occupancy_rare_cm_m3",      model = "occupancy", M = 3L, b0_mean = -2.75,
+                                    fit_b0_prior = "community", seed_label = "occupancy"),
+    mk("base_rare_cm_both_m3",      M = 3L, b0_mean = -2.75, fit_b0_prior = "community",
+                                    fit_theta_intercept_prior = "community",
+                                    seed_label = "base"),
+    mk("occupancy_rare_cm_both_m3", model = "occupancy", M = 3L, b0_mean = -2.75,
+                                    fit_b0_prior = "community",
+                                    fit_theta_intercept_prior = "community",
+                                    seed_label = "occupancy"),
 
     # Environmental covariate count. Never varied anywhere before: ncov_psi is
     # 2 in all 21 existing cells, so nothing in the study has ever spoken to
@@ -581,6 +641,8 @@ simstudy_fit_args <- function(sim, scenario) {
 
   listPriors <- scenario$listPriors %||% list()
   if (!is.null(scenario$fit_b0_prior)) listPriors$b0_prior <- scenario$fit_b0_prior
+  if (!is.null(scenario$fit_theta_intercept_prior))
+    listPriors$theta_intercept_prior <- scenario$fit_theta_intercept_prior
 
   list(data           = dat,
        listParams     = listParams,
@@ -741,6 +803,12 @@ simstudy_param_blocks <- function(fit, sim, truth) {
     tau        = list(post = jo$tau_output,        truth = jp$tau),
     beta_theta = list(post = ro$beta_theta_output,
                       truth = beta_theta),
+    # Only fits with listPriors$theta_intercept_prior = "community" estimate
+    # mu_theta. The simulator draws collection rates, not intercepts around a
+    # mean, so its truth is the realised mean of the species' true collection
+    # intercepts, on the fit's centred scale.
+    mu_theta   = list(post = ro$mu_theta_output,
+                      truth = if (is.null(beta_theta)) NULL else mean(beta_theta[1L, ])),
     theta0     = list(post = ro$theta0_output,     truth = truth$params$theta0),
     p          = list(post = ro$p_output,          truth = p_true),
     q          = list(post = ro$q_output,          truth = q_true)

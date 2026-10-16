@@ -1,0 +1,167 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 6 scenario(s), R = 100, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  [  3%] 20/600 replicates | 3 min elapsed | ~76 min left | cpu/wall 4.7x
+  [  7%] 40/600 replicates | 5 min elapsed | ~72 min left | cpu/wall 4.8x
+  [ 10%] 60/600 replicates | 8 min elapsed | ~67 min left | cpu/wall 4.8x
+  [ 13%] 80/600 replicates | 10 min elapsed | ~63 min left | cpu/wall 4.8x
+  [ 17%] 100/600 replicates | 12 min elapsed | ~62 min left | cpu/wall 4.8x
+  [ 20%] 120/600 replicates | 15 min elapsed | ~59 min left | cpu/wall 4.8x
+  [ 23%] 140/600 replicates | 17 min elapsed | ~56 min left | cpu/wall 4.8x
+  [ 27%] 160/600 replicates | 20 min elapsed | ~54 min left | cpu/wall 4.8x
+  [ 30%] 180/600 replicates | 22 min elapsed | ~51 min left | cpu/wall 4.8x
+  [ 33%] 200/600 replicates | 25 min elapsed | ~48 min left | cpu/wall 4.8x
+  [ 37%] 220/600 replicates | 27 min elapsed | ~46 min left | cpu/wall 4.8x
+  [ 40%] 240/600 replicates | 29 min elapsed | ~43 min left | cpu/wall 4.8x
+  [ 43%] 260/600 replicates | 32 min elapsed | ~40 min left | cpu/wall 4.8x
+  [ 47%] 280/600 replicates | 34 min elapsed | ~38 min left | cpu/wall 4.8x
+  [ 50%] 300/600 replicates | 36 min elapsed | ~36 min left | cpu/wall 4.8x
+  [ 53%] 320/600 replicates | 39 min elapsed | ~33 min left | cpu/wall 4.8x
+  [ 57%] 340/600 replicates | 41 min elapsed | ~31 min left | cpu/wall 4.8x
+  [ 60%] 360/600 replicates | 44 min elapsed | ~29 min left | cpu/wall 4.8x
+  [ 63%] 380/600 replicates | 46 min elapsed | ~27 min left | cpu/wall 4.8x
+  [ 67%] 400/600 replicates | 52 min elapsed | ~31 min left | cpu/wall 4.5x
+  [ 70%] 420/600 replicates | 60 min elapsed | ~39 min left | cpu/wall 4.1x
+  [ 73%] 440/600 replicates | 63 min elapsed | ~34 min left | cpu/wall 4.1x
+  [ 77%] 460/600 replicates | 65 min elapsed | ~30 min left | cpu/wall 4.1x
+  [ 80%] 480/600 replicates | 67 min elapsed | ~25 min left | cpu/wall 4.2x
+  [ 83%] 500/600 replicates | 70 min elapsed | ~18 min left | cpu/wall 4.2x
+  [ 87%] 520/600 replicates | 73 min elapsed | ~10 min left | cpu/wall 4.2x
+  [ 90%] 540/600 replicates | 75 min elapsed | ~8 min left | cpu/wall 4.2x
+  [ 93%] 560/600 replicates | 78 min elapsed | ~5 min left | cpu/wall 4.3x
+  [ 97%] 580/600 replicates | 80 min elapsed | ~3 min left | cpu/wall 4.3x
+  [100%] 600/600 replicates | 83 min elapsed | ~0 min left | cpu/wall 4.3x
+
+done in 83.3 min; 0 replicate(s) failed
+                    scenario      block n_element   R n_checked  coverage
+                base_cm_both          B        20 100      2000 0.9490000
+                base_cm_both         B0        10 100      1000 0.9370000
+                base_cm_both beta_theta        20 100      2000 0.9475000
+                base_cm_both          G         4 100       400 0.9725000
+                base_cm_both      mu_b0         1 100       100 0.9500000
+                base_cm_both   mu_theta         1 100       100 0.9900000
+                base_cm_both          p        20 100      2000 0.8925000
+                base_cm_both          q        20 100      2000 0.9410000
+                base_cm_both  resid_cor        45 100      3762 0.7631579
+                base_cm_both    sigma_b         1 100       100 1.0000000
+                base_cm_both     theta0        10 100      1000 0.9830000
+           base_rare_cm_both          B        20 100      2000 0.9500000
+           base_rare_cm_both         B0        10 100      1000 0.9360000
+           base_rare_cm_both beta_theta        20 100      2000 0.9550000
+           base_rare_cm_both          G         4 100       400 0.9625000
+           base_rare_cm_both      mu_b0         1 100       100 0.9100000
+           base_rare_cm_both   mu_theta         1 100       100 0.8900000
+           base_rare_cm_both          p        20 100      2000 0.8490000
+           base_rare_cm_both          q        20 100      2000 0.9390000
+           base_rare_cm_both  resid_cor        45 100      3762 0.7631579
+           base_rare_cm_both    sigma_b         1 100       100 1.0000000
+           base_rare_cm_both     theta0        10 100      1000 0.9430000
+      base_rare_cm_both_wide          B        20 100      2000 0.9545000
+      base_rare_cm_both_wide         B0        10 100      1000 0.9400000
+      base_rare_cm_both_wide beta_theta        20 100      2000 0.9690000
+      base_rare_cm_both_wide          G         4 100       400 0.9500000
+      base_rare_cm_both_wide      mu_b0         1 100       100 0.9300000
+      base_rare_cm_both_wide   mu_theta         1 100       100 0.9300000
+      base_rare_cm_both_wide          p        20 100      2000 0.8455000
+      base_rare_cm_both_wide          q        20 100      2000 0.9350000
+      base_rare_cm_both_wide  resid_cor        45 100      3762 0.7631579
+      base_rare_cm_both_wide    sigma_b         1 100       100 1.0000000
+      base_rare_cm_both_wide     theta0        10 100      1000 0.9370000
+           occupancy_cm_both          B        20 100      2000 0.9295000
+           occupancy_cm_both         B0        10 100      1000 0.9340000
+           occupancy_cm_both beta_theta        20 100      2000 0.9500000
+           occupancy_cm_both          G         4 100       400 0.9600000
+           occupancy_cm_both      mu_b0         1 100       100 0.9200000
+           occupancy_cm_both   mu_theta         1 100       100 1.0000000
+           occupancy_cm_both  resid_cor        45 100      3783 0.7613006
+           occupancy_cm_both    sigma_b         1 100       100 1.0000000
+           occupancy_cm_both     theta0        10 100      1000 0.9850000
+      occupancy_rare_cm_both          B        20 100      2000 0.9350000
+      occupancy_rare_cm_both         B0        10 100      1000 0.9190000
+      occupancy_rare_cm_both beta_theta        20 100      2000 0.9580000
+      occupancy_rare_cm_both          G         4 100       400 0.9700000
+      occupancy_rare_cm_both      mu_b0         1 100       100 0.8400000
+      occupancy_rare_cm_both   mu_theta         1 100       100 0.9500000
+      occupancy_rare_cm_both  resid_cor        45 100      3783 0.7613006
+      occupancy_rare_cm_both    sigma_b         1 100       100 1.0000000
+      occupancy_rare_cm_both     theta0        10 100      1000 0.9700000
+ occupancy_rare_cm_both_wide          B        20 100      2000 0.9405000
+ occupancy_rare_cm_both_wide         B0        10 100      1000 0.9340000
+ occupancy_rare_cm_both_wide beta_theta        20 100      2000 0.9660000
+ occupancy_rare_cm_both_wide          G         4 100       400 0.9575000
+ occupancy_rare_cm_both_wide      mu_b0         1 100       100 0.8500000
+ occupancy_rare_cm_both_wide   mu_theta         1 100       100 0.9800000
+ occupancy_rare_cm_both_wide  resid_cor        45 100      3783 0.7613006
+ occupancy_rare_cm_both_wide    sigma_b         1 100       100 1.0000000
+ occupancy_rare_cm_both_wide     theta0        10 100      1000 0.9670000
+          bias        rmse
+ -8.883887e-03 0.849598660
+  7.225355e-02 0.910603186
+ -9.636802e-02 0.443663360
+ -3.226545e-02 0.451280000
+  1.036007e-01 0.575864912
+ -1.700675e-01 0.272061988
+  4.287374e-02 0.072148121
+  3.543512e-03 0.009824950
+  7.438374e-03 0.695671739
+ -2.127007e-02 0.021561153
+ -3.961559e-03 0.030859289
+  1.598430e-02 0.989223383
+  3.996305e-01 1.107619789
+ -2.532273e-01 0.770070236
+ -4.474292e-02 0.514118398
+  4.889561e-01 0.795108565
+ -4.908417e-01 0.702676423
+  8.252375e-02 0.117478341
+  3.697860e-03 0.008930541
+  8.274578e-03 0.701180833
+ -2.155626e-02 0.021771490
+ -7.161450e-03 0.027443756
+  1.150931e-02 0.991385371
+ -3.445021e-02 1.213790540
+ -1.856259e-01 0.735738041
+ -4.030813e-02 0.520508512
+  9.315156e-03 0.960188937
+ -3.855539e-01 0.660931552
+  8.361797e-02 0.118929473
+  3.768415e-03 0.008980754
+  6.734509e-03 0.699373527
+ -2.162477e-02 0.021843435
+ -5.202836e-03 0.027112125
+  1.363604e-02 0.845733860
+  1.246858e-01 0.900879464
+ -3.845171e-02 0.360030354
+ -2.869340e-02 0.447102492
+  1.754671e-01 0.574715742
+ -6.203964e-02 0.164416555
+ -3.501578e-03 0.696602087
+ -2.086320e-02 0.021327579
+ -1.295314e-03 0.027858309
+  1.212273e-02 0.940709313
+  4.660832e-01 1.104584821
+ -1.234807e-01 0.614598328
+ -2.636137e-02 0.473771139
+  5.752381e-01 0.864573614
+ -2.206973e-01 0.382690567
+ -3.181520e-03 0.701435210
+ -2.172615e-02 0.021965276
+ -1.223515e-03 0.022065630
+  3.276939e-03 0.941292079
+  2.884636e-01 1.059714668
+ -1.011735e-01 0.611270253
+ -2.545255e-02 0.475508422
+  3.524761e-01 0.797910266
+ -2.010150e-01 0.382876209
+ -2.646699e-03 0.701801999
+ -2.196752e-02 0.022176549
+ -3.394366e-05 0.022036580
+
+written to /Users/douglasyu/src/occJSDM/.claude/worktrees/pensive-chaum-ade47b/dev/simstudy/theta-community-mean-20261016/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 100 gives a coverage SE of 2.2%; do not read differences smaller than that.
+ALL DONE 2026-10-16 13:29:57 status 0
