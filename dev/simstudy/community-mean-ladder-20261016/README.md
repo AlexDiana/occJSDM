@@ -70,6 +70,14 @@ An estimate, not a measurement: M = 3 fits took about 40 s and the ladder's 500 
 nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh -c 'sh launch.sh draws && sh launch.sh main && { /usr/local/bin/Rscript mu_b0_check.R . || sh launch.sh long; }' > launch.log 2>&1 < /dev/null &
 ```
 
+The draws step ran from 22:53 to 23:10 on 16 October and the main step started at 23:10, both on 5 workers. Because the run would go overnight, Doug asked at about 23:30 for 6 workers. The main step was stopped just after a checkpoint and resumed from it on 6 workers, with the long step to follow on 6:
+
+```sh
+nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh -c 'RESUME=1 CORES=6 sh launch.sh main && { /usr/local/bin/Rscript mu_b0_check.R . || CORES=6 sh launch.sh long; }' >> launch.log 2>&1 < /dev/null &
+```
+
+The runner seeds each fit from its scenario and replicate alone, so neither the resume nor the worker count changes any fit; the refits, made on 5 workers, must still reproduce the stored rows exactly, which checks this.
+
 Logs, provenance, results and draws are ignored while the runs are in flight, so each step records a clean tree. Then, from the repository root:
 
 ```sh

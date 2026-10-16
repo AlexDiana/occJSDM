@@ -5,17 +5,21 @@
 #   main:  the nine arms at R = 100 through the study runner.
 #   long:  replicates 1 to 5 of the arms in draws/long-arms.txt (written by
 #          mu_b0_check.R) at 5,000 + 5,000, keeping draws.
-# 5 worker processes and one thread per fit in every step; the steps run one
-# at a time, so the laptop never has more than 5 fitting workers. Launched
-# detached from a non-interactive shell. Every output goes to a path that
-# .gitignore lists, so each step records a clean tree. Exits with the R
-# process's status.
+# CORES worker processes (default 5) and one thread per fit in every step; the
+# steps run one at a time, so the laptop never has more than CORES fitting
+# workers. RESUME=1 continues the main step from the runner's checkpoint
+# (--resume); fits are seeded by scenario and replicate, so neither resuming
+# nor the worker count changes them. Launched detached from a non-interactive
+# shell. Every output goes to a path that .gitignore lists, so each step
+# records a clean tree; logs and provenance are appended to, so a resumed step
+# keeps its first launch's record. Exits with the R process's status.
 set -u
 STEP=$1
 WT=/Users/douglasyu/src/occJSDM/.claude/worktrees/elastic-cohen-deb516
 RUN=$WT/dev/simstudy/community-mean-ladder-20261016
 REFIT=$WT/dev/simstudy/theta-community-mean-20261016/refit.R
 RSCRIPT=/usr/local/bin/Rscript
+CORES=${CORES:-5}
 CM=M5_cm,M10_cm,M20_cm,base_rare_cm_m5,base_rare_cm_m10,base_rare_cm_m20
 ALL=$CM,base_rare_m5,base_rare_m10,base_rare_m20
 cd "$RUN"
@@ -28,7 +32,9 @@ case "$STEP" in
     OUT=$RUN/draws/long; SETTINGS="replicates 1 to 5 of $LONG, nburn = 5000, niter = 5000, nchain = 2" ;;
   *) echo "unknown step: $STEP" >&2; exit 2 ;;
 esac
-if [ -e "$OUT" ]; then echo "refusing: $OUT exists" >&2; exit 1; fi
+if [ -e "$OUT" ] && ! { [ "$STEP" = main ] && [ -n "${RESUME:-}" ]; }; then
+  echo "refusing: $OUT exists (only the main step can be resumed, with RESUME=1)" >&2; exit 1
+fi
 # Study runners, refit and long-chain scripts, and PSOCK workers of any of
 # them. A minute's grace lets the previous step's workers exit.
 PATTERN='dev/simstudy/run_study[.]R|/refit[^/ ]*[.]R |/long[.]R |workRSOCK'
@@ -50,7 +56,7 @@ if [ -n "$code_dirty" ]; then
 fi
 {
   echo "step: $STEP"
-  echo "launched: $(date '+%F %T')"
+  echo "launched: $(date '+%F %T')${RESUME:+ (resumed)}"
   echo "revision: $(git -C "$WT" rev-parse HEAD)"
   echo "branch: $(git -C "$WT" rev-parse --abbrev-ref HEAD)"
   echo "dirty files: $(git -C "$WT" status --porcelain | wc -l | tr -d ' ')"
@@ -58,19 +64,19 @@ fi
   echo "BLAS: $("$RSCRIPT" -e 'cat(sessionInfo()$BLAS)')"
   echo "lowpowermode: $(pmset -g | awk '/lowpowermode/ {print $2}')"
   echo "power: $(pmset -g batt | head -1)"
-  echo "settings: $SETTINGS, cores = 5, threads = 1"
-} > "$STEP-provenance.txt"
+  echo "settings: $SETTINGS, cores = $CORES, threads = 1"
+} >> "$STEP-provenance.txt"
 echo $$ > "$STEP-launcher.pid"
 case "$STEP" in
   draws)
-    "$RSCRIPT" "$REFIT" "$WT" "$OUT" 5 "$CM" 1-10 1000 1000 > draws.log 2>&1 &
+    "$RSCRIPT" "$REFIT" "$WT" "$OUT" "$CORES" "$CM" 1-10 1000 1000 >> draws.log 2>&1 &
     ;;
   main)
-    "$RSCRIPT" "$WT/dev/simstudy/run_study.R" --pkg="$WT" --cores=5 --R=100 \
-      --scenarios="$ALL" --out="$OUT" --caffeinate > main.log 2>&1 &
+    "$RSCRIPT" "$WT/dev/simstudy/run_study.R" --pkg="$WT" --cores="$CORES" --R=100 \
+      --scenarios="$ALL" --out="$OUT" --caffeinate ${RESUME:+--resume} >> main.log 2>&1 &
     ;;
   long)
-    "$RSCRIPT" "$REFIT" "$WT" "$OUT" 5 "$LONG" 1-5 5000 5000 > long.log 2>&1 &
+    "$RSCRIPT" "$REFIT" "$WT" "$OUT" "$CORES" "$LONG" 1-5 5000 5000 >> long.log 2>&1 &
     ;;
 esac
 RPID=$!
