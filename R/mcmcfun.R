@@ -7,6 +7,30 @@ computeTheta <- function(X_theta, beta_theta){
   logistic(X_theta %*% beta_theta)
 }
 
+# Conjugate draw of the community mean of the collection intercepts, for the
+# experimental theta_intercept_prior = "community": beta_theta[1, s] ~
+# Normal(mu_theta, sd^2) for every species and mu_theta ~ Normal(0,
+# mu_theta_sd^2).
+sample_mu_theta <- function(beta_theta0, sd, mu_theta_sd) {
+  precision <- 1/mu_theta_sd^2 + length(beta_theta0)/sd^2
+  rnorm(1, sum(beta_theta0)/sd^2/precision, sqrt(1/precision))
+}
+
+# sample_betatheta_cpp_parallel() leaves a species' collection coefficients
+# unchanged when it is absent from every site, although with no collection
+# data their conditional is their prior. Under theta_intercept_prior =
+# "community" a stale intercept would feed mu_theta's draw, so this draws
+# such species from the prior the sampler used. B_betatheta is diagonal, as
+# runOccJSDM() builds it. Default fits do not call this.
+sample_betatheta_unoccupied <- function(beta_theta, z, idx_z, b_betatheta,
+                                        B_betatheta) {
+  unoccupied <- which(colSums(z[idx_z, , drop = FALSE] == 1) == 0)
+  for (s in unoccupied) {
+    beta_theta[, s] <- rnorm(nrow(beta_theta), b_betatheta, sqrt(diag(B_betatheta)))
+  }
+  beta_theta
+}
+
 # OK
 sample_theta0 <- function(z, w, idx_z, a_theta0, b_theta0){
 

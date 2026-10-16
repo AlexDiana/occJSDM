@@ -19,7 +19,9 @@ Convenience wrapper around [summarisePosterior()] that assembles one
 tidy table across the main occupancy/detection coefficients of a fitted
 [runOccJSDM()] model: `beta0_psi`, `beta_psi`, `beta_theta`, `p`, `q`, and
 `theta0`, and `mu_b0`, the community mean of `beta0_psi`, when the fit
-estimated it (`listPriors$b0_prior = "community"`). Components not present
+estimated it (`listPriors$b0_prior = "community"`), and `mu_theta`, the
+community mean of the collection intercepts, when the fit estimated it
+(`listPriors$theta_intercept_prior = "community"`). Components not present
 in `fitmodel$results_output` (e.g. `beta_theta`/`p`/`q` for a JSDM-only
 fit) are silently skipped.
 }

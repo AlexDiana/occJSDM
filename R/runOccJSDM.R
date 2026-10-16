@@ -431,6 +431,28 @@ create_waic_quantities <- function(n_obs){
 #' the collection intercepts, so check the convergence of \code{mu_b0} and
 #' \code{B0}. This option is under review and is not a recommended setting.
 #'
+#' \code{theta_intercept_prior = "community"} (experimental, off by default)
+#' does the same for the collection intercepts, \code{beta_theta[1, ]}, of
+#' occupancy and two-stage fits. Each has a fixed Normal(0, 1) prior by
+#' default; with this option it has a Normal(\code{mu_theta}, 1) prior, and
+#' the community mean \code{mu_theta} has a Normal(0, \code{mu_theta_sd}^2)
+#' prior with \code{mu_theta_sd} defaulting to \code{2}. \code{mu_theta} is
+#' drawn from its conjugate conditional distribution each iteration, after the
+#' collection coefficients, and a species with no occupied site in an
+#' iteration has its collection coefficients drawn from their prior. Its
+#' draws are returned in \code{results_output$mu_theta_output}, a
+#' \code{niter} by \code{nchain} array, and the applied prior is saved in
+#' \code{infos$collection_intercept_prior}. It can be used alone or with
+#' \code{b0_prior = "community"}, so that neither the occupancy nor the
+#' collection side has a fixed prior centre. The default,
+#' \code{theta_intercept_prior = "fixed"}, leaves fits unchanged;
+#' \code{mu_theta_sd} requires \code{"community"} and must be a finite
+#' positive number, and binary and continuous fits, which have no collection
+#' stage, reject the option. How well the data separate the two community
+#' means depends on how many field samples each site has, so check the
+#' convergence of \code{mu_theta}, \code{mu_b0} and the intercepts. This
+#' option is under review and is not a recommended setting.
+#'
 #' @section Field-contamination uncertainty:
 #' \code{theta0} is the probability that DNA enters a field sample when
 #' the species is absent from the site. Its default is Beta(1,20), set by
@@ -968,6 +990,8 @@ runOccJSDM <- function(data,
       b_betatheta[1] <- prior_beta_theta
       B_betatheta[1,1] <- prior_beta_theta_sd^2
     }
+    # NULL unless the experimental theta_intercept_prior = "community" is set.
+    collection_intercept_prior <- read_collection_intercept_prior(listPriors, model)
 
   }
 
@@ -1087,6 +1111,8 @@ runOccJSDM <- function(data,
       varPart_output <- array(NA, dim = c(S, 4, niter, nchain))
       mu_b0_output <- if (identical(intercept_prior$type, "community"))
         array(NA, dim = c(niter, nchain)) else NULL
+      mu_theta_output <- if (identical(collection_intercept_prior$type, "community"))
+        array(NA, dim = c(niter, nchain)) else NULL
     }
 
   }
@@ -1141,6 +1167,7 @@ runOccJSDM <- function(data,
       if(model %in% c("occupancy","two_stage")){
         beta_theta_output[,,,chain] <- dr$beta_theta
         theta0_output[,,chain] <- dr$theta0
+        if (!is.null(mu_theta_output)) mu_theta_output[,chain] <- dr$mu_theta
         if(!summarisedLatentPresences){
           z_output[,,,chain] <- dr$z
           psi_output[,,,chain] <- dr$psi
@@ -1278,6 +1305,8 @@ runOccJSDM <- function(data,
     "theta0_output" = theta0_output,
     "WAIC" = WAIC
   )
+  # Present only when theta_intercept_prior = "community", as for mu_b0_output.
+  results_output$mu_theta_output <- mu_theta_output
 
   if(summarisedLatentPresences){
     results_output$z_output <- z_output_mean
@@ -1322,6 +1351,7 @@ runOccJSDM <- function(data,
   infos$noise_prior <- noise_prior
   infos$spatial_sd_prior <- spatial_sd_prior
   infos$intercept_prior <- intercept_prior
+  infos$collection_intercept_prior <- collection_intercept_prior
   infos$MCMCparams <- list(nchain = as.integer(nchain), nburn = as.integer(nburn),
                            niter = as.integer(niter), nthin = as.integer(nthin))
   infos$chain_seeds <- seeds
@@ -1370,6 +1400,31 @@ read_intercept_prior <- function(priors) {
     stop("mu_b0_sd must be a finite positive number")
   list(type = "community", sd = unname(sd), mu_b0_mean = 0,
        mu_b0_sd = unname(mu_b0_sd))
+}
+
+# The collection intercepts' prior is Normal(0, 1) (prior_beta_theta and
+# prior_beta_theta_sd in runOccJSDM()). The experimental theta_intercept_prior
+# = "community" makes it Normal(mu_theta, 1) with mu_theta ~ Normal(0,
+# mu_theta_sd^2) estimated. The default returns NULL, so default fits record
+# nothing new.
+read_collection_intercept_prior <- function(priors, model) {
+  type <- get_param(priors, "theta_intercept_prior", "fixed")
+  if (!is.character(type) || length(type) != 1L || is.na(type) ||
+      !type %in% c("fixed", "community"))
+    stop("theta_intercept_prior must be 'fixed' or 'community'")
+  if (type == "fixed") {
+    if ("mu_theta_sd" %in% names(priors))
+      stop("mu_theta_sd requires theta_intercept_prior = 'community'")
+    return(NULL)
+  }
+  if (!model %in% c("occupancy", "two_stage"))
+    stop("theta_intercept_prior = 'community' requires an occupancy or two-stage model")
+  mu_theta_sd <- get_param(priors, "mu_theta_sd", 2)
+  if (!is.numeric(mu_theta_sd) || length(mu_theta_sd) != 1L ||
+      !is.finite(mu_theta_sd) || mu_theta_sd <= 0)
+    stop("mu_theta_sd must be a finite positive number")
+  list(type = "community", sd = 1, mu_theta_mean = 0,
+       mu_theta_sd = unname(mu_theta_sd))
 }
 
 # This prior controls spatial coefficients, not continuous-response noise.
