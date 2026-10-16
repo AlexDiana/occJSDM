@@ -1,0 +1,132 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 5 scenario(s), R = 100, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  [  4%] 20/500 replicates | 5 min elapsed | ~124 min left | cpu/wall 4.5x
+  [  8%] 40/500 replicates | 10 min elapsed | ~112 min left | cpu/wall 4.3x
+  [ 12%] 60/500 replicates | 16 min elapsed | ~116 min left | cpu/wall 4.3x
+  [ 16%] 80/500 replicates | 22 min elapsed | ~117 min left | cpu/wall 4.2x
+  [ 20%] 100/500 replicates | 26 min elapsed | ~105 min left | cpu/wall 4.2x
+  [ 24%] 120/500 replicates | 32 min elapsed | ~101 min left | cpu/wall 4.2x
+  [ 28%] 140/500 replicates | 38 min elapsed | ~101 min left | cpu/wall 4.1x
+  [ 32%] 160/500 replicates | 44 min elapsed | ~96 min left | cpu/wall 4.1x
+  [ 36%] 180/500 replicates | 49 min elapsed | ~89 min left | cpu/wall 4.1x
+  [ 40%] 200/500 replicates | 55 min elapsed | ~87 min left | cpu/wall 4.1x
+  [ 44%] 220/500 replicates | 62 min elapsed | ~83 min left | cpu/wall 4.2x
+  [ 48%] 240/500 replicates | 68 min elapsed | ~77 min left | cpu/wall 4.2x
+  [ 52%] 260/500 replicates | 73 min elapsed | ~70 min left | cpu/wall 4.2x
+  [ 56%] 280/500 replicates | 79 min elapsed | ~66 min left | cpu/wall 4.2x
+  [ 60%] 300/500 replicates | 85 min elapsed | ~59 min left | cpu/wall 4.2x
+  [ 64%] 320/500 replicates | 90 min elapsed | ~51 min left | cpu/wall 4.2x
+  [ 68%] 340/500 replicates | 96 min elapsed | ~46 min left | cpu/wall 4.2x
+  [ 72%] 360/500 replicates | 102 min elapsed | ~40 min left | cpu/wall 4.2x
+  [ 76%] 380/500 replicates | 106 min elapsed | ~32 min left | cpu/wall 4.3x
+  [ 80%] 400/500 replicates | 111 min elapsed | ~26 min left | cpu/wall 4.3x
+  [ 84%] 420/500 replicates | 116 min elapsed | ~21 min left | cpu/wall 4.3x
+  [ 88%] 440/500 replicates | 122 min elapsed | ~15 min left | cpu/wall 4.3x
+  [ 92%] 460/500 replicates | 127 min elapsed | ~10 min left | cpu/wall 4.3x
+  [ 96%] 480/500 replicates | 132 min elapsed | ~5 min left | cpu/wall 4.3x
+  [100%] 500/500 replicates | 137 min elapsed | ~0 min left | cpu/wall 4.3x
+
+done in 136.9 min; 0 replicate(s) failed
+ scenario      block n_element   R n_checked  coverage          bias
+      K30          B        20 100      2000 0.9095000 -1.623898e-02
+      K30         B0        10 100      1000 0.9370000 -2.735546e-02
+      K30 beta_theta        20 100      2000 0.9615000  9.753941e-03
+      K30          G         4 100       400 0.9700000 -1.133884e-02
+      K30          p        20 100      2000 0.9435000  1.834862e-03
+      K30          q        20 100      2000 0.9560000  9.937534e-05
+      K30  resid_cor        45 100      3657 0.7574515 -1.198899e-03
+      K30    sigma_b         1 100       100 1.0000000 -2.083009e-02
+      K30     theta0        10 100      1000 0.9850000 -5.892294e-04
+      M10          B        20 100      2000 0.9035000 -9.686463e-03
+      M10         B0        10 100      1000 0.8890000  2.625428e-02
+      M10 beta_theta        20 100      2000 0.9545000 -1.226476e-02
+      M10          G         4 100       400 0.9350000 -2.133274e-02
+      M10          p        20 100      2000 0.9365000  7.273688e-03
+      M10          q        20 100      2000 0.9525000  5.668195e-04
+      M10  resid_cor        45 100      3657 0.7574515 -2.145111e-03
+      M10    sigma_b         1 100       100 1.0000000 -1.907892e-02
+      M10     theta0        10 100      1000 0.9380000 -1.241283e-03
+       M2          B        20 100      2000 0.9055000 -1.524688e-03
+       M2         B0        10 100      1000 0.9420000 -1.025016e-01
+       M2 beta_theta        20 100      2000 0.9650000 -1.925552e-02
+       M2          G         4 100       400 0.9350000 -2.820211e-02
+       M2          p        20 100      2000 0.9215000  3.821392e-02
+       M2          q        20 100      2000 0.9445000  3.576651e-03
+       M2  resid_cor        45 100      3657 0.7574515 -2.399241e-03
+       M2    sigma_b         1 100       100 1.0000000 -2.121533e-02
+       M2     theta0        10 100      1000 0.9740000 -5.476676e-03
+      M20          B        20 100      2000 0.8930000 -1.186272e-03
+      M20         B0        10 100      1000 0.8730000 -1.329731e-03
+      M20 beta_theta        20 100      2000 0.9525000 -2.288417e-04
+      M20          G         4 100       400 0.9450000 -2.467430e-02
+      M20          p        20 100      2000 0.9450000  3.866286e-03
+      M20          q        20 100      2000 0.9495000  2.749007e-04
+      M20  resid_cor        45 100      3657 0.7571780 -5.525293e-03
+      M20    sigma_b         1 100       100 1.0000000 -1.807084e-02
+      M20     theta0        10 100      1000 0.9480000  3.137633e-06
+       M5          B        20 100      2000 0.9095000 -2.196931e-02
+       M5         B0        10 100      1000 0.9160000  1.427777e-02
+       M5 beta_theta        20 100      2000 0.9575000 -1.537515e-02
+       M5          G         4 100       400 0.9550000 -2.966581e-02
+       M5          p        20 100      2000 0.9370000  1.496910e-02
+       M5          q        20 100      2000 0.9440000  1.400687e-03
+       M5  resid_cor        45 100      3657 0.7574515 -1.920612e-03
+       M5    sigma_b         1 100       100 1.0000000 -1.963034e-02
+       M5     theta0        10 100      1000 0.9630000 -1.786747e-03
+        rmse
+ 0.853562105
+ 0.764315225
+ 0.346881695
+ 0.467487464
+ 0.014463616
+ 0.002262811
+ 0.692653081
+ 0.021242630
+ 0.028088647
+ 0.588979889
+ 0.556357151
+ 0.167456501
+ 0.426639244
+ 0.027102598
+ 0.004122847
+ 0.623260658
+ 0.019762941
+ 0.018788066
+ 0.922668225
+ 0.809234756
+ 0.405587461
+ 0.488327588
+ 0.067506007
+ 0.009919521
+ 0.696674817
+ 0.021550295
+ 0.027670865
+ 0.518278533
+ 0.464686344
+ 0.104611734
+ 0.407336888
+ 0.018077514
+ 0.002964630
+ 0.542917306
+ 0.018682183
+ 0.012358317
+ 0.694513100
+ 0.672386256
+ 0.252951119
+ 0.430414231
+ 0.039107484
+ 0.006004451
+ 0.675418278
+ 0.020090679
+ 0.025368499
+
+written to /Users/douglasyu/src/occJSDM/.worktrees/field-sample-ladder/dev/simstudy/field-sample-ladder/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 100 gives a coverage SE of 2.2%; do not read differences smaller than that.
+ALL DONE 2026-10-16 03:18:27 status 0

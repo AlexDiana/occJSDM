@@ -1,0 +1,10 @@
+launched: 2026-10-16 01:01:25
+revision: 49b51c1408c841c76831f94d10239a33c61bd8a8
+branch: claude/field-sample-ladder
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+cells: M2,M5,M10,M20,K30
+settings: R = 100 per cell, cores = 5, threads = 1, nburn = 1000, niter = 1000, nchain = 2
+exit status: 0 at 2026-10-16 03:18:27

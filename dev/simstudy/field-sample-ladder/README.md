@@ -1,6 +1,6 @@
 # The field-sample ladder on current code
 
-**Status: queued, not run.** Doug asked on 15 October 2026 for this to wait until the rare-dominated community run and the non-spatial causes run have finished. `launch.sh` refuses to start while any other simulation study is running.
+**Status: run on 16 October 2026, from 01:01 to 03:18, after the rare-dominated community run and the non-spatial causes run had finished, as Doug asked on 15 October. The findings are in [REPORT.md](REPORT.md).** `launch.sh` refuses to start while any other simulation study is running.
 
 ## Question
 
