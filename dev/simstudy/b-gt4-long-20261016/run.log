@@ -1,0 +1,56 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 1 scenario(s), R = 100, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  own MCMC settings: no_spatial_gt4_long 5000+5000 x 2
+  [  5%] 5/100 replicates | 1 min elapsed | ~26 min left | cpu/wall 4.9x
+  [ 10%] 10/100 replicates | 3 min elapsed | ~26 min left | cpu/wall 4.9x
+  [ 15%] 15/100 replicates | 4 min elapsed | ~24 min left | cpu/wall 4.9x
+  [ 20%] 20/100 replicates | 6 min elapsed | ~23 min left | cpu/wall 4.9x
+  [ 25%] 25/100 replicates | 7 min elapsed | ~22 min left | cpu/wall 4.9x
+  [ 30%] 30/100 replicates | 9 min elapsed | ~20 min left | cpu/wall 4.9x
+  [ 35%] 35/100 replicates | 10 min elapsed | ~19 min left | cpu/wall 4.9x
+  [ 40%] 40/100 replicates | 12 min elapsed | ~18 min left | cpu/wall 4.9x
+  [ 45%] 45/100 replicates | 13 min elapsed | ~16 min left | cpu/wall 4.9x
+  [ 50%] 50/100 replicates | 15 min elapsed | ~15 min left | cpu/wall 4.9x
+  [ 55%] 55/100 replicates | 16 min elapsed | ~13 min left | cpu/wall 4.9x
+  [ 60%] 60/100 replicates | 18 min elapsed | ~12 min left | cpu/wall 4.9x
+  [ 65%] 65/100 replicates | 19 min elapsed | ~11 min left | cpu/wall 4.9x
+  [ 70%] 70/100 replicates | 21 min elapsed | ~9 min left | cpu/wall 4.9x
+  [ 75%] 75/100 replicates | 22 min elapsed | ~8 min left | cpu/wall 4.9x
+  [ 80%] 80/100 replicates | 24 min elapsed | ~6 min left | cpu/wall 4.9x
+  [ 85%] 85/100 replicates | 25 min elapsed | ~5 min left | cpu/wall 4.9x
+  [ 90%] 90/100 replicates | 27 min elapsed | ~3 min left | cpu/wall 4.9x
+  [ 95%] 95/100 replicates | 28 min elapsed | ~1 min left | cpu/wall 4.9x
+  [100%] 100/100 replicates | 29 min elapsed | ~0 min left | cpu/wall 4.9x
+
+done in 29.4 min; 0 replicate(s) failed
+            scenario      block n_element   R n_checked  coverage         bias
+ no_spatial_gt4_long          B        20 100      2000 0.9560000  0.009870639
+ no_spatial_gt4_long         B0        10 100      1000 0.9410000 -0.127157871
+ no_spatial_gt4_long beta_theta        20 100      2000 0.9580000 -0.015823823
+ no_spatial_gt4_long          G         4 100       400 0.9825000 -0.010384340
+ no_spatial_gt4_long          p        20 100      2000 0.8980000  0.037384380
+ no_spatial_gt4_long          q        20 100      2000 0.9470000  0.003183055
+ no_spatial_gt4_long  resid_cor        45 100      3762 0.7631579  0.005075790
+ no_spatial_gt4_long    sigma_b         1 100       100 1.0000000 -0.022740606
+ no_spatial_gt4_long     theta0        10 100      1000 0.9700000 -0.004093758
+        rmse
+ 0.863568699
+ 0.810404908
+ 0.396540323
+ 0.454071821
+ 0.070326906
+ 0.009707567
+ 0.693696063
+ 0.022810472
+ 0.028897564
+
+written to /Users/douglasyu/src/occJSDM/.claude/worktrees/sharp-wilson-52e053/dev/simstudy/b-gt4-long-20261016/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 100 gives a coverage SE of 2.2%; do not read differences smaller than that.
+ALL DONE 2026-10-16 07:47:49 status 0

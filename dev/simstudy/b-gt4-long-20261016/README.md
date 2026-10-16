@@ -17,3 +17,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh launch.sh >
 ```
 
 Monitor with `tail -f run.log`. The log, provenance and results are ignored while the run is in flight so the runner records a clean tree.
+
+## Results
+
+The run finished on 16 October 2026 at 07:47 with all 100 fits and no failures. With 4 latent traits and 5,000 + 5,000 iterations, B covers at 0.956 (SE 0.005) on the datasets where `no_spatial` covers at 0.906, and the two levers' effects add, with an interaction of +0.004 (SE 0.007). True effects over 3 still undercover, at 0.895. The findings are in [REPORT.md](REPORT.md).

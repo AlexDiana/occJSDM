@@ -1,0 +1,13 @@
+launched: 2026-10-16 07:18:21
+revision: 815ba6fc6b2736dc4f1749da421eef292113b66a
+branch: claude/b-gt4-long
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+load at launch: 3.15 2.79 2.52
+busiest other process: 97.0 /System/Library/PrivateFrameworks/AppStoreDaemon.framework/Support/appstoreagent
+cells: no_spatial_gt4_long
+settings: R = 100, cores = 5, threads = 1; no_spatial_gt4_long nburn = 5000, niter = 5000, nchain = 2, fit_gt = 4
+exit status: 0 at 2026-10-16 07:47:49
