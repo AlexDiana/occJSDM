@@ -35,6 +35,8 @@ SIMSTUDY_BASE <- list(
   b0_mean = NULL,          # NULL = the simulator's own Normal(0, 1) draw of
                            # B0; a number moves that draw's mean (see
                            # simstudy_shifted_simulator())
+  fit_b0_prior = NULL,     # NULL = the fitter's default B0 prior; a value is
+                           # passed as listPriors$b0_prior (fit only)
   p_range = c(0.3, 0.6),
   theta_baseline_range = c(0.2, 0.5)
 )
@@ -154,6 +156,25 @@ simstudy_scenarios <- function() {
                          seed_label = "occupancy"),
     mk("binary_rare",    model = "binary", b0_mean = -2.75,
                          seed_label = "binary"),
+
+    # The community mean of B0 (16 October 2026). The rare arms above and
+    # their parents, refitted with the experimental listPriors$b0_prior =
+    # "community", which estimates the centre of B0's prior instead of fixing
+    # it at 0. fit_b0_prior touches only the fit, and each arm takes its
+    # counterpart's seed label and b0_mean, so its datasets are bit-identical
+    # to that counterpart's and the comparison is with the same data. NOT
+    # production cells: name them with --scenarios.
+    mk("base_cm",           fit_b0_prior = "community", seed_label = "base"),
+    mk("occupancy_cm",      model = "occupancy", fit_b0_prior = "community",
+                            seed_label = "occupancy"),
+    mk("binary_cm",         model = "binary", fit_b0_prior = "community",
+                            seed_label = "binary"),
+    mk("base_rare_cm",      b0_mean = -2.75, fit_b0_prior = "community",
+                            seed_label = "base"),
+    mk("occupancy_rare_cm", model = "occupancy", b0_mean = -2.75,
+                            fit_b0_prior = "community", seed_label = "occupancy"),
+    mk("binary_rare_cm",    model = "binary", b0_mean = -2.75,
+                            fit_b0_prior = "community", seed_label = "binary"),
 
     # Environmental covariate count. Never varied anywhere before: ncov_psi is
     # 2 in all 21 existing cells, so nothing in the study has ever spoken to
@@ -558,9 +579,12 @@ simstudy_fit_args <- function(sim, scenario) {
   dat <- sim$data_list
   if (!isTRUE(scenario$fit_traits)) dat$traits <- NULL
 
+  listPriors <- scenario$listPriors %||% list()
+  if (!is.null(scenario$fit_b0_prior)) listPriors$b0_prior <- scenario$fit_b0_prior
+
   list(data           = dat,
        listParams     = listParams,
-       listPriors     = scenario$listPriors %||% list(),
+       listPriors     = listPriors,
        occCovariates  = occCov,
        collCovariates = collCov,
        spatCovariates = spatCovariates)
@@ -708,6 +732,9 @@ simstudy_param_blocks <- function(fit, sim, truth) {
 
   list(
     B0         = list(post = jo$B0_output,         truth = jp$B0),
+    # Only fits with listPriors$b0_prior = "community" estimate mu_b0; its
+    # truth is the mean of the simulator's B0 draw.
+    mu_b0      = list(post = jo$mu_b0_output,      truth = truth$b0_mean %||% 0),
     B          = list(post = jo$B_output,          truth = jp$B),
     G          = list(post = jo$G_output,          truth = G),
     sigma_b    = list(post = jo$sigmab_output,     truth = jp$sigma_b),

@@ -1,0 +1,9 @@
+launched: 2026-10-16 08:48:35
+revision: 62b3138dc589ec9bb242a0caade57d522c2b3815
+branch: claude/b0-community-mean
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+settings: replicates 1 to 10, 12 arms, cores = 5, threads = 1, nburn = 1000, niter = 1000, nchain = 2
+exit status: 0 at 2026-10-16 10:05:47

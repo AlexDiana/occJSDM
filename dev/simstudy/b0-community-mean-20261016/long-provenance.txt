@@ -1,0 +1,10 @@
+launched: 2026-10-16 08:54:42
+revision: 62b3138dc589ec9bb242a0caade57d522c2b3815
+branch: claude/b0-community-mean
+dirty files: 0
+script: /private/tmp/claude-501/-Users-douglasyu-src-occJSDM--claude-worktrees-gracious-almeida-d7dbce/2db3bb9a-4be8-4d0c-9253-20df79d5b724/scratchpad/stage/refit_long.R md5 2a6c34852138bfb66be9317a4803be81
+R: R version 4.6.1 (2026-06-24)
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+settings: replicates 1 to 5, 6 arms, cores = 5, threads = 1, nburn = 5000, niter = 5000, nchain = 2
+exit status: 0 at 2026-10-16 11:13:20

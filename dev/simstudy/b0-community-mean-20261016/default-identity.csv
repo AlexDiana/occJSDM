@@ -1,0 +1,8 @@
+"config","results_identical","infos_identical","whole_fit_identical"
+"two_stage_spatial",TRUE,TRUE,TRUE
+"two_stage_plain",TRUE,TRUE,TRUE
+"occupancy_spatial",TRUE,TRUE,TRUE
+"binary_spatial",TRUE,TRUE,TRUE
+"binary_plain",TRUE,TRUE,TRUE
+"continuous_plain",TRUE,TRUE,TRUE
+"two_stage_sigma_b0_2",TRUE,TRUE,TRUE
