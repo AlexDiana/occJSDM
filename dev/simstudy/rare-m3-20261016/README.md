@@ -59,3 +59,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh launch.sh l
 ```
 
 Logs, provenance, results and draws are ignored while the runs are in flight, so each records a clean tree.
+
+## Results
+
+The draws step finished on 16 October 2026 at 14:10 (60 fits), the main run at 15:46 with all 600 fits and no failures, and the long-chain step at 15:59 (20 fits). At 3 field samples per site, B0's community mean alone meets every criterion set for it in both rare arms: community occupancy error -0.022 and -0.007, B0 error -0.11 and +0.07, collection-intercept bias +0.14 and +0.13 against a limit of 0.15. Both community means still fail C5, the collection intercepts undershooting by 0.38 and 0.22, and the rarest species are again estimated too common. The default prior's bias barely moves with a third field sample. Mixing improves but still fails at the study's chain length. The findings are in [REPORT.md](REPORT.md).
