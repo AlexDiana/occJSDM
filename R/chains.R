@@ -487,6 +487,9 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
         idx_ls_output_chain <- rep(NA, niter)
         tau_output_chain <- matrix(NA, S, niter)
         varPart_output_chain <-  array(NA, dim = c(S, 4, niter))
+        # Only the experimental b0_prior = "community" estimates mu_b0.
+        community_b0 <- identical(list_priors$intercept_prior$type, "community")
+        mu_b0_output_chain <- if (community_b0) rep(NA, niter) else NULL
       }
 
     }
@@ -606,7 +609,8 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
           "sigma_bs" = sigma_bs,
           "sigma_h" = sigma_h,
           "idx_ls" = idx_ls,
-          "tau" = tau
+          "tau" = tau,
+          "mu_b0" = 0
         )
 
         list_psiCoef <- computePsiCoef(
@@ -742,6 +746,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
             sigmah_output_chain[currentIter] <- list_jSDMparams$sigma_h
             idx_ls_output_chain[currentIter] <- list_jSDMparams$idx_ls
             if(model == "continuous") tau_output_chain[,currentIter] <- list_jSDMparams$tau
+            if(community_b0) mu_b0_output_chain[currentIter] <- list_jSDMparams$mu_b0
 
             varPart_output_chain[,,currentIter] <-
               as.matrix(list_jSDMparams$variancePartitioning)
@@ -801,7 +806,8 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
       C = C_output_chain, Bs = Bs_output_chain, Gs = Gs_output_chain, As = As_output_chain,
       Cs = Cs_output_chain, U = U_output_chain, L = L_output_chain,
       sigmab = sigmab_output_chain, sigmabs = sigmabs_output_chain, sigmah = sigmah_output_chain,
-      idx_ls = idx_ls_output_chain, varPart = varPart_output_chain, tau = tau_output_chain),
+      idx_ls = idx_ls_output_chain, varPart = varPart_output_chain, tau = tau_output_chain,
+      mu_b0 = mu_b0_output_chain),
     latent_sums = list(z = z_sum, psi = psi_sum, theta = theta_sum, w = w_sum),
     waic = list(jsdm = c(list_waic_jsdm, list(n = n_waic)),
                 w = if (is.null(list_waic_w)) NULL else c(list_waic_w, list(n = n_waic)),

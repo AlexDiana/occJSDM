@@ -174,7 +174,25 @@ and 5 also increased the bias of probabilities between 0.2 and 0.8.
 Occupancy fits share that collection stage and were not tested, and neither
 were continuous fits. The default therefore stays at \code{1}. Keep it for
 occupancy and two-stage data; if you try a larger value for binary data,
-check chain convergence.}
+check chain convergence.
+
+\code{b0_prior = "community"} (experimental, off by default) estimates the
+centre of that prior instead of fixing it at 0: each species' \code{B0} has
+a Normal(\code{mu_b0}, \code{sigma_b0}^2) prior, and the community mean
+\code{mu_b0} has a Normal(0, \code{mu_b0_sd}^2) prior with \code{mu_b0_sd}
+defaulting to \code{2}, which puts about 95\% of the prior on community
+mean baseline occupancies between 2\% and 98\%. \code{mu_b0} is drawn from
+its conjugate conditional distribution each iteration, so the species are
+pulled towards their own community's average rather than towards 50\%,
+which matters when most species are rare. Its draws are returned in
+\code{results_output$jsdm_output$mu_b0_output}, a \code{niter} by
+\code{nchain} array, and the applied prior is saved in
+\code{infos$intercept_prior}. The default, \code{b0_prior = "fixed"},
+leaves fits unchanged; \code{mu_b0_sd} requires \code{"community"} and must
+be a finite positive number. With few species the community mean is weakly
+determined, and in occupancy and two-stage fits it can trade off against
+the collection intercepts, so check the convergence of \code{mu_b0} and
+\code{B0}. This option is under review and is not a recommended setting.}
 }
 \value{
 A list with:
