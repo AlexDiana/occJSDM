@@ -3,8 +3,9 @@
 #   draws: replicates 1 to 10 of the six both-means arms and 1 to 3 of the
 #          eight comparison arms at 1,000 + 1,000, keeping draws (refit.R).
 #   main:  the six both-means arms at R = 100 through the study runner.
-#   long:  replicates 1 to 5 of the four main both-means arms at
-#          5,000 + 5,000, keeping draws (refit.R).
+#   long:  replicates 1 to 5 of the six both-means arms at 5,000 + 5,000,
+#          keeping draws (refit.R). The two _wide arms were added after the
+#          draws step showed slow mixing; see README.md.
 # 5 worker processes and one thread per fit in every step; the steps run one
 # at a time, so the laptop never has more than 5 fitting workers. Launched
 # detached from a non-interactive shell. Every output goes to a path that
@@ -16,12 +17,11 @@ RUN=$WT/dev/simstudy/theta-community-mean-20261016
 RSCRIPT=/usr/local/bin/Rscript
 BOTH=base_cm_both,occupancy_cm_both,base_rare_cm_both,occupancy_rare_cm_both,base_rare_cm_both_wide,occupancy_rare_cm_both_wide
 COMPARE=base,occupancy,base_rare,occupancy_rare,base_cm,occupancy_cm,base_rare_cm,occupancy_rare_cm
-MAIN4=base_cm_both,occupancy_cm_both,base_rare_cm_both,occupancy_rare_cm_both
 cd "$RUN"
 case "$STEP" in
   draws) OUT=$RUN/draws/short; SETTINGS="replicates 1 to 10 of $BOTH and 1 to 3 of $COMPARE, nburn = 1000, niter = 1000, nchain = 2" ;;
   main)  OUT=$RUN/results; SETTINGS="cells $BOTH, R = 100 per cell, nburn = 1000, niter = 1000, nchain = 2" ;;
-  long)  OUT=$RUN/draws/long; SETTINGS="replicates 1 to 5 of $MAIN4, nburn = 5000, niter = 5000, nchain = 2" ;;
+  long)  OUT=$RUN/draws/long; SETTINGS="replicates 1 to 5 of $BOTH, nburn = 5000, niter = 5000, nchain = 2" ;;
   *) echo "unknown step: $STEP" >&2; exit 2 ;;
 esac
 if [ -e "$OUT" ]; then echo "refusing: $OUT exists" >&2; exit 1; fi
@@ -48,7 +48,7 @@ case "$STEP" in
       --scenarios="$BOTH" --out="$OUT" --caffeinate > main.log 2>&1 &
     ;;
   long)
-    "$RSCRIPT" "$RUN/refit.R" "$WT" "$OUT" 5 "$MAIN4" 1-5 5000 5000 > long.log 2>&1 &
+    "$RSCRIPT" "$RUN/refit.R" "$WT" "$OUT" 5 "$BOTH" 1-5 5000 5000 > long.log 2>&1 &
     ;;
 esac
 RPID=$!
