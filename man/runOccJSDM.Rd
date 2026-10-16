@@ -211,12 +211,13 @@ collection side has a fixed prior centre. The default,
 \code{theta_intercept_prior = "fixed"}, leaves fits unchanged;
 \code{mu_theta_sd} requires \code{"community"} and must be a finite
 positive number, and binary and continuous fits, which have no collection
-stage, reject the option. In a simulation of rare-dominated communities
-with 2 field samples per site, the two options together placed the
-community's occupancy close to the truth, but rare species were still
-estimated too common and their collection intercepts too low, and
-\code{mu_b0} mixed slowly: use chains of at least the default length and
-check the convergence of \code{mu_theta}, \code{mu_b0} and the
+stage, reject the option. In simulations of rare-dominated communities
+with 2 and 3 field samples per site, the two options together placed the
+community's occupancy close to the truth, but the rarest species were
+still estimated too common and their collection intercepts too low; at 3
+field samples per site \code{b0_prior = "community"} alone did better.
+\code{mu_b0} mixed slowly in both: use chains of at least the default
+length and check the convergence of \code{mu_theta}, \code{mu_b0} and the
 intercepts. This option is under review and is not a recommended setting.}
 }
 \value{
