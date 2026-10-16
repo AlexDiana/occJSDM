@@ -249,6 +249,34 @@ simstudy_scenarios <- function() {
     mk("occupancy_cm_m3", model = "occupancy", M = 3L, fit_b0_prior = "community",
                           seed_label = "occupancy"),
 
+    # The field-sample ladder with B0's community mean (16 October 2026): how
+    # many field samples per site remove the occupancy squeeze that remains
+    # with b0_prior = "community", in an ordinary and a rare-dominated
+    # community, and the rare-dominated ladder under the default prior, which
+    # had never been run. Two-stage model only.
+    #
+    # The ordinary arms refit the M ladder's datasets: each takes its ladder
+    # arm's seed label ("mladder"), so M5_cm fits exactly M5's datasets. The
+    # rare arms take base_rare's seed label ("base"), so at every M they share
+    # B0, eta and the true occupancy states with base_rare and base_rare_m3,
+    # and each _cm arm fits exactly its default arm's datasets. NOT production
+    # cells: name them with --scenarios.
+    mk("M5_cm",            M = 5L,  K = 3L, fit_b0_prior = "community",
+                           seed_label = "mladder"),
+    mk("M10_cm",           M = 10L, K = 3L, fit_b0_prior = "community",
+                           seed_label = "mladder"),
+    mk("M20_cm",           M = 20L, K = 3L, fit_b0_prior = "community",
+                           seed_label = "mladder"),
+    mk("base_rare_m5",     M = 5L,  b0_mean = -2.75, seed_label = "base"),
+    mk("base_rare_m10",    M = 10L, b0_mean = -2.75, seed_label = "base"),
+    mk("base_rare_m20",    M = 20L, b0_mean = -2.75, seed_label = "base"),
+    mk("base_rare_cm_m5",  M = 5L,  b0_mean = -2.75, fit_b0_prior = "community",
+                           seed_label = "base"),
+    mk("base_rare_cm_m10", M = 10L, b0_mean = -2.75, fit_b0_prior = "community",
+                           seed_label = "base"),
+    mk("base_rare_cm_m20", M = 20L, b0_mean = -2.75, fit_b0_prior = "community",
+                           seed_label = "base"),
+
     # Environmental covariate count. Never varied anywhere before: ncov_psi is
     # 2 in all 21 existing cells, so nothing in the study has ever spoken to
     # how covariate richness affects recovery.
