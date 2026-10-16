@@ -1,7 +1,7 @@
 # The non-spatial candidates for B's undercoverage: no_spatial_long,
-# no_factors, no_factors_fit2, no_spatial_notraits and no_spatial_gt4, each
-# paired with no_spatial. See the comment above those cells in
-# helper-simstudy.R.
+# no_factors, no_factors_fit2, no_spatial_notraits, no_spatial_gt4 and
+# no_spatial_gt4_long, each paired with no_spatial. See the comment above
+# those cells in helper-simstudy.R.
 
 sc_bc <- function() {
   sc <- simstudy_scenarios()
@@ -10,7 +10,7 @@ sc_bc <- function() {
 }
 
 bc_arms <- c("no_spatial_long", "no_factors", "no_factors_fit2",
-             "no_spatial_notraits", "no_spatial_gt4")
+             "no_spatial_notraits", "no_spatial_gt4", "no_spatial_gt4_long")
 
 test_that("only the new arms set fit_gt or their own MCMC settings", {
   sc <- sc_bc()
@@ -20,6 +20,8 @@ test_that("only the new arms set fit_gt or their own MCMC settings", {
   }
   expect_identical(sc$no_spatial_long$MCMCparams,
                    list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1))
+  expect_identical(sc$no_spatial_gt4_long$MCMCparams, sc$no_spatial_long$MCMCparams)
+  expect_identical(sc$no_spatial_gt4_long$fit_gt, sc$no_spatial_gt4$fit_gt)
   for (a in bc_arms) {
     expect_false(isTRUE(sc[[a]]$useSpatField), info = a)
     expect_false(simstudy_fits_spatial(sc[[a]]), info = a)
@@ -61,6 +63,7 @@ test_that("the new arms hand the fitter what their comment says", {
   expect_identical(a$no_factors_fit2$listParams, list(n_factors = 2L, n_lattrait = 2L))
   expect_identical(a$no_spatial_notraits$listParams, a_ns$listParams)
   expect_identical(a$no_spatial_gt4$listParams, list(n_factors = 2L, n_lattrait = 4L))
+  expect_identical(a$no_spatial_gt4_long$listParams, list(n_factors = 2L, n_lattrait = 4L))
 
   # Traits are dropped only in the arm that says so.
   expect_null(a$no_spatial_notraits$data$traits)
@@ -70,6 +73,7 @@ test_that("the new arms hand the fitter what their comment says", {
   # The fit-only arms fit no_spatial's datasets; the two d = 0 arms share theirs.
   expect_identical(a$no_spatial_long$data, a_ns$data)
   expect_identical(a$no_spatial_gt4$data, a_ns$data)
+  expect_identical(a$no_spatial_gt4_long$data, a_ns$data)
   expect_identical(a$no_factors_fit2$data, a$no_factors$data)
   for (lab in bc_arms) for (nm in c("occCovariates", "collCovariates",
                                     "spatCovariates", "listPriors"))

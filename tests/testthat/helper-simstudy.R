@@ -153,6 +153,11 @@ simstudy_scenarios <- function() {
     #   prior on B available without changing package code: with N(0, 1)
     #   priors on A and C, each latent trait adds 1 to every B element's
     #   prior variance.
+    # no_spatial_gt4_long: the two levers that moved B together (16 October
+    #   2026, dev/simstudy/b-nonspatial-candidates-20261015/REPORT.md).
+    #   no_spatial's datasets fitted with 4 latent traits and 5,000 + 5,000
+    #   iterations per chain, so it pairs with no_spatial, no_spatial_gt4 and
+    #   no_spatial_long on identical data.
     #
     # NOT production cells: name them with --scenarios.
     mk("no_spatial_long",     useSpatField = FALSE, n_supportpoints = NULL,
@@ -167,6 +172,10 @@ simstudy_scenarios <- function() {
                               fit_traits = FALSE, seed_label = "base"),
     mk("no_spatial_gt4",      useSpatField = FALSE, n_supportpoints = NULL,
                               fit_gt = 4L, seed_label = "base"),
+    mk("no_spatial_gt4_long", useSpatField = FALSE, n_supportpoints = NULL,
+                              fit_gt = 4L, seed_label = "base",
+                              MCMCparams = list(nchain = 2, nburn = 5000,
+                                                niter = 5000, nthin = 1)),
 
     # Environmental covariate count. Never varied anywhere before: ncov_psi is
     # 2 in all 21 existing cells, so nothing in the study has ever spoken to
