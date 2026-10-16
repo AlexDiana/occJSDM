@@ -18,7 +18,10 @@ rare_parents <- c(base_rare = "base", occupancy_rare = "occupancy",
 
 test_that("cells without b0_mean simulate exactly as before", {
   sc <- sc_b0()
-  for (s in sc) if (!s$label %in% names(rare_parents))
+  # The rare arms' community-mean refits share their b0_mean
+  # (test-simstudy-b0-community.R).
+  shifted <- c(names(rare_parents), paste0(names(rare_parents), "_cm"))
+  for (s in sc) if (!s$label %in% shifted)
     expect_null(s$b0_mean, label = s$label)
 
   # draw_truth() sets the seed, so calling it again replays the stream.
