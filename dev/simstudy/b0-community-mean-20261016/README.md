@@ -60,3 +60,15 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh launch-draw
 ```
 
 Monitor with `tail -f run.log` and `tail -f draws.log`. Logs, provenance, results and draws are ignored while the runs are in flight so each records a clean tree.
+
+A third run was added once the first refits showed `mu_b0` mixing slowly: `refit_long.R` refits replicates 1 to 5 of the four eDNA community arms and the two default rare arms at 5,000 + 5,000. It was launched from a copy outside the tree, so that the main run would still record a clean tree, with its outputs under the ignored `draws/long/`; `long-provenance.txt` records the copy's checksum, which matches the committed `refit_long.R`:
+
+```sh
+nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh launch-long.sh <path to refit_long.R> > launch-long.log 2>&1 < /dev/null &
+```
+
+Three runs of 5 workers each were too many for the laptop, so the long run was paused from 10:07 until the main run finished at 11:06, leaving 5 workers in total. Keep to 5 workers in total, not per run.
+
+## Results
+
+The main run finished on 16 October 2026 at 11:06 with all 600 fits and no failures; the refits finished at 10:05 (120 fits) and 11:13 (30 fits). The community mean removes most of the occupancy and B0 shift in the rare-dominated eDNA arms: community occupancy error +0.17 to -0.05 (two-stage) and -0.01 (one-stage), B0 coverage about 0.4 to about 0.93. It does not meet the success definition, because the collection intercepts' error reverses from -0.47 to +0.28 instead of shrinking, the collection intercepts' own fixed prior now deciding the split. The parents lose a little, and `mu_b0` mixes slowly in the eDNA models at the study's chain length, though longer chains confirm the averaged results. The findings are in [REPORT.md](REPORT.md).
