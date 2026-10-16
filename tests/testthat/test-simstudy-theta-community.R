@@ -21,7 +21,9 @@ both_counterparts <- list(
 test_that("only the both-means arms set fit_theta_intercept_prior", {
   sc <- sc_both()
   setting <- names(sc)[!vapply(sc, function(s) is.null(s$fit_theta_intercept_prior), logical(1))]
-  expect_setequal(setting, names(both_counterparts))
+  # The M = 3 both-means arms are tested in test-simstudy-rare-m3.R.
+  expect_setequal(setting, c(names(both_counterparts),
+                             "base_rare_cm_both_m3", "occupancy_rare_cm_both_m3"))
 })
 
 test_that("each both-means arm fits its counterpart's data with only the priors changed", {
