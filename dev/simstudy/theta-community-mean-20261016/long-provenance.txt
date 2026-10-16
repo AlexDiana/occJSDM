@@ -1,0 +1,11 @@
+step: long
+launched: 2026-10-16 13:30:51
+revision: 0f2aa6e3620d94c77f1ad3a614de0aca44c43969
+branch: claude/theta-community-mean
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+settings: replicates 1 to 5 of base_cm_both,occupancy_cm_both,base_rare_cm_both,occupancy_rare_cm_both,base_rare_cm_both_wide,occupancy_rare_cm_both_wide, nburn = 5000, niter = 5000, nchain = 2, cores = 5, threads = 1
+exit status: 0 at 2026-10-16 13:48:29

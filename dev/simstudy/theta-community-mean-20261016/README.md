@@ -79,3 +79,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh launch.sh l
 ```
 
 Monitor with `tail -f draws.log`, `tail -f main.log` and `tail -f long.log`. Logs, provenance, results and draws are ignored while the runs are in flight, so each records a clean tree.
+
+## Results
+
+The draws step finished on 16 October 2026 at 12:06 (84 fits), the main run at 13:30 with all 600 fits and no failures, and the long-chain step at 13:48 (30 fits). With both community means estimated, the community's occupancy in the rare-dominated eDNA arms comes out close to right (error +0.03 and +0.04, against +0.17 with the default prior), but the collection intercepts now undershoot (-0.52 and -0.24) instead of overshooting, so the success definition is not met. The error sits in the rarest species, whose own occupancy-collection split is decided by the species-level spread priors. At community scale the data at 2 field samples per site do identify the split: widening both hyperpriors from sd 2 to sd 5 barely widens the intervals and, at convergence, barely moves the estimates (C15 passes). The parents lose a little, and both community means mix slowly at the study's chain length but converge at 5,000 + 5,000. The findings are in [REPORT.md](REPORT.md).
