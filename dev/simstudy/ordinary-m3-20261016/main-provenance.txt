@@ -1,0 +1,11 @@
+step: main
+launched: 2026-10-16 16:28:19
+revision: c7b6db54ded58b4b2ae824a179eb77d874a21d8f
+branch: claude/b0-community-ordinary-m3
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'Battery Power'
+settings: cells base_m3,occupancy_m3,base_cm_m3,occupancy_cm_m3, R = 100 per cell, nburn = 1000, niter = 1000, nchain = 2, cores = 5, threads = 1
+exit status: 0 at 2026-10-16 18:34:51

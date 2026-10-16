@@ -52,3 +52,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh launch.sh l
 ```
 
 Logs, provenance, results and draws are ignored while the runs are in flight, so each records a clean tree.
+
+## Results
+
+The draws step finished on 16 October 2026 at 16:28 (40 fits), the main run at 18:35 with all 400 fits and no failures (the laptop slept from 16:30 to 17:48 with its lid closed, which paused but did not change the fits), and the long-chain step at 18:48 (20 fits). At 3 field samples per site, B0's community mean passes C8 to C11 in both parents with wide margins: B0 coverage 0.937 against 0.938 and 0.931 against 0.930, community occupancy error -0.015 against -0.009 and +0.000 against -0.002, no occupancy band more than 0.006 worse, collection-intercept bias changed by at most 0.017. The small costs seen at M = 2 go away. C12 fails in both arms and C13 in the two-stage arm, but at 5,000 + 5,000 `mu_b0` converges and the averaged results stand. The findings are in [REPORT.md](REPORT.md).

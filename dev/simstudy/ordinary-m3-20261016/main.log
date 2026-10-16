@@ -1,0 +1,105 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 4 scenario(s), R = 100, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  [  5%] 20/400 replicates | 52 min elapsed | ~996 min left | cpu/wall 0.3x
+  [ 10%] 40/400 replicates | 82 min elapsed | ~539 min left | cpu/wall 0.4x
+  [ 15%] 60/400 replicates | 85 min elapsed | ~273 min left | cpu/wall 0.5x
+  [ 20%] 80/400 replicates | 87 min elapsed | ~184 min left | cpu/wall 0.6x
+  [ 25%] 100/400 replicates | 89 min elapsed | ~139 min left | cpu/wall 0.7x
+  [ 30%] 120/400 replicates | 92 min elapsed | ~110 min left | cpu/wall 0.8x
+  [ 35%] 140/400 replicates | 94 min elapsed | ~31 min left | cpu/wall 0.9x
+  [ 40%] 160/400 replicates | 96 min elapsed | ~29 min left | cpu/wall 1.0x
+  [ 45%] 180/400 replicates | 99 min elapsed | ~26 min left | cpu/wall 1.1x
+  [ 50%] 200/400 replicates | 101 min elapsed | ~24 min left | cpu/wall 1.2x
+  [ 55%] 220/400 replicates | 104 min elapsed | ~22 min left | cpu/wall 1.3x
+  [ 60%] 240/400 replicates | 106 min elapsed | ~19 min left | cpu/wall 1.3x
+  [ 65%] 260/400 replicates | 109 min elapsed | ~17 min left | cpu/wall 1.4x
+  [ 70%] 280/400 replicates | 111 min elapsed | ~14 min left | cpu/wall 1.5x
+  [ 75%] 300/400 replicates | 113 min elapsed | ~12 min left | cpu/wall 1.6x
+  [ 80%] 320/400 replicates | 116 min elapsed | ~10 min left | cpu/wall 1.6x
+  [ 85%] 340/400 replicates | 118 min elapsed | ~7 min left | cpu/wall 1.7x
+  [ 90%] 360/400 replicates | 121 min elapsed | ~5 min left | cpu/wall 1.8x
+  [ 95%] 380/400 replicates | 124 min elapsed | ~3 min left | cpu/wall 1.8x
+  [100%] 400/400 replicates | 126 min elapsed | ~0 min left | cpu/wall 1.9x
+
+done in 126.5 min; 0 replicate(s) failed
+        scenario      block n_element   R n_checked  coverage          bias
+      base_cm_m3          B        20 100      2000 0.9195000  0.0090151400
+      base_cm_m3         B0        10 100      1000 0.9370000 -0.0913247759
+      base_cm_m3 beta_theta        20 100      2000 0.9590000  0.0063017811
+      base_cm_m3          G         4 100       400 0.9375000 -0.0241428271
+      base_cm_m3      mu_b0         1 100       100 0.9600000 -0.0548864792
+      base_cm_m3          p        20 100      2000 0.9370000  0.0237307833
+      base_cm_m3          q        20 100      2000 0.9390000  0.0021359013
+      base_cm_m3  resid_cor        45 100      3762 0.7631579  0.0056140724
+      base_cm_m3    sigma_b         1 100       100 1.0000000 -0.0205160949
+      base_cm_m3     theta0        10 100      1000 0.9720000 -0.0038777752
+         base_m3          B        20 100      2000 0.9120000  0.0128664841
+         base_m3         B0        10 100      1000 0.9380000 -0.0479149357
+         base_m3 beta_theta        20 100      2000 0.9565000 -0.0028633117
+         base_m3          G         4 100       400 0.9350000 -0.0228036898
+         base_m3          p        20 100      2000 0.9370000  0.0234789913
+         base_m3          q        20 100      2000 0.9380000  0.0021164329
+         base_m3  resid_cor        45 100      3762 0.7631579  0.0056968928
+         base_m3    sigma_b         1 100       100 1.0000000 -0.0207613395
+         base_m3     theta0        10 100      1000 0.9730000 -0.0048361016
+ occupancy_cm_m3          B        20 100      2000 0.9190000 -0.0064219625
+ occupancy_cm_m3         B0        10 100      1000 0.9310000 -0.0250354927
+ occupancy_cm_m3 beta_theta        20 100      2000 0.9590000  0.0020768777
+ occupancy_cm_m3          G         4 100       400 0.9600000 -0.0260964700
+ occupancy_cm_m3      mu_b0         1 100       100 0.9300000  0.0271193214
+ occupancy_cm_m3  resid_cor        45 100      3783 0.7613006 -0.0049141157
+ occupancy_cm_m3    sigma_b         1 100       100 1.0000000 -0.0212190675
+ occupancy_cm_m3     theta0        10 100      1000 0.9730000  0.0007233793
+    occupancy_m3          B        20 100      2000 0.9150000  0.0033584709
+    occupancy_m3         B0        10 100      1000 0.9300000 -0.0420404050
+    occupancy_m3 beta_theta        20 100      2000 0.9610000  0.0011686736
+    occupancy_m3          G         4 100       400 0.9450000 -0.0224782754
+    occupancy_m3  resid_cor        45 100      3783 0.7613006 -0.0029000912
+    occupancy_m3    sigma_b         1 100       100 1.0000000 -0.0208747280
+    occupancy_m3     theta0        10 100      1000 0.9760000  0.0006654424
+        rmse
+ 0.791102007
+ 0.795517338
+ 0.339947702
+ 0.439256814
+ 0.452537072
+ 0.052662899
+ 0.008102135
+ 0.686343246
+ 0.020940035
+ 0.028084605
+ 0.798493566
+ 0.732584489
+ 0.338152795
+ 0.441651546
+ 0.052375868
+ 0.008099432
+ 0.684956373
+ 0.021157027
+ 0.027630160
+ 0.740763879
+ 0.763742309
+ 0.280610130
+ 0.430657159
+ 0.435496003
+ 0.682634459
+ 0.021702146
+ 0.027606228
+ 0.747369563
+ 0.716562344
+ 0.276016502
+ 0.429944923
+ 0.681858311
+ 0.021428436
+ 0.027052045
+
+written to /Users/douglasyu/src/occJSDM/.claude/worktrees/relaxed-herschel-025463/dev/simstudy/ordinary-m3-20261016/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 100 gives a coverage SE of 2.2%; do not read differences smaller than that.
+ALL DONE 2026-10-16 18:34:51 status 0
