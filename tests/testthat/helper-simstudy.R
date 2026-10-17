@@ -177,6 +177,55 @@ simstudy_scenarios <- function() {
                               MCMCparams = list(nchain = 2, nburn = 5000,
                                                 niter = 5000, nthin = 1)),
 
+    # The prior on sigma_b (17 October 2026,
+    # dev/simstudy/sigma-b-prior-20261017/README.md). The two B reports above
+    # left one lever untested: the InvGamma(10, 1) prior on sigma_b^2, whose
+    # shape counts like 20 pseudo-observations, as many as the 20 B elements
+    # in this design, so sigma_b's posterior sat at the prior's 0.33 in every
+    # arm. listPriors can now change it. Each arm fits no_spatial's datasets
+    # (seed_label "base") and changes sigma_b's prior, plus, where the name
+    # says so, the chain length or latent-trait count of an arm already run,
+    # so every contrast is on identical data.
+    #
+    # no_spatial_sbhc:          half-Cauchy(1) on sigma_b, 1,000 + 1,000;
+    #                           pairs with no_spatial.
+    # no_spatial_sbhc_long:     the same at 5,000 + 5,000; pairs with
+    #                           no_spatial_long.
+    # no_spatial_sbig2:         InvGamma(2, 1/9) on sigma_b^2, the default's
+    #                           prior mean with 4 pseudo-observations instead
+    #                           of 20, at 1,000 + 1,000; pairs with no_spatial
+    #                           and separates the prior's weight from its form.
+    # no_spatial_sbig2_long:    the same at 5,000 + 5,000; pairs with
+    #                           no_spatial_long.
+    # no_spatial_sbhc_gt4_long: half-Cauchy(1) with 4 latent traits at
+    #                           5,000 + 5,000; pairs with no_spatial_gt4_long.
+    #
+    # NOT production cells: name them with --scenarios.
+    mk("no_spatial_sbhc",      useSpatField = FALSE, n_supportpoints = NULL,
+                              seed_label = "base",
+                              listPriors = list(sigma_b_prior = "half_cauchy",
+                                                sigma_b_scale = 1)),
+    mk("no_spatial_sbhc_long", useSpatField = FALSE, n_supportpoints = NULL,
+                              seed_label = "base",
+                              listPriors = list(sigma_b_prior = "half_cauchy",
+                                                sigma_b_scale = 1),
+                              MCMCparams = list(nchain = 2, nburn = 5000,
+                                                niter = 5000, nthin = 1)),
+    mk("no_spatial_sbig2",     useSpatField = FALSE, n_supportpoints = NULL,
+                              seed_label = "base",
+                              listPriors = list(a_sigmab = 2, b_sigmab = 1 / 9)),
+    mk("no_spatial_sbig2_long", useSpatField = FALSE, n_supportpoints = NULL,
+                              seed_label = "base",
+                              listPriors = list(a_sigmab = 2, b_sigmab = 1 / 9),
+                              MCMCparams = list(nchain = 2, nburn = 5000,
+                                                niter = 5000, nthin = 1)),
+    mk("no_spatial_sbhc_gt4_long", useSpatField = FALSE, n_supportpoints = NULL,
+                              fit_gt = 4L, seed_label = "base",
+                              listPriors = list(sigma_b_prior = "half_cauchy",
+                                                sigma_b_scale = 1),
+                              MCMCparams = list(nchain = 2, nburn = 5000,
+                                                niter = 5000, nthin = 1)),
+
     # Environmental covariate count. Never varied anywhere before: ncov_psi is
     # 2 in all 21 existing cells, so nothing in the study has ever spoken to
     # how covariate richness affects recovery.

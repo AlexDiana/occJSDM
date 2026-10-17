@@ -174,7 +174,28 @@ and 5 also increased the bias of probabilities between 0.2 and 0.8.
 Occupancy fits share that collection stage and were not tested, and neither
 were continuous fits. The default therefore stays at \code{1}. Keep it for
 occupancy and two-stage data; if you try a larger value for binary data,
-check chain convergence.}
+check chain convergence.
+
+\code{sigma_b_prior} (experimental) selects the prior on \code{sigma_b},
+the standard deviation of each species' environmental responses \code{B}
+around the prediction from its measured and latent traits. The default
+\code{"inverse_gamma"} keeps the previous fixed prior on the variance
+\code{sigma_b}^2, with shape \code{a_sigmab} (default \code{10}) and rate
+\code{b_sigmab} (default \code{1}), so default fits are unchanged. That
+shape weighs like 20 pseudo-observations, as many as the environmental
+responses of 10 species to 2 covariates, so in a small community the
+posterior of \code{sigma_b} stays near the prior's 0.33 whatever the data
+say. A smaller shape with the same prior mean, for example
+\code{a_sigmab = 2} with \code{b_sigmab = 1/9}, keeps the location and
+weakens the pull. \code{"half_cauchy"} instead places a half-Cauchy prior
+on \code{sigma_b} itself, with \code{sigma_b_scale} (default \code{1}) on
+the linear-predictor scale. Each value must be a finite positive number;
+\code{sigma_b_scale} requires the half-Cauchy choice, and \code{a_sigmab}
+and \code{b_sigmab} the inverse-gamma one. The applied prior is saved in
+\code{infos$sigma_b_prior}. A simulation study of this option is recorded
+under \code{dev/simstudy/sigma-b-prior-20261017/} in the source
+repository; it does not establish a recommended setting, and the default
+stays as it was.}
 }
 \value{
 A list with:

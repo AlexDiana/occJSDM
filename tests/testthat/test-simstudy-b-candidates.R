@@ -11,10 +11,14 @@ sc_bc <- function() {
 
 bc_arms <- c("no_spatial_long", "no_factors", "no_factors_fit2",
              "no_spatial_notraits", "no_spatial_gt4", "no_spatial_gt4_long")
+# The sigma_b prior arms (test-simstudy-sigma-b-prior.R) also carry their own
+# chain length or latent-trait count.
+sb_arms <- c("no_spatial_sbhc", "no_spatial_sbhc_long", "no_spatial_sbig2",
+             "no_spatial_sbig2_long", "no_spatial_sbhc_gt4_long")
 
 test_that("only the new arms set fit_gt or their own MCMC settings", {
   sc <- sc_bc()
-  for (s in sc) if (!s$label %in% bc_arms) {
+  for (s in sc) if (!s$label %in% c(bc_arms, sb_arms)) {
     expect_null(s$fit_gt, info = s$label)
     expect_null(s$MCMCparams, info = s$label)
   }

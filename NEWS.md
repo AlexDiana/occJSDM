@@ -2,6 +2,8 @@
 
 ## New features
 
+-   `listPriors` gains an experimental choice of prior for `sigma_b`, the spread of each species' environmental responses around their trait prediction: `sigma_b_prior = "half_cauchy"` with `sigma_b_scale`, or the inverse-gamma default with user-set shape `a_sigmab` and rate `b_sigmab`. The default is unchanged and default fits are identical. The applied prior is saved in `infos$sigma_b_prior`.
+
 -   `runOccJSDM()` can run its chains on separate cores: set `ncores` in `MCMCparams`. `ncores` is the total core budget, so `ncores = 4` runs four chains on four single-threaded workers and `ncores = 8` on four workers of two RcppParallel threads each. A parallel fit prints the `tail -f` command for its progress file. The returned `infos` records the sampling settings, the seeds of every chain and how the fit was run.
 
 ## Behaviour changes

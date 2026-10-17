@@ -413,6 +413,27 @@ create_waic_quantities <- function(n_obs){
 #' occupancy and two-stage data; if you try a larger value for binary data,
 #' check chain convergence.
 #'
+#' \code{sigma_b_prior} (experimental) selects the prior on \code{sigma_b},
+#' the standard deviation of each species' environmental responses \code{B}
+#' around the prediction from its measured and latent traits. The default
+#' \code{"inverse_gamma"} keeps the previous fixed prior on the variance
+#' \code{sigma_b}^2, with shape \code{a_sigmab} (default \code{10}) and rate
+#' \code{b_sigmab} (default \code{1}), so default fits are unchanged. That
+#' shape weighs like 20 pseudo-observations, as many as the environmental
+#' responses of 10 species to 2 covariates, so in a small community the
+#' posterior of \code{sigma_b} stays near the prior's 0.33 whatever the data
+#' say. A smaller shape with the same prior mean, for example
+#' \code{a_sigmab = 2} with \code{b_sigmab = 1/9}, keeps the location and
+#' weakens the pull. \code{"half_cauchy"} instead places a half-Cauchy prior
+#' on \code{sigma_b} itself, with \code{sigma_b_scale} (default \code{1}) on
+#' the linear-predictor scale. Each value must be a finite positive number;
+#' \code{sigma_b_scale} requires the half-Cauchy choice, and \code{a_sigmab}
+#' and \code{b_sigmab} the inverse-gamma one. The applied prior is saved in
+#' \code{infos$sigma_b_prior}. A simulation study of this option is recorded
+#' under \code{dev/simstudy/sigma-b-prior-20261017/} in the source
+#' repository; it does not establish a recommended setting, and the default
+#' stays as it was.
+#'
 #' @section Field-contamination uncertainty:
 #' \code{theta0} is the probability that DNA enters a field sample when
 #' the species is absent from the site. Its default is Beta(1,20), set by
@@ -984,7 +1005,12 @@ runOccJSDM <- function(data,
       "X" = X_psi,
       "Tr" = Tr)
 
+    sigma_b_prior <- read_sigma_b_prior(listPriors)
     a_sigmab <- 10; b_sigmab <- 1
+    if (identical(sigma_b_prior$type,"inverse_gamma")) {
+      a_sigmab <- sigma_b_prior$shape
+      b_sigmab <- sigma_b_prior$rate
+    }
     a_sigmabs <- 10; b_sigmabs <- 1
     spatial_sd_prior <- read_spatial_sd_prior(listPriors,ps>0)
     intercept_prior <- read_intercept_prior(listPriors)
@@ -1000,6 +1026,7 @@ runOccJSDM <- function(data,
     list_priors <- list(
       "a_sigmab" = a_sigmab,
       "b_sigmab" = b_sigmab,
+      "sigma_b_prior" = sigma_b_prior,
       "a_sigmabs" = a_sigmabs,
       "b_sigmabs" = b_sigmabs,
       "spatial_sd_prior" = spatial_sd_prior,
@@ -1299,6 +1326,7 @@ runOccJSDM <- function(data,
   infos$noise_prior <- noise_prior
   infos$spatial_sd_prior <- spatial_sd_prior
   infos$intercept_prior <- intercept_prior
+  infos$sigma_b_prior <- sigma_b_prior
   infos$MCMCparams <- list(nchain = as.integer(nchain), nburn = as.integer(nburn),
                            niter = as.integer(niter), nthin = as.integer(nthin))
   infos$chain_seeds <- seeds
@@ -1331,6 +1359,34 @@ read_intercept_prior <- function(priors) {
   if (!is.numeric(sd) || length(sd) != 1L || !is.finite(sd) || sd <= 0)
     stop("sigma_b0 must be a finite positive number")
   list(mean = 0, sd = unname(sd))
+}
+
+# The prior on sigma_b, the spread of each species' environmental responses
+# around their trait prediction. The inverse-gamma default on sigma_b^2, shape
+# 10 and rate 1, is the previous hard-coded prior, so default fits are
+# unchanged. It is not the spatial-coefficient prior read just below.
+read_sigma_b_prior <- function(priors) {
+  type <- get_param(priors,"sigma_b_prior","inverse_gamma")
+  if (!is.character(type) || length(type)!=1L || is.na(type) ||
+      !type %in% c("half_cauchy","inverse_gamma"))
+    stop("sigma_b_prior must be 'half_cauchy' or 'inverse_gamma'")
+  type <- unname(as.character(type))
+  positive_scalar <- function(name,default) {
+    value <- get_param(priors,name,default)
+    if (!is.numeric(value) || length(value)!=1L || !is.finite(value) || value<=0)
+      stop(name," must be a finite positive number")
+    unname(value)
+  }
+  if (type=="half_cauchy") {
+    if (any(c("a_sigmab","b_sigmab") %in% names(priors)))
+      stop("a_sigmab and b_sigmab require sigma_b_prior = 'inverse_gamma'")
+    list(type=type,scale=positive_scalar("sigma_b_scale",1))
+  } else {
+    if ("sigma_b_scale" %in% names(priors))
+      stop("sigma_b_scale requires sigma_b_prior = 'half_cauchy'")
+    list(type=type,shape=positive_scalar("a_sigmab",10),
+         rate=positive_scalar("b_sigmab",1))
+  }
 }
 
 # This prior controls spatial coefficients, not continuous-response noise.
