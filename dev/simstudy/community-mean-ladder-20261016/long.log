@@ -1,0 +1,29 @@
+2026-10-17 02:50:52: 10 jobs to run at 5000 + 5000
+starting worker pid=59355 on localhost:11449 at 02:50:52.866
+starting worker pid=59353 on localhost:11449 at 02:50:52.867
+starting worker pid=59354 on localhost:11449 at 02:50:52.867
+starting worker pid=59351 on localhost:11449 at 02:50:52.868
+starting worker pid=59356 on localhost:11449 at 02:50:52.869
+starting worker pid=59352 on localhost:11449 at 02:50:52.876
+02:54:43 base_rare_cm_m5 replicate 1 in 227 s
+02:54:56 M5_cm replicate 1 in 240 s
+02:55:01 M5_cm replicate 4 in 245 s
+02:55:02 M5_cm replicate 2 in 246 s
+02:55:02 M5_cm replicate 5 in 246 s
+02:55:04 M5_cm replicate 3 in 248 s
+02:57:47 base_rare_cm_m5 replicate 2 in 184 s
+02:58:04 base_rare_cm_m5 replicate 3 in 188 s
+02:58:04 base_rare_cm_m5 replicate 4 in 183 s
+02:58:07 base_rare_cm_m5 replicate 5 in 185 s
+02:54:56 M5_cm replicate 1 in 240 s
+02:55:02 M5_cm replicate 2 in 246 s
+02:55:04 M5_cm replicate 3 in 248 s
+02:55:01 M5_cm replicate 4 in 245 s
+02:55:02 M5_cm replicate 5 in 246 s
+02:54:43 base_rare_cm_m5 replicate 1 in 227 s
+02:57:47 base_rare_cm_m5 replicate 2 in 184 s
+02:58:04 base_rare_cm_m5 replicate 3 in 188 s
+02:58:04 base_rare_cm_m5 replicate 4 in 183 s
+02:58:07 base_rare_cm_m5 replicate 5 in 185 s
+2026-10-17 02:58:07: finished, 10 files in /Users/douglasyu/src/occJSDM/.claude/worktrees/elastic-cohen-deb516/dev/simstudy/community-mean-ladder-20261016/draws/long
+ALL DONE 2026-10-17 02:58:07 status 0

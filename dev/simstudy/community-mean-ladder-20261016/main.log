@@ -1,0 +1,234 @@
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 9 scenario(s), R = 100, 5 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  [  2%] 20/900 replicates | 5 min elapsed | ~210 min left | cpu/wall 4.5x
+  [  4%] 40/900 replicates | 10 min elapsed | ~207 min left | cpu/wall 4.6x
+  [  7%] 60/900 replicates | 15 min elapsed | ~209 min left | cpu/wall 4.5x
+  [  9%] 80/900 replicates | 20 min elapsed | ~210 min left | cpu/wall 4.5x
+  caffeinate: holding the machine awake until this run exits
+  (a closed lid on battery still sleeps; caffeinate cannot override that)
+simstudy: 9 scenario(s), R = 100, 6 core(s), 1 thread(s)/fit, MCMC 1000+1000 x 2
+  resuming: 80 of 900 replicates already in checkpoint-base-rare-cm-m10-base-rare-cm-m2-c49e8d1c.rds
+  [  3%] 24/820 replicates | 6 min elapsed | ~199 min left | cpu/wall 5.1x
+  [  6%] 48/820 replicates | 12 min elapsed | ~208 min left | cpu/wall 5.1x
+  [  9%] 72/820 replicates | 19 min elapsed | ~204 min left | cpu/wall 4.9x
+  [ 12%] 96/820 replicates | 25 min elapsed | ~189 min left | cpu/wall 5.0x
+  [ 15%] 120/820 replicates | 30 min elapsed | ~174 min left | cpu/wall 5.0x
+  [ 18%] 144/820 replicates | 36 min elapsed | ~168 min left | cpu/wall 5.1x
+  [ 20%] 168/820 replicates | 42 min elapsed | ~159 min left | cpu/wall 5.1x
+  [ 23%] 192/820 replicates | 48 min elapsed | ~149 min left | cpu/wall 5.0x
+  [ 26%] 216/820 replicates | 55 min elapsed | ~151 min left | cpu/wall 5.0x
+  [ 29%] 240/820 replicates | 60 min elapsed | ~146 min left | cpu/wall 5.1x
+  [ 32%] 264/820 replicates | 66 min elapsed | ~141 min left | cpu/wall 5.0x
+  [ 35%] 288/820 replicates | 71 min elapsed | ~131 min left | cpu/wall 5.1x
+  [ 38%] 312/820 replicates | 77 min elapsed | ~124 min left | cpu/wall 5.1x
+  [ 41%] 336/820 replicates | 83 min elapsed | ~113 min left | cpu/wall 5.1x
+  [ 44%] 360/820 replicates | 88 min elapsed | ~106 min left | cpu/wall 5.1x
+  [ 47%] 384/820 replicates | 94 min elapsed | ~100 min left | cpu/wall 5.1x
+  [ 50%] 408/820 replicates | 100 min elapsed | ~97 min left | cpu/wall 5.1x
+  [ 53%] 432/820 replicates | 105 min elapsed | ~90 min left | cpu/wall 5.1x
+  [ 56%] 456/820 replicates | 111 min elapsed | ~85 min left | cpu/wall 5.1x
+  [ 59%] 480/820 replicates | 117 min elapsed | ~83 min left | cpu/wall 5.1x
+  [ 61%] 504/820 replicates | 123 min elapsed | ~76 min left | cpu/wall 5.1x
+  [ 64%] 528/820 replicates | 128 min elapsed | ~69 min left | cpu/wall 5.1x
+  [ 67%] 552/820 replicates | 134 min elapsed | ~64 min left | cpu/wall 5.1x
+  [ 70%] 576/820 replicates | 140 min elapsed | ~59 min left | cpu/wall 5.1x
+  [ 73%] 600/820 replicates | 146 min elapsed | ~53 min left | cpu/wall 5.1x
+  [ 76%] 624/820 replicates | 151 min elapsed | ~47 min left | cpu/wall 5.1x
+  [ 79%] 648/820 replicates | 157 min elapsed | ~43 min left | cpu/wall 5.1x
+  [ 82%] 672/820 replicates | 163 min elapsed | ~37 min left | cpu/wall 5.1x
+  [ 85%] 696/820 replicates | 169 min elapsed | ~31 min left | cpu/wall 5.1x
+  [ 88%] 720/820 replicates | 175 min elapsed | ~25 min left | cpu/wall 5.1x
+  [ 91%] 744/820 replicates | 181 min elapsed | ~19 min left | cpu/wall 5.1x
+  [ 94%] 768/820 replicates | 187 min elapsed | ~13 min left | cpu/wall 5.1x
+  [ 97%] 792/820 replicates | 193 min elapsed | ~7 min left | cpu/wall 5.1x
+  [100%] 816/820 replicates | 198 min elapsed | ~1 min left | cpu/wall 5.1x
+  [100%] 820/820 replicates | 200 min elapsed | ~0 min left | cpu/wall 5.1x
+
+done in 199.6 min; 0 replicate(s) failed
+         scenario      block n_element   R n_checked  coverage          bias
+ base_rare_cm_m10          B        20 100      2000 0.9010000  2.314148e-03
+ base_rare_cm_m10         B0        10 100      1000 0.8670000  3.425429e-01
+ base_rare_cm_m10 beta_theta        20 100      2000 0.9540000 -1.085511e-02
+ base_rare_cm_m10          G         4 100       400 0.9700000 -6.485260e-03
+ base_rare_cm_m10      mu_b0         1 100       100 0.8200000  4.328680e-01
+ base_rare_cm_m10          p        20 100      2000 0.9360000  1.599547e-02
+ base_rare_cm_m10          q        20 100      2000 0.9315000  7.610023e-04
+ base_rare_cm_m10  resid_cor        45 100      3762 0.7631579  1.054047e-02
+ base_rare_cm_m10    sigma_b         1 100       100 1.0000000 -1.988740e-02
+ base_rare_cm_m10     theta0        10 100      1000 0.9390000 -2.001341e-03
+ base_rare_cm_m20          B        20 100      2000 0.8840000 -2.645400e-03
+ base_rare_cm_m20         B0        10 100      1000 0.8210000  3.756684e-01
+ base_rare_cm_m20 beta_theta        20 100      2000 0.9445000 -9.293079e-03
+ base_rare_cm_m20          G         4 100       400 0.9425000 -1.921425e-02
+ base_rare_cm_m20      mu_b0         1 100       100 0.7200000  4.655850e-01
+ base_rare_cm_m20          p        20 100      2000 0.9385000  7.311395e-03
+ base_rare_cm_m20          q        20 100      2000 0.9455000  3.127263e-04
+ base_rare_cm_m20  resid_cor        45 100      3762 0.7631579  1.380195e-02
+ base_rare_cm_m20    sigma_b         1 100       100 1.0000000 -1.878355e-02
+ base_rare_cm_m20     theta0        10 100      1000 0.9580000 -9.237650e-04
+  base_rare_cm_m5          B        20 100      2000 0.9215000 -5.661150e-03
+  base_rare_cm_m5         B0        10 100      1000 0.9270000  1.528865e-01
+  base_rare_cm_m5 beta_theta        20 100      2000 0.9615000  2.794290e-02
+  base_rare_cm_m5          G         4 100       400 0.9600000 -1.793034e-02
+  base_rare_cm_m5      mu_b0         1 100       100 0.9000000  2.477652e-01
+  base_rare_cm_m5          p        20 100      2000 0.9150000  3.071899e-02
+  base_rare_cm_m5          q        20 100      2000 0.9450000  1.325160e-03
+  base_rare_cm_m5  resid_cor        45 100      3762 0.7631579  7.251628e-03
+  base_rare_cm_m5    sigma_b         1 100       100 1.0000000 -2.042840e-02
+  base_rare_cm_m5     theta0        10 100      1000 0.9430000 -3.307300e-03
+    base_rare_m10          B        20 100      2000 0.8150000  2.751946e-03
+    base_rare_m10         B0        10 100      1000 0.4400000  1.300470e+00
+    base_rare_m10 beta_theta        20 100      2000 0.8880000 -1.154079e-01
+    base_rare_m10          G         4 100       400 0.9300000 -6.817126e-03
+    base_rare_m10          p        20 100      2000 0.9410000  1.464927e-02
+    base_rare_m10          q        20 100      2000 0.9335000  6.623058e-04
+    base_rare_m10  resid_cor        45 100      3762 0.7631579  1.348530e-02
+    base_rare_m10    sigma_b         1 100       100 1.0000000 -2.132461e-02
+    base_rare_m10     theta0        10 100      1000 0.9100000 -7.991147e-03
+    base_rare_m20          B        20 100      2000 0.7850000  7.967020e-06
+    base_rare_m20         B0        10 100      1000 0.4540000  9.808468e-01
+    base_rare_m20 beta_theta        20 100      2000 0.9275000 -4.565220e-02
+    base_rare_m20          G         4 100       400 0.8925000 -1.740842e-02
+    base_rare_m20          p        20 100      2000 0.9435000  6.938559e-03
+    base_rare_m20          q        20 100      2000 0.9475000  2.808683e-04
+    base_rare_m20  resid_cor        45 100      3762 0.7631579  1.867325e-02
+    base_rare_m20    sigma_b         1 100       100 1.0000000 -2.077977e-02
+    base_rare_m20     theta0        10 100      1000 0.9420000 -2.797928e-03
+     base_rare_m5          B        20 100      2000 0.8610000 -5.707232e-03
+     base_rare_m5         B0        10 100      1000 0.4130000  1.648296e+00
+     base_rare_m5 beta_theta        20 100      2000 0.8740000 -1.778038e-01
+     base_rare_m5          G         4 100       400 0.9325000 -2.293044e-02
+     base_rare_m5          p        20 100      2000 0.9215000  2.675418e-02
+     base_rare_m5          q        20 100      2000 0.9505000  1.019305e-03
+     base_rare_m5  resid_cor        45 100      3762 0.7631579  8.360136e-03
+     base_rare_m5    sigma_b         1 100       100 1.0000000 -2.190797e-02
+     base_rare_m5     theta0        10 100      1000 0.8940000 -1.552992e-02
+           M10_cm          B        20 100      2000 0.9040000 -8.595836e-03
+           M10_cm         B0        10 100      1000 0.8900000  2.767915e-02
+           M10_cm beta_theta        20 100      2000 0.9525000 -1.315881e-02
+           M10_cm          G         4 100       400 0.9375000 -1.638308e-02
+           M10_cm      mu_b0         1 100       100 0.9900000  1.802635e-02
+           M10_cm          p        20 100      2000 0.9390000  7.295854e-03
+           M10_cm          q        20 100      2000 0.9495000  5.656875e-04
+           M10_cm  resid_cor        45 100      3657 0.7574515 -3.348776e-03
+           M10_cm    sigma_b         1 100       100 1.0000000 -1.864837e-02
+           M10_cm     theta0        10 100      1000 0.9370000 -1.298183e-03
+           M20_cm          B        20 100      2000 0.8940000 -5.940067e-04
+           M20_cm         B0        10 100      1000 0.8700000 -1.416082e-03
+           M20_cm beta_theta        20 100      2000 0.9550000 -1.207036e-04
+           M20_cm          G         4 100       400 0.9275000 -1.799508e-02
+           M20_cm      mu_b0         1 100       100 0.9800000 -1.079638e-02
+           M20_cm          p        20 100      2000 0.9435000  3.829032e-03
+           M20_cm          q        20 100      2000 0.9460000  2.737879e-04
+           M20_cm  resid_cor        45 100      3657 0.7571780 -5.448807e-03
+           M20_cm    sigma_b         1 100       100 1.0000000 -1.792192e-02
+           M20_cm     theta0        10 100      1000 0.9480000  7.643977e-06
+            M5_cm          B        20 100      2000 0.9140000 -2.169696e-02
+            M5_cm         B0        10 100      1000 0.9180000  1.064764e-02
+            M5_cm beta_theta        20 100      2000 0.9605000 -1.297599e-02
+            M5_cm          G         4 100       400 0.9450000 -2.374698e-02
+            M5_cm      mu_b0         1 100       100 0.9400000  8.528117e-04
+            M5_cm          p        20 100      2000 0.9335000  1.500822e-02
+            M5_cm          q        20 100      2000 0.9440000  1.401225e-03
+            M5_cm  resid_cor        45 100      3657 0.7574515 -1.259436e-03
+            M5_cm    sigma_b         1 100       100 1.0000000 -1.906553e-02
+            M5_cm     theta0        10 100      1000 0.9630000 -1.818716e-03
+        rmse
+ 0.650142998
+ 0.777042000
+ 0.334328460
+ 0.394266167
+ 0.579392929
+ 0.039964864
+ 0.003853652
+ 0.671822217
+ 0.020355781
+ 0.013123914
+ 0.571292819
+ 0.711674980
+ 0.223490008
+ 0.391818319
+ 0.587326166
+ 0.026893595
+ 0.002570990
+ 0.643377626
+ 0.019385435
+ 0.008893763
+ 0.767186843
+ 0.836654632
+ 0.457963717
+ 0.434006140
+ 0.565853146
+ 0.061167199
+ 0.005377913
+ 0.692258801
+ 0.020866414
+ 0.018596855
+ 0.756228562
+ 1.615050685
+ 0.426868531
+ 0.407444967
+ 0.039388321
+ 0.003844036
+ 0.673272819
+ 0.022069856
+ 0.015934827
+ 0.676225178
+ 1.248498648
+ 0.262841177
+ 0.401572902
+ 0.026812591
+ 0.002563219
+ 0.650406791
+ 0.021706799
+ 0.009727621
+ 0.847149097
+ 1.938839605
+ 0.555218888
+ 0.445347696
+ 0.058207253
+ 0.005267058
+ 0.692478309
+ 0.022369415
+ 0.023203309
+ 0.594016139
+ 0.591296246
+ 0.168153772
+ 0.427836997
+ 0.313464430
+ 0.027115153
+ 0.004119160
+ 0.623870806
+ 0.019308907
+ 0.019472807
+ 0.519018838
+ 0.467529582
+ 0.104294875
+ 0.408053623
+ 0.263919103
+ 0.018130774
+ 0.002969503
+ 0.539273676
+ 0.018615358
+ 0.012334524
+ 0.698636256
+ 0.718252725
+ 0.254935779
+ 0.427974002
+ 0.403730058
+ 0.039199115
+ 0.006007961
+ 0.677044223
+ 0.019598877
+ 0.025978594
+
+written to /Users/douglasyu/src/occJSDM/.claude/worktrees/elastic-cohen-deb516/dev/simstudy/community-mean-ladder-20261016/results
+
+Read with care:
+  * l_s and sigma_h are NOT in the table: never sampled / not recoverable
+    (TODO.md group A items 1 and 2). Spatial cells say nothing about range.
+  * sigma_b is prior-dominated; its coverage reflects prior-data
+    consistency more than data-driven recovery.
+  * R = 100 gives a coverage SE of 2.2%; do not read differences smaller than that.
+ALL DONE 2026-10-17 02:50:51 status 0

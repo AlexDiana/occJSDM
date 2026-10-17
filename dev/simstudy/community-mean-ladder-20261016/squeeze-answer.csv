@@ -1,0 +1,5 @@
+"community","prior","rungs","mostly_removed_at","removed_at","mostly_removed_monotone","removed_monotone"
+"ordinary","default","2, 3, 5, 10, 20","10","20",TRUE,TRUE
+"ordinary","community","2, 3, 5, 10, 20","10","20",TRUE,TRUE
+"rare","default","2, 3, 5, 10, 20","more than 20","more than 20",TRUE,TRUE
+"rare","community","2, 3, 5, 10, 20","10","20",TRUE,TRUE

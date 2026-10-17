@@ -1,0 +1,11 @@
+step: draws
+launched: 2026-10-16 22:53:17
+revision: 5db941904f513338a59ac659ffd7d92530ef3ac4
+branch: claude/community-mean-ladder
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+settings: replicates 1 to 10 of M5_cm,M10_cm,M20_cm,base_rare_cm_m5,base_rare_cm_m10,base_rare_cm_m20, nburn = 1000, niter = 1000, nchain = 2, cores = 5, threads = 1
+exit status: 0 at 2026-10-16 23:10:54

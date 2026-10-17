@@ -1,0 +1,12 @@
+launch.sh: line 79: 18189 Terminated: 15          "$RSCRIPT" "$WT/dev/simstudy/run_study.R" --pkg="$WT" --cores=5 --R=100 --scenarios="$ALL" --out="$OUT" --caffeinate > main.log 2>&1
+launch.sh: line 83: syntax error near unexpected token `;;'
+launch.sh: line 83: `    ;;'
+launch.sh: line 82: aws.log: command not found
+              arm replicates rhat_under_1.05 rhat_max ess_bulk_median converged
+ base_rare_cm_m10         10              10     1.04           112.9      TRUE
+ base_rare_cm_m20         10               9     1.05           339.0      TRUE
+  base_rare_cm_m5         10               6     1.11            44.9     FALSE
+           M10_cm         10               9     1.05           439.8      TRUE
+           M20_cm         10              10     1.02           970.9      TRUE
+            M5_cm         10               8     1.07           109.1     FALSE
+mu_b0 not converged in: M5_cm, base_rare_cm_m5

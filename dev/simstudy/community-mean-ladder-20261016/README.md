@@ -84,3 +84,7 @@ Logs, provenance, results and draws are ignored while the runs are in flight, so
 Rscript dev/simstudy/community-mean-ladder-20261016/analyse.R
 Rscript dev/simstudy/community-mean-ladder-20261016/mixing.R
 ```
+
+## Results
+
+The refits ran from 22:53 to 23:10 on 16 October 2026, the main run from 23:10 to 02:50 on 17 October with all 900 fits and no failures (5 workers for the first 80 fits, 6 after), and the long chains for `M5_cm` and `base_rare_cm_m5` from 02:50 to 02:58. All 60 refits reproduce their stored rows exactly. With B0's community mean the squeeze is mostly removed at 10 field samples per site and removed at 20 in both communities, as under the default prior in the ordinary community; under the default prior the rare-dominated community is not mostly removed even at 20. B0's intervals undercover at high replication, most in the rare-dominated community with the community mean (coverage 0.82 at 20). The findings are in [REPORT.md](REPORT.md).
