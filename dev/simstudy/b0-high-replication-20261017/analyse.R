@@ -2,7 +2,8 @@
 #   Rscript dev/simstudy/b0-high-replication-20261017/analyse.R
 # Reads the per-fit files in draws/ (diag, interventions and, if present, long) and the stored rows of the arms'
 # original runs. Writes reproduction.csv, species-fits.csv, decomposition.csv, variance-shares.csv,
-# regression.csv, spread-criterion.csv, interventions.csv, hyper.csv and, if the long step ran, long-chains.csv.
+# regression.csv, spread-criterion.csv, interventions.csv, hyper.csv, coverage-attribution.csv and, if the long step
+# ran, long-chains.csv, long-chains-hyper.csv and long-chains-summary.csv.
 here <- if (file.exists("refit_spread.R")) "." else "dev/simstudy/b0-high-replication-20261017"
 source(file.path(here, "common.R"))
 root <- normalizePath(file.path(here, "..", "..", ".."))
@@ -241,4 +242,49 @@ if (length(long_fits)) {
                coverage_short = mean(ds$covered[i]), coverage_long = mean(dl$covered[i]))
   }))
   wcsv(lc, "long-chains.csv")
+}
+
+# 10. Exploratory, not set out in README.md: how much of B0's undercoverage each term accounts for. A term is
+# subtracted from the error and the result compared with 1.96 posterior standard deviations (a Normal approximation
+# of the study's quantile intervals, reported alongside them), and the root mean square of the error in posterior
+# standard deviations is given with and without it. J is systematic given the fit; V and D also carry ordinary
+# estimation noise that a calibrated interval should cover, so only the J rows read as an attribution.
+z <- stats::qnorm(0.975)
+attrib <- do.call(rbind, lapply(split(d, d$job), function(x) data.frame(
+  job = x$job[1], arm = x$arm[1], variant = x$variant[1], species_fits = nrow(x),
+  coverage = mean(x$covered), coverage_normal = mean(abs(x$e) <= z * x$B0_sd),
+  coverage_net_J = mean(abs(x$e - x$J) <= z * x$B0_sd), coverage_net_V = mean(abs(x$e - x$V) <= z * x$B0_sd),
+  coverage_net_D = mean(abs(x$e + x$D) <= z * x$B0_sd),
+  coverage_net_JV = mean(abs(x$e - x$J - x$V) <= z * x$B0_sd),
+  rms_z = sqrt(mean((x$e / x$B0_sd)^2)), rms_z_net_J = sqrt(mean(((x$e - x$J) / x$B0_sd)^2)),
+  rms_z_net_JV = sqrt(mean(((x$e - x$J - x$V) / x$B0_sd)^2)), stringsAsFactors = FALSE)))
+attrib <- attrib[order(match(attrib$arm, arms), attrib$variant), ]
+wcsv(attrib, "coverage-attribution.csv")
+
+# 11. Long chains, if the mixing rule fired: the scale hyperparameters and the spread at both chain lengths, on the
+# same replicates.
+if (length(long_fits)) {
+  hl <- function(fs) do.call(rbind, lapply(fs, function(x) do.call(rbind, lapply(names(x$hyper), function(h)
+    data.frame(job = x$job, replicate = x$replicate, parameter = h, mean = x$hyper[[h]][["mean"]],
+               rhat = x$hyper[[h]][["rhat"]], ess = x$hyper[[h]][["ess"]], stringsAsFactors = FALSE)))))
+  hs <- hl(fits); hlong <- hl(long_fits)
+  hs <- hs[paste(hs$job, hs$replicate) %in% paste(hlong$job, hlong$replicate), ]
+  m <- merge(hs, hlong, by = c("job", "replicate", "parameter"), suffixes = c("_short", "_long"))
+  lh <- do.call(rbind, lapply(split(m, list(m$job, m$parameter), drop = TRUE), function(y) data.frame(
+    job = y$job[1], parameter = y$parameter[1], replicates = nrow(y), mean_short = mean(y$mean_short),
+    mean_long = mean(y$mean_long), ess_median_short = median(y$ess_short), ess_median_long = median(y$ess_long),
+    rhat_max_long = max(y$rhat_long), stringsAsFactors = FALSE)))
+  wcsv(lh, "long-chains-hyper.csv")
+  dl <- species_table(long_fits)
+  dl$key <- paste(dl$job, dl$replicate, dl$species)
+  ds <- d[match(dl$key, paste(d$job, d$replicate, d$species)), ]
+  ls <- do.call(rbind, lapply(split(seq_len(nrow(dl)), dl$job), function(i) data.frame(
+    job = dl$job[i[1]], species_fits = length(i), e_short = mean(ds$e[i]), e_long = mean(dl$e[i]),
+    J_short = mean(ds$J[i]), J_long = mean(dl$J[i]), V_short = mean(ds$V[i]), V_long = mean(dl$V[i]),
+    sd_ratio_short = mean(ds$sd_ratio[i]), sd_ratio_long = mean(dl$sd_ratio[i]),
+    coverage_short = mean(ds$covered[i]), coverage_long = mean(dl$covered[i]),
+    B0_ess_median_long = median(dl$B0_ess[i]), sd_r_ess_median_long = median(dl$sd_r_ess[i]),
+    B0_rhat_over_1.05_long = mean(dl$B0_rhat[i] > 1.05), sd_r_rhat_over_1.05_long = mean(dl$sd_r_rhat[i] > 1.05),
+    stringsAsFactors = FALSE)))
+  wcsv(ls, "long-chains-summary.csv")
 }

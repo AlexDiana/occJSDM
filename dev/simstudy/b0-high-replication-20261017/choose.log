@@ -1,0 +1,18 @@
+              arm replicates species_fits     slope   slope_se        r2
+              M20         40          400 0.9710054 0.16065833 0.1385789
+           M20_cm         40          400 0.9993894 0.14451169 0.1477594
+ base_rare_cm_m20         40          400 0.8653470 0.07230255 0.3688026
+       band_1 n_1       e_1       P_1        band_2 n_2        e_2        P_2
+  (-Inf,-1.5]  25 0.4358197 0.2679516    (1.5, Inf]  27 -0.4433310 -0.2246694
+  (-Inf,-1.5]  25 0.4143951 0.2849229    (1.5, Inf]  27 -0.4556421 -0.2343793
+ (-Inf,-4.25]  27 1.2964075 0.8654643 (-4.25,-3.25]  99  0.6462820  0.4677742
+ a_holds b_holds holds answer shortfall_cov shortfall_site extreme_species_fits
+    TRUE    TRUE  TRUE    yes      1.207916       1.292242                  230
+    TRUE    TRUE  TRUE    yes      1.207916       1.292242                  230
+    TRUE    TRUE  TRUE    yes      1.207916       1.292242                  230
+ remedy
+     d4
+     d4
+     d4
+spread answer: yes; covariate shortfall 1.208, site-level shortfall 1.292; interventions: sb0,d4
+ALL DONE 2026-10-17 08:09:52 status 0

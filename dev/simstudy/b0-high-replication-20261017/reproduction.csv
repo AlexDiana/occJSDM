@@ -1,0 +1,4 @@
+"arm","replicates","rows_compared","unmatched","replicates_identical","max_abs_diff","occupancy_identical","max_rebuild_error"
+"base_rare_cm_m20",40,5752,0,40,0,40,3.44169137633799e-15
+"M20",40,5652,0,40,0,40,4.55191440096314e-15
+"M20_cm",40,5692,0,40,0,40,4.10782519111308e-15

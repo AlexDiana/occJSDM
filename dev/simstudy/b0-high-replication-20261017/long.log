@@ -1,0 +1,119 @@
+                  job species_fits B0_ess_median sd_r_ess_median
+     base_rare_cm_m20          400      150.0922       103.72992
+  base_rare_cm_m20+d4          400      134.7192        83.73177
+ base_rare_cm_m20+sb0          400      119.8677        85.97756
+                  M20          400      261.3137       112.60897
+               M20_cm          400      286.4767       131.07506
+            M20_cm+d4          400      264.7228        93.51990
+           M20_cm+sb0          400      222.7376        94.28831
+               M20+d4          400      251.5520        97.94094
+              M20+sb0          400      236.1720       115.70356
+ B0_rhat_over_1.05 sd_r_rhat_over_1.05 aJ_ess_median m_r_ess_median fails
+            0.1625              0.2950     110.19886       45.21703  TRUE
+            0.1950              0.3425      90.72680       43.28500  TRUE
+            0.2225              0.3525      87.59416       43.08925  TRUE
+            0.0750              0.2700     134.19109       44.13440  TRUE
+            0.0675              0.1975     144.26359       67.65182  TRUE
+            0.0800              0.2875     121.73230       68.25059  TRUE
+            0.0700              0.3025     114.93248       49.76238  TRUE
+            0.0575              0.2375     127.54819       74.69047  TRUE
+            0.0750              0.2000     132.54499       67.40959  TRUE
+long chains for: base_rare_cm_m20, base_rare_cm_m20+d4, base_rare_cm_m20+sb0, M20, M20_cm, M20_cm+d4, M20_cm+sb0, M20+d4, M20+sb0
+2026-10-17 09:40:42: 45 jobs to run at 5000 + 5000
+starting worker pid=36695 on localhost:11974 at 09:40:42.989
+starting worker pid=36693 on localhost:11974 at 09:40:42.989
+starting worker pid=36694 on localhost:11974 at 09:40:42.995
+starting worker pid=36696 on localhost:11974 at 09:40:42.995
+starting worker pid=36692 on localhost:11974 at 09:40:43.003
+09:48:42 base_rare_cm_m20+sb0 replicate 5 in 476 s (rebuild error 7.4e-15)
+09:48:44 base_rare_cm_m20 replicate 1 in 478 s (rebuild error 7.4e-15)
+09:48:52 base_rare_cm_m20+d4 replicate 5 in 486 s (rebuild error 6.9e-15)
+09:48:57 base_rare_cm_m20+d4 replicate 1 in 491 s (rebuild error 7.2e-15)
+09:49:56 M20 replicate 4 in 550 s (rebuild error 9.9e-15)
+09:56:12 base_rare_cm_m20 replicate 2 in 448 s (rebuild error 7.0e-15)
+09:56:34 base_rare_cm_m20+d4 replicate 2 in 457 s (rebuild error 7.4e-15)
+09:56:48 base_rare_cm_m20+sb0 replicate 1 in 476 s (rebuild error 6.9e-15)
+09:57:44 M20 replicate 1 in 542 s (rebuild error 8.0e-15)
+09:58:59 M20 replicate 5 in 544 s (rebuild error 6.8e-15)
+10:04:13 base_rare_cm_m20+sb0 replicate 2 in 445 s (rebuild error 5.3e-15)
+10:04:13 base_rare_cm_m20 replicate 3 in 481 s (rebuild error 6.4e-15)
+10:04:43 base_rare_cm_m20+d4 replicate 3 in 490 s (rebuild error 4.8e-15)
+10:06:57 M20 replicate 2 in 553 s (rebuild error 8.0e-15)
+10:07:57 M20_cm replicate 1 in 538 s (rebuild error 1.0e-14)
+10:12:13 base_rare_cm_m20 replicate 4 in 479 s (rebuild error 9.9e-15)
+10:12:15 base_rare_cm_m20+sb0 replicate 3 in 481 s (rebuild error 5.7e-15)
+10:12:52 base_rare_cm_m20+d4 replicate 4 in 488 s (rebuild error 6.7e-15)
+10:16:01 M20 replicate 3 in 544 s (rebuild error 7.7e-15)
+10:17:09 M20_cm replicate 2 in 553 s (rebuild error 7.8e-15)
+10:20:08 base_rare_cm_m20 replicate 5 in 475 s (rebuild error 7.1e-15)
+10:20:16 base_rare_cm_m20+sb0 replicate 4 in 481 s (rebuild error 7.7e-15)
+10:21:54 M20_cm replicate 3 in 542 s (rebuild error 6.8e-15)
+10:25:17 M20_cm+d4 replicate 3 in 556 s (rebuild error 8.0e-15)
+10:26:23 M20_cm+sb0 replicate 2 in 553 s (rebuild error 7.4e-15)
+10:29:16 M20+sb0 replicate 1 in 540 s (rebuild error 8.0e-15)
+10:29:34 M20+d4 replicate 2 in 567 s (rebuild error 1.0e-14)
+10:31:03 M20_cm replicate 4 in 549 s (rebuild error 8.7e-15)
+10:34:41 M20_cm+d4 replicate 4 in 564 s (rebuild error 7.5e-15)
+10:35:30 M20_cm+sb0 replicate 3 in 547 s (rebuild error 7.7e-15)
+10:38:29 M20+sb0 replicate 2 in 553 s (rebuild error 7.8e-15)
+10:38:46 M20+d4 replicate 3 in 552 s (rebuild error 1.1e-14)
+10:40:00 M20_cm replicate 5 in 537 s (rebuild error 9.1e-15)
+10:43:48 M20_cm+d4 replicate 5 in 546 s (rebuild error 6.2e-15)
+10:44:34 M20_cm+sb0 replicate 4 in 544 s (rebuild error 7.7e-15)
+10:47:28 M20+sb0 replicate 3 in 539 s (rebuild error 8.2e-15)
+10:47:59 M20+d4 replicate 4 in 554 s (rebuild error 9.9e-15)
+10:49:03 M20_cm+d4 replicate 1 in 543 s (rebuild error 6.7e-15)
+10:52:42 M20_cm+sb0 replicate 1 in 534 s (rebuild error 8.3e-15)
+10:53:27 M20_cm+sb0 replicate 5 in 534 s (rebuild error 8.0e-15)
+10:56:06 M20+sb0 replicate 4 in 518 s (rebuild error 9.5e-15)
+10:56:35 M20+d4 replicate 5 in 516 s (rebuild error 8.4e-15)
+10:57:35 M20_cm+d4 replicate 2 in 512 s (rebuild error 1.0e-14)
+11:00:38 M20+d4 replicate 1 in 430 s (rebuild error 7.8e-15)
+11:02:28 M20+sb0 replicate 5 in 383 s (rebuild error 6.9e-15)
+09:48:44 base_rare_cm_m20 replicate 1 in 478 s (rebuild error 7.4e-15)
+09:56:12 base_rare_cm_m20 replicate 2 in 448 s (rebuild error 7.0e-15)
+10:04:13 base_rare_cm_m20 replicate 3 in 481 s (rebuild error 6.4e-15)
+10:12:13 base_rare_cm_m20 replicate 4 in 479 s (rebuild error 9.9e-15)
+10:20:08 base_rare_cm_m20 replicate 5 in 475 s (rebuild error 7.1e-15)
+09:48:57 base_rare_cm_m20+d4 replicate 1 in 491 s (rebuild error 7.2e-15)
+09:56:34 base_rare_cm_m20+d4 replicate 2 in 457 s (rebuild error 7.4e-15)
+10:04:43 base_rare_cm_m20+d4 replicate 3 in 490 s (rebuild error 4.8e-15)
+10:12:52 base_rare_cm_m20+d4 replicate 4 in 488 s (rebuild error 6.7e-15)
+09:48:52 base_rare_cm_m20+d4 replicate 5 in 486 s (rebuild error 6.9e-15)
+09:56:48 base_rare_cm_m20+sb0 replicate 1 in 476 s (rebuild error 6.9e-15)
+10:04:13 base_rare_cm_m20+sb0 replicate 2 in 445 s (rebuild error 5.3e-15)
+10:12:15 base_rare_cm_m20+sb0 replicate 3 in 481 s (rebuild error 5.7e-15)
+10:20:16 base_rare_cm_m20+sb0 replicate 4 in 481 s (rebuild error 7.7e-15)
+09:48:42 base_rare_cm_m20+sb0 replicate 5 in 476 s (rebuild error 7.4e-15)
+09:57:44 M20 replicate 1 in 542 s (rebuild error 8.0e-15)
+10:06:57 M20 replicate 2 in 553 s (rebuild error 8.0e-15)
+10:16:01 M20 replicate 3 in 544 s (rebuild error 7.7e-15)
+09:49:56 M20 replicate 4 in 550 s (rebuild error 9.9e-15)
+09:58:59 M20 replicate 5 in 544 s (rebuild error 6.8e-15)
+10:07:57 M20_cm replicate 1 in 538 s (rebuild error 1.0e-14)
+10:17:09 M20_cm replicate 2 in 553 s (rebuild error 7.8e-15)
+10:21:54 M20_cm replicate 3 in 542 s (rebuild error 6.8e-15)
+10:31:03 M20_cm replicate 4 in 549 s (rebuild error 8.7e-15)
+10:40:00 M20_cm replicate 5 in 537 s (rebuild error 9.1e-15)
+10:49:03 M20_cm+d4 replicate 1 in 543 s (rebuild error 6.7e-15)
+10:57:35 M20_cm+d4 replicate 2 in 512 s (rebuild error 1.0e-14)
+10:25:17 M20_cm+d4 replicate 3 in 556 s (rebuild error 8.0e-15)
+10:34:41 M20_cm+d4 replicate 4 in 564 s (rebuild error 7.5e-15)
+10:43:48 M20_cm+d4 replicate 5 in 546 s (rebuild error 6.2e-15)
+10:52:42 M20_cm+sb0 replicate 1 in 534 s (rebuild error 8.3e-15)
+10:26:23 M20_cm+sb0 replicate 2 in 553 s (rebuild error 7.4e-15)
+10:35:30 M20_cm+sb0 replicate 3 in 547 s (rebuild error 7.7e-15)
+10:44:34 M20_cm+sb0 replicate 4 in 544 s (rebuild error 7.7e-15)
+10:53:27 M20_cm+sb0 replicate 5 in 534 s (rebuild error 8.0e-15)
+11:00:38 M20+d4 replicate 1 in 430 s (rebuild error 7.8e-15)
+10:29:34 M20+d4 replicate 2 in 567 s (rebuild error 1.0e-14)
+10:38:46 M20+d4 replicate 3 in 552 s (rebuild error 1.1e-14)
+10:47:59 M20+d4 replicate 4 in 554 s (rebuild error 9.9e-15)
+10:56:35 M20+d4 replicate 5 in 516 s (rebuild error 8.4e-15)
+10:29:16 M20+sb0 replicate 1 in 540 s (rebuild error 8.0e-15)
+10:38:29 M20+sb0 replicate 2 in 553 s (rebuild error 7.8e-15)
+10:47:28 M20+sb0 replicate 3 in 539 s (rebuild error 8.2e-15)
+10:56:06 M20+sb0 replicate 4 in 518 s (rebuild error 9.5e-15)
+11:02:28 M20+sb0 replicate 5 in 383 s (rebuild error 6.9e-15)
+2026-10-17 11:02:28: finished, 45 files in /Users/douglasyu/src/occJSDM/.claude/worktrees/jovial-morse-1180da/dev/simstudy/b0-high-replication-20261017/draws/long
+ALL DONE 2026-10-17 11:02:28 status 0

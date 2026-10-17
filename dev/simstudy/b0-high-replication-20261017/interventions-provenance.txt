@@ -1,0 +1,11 @@
+step: interventions
+launched: 2026-10-17 08:09:52
+revision: 480f3ce60aa38500d05cdd3e3ef84e1ac6c49237
+branch: claude/b0-high-replication
+dirty files: 1
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+settings: jobs M20+sb0,M20_cm+sb0,base_rare_cm_m20+sb0,M20+d4,M20_cm+d4,base_rare_cm_m20+d4, replicates 1-40, nburn = 1000, niter = 1000, nchain = 2, cores = 5, threads = 1
+exit status: 0 at 2026-10-17 09:40:41
