@@ -1,7 +1,2 @@
 *.pid
-launch.log
-run.log
-provenance.txt
-results/
-analyse.log
-mixing.log
+results/checkpoint-*.rds

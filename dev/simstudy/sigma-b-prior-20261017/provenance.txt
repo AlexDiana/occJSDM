@@ -1,0 +1,14 @@
+launched: 2026-10-17 16:14:27
+revision: 6d1d0c2025a49deb51fadca2fe8d96d9504fa219
+branch: claude/sigma-b-prior
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+load at launch: 4.07 3.94 3.36
+busiest other process: 17.2 /System/Library/ExtensionKit/Extensions/TimeMachineSettings.appex/Contents/MacOS/TimeMachineSettings
+other R fits at launch: 0
+cells: no_spatial_sbhc,no_spatial_sbig2,no_spatial_sbhc_long,no_spatial_sbig2_long,no_spatial_sbhc_gt4_long
+settings: R = 100 per cell, cores = 5, threads = 1, nchain = 2; no_spatial_sbhc and no_spatial_sbig2 nburn = 1000, niter = 1000; no_spatial_sbhc_long, no_spatial_sbig2_long and no_spatial_sbhc_gt4_long nburn = 5000, niter = 5000; no_spatial_sbhc_gt4_long fit_gt = 4; sbhc arms sigma_b_prior = half_cauchy, sigma_b_scale = 1; sbig2 arms a_sigmab = 2, b_sigmab = 1/9
+exit status: 0 at 2026-10-17 18:11:48

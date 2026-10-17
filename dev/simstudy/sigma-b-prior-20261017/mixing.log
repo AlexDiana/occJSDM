@@ -1,0 +1,31 @@
+every new cell fits no_spatial's datasets at all 100 replicates: TRUE 
+35 refits in 9.1 min on 5 workers
+refits reproduce the run: TRUE 
+no_spatial_sbhc            B       draws  2000  bulk ESS p10/med/p90 11 / 50 / 105  tail ESS 41 / 95 / 193  R-hat > 1.01: 0.94  max 1.291
+no_spatial_sbhc            B0      draws  2000  bulk ESS p10/med/p90 24 / 64 / 120  tail ESS 79 / 142 / 261  R-hat > 1.01: 0.86  max 1.132
+no_spatial_sbhc            sigma_b draws  2000  bulk ESS per fit 5 28 24 15 31  tail ESS 43 76 13 70 44  R-hat max 1.307
+no_spatial_sbhc                    posterior mean per fit 0.47 0.36 0.88 0.86 0.52  median 0.40 0.31 0.83 0.76 0.43  2.5% 0.02 0.05 0.03 0.13 0.07  97.5% 1.41 1.01 1.99 2.18 1.49
+no_spatial_sbig2           B       draws  2000  bulk ESS p10/med/p90 14 / 47 / 87  tail ESS 35 / 78 / 178  R-hat > 1.01: 0.92  max 1.281
+no_spatial_sbig2           B0      draws  2000  bulk ESS p10/med/p90 30 / 59 / 106  tail ESS 68 / 144 / 265  R-hat > 1.01: 0.82  max 1.162
+no_spatial_sbig2           sigma_b draws  2000  bulk ESS per fit 149 245 79 109 187  tail ESS 153 417 222 195 442  R-hat max 1.009
+no_spatial_sbig2                   posterior mean per fit 0.29 0.26 0.32 0.31 0.27  median 0.26 0.24 0.28 0.27 0.25  2.5% 0.15 0.14 0.14 0.14 0.14  97.5% 0.64 0.49 0.75 0.68 0.53
+no_spatial_sbhc_long       B       draws 10000  bulk ESS p10/med/p90 69 / 169 / 292  tail ESS 114 / 296 / 631  R-hat > 1.01: 0.72  max 1.090
+no_spatial_sbhc_long       B0      draws 10000  bulk ESS p10/med/p90 158 / 263 / 447  tail ESS 369 / 575 / 1032  R-hat > 1.01: 0.34  max 1.029
+no_spatial_sbhc_long       sigma_b draws 10000  bulk ESS per fit 87 34 48 87 89  tail ESS 93 23 45 68 92  R-hat max 1.043
+no_spatial_sbhc_long               posterior mean per fit 0.47 0.34 0.65 0.80 0.52  median 0.38 0.27 0.61 0.70 0.44  2.5% 0.02 0.00 0.01 0.06 0.03  97.5% 1.47 1.10 1.65 2.03 1.57
+no_spatial_sbig2_long      B       draws 10000  bulk ESS p10/med/p90 91 / 197 / 401  tail ESS 126 / 257 / 635  R-hat > 1.01: 0.56  max 1.060
+no_spatial_sbig2_long      B0      draws 10000  bulk ESS p10/med/p90 179 / 287 / 512  tail ESS 344 / 571 / 1013  R-hat > 1.01: 0.24  max 1.029
+no_spatial_sbig2_long      sigma_b draws 10000  bulk ESS per fit 846 787 688 554 706  tail ESS 1328 1067 997 613 1051  R-hat max 1.002
+no_spatial_sbig2_long              posterior mean per fit 0.29 0.27 0.31 0.32 0.28  median 0.26 0.25 0.27 0.27 0.25  2.5% 0.14 0.14 0.14 0.15 0.14  97.5% 0.60 0.56 0.74 0.78 0.57
+no_spatial_sbhc_gt4_long   B       draws 10000  bulk ESS p10/med/p90 54 / 128 / 252  tail ESS 72 / 171 / 400  R-hat > 1.01: 0.70  max 1.125
+no_spatial_sbhc_gt4_long   B0      draws 10000  bulk ESS p10/med/p90 148 / 252 / 530  tail ESS 359 / 573 / 1036  R-hat > 1.01: 0.30  max 1.038
+no_spatial_sbhc_gt4_long   sigma_b draws 10000  bulk ESS per fit 93 76 99 97 43  tail ESS 113 73 82 136 63  R-hat max 1.037
+no_spatial_sbhc_gt4_long           posterior mean per fit 0.48 0.38 0.55 0.65 0.46  median 0.38 0.28 0.45 0.53 0.31  2.5% 0.02 0.00 0.02 0.04 0.01  97.5% 1.48 1.34 1.58 1.91 1.68
+no_spatial                 B       draws  2000  bulk ESS p10/med/p90 26 / 56 / 110  tail ESS 46 / 102 / 194  R-hat > 1.01: 0.92  max 1.133
+no_spatial                 B0      draws  2000  bulk ESS p10/med/p90 39 / 68 / 108  tail ESS 89 / 154 / 233  R-hat > 1.01: 0.86  max 1.114
+no_spatial                 sigma_b draws  2000  bulk ESS per fit 678 727 618 567 621  tail ESS 837 1250 949 927 823  R-hat max 1.004
+no_spatial                         posterior mean per fit 0.33 0.33 0.33 0.33 0.33  median 0.32 0.32 0.32 0.32 0.32  2.5% 0.24 0.24 0.24 0.24 0.24  97.5% 0.45 0.44 0.47 0.46 0.45
+no_spatial_long            B       draws 10000  bulk ESS p10/med/p90 115 / 230 / 464  tail ESS 176 / 352 / 758  R-hat > 1.01: 0.41  max 1.055
+no_spatial_long            B0      draws 10000  bulk ESS p10/med/p90 173 / 297 / 458  tail ESS 328 / 634 / 1058  R-hat > 1.01: 0.24  max 1.039
+no_spatial_long            sigma_b draws 10000  bulk ESS per fit 3276 2764 2922 2811 2879  tail ESS 4467 4813 3917 4456 4453  R-hat max 1.001
+no_spatial_long                    posterior mean per fit 0.33 0.32 0.34 0.33 0.33  median 0.32 0.32 0.33 0.32 0.32  2.5% 0.24 0.24 0.24 0.24 0.24  97.5% 0.46 0.45 0.47 0.47 0.46

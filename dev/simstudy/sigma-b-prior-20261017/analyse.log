@@ -1,0 +1,344 @@
+replicates per arm:
+              no_spatial          no_spatial_long           no_spatial_gt4 
+                     100                      100                      100 
+     no_spatial_gt4_long          no_spatial_sbhc         no_spatial_sbig2 
+                     100                      100                      100 
+    no_spatial_sbhc_long    no_spatial_sbig2_long no_spatial_sbhc_gt4_long 
+                     100                      100                      100 
+replicates present in all 9 arms: 100
+failed replicates: 0; revision 6d1d0c2, dirty at start FALSE, at write TRUE, moved FALSE
+cell MCMC settings recorded: list(no_spatial_sbhc_long = list(nchain = 2, nburn = 5000, niter = 5000,      nthin = 1), no_spatial_sbig2_long = list(nchain = 2, nburn = 5000,      niter = 5000, nthin = 1), no_spatial_sbhc_gt4_long = list(     nchain = 2, nburn = 5000, niter = 5000, nthin = 1)) 
+elapsed 117.3 min
+truths identical element for element in every block and arm: TRUE (210000 rows compared); any shared posterior means: FALSE
+
+== pairing check (summary)
+                      arm             against n_matched max_abs_truth_diff identical_post_means
+          no_spatial_sbhc          no_spatial     10500                  0                    0
+ no_spatial_sbhc_gt4_long          no_spatial     10500                  0                    0
+     no_spatial_sbhc_long          no_spatial     10500                  0                    0
+         no_spatial_sbig2          no_spatial     10500                  0                    0
+    no_spatial_sbig2_long          no_spatial     10500                  0                    0
+          no_spatial_sbhc      no_spatial_gt4     10500                  0                    0
+ no_spatial_sbhc_gt4_long      no_spatial_gt4     10500                  0                    0
+     no_spatial_sbhc_long      no_spatial_gt4     10500                  0                    0
+         no_spatial_sbig2      no_spatial_gt4     10500                  0                    0
+    no_spatial_sbig2_long      no_spatial_gt4     10500                  0                    0
+          no_spatial_sbhc no_spatial_gt4_long     10500                  0                    0
+ no_spatial_sbhc_gt4_long no_spatial_gt4_long     10500                  0                    0
+     no_spatial_sbhc_long no_spatial_gt4_long     10500                  0                    0
+         no_spatial_sbig2 no_spatial_gt4_long     10500                  0                    0
+    no_spatial_sbig2_long no_spatial_gt4_long     10500                  0                    0
+          no_spatial_sbhc     no_spatial_long     10500                  0                    0
+ no_spatial_sbhc_gt4_long     no_spatial_long     10500                  0                    0
+     no_spatial_sbhc_long     no_spatial_long     10500                  0                    0
+         no_spatial_sbig2     no_spatial_long     10500                  0                    0
+    no_spatial_sbig2_long     no_spatial_long     10500                  0                    0
+
+== coverage by arm (B, B0, G, sigma_b)
+                      arm   block   R coverage      se ci_lower ci_upper mean_width   rmse     bias slope truth_on_mean err_to_width
+               no_spatial       B 100    0.906 0.00789    0.891    0.921      3.065 0.8887  0.00441 0.674         1.096        1.203
+               no_spatial      B0 100    0.928 0.00805    0.912    0.944      3.007 0.8164 -0.15400 0.371         0.975        1.080
+               no_spatial       G 100    0.945 0.01309    0.919    0.971      1.840 0.4588 -0.01069 0.719         0.961        1.017
+               no_spatial sigma_b 100    1.000 0.00000    1.000    1.000      0.214 0.0210 -0.02068    NA            NA        0.390
+          no_spatial_long       B 100    0.922 0.00672    0.909    0.936      3.139 0.8757  0.01077 0.680         1.099        1.148
+          no_spatial_long      B0 100    0.934 0.00794    0.918    0.950      3.046 0.8096 -0.14858 0.369         1.005        1.046
+          no_spatial_long       G 100    0.955 0.01250    0.930    0.980      1.886 0.4587 -0.00921 0.710         0.972        0.999
+          no_spatial_long sigma_b 100    1.000 0.00000    1.000    1.000      0.214 0.0214 -0.02113    NA            NA        0.397
+           no_spatial_gt4       B 100    0.935 0.00637    0.923    0.948      3.636 0.8848  0.01292 0.769         0.958        1.017
+           no_spatial_gt4      B0 100    0.930 0.00859    0.913    0.947      3.072 0.8165 -0.12909 0.371         0.957        1.052
+           no_spatial_gt4       G 100    0.973 0.00863    0.956    0.989      2.163 0.4622 -0.00477 0.699         0.980        0.869
+           no_spatial_gt4 sigma_b 100    1.000 0.00000    1.000    1.000      0.211 0.0229 -0.02278    NA            NA        0.430
+      no_spatial_gt4_long       B 100    0.956 0.00514    0.946    0.966      3.713 0.8636  0.00987 0.769         0.973        0.960
+      no_spatial_gt4_long      B0 100    0.941 0.00753    0.926    0.956      3.120 0.8104 -0.12716 0.368         0.987        1.020
+      no_spatial_gt4_long       G 100    0.983 0.00641    0.970    0.995      2.184 0.4541 -0.01038 0.701         0.992        0.834
+      no_spatial_gt4_long sigma_b 100    1.000 0.00000    1.000    1.000      0.212 0.0228 -0.02274    NA            NA        0.424
+          no_spatial_sbhc       B 100    0.921 0.00682    0.908    0.934      3.272 0.8877  0.00912 0.702         1.047        1.142
+          no_spatial_sbhc      B0 100    0.934 0.00781    0.919    0.949      3.029 0.8146 -0.14193 0.372         0.970        1.067
+          no_spatial_sbhc       G 100    0.945 0.01260    0.920    0.970      1.942 0.4647 -0.01048 0.698         0.976        0.996
+          no_spatial_sbhc sigma_b 100    1.000 0.00000    1.000    1.000      1.527 0.3190  0.22323    NA            NA        0.605
+         no_spatial_sbig2       B 100    0.908 0.00790    0.893    0.923      3.045 0.8930  0.00435 0.669         1.101        1.226
+         no_spatial_sbig2      B0 100    0.926 0.00799    0.910    0.942      3.012 0.8086 -0.14296 0.373         0.993        1.063
+         no_spatial_sbig2       G 100    0.940 0.01237    0.916    0.964      1.831 0.4722 -0.00798 0.706         0.952        1.076
+         no_spatial_sbig2 sigma_b 100    1.000 0.00000    1.000    1.000      0.501 0.0611 -0.05693    NA            NA        0.564
+     no_spatial_sbhc_long       B 100    0.938 0.00578    0.927    0.949      3.361 0.8666  0.00818 0.712         1.050        1.069
+     no_spatial_sbhc_long      B0 100    0.940 0.00752    0.925    0.955      3.072 0.8090 -0.14330 0.370         1.001        1.037
+     no_spatial_sbhc_long       G 100    0.963 0.01088    0.941    0.984      1.994 0.4602 -0.00908 0.707         0.973        0.947
+     no_spatial_sbhc_long sigma_b 100    1.000 0.00000    1.000    1.000      1.563 0.2951  0.22257    NA            NA        0.588
+    no_spatial_sbig2_long       B 100    0.924 0.00665    0.911    0.937      3.119 0.8809  0.01039 0.677         1.098        1.164
+    no_spatial_sbig2_long      B0 100    0.936 0.00718    0.922    0.950      3.042 0.8056 -0.14960 0.371         1.017        1.045
+    no_spatial_sbig2_long       G 100    0.953 0.01106    0.931    0.974      1.879 0.4593 -0.00866 0.713         0.967        1.009
+    no_spatial_sbig2_long sigma_b 100    1.000 0.00000    1.000    1.000      0.506 0.0604 -0.05725    NA            NA        0.532
+ no_spatial_sbhc_gt4_long       B 100    0.954 0.00552    0.943    0.964      3.928 0.8718  0.01382 0.792         0.942        0.930
+ no_spatial_sbhc_gt4_long      B0 100    0.944 0.00701    0.930    0.958      3.140 0.8110 -0.11706 0.366         0.984        1.015
+ no_spatial_sbhc_gt4_long       G 100    0.985 0.00597    0.973    0.997      2.270 0.4563 -0.01604 0.690         1.004        0.812
+ no_spatial_sbhc_gt4_long sigma_b 100    1.000 0.00000    1.000    1.000      1.550 0.2111  0.16578    NA            NA        0.431
+
+== sigma_b posterior by arm
+                      arm   R truth mean_post_mean sd_post_mean min_post_mean max_post_mean mean_lower mean_upper mean_width above_truth coverage coverage_se
+               no_spatial 100  0.35          0.329      0.00376         0.319         0.337     0.2426      0.457      0.214        0.00        1           0
+          no_spatial_long 100  0.35          0.329      0.00358         0.319         0.336     0.2421      0.456      0.214        0.00        1           0
+           no_spatial_gt4 100  0.35          0.327      0.00262         0.321         0.334     0.2417      0.452      0.211        0.00        1           0
+      no_spatial_gt4_long 100  0.35          0.327      0.00179         0.322         0.330     0.2414      0.453      0.212        0.00        1           0
+          no_spatial_sbhc 100  0.35          0.573      0.22910         0.244         1.505     0.0537      1.580      1.527        0.88        1           0
+         no_spatial_sbig2 100  0.35          0.293      0.02225         0.257         0.344     0.1421      0.643      0.501        0.00        1           0
+     no_spatial_sbhc_long 100  0.35          0.573      0.19472         0.244         1.389     0.0306      1.594      1.563        0.90        1           0
+    no_spatial_sbig2_long 100  0.35          0.293      0.01931         0.250         0.350     0.1417      0.648      0.506        0.00        1           0
+ no_spatial_sbhc_gt4_long 100  0.35          0.516      0.13127         0.271         1.087     0.0255      1.576      1.550        0.95        1           0
+
+== paired contrasts
+   block                                                                                    contrast                  minuend            subtrahend   R coverage_diff coverage_diff_se width_ratio
+       B                                                                          half-Cauchy, short          no_spatial_sbhc            no_spatial 100      1.50e-02          0.00580       1.068
+       B                                                                        weak InvGamma, short         no_spatial_sbig2            no_spatial 100      2.00e-03          0.00598       0.994
+       B                                                    half-Cauchy against weak InvGamma, short          no_spatial_sbhc      no_spatial_sbig2 100      1.30e-02          0.00549       1.074
+       B                                                                 half-Cauchy, long (primary)     no_spatial_sbhc_long       no_spatial_long 100      1.55e-02          0.00360       1.071
+       B                                                                         weak InvGamma, long    no_spatial_sbig2_long       no_spatial_long 100      1.50e-03          0.00429       0.993
+       B                                                     half-Cauchy against weak InvGamma, long     no_spatial_sbhc_long no_spatial_sbig2_long 100      1.40e-02          0.00383       1.078
+       B                                                              long chains, given half-Cauchy     no_spatial_sbhc_long       no_spatial_sbhc 100      1.70e-02          0.00434       1.027
+       B                                                            long chains, given weak InvGamma    no_spatial_sbig2_long      no_spatial_sbig2 100      1.60e-02          0.00426       1.024
+       B                                                        long chains, given the default prior          no_spatial_long            no_spatial 100      1.65e-02          0.00537       1.024
+       B                                                 4 latent traits, given half-Cauchy and long no_spatial_sbhc_gt4_long  no_spatial_sbhc_long 100      1.55e-02          0.00453       1.168
+       B                                                 half-Cauchy, given 4 latent traits and long no_spatial_sbhc_gt4_long   no_spatial_gt4_long 100     -2.50e-03          0.00344       1.058
+       B                                             half-Cauchy long against the latent-trait probe     no_spatial_sbhc_long   no_spatial_gt4_long 100     -1.80e-02          0.00405       0.905
+       B                                           4 latent traits, given the default prior and long      no_spatial_gt4_long       no_spatial_long 100      3.35e-02          0.00498       1.183
+       B                 interaction: prior x chain length, (sbhc_long - sbhc) - (long - no_spatial)                                                100      5.00e-04          0.00630       1.003
+       B                                            interaction: prior x chain length, weak InvGamma                                                100     -5.00e-04          0.00694       1.000
+       B interaction: prior x latent traits at long, (sbhc_gt4_long - sbhc_long) - (gt4_long - long)                                                100     -1.80e-02          0.00515       0.988
+      B0                                                                          half-Cauchy, short          no_spatial_sbhc            no_spatial 100      6.00e-03          0.00547       1.008
+      B0                                                                        weak InvGamma, short         no_spatial_sbig2            no_spatial 100     -2.00e-03          0.00568       1.002
+      B0                                                    half-Cauchy against weak InvGamma, short          no_spatial_sbhc      no_spatial_sbig2 100      8.00e-03          0.00563       1.006
+      B0                                                                 half-Cauchy, long (primary)     no_spatial_sbhc_long       no_spatial_long 100      6.00e-03          0.00445       1.009
+      B0                                                                         weak InvGamma, long    no_spatial_sbig2_long       no_spatial_long 100      2.00e-03          0.00402       0.999
+      B0                                                     half-Cauchy against weak InvGamma, long     no_spatial_sbhc_long no_spatial_sbig2_long 100      4.00e-03          0.00346       1.010
+      B0                                                              long chains, given half-Cauchy     no_spatial_sbhc_long       no_spatial_sbhc 100      6.00e-03          0.00509       1.014
+      B0                                                            long chains, given weak InvGamma    no_spatial_sbig2_long      no_spatial_sbig2 100      1.00e-02          0.00461       1.010
+      B0                                                        long chains, given the default prior          no_spatial_long            no_spatial 100      6.00e-03          0.00528       1.013
+      B0                                                 4 latent traits, given half-Cauchy and long no_spatial_sbhc_gt4_long  no_spatial_sbhc_long 100      4.00e-03          0.00511       1.022
+      B0                                                 half-Cauchy, given 4 latent traits and long no_spatial_sbhc_gt4_long   no_spatial_gt4_long 100      3.00e-03          0.00332       1.006
+      B0                                             half-Cauchy long against the latent-trait probe     no_spatial_sbhc_long   no_spatial_gt4_long 100     -1.00e-03          0.00460       0.984
+      B0                                           4 latent traits, given the default prior and long      no_spatial_gt4_long       no_spatial_long 100      7.00e-03          0.00383       1.025
+      B0                 interaction: prior x chain length, (sbhc_long - sbhc) - (long - no_spatial)                                                100      2.20e-18          0.00682       1.001
+      B0                                            interaction: prior x chain length, weak InvGamma                                                100      4.00e-03          0.00602       0.997
+      B0 interaction: prior x latent traits at long, (sbhc_gt4_long - sbhc_long) - (gt4_long - long)                                                100     -3.00e-03          0.00521       0.998
+       G                                                                          half-Cauchy, short          no_spatial_sbhc            no_spatial 100      0.00e+00          0.01005       1.056
+       G                                                                        weak InvGamma, short         no_spatial_sbig2            no_spatial 100     -5.00e-03          0.00869       0.995
+       G                                                    half-Cauchy against weak InvGamma, short          no_spatial_sbhc      no_spatial_sbig2 100      5.00e-03          0.00939       1.061
+       G                                                                 half-Cauchy, long (primary)     no_spatial_sbhc_long       no_spatial_long 100      7.50e-03          0.00557       1.058
+       G                                                                         weak InvGamma, long    no_spatial_sbig2_long       no_spatial_long 100     -2.50e-03          0.00753       0.996
+       G                                                     half-Cauchy against weak InvGamma, long     no_spatial_sbhc_long no_spatial_sbig2_long 100      1.00e-02          0.00607       1.061
+       G                                                              long chains, given half-Cauchy     no_spatial_sbhc_long       no_spatial_sbhc 100      1.75e-02          0.00641       1.027
+       G                                                            long chains, given weak InvGamma    no_spatial_sbig2_long      no_spatial_sbig2 100      1.25e-02          0.00743       1.026
+       G                                                        long chains, given the default prior          no_spatial_long            no_spatial 100      1.00e-02          0.00865       1.025
+       G                                                 4 latent traits, given half-Cauchy and long no_spatial_sbhc_gt4_long  no_spatial_sbhc_long 100      2.25e-02          0.00802       1.138
+       G                                                 half-Cauchy, given 4 latent traits and long no_spatial_sbhc_gt4_long   no_spatial_gt4_long 100      2.50e-03          0.00250       1.040
+       G                                             half-Cauchy long against the latent-trait probe     no_spatial_sbhc_long   no_spatial_gt4_long 100     -2.00e-02          0.00769       0.913
+       G                                           4 latent traits, given the default prior and long      no_spatial_gt4_long       no_spatial_long 100      2.75e-02          0.00933       1.158
+       G                 interaction: prior x chain length, (sbhc_long - sbhc) - (long - no_spatial)                                                100      7.50e-03          0.01149       1.002
+       G                                            interaction: prior x chain length, weak InvGamma                                                100      2.50e-03          0.01151       1.001
+       G interaction: prior x latent traits at long, (sbhc_gt4_long - sbhc_long) - (gt4_long - long)                                                100     -5.00e-03          0.00613       0.983
+ sigma_b                                                                          half-Cauchy, short          no_spatial_sbhc            no_spatial 100      0.00e+00          0.00000       7.125
+ sigma_b                                                                        weak InvGamma, short         no_spatial_sbig2            no_spatial 100      0.00e+00          0.00000       2.338
+ sigma_b                                                    half-Cauchy against weak InvGamma, short          no_spatial_sbhc      no_spatial_sbig2 100      0.00e+00          0.00000       3.048
+ sigma_b                                                                 half-Cauchy, long (primary)     no_spatial_sbhc_long       no_spatial_long 100      0.00e+00          0.00000       7.298
+ sigma_b                                                                         weak InvGamma, long    no_spatial_sbig2_long       no_spatial_long 100      0.00e+00          0.00000       2.364
+ sigma_b                                                     half-Cauchy against weak InvGamma, long     no_spatial_sbhc_long no_spatial_sbig2_long 100      0.00e+00          0.00000       3.088
+ sigma_b                                                              long chains, given half-Cauchy     no_spatial_sbhc_long       no_spatial_sbhc 100      0.00e+00          0.00000       1.024
+ sigma_b                                                            long chains, given weak InvGamma    no_spatial_sbig2_long      no_spatial_sbig2 100      0.00e+00          0.00000       1.010
+ sigma_b                                                        long chains, given the default prior          no_spatial_long            no_spatial 100      0.00e+00          0.00000       0.999
+ sigma_b                                                 4 latent traits, given half-Cauchy and long no_spatial_sbhc_gt4_long  no_spatial_sbhc_long 100      0.00e+00          0.00000       0.992
+ sigma_b                                                 half-Cauchy, given 4 latent traits and long no_spatial_sbhc_gt4_long   no_spatial_gt4_long 100      0.00e+00          0.00000       7.316
+ sigma_b                                             half-Cauchy long against the latent-trait probe     no_spatial_sbhc_long   no_spatial_gt4_long 100      0.00e+00          0.00000       7.377
+ sigma_b                                           4 latent traits, given the default prior and long      no_spatial_gt4_long       no_spatial_long 100      0.00e+00          0.00000       0.989
+ sigma_b                 interaction: prior x chain length, (sbhc_long - sbhc) - (long - no_spatial)                                                100      0.00e+00          0.00000       1.024
+ sigma_b                                            interaction: prior x chain length, weak InvGamma                                                100      0.00e+00          0.00000       1.011
+ sigma_b interaction: prior x latent traits at long, (sbhc_gt4_long - sbhc_long) - (gt4_long - long)                                                100      0.00e+00          0.00000       1.002
+  mse_diff mse_diff_se post_mean_diff post_mean_diff_se slope_minuend slope_subtrahend
+ -1.67e-03    1.40e-02       4.71e-03          0.005815         0.702            0.674
+  7.75e-03    1.06e-02      -5.84e-05          0.005325         0.669            0.674
+ -9.42e-03    1.27e-02       4.77e-03          0.005844         0.702            0.669
+ -1.59e-02    6.09e-03      -2.59e-03          0.002866         0.712            0.680
+  9.05e-03    5.09e-03      -3.78e-04          0.001979         0.677            0.680
+ -2.50e-02    7.26e-03      -2.21e-03          0.002902         0.712            0.677
+ -3.71e-02    1.09e-02      -9.37e-04          0.003820         0.712            0.702
+ -2.16e-02    9.62e-03       6.05e-03          0.004627         0.677            0.669
+ -2.29e-02    8.61e-03       6.37e-03          0.003555         0.680            0.674
+  9.06e-03    1.34e-02       5.64e-03          0.005712         0.792            0.712
+  1.43e-02    8.33e-03       3.95e-03          0.003207         0.792            0.769
+  5.19e-03    1.15e-02      -1.69e-03          0.004829         0.712            0.769
+ -2.11e-02    1.28e-02      -9.01e-04          0.006372         0.769            0.680
+ -1.43e-02    1.45e-02      -7.30e-03          0.005582            NA               NA
+  1.30e-03    1.22e-02      -3.19e-04          0.005295            NA               NA
+  3.02e-02    8.92e-03       6.54e-03          0.003699            NA               NA
+ -2.88e-03    9.42e-03       1.21e-02          0.005087         0.372            0.371
+ -1.26e-02    7.93e-03       1.10e-02          0.005108         0.373            0.371
+  9.70e-03    8.27e-03       1.03e-03          0.005657         0.372            0.373
+ -1.07e-03    3.96e-03       5.29e-03          0.002428         0.370            0.369
+ -6.44e-03    4.08e-03      -1.02e-03          0.002500         0.371            0.369
+  5.37e-03    3.69e-03       6.31e-03          0.002279         0.370            0.371
+ -9.14e-03    7.11e-03      -1.36e-03          0.004247         0.370            0.372
+ -4.80e-03    5.35e-03      -6.64e-03          0.004201         0.371            0.373
+ -1.10e-02    6.76e-03       5.41e-03          0.004051         0.369            0.371
+  3.24e-03    4.33e-03       2.62e-02          0.002742         0.366            0.370
+  9.24e-04    4.55e-03       1.01e-02          0.002489         0.366            0.368
+ -2.32e-03    3.96e-03      -1.61e-02          0.002560         0.370            0.368
+  1.25e-03    4.75e-03       2.14e-02          0.002652         0.368            0.369
+  1.81e-03    9.75e-03      -6.77e-03          0.005887            NA               NA
+  6.15e-03    8.85e-03      -1.21e-02          0.005628            NA               NA
+  2.00e-03    6.00e-03       4.81e-03          0.003321            NA               NA
+  5.51e-03    5.06e-03       2.10e-04          0.005246         0.698            0.719
+  1.25e-02    5.24e-03       2.71e-03          0.005419         0.706            0.719
+ -7.03e-03    5.09e-03      -2.50e-03          0.005135         0.698            0.706
+  1.36e-03    2.93e-03       1.27e-04          0.003026         0.707            0.710
+  5.04e-04    2.53e-03       5.47e-04          0.002556         0.713            0.710
+  8.57e-04    2.91e-03      -4.20e-04          0.002908         0.707            0.713
+ -4.18e-03    3.67e-03       1.41e-03          0.003844         0.707            0.698
+ -1.21e-02    4.05e-03      -6.77e-04          0.004713         0.713            0.706
+ -2.67e-05    4.03e-03       1.49e-03          0.004035         0.710            0.719
+ -3.56e-03    3.58e-03      -6.97e-03          0.003238         0.690            0.707
+  2.06e-03    2.36e-03      -5.66e-03          0.002693         0.690            0.701
+  5.62e-03    2.80e-03       1.31e-03          0.002552         0.707            0.701
+ -4.25e-03    3.16e-03      -1.18e-03          0.003338         0.701            0.710
+ -4.15e-03    6.11e-03      -8.25e-05          0.005874            NA               NA
+ -1.20e-02    5.74e-03      -2.17e-03          0.006294            NA               NA
+  6.98e-04    4.06e-03      -5.79e-03          0.004193            NA               NA
+  1.01e-01    2.03e-02       2.44e-01          0.022727            NA               NA
+  3.29e-03    2.27e-04      -3.63e-02          0.001987            NA               NA
+  9.81e-02    2.04e-02       2.80e-01          0.021725            NA               NA
+  8.66e-02    1.47e-02       2.44e-01          0.019211            NA               NA
+  3.19e-03    1.98e-04      -3.61e-02          0.001632            NA               NA
+  8.34e-02    1.48e-02       2.80e-01          0.017804            NA               NA
+ -1.47e-02    1.01e-02      -6.60e-04          0.012426            NA               NA
+ -8.47e-05    1.39e-04      -3.17e-04          0.001344            NA               NA
+  1.80e-05    1.00e-05      -4.59e-04          0.000242            NA               NA
+ -4.25e-02    8.26e-03      -5.68e-02          0.008902            NA               NA
+  4.40e-02    7.17e-03       1.89e-01          0.013006            NA               NA
+  8.66e-02    1.47e-02       2.45e-01          0.019340            NA               NA
+  6.09e-05    1.05e-05      -1.61e-03          0.000252            NA               NA
+ -1.47e-02    1.01e-02      -2.00e-04          0.012461            NA               NA
+ -1.03e-04    1.39e-04       1.43e-04          0.001375            NA               NA
+ -4.26e-02    8.26e-03      -5.52e-02          0.008777            NA               NA
+
+== B by effect size
+                 scenario     bin coverage   pull width   n coverage_se
+               no_spatial under 1    0.948 -0.151  2.81 917     0.00738
+          no_spatial_long under 1    0.957 -0.153  2.87 917     0.00670
+           no_spatial_gt4 under 1    0.952 -0.255  3.33 917     0.00756
+      no_spatial_gt4_long under 1    0.961 -0.254  3.44 917     0.00648
+          no_spatial_sbhc under 1    0.956 -0.190  3.01 917     0.00677
+         no_spatial_sbig2 under 1    0.953 -0.155  2.80 917     0.00762
+     no_spatial_sbhc_long under 1    0.955 -0.187  3.07 917     0.00709
+    no_spatial_sbig2_long under 1    0.957 -0.155  2.86 917     0.00668
+ no_spatial_sbhc_gt4_long under 1    0.955 -0.287  3.63 917     0.00713
+               no_spatial  1 to 2    0.917  0.310  3.10 605     0.01215
+          no_spatial_long  1 to 2    0.927  0.305  3.19 605     0.01240
+           no_spatial_gt4  1 to 2    0.934  0.146  3.63 605     0.01053
+      no_spatial_gt4_long  1 to 2    0.962  0.141  3.73 605     0.00791
+          no_spatial_sbhc  1 to 2    0.931  0.248  3.34 605     0.01199
+         no_spatial_sbig2  1 to 2    0.926  0.310  3.10 605     0.01285
+     no_spatial_sbhc_long  1 to 2    0.947  0.244  3.42 605     0.01051
+    no_spatial_sbig2_long  1 to 2    0.927  0.305  3.17 605     0.01137
+ no_spatial_sbhc_gt4_long  1 to 2    0.950  0.102  3.97 605     0.00934
+               no_spatial  2 to 3    0.889  0.728  3.35 297     0.02137
+          no_spatial_long  2 to 3    0.902  0.714  3.42 297     0.01891
+           no_spatial_gt4  2 to 3    0.953  0.484  4.05 297     0.01270
+      no_spatial_gt4_long  2 to 3    0.966  0.496  4.05 297     0.01044
+          no_spatial_sbhc  2 to 3    0.899  0.662  3.56 297     0.01813
+         no_spatial_sbig2  2 to 3    0.882  0.742  3.32 297     0.02141
+     no_spatial_sbhc_long  2 to 3    0.933  0.636  3.70 297     0.01467
+    no_spatial_sbig2_long  2 to 3    0.912  0.723  3.42 297     0.01796
+ no_spatial_sbhc_gt4_long  2 to 3    0.980  0.429  4.27 297     0.00814
+               no_spatial  over 3    0.685  1.461  3.78 181     0.03826
+          no_spatial_long  over 3    0.762  1.447  3.87 181     0.03309
+           no_spatial_gt4  over 3    0.829  1.156  4.52 181     0.03026
+      no_spatial_gt4_long  over 3    0.895  1.180  4.47 181     0.02456
+          no_spatial_sbhc  over 3    0.746  1.394  3.89 181     0.03381
+         no_spatial_sbig2  over 3    0.663  1.507  3.65 181     0.03892
+     no_spatial_sbhc_long  over 3    0.829  1.345  4.10 181     0.03163
+    no_spatial_sbig2_long  over 3    0.762  1.460  3.78 181     0.03274
+ no_spatial_sbhc_gt4_long  over 3    0.912  1.114  4.72 181     0.02452
+
+== B by effect size, paired
+                      contrast     bin   n coverage_diff coverage_diff_se
+         sbhc minus no_spatial under 1 917       0.00872          0.00504
+         sbhc minus no_spatial  1 to 2 605       0.01322          0.01035
+         sbhc minus no_spatial  2 to 3 297       0.01010          0.01821
+         sbhc minus no_spatial  over 3 181       0.06077          0.02941
+        sbig2 minus no_spatial under 1 917       0.00545          0.00586
+        sbig2 minus no_spatial  1 to 2 605       0.00826          0.00822
+        sbig2 minus no_spatial  2 to 3 297      -0.00673          0.01848
+        sbig2 minus no_spatial  over 3 181      -0.02210          0.02936
+          sbhc_long minus long under 1 917      -0.00218          0.00438
+          sbhc_long minus long  1 to 2 605       0.01983          0.00631
+          sbhc_long minus long  2 to 3 297       0.03030          0.01217
+          sbhc_long minus long  over 3 181       0.06630          0.02102
+         sbig2_long minus long under 1 917       0.00000          0.00380
+         sbig2_long minus long  1 to 2 605       0.00000          0.00779
+         sbig2_long minus long  2 to 3 297       0.01010          0.01128
+         sbig2_long minus long  over 3 181       0.00000          0.02223
+          sbhc_long minus sbhc under 1 917      -0.00109          0.00424
+          sbhc_long minus sbhc  1 to 2 605       0.01653          0.00902
+          sbhc_long minus sbhc  2 to 3 297       0.03367          0.01389
+          sbhc_long minus sbhc  over 3 181       0.08287          0.02291
+  sbhc_gt4_long minus gt4_long under 1 917      -0.00545          0.00392
+  sbhc_gt4_long minus gt4_long  1 to 2 605      -0.01157          0.00714
+  sbhc_gt4_long minus gt4_long  2 to 3 297       0.01347          0.00672
+  sbhc_gt4_long minus gt4_long  over 3 181       0.01657          0.01666
+ sbhc_gt4_long minus sbhc_long under 1 917       0.00000          0.00438
+ sbhc_gt4_long minus sbhc_long  1 to 2 605       0.00331          0.00778
+ sbhc_gt4_long minus sbhc_long  2 to 3 297       0.04714          0.01213
+ sbhc_gt4_long minus sbhc_long  over 3 181       0.08287          0.02432
+      sbhc_long minus gt4_long under 1 917      -0.00545          0.00523
+      sbhc_long minus gt4_long  1 to 2 605      -0.01488          0.00707
+      sbhc_long minus gt4_long  2 to 3 297      -0.03367          0.01064
+      sbhc_long minus gt4_long  over 3 181      -0.06630          0.02263
+    sbhc_long minus no_spatial under 1 917       0.00763          0.00495
+    sbhc_long minus no_spatial  1 to 2 605       0.02975          0.00822
+    sbhc_long minus no_spatial  2 to 3 297       0.04377          0.01631
+    sbhc_long minus no_spatial  over 3 181       0.14365          0.02977
+
+== chain length
+                  long            short   block    n lower_shift_over_width upper_shift_over_width mean_shift_over_width width_ratio_median covered_flag_changed gained  lost
+  no_spatial_sbhc_long  no_spatial_sbhc       B 2000                0.10035                 0.1011               0.04029              1.040               0.0390 0.0280 0.011
+  no_spatial_sbhc_long  no_spatial_sbhc      B0 1000                0.04436                 0.0585               0.02912              1.017               0.0240 0.0150 0.009
+  no_spatial_sbhc_long  no_spatial_sbhc sigma_b  100                0.02287                 0.1422               0.06047              1.054               0.0000 0.0000 0.000
+ no_spatial_sbig2_long no_spatial_sbig2       B 2000                0.09755                 0.1003               0.03971              1.039               0.0440 0.0300 0.014
+ no_spatial_sbig2_long no_spatial_sbig2      B0 1000                0.04446                 0.0571               0.02971              1.015               0.0220 0.0160 0.006
+ no_spatial_sbig2_long no_spatial_sbig2 sigma_b  100                0.00579                 0.1158               0.02056              1.040               0.0000 0.0000 0.000
+       no_spatial_long       no_spatial       B 2000                0.08852                 0.0927               0.03599              1.035               0.0425 0.0295 0.013
+       no_spatial_long       no_spatial      B0 1000                0.04275                 0.0598               0.03053              1.015               0.0240 0.0150 0.009
+       no_spatial_long       no_spatial sigma_b  100                0.00943                 0.0290               0.00897              0.998               0.0000 0.0000 0.000
+
+== criteria
+ criterion                                                  verdict                 
+ B coverage: half-Cauchy, short                             partly restores         
+ B coverage: weak InvGamma, short                           no effect               
+ B coverage: half-Cauchy, long (primary)                    partly restores         
+ B coverage: weak InvGamma, long                            no effect               
+ B coverage: half-Cauchy, given 4 latent traits and long    no effect               
+ form against weight, short                                 minuend higher by > 2 SE
+ form against weight, long                                  minuend higher by > 2 SE
+ chain length still needed under half-Cauchy                minuend higher by > 2 SE
+ chain length still needed under weak InvGamma              minuend higher by > 2 SE
+ the probe is replaced (sbhc_gt4_long against sbhc_long)    minuend higher by > 2 SE
+ half-Cauchy long against gt4_long                          minuend lower by > 2 SE 
+ sigma_b moves: half-Cauchy, short                          moves                   
+ sigma_b moves: weak InvGamma, short                        moves                   
+ sigma_b moves: half-Cauchy, long (primary)                 moves                   
+ sigma_b moves: weak InvGamma, long                         moves                   
+ sigma_b moves: half-Cauchy, given 4 latent traits and long moves                   
+ detail                                                                                                                                           
+ CI 0.908 to 0.934 contains 0.95: FALSE; gain > 2 SE: TRUE; G 0.945 <= 0.97: TRUE; B0 diff +0.006 (SE 0.005) not below -2 SE: TRUE; over 3: 0.746 
+ CI 0.893 to 0.923 contains 0.95: FALSE; gain > 2 SE: FALSE; G 0.940 <= 0.97: TRUE; B0 diff -0.002 (SE 0.006) not below -2 SE: TRUE; over 3: 0.663
+ CI 0.927 to 0.949 contains 0.95: FALSE; gain > 2 SE: TRUE; G 0.963 <= 0.97: TRUE; B0 diff +0.006 (SE 0.004) not below -2 SE: TRUE; over 3: 0.829 
+ CI 0.911 to 0.937 contains 0.95: FALSE; gain > 2 SE: FALSE; G 0.953 <= 0.97: TRUE; B0 diff +0.002 (SE 0.004) not below -2 SE: TRUE; over 3: 0.762
+ CI 0.943 to 0.964 contains 0.95: TRUE; gain > 2 SE: FALSE; G 0.985 <= 0.97: FALSE; B0 diff +0.003 (SE 0.003) not below -2 SE: TRUE; over 3: 0.912
+ B coverage difference +0.013 (SE 0.005)                                                                                                          
+ B coverage difference +0.014 (SE 0.004)                                                                                                          
+ B coverage difference +0.017 (SE 0.004)                                                                                                          
+ B coverage difference +0.016 (SE 0.004)                                                                                                          
+ B coverage difference +0.015 (SE 0.005)                                                                                                          
+ B coverage difference -0.018 (SE 0.004)                                                                                                          
+ posterior mean 0.573 (SD across replicates 0.229), interval 0.054 to 1.580, covers 0.35 at 1.00; paired shift +0.244 (SE 0.023)                  
+ posterior mean 0.293 (SD across replicates 0.022), interval 0.142 to 0.643, covers 0.35 at 1.00; paired shift -0.036 (SE 0.002)                  
+ posterior mean 0.573 (SD across replicates 0.195), interval 0.031 to 1.594, covers 0.35 at 1.00; paired shift +0.244 (SE 0.019)                  
+ posterior mean 0.293 (SD across replicates 0.019), interval 0.142 to 0.648, covers 0.35 at 1.00; paired shift -0.036 (SE 0.002)                  
+ posterior mean 0.516 (SD across replicates 0.131), interval 0.026 to 1.576, covers 0.35 at 1.00; paired shift +0.189 (SE 0.013)                  
