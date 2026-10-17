@@ -347,10 +347,10 @@ test_that("the community mean recovers a rare community's average intercept", {
   # Binary data, 30 species whose true intercepts are drawn around -2 rather
   # than the fixed prior's 0. The estimated community mean should cover the
   # realised average, and the species' intercepts should be pulled towards it
-  # rather than towards 0. simstudy_shifted_simulator() is in helper-simstudy.R.
+  # rather than towards 0. shifted_b0_simulator() is in helper-shifted-simulator.R.
   set.seed(20261016)
   S <- 30L; n <- 100L
-  sim <- simstudy_shifted_simulator(-2)(
+  sim <- shifted_b0_simulator(-2)(
     list(n = n, S = S, g = 1L, M = rep(1L, n), P = 1L, K = rep(1L, n),
          ncov_psi = 1L, ncov_theta = 1L),
     list(p = matrix(.5, 1, S), q = matrix(.02, 1, S), theta0 = rep(.05, S),
