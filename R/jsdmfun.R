@@ -1228,10 +1228,11 @@ spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
 
 # Conjugate draw of the community mean of the occupancy intercepts, for the
 # experimental b0_prior = "community": B0[s] ~ Normal(mu_b0, sigma_b0^2) for
-# every species and mu_b0 ~ Normal(0, mu_b0_sd^2).
-sample_mu_b0 <- function(B0, sigma_b0, mu_b0_sd) {
+# every species and mu_b0 ~ Normal(mu_b0_mean, mu_b0_sd^2). The centre is the
+# one read_intercept_prior() records, 0 at present.
+sample_mu_b0 <- function(B0, sigma_b0, mu_b0_sd, mu_b0_mean = 0) {
   precision <- 1/mu_b0_sd^2 + length(B0)/sigma_b0^2
-  rnorm(1, sum(B0)/sigma_b0^2/precision, sqrt(1/precision))
+  rnorm(1, (mu_b0_mean/mu_b0_sd^2 + sum(B0)/sigma_b0^2)/precision, sqrt(1/precision))
 }
 
 # Exact categorical update, including the endpoints without proposal weights.
@@ -1383,7 +1384,8 @@ update_jSDMcoef <- function(list_data,
   # update the intercepts' community mean, used by the next iteration's range
   # and coefficient draws
   if (community_b0) {
-    mu_b0 <- sample_mu_b0(B0, sigma_b0, list_priors$intercept_prior$mu_b0_sd)
+    mu_b0 <- sample_mu_b0(B0, sigma_b0, list_priors$intercept_prior$mu_b0_sd,
+                          list_priors$intercept_prior$mu_b0_mean)
   }
 
   # update variance of residuals of environmental covariates

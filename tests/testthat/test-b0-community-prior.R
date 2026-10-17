@@ -36,21 +36,27 @@ test_that("read_intercept_prior keeps the default and validates the community op
 })
 
 test_that("the community mean is drawn from its conjugate conditional", {
-  # B0[s] ~ N(mu, s0^2) and mu ~ N(0, h^2) give mu | B0 ~ N(m, v) with
-  # v = 1 / (1/h^2 + S/s0^2) and m = v * sum(B0) / s0^2.
+  # B0[s] ~ N(mu, s0^2) and mu ~ N(c, h^2) give mu | B0 ~ N(m, v) with
+  # v = 1 / (1/h^2 + S/s0^2) and m = v * (c / h^2 + sum(B0) / s0^2). The
+  # package fixes c at 0, and the draw at c = 0 must be the one that formula
+  # gives without the centre term.
   B0 <- c(-3.1, -2.4, -0.7, -2.9, -1.6)
-  for (case in list(c(1, 2), c(.5, 2), c(1, .3))) {
-    s0 <- case[1]; h <- case[2]
+  for (case in list(c(1, 2, 0), c(.5, 2, 0), c(1, .3, 0), c(1, 2, -1.5))) {
+    s0 <- case[1]; h <- case[2]; cc <- case[3]
     v <- 1 / (1 / h^2 + length(B0) / s0^2)
-    m <- v * sum(B0) / s0^2
+    m <- v * (cc / h^2 + sum(B0) / s0^2)
     set.seed(7)
-    one <- sample_mu_b0(B0, s0, h)
+    one <- if (cc == 0) sample_mu_b0(B0, s0, h) else sample_mu_b0(B0, s0, h, cc)
     set.seed(7)
     expect_equal(one, rnorm(1, m, sqrt(v)), tolerance = 1e-12)
+    if (cc == 0) {
+      set.seed(7)
+      expect_identical(sample_mu_b0(B0, s0, h, 0), one)
+    }
     M <- 20000L
     set.seed(8)
-    draws <- replicate(M, sample_mu_b0(B0, s0, h))
-    info <- paste("sigma_b0 =", s0, "mu_b0_sd =", h)
+    draws <- replicate(M, sample_mu_b0(B0, s0, h, cc))
+    info <- paste("sigma_b0 =", s0, "mu_b0_sd =", h, "mu_b0_mean =", cc)
     expect_lt(abs(mean(draws) - m), 5 * sqrt(v / M), label = info)
     expect_lt(abs(var(draws) / v - 1), 5 * sqrt(2 / (M - 1)), label = info)
   }
@@ -340,6 +346,42 @@ test_that("mu_b0 draws are thinned and reported with the other diagnostics", {
   row <- diag[diag$param == "mu_b0", ]
   expect_identical(nrow(row), 1L)
   expect_equal(row$mean, mean(fit$results_output$jsdm_output$mu_b0_output))
+})
+
+test_that("the option runs on parallel chains and in the continuous and one-stage models", {
+  # On separate cores, run_one_chain() returns mu_b0 from a worker and
+  # runOccJSDM() merges it chain by chain; fit identity across ncores is
+  # test-parallel-chains.R's business and needs a reference BLAS, so this
+  # checks the shape, the values and the record. The fit-level tests above use
+  # the binary and two-stage models; the continuous and one-stage fits follow.
+  sim <- simulate_fixture(model = "two_stage")
+  set.seed(43)
+  fit <- suppressMessages(suppressWarnings(runOccJSDM(sim$data_list,
+    occCovariates = fixture_occ_covariates(), collCovariates = "X_theta",
+    listParams = list(n_factors = 1L, n_lattrait = 1L),
+    listPriors = list(b0_prior = "community"),
+    MCMCparams = list(nchain = 2L, nburn = 5L, niter = 6L, nthin = 1L, ncores = 2L))))
+  expect_identical(fit$infos$execution$workers, 2L)
+  draws <- fit$results_output$jsdm_output$mu_b0_output
+  expect_identical(dim(draws), c(6L, 2L))
+  expect_true(all(is.finite(draws)))
+  expect_false(identical(draws[, 1], draws[, 2]))
+  expect_identical(fit$infos$intercept_prior$type, "community")
+  for (model in c("continuous", "occupancy")) {
+    sim <- if (model == "continuous") simulate_fixture(model = model, M = 1L, P = 1L, K = 1L)
+           else simulate_fixture(model = model)
+    set.seed(44)
+    fit <- suppressMessages(suppressWarnings(runOccJSDM(sim$data_list,
+      occCovariates = fixture_occ_covariates(),
+      listParams = list(n_factors = 1L),
+      listPriors = list(b0_prior = "community", mu_b0_sd = 1.5),
+      MCMCparams = list(nchain = 2L, nburn = 5L, niter = 6L, nthin = 1L))))
+    draws <- fit$results_output$jsdm_output$mu_b0_output
+    expect_identical(dim(draws), c(6L, 2L), info = model)
+    expect_true(all(is.finite(draws)), info = model)
+    expect_true(all(is.finite(fit$results_output$jsdm_output$B0_output)), info = model)
+    expect_identical(fit$infos$intercept_prior$mu_b0_sd, 1.5, info = model)
+  }
 })
 
 test_that("the community mean recovers a rare community's average intercept", {
