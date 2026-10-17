@@ -431,8 +431,13 @@ create_waic_quantities <- function(n_obs){
 #' and \code{b_sigmab} the inverse-gamma one. The applied prior is saved in
 #' \code{infos$sigma_b_prior}. A simulation study of this option is recorded
 #' under \code{dev/simstudy/sigma-b-prior-20261017/} in the source
-#' repository; it does not establish a recommended setting, and the default
-#' stays as it was.
+#' repository. On 100 simulated two-stage communities of 10 species and 2
+#' covariates, the half-Cauchy with scale 1 raised the coverage of \code{B}'s
+#' 95\% intervals from 0.92 to 0.94 at the default chain length, short of
+#' nominal, left the coverage of \code{B0} and \code{G} unchanged, and left
+#' \code{sigma_b} itself poorly identified, with posterior intervals from near
+#' 0 to 1.6; a weaker inverse-gamma changed nothing. The study does not
+#' establish a recommended setting, and the default stays as it was.
 #'
 #' @section Field-contamination uncertainty:
 #' \code{theta0} is the probability that DNA enters a field sample when

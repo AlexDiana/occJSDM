@@ -63,4 +63,4 @@ Monitor with `tail -f run.log`. The log, provenance and results are ignored whil
 
 ## Results
 
-To be written after the run, in [REPORT.md](REPORT.md).
+The run finished on 17 October 2026 at 18:11 with all 500 fits and no failures. A half-Cauchy(1) on `sigma_b` partly restores B: +0.015 (SE 0.006) at 1,000 + 1,000 and +0.016 (SE 0.004) at 5,000 + 5,000 on identical datasets, to 0.938 (0.927 to 0.949) at the package default chain length, with no cost to B0 or G, but short of 0.95 and short of the latent-trait probe, to which it adds nothing. The weak InvGamma(2, 1/9) changes nothing: within the inverse-gamma family `sigma_b`'s posterior is its prior. Under the half-Cauchy `sigma_b` is unidentified (intervals from 0.03 to 1.6). Chain length is still needed and adds. The findings are in [REPORT.md](REPORT.md).
