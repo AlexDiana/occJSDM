@@ -1,0 +1,12 @@
+2026-10-18 14:34:00: 3 jobs to run at 5000 + 500 x 10
+starting worker pid=68193 on localhost:11210 at 14:34:01.051
+starting worker pid=68192 on localhost:11210 at 14:34:01.051
+starting worker pid=68191 on localhost:11210 at 14:34:01.051
+15:00:06 base_rare_cm_s100 replicate 3 in 1558 s
+15:00:22 base_rare_cm_s100 replicate 4 in 1575 s
+15:01:51 base_cm_s100 replicate 2 in 1664 s
+15:00:06 base_rare_cm_s100 replicate 3 in 1558 s
+15:00:22 base_rare_cm_s100 replicate 4 in 1575 s
+15:01:51 base_cm_s100 replicate 2 in 1664 s
+2026-10-18 15:01:51: finished, 3 files in /Users/douglasyu/src/occJSDM/.claude/worktrees/nervous-kirch-56dc48/dev/simstudy/mu-b0-shift-20261018/draws/drift
+ALL DONE 2026-10-18 15:01:51 status 0

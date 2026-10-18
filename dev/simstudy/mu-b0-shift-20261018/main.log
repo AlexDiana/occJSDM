@@ -1,0 +1,28 @@
+2026-10-18 15:01:51: 10 jobs to run at 5000 + 5000
+starting worker pid=76543 on localhost:11100 at 15:01:51.972
+starting worker pid=76539 on localhost:11100 at 15:01:51.973
+starting worker pid=76541 on localhost:11100 at 15:01:51.977
+starting worker pid=76542 on localhost:11100 at 15:01:51.978
+starting worker pid=76540 on localhost:11100 at 15:01:51.982
+15:36:37 base_cm_s100 replicate 2 in 2080 s
+15:36:38 base_cm_s100 replicate 5 in 2081 s
+15:36:44 base_cm_s100 replicate 1 in 2087 s
+15:36:51 base_cm_s100 replicate 3 in 2094 s
+15:36:52 base_cm_s100 replicate 4 in 2095 s
+16:04:15 base_rare_cm_s100 replicate 1 in 1656 s
+16:04:31 base_rare_cm_s100 replicate 2 in 1672 s
+16:04:40 base_rare_cm_s100 replicate 3 in 1675 s
+16:04:41 base_rare_cm_s100 replicate 5 in 1668 s
+16:04:56 base_rare_cm_s100 replicate 4 in 1684 s
+15:36:44 base_cm_s100 replicate 1 in 2087 s
+15:36:37 base_cm_s100 replicate 2 in 2080 s
+15:36:51 base_cm_s100 replicate 3 in 2094 s
+15:36:52 base_cm_s100 replicate 4 in 2095 s
+15:36:38 base_cm_s100 replicate 5 in 2081 s
+16:04:15 base_rare_cm_s100 replicate 1 in 1656 s
+16:04:31 base_rare_cm_s100 replicate 2 in 1672 s
+16:04:40 base_rare_cm_s100 replicate 3 in 1675 s
+16:04:56 base_rare_cm_s100 replicate 4 in 1684 s
+16:04:41 base_rare_cm_s100 replicate 5 in 1668 s
+2026-10-18 16:04:56: finished, 10 files in /Users/douglasyu/src/occJSDM/.claude/worktrees/nervous-kirch-56dc48/dev/simstudy/mu-b0-shift-20261018/draws/main
+ALL DONE 2026-10-18 16:04:56 status 0

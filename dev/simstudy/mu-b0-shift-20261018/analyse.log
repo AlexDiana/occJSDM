@@ -1,0 +1,73 @@
+
+== drift: chain 2 minus chain 1, before and after
+                  fit          quantity difference_before difference_after difference_in_sds_before difference_in_sds_after rhat_before rhat_after ess_bulk_before ess_bulk_after
+      base_cm_s100-02             mu_b0          -0.02554        -2.21e-02                   -0.165                -0.15106       1.056       1.02           39.36            292
+      base_cm_s100-02           mean_B0          -0.02487        -1.64e-02                   -0.218                -0.14631       1.096       1.01           19.38            160
+      base_cm_s100-02          mean_psi          -0.00411        -2.58e-03                   -0.248                -0.15788       1.099       1.01           18.30            145
+      base_cm_s100-02          occupied         -45.92400        -2.36e+01                   -0.283                -0.14740       1.105       1.02           17.90            135
+      base_cm_s100-02          mean_bt0           0.01693         7.05e-04                    0.382                 0.01614       1.101       1.00           18.08            281
+      base_cm_s100-02 mean_logit_theta0           0.00103         2.58e-02                    0.010                 0.24639       1.011       1.02          406.06            269
+ base_rare_cm_s100-03             mu_b0           0.16480        -1.81e-02                    0.861                -0.10772       1.145       1.00           11.42            317
+ base_rare_cm_s100-03           mean_B0           0.15496        -1.84e-02                    0.966                -0.13479       1.188       1.00            9.73            262
+ base_rare_cm_s100-03          mean_psi           0.00429        -7.38e-05                    0.428                -0.00749       1.046       1.00           81.82            336
+ base_rare_cm_s100-03          occupied          42.87800         5.70e-01                    0.448                 0.00601       1.052       1.00           75.34            305
+ base_rare_cm_s100-03          mean_bt0          -0.00906         2.33e-03                   -0.121                 0.03199       1.008       1.00          264.84            534
+ base_rare_cm_s100-03 mean_logit_theta0          -0.02824         4.37e-03                   -0.414                 0.06378       1.031       1.00          137.48            540
+ base_rare_cm_s100-04             mu_b0           0.18402         1.96e-02                    0.942                 0.11803       1.183       1.00            8.03            318
+ base_rare_cm_s100-04           mean_B0           0.18114         1.76e-02                    1.110                 0.12943       1.268       1.00            6.09            251
+ base_rare_cm_s100-04          mean_psi           0.00575         1.89e-03                    0.503                 0.16000       1.046       1.02           44.23            258
+ base_rare_cm_s100-04          occupied          55.02600         1.85e+01                    0.501                 0.16468       1.045       1.02           47.15            242
+ base_rare_cm_s100-04          mean_bt0          -0.00602        -5.53e-03                   -0.085                -0.07876       0.999       1.02          279.38            137
+ base_rare_cm_s100-04 mean_logit_theta0          -0.02109        -8.95e-03                   -0.306                -0.12851       1.017       1.00          204.85            650
+
+== drift: species and the step
+                  fit sd_across_species_of_d_B0_before sd_across_species_of_d_B0_after mean_d_B0_after max_abs_d_B0_after acceptance_chain1 acceptance_chain2 acceptance_burnin_chain1
+      base_cm_s100-02                            0.118                          0.1223         -0.0164              0.390             0.430             0.437                    0.440
+ base_rare_cm_s100-03                            0.110                          0.0958         -0.0184              0.361             0.418             0.435                    0.439
+ base_rare_cm_s100-04                            0.130                          0.0883          0.0176              0.315             0.459             0.449                    0.444
+ acceptance_burnin_chain2 sd_chain1 sd_chain2 proposals elapsed_minutes
+                    0.442     0.111     0.107         5            27.7
+                    0.439     0.132     0.128         5            26.0
+                    0.439     0.116     0.117         5            26.2
+
+== rule
+               arm species community replicates rhat_under_1.05 rhat_max ess_at_least_100 ess_min ess_median pass_strict pass_median
+      base_cm_s100     100  ordinary          5               5    1.008                5  272.72      408.5        TRUE        TRUE
+ base_rare_cm_s100     100      rare          5               5    1.037                4   64.19      312.4       FALSE        TRUE
+
+== fits
+               arm replicate mu_b0_rhat mu_b0_ess_bulk mu_b0_ess_tail mu_b0_sd mu_b0_mean true_b0_mean b0_share_rhat_over_1.05 b0_ess_median bt0_ess_median cor_mu_b0_mean_b0 mean_b0_ess_bulk
+      base_cm_s100         1       1.00          408.5            928    0.155    -0.1226      -0.1042                    0.00           339            729             0.758            242.6
+      base_cm_s100         2       1.01          272.7           1207    0.152    -0.1447      -0.0663                    0.01           316            714             0.750            155.2
+      base_cm_s100         3       1.00          395.3           1111    0.145     0.0331       0.0420                    0.01           379            796             0.725            219.8
+      base_cm_s100         4       1.00          687.0           2378    0.136     0.0432       0.1058                    0.00           398            931             0.680            364.0
+      base_cm_s100         5       1.01          428.5           1268    0.151    -0.1834       0.0216                    0.01           317            750             0.755            255.0
+ base_rare_cm_s100         1       1.01          201.5            383    0.201    -3.1885      -2.8542                    0.00           412            967             0.867            158.0
+ base_rare_cm_s100         2       1.00          312.4            996    0.183    -2.8326      -2.8163                    0.00           391            891             0.835            207.9
+ base_rare_cm_s100         3       1.00          379.1           1105    0.170    -2.6248      -2.7080                    0.00           402            818             0.807            253.6
+ base_rare_cm_s100         4       1.00          383.0           1348    0.166    -2.2973      -2.6442                    0.00           409            736             0.797            252.9
+ base_rare_cm_s100         5       1.04           64.2            207    0.198    -2.8991      -2.7284                    0.01           360            731             0.849             44.3
+ mu_b0_batch_sd_ratio occ_error b0_coverage acceptance_chain1 acceptance_chain2 sd_chain1 sd_chain2 elapsed_minutes
+                0.249  -0.00104        0.95             0.425             0.449    0.1089     0.102            34.8
+                0.251  -0.01284        0.93             0.430             0.437    0.1113     0.107            34.7
+                0.217  -0.00394        0.94             0.453             0.434    0.0960     0.102            34.9
+                0.187  -0.00234        0.90             0.445             0.424    0.0979     0.106            34.9
+                0.177  -0.02738        0.93             0.438             0.440    0.1106     0.106            34.7
+                0.272  -0.05038        0.94             0.425             0.452    0.1529     0.140            27.6
+                0.226  -0.03666        0.94             0.434             0.438    0.1370     0.133            27.9
+                0.230  -0.03979        0.94             0.418             0.435    0.1318     0.128            27.9
+                0.216  -0.01875        0.96             0.459             0.449    0.1158     0.117            28.1
+                0.416  -0.04568        0.94             0.425             0.414    0.1453     0.157            27.8
+
+== before and after
+               arm replicate before.mu_b0_rhat after.mu_b0_rhat before.mu_b0_ess_bulk after.mu_b0_ess_bulk before.mean_b0_ess_bulk after.mean_b0_ess_bulk before.elapsed_minutes after.elapsed_minutes
+      base_cm_s100         1              1.01             1.00                217.36                408.5                  128.79                  242.6                   34.0                  34.8
+      base_cm_s100         2              1.06             1.01                 31.54                272.7                   21.12                  155.2                   34.0                  34.7
+      base_cm_s100         3              1.01             1.00                186.56                395.3                   97.08                  219.8                   34.3                  34.9
+      base_cm_s100         4              1.01             1.00                257.33                687.0                  112.66                  364.0                   34.2                  34.9
+      base_cm_s100         5              1.01             1.01                164.98                428.5                   95.66                  255.0                   33.9                  34.7
+ base_rare_cm_s100         1              1.00             1.01                146.26                201.5                  104.13                  158.0                   27.0                  27.6
+ base_rare_cm_s100         2              1.01             1.00                148.88                312.4                  104.48                  207.9                   27.3                  27.9
+ base_rare_cm_s100         3              1.13             1.00                 13.48                379.1                    9.50                  253.6                   27.3                  27.9
+ base_rare_cm_s100         4              1.19             1.00                  7.87                383.0                    5.98                  252.9                   27.5                  28.1
+ base_rare_cm_s100         5              1.03             1.04                119.79                 64.2                   92.79                   44.3                   27.3                  27.8

@@ -1,0 +1,3 @@
+"arm","species","community","replicates","rhat_under_1.05","rhat_max","ess_at_least_100","ess_min","ess_median","pass_strict","pass_median"
+"base_cm_s100",100,"ordinary",5,5,1.00756531873117,5,272.720896146648,408.453338458415,TRUE,TRUE
+"base_rare_cm_s100",100,"rare",5,5,1.03744596932592,4,64.1857084780544,312.413341861814,FALSE,TRUE

@@ -1,0 +1,13 @@
+step: drift
+launched: 2026-10-18 14:34:00
+revision: 04afeeff2f5411917ab1fe53b6fe19a09d1b7273
+branch: claude/mu-b0-collapsed-shift
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+VECLIB_MAXIMUM_THREADS seen by R: 1
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+other R processes at launch: 0 using over 5% CPU
+settings: base_rare_cm_s100:3,base_rare_cm_s100:4,base_cm_s100:2, nburn = 5000, niter = 500, nthin = 10, nchain = 2, cores = 3, threads = 1, b0_shift at its defaults
+exit status: 0 at 2026-10-18 15:01:51
