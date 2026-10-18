@@ -331,6 +331,16 @@ create_waic_quantities <- function(n_obs){
 #' runs here with its RcppParallel thread count set to \code{ncores} for the
 #' duration and restored afterwards, and no progress file is written. Defaults
 #' to \code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1, ncores = 1)}.
+#' With \code{listPriors$b0_prior = "community"} in an occupancy or two-stage
+#' fit, three further settings control the shift step described under
+#' \code{listPriors}: \code{b0_shift} (logical, default \code{TRUE};
+#' \code{FALSE} switches the step off), \code{b0_shift_sd} (the proposal
+#' standard deviation of the shift, a finite positive number; by default it
+#' starts at \code{2 / sqrt(S)} and is adapted during burn-in towards an
+#' acceptance rate of 0.44, and a given value is used as it is) and
+#' \code{b0_shift_proposals} (the number of proposals per iteration, a whole
+#' number of at least 1, default \code{5}). Any of the three given in another
+#' kind of fit is an error.
 #' @param summarisedLatentPresences (Optional) logical, default \code{TRUE}.
 #' If \code{TRUE}, the returned latent-presence/probability arrays
 #' (\code{z_output}, \code{w_output}, \code{psi_output}, \code{theta_output})
@@ -421,7 +431,17 @@ create_waic_quantities <- function(n_obs){
 #' mean baseline occupancies between 2\% and 98\%. \code{mu_b0} is drawn from
 #' its conjugate conditional distribution each iteration, so the species are
 #' pulled towards their own community's average rather than towards 50\%,
-#' which matters when most species are rare. Its draws are returned in
+#' which matters when most species are rare. In occupancy and two-stage fits
+#' the occupancy states are latent, each species' intercept is pinned only
+#' through them, and the direction in which every intercept and \code{mu_b0}
+#' move together is explored slowly by the Gibbs steps alone. Each iteration
+#' therefore also proposes a common shift of every \code{B0} and of
+#' \code{mu_b0}, accepted by Metropolis under the first-stage likelihood with
+#' the occupancy states integrated out, immediately before those states are
+#' drawn afresh; the settings \code{b0_shift}, \code{b0_shift_sd} and
+#' \code{b0_shift_proposals} of \code{MCMCparams} control it, and the
+#' proposal scale and acceptance rates of each chain are recorded in
+#' \code{infos$b0_shift}. Its draws are returned in
 #' \code{results_output$jsdm_output$mu_b0_output}, a \code{niter} by
 #' \code{nchain} array, and the applied prior is saved in
 #' \code{infos$intercept_prior}. The default, \code{b0_prior = "fixed"},
@@ -496,7 +516,12 @@ create_waic_quantities <- function(n_obs){
 #'   \code{\link{plotOccupancyRates}}, \code{\link{plotDetectionRates}}). It
 #'   also records \code{MCMCparams} (the resolved \code{nchain}, \code{nburn},
 #'   \code{niter} and \code{nthin}), \code{chain_seeds} (a 2 by \code{nchain}
-#'   matrix of the R and C++ seeds of each chain) and \code{execution} (how
+#'   matrix of the R and C++ seeds of each chain), \code{b0_shift} (present
+#'   only when \code{b0_prior = "community"} in an occupancy or two-stage fit:
+#'   whether the shift step was enabled and, when it was, its proposals per
+#'   iteration, whether the proposal sd was adapted, and each chain's final
+#'   proposal sd and acceptance rates over the kept iterations and over
+#'   burn-in) and \code{execution} (how
 #'   the fit was run: \code{ncores}, \code{workers}, \code{threads_per_worker},
 #'   \code{thread_setting} (\code{"budget"} or \code{"ambient"}),
 #'   \code{blas_threads_requested} (the BLAS thread settings requested of the
@@ -1034,6 +1059,8 @@ runOccJSDM <- function(data,
     a_sigmabs <- 10; b_sigmabs <- 1
     spatial_sd_prior <- read_spatial_sd_prior(listPriors,ps>0)
     intercept_prior <- read_intercept_prior(listPriors)
+    # NULL unless b0_prior = "community" in an occupancy or two-stage fit.
+    b0_shift <- read_b0_shift(MCMCparams, intercept_prior, model)
     a_sigmah <- 10; b_sigmah <- 1
     a_tau <- 5; b_tau <- 5
     noise_prior <- if (model == "continuous") read_noise_prior(listPriors) else NULL
@@ -1160,6 +1187,7 @@ runOccJSDM <- function(data,
   latent_sums <- NULL
   waic_parts <- vector("list", nchain)
   elapsed <- rep(NA_real_, nchain)
+  shift_parts <- vector("list", nchain)
   batches <- split(seq_len(nchain), ceiling(seq_len(nchain) / budget$workers))
   for (batch in batches) {
     results <- run_chain_batch(handle, batch, seeds)
@@ -1208,6 +1236,7 @@ runOccJSDM <- function(data,
       latent_sums <- add_latent_sums(latent_sums, res$latent_sums)
       waic_parts[chain] <- list(res$waic)
       elapsed[chain] <- res$elapsed
+      shift_parts[chain] <- list(res$b0_shift)
       rm(dr)
     }
     rm(results, res)
@@ -1356,6 +1385,9 @@ runOccJSDM <- function(data,
   infos$spatial_sd_prior <- spatial_sd_prior
   infos$intercept_prior <- intercept_prior
   infos$collection_intercept_prior <- collection_intercept_prior
+  # Present only when the community prior is on in an occupancy or two-stage
+  # fit, so default fits keep their shape.
+  infos$b0_shift <- b0_shift_record(b0_shift, shift_parts)
   infos$MCMCparams <- list(nchain = as.integer(nchain), nburn = as.integer(nburn),
                            niter = as.integer(niter), nthin = as.integer(nthin))
   infos$chain_seeds <- seeds
