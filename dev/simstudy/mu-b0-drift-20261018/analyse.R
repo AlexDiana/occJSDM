@@ -11,6 +11,12 @@
 #   chain-difference.csv per fit: chain 2 minus chain 1 of the mean over
 #                        draws of each quantity, its ratio to the B0
 #                        difference, and the posterior sd
+#   pairs.csv            per fit: site-species pairs by their number of PCR
+#                        replicates with reads, how many are occupied in each
+#                        chain, and the chain difference
+#   site-level.csv       per fit: each term's first-order contribution to the
+#                        chain difference in mean psi, against the observed
+#                        one, and how much each term's shift varies over sites
 #   species.csv          per fit and species: the chain difference of B0 and
 #                        of the site-mean of each term, of occupied sites and
 #                        of psi, with the truth and the detections
@@ -67,24 +73,40 @@ summarise_fit <- function(x) {
   S <- dim(d$B0)[1]; Tn <- dim(d$B0)[2]; nch <- dim(d$B0)[3]; n <- nrow(des$X_psi)
   nf <- dim(d$U)[2]
   qn <- c("mu_b0", "mean_B0", "mean_XB", "mean_SE", "mean_UL", "mean_eta", "mean_psi",
-          "occupied", "mean_bt0", "mean_logit_theta0", "mean_logit_p",
+          "occupied", "occupied_reads0", "occupied_reads1", "occupied_reads2plus", "psi_reads0",
+          "mean_bt0", "mean_logit_theta0", "mean_logit_p",
           paste0("mean_U", seq_len(nf)), "sigmah", "sigmabs", "l_s", "eta_check")
+  # Site-species pairs by the number of PCR replicates with reads (of the
+  # 18 per pair): none, one, or two or more. PCR false positives are drawn at
+  # q of 0.01 to 0.05 per replicate, so a single positive replicate leaves z
+  # uncertain; two or more all but fix it at 1.
+  reads <- vapply(seq_len(S), function(j) as.numeric(tapply(x$OTU[, j] > 0, x$info$Site, sum)),
+                  numeric(n))
+  r0 <- reads == 0; r1 <- reads == 1; r2 <- reads >= 2
   draws <- array(NA_real_, c(Tn, nch, length(qn)), dimnames = list(NULL, NULL, qn))
   spn <- c("B0", "XB", "SE", "UL", "eta", "occ", "psi")
   species <- array(NA_real_, c(S, Tn, nch, length(spn)), dimnames = list(NULL, NULL, NULL, spn))
+  # Per site-species pair and chain, the mean over draws of each site-level
+  # term, of eta, psi and z, and of psi (1 - psi), the slope of psi in eta.
+  pn <- c("SE", "UL", "eta", "psi", "z", "psi_1mpsi")
+  pairs <- array(0, c(n, S, nch, length(pn)), dimnames = list(NULL, NULL, NULL, pn))
   for (ch in seq_len(nch)) for (t in seq_len(Tn)) {
     e <- eta_terms(d, des, t, ch)
     psi <- d$psi[, , t, ch]; z <- d$z[, , t, ch]
+    pairs[, , ch, ] <- pairs[, , ch, ] + c(e$SE, e$UL, e$eta, psi, z, psi * (1 - psi)) / Tn
     species[, t, ch, ] <- cbind(e$B0, colMeans(e$XB), colMeans(e$SE), colMeans(e$UL),
                                 colMeans(e$eta), colSums(z), colMeans(psi))
     draws[t, ch, ] <- c(d$mu_b0[t, ch], mean(e$B0), mean(e$XB), mean(e$SE), mean(e$UL),
-                        mean(e$eta), mean(psi), sum(z), mean(d$beta_theta0[, t, ch]),
+                        mean(e$eta), mean(psi), sum(z), sum(z[r0]), sum(z[r1]), sum(z[r2]),
+                        mean(psi[r0]), mean(d$beta_theta0[, t, ch]),
                         mean(qlogis(d$theta0[, t, ch])), mean(qlogis(d$p[, , t, ch])),
                         colMeans(matrix(d$U[, , t, ch], nrow = n)),
                         d$sigmah[t, ch], d$sigmabs[t, ch], des$l_s_grid[d$idx_ls[t, ch]],
                         max(abs(plogis(e$eta) - psi)))
   }
-  list(draws = draws, species = species)
+  list(draws = draws, species = species, pair_means = pairs,
+       pairs = data.frame(reads = c("0", "1", "2 or more"), n_pairs = c(sum(r0), sum(r1), sum(r2))),
+       mean_psi_1mpsi = mean(d$psi * (1 - d$psi)))
 }
 summaries <- lapply(fits, summarise_fit)
 eta_check <- vapply(summaries, function(sm) max(sm$draws[, , "eta_check"]), 0)
@@ -103,6 +125,49 @@ chain_difference <- do.call(rbind, lapply(names(fits), function(key) {
 }))
 chain_difference <- chain_difference[chain_difference$quantity != "eta_check", ]
 write.csv(chain_difference, file.path(out, "chain-difference.csv"), row.names = FALSE)
+
+# --- Where the latent states move: pairs by their reads --------------------
+pairs <- do.call(rbind, lapply(names(fits), function(key) {
+  sm <- summaries[[key]]; dr <- sm$draws
+  q <- c("occupied_reads0", "occupied_reads1", "occupied_reads2plus")
+  data.frame(fit = key, reads = sm$pairs$reads, n_pairs = sm$pairs$n_pairs,
+             occupied_chain1 = colMeans(dr[, 1, q]), occupied_chain2 = colMeans(dr[, 2, q]),
+             difference = colMeans(dr[, 2, q]) - colMeans(dr[, 1, q]),
+             posterior_sd = apply(dr[, , q], 3, sd),
+             mean_psi_1mpsi_all_pairs = sm$mean_psi_1mpsi, row.names = NULL)
+}))
+write.csv(pairs, file.path(out, "pairs.csv"), row.names = FALSE)
+
+# --- Does a site-level redistribution of the terms absorb the shift? -------
+# The site means above cannot see a term that moves up where psi is
+# insensitive to eta and down where it is sensitive. To first order the
+# chain difference in mean psi is the mean over pairs of psi (1 - psi) times
+# the pair's shift in eta, and that shift is the species' B0 shift plus the
+# pair's shifts in the spatial and factor terms. Each term's contribution to
+# the psi difference, against the observed one; the within-species sd over
+# sites of each term's shift; and the correlation over pairs of each term's
+# shift with the pair's psi (1 - psi).
+site_level <- do.call(rbind, lapply(names(fits), function(key) {
+  pm <- summaries[[key]]$pair_means; sp <- summaries[[key]]$species
+  w <- (pm[, , 1, "psi_1mpsi"] + pm[, , 2, "psi_1mpsi"]) / 2
+  dB0 <- rowMeans(sp[, , 2, "B0"]) - rowMeans(sp[, , 1, "B0"])
+  dB0_pairs <- matrix(dB0, nrow(w), ncol(w), byrow = TRUE)
+  dSE <- pm[, , 2, "SE"] - pm[, , 1, "SE"]; dUL <- pm[, , 2, "UL"] - pm[, , 1, "UL"]
+  deta <- pm[, , 2, "eta"] - pm[, , 1, "eta"]
+  dpsi <- pm[, , 2, "psi"] - pm[, , 1, "psi"]
+  within_sd <- function(m) mean(apply(m, 2, sd))
+  data.frame(fit = key,
+             statistic = c("psi_difference_from_B0_shift", "psi_difference_from_SE_shift",
+                           "psi_difference_from_UL_shift", "psi_difference_first_order",
+                           "psi_difference_observed", "within_species_site_sd_of_d_SE",
+                           "within_species_site_sd_of_d_UL", "cor_over_pairs_d_SE_with_psi_1mpsi",
+                           "cor_over_pairs_d_UL_with_psi_1mpsi", "cor_over_pairs_d_eta_with_psi_1mpsi",
+                           "mean_psi_1mpsi"),
+             value = c(mean(w * dB0_pairs), mean(w * dSE), mean(w * dUL), mean(w * deta),
+                       mean(dpsi), within_sd(dSE), within_sd(dUL), cor(as.vector(dSE), as.vector(w)),
+                       cor(as.vector(dUL), as.vector(w)), cor(as.vector(deta), as.vector(w)), mean(w)))
+}))
+write.csv(site_level, file.path(out, "site-level.csv"), row.names = FALSE)
 
 # --- Species by species --------------------------------------------------------
 species <- do.call(rbind, lapply(names(fits), function(key) {
@@ -142,8 +207,8 @@ partners <- do.call(rbind, lapply(names(fits), function(key) {
     rows[[length(rows) + 1]] <- row("across_species_cor_of_d_B0_with", tm, cor(sp$d_B0, sp[[tm]]))
   }
   within <- function(a, b) mean(vapply(seq_len(dim(dr)[2]), function(ch) cor(dr[, ch, a], dr[, ch, b]), 0))
-  terms <- c("mean_XB", "mean_SE", "mean_UL", "mean_eta", "mean_psi", "occupied", "mean_bt0",
-             "mean_logit_theta0", "mean_U1", "mean_U2")
+  terms <- c("mean_XB", "mean_SE", "mean_UL", "mean_eta", "mean_psi", "occupied",
+             "occupied_reads0", "occupied_reads1", "mean_bt0", "mean_logit_theta0", "mean_U1", "mean_U2")
   for (tm in intersect(terms, dimnames(dr)[[3]])) {
     rows[[length(rows) + 1]] <- row("within_chain_cor_with_mean_B0", tm, within("mean_B0", tm))
     rows[[length(rows) + 1]] <- row("within_chain_cor_with_mu_b0", tm, within("mu_b0", tm))

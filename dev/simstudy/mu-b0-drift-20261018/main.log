@@ -1,0 +1,12 @@
+2026-10-18 13:08:25: 3 jobs to run at 5000 + 500 x 10
+starting worker pid=43171 on localhost:11979 at 13:08:26.056
+starting worker pid=43172 on localhost:11979 at 13:08:26.056
+starting worker pid=43173 on localhost:11979 at 13:08:26.056
+13:28:07 base_rare_cm_s100 replicate 3 in 1174 s
+13:28:41 base_rare_cm_s100 replicate 4 in 1209 s
+13:29:43 base_cm_s100 replicate 2 in 1271 s
+13:28:07 base_rare_cm_s100 replicate 3 in 1174 s
+13:28:41 base_rare_cm_s100 replicate 4 in 1209 s
+13:29:43 base_cm_s100 replicate 2 in 1271 s
+2026-10-18 13:29:43: finished, 3 files in /Users/douglasyu/src/occJSDM/.claude/worktrees/stoic-volhard-8d403c/dev/simstudy/mu-b0-drift-20261018/draws/main
+ALL DONE 2026-10-18 13:29:43 status 0

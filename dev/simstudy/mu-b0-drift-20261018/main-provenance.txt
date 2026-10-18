@@ -1,0 +1,12 @@
+step: main
+launched: 2026-10-18 13:08:25
+revision: cc94c98f50674fa655bf2d0bac4968cdf1031ff2
+branch: claude/mu-b0-drift-diagnostic
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+VECLIB_MAXIMUM_THREADS seen by R: 1
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+settings: base_rare_cm_s100:3,base_rare_cm_s100:4,base_cm_s100:2, nburn = 5000, niter = 500, nthin = 10, nchain = 2, cores = 3, threads = 1
+exit status: 0 at 2026-10-18 13:29:43

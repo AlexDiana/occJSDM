@@ -42,3 +42,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh launch.sh m
 ```
 
 `analyse.R` then writes the tables and plots, and the findings go in REPORT.md.
+
+## Results
+
+The check ran at 13:07 and the main step from 13:08 to 13:30 on 18 October 2026, with no failed fit; the stored draws of all three fits equal the main run's at every 10th iteration. No term of the predictor compensates: the intercept shift goes into eta, psi and the occupied latent states, and the recommended move is a collapsed Metropolis shift of `mu_b0` and all the B0 with z integrated out. The findings are in [REPORT.md](REPORT.md).

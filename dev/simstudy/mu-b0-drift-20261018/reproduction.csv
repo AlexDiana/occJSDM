@@ -1,0 +1,16 @@
+"fit","quantity","n","max_abs_difference","identical"
+"base_cm_s100-02","mu_b0",1000,0,TRUE
+"base_cm_s100-02","B0",100000,0,TRUE
+"base_cm_s100-02","beta_theta0",100000,0,TRUE
+"base_cm_s100-02","theta0",100000,0,TRUE
+"base_cm_s100-02","p",200000,0,TRUE
+"base_rare_cm_s100-03","mu_b0",1000,0,TRUE
+"base_rare_cm_s100-03","B0",100000,0,TRUE
+"base_rare_cm_s100-03","beta_theta0",100000,0,TRUE
+"base_rare_cm_s100-03","theta0",100000,0,TRUE
+"base_rare_cm_s100-03","p",200000,0,TRUE
+"base_rare_cm_s100-04","mu_b0",1000,0,TRUE
+"base_rare_cm_s100-04","B0",100000,0,TRUE
+"base_rare_cm_s100-04","beta_theta0",100000,0,TRUE
+"base_rare_cm_s100-04","theta0",100000,0,TRUE
+"base_rare_cm_s100-04","p",200000,0,TRUE
