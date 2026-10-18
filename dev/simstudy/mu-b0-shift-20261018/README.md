@@ -1,0 +1,46 @@
+# The collapsed shift of the community's occupancy intercepts, 18 October 2026
+
+The 100-species mixing check ([b0-community-s100-20261018](../b0-community-s100-20261018/README.md)) found that with `b0_prior = "community"` the community mean `mu_b0` failed its pre-registered rule at the package default of 5,000 + 5,000 iterations: R-hat over 1.05 in 3 of 10 two-stage fits (ordinary replicate 2 and rare replicates 3 and 4, R-hat 1.060 to 1.189, bulk ESS 8 to 32). The diagnostic that followed ([mu-b0-drift-20261018](../mu-b0-drift-20261018/REPORT.md)) showed that no term of the occupancy linear predictor compensates the chain-to-chain shift in every species' B0: the shift goes straight into eta, psi and the latent occupancy states z, each B0 is sharp given z (sd 0.22 to 0.24) but broad otherwise (0.70 to 0.80), and the sampler walks the common direction one flipped site at a time. It recommended a collapsed Metropolis shift of `mu_b0` and all the B0 with z integrated out. This study implements that step and reruns both checks with it on.
+
+## The step
+
+Implemented in `R/b0_shift.R` and placed in `run_one_chain()` (R/chains.R) immediately before the z draw at the top of the iteration, on only when `b0_prior = "community"` in an occupancy or two-stage fit.
+
+-   Proposal: delta from Normal(0, sd^2); every B0_s becomes B0_s + delta and `mu_b0` becomes `mu_b0` + delta. The deviations B0_s - `mu_b0` are unchanged, so the Normal(`mu_b0`, `sigma_b0`^2) prior terms of the B0 cancel and only the hyperprior Normal(0, `mu_b0_sd`^2) ratio of `mu_b0` enters.
+-   Acceptance: the product over sites and species of \[psi' L1 + (1 - psi') L0\] over \[psi L1 + (1 - psi) L0\] times the hyperprior ratio, where psi' = logistic(eta + delta), L1 is the probability of the site's field-sample outcomes w given z = 1 (Bernoulli in theta) and L0 given z = 0 (Bernoulli in theta0), the per-pair quantities `sample_z_cpp_parallel()` forms for the z draw. Formed on the log scale. The z draw that follows, from its full conditional at the shifted eta, is what makes the partially collapsed step valid; the Polya-Gamma variables need nothing because `update_jSDMcoef()` draws them afresh from eta each iteration.
+-   Settings, in `MCMCparams`: `b0_shift` (default TRUE), `b0_shift_sd` (the proposal sd; by default it starts at 2 / sqrt(S) and is adapted during burn-in by a Robbins-Monro recursion on its log towards an acceptance rate of 0.44, and a given value is used as it is) and `b0_shift_proposals` (per iteration, default 5). Each chain's final sd and its acceptance rates over the kept iterations and over burn-in are recorded in `infos$b0_shift`.
+-   Cost: R code, O(n S) per proposal. Measured on the 100-species rare arm, replicate 3: the per-pair log-likelihoods take 0.5 ms and 5 proposals 2 ms, against 85 ms for the rest of the iteration, so the step adds under 3% and no C++ version was written.
+-   Tests (`tests/testthat/test-b0-shift.R`, written before the code): the settings reader; the per-pair log-likelihoods against the field samples' Bernoulli terms; the z-integrated log-likelihood and the acceptance ratio against a brute-force sum over every one of the 2^(n S) occupancy configurations of a 3-site, 2-species first stage; the step's RNG contract (delta then u, per proposal; the deviations never change; adaptation during burn-in only); fit-level switches and records (never run with the fixed prior, with `b0_shift = FALSE`, or in a binary fit; once per iteration otherwise); identity of a fit in process and on workers; and long chains (2 x 300 + 2,000, occupancy model, 8 species at 60 sites) with and without the step agreeing on the posterior mean and sd of `mu_b0` and every B0 within 4 Monte Carlo standard errors. Outside the suite, seeded fixture fits with the fixed prior, and with the community prior and `b0_shift = FALSE`, were compared bit for bit with the same fits saved from the code before the change (7cb8c71): identical, 7 of 7 fits.
+
+## Design
+
+Two steps, each a rerun of an earlier study's fits with the shift step at its defaults and nothing else changed: the same datasets (the same seeds through `draw_truth()`), the same worker seeding (`clusterSetRNGStream(cl, 20260727L)`), so the chains start from the same chain seeds and diverge only because the step draws random numbers.
+
+-   `drift`: the three fits of the diagnostic (`base_rare_cm_s100` replicates 3 and 4, `base_cm_s100` replicate 2), refitted by `refit-drift.R`, which is the diagnostic's `refit.R` with the fit's `infos$b0_shift` saved alongside the draws and `terms.R` sourced from the diagnostic's folder. nburn = 5000, niter = 500, nthin = 10, two chains, the latent states kept (`summarisedLatentPresences = FALSE`), so each chain runs 5,000 + 5,000 iterations and stores every 10th draw after burn-in, as the diagnostic did. 3 workers.
+-   `main`: the 100-species check's main step, `launch.sh main 5` of that study with the worktree path changed: replicates 1 to 5 of `base_cm_s100` and `base_rare_cm_s100` at 5,000 + 5,000, two chains, draws kept, refitted by `refit-s100.R`, which is `dev/simstudy/theta-community-mean-20261016/refit.R` with the fit's `infos$b0_shift` saved. 5 workers, run after `drift`, so the laptop never has more than 5 fitting workers.
+-   Every fit: `VECLIB_MAXIMUM_THREADS=1` and one RcppParallel thread, R 4.6.1 with Accelerate's BLAS, no other study running.
+
+## What is computed
+
+`analyse.R`, from the kept draws:
+
+-   `drift`: for each of the three fits, chain 2 minus chain 1 of the mean over draws of `mu_b0`, the species' mean B0, mean psi, the number of occupied site-species pairs, the mean collection intercept and mean logit theta0, with the posterior sd, rank-normalised R-hat and bulk ESS of each (of the 1,000 stored draws), next to the diagnostic's values for the same quantities (`chain-difference.csv` and `partners.csv` of that folder, the same chains without the step); the across-species sd of the B0 shift, before and after; and the step's acceptance rates and final proposal sd per chain. Written to `drift.csv` and `drift-species.csv`; trace plots of `mu_b0` and the mean B0, before and after, in `traces-drift.png`.
+-   `main`: for each of the 10 fits, the statistics of the 100-species check's `analyse.R` (`mu_b0`'s R-hat, bulk and tail ESS, posterior mean and sd and whether its 95% interval covers the realised mean of the true B0; B0 and the collection intercepts' median and maximum R-hat, share over 1.05, median and minimum bulk ESS; the within-chain correlations that mark the slow direction and the R-hat and bulk ESS of the mean B0 and the mean collection intercept; the batch-mean spread of `mu_b0`; B0 and collection-intercept error and coverage; the community occupancy error; elapsed time), plus the step's acceptance rates and proposal sd, in `fits.csv`; `mu_b0`'s R-hat, bulk ESS, tail ESS and posterior sd, the mean B0's bulk ESS and the elapsed time before (that check's `fits.csv`) and after, per fit, in `before-after.csv`; and the rule in `rule.csv`. Trace plots of `mu_b0` before and after in `traces-mu-b0.png`.
+
+## Rule
+
+Written on 18 October 2026 before any fit ran.
+
+-   `main` applies the 100-species check's rule as it stands: `mu_b0` mixes well enough at 100 species if, in every replicate of both arms at 5,000 + 5,000, its rank-normalised R-hat (`posterior::rhat`) is under 1.05 and its bulk ESS (`posterior::ess_bulk`) is at least 100 of the 10,000 draws. The strict reading applies the ESS bar to every replicate; the median reading, also reported, applies it to the median replicate.
+-   `drift` has no pass mark of its own. It is read against the diagnostic's numbers: the chain difference in mean B0 was +0.155, +0.181 and -0.025 (0.97, 1.13 and 0.22 posterior sds), `mu_b0`'s R-hat 1.06, 1.14 and 1.18 and bulk ESS 39, 11 and 8 of 1,000 stored draws. The step has done what it was built to do if those differences shrink to a fraction of a posterior sd and `mu_b0`'s R-hat is under 1.05 in all three fits; it has not if any fit's chains still sit apart for the run.
+-   The report also notes the acceptance rates against the 0.44 target and whether the adapted proposal sd lands near `mu_b0`'s posterior sd (0.15 to 0.19 at 100 species), and the cost in elapsed time against the check's 27 to 34 minutes per fit.
+
+## Run
+
+`launch.sh` runs one step, named by its first argument (`drift`, or `main` with the number of replicates per arm as its second argument). Each step refuses to start if its output folder exists, writes a provenance file (revision, dirty-file count, R version, `extSoftVersion()[["BLAS"]]`, the BLAS thread setting R sees, power state, other R processes at launch, settings) and keeps the laptop awake with `caffeinate -i` while it runs. Logs, provenance and draws are ignored while the runs are in flight, so each step records a clean tree; the logs and provenance are added with `git add -f` afterwards. Launched detached from this directory, the two steps one after the other:
+
+```sh
+nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh -c 'sh launch.sh drift; sh launch.sh main 5' > launch-main.log 2>&1 < /dev/null &
+```
+
+`analyse.R` then writes the tables and plots, and the findings go in REPORT.md.
