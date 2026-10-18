@@ -1,0 +1,31 @@
+13:07:24: rare_m3_rep1_50+100
+13:07:30: rare_s100_rep3_20+40
+              setting           quantity     n max_abs_difference identical
+  rare_m3_rep1_50+100              mu_b0    20       0.000000e+00      TRUE
+  rare_m3_rep1_50+100                 B0   200       0.000000e+00      TRUE
+  rare_m3_rep1_50+100                  B   400       0.000000e+00      TRUE
+  rare_m3_rep1_50+100                 Bs  4000       0.000000e+00      TRUE
+  rare_m3_rep1_50+100                  U  4000       0.000000e+00      TRUE
+  rare_m3_rep1_50+100                  L   400       0.000000e+00      TRUE
+  rare_m3_rep1_50+100             idx_ls    20       0.000000e+00      TRUE
+  rare_m3_rep1_50+100             sigmah    20       0.000000e+00      TRUE
+  rare_m3_rep1_50+100         beta_theta   400       0.000000e+00      TRUE
+  rare_m3_rep1_50+100             theta0   200       0.000000e+00      TRUE
+  rare_m3_rep1_50+100                  p   400       0.000000e+00      TRUE
+  rare_m3_rep1_50+100        chain_seeds     4       0.000000e+00      TRUE
+  rare_m3_rep1_50+100 psi_vs_rebuilt_eta 20000       4.440892e-16      TRUE
+ rare_s100_rep3_20+40              mu_b0     8       0.000000e+00      TRUE
+ rare_s100_rep3_20+40                 B0   800       0.000000e+00      TRUE
+ rare_s100_rep3_20+40                  B  1600       0.000000e+00      TRUE
+ rare_s100_rep3_20+40                 Bs 16000       0.000000e+00      TRUE
+ rare_s100_rep3_20+40                  U  1600       0.000000e+00      TRUE
+ rare_s100_rep3_20+40                  L  1600       0.000000e+00      TRUE
+ rare_s100_rep3_20+40             idx_ls     8       0.000000e+00      TRUE
+ rare_s100_rep3_20+40             sigmah     8       0.000000e+00      TRUE
+ rare_s100_rep3_20+40         beta_theta  1600       0.000000e+00      TRUE
+ rare_s100_rep3_20+40             theta0   800       0.000000e+00      TRUE
+ rare_s100_rep3_20+40                  p  1600       0.000000e+00      TRUE
+ rare_s100_rep3_20+40        chain_seeds     4       0.000000e+00      TRUE
+ rare_s100_rep3_20+40 psi_vs_rebuilt_eta 80000       4.440892e-16      TRUE
+13:08:10: all identical: TRUE
+ALL DONE 2026-10-18 13:08:10 status 0

@@ -1,0 +1,12 @@
+step: check
+launched: 2026-10-18 13:07:21
+revision: 442d92413d49b0ad1b1fc5bc6b591e1fc1a1c50e
+branch: claude/mu-b0-drift-diagnostic
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+VECLIB_MAXIMUM_THREADS seen by R: 1
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+settings: check-storage.R: base_rare_cm_m3 replicate 1 at 50 + 100 and base_rare_cm_s100 replicate 3 at 20 + 40, nthin 1 against 10, one process
+exit status: 0 at 2026-10-18 13:08:10
