@@ -56,6 +56,7 @@ Open work is listed first, then the fixed-bug record and completed work. The div
 ### Studies, package work and documentation
 
 - **Reproduce the Ecology Letters analyses:** reproduce them in full for the paper, and decide whether to include the reproduction in the repository. The targeted checks made before the beta are recorded under *Completed work* below.
+  - *Next:* review the test fits in `~/src/occJSDM_Ecoletts/` (not under version control). They fit the Gaoligongshan mammal group (108 species, 101 sites) with both `b0_prior = "fixed"` and the PR #36 community mean, and compare each against the published occPlus results. Start with its `outputs/occJSDM_gaoligongshan_report.md`; the README notes convergence flags that make both fits pipeline tests rather than inference-ready re-analyses.
 - **Paper simulation study:** rerun the full simulation grid on the fixed package, with enough replicates to make claims about interval calibration. The existing R = 100 study remains a historical baseline, and no claim of nominal coverage should be made until this run is done.
   - *Cells:* run the production grid explicitly as `base,binary,d_overfit,d_underfit,low_information,occupancy,primers_3,spatial_isolated,species_20,traits_isolated`. A bare runner invocation also selects extra experimental cells.
   - *Replicates:* choose R between 200 and 500.
