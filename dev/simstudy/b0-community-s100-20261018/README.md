@@ -18,6 +18,8 @@ Why 100 species might differ: `mu_b0` is drawn by Gibbs given the species' B0, f
 
 Step `timing` fits replicates 1 to 5 of both 100-species arms at 200 + 200 on 5 workers before the main run. A fit at 5,000 + 5,000 runs 25 times as many iterations per chain, so its projected time is 25 times the short fit's, and the 10 fits take two rounds on 5 workers. If the projected wall time is over about 3 hours, the main run uses 3 replicates per community instead of 5, and this README records the timing and the reason before it starts.
 
+The timing step ran on 18 October 2026 from 11:04 to 11:07, on mains power with Low Power Mode off: the 10 fits at 200 + 200 took 87 to 92 s each (`timing.csv`), which projects to about 38 minutes per fit at 5,000 + 5,000 and about 1 hour 20 minutes for the 10 fits. The main run therefore keeps 5 replicates per community.
+
 ## Rule
 
 Written on 18 October 2026 before any fit ran.
