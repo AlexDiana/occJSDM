@@ -92,6 +92,7 @@ chain_setup_fields <- function() c(
   "list_Xs", "list_SoRSummaries",
   "list_data", "list_priors", "spatial_sd_prior",
   "a_theta0", "b_theta0", "a_p", "b_p", "a_q", "b_q", "b_betatheta", "B_betatheta",
+  "b0_shift",
   "nburn", "niter", "nthin", "summarisedLatentPresences")
 
 set_chain_setup <- function(setup) {
@@ -444,6 +445,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
   b_q <- setup$b_q
   b_betatheta <- setup$b_betatheta
   B_betatheta <- setup$B_betatheta
+  b0_shift <- setup$b0_shift
   nburn <- setup$nburn
   niter <- setup$niter
   nthin <- setup$nthin
@@ -622,6 +624,21 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
       }
 
       psi <- logistic(list_psiCoef$eta)
+      eta <- list_psiCoef$eta
+
+      # The collapsed shift of mu_b0 and the B0 (R/b0_shift.R), on only with
+      # b0_prior = "community" in an occupancy or two-stage fit. Its proposal
+      # sd starts at b0_shift_initial_sd(S) and adapts during burn-in unless
+      # the user set it; the counters feed infos$b0_shift.
+      shift_on <- isTRUE(b0_shift$enabled)
+      if (shift_on) {
+        shift_adapt <- is.null(b0_shift$sd)
+        shift_sd <- if (shift_adapt) b0_shift_initial_sd(S) else b0_shift$sd
+        shift_t <- 0L
+        shift_accepted <- c(burnin = 0L, kept = 0L)
+        shift_proposed <- c(burnin = 0L, kept = 0L)
+        shift_hyper <- list_priors$intercept_prior
+      }
 
     }
 
@@ -636,6 +653,28 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
         if(iter %% 100 == 0){
           message(paste0("Chain ", chain, " - Burn in Iteration ",iter))
         }
+      }
+
+      # shift mu_b0 and every B0 together, with z integrated out, so that the
+      # z draw that follows comes from its full conditional at the shifted
+      # predictor
+      if (shift_on) {
+        pair <- b0_shift_pair_loglik(w, theta, theta0, idx_z_w, n)
+        st <- b0_shift_step(list_jSDMparams$B0, list_jSDMparams$mu_b0, eta,
+                            pair$l1, pair$l0, shift_hyper,
+                            sd = shift_sd, proposals = b0_shift$proposals,
+                            adapt = shift_adapt && iter <= nburn, t = shift_t)
+        list_jSDMparams$B0 <- st$B0
+        list_jSDMparams$mu_b0 <- st$mu_b0
+        eta <- st$eta
+        psi <- logistic(eta)
+        list_jSDMparams$eta <- eta
+        list_jSDMparams$psi <- psi
+        shift_sd <- st$sd
+        shift_t <- st$t
+        phase <- if (iter <= nburn) "burnin" else "kept"
+        shift_accepted[[phase]] <- shift_accepted[[phase]] + st$accepted
+        shift_proposed[[phase]] <- shift_proposed[[phase]] + b0_shift$proposals
       }
 
       # sample z
@@ -798,6 +837,10 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
   list(
     chain = chain, seed_r = seed_r, seed_cpp = seed_cpp,
     elapsed = proc.time()[["elapsed"]] - started,
+    b0_shift = if (shift_on) list(
+      sd = shift_sd,
+      accepted_burnin = shift_accepted[["burnin"]], proposals_burnin = shift_proposed[["burnin"]],
+      accepted_kept = shift_accepted[["kept"]], proposals_kept = shift_proposed[["kept"]]) else NULL,
     draws = list(
       beta_theta = beta_theta_output_chain, theta0 = theta0_output_chain,
       z = z_output_chain, psi = psi_output_chain,
