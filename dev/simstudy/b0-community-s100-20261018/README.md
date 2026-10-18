@@ -49,3 +49,7 @@ nohup perl -MPOSIX -e 'POSIX::setsid() or die; exec @ARGV or die' sh -c 'sh laun
 ```
 
 `analyse.R` then writes the summaries and trace plots, and the findings go in REPORT.md.
+
+## Results
+
+The `s10` step ran from 11:08 to 11:15 on 18 October 2026 and the main step from 11:15 to 12:17, with no failed fit; the `s10` refits reproduce the M = 3 runs' long-chain statistics to the precision of those files. The rule fails: at 100 species `mu_b0` has R-hat over 1.05 in 3 of 10 fits (ordinary replicate 2 and rare replicates 3 and 4, R-hat 1.06 to 1.19, bulk ESS 8 to 32), against none of the 10-species refits. The other seven fits mix as well per draw as at 10 species. The findings are in [REPORT.md](REPORT.md).

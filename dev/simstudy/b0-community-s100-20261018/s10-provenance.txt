@@ -1,0 +1,12 @@
+step: s10
+launched: 2026-10-18 11:08:02
+revision: fd2689f3dcc1728c4a2ebdc9eb3331fa8bc9f389
+branch: claude/b0-community-s100
+dirty files: 0
+R: R version 4.6.1 (2026-06-24)
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+VECLIB_MAXIMUM_THREADS seen by R: 1
+lowpowermode: 0
+power: Now drawing from 'AC Power'
+settings: replicates 1-5 of base_cm_m3,base_rare_cm_m3, nburn = 5000, niter = 5000, nchain = 2, cores = 5, threads = 1
+exit status: 0 at 2026-10-18 11:15:42

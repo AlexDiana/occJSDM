@@ -1,0 +1,5 @@
+"arm","species","community","replicates","rhat_under_1.05","rhat_max","ess_at_least_100","ess_min","ess_median","pass_strict","pass_median"
+"base_cm_s100",100,"ordinary",5,4,1.05988410179587,4,31.5417601578897,186.563239444584,FALSE,FALSE
+"base_rare_cm_s100",100,"rare",5,3,1.18916979056687,3,7.86838069912899,119.791273554507,FALSE,FALSE
+"base_cm_m3",10,"ordinary",5,5,1.02576186902258,5,115.348552935306,166.74954953797,TRUE,TRUE
+"base_rare_cm_m3",10,"rare",5,5,1.04051982102597,3,70.8976262535479,110.027933397878,FALSE,TRUE

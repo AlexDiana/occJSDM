@@ -1,0 +1,28 @@
+2026-10-18 11:08:03: 10 jobs to run at 5000 + 5000
+starting worker pid=10928 on localhost:11272 at 11:08:03.140
+starting worker pid=10927 on localhost:11272 at 11:08:03.143
+starting worker pid=10926 on localhost:11272 at 11:08:03.144
+starting worker pid=10925 on localhost:11272 at 11:08:03.146
+starting worker pid=10929 on localhost:11272 at 11:08:03.149
+11:11:45 base_cm_m3 replicate 5 in 219 s
+11:11:46 base_cm_m3 replicate 2 in 219 s
+11:11:48 base_cm_m3 replicate 1 in 222 s
+11:11:49 base_cm_m3 replicate 4 in 222 s
+11:11:51 base_cm_m3 replicate 3 in 225 s
+11:15:33 base_rare_cm_m3 replicate 2 in 228 s
+11:15:34 base_rare_cm_m3 replicate 1 in 229 s
+11:15:39 base_rare_cm_m3 replicate 3 in 231 s
+11:15:40 base_rare_cm_m3 replicate 4 in 231 s
+11:15:42 base_rare_cm_m3 replicate 5 in 230 s
+11:11:48 base_cm_m3 replicate 1 in 222 s
+11:11:46 base_cm_m3 replicate 2 in 219 s
+11:11:51 base_cm_m3 replicate 3 in 225 s
+11:11:49 base_cm_m3 replicate 4 in 222 s
+11:11:45 base_cm_m3 replicate 5 in 219 s
+11:15:34 base_rare_cm_m3 replicate 1 in 229 s
+11:15:33 base_rare_cm_m3 replicate 2 in 228 s
+11:15:39 base_rare_cm_m3 replicate 3 in 231 s
+11:15:40 base_rare_cm_m3 replicate 4 in 231 s
+11:15:42 base_rare_cm_m3 replicate 5 in 230 s
+2026-10-18 11:15:42: finished, 10 files in /Users/douglasyu/src/occJSDM/.claude/worktrees/nostalgic-mendel-8b7449/dev/simstudy/b0-community-s100-20261018/draws/s10
+ALL DONE 2026-10-18 11:15:42 status 0

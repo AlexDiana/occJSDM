@@ -1,0 +1,4 @@
+"community","failed_100","fits_100","failed_10","fits_10","fisher_p"
+"ordinary",1,5,0,5,1
+"rare",2,5,0,5,0.444444444444445
+"ordinary+rare",3,10,0,10,0.210526315789474

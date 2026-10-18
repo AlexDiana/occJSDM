@@ -8,6 +8,7 @@
 #                     slow direction, occupancy error, elapsed time
 #   summary.csv       the same averaged by arm, with medians and ranges
 #   rule.csv          README.md's rule, strict (every replicate) and median
+#   failures.csv      post hoc: fits failing R-hat at 100 against 10 species
 #   timing.csv        elapsed time of the 200 + 200 timing fits
 #   traces.rds        per-draw mu_b0, mean B0 and mean collection intercept
 #   traces-mu-b0.png  trace plots of mu_b0, both chains, every fit
@@ -65,6 +66,9 @@ per_element <- function(a, prefix) {
            paste0(prefix, c("_rhat_median", "_rhat_max", "_share_rhat_over_1.05",
                             "_ess_median", "_ess_min")))
 }
+# Post hoc (not in README.md): the spread of 500-draw batch means within
+# each chain, the size of the slow wander, and its ratio to the posterior sd.
+batch_sd <- function(m, b = 500) sd(as.vector(apply(m, 2, function(v) colMeans(matrix(v, nrow = b)))))
 chain_cor <- function(a, b) mean(vapply(seq_len(ncol(a)), function(k) cor(a[, k], b[, k]), 0))
 traces <- list()
 fit_row <- function(key) {
@@ -88,6 +92,7 @@ fit_row <- function(key) {
     cor_mu_b0_mean_b0 = chain_cor(mb, mB0), cor_mean_b0_mean_bt0 = chain_cor(mB0, mbt),
     mean_b0_rhat = rhat(mB0), mean_b0_ess_bulk = ess_bulk(mB0),
     mean_bt0_rhat = rhat(mbt), mean_bt0_ess_bulk = ess_bulk(mbt),
+    mu_b0_batch_sd = batch_sd(mb), mu_b0_batch_sd_ratio = batch_sd(mb) / sd(as.vector(mb)),
     b0_error = mean(b0$post_mean - b0$truth), b0_coverage = mean(b0$covered),
     bt0_error = mean(bti$post_mean - bti$truth), bt0_coverage = mean(bti$covered),
     occ_true = mean(x$occupancy$occ_true),
@@ -125,6 +130,21 @@ rule <- do.call(rbind, lapply(split(fr, factor(fr$arm, arms$arm)), function(d) {
 rownames(rule) <- NULL
 write.csv(rule, file.path(out, "rule.csv"), row.names = FALSE)
 
+# Post hoc: fits whose mu_b0 R-hat is 1.05 or more, at 100 against 10 species
+# in each community and pooled, with Fisher's exact test.
+fails <- function(d) c(failed = sum(d$mu_b0_rhat >= 1.05), fits = nrow(d))
+failures <- do.call(rbind, lapply(list(ordinary = "ordinary", rare = "rare", both = c("ordinary", "rare")),
+  function(cm) {
+    a <- fails(fr[fr$species == 100 & fr$community %in% cm, ])
+    b <- fails(fr[fr$species == 10 & fr$community %in% cm, ])
+    p <- if (a[["fits"]] && b[["fits"]]) fisher.test(matrix(c(a[["failed"]], a[["fits"]] - a[["failed"]],
+                                                           b[["failed"]], b[["fits"]] - b[["failed"]]), 2))$p.value else NA
+    data.frame(community = paste(cm, collapse = "+"), failed_100 = a[["failed"]], fits_100 = a[["fits"]],
+               failed_10 = b[["failed"]], fits_10 = b[["fits"]], fisher_p = p)
+  }))
+rownames(failures) <- NULL
+write.csv(failures, file.path(out, "failures.csv"), row.names = FALSE)
+
 # --- Timing fits ------------------------------------------------------------
 tf <- load_step("timing")
 if (length(tf)) {
@@ -151,7 +171,8 @@ for (i in seq_len(nrow(rows_shown))) for (r in 1:5) {
   mb <- traces[[key]]$mu_b0; f <- fr[fr$arm == rows_shown$arm[i] & fr$replicate == r, ]
   plot(NA, xlim = c(1, nrow(mb)), ylim = range(mb, f$true_b0_mean), xlab = "draw",
        ylab = if (r == 1) "mu_b0" else "", bty = "l", las = 1)
-  for (k in seq_len(ncol(mb))) lines(seq_len(nrow(mb)), mb[, k], col = chain_col[k], lwd = 0.5)
+  for (k in seq_len(ncol(mb))) lines(seq_len(nrow(mb)), mb[, k], col = adjustcolor(chain_col[k], 0.55),
+                                     lwd = 0.5)
   abline(h = f$true_b0_mean, col = ink2, lty = 2, lwd = 1)
   title(main = sprintf("%d species, %s, replicate %d\nR-hat %.3f, bulk ESS %.0f",
                        rows_shown$species[i], rows_shown$community[i], r, f$mu_b0_rhat,
@@ -166,5 +187,6 @@ cat("\n== rule\n"); print(rule, digits = 4, row.names = FALSE)
 show <- c("arm", "replicate", "mu_b0_rhat", "mu_b0_ess_bulk", "mu_b0_ess_tail", "mu_b0_sd",
           "mu_b0_mean", "true_b0_mean", "b0_rhat_median", "b0_share_rhat_over_1.05", "b0_ess_median",
           "bt0_share_rhat_over_1.05", "bt0_ess_median", "cor_mu_b0_mean_b0", "cor_mean_b0_mean_bt0",
-          "mean_b0_ess_bulk", "occ_error", "elapsed_minutes")
+          "mean_b0_ess_bulk", "mu_b0_batch_sd_ratio", "occ_error", "elapsed_minutes")
 cat("\n== fits\n"); print(fr[, show], digits = 3, row.names = FALSE)
+cat("\n== post hoc: R-hat failures\n"); print(failures, digits = 3, row.names = FALSE)
