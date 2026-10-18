@@ -277,6 +277,19 @@ simstudy_scenarios <- function() {
     mk("base_rare_cm_m20", M = 20L, b0_mean = -2.75, fit_b0_prior = "community",
                            seed_label = "base"),
 
+    # B0's community mean at 100 species (18 October 2026): does mu_b0 still
+    # mix at 5,000 + 5,000 when a community has 100 species rather than 10?
+    # A mixing check for whether b0_prior = "community" could become the
+    # default (dev/simstudy/b0-community-s100-20261018). base_cm_m3 and
+    # base_rare_cm_m3 with S = 100. Both take seed label "s100", so at each
+    # replicate the rare arm's B0 is the ordinary arm's minus 2.75, element
+    # for element, and every other draw before the occupancy states is shared.
+    # NOT production cells: name them with --scenarios.
+    mk("base_cm_s100",      S = 100L, M = 3L, fit_b0_prior = "community",
+                            seed_label = "s100"),
+    mk("base_rare_cm_s100", S = 100L, M = 3L, b0_mean = -2.75,
+                            fit_b0_prior = "community", seed_label = "s100"),
+
     # Environmental covariate count. Never varied anywhere before: ncov_psi is
     # 2 in all 21 existing cells, so nothing in the study has ever spoken to
     # how covariate richness affects recovery.
