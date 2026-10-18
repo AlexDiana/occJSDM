@@ -18,6 +18,9 @@
 #                        of each term's difference on the B0 difference;
 #                        within chains, the correlation of mean B0 and mu_b0
 #                        with each term; R-hat and bulk ESS of each mean
+#   basis.csv            per fit and range: how well the spatial basis fits a
+#                        constant over sites, and the coefficient norm of a
+#                        unit shift; the share of draws at that range
 #   traces.rds           per fit, chain and stored draw: every quantity
 #   traces.png           batch means per chain of each quantity, every fit
 #   species.png          per fit: each species' B0 shift against its spatial,
@@ -146,6 +149,15 @@ partners <- do.call(rbind, lapply(names(fits), function(key) {
     rows[[length(rows) + 1]] <- row("within_chain_cor_with_mu_b0", tm, within("mu_b0", tm))
   }
   rows[[length(rows) + 1]] <- row("within_chain_cor_with_mu_b0", "mean_B0", within("mu_b0", "mean_B0"))
+  # Species by species within each chain: does a species' own B0 trade off
+  # against the site mean of its own spatial or factor term, or against its
+  # own occupied sites? The mean over species of the within-chain correlation.
+  s4 <- summaries[[key]]$species
+  for (tm in c("XB", "SE", "UL", "eta", "occ", "psi")) {
+    r <- vapply(seq_len(dim(s4)[1]), function(j) mean(vapply(seq_len(dim(s4)[3]), function(ch)
+      cor(s4[j, , ch, "B0"], s4[j, , ch, tm]), 0)), 0)
+    rows[[length(rows) + 1]] <- row("within_chain_species_cor_B0_with_own", tm, mean(r, na.rm = TRUE))
+  }
   for (q in intersect(c("mu_b0", "mean_B0", terms), dimnames(dr)[[3]])) {
     rows[[length(rows) + 1]] <- row("rhat", q, rhat(dr[, , q]))
     rows[[length(rows) + 1]] <- row("ess_bulk", q, ess_bulk(dr[, , q]))
@@ -155,6 +167,30 @@ partners <- do.call(rbind, lapply(names(fits), function(key) {
 write.csv(partners, file.path(out, "partners.csv"), row.names = FALSE)
 
 saveRDS(lapply(summaries, function(sm) signif(sm$draws, 7)), file.path(out, "traces.rds"))
+
+# --- Can the spatial term absorb a constant shift? ----------------------------
+# For each range of the grid, the least-squares fit of a constant 1 over the
+# sites by the spatial basis Ks (the SoR basis the sampler uses at that
+# range): the R-squared, and the squared norm of the coefficients that give a
+# unit shift, which is the prior penalty of a unit shift in units of
+# 1 / (2 sigma_bs^2). The share of draws at each range says which ranges the
+# chains used.
+basis <- do.call(rbind, lapply(names(fits), function(key) {
+  x <- fits[[key]]; des <- x$design; n <- nrow(des$X_psi)
+  used <- table(factor(x$draws$idx_ls, levels = seq_along(des$l_s_grid))) / length(x$draws$idx_ls)
+  do.call(rbind, lapply(seq_along(des$l_s_grid), function(j) {
+    Ks <- matrix(des$Ks_all[, , j], nrow = n)
+    # the basis as it multiplies Bs: site i, support point Xs_centers[i, k]
+    m <- ncol(des$Xs_centers); ps <- dim(x$draws$Bs)[1]
+    A <- matrix(0, n, ps)
+    for (k in seq_len(m)) A[cbind(seq_len(n), des$Xs_centers[, k])] <- A[cbind(seq_len(n), des$Xs_centers[, k])] + Ks[, k]
+    fit1 <- lm.fit(A, rep(1, n))
+    data.frame(fit = key, range = des$l_s_grid[j], share_of_draws = as.numeric(used[j]),
+               r_squared_constant = 1 - sum(fit1$residuals^2) / n,
+               coef_norm2_unit_shift = sum(fit1$coefficients^2, na.rm = TRUE))
+  }))
+}))
+write.csv(basis, file.path(out, "basis.csv"), row.names = FALSE)
 
 # --- Plots ----------------------------------------------------------------------
 show <- c("mu_b0", "mean_B0", "mean_XB", "mean_SE", "mean_UL", "mean_eta", "mean_psi", "occupied")
