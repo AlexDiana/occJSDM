@@ -1,0 +1,3 @@
+"arm","R1_strict_off","R1_median_off","R1_strict_on","R1_median_on","median_ess_off","median_ess_on","R2","max_abs_mu_diff_in_mcse","max_abs_mb_diff_in_mcse","R3","mean_occ_error_off","mean_occ_error_on","mean_b0_coverage_off","mean_b0_coverage_on"
+"base_cm_m3",TRUE,TRUE,TRUE,TRUE,166.74954953797,427.029946291327,TRUE,1.4652247645855,1.42939453427555,TRUE,0.01412984,0.01566874,1,1
+"base_rare_cm_m3",FALSE,TRUE,TRUE,TRUE,110.027933397878,202.683678726768,TRUE,1.4356462981435,1.41329101954845,TRUE,-0.01216128,-0.01146008,0.94,0.96
