@@ -1,0 +1,4 @@
+*.pid
+*.log
+*-provenance.txt
+draws/
