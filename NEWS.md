@@ -1,4 +1,6 @@
-# occJSDM (development version)
+# occJSDM 0.2.0
+
+Third beta, released on GitHub as `v0.2.0-beta`. It adds parallel chains and a faster spatial sampler. Seeded fits give different numbers from 0.1.1.
 
 ## New features
 
@@ -7,7 +9,7 @@
 ## Behaviour changes
 
 -   Every chain is now seeded on its own, so a fit is identical whatever `ncores` says and no chain continues another's random stream. Because of this, a fit under a given `set.seed()` value gives different numbers from version 0.1.1; the shipped `sampleresults` was refitted under the new seeding with the same seed and settings. Identity across `ncores` is stated for a single-threaded BLAS; see `?runOccJSDM`.
--   The spatial range step and the spatial coefficient draw now form their weighted Gram matrices with the symmetric BLAS routine (the rows of the design scaled by the square root of the weights, then multiplied by their own transpose), which halves that arithmetic. The result is the same quantity to rounding error, not bit for bit, so a seeded spatial fit no longer reproduces the draws of the previous build exactly; measured on a 900-site binary spatial fit, an iteration is 1.25 to 1.45 times faster depending on the BLAS.
+-   The spatial range step and the spatial coefficient draw now form their weighted Gram matrices with the symmetric BLAS routine (the rows of the design scaled by the square root of the weights, then multiplied by their own transpose), which halves that arithmetic. The result is the same quantity to rounding error, not bit for bit, so a seeded spatial fit no longer reproduces the draws of the previous build exactly; the shipped `sampleresults` is a spatial fit made before this change, so refitting it with the same seed now gives draws that differ at rounding level; measured on a 900-site binary spatial fit, an iteration is 1.25 to 1.45 times faster depending on the BLAS.
 
 ## Deprecations
 

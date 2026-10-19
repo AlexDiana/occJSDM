@@ -32,6 +32,8 @@ ln -sf libRblas.0.dylib libRblas.dylib        # back to the reference BLAS
 
 Results under different BLAS libraries agree to rounding error, not bit for bit, so a seeded fit is reproducible under one BLAS but will not match the same seed under another. With a threaded BLAS, set its thread limit to 1 (for Accelerate, `VECLIB_MAXIMUM_THREADS=1`) when you need the same numbers from run to run.
 
+**Parallel chains.** To run chains on separate cores, set `ncores` in `MCMCparams`, for example `MCMCparams = list(nchain = 4, ncores = 4)`. `ncores` is the total core budget: four chains with `ncores = 4` run on four single-threaded workers, and `ncores = 8` gives each of the four workers two threads. The default, `ncores = 1`, runs the chains one after another. Every chain is seeded on its own, so under a single-threaded BLAS a seeded fit is identical whatever `ncores` says. For the same reason, and because the spatial Gram matrices are now formed with a symmetric BLAS routine, a seeded fit gives different numbers from version 0.1.1. See `?runOccJSDM`.
+
 ## Getting started
 
 The [quickstart](vignettes/occJSDM-00-quickstart.md) shows the input data, a fitting call and a first look at the output. The simulator guide shows how to simulate a survey whose truth you know. After installing with vignettes, open them in R:
