@@ -671,11 +671,14 @@ arma::mat XtOmegaX_SoR(arma::mat X,
                        arma::mat &X_s_sor){
 
   if (hasFullSpatialBasis(X_s_index, X_s_sor, X_centers)) {
-    const arma::mat design = arma::join_rows(X, X_s_sor);
-    arma::mat weighted = design;
-    weighted.each_col() %= Omega;
-    // Explicit symmetry avoids round-off asymmetry from the weighted product.
-    return arma::symmatu(design.t() * weighted);
+    // Scale the rows by sqrt(Omega) and multiply by the own transpose, which
+    // Armadillo routes to the symmetric BLAS routine (dsyrk): half the
+    // arithmetic of the general weighted product, and bit for bit what R's
+    // crossprod(sqrt(w) * Z) in weighted_gram() computes. symmatu() keeps the
+    // result exactly symmetric whatever the BLAS fills in.
+    arma::mat scaled = arma::join_rows(X, X_s_sor);
+    scaled.each_col() %= arma::sqrt(Omega);
+    return arma::symmatu(scaled.t() * scaled);
   }
 
   int p = X.n_cols;
