@@ -6,6 +6,19 @@ get_param <- function(params, key, default = 0) {
   }
 }
 
+# The chain settings of MCMCparams, with any that are missing taken from
+# runOccJSDM()'s formal default. That default is the one place the values are
+# written down, so a partial list such as list(nchain = 1) gets the same
+# documented burn-in and kept iterations as no list at all. Evaluating the
+# formal default only runs the package's own list() call.
+resolve_mcmc_params <- function(MCMCparams) {
+  defaults <- eval(formals(runOccJSDM)$MCMCparams)
+  keys <- c("nchain", "nburn", "niter", "nthin")
+  stats::setNames(lapply(keys, function(key) {
+    get_param(MCMCparams, key, defaults[[key]])
+  }), keys)
+}
+
 process_covariates <- function(data_info, covariates, group_by_col, n_obs,
                                remove_intercept = FALSE,
                                spline_vars = F) {
@@ -331,6 +344,9 @@ create_waic_quantities <- function(n_obs){
 #' runs here with its RcppParallel thread count set to \code{ncores} for the
 #' duration and restored afterwards, and no progress file is written. Defaults
 #' to \code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1, ncores = 1)}.
+#' A list that gives only some of these settings takes the rest from that
+#' default: \code{list(nchain = 1)} runs one chain of 5,000 burn-in and 5,000
+#' kept iterations.
 #' @param summarisedLatentPresences (Optional) logical, default \code{TRUE}.
 #' If \code{TRUE}, the returned latent-presence/probability arrays
 #' (\code{z_output}, \code{w_output}, \code{psi_output}, \code{theta_output})
@@ -955,10 +971,11 @@ runOccJSDM <- function(data,
 
   # chain parameters
   {
-    nchain <- get_param(MCMCparams, "nchain", 2)
-    nburn <- get_param(MCMCparams, "nburn", 1000)
-    niter <- get_param(MCMCparams, "niter", 1000)
-    nthin <- get_param(MCMCparams, "nthin", 1)
+    mcmc <- resolve_mcmc_params(MCMCparams)
+    nchain <- mcmc$nchain
+    nburn <- mcmc$nburn
+    niter <- mcmc$niter
+    nthin <- mcmc$nthin
     ncores <- resolve_ncores(MCMCparams)
   }
 

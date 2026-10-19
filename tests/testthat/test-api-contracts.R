@@ -68,6 +68,26 @@ test_that("n_supportpoints overrides the GP knot default", {
   )
 })
 
+test_that("a partial MCMCparams list gets the documented defaults", {
+  # The fallbacks for missing settings used to be 1,000 burn-in and 1,000
+  # kept iterations, while the formal default and ?runOccJSDM said 5,000 +
+  # 5,000, so list(nchain = 1) silently ran a fifth of the documented chain.
+  # Tested on the resolver rather than by running a 10,000-iteration fit.
+  expect_identical(resolve_mcmc_params(list(nchain = 1)),
+                   list(nchain = 1, nburn = 5000, niter = 5000, nthin = 1))
+  expect_identical(resolve_mcmc_params(list(ncores = 1)),
+                   list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1))
+  keys <- c("nchain", "nburn", "niter", "nthin")
+  expect_identical(resolve_mcmc_params(list()),
+                   eval(formals(runOccJSDM)$MCMCparams)[keys])
+})
+
+test_that("a fully specified MCMCparams list is used as given", {
+  full <- list(nchain = 3, nburn = 20, niter = 30, nthin = 2)
+  expect_identical(resolve_mcmc_params(full), full)
+  expect_identical(resolve_mcmc_params(FIXTURE_MCMC), FIXTURE_MCMC)
+})
+
 # --- GAM covariate-effect exports ----------------------------------------
 #
 # Added in Alex's 29 July pull. Three functions were exported with no test
