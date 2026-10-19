@@ -21,4 +21,6 @@
 #' @importFrom tidyr pivot_longer
 #' @importFrom utils globalVariables
 #' @importFrom RcppParallel RcppParallelLibs
+#' @importFrom parallel makeCluster clusterCall clusterApplyLB stopCluster detectCores
+#' @importFrom tools md5sum pskill
 "_PACKAGE"

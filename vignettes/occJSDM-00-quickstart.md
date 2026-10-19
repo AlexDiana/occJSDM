@@ -69,7 +69,7 @@ head(sampledata$traits)
 It has three parts:
 
 - `info` has one row per PCR reaction: the `Site`, the field `Sample` the DNA came from, the `Primer`, and the covariates. Columns beginning `X_psi.` are occupancy covariates, columns beginning `X_theta.` are collection covariates, and `Xs.1` and `Xs.2` are the site coordinates.
-- Look at the `info` dataframe in detail. How many rows are there per site? Why?
+- Look at the `info` dataframe in detail. How many rows are there per site? Can you see why the number of PCRs per sample is `K = 2`?
 
 ``` r
 View(sampledata$info)
@@ -83,7 +83,7 @@ View(sampledata$info)
 
 ## Fit the model
 
-You can either load the precomputed model results from `sampleresults` or fit the model live. Fitting live will take up to several minutes depending on your machine but has the advantage of testing whether your machine can run occJSDM. How long it takes depends mostly on the BLAS library your R uses: the README's *Speed: use an optimised BLAS* section shows how to check it and, on a Mac, how to switch to Apple's Accelerate, which made this fit about 1.5 times faster and spatial fits far faster; the BLAS is also part of the "same software" in the next sentence. On the other hand, using the same seed number only produces *exactly* the same results as in `sampleresults` if run on the same machine and software (M4 MacBook Air, macOS 27.0.1, R 4.5.0) and with the same model arguments (priors, number of chains). Running on a different platform could result in small numerical differences.
+You can either load the precomputed model results from `sampleresults` or fit the model live. Fitting live will take up to several minutes depending on your machine but has the advantage of testing whether your machine can run occJSDM. How long it takes depends mostly on the BLAS library your R uses: the README's *Speed: use an optimised BLAS* section shows how to check it and, on a Mac, how to switch to Apple's Accelerate, which made this fit about 1.5 times faster and spatial fits far faster; the BLAS is also part of the "same software" in the next sentence. On the other hand, using the same seed number only produces *exactly* the same results as in `sampleresults` if run on the same machine and software (M4 MacBook Air, macOS 27.0.1, R 4.6.1) and with the same model arguments (priors, number of chains). Running on a different platform could result in small numerical differences.
 
 Choose this option
 
@@ -107,7 +107,7 @@ fit <- runOccJSDM(
   - The example includes the `spatCovariates` line to show how the full model is specified. The beta’s spatial model is very underpowered, though, so we recommend leaving that line out of your own fits for now.
 - The optional species trait data are taken from `sampledata$traits`.
 - `n_factors` is the number of latent factors that capture associations between species.
-- `MCMCparams` sets the number of chains, the burn-in and kept iterations, and the thinning.
+- `MCMCparams` sets the number of chains, the burn-in and kept iterations, and the thinning. Adding `ncores = 2` to the list runs the two chains on two cores at once; `ncores` is the total number of cores the fit may use.
 - The priors have defaults, which `listPriors` changes. `?runOccJSDM` describes every argument.
 
 Or choose this option. The rest of the lesson uses these precomputed results.
@@ -126,14 +126,14 @@ summary(diagnostics$rhat)
 ```
 
     #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    #>  0.9999  1.0002  1.0010  1.0054  1.0053  1.0830
+    #>  0.9999  1.0002  1.0011  1.0060  1.0046  1.1009
 
 ``` r
 summary(diagnostics$ess)
 ```
 
     #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    #>   137.7   438.0  2169.3  2538.8  4272.3  8402.3
+    #>   90.99  501.57 2172.56 2566.34 4163.83 9277.94
 
 ``` r
 head(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat", "ess")])
@@ -142,19 +142,20 @@ head(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat"
     #> # A tibble: 6 × 5
     #>   param      label1         label2  rhat   ess
     #>   <chr>      <chr>          <chr>  <dbl> <dbl>
-    #> 1 theta0     OTU_3          1       1.08  269.
-    #> 2 theta0     OTU_5          1       1.04  240.
-    #> 3 beta_psi   X_psi.EnvCov.2 OTU_7   1.04  151.
-    #> 4 beta0_psi  OTU_6          1       1.04  418.
-    #> 5 beta_theta (Intercept)    OTU_7   1.03  807.
-    #> 6 beta_psi   X_psi.EnvCov.2 OTU_5   1.03  148.
+    #> 1 theta0     OTU_3          1       1.10  170.
+    #> 2 beta_psi   X_psi.EnvCov.2 OTU_3   1.08  169.
+    #> 3 beta_psi   X_psi.EnvCov.1 OTU_3   1.05  166.
+    #> 4 beta0_psi  OTU_8          1       1.03  426.
+    #> 5 beta_theta (Intercept)    OTU_5   1.03  548.
+    #> 6 beta_psi   X_psi.EnvCov.2 OTU_6   1.03  311.
 
-`summary()` is base R’s own function, not occJSDM’s, so its help page is `?base::summary`. For a numeric column it reports the minimum, the quartiles, the mean and the maximum.
+`summary()` is base R’s own function, and for a numeric column it reports the minimum, the quartiles, the mean and the maximum.
 
 To browse the whole table, sorted with the worst `rhat` first:
 
 ``` r
-View(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat", "ess")])
+View(diagnostics[order(-diagnostics$rhat), 
+                 c("param", "label1", "label2", "rhat", "ess")])
 ```
 
 `rhat` compares the chains with each other: values close to 1 mean they agree, and larger values call for longer runs or a closer look at the parameters concerned.
@@ -164,12 +165,13 @@ View(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat"
 A common rule of thumb flags any coefficient with `rhat > 1.01` or `ess < 400`:
 
 ``` r
-nonconvergedcoefs <- diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat", "ess")] |>
-  dplyr::filter(rhat > 1.01 | ess < 400)
+nonconvergedcoefs <- diagnostics[order(-diagnostics$rhat), 
+                          c("param", "label1", "label2", "rhat", "ess")] |>
+          dplyr::filter(rhat > 1.01 | ess < 400)
 nrow(nonconvergedcoefs)
 ```
 
-    #> [1] 35
+    #> [1] 31
 
 ``` r
 head(nonconvergedcoefs)
@@ -178,16 +180,16 @@ head(nonconvergedcoefs)
     #> # A tibble: 6 × 5
     #>   param      label1         label2  rhat   ess
     #>   <chr>      <chr>          <chr>  <dbl> <dbl>
-    #> 1 theta0     OTU_3          1       1.08  269.
-    #> 2 theta0     OTU_5          1       1.04  240.
-    #> 3 beta_psi   X_psi.EnvCov.2 OTU_7   1.04  151.
-    #> 4 beta0_psi  OTU_6          1       1.04  418.
-    #> 5 beta_theta (Intercept)    OTU_7   1.03  807.
-    #> 6 beta_psi   X_psi.EnvCov.2 OTU_5   1.03  148.
+    #> 1 theta0     OTU_3          1       1.10  170.
+    #> 2 beta_psi   X_psi.EnvCov.2 OTU_3   1.08  169.
+    #> 3 beta_psi   X_psi.EnvCov.1 OTU_3   1.05  166.
+    #> 4 beta0_psi  OTU_8          1       1.03  426.
+    #> 5 beta_theta (Intercept)    OTU_5   1.03  548.
+    #> 6 beta_psi   X_psi.EnvCov.2 OTU_6   1.03  311.
 
-In this quickstart example, 35 of the 130 reported coefficients are flagged, which means that they are deemed not to have converged (i.e. are not reliable). The largest `rhat` is about 1.083, for the field false-positive rate (`theta0`) of `OTU_3`.
+In this quickstart example, 31 of the 130 reported coefficients are flagged, which means that they are deemed not to have converged (i.e. are not reliable). The largest `rhat` is about 1.10, for the field false-positive rate (`theta0`) of `OTU_3`.
 
-`plotTraceplot()` shows the chains themselves. Here are the `theta0` draws for `OTU_3` and, for comparison, `OTU_1`, whose `rhat` is 1.00:
+`plotTraceplot()` shows the chains themselves. Here are the `theta0` draws for `OTU_3` and, for comparison, `OTU_1`, whose `rhat` is 1.006:
 
 ``` r
 theta0_draws <- fit$results_output$theta0_output
@@ -198,9 +200,9 @@ plotTraceplot(theta0_draws[c(3, 1), , , drop = FALSE],
 
 ![](occJSDM-00-quickstart_files/figure-gfm/traceplot-1.png)<!-- -->
 
-For `OTU_1` the two chains overlap throughout. For `OTU_3`, chain 1 wanders upwards near the end of the run while chain 2 does not, and that disagreement is what `rhat` measures.
+For `OTU_1` the two chains overlap throughout. For `OTU_3`, chain 2 wanders upwards near the end of the run while chain 1 does not, and that disagreement is what `rhat` measures.
 
-The table does not cover every parameter. When it finishes, `runOccJSDM()` checks each block of parameters and warns about any block whose largest `rhat` exceeds 1.1 or whose smallest `ess` is below 50. For this fit it warned about the spatial-field coefficients (`Bs`) and the trait terms attached to them (`Gs`, `As`, `Cs`). You see these warnings only if you fit live, and they are another reason to leave the spatial field out of your own fits for now.
+The table does not cover every parameter. When it finishes, `runOccJSDM()` checks each block of parameters and warns about any block whose largest `rhat` exceeds 1.1 or whose smallest `ess` is below 50. For this fit it warned about the field false-positive rates (`theta0`), whose largest `rhat`, for `OTU_3`, is just above 1.1, and about the spatial-field coefficients (`Bs`) and the trait terms attached to them (`Gs`, `As`, `Cs`). You see these warnings only if you fit live. The spatial-field warnings are another reason to leave the spatial field out of your own fits for now.
 
 Normally, before going on, you would run longer chains and check them again, but note that more iterations do not guarantee that the chains will agree.
 
