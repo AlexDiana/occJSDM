@@ -3,43 +3,7 @@ title: "TODO"
 output: html_document
 ---
 
-```{=html}
-<!-- DO NOT hard-wrap this file. Write each paragraph as a single line.
-
-     There is deliberately no `editor_options: markdown: wrap:` block, and
-     `occJSDM.Rproj` sets `MarkdownWrap: None`. Doug edits these docs in
-     RStudio's Visual mode, which rewrites the file to canonical form on
-     every save. While the wrap was set to 72 columns, anything written by
-     hand or by an agent got reflowed on the next open, producing a diff
-     nobody authored, over and over.
-
-     Measured 30 July 2026: RStudio's canonicalisation cannot be
-     reproduced outside RStudio. Feeding RStudio's own output back through
-     pandoc changes 234 of 768 lines, across several flag combinations. So
-     matching it by hand or by hook is not achievable, and the fix is to
-     remove the line-breaking step entirely: with no wrapping there is no
-     algorithm left to mismatch.
-
-     Three related rules:
-     - NO EM-DASHES. Use a plain double hyphen. Em-dashes were the single
-       largest driver of reflow churn under the old setting, because
-       pandoc writes them 2 characters wider and every later wrap point
-       shifted.
-     - NO PIPE TABLES in this file. Use bullet lists instead. RStudio
-       recomputes a table's separator row (|----|----|) from the cell
-       contents and the available width, and it switches between
-       padding to content width and redistributing across the line at a
-       width threshold. So any edit to any cell can rewrite the
-       separators, and 873f419 is an example. Lists have no
-       width-derived formatting and are stable. PLAN.md keeps its
-       tables, and accepts the churn, because the data there earns them.
-     - Keep inline `code spans` short. Under the old 72-column wrap, a
-       span landing on the boundary could be mangled: in 2242b34 that
-       turned `* 2` into `- 2` in the logDetKuu note, silently asserting
-       something false. Less dangerous now, but still good practice.
-
-     What this file is FOR: a list of open to-dos with enough context to act on, addressed to Alex. It is not an investigation log. Evidence and superseded reasoning go to AGENTS.md. Completed beta preparation and other non-bug work go under Completed work; fixed bugs go under Fixed bugs, with their titles struck through. Remove completed items from the open lists rather than leaving struck-through stubs there. -->
-```
+<!-- What this file is FOR: a list of open to-dos with enough context to act on, addressed to Alex. It is not an investigation log. Evidence and superseded reasoning go to AGENTS.md. Completed beta preparation and other non-bug work go under Completed work; fixed bugs go under Fixed bugs, with their titles struck through. Remove completed items from the open lists rather than leaving struck-through stubs there. -->
 
 # **Open work**
 
