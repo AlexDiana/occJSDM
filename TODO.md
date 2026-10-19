@@ -94,7 +94,6 @@ Suggested order: PR #37, then PR #36, then PR #38 (stacked on #36), then the fou
   - *Files to look at:* `R/output.R` holds the function, `thinOutput()` at line 91 (documented from line 65), and its internal helper `thinElement()` at line 32 (documented from line 1). The tests to read alongside it are `tests/testthat/test-regression-bugs.R` lines 401 to 456 ("Fixed bugs 16"). It is internal: it has no entry in `NAMESPACE` and no page in `man/`, so deleting it means removing only the code in `R/output.R` and that test.
 ### Checks for Doug
 
-- **Check the `sampleresults` wording after PR #32:** NEWS says the shipped `sampleresults` was refitted under the new seeding "with the same seed and settings", and the README says the same of its flags. PR #32 changes spatial fits at rounding level, so if `sampleresults` has a spatial component a rerun with that seed no longer gives the shipped draws. Either confirm that it has no spatial component or soften the wording (or refit).
 
 ## Projects for Qin Pu
 
@@ -554,6 +553,8 @@ High-contamination simulations are stress tests of the low-contamination priors.
 - ~~**Hedge the historical validation article's current-sounding claims.**~~ **DONE:** its description and calibration panel now identify the saved pre-fix bundle; the invalid `q` comparison and unstandardised collection-coefficient comparison cannot support present coverage claims. The loading-recovery explanation is stated as an untested mechanism. Numerical evidence was not regenerated or altered.
 
 ## Other completed work
+
+**19 October 2026:** published the prerelease `v0.2.0-beta` from `main` at `ef03fa1` (parallel chains and the symmetric Gram change; PRs #36 to #38 are not in it). The shipped `sampleresults` is a spatial fit made before PR #32, so refitting it with the same seed differs at rounding level; NEWS and the release notes say so. Build, check and notes: `dev/release/2026-10-19-v0.2.0-beta/`.
 
 **19 October 2026:** the symmetric BLAS routine for the spatial Gram matrices merged as [PR #32](https://github.com/AlexDiana/occJSDM/pull/32) (`163c6ca`, Alex approved), closing the item "Form the Gram matrices with the symmetric BLAS routine". The range step and the coefficient draw form their weighted Gram matrices with `dsyrk` (`crossprod(sqrt(w) * Z)`), which halves the flops; measured 1.35 to 1.45 times faster per iteration at 900 sites and 1.1 to 1.3 times on the quickstart under the reference BLAS, and still 1.25 times at 900 sites under Accelerate. The prototype agreed with the old log-weights to a relative 4e-16, but seeded spatial fits no longer reproduce the previous build's draws bit for bit. Worktrees for merged and record branches were cleaned up the same day, and PRs #36 and #38 were rebased onto the new main.
 
