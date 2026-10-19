@@ -116,10 +116,9 @@ test_that("the full fitter redraws coefficients immediately after choosing range
     original_draw(...)
   }
   environment(update) <- update_env
+  # Mocked in the namespace, where run_one_chain() looks it up.
+  local_mocked_bindings(update_jSDMcoef=update,.package="occJSDM")
   fitter <- runOccJSDM
-  fit_env <- new.env(parent=environment(fitter))
-  fit_env$update_jSDMcoef <- update
-  environment(fitter) <- fit_env
   sim <- simulate_fixture(model="binary")
   suppressMessages(suppressWarnings(fitter(sim$data_list,
     occCovariates=fixture_occ_covariates(),spatCovariates=fixture_spat_covariates(),

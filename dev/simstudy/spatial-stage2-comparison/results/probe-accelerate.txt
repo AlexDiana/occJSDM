@@ -1,0 +1,70 @@
+# Re-check of the stage 2 per-iteration costs under Apple's Accelerate BLAS. Cited by SHELVED.md section 9.
+# 14 October 2026, 15:02 to 15:15 BST. Apple M4 laptop (10 cores, 32 GB), mains power, Low Power Mode off (pmset), one process
+# at a time on an otherwise idle machine. System R 4.6.1; BLAS = Accelerate (libRblas.dylib -> libRblas.vecLib.dylib, switched
+# 12:31 the same day); occJSDM 0.1.1 as installed (built 13 October 2026 12:31 UTC, same sampler as main, before PR #32);
+# Hmsc 3.3.7 from dev/simstudy/results/hmsc-longer-runs-20261013/library. VECLIB_MAXIMUM_THREADS=1, RCPP_PARALLEL_NUM_THREADS=1.
+# Community: make-binary900.R simulation, seed 5162, 12 species, binary, one shared spatial field of range 0.08 and unit variance.
+# Schedules: 15, 30 and 60 iterations (a third warm-up); per-iteration cost is the least-squares slope of whole-fit seconds on
+# iterations, the intercept the fixed cost. Not the pinned run-r runtime, whose R 4.5.0 still loads the reference BLAS.
+#
+# Invocations: Rscript probe-accelerate-gp.R <support_points> [sites]; Rscript probe-accelerate-hmsc.R <sites> <factors> 15 30 60;
+# Rscript probe-accelerate-projection.R. The first six-factor run used two schedules; the rerun with three is the figure used.
+
+== gp arm, 900 sites ==
+support points 300, iterations 15: 5.6 s whole fit
+support points 300, iterations 30: 9.3 s whole fit
+support points 300, iterations 60: 17.8 s whole fit
+support points 300: per-iteration cost 0.273 s (least squares over three schedules), fixed cost about 1.3 s
+support points 450, iterations 15: 9.6 s whole fit
+support points 450, iterations 30: 17.4 s whole fit
+support points 450, iterations 60: 30.9 s whole fit
+support points 450: per-iteration cost 0.470 s (least squares over three schedules), fixed cost about 2.9 s
+support points 600, iterations 15: 15.5 s whole fit
+support points 600, iterations 30: 26.8 s whole fit
+support points 600, iterations 60: 45.7 s whole fit
+support points 600: per-iteration cost 0.667 s (least squares over three schedules), fixed cost about 6.0 s
+support points 900, iterations 15: 29.2 s whole fit
+support points 900, iterations 30: 49.5 s whole fit
+support points 900, iterations 60: 94.6 s whole fit
+support points 900: per-iteration cost 1.461 s (least squares over three schedules), fixed cost about 6.6 s
+
+== gp arm, 300 sites ==
+support points 300, iterations 15: 3.6 s whole fit
+support points 300, iterations 30: 6.0 s whole fit
+support points 300, iterations 60: 10.0 s whole fit
+support points 300: per-iteration cost 0.140 s (least squares over three schedules), fixed cost about 1.6 s
+
+== Hmsc Full, 900 sites ==
+Hmsc Full, 900 sites, 2 factors, iterations 15: 6.4 s
+Hmsc Full, 900 sites, 2 factors, iterations 30: 9.3 s
+Hmsc Full, 900 sites, 2 factors, iterations 60: 19.9 s
+Hmsc Full, 900 sites, 2 factors: per-iteration cost 0.307 s, fixed cost about 1.1 s
+(first six-factor run, two schedules)
+Hmsc Full, 900 sites, 6 factors, iterations 15: 14.0 s
+Hmsc Full, 900 sites, 6 factors, iterations 30: 20.4 s
+Hmsc Full, 900 sites, 6 factors: per-iteration cost 0.427 s, fixed cost about 7.6 s
+(rerun, three schedules; used)
+Hmsc Full, 900 sites, 6 factors, iterations 15: 11.0 s
+Hmsc Full, 900 sites, 6 factors, iterations 30: 18.1 s
+Hmsc Full, 900 sites, 6 factors, iterations 60: 35.3 s
+Hmsc Full, 900 sites, 6 factors: per-iteration cost 0.545 s, fixed cost about 2.4 s
+
+== Hmsc Full, 300 sites ==
+Hmsc Full, 300 sites, 2 factors, iterations 15: 0.9 s
+Hmsc Full, 300 sites, 2 factors, iterations 30: 1.1 s
+Hmsc Full, 300 sites, 2 factors, iterations 60: 1.9 s
+Hmsc Full, 300 sites, 2 factors: per-iteration cost 0.022 s, fixed cost about 0.5 s
+Hmsc Full, 300 sites, 6 factors, iterations 15: 1.2 s
+Hmsc Full, 300 sites, 6 factors, iterations 30: 1.9 s
+Hmsc Full, 300 sites, 6 factors, iterations 60: 3.2 s
+Hmsc Full, 300 sites, 6 factors: per-iteration cost 0.043 s, fixed cost about 0.6 s
+
+== projection (probe-accelerate-projection.R) ==
+worker-hours per arm (40 jobs), initial schedule:
+gp900 gp600 gp450 gp300    h2    h6   env 
+249.0 125.5  94.9  64.2  51.2  91.5   2.3 
+ladder gp900: initial 394 worker-hours = 49 wall-hours at 8 workers; all-extension x4.43 = 1746 worker-hours = 218 wall-hours; one third extend = 105 wall-hours
+ladder gp600: initial 271 worker-hours = 34 wall-hours at 8 workers; all-extension x4.43 = 1198 worker-hours = 150 wall-hours; one third extend = 72 wall-hours
+ladder gp450: initial 240 worker-hours = 30 wall-hours at 8 workers; all-extension x4.43 = 1063 worker-hours = 133 wall-hours; one third extend = 64 wall-hours
+ladder gp300: initial 209 worker-hours = 26 wall-hours at 8 workers; all-extension x4.43 = 927 worker-hours = 116 wall-hours; one third extend = 56 wall-hours
+speed-ups vs SHELVED.md: gp300 28.9  gp900 (contended baseline) 61.1  Hmsc2 5.4  Hmsc6 47.7 

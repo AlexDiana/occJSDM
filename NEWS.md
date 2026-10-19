@@ -1,7 +1,12 @@
 # occJSDM (development version)
 
+## New features
+
+-   `runOccJSDM()` can run its chains on separate cores: set `ncores` in `MCMCparams`. `ncores` is the total core budget, so `ncores = 4` runs four chains on four single-threaded workers and `ncores = 8` on four workers of two RcppParallel threads each. A parallel fit prints the `tail -f` command for its progress file. The returned `infos` records the sampling settings, the seeds of every chain and how the fit was run.
+
 ## Behaviour changes
 
+-   Every chain is now seeded on its own, so a fit is identical whatever `ncores` says and no chain continues another's random stream. Because of this, a fit under a given `set.seed()` value gives different numbers from version 0.1.1; the shipped `sampleresults` was refitted under the new seeding with the same seed and settings. Identity across `ncores` is stated for a single-threaded BLAS; see `?runOccJSDM`.
 -   The spatial range step and the spatial coefficient draw now form their weighted Gram matrices with the symmetric BLAS routine (the rows of the design scaled by the square root of the weights, then multiplied by their own transpose), which halves that arithmetic. The result is the same quantity to rounding error, not bit for bit, so a seeded spatial fit no longer reproduces the draws of the previous build exactly; measured on a 900-site binary spatial fit, an iteration is 1.25 to 1.45 times faster depending on the BLAS.
 
 ## Deprecations

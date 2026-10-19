@@ -1,6 +1,6 @@
 # Stage 2 spatial representation comparison: shelved
 
-Written 12 October 2026 for Doug and for anyone who picks this up later. The study was designed, built and tested, then stopped at its run-time check, before any comparison fit. It is shelved until server time is available. Every number below comes from a file in `results/`, from the committed code, or from the design and plan, and the source is named where it is used.
+Written 12 October 2026 for Doug and for anyone who picks this up later. The study was designed, built and tested, then stopped at its run-time check, before any comparison fit. It is shelved until server time is available. Every number below comes from a file in `results/`, from the committed code, or from the design and plan, and the source is named where it is used. Section 9, the re-check of the costs under Apple's Accelerate BLAS, was added on 14 October 2026; sections 1 to 8 are as written on 12 October, apart from the pointers to it.
 
 ## 1. The short answer
 
@@ -8,6 +8,7 @@ Written 12 October 2026 for Doug and for anyone who picks this up later. The stu
 - **Why.** On the laptop it was built on (Apple M4, 10 cores, 32 GB), the study as specified cannot be run, for two independent reasons. The gllvm arm needs more than 33 GB of memory at 300 sites. The Hmsc and gp arms at 900 sites cost thousands of hours against a 48-hour limit.
 - **What would unblock it.** Server time for roughly 6,000 to 160,000 worker-hours (section 4.6), and a decision on whether to amend the spec so that the gllvm arm uses a sparse variational covariance that fits in memory (section 5).
 - **What was learned that is worth keeping.** Which of these spatial representations are affordable at 900 sites, and by how much, is now measured. That is a result in its own right: the spatial submodel is computationally expensive, which is what Lesson 7 is now meant to explain.
+- **Re-checked 14 October 2026 (section 9).** With the laptop's R on Apple's Accelerate BLAS, the gp and Hmsc arms run 5 to 60 times faster per iteration, and the study projects to about 26 wall-hours at eight workers if no job needs the extension and 116 if every job does, at the cheapest ladder step, instead of the hundreds to thousands above. That is a few days of laptop time, but still outside the spec's 48-hour rule, which prices every job at the extended schedule. The gllvm memory problem is unchanged, and the study's pinned R 4.5.0 still loads the reference BLAS, so the study does not see the gain until its runtime is switched or replaced.
 
 ## 2. What stage 2 was for
 
@@ -109,9 +110,51 @@ Each of these changes the specification, which Doug approved, so none was made.
 ## 8. Where everything is
 
 - **Repository.** `main`. The stage 2 branch `claude/spatial-stage2-comparison` and the pilot branch `claude/spatial-recoverability-pilot` were merged on 12 October 2026 and then deleted. Code, tests, this report, `STATUS.md` and `README.md` are in `dev/simstudy/spatial-stage2-comparison/`. The design and plan are in `dev/superpowers/`. Outside `dev/`, the two branches changed only `TODO.md`.
-- **Evidence.** `results/microtiming.json`, `results/gllvm-probe.csv`, `results/probe-hmsc-gpp.txt`, `results/probe-gp-slope.txt`, `results/microtiming-notes.txt`. In `gllvm-probe.csv`, the `limit_gb` column is the watchdog cap, `peak_gb` the largest footprint it saw, and `exit` 137 means it was killed.
+- **Evidence.** `results/microtiming.json`, `results/gllvm-probe.csv`, `results/probe-hmsc-gpp.txt`, `results/probe-gp-slope.txt`, `results/microtiming-notes.txt`. In `gllvm-probe.csv`, the `limit_gb` column is the watchdog cap, `peak_gb` the largest footprint it saw, and `exit` 137 means it was killed. The 14 October re-check (section 9) is `results/probe-accelerate.txt`, produced by `probe-accelerate-gp.R`, `probe-accelerate-hmsc.R` and `probe-accelerate-projection.R` in this folder.
 - **Laptop only (git-ignored).** The study directory `dev/simstudy/results/spatial-stage2-20261011/`: the frozen `config.rds`, `datasets.csv`, the per-job micro-timing results in `microtiming/`, the logs, and the Hmsc and gllvm package library. Its `jobs` link points at an empty folder on the research drive.
 - **Research drive.** `/Volumes/occJSDM Research/occJSDM/`, whose `README.md` explains each folder, including the empty stage 2 skeleton and the emptied pilot folder.
+
+## 9. Re-check under Accelerate, 14 October 2026
+
+Added 14 October 2026. That morning the sampler was profiled (`dev/profiling/2026-10-14-cpu-profile/REPORT.md`) and the 900-site spatial iteration turned out to be almost entirely BLAS matrix products; at 12:31 Doug switched the laptop's R 4.6.1 to Apple's Accelerate BLAS, which made that iteration about 25 times faster. `TODO.md` then asked for the occJSDM arms' run-time projections to be re-checked before waiting for server time. This section is that re-check, extended to the Hmsc arms. Every number comes from `results/probe-accelerate.txt`, written by `probe-accelerate-gp.R`, `probe-accelerate-hmsc.R` and `probe-accelerate-projection.R` in this folder; the file's header records the conditions.
+
+### 9.1 Method
+
+- **Runtime.** System R 4.6.1 with Accelerate (`extSoftVersion()` names vecLib's `libBLAS.dylib`), not the study's pinned `run-r`, whose R 4.5.0 still loads the reference BLAS (section 9.4). occJSDM 0.1.1 as installed on 13 October 2026, which has the same sampler as `main` (the symmetric Gram change of PR #32 is not in it). Hmsc 3.3.7 from the R 4.6.1 library of the Hmsc longer-runs check, `dev/simstudy/results/hmsc-longer-runs-20261013/library`. `VECLIB_MAXIMUM_THREADS` and `RCPP_PARALLEL_NUM_THREADS` set to 1, as `run-r` sets them.
+- **Conditions.** Mains power, Low Power Mode off, one process at a time on an otherwise idle machine, between 15:02 and 15:15 BST. These are the best per-process conditions the laptop offers; eight concurrent workers will each run slower (section 9.3).
+- **Community.** The profile's `make-binary900.R` simulation (seed 5162): 900 or 300 sites, 12 species, binary, one shared spatial field of range 0.08 and unit variance. Not a pilot community, because the pilot's inputs have not been regenerated; the cost depends on the sizes, not on the values.
+- **Calls.** The stage 2 adapters' shapes: occJSDM with no latent factors and the given number of support points, one chain; Hmsc Full method, probit, one covariate, the factor count fixed with `nfMin = nfMax`, one chain. Three schedules each (15, 30 and 60 iterations, a third of them warm-up) and a least-squares slope of whole-fit seconds on iterations, which separates the fixed set-up cost from the per-iteration cost as section 4.5 did with two schedules. The first six-factor run used two schedules; the rerun with three is the figure used.
+
+### 9.2 Per-iteration cost under Accelerate
+
+Seconds per iteration, with the section 4.2 figure under the reference BLAS in brackets where one exists:
+
+- **gp at 900 sites.** 900 support points 1.46 (89.3, measured with other jobs competing), 600 support points 0.67, 450 support points 0.47, 300 support points 0.27 (7.9, idle machine). Fixed set-up cost 1 to 7 seconds per fit.
+- **gp at 300 sites, 300 support points.** 0.14.
+- **Hmsc Full, two factors.** 0.31 at 900 sites (1.65); 0.022 at 300 sites.
+- **Hmsc Full, six factors.** 0.55 at 900 sites (26.0); 0.043 at 300 sites.
+- **env.** Not re-measured. It was never a constraint, and the switch can only make it faster; it is priced below at its reference-BLAS cost.
+- **gllvm.** Not re-measured. Its problem is memory, which the BLAS does not touch (section 9.4).
+
+The gains are 29 to 60 times for gp and 5 and 48 times for Hmsc with two and six factors. Six factors now cost less than twice what two cost, where under the reference BLAS they cost sixteen times as much: the Cholesky factorisation of the precision matrix of all sites and factors together, which dominated Hmsc's Full method, is now cheap, and what remains is R-level bookkeeping that grows slowly with the factor count.
+
+### 9.3 Projection
+
+Priced as section 4.1 prices a job (four chains of 7,000 iterations, and 4.43 times that for the all-extension upper bound), with the 300-site jobs at their measured 300-site cost rather than at the 900-site cost, env at its reference-BLAS cost, and gllvm excluded. Worker-hours, then wall-hours at eight workers:
+
+- **Hmsc two factors, 40 jobs.** 51 worker-hours for the initial schedules. **Hmsc six factors.** 92. **env.** 2.
+- **gp at 900 support points (ladder step 1), 40 jobs.** 249 worker-hours. Whole study: 394 worker-hours, or 49 wall-hours, for the initial schedules; 1,746 worker-hours, or 218 wall-hours, at the all-extension upper bound.
+- **gp at 300 support points (the cheapest ladder step).** 64 worker-hours. Whole study: 209 worker-hours, or 26 wall-hours, for the initial schedules; 927 worker-hours, or 116 wall-hours, at the upper bound. If a third of the Bayesian jobs needed the extension, about 56 wall-hours.
+- **For scale.** Section 4.6's equivalent figures were 759 to 20,262 wall-hours.
+
+So the study has gone from impossible on this laptop to a few days of laptop time. It still fails the spec's dispatch rule at every ladder step, because that rule prices every job at the extended schedule and requires the result to be under 48 wall-hours. Two cautions. The per-iteration figures are single-process, idle-machine numbers, and eight workers on four performance and six efficiency cores will each run slower, so the study's own `--mode=microtiming` and the timing ladder remain the dispatch measurement. And the schedules were 15 to 60 iterations, so section 4.7's warning about extrapolation applies here too.
+
+### 9.4 What the switch does not change
+
+- **gllvm.** The full variational covariance still needs more than 33 GB at 300 sites (section 4.3). The `bdNN` amendment or dropping the arm is still needed.
+- **The study's own runtime.** `run-r` pins R 4.5.0, whose `lib` folder is a symlink into `/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib`, where `libRblas.dylib` still points at the reference `libRblas.0.dylib`. The study runs at the section 4 speeds until that link is switched (an admin-writable folder, by the procedure the profile report gives) or the study moves to R 4.6.1, where Hmsc 3.3.7 is installed but gllvm 2.0.15 and TMB 1.9.22 are not. Either is a change to the frozen runtime and belongs in the spec's revision record.
+- **The oracle fits.** They must still be regenerated first (section 6), 62 CPU-hours under the reference BLAS. The oracle sampler is Armadillo code linked to R's BLAS, so it should gain as well, but that was not measured.
+- **Decisions.** Section 5 stands. The 48-hour rule, or the all-extension pricing behind it, joins the list of spec parameters that would need a dated amendment before dispatch.
 
 ## Glossary
 

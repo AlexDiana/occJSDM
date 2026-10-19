@@ -76,9 +76,22 @@ omitted, no spatial field is fit.}
 
 \item{MCMCparams}{(Optional) list of MCMC settings: \code{nchain} (number
 of chains), \code{nburn} (number of burn-in iterations to discard),
-\code{niter} (number of post-burn-in iterations to keep), and
-\code{nthin} (thinning interval, default \code{1}). Defaults to
-\code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1)}.}
+\code{niter} (number of post-burn-in iterations to keep), \code{nthin}
+(thinning interval, default \code{1}) and \code{ncores} (the total core
+budget, default \code{1}; it must be a single whole number of at least 1,
+and a value above the number of cores detected on the machine gives a
+warning and the fit proceeds). With \code{ncores = 1} the chains run one
+after another in this process. With \code{ncores > 1} they run on
+\code{min(nchain, ncores)} worker processes, each with
+\code{floor(ncores / workers)} RcppParallel threads; for example four chains
+with \code{ncores = 4} run on four single-threaded workers and with
+\code{ncores = 8} on four workers of two threads. Any remainder of the
+budget is idle: \code{ncores = 3} with two chains gives two single-threaded
+workers. A single chain never
+leaves this process: with \code{nchain = 1} and \code{ncores > 1} the fit
+runs here with its RcppParallel thread count set to \code{ncores} for the
+duration and restored afterwards, and no progress file is written. Defaults
+to \code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1, ncores = 1)}.}
 
 \item{summarisedLatentPresences}{(Optional) logical, default \code{TRUE}.
 If \code{TRUE}, the returned latent-presence/probability arrays
@@ -181,7 +194,20 @@ A list with:
   \code{siteNames}, \code{ncov_psi}, \code{ncov_theta}, the \code{OTU}
   matrix used for fitting, and standardisation info for \code{X_psi}/
   \code{Xs}), used internally by the plotting/output helpers (e.g.
-  \code{\link{plotOccupancyRates}}, \code{\link{plotDetectionRates}}).}
+  \code{\link{plotOccupancyRates}}, \code{\link{plotDetectionRates}}). It
+  also records \code{MCMCparams} (the resolved \code{nchain}, \code{nburn},
+  \code{niter} and \code{nthin}), \code{chain_seeds} (a 2 by \code{nchain}
+  matrix of the R and C++ seeds of each chain) and \code{execution} (how
+  the fit was run: \code{ncores}, \code{workers}, \code{threads_per_worker},
+  \code{thread_setting} (\code{"budget"} or \code{"ambient"}),
+  \code{blas_threads_requested} (the BLAS thread settings requested of the
+  workers), \code{worker_pids} (the worker process ids),
+  \code{blas_declared} (whether the environment variable
+  \code{OCCJSDM_REFERENCE_BLAS} was set), \code{blas} and \code{lapack}
+  (the BLAS and LAPACK libraries R reports), \code{elapsed} (the elapsed
+  seconds per chain) and \code{progress_file}). Only \code{execution}
+  differs between two fits of the same seed at different \code{ncores} when
+  the BLAS is single-threaded, as the Details explain.}
   \item{Tr}{The species trait matrix actually used to fit the model.}
   \item{X_theta}{The collection covariate design matrix (including
   intercept) used to fit the model.}
@@ -207,13 +233,42 @@ two-stage (eDNA-style) occupancy/detection data. A message is printed
 describing which model was inferred -- check that it matches expectations
 for your data.
 
-Random sampling runs serially on R's main thread, including when multiple
-RcppParallel threads are requested. Deterministic probability calculations
-may still run in parallel. Use \code{set.seed()} before fitting to reproduce
-results on the same software/platform; changing the requested thread count
-does not change the sampling stream. Consecutive fits without resetting the
-seed consume new draws. The calling session's RcppParallel thread setting
-is preserved.
+Every chain is seeded on its own: \code{runOccJSDM()} draws two seeds per
+chain from R's random number generator, one for the R-level draws and one
+for the package's C++ sampler, so \code{set.seed()} before fitting
+reproduces a fit on the same platform and build, and the fit is the same
+whatever \code{ncores} says: a chain's draws depend on its seeds alone, not
+on which chains ran before it or in which process. Consecutive fits without
+resetting the seed consume new draws. Because of the per-chain seeding, a
+seeded fit's numbers differ from those of the 0.1.1 beta, in which chains
+continued one stream.
+
+Random sampling runs serially on R's main thread; deterministic probability
+calculations may use several RcppParallel threads, and the thread count
+does not change the sampling stream. The calling session's RcppParallel
+thread setting is preserved. Identity across \code{ncores} also requires
+that the BLAS does not change its arithmetic with the thread count. R's
+reference BLAS, the one CRAN's macOS and Windows installers ship, is
+single-threaded. Worker processes are asked to run any other BLAS
+single-threaded through the usual thread variables, a request that has not
+been verified against a threaded BLAS. The package cannot verify which BLAS
+it is running on, and \code{extSoftVersion()} only indicates the library: a
+name such as \code{libRblas} is an indication, not proof. With an unpinned
+OpenBLAS, MKL or Accelerate an in-process fit can differ from worker fits.
+
+A fit advances the session's random number stream by its data preparation
+and by the chain seeds it draws, and no further: running the chains, in
+process or in workers, does not move it, so the session ends the fit in the
+same state at every \code{ncores} and consecutive fits receive different
+seeds. One caveat: under the Box-Muller normal kind R keeps a cached deviate
+outside \code{.Random.seed}, which a fit discards, so the next normal draw
+after a fit can differ from what an unfitted session would have given.
+
+A parallel fit prints one line naming its progress file, which the workers'
+iteration messages go to; use the \code{tail -f} command it shows to watch
+them. Warnings raised inside a chain in a parallel fit also go to that file,
+where each worker prints them when it stops at the end of the fit, and they
+are not raised again in this session.
 }
 \section{Field-contamination uncertainty}{
 

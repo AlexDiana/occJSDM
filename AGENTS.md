@@ -167,6 +167,8 @@ Same principle as the group B evidence above: the TODO entries say what was done
 
 **What it does not fix.** Bit-reproducibility above one thread. TBB work-stealing decides which thread handles which species, and that assignment varies between runs *even at a fixed thread count*, so a species can draw from a different stream on each run. Measured max difference 0.126 on `B0` at 10 threads, 0 at one. This is weaker than the caveat `src/rng.h` documents, which claims reproducibility holds "for a given thread count". The remedy is to key draws on the species index rather than the thread, filed as *MEE paper* Alex to-do 8.
 
+**Superseded, 13 October 2026.** The paragraph above, and the Fixed bugs 41 advice in `TODO.md` to set `RCPP_PARALLEL_NUM_THREADS=1` for reproducible runs, describe the August 2026 state. Fixed bugs 50 (14 September 2026) moved every random draw onto the main thread, and `tests/testthat/test-rng-safety.R` asserts that fits are bit-identical at 1 and 4 requested threads for all four model types; it was re-run on the installed 0.1.1 build on 13 October 2026 and passes. Thread count no longer affects results. Parallel chains (`MCMCparams$ncores`, the parallel-chains spec under `dev/superpowers/specs/`) seed every chain on its own; what still affects reproducibility is the BLAS, as `?runOccJSDM` explains.
+
 ### The two de-exports (*Fixed bugs* 40 and 42)
 
 Both used the mechanism group D specifies for wrappers: remove the `// [[Rcpp::export]]` tag, re-run `Rcpp::compileAttributes()`, never hand-edit the generated `RcppExports.R`.
