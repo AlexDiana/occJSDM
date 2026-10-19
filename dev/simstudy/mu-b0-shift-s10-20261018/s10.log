@@ -1,0 +1,28 @@
+2026-10-18 16:30:46: 10 jobs to run at 5000 + 5000
+starting worker pid=96675 on localhost:11690 at 16:30:46.447
+starting worker pid=96678 on localhost:11690 at 16:30:46.453
+starting worker pid=96677 on localhost:11690 at 16:30:46.453
+starting worker pid=96674 on localhost:11690 at 16:30:46.455
+starting worker pid=96676 on localhost:11690 at 16:30:46.461
+16:34:50 base_cm_m3 replicate 5 in 230 s
+16:34:51 base_cm_m3 replicate 2 in 231 s
+16:34:53 base_cm_m3 replicate 1 in 233 s
+16:34:53 base_cm_m3 replicate 4 in 233 s
+16:34:57 base_cm_m3 replicate 3 in 237 s
+16:38:43 base_rare_cm_m3 replicate 1 in 232 s
+16:38:44 base_rare_cm_m3 replicate 2 in 233 s
+16:38:47 base_rare_cm_m3 replicate 3 in 233 s
+16:38:47 base_rare_cm_m3 replicate 4 in 234 s
+16:38:50 base_rare_cm_m3 replicate 5 in 232 s
+16:34:53 base_cm_m3 replicate 1 in 233 s
+16:34:51 base_cm_m3 replicate 2 in 231 s
+16:34:57 base_cm_m3 replicate 3 in 237 s
+16:34:53 base_cm_m3 replicate 4 in 233 s
+16:34:50 base_cm_m3 replicate 5 in 230 s
+16:38:43 base_rare_cm_m3 replicate 1 in 232 s
+16:38:44 base_rare_cm_m3 replicate 2 in 233 s
+16:38:47 base_rare_cm_m3 replicate 3 in 233 s
+16:38:47 base_rare_cm_m3 replicate 4 in 234 s
+16:38:50 base_rare_cm_m3 replicate 5 in 232 s
+2026-10-18 16:38:50: finished, 10 files in /Users/douglasyu/src/occJSDM/.worktrees/mu-b0-shift-s10/dev/simstudy/mu-b0-shift-s10-20261018/draws/s10
+ALL DONE 2026-10-18 16:38:50 status 0
