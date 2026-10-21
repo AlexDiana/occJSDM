@@ -560,8 +560,8 @@ runOccJSDM <- function(data,
       if (!is.numeric(threshold) || length(threshold) != 1) {
         stop("'threshold' must be a single numeric value.")
       }
-      if (threshold <= 0) { # You already note threshold > 0 in your code, enforce it cleanly!
-        stop("'threshold' must be strictly greater than 0.")
+      if (threshold < 1) { # You already note threshold > 0 in your code, enforce it cleanly!
+        stop("'threshold' must not be less than 1.")
       }
 
       readsAboveThreshold <- y >= threshold

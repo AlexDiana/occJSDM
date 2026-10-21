@@ -339,15 +339,6 @@ simulateOccJSDMData <- function(list_datasettings,
         })
       })
 
-      # Read-count model (matches the threshold = 0 mode of runOccJSDM()): given
-      # a true detection (cimk_true == 1), log(y + 1) ~ Normal(mu1, sigma1); given
-      # a false-positive/contamination detection (cimk_true == 2),
-      # log(y + 1) ~ Normal(mu0, sigma0). No reads (cimk_true == 0) gives y = 0.
-      mu1_true <- get_param(list_params, "mu1", 5)
-      sigma1_true <- get_param(list_params, "sigma1", 1)
-      mu0_true <- get_param(list_params, "mu0", 1.5)
-      sigma0_true <- get_param(list_params, "sigma0", 1)
-
       logy1 <- matrix(0, N3, S)
       logy1[cimk_true == 1] <- rnorm(sum(cimk_true == 1), mu1_true, sigma1_true)
       logy1[cimk_true == 2] <- rnorm(sum(cimk_true == 2), mu0_true, sigma0_true)
