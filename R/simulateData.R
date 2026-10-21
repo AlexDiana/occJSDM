@@ -167,7 +167,7 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #' \code{l_s} sets the patch size; values near 1 or more flatten the field
 #' across the unit square and so weaken it.
 #'
-#' Variance partitioning. \code{true_params$jsdmParams_true$varPart} has
+#' Variation partitioning. \code{true_params$jsdmParams_true$varPart} has
 #' one row per species. Its \code{Environmental}, \code{Spatial} and
 #' \code{Biotic} (hidden-factor) columns are relative contributions that
 #' add up to one for each species; they say which source matters most, but
@@ -339,6 +339,19 @@ simulateOccJSDMData <- function(list_datasettings,
         })
       })
 
+<<<<<<< HEAD
+=======
+      # Simulate read counts; runOccJSDM() converts them to binary detections
+      # at a positive threshold rather than fitting continuous intensities. Given
+      # a true detection (cimk_true == 1), log(y + 1) ~ Normal(mu1, sigma1); given
+      # a false-positive/contamination detection (cimk_true == 2),
+      # log(y + 1) ~ Normal(mu0, sigma0). No reads (cimk_true == 0) gives y = 0.
+      mu1_true <- get_param(list_params, "mu1", 5)
+      sigma1_true <- get_param(list_params, "sigma1", 1)
+      mu0_true <- get_param(list_params, "mu0", 1.5)
+      sigma0_true <- get_param(list_params, "sigma0", 1)
+
+>>>>>>> b8b713e8134cd2d00062daee3e2091eca96b8e2b
       logy1 <- matrix(0, N3, S)
       logy1[cimk_true == 1] <- rnorm(sum(cimk_true == 1), mu1_true, sigma1_true)
       logy1[cimk_true == 2] <- rnorm(sum(cimk_true == 2), mu0_true, sigma0_true)

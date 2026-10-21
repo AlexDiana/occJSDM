@@ -1,0 +1,20 @@
+{
+  "completed_utc": "2026-10-07T14:44:34.118051+00:00",
+  "checksum_unique_files": 925,
+  "checksum_unique_logical_bytes": 1775427632,
+  "raw_checksum_files": 698,
+  "raw_checksum_logical_bytes": 1758051200,
+  "states": {
+    "(True, True)": 505,
+    "(True, False)": 121,
+    "(False, False)": 14
+  },
+  "extension_sample_jobs": {
+    "occJSDM": "baseline-r01-n100-s10-linear-traits0-occJSDM",
+    "gllvm": "baseline-r01-n100-s10-linear-traits0-gllvm",
+    "sjSDM": "baseline-r01-n100-s10-linear-traits0-sjSDM",
+    "Hmsc": "baseline-r01-n100-s10-linear-traits0-Hmsc"
+  },
+  "issues": [],
+  "method": "Existing MD5/SHA256 manifests, full reads of selected payloads, existence-only checks for other named fits; no fit loading or numerical reanalysis"
+}

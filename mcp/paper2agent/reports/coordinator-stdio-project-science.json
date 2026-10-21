@@ -1,0 +1,61 @@
+{
+  "success": true,
+  "tolerance": 0,
+  "cutoff": "NA",
+  "R_project": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime",
+  "fits": {
+    "fit_2d113cc4e7df4885af242eb8f7ed313c": {
+      "case": "occupancy_changed",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-15c2e376e378478294707fa7d16360bc/fit.rds",
+      "full_native_match": true
+    },
+    "fit_46e4692ec9e74a01b3d35a3fe5c953ac": {
+      "case": "binary_single",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-6e60010ddf3f4a57b570430b1b373d5d/fit.rds",
+      "full_native_match": true
+    },
+    "fit_376fd22233834594b666e78800d6a83f": {
+      "case": "binary_single",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-792cc48c07054b74a081f8ed1d894fca/fit.rds",
+      "full_native_match": true
+    },
+    "fit_4a3d82370b02467e86cbab4d7a51a807": {
+      "case": "two_stage_changed",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-9eecee8aa28c4850ae1d2ff969c3b02a/fit.rds",
+      "full_native_match": true
+    }
+  },
+  "tables": {
+    "diagnostics-3da78de9f8d14d5092a24f4a5b467bcc": {
+      "case": "binary_single",
+      "operation": "diagnostics",
+      "full_native_match": true
+    },
+    "diagnostics-61d9f0ab8eba466ca45fb0a27fc765c4": {
+      "case": "constant_species",
+      "operation": "diagnostics",
+      "full_native_match": true
+    },
+    "diagnostics-df7d4ac2db854cc4b2280ddcb1d92da5": {
+      "case": "binary_single",
+      "operation": "diagnostics",
+      "full_native_match": true
+    },
+    "summarise_fit-a2c86e973ee142b5b6424884a8faa956": {
+      "case": "binary_single",
+      "operation": "summarise_fit",
+      "full_native_match": true
+    },
+    "summarise_fit-fd21ce9aaf3144d6b3bf930976b268af": {
+      "case": "binary_single",
+      "operation": "summarise_fit",
+      "full_native_match": true
+    }
+  },
+  "publication_hash_checks": [
+    "fit_2d113cc4e7df4885af242eb8f7ed313c",
+    "fit_376fd22233834594b666e78800d6a83f",
+    "fit_4a3d82370b02467e86cbab4d7a51a807",
+    "fit_46e4692ec9e74a01b3d35a3fe5c953ac"
+  ]
+}

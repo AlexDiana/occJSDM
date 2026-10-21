@@ -1,0 +1,61 @@
+{
+  "success": true,
+  "tolerance": 0,
+  "cutoff": "NA",
+  "R_project": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/clean-r-runtime-socket",
+  "fits": {
+    "fit_e92d1a56cb3f41fcb49297f7aa3c61ca": {
+      "case": "two_stage_changed",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-0803bd7641cb470db11b68cef5ea830d/fit.rds",
+      "full_native_match": true
+    },
+    "fit_69d3f968d8d647289d0b8ca62498b268": {
+      "case": "binary_single",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-5aeec15202b84d3daede7c1dcf99e6e5/fit.rds",
+      "full_native_match": true
+    },
+    "fit_a32876b6044b4b89963ee20999098970": {
+      "case": "occupancy_changed",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-602d149ad31246ae93cc80d3034d3216/fit.rds",
+      "full_native_match": true
+    },
+    "fit_595c5360870241859ede234344f3d085": {
+      "case": "binary_single",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-ebb73177daf142189d42c184f76333e9/fit.rds",
+      "full_native_match": true
+    }
+  },
+  "tables": {
+    "diagnostics-5ae29b9fc7114103865efc1b1e80587d": {
+      "case": "constant_species",
+      "operation": "diagnostics",
+      "full_native_match": true
+    },
+    "diagnostics-8e5adfd8694847e3b7d589cc3409d4ce": {
+      "case": "binary_single",
+      "operation": "diagnostics",
+      "full_native_match": true
+    },
+    "diagnostics-b3797b746d3848c692597f88f5b9bbfe": {
+      "case": "binary_single",
+      "operation": "diagnostics",
+      "full_native_match": true
+    },
+    "summarise_fit-63c93f64fc1c46e39a1ebade4a974a36": {
+      "case": "binary_single",
+      "operation": "summarise_fit",
+      "full_native_match": true
+    },
+    "summarise_fit-8efa261b1810418daeda5238feb2e8e4": {
+      "case": "binary_single",
+      "operation": "summarise_fit",
+      "full_native_match": true
+    }
+  },
+  "publication_hash_checks": [
+    "fit_69d3f968d8d647289d0b8ca62498b268",
+    "fit_a32876b6044b4b89963ee20999098970",
+    "fit_595c5360870241859ede234344f3d085",
+    "fit_e92d1a56cb3f41fcb49297f7aa3c61ca"
+  ]
+}

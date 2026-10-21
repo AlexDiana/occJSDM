@@ -1,0 +1,13 @@
+{
+  "status": "local_execution_permission_difference_observed",
+  "restricted_activation_elapsed_seconds": 51.505,
+  "permitted_activation_elapsed_seconds": 7.257,
+  "diagnosis": "Rprof samples show renv sandbox activation repeatedly formatting a watchdog serverSocket error in the restricted execution sandbox. Permitted local socket execution avoids that warning.",
+  "production_changed": false,
+  "runtime_changed": false,
+  "cloud_scope": "No Linux or Posit Cloud latency established.",
+  "evidence": {
+    "coordinator-activation-profile.log": "111521f2058724c035f732d89fd307bede234445ca7a3a5df61496df88738b46",
+    "coordinator-activation-permitted.log": "ac1ef070a8daaf576a753dd8f8beccff6bc5d31c96a896698280c5cd4c80046a"
+  }
+}

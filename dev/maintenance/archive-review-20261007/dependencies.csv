@@ -1,0 +1,21 @@
+dependency,consumer,required_role
+historical-nonspatial-bias-20260914,pr11-current-20260927,"saved input RNG, biology/observations and historical scores"
+historical-nonspatial-design-20260919,pr11-current-20260927,"nested-design inputs, RNG and historical scores"
+historical-jsdm-sample-size-20260919,pr11-current-20260927,"binary nested-size inputs, RNG and historical scores"
+historical-three-study-inputs,intercept-prior-inputs,90 byte-checked copies; original paths preserved in manifests
+pr11-current-20260927,intercept-prior-20260929,"A1 and B selected controls, first fits and control library equivalence"
+spatial-targeted-20260927,spatial-amplitude-20260928,same nine immutable community inputs and original inverse-gamma controls
+spatial-targeted-20260927,intercept-prior-20260929,A2 range6-rep03 selected long control and shared spatial inputs
+spatial-amplitude-20260928,intercept-prior-20260929,other eight A2 inverse-gamma selected long controls
+intercept-prior-inputs,intercept-prior-20260929,A1/B archived datasets and initial RNG states
+pr11-current-20260927,convergence-diagnosis-20261001,"five flagged fits, unflagged controls and fixed anchor calibration"
+intercept-prior-inputs,convergence-diagnosis-20261001,community-5 input and variant-c derivation
+external-lesson-n-environment-20260922,lesson-4-extension-20260923,"frozen R/Python fitting launcher, packages and restricted-CPU wrappers"
+lesson-4-extension-20260923,lesson-4-calibration-20260925,"all 626 scored saved fits, Bayesian draws, truth and source metadata"
+lesson-4-extension-20260923,lesson-4-native-intervals-20260925,"selected native start/weights, training inputs, saved coefficients"
+lesson-4-calibration-20260925,lesson-4-native-intervals-20260925,"base calibration bundle, original interval and point results"
+lesson-4-extension-20260923,lesson-6-compact,lesson-4-extension.rds
+lesson-4-native-intervals-20260925,lesson-6-compact,lesson-4-calibration.rds
+external-lesson-n-pilot-20260922,lesson-5-compact,jsdm-comparison.rds plus tracked stability-resolution archive
+external-lesson-archive-post-pr14-20261007,lessons-0-through-4-compact,current eleven bundles plus WAIC evidence; October 2 archive remains distinct
+spatial-design-20261001-location-unresolved,lesson-7-compact,spatial-lesson.rds; raw archive location needs resolution

@@ -1,0 +1,158 @@
+Computing species 1 out of 4
+Computing species 2 out of 4
+Computing species 3 out of 4
+Computing species 4 out of 4
+Computing species 1 out of 4
+Computing species 2 out of 4
+Computing species 3 out of 4
+Computing species 4 out of 4
+Computing species 1 out of 4
+Computing species 2 out of 4
+Computing species 3 out of 4
+Computing species 4 out of 4
+Computing species 1 out of 4
+Computing species 2 out of 4
+Computing species 3 out of 4
+Computing species 4 out of 4
+
+per-species occupancy recovery
+
+  One row per species from a single fit of the 'base' scenario: 100 sites, 10
+  species, 2 chains of 500 iterations after 500 burn-in. A row is flagged
+  when it falls below a threshold one of the checks below uses.
+
+  occ_true  Fraction of the 100 sites where the species really is present.
+  occ_est   Fraction of sites where the model thinks it is present.
+  psi_cor   How closely the estimated chance of being present tracks the true
+            chance, across sites. Runs from -1 to 1; 0 means the estimates
+            say nothing about where the species is.
+  auc       Chance that the model rates a site where the species really is
+            present above one where it really is absent. A coin flip scores
+            0.5.
+  drv_cov   This species has 3 coefficients setting where it is likely to be
+            found: a baseline and 2 environmental effects. The model gives a
+            plausible range for each. This is the share of those 3 ranges
+            that contain the true value; it should be near 0.95.
+  drv_err   Average distance between the model's best guess and the true
+            value, over those same 3 coefficients. Smaller is better; it is
+            on the scale of the coefficients themselves, so there is no fixed
+            good value.
+
+ species occ_true occ_est psi_cor   auc drv_cov drv_err
+       1     0.44   0.468   0.805 0.819   1.000   0.464
+       2     0.48   0.470   0.199 0.648   1.000   0.393 <- psi_cor below 0.30
+       3     0.53   0.460   0.824 0.866   1.000   0.555
+       4     0.50   0.409   0.738 0.721   1.000   0.152
+       5     0.53   0.568   0.775 0.813   1.000   0.098
+       6     0.27   0.344   0.252 0.563   1.000   0.519 <- psi_cor below 0.30
+       7     0.48   0.488   0.559 0.647   1.000   0.324
+       8     0.30   0.517   0.675 0.778   0.667   1.289
+       9     0.27   0.349   0.892 0.912   1.000   0.618
+      10     0.52   0.317   0.829 0.850   1.000   0.843
+
+
+checks
+
+  Each check below shows the value this run produced, the floor it has to
+  clear, and a range labelled 'swept'. Swept means the whole simulate-and-fit
+  was repeated on eight separately generated datasets before these floors
+  were chosen, and that range is the smallest and largest value seen across
+  those eight runs. Every floor sits below the smallest of them, so passing
+  is not luck and failing is not ordinary random variation. If the model or
+  the settings above change, sweep again and reset the floors rather than
+  nudging one until the suite goes green.
+
+  mean_psi_cor      0.655   must exceed 0.30       swept 0.498 to 0.753
+
+      What it measures: For each species, how closely the estimated chance of
+      being present tracks the true chance across the 100 sites, then
+      averaged over the 10 species. A value of 0 would mean the estimates
+      carry no information about where the species really is.
+
+      Why it is here: This is the steadiest number in the file. Refitting the
+      same dataset four times moved it by only 0.017, so when it drops, the
+      cause is the model and not chance. It is the check that notices the
+      model getting worse at all ten species at once, which is the kind of
+      failure that no single species would make obvious.
+
+  n_species_ok          8   must be at least 5     swept 7 to 10 out of 10
+
+      What it measures: How many of the 10 species had that same tracking
+      measure reach 0.30 or better. The floor is half the species.
+
+      Why it is here: An average can stay healthy while one or two species
+      are recovered badly, because the good species pull it back up. This
+      check looks at the species one at a time so that kind of failure cannot
+      hide. It counts species rather than demanding that every species pass,
+      because a single species is a noisy thing to measure: across the eight
+      test datasets the worst species ranged from -0.401 to 0.913, so any
+      threshold strict enough to be meaningful would fail on ordinary data.
+
+  mean_auc          0.762   must exceed 0.60       swept 0.748 to 0.855
+
+      What it measures: The chance that the model rates a site where the
+      species really is present above a site where it really is absent,
+      averaged over the 10 species. A coin flip would score 0.5.
+
+      Why it is here: It measures much the same thing as the tracking check
+      above, and the two agreed closely when measured over 80 species (0.94),
+      so it is not doing independent work. It is here because it is easy to
+      read on its own, and because it would fall to a coin flip outright if
+      sites or species were ever accidentally shuffled out of order.
+
+
+checks
+
+  Each check below shows the value this run produced, the floor it has to
+  clear, and a range labelled 'swept'. Swept means the whole simulate-and-fit
+  was repeated on eight separately generated datasets before these floors
+  were chosen, and that range is the smallest and largest value seen across
+  those eight runs. Every floor sits below the smallest of them, so passing
+  is not luck and failing is not ordinary random variation. If the model or
+  the settings above change, sweep again and reset the floors rather than
+  nudging one until the suite goes green.
+
+  drv_cov           0.967   must exceed 0.55       swept 0.800 to 1.000
+
+      What it measures: Each species has 3 coefficients that determine where
+      it is likely to be found: a baseline and two environmental effects. The
+      model reports a range of plausible values for each. This is the share
+      of all 30 such ranges that actually contain the true value.
+
+      Why it is here: The ranges are built to contain the truth 95% of the
+      time, so this should sit near 0.95. The floor is much lower because 30
+      values from one fit is a small sample and will bounce around. It is
+      still worth checking, because if the true values were ever lined up
+      against the wrong coefficients this number would collapse towards 0
+      rather than merely drift.
+
+  drv_cor           0.816   must exceed 0.30       swept 0.647 to 0.900
+
+      What it measures: How closely the model's best guess at those same 30
+      coefficients tracks their true values.
+
+      Why it is here: The check above asks whether the truth falls inside the
+      model's stated range. This one asks whether the model's actual answer
+      is close. Both are needed: a range wide enough to contain almost
+      anything will pass the first check while telling you nothing, and only
+      this one would notice.
+
+Precomputing spatial covariance matrices
+Precomputing spatial covariance matrices
+Precomputing spatial covariance matrices
+Precomputing spatial covariance matrices
+Precomputing spatial covariance matrices
+Precomputing spatial covariance matrices
+Precomputing spatial covariance matrices
+[ FAIL 0 | WARN 0 | SKIP 1 | PASS 1050 ]
+
+══ Skipped tests (1) ═══════════════════════════════════════════════════════════
+• set OCCJSDM_SIMSTUDY=1 to run the coverage study (1):
+  'test-coverage-study.R:16:3'
+
+[ FAIL 0 | WARN 0 | SKIP 1 | PASS 1050 ]
+Warning message:
+package ‘testthat’ was built under R version 4.5.2 
+RESULT TOTALS
+      nb   failed  warning     user   system     real   passed 
+1051.000    0.000    0.000   47.459    1.257   48.772 1050.000 

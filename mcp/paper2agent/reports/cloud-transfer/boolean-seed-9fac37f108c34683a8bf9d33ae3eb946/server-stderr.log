@@ -1,0 +1,12 @@
+[10/06/26 11:10:07] INFO     Starting MCP server 'occJSDM' with transport.py:242
+                             transport 'stdio'                                  
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('seed',), 'msg': 'Input                    
+                             should be a valid integer', 'input':               
+                             True}]                                             
+                    WARNING  Invalid arguments for tool           server.py:1505
+                             'fit_model': [{'type': 'int_type',                 
+                             'loc': ('seed',), 'msg': 'Input                    
+                             should be a valid integer', 'input':               
+                             True}]                                             

@@ -168,8 +168,7 @@ format_points <- function(error) {
   formatC(100 * error, format = "f", digits = 1)
 }
 
-# This theme also works after occJSDM loads its ternary-plot dependency.
-theme_set(ggtern::theme_minimal(base_size = 12))
+theme_set(ggplot2::theme_minimal(base_size = 12))
 ```
 
 ## What are we trying to learn?
@@ -675,6 +674,14 @@ ggplot(detection_rates, aes(x = estimate, y = species)) +
 The laboratory rates are recovered well: 37 of the 40 intervals for `p` and `q` contain the true value. The intervals are comparatively narrow, none wider than 79% of its estimate, because every sample’s twelve PCRs give the model many repeated laboratory results to learn from. The field-contamination rate is harder: 9 of its 10 intervals contain the true value, but they are wide, from 87% to 329% of the estimate and reaching up to 19.4%. They are wide because field-stage contamination happens only at unoccupied sites, and a contaminated sample looks like any other sample with DNA.
 
 The black crosses for `p` and `q` are lower than the simulator’s settings in Lesson 0, because some simulated laboratory events produce zero reads and so never appear as positives. [Lesson 0](occJSDM-lesson-0.md#decide-how-collection-and-pcr-can-fail) explains how the simulator turns events into read counts.
+
+### Why keep the current field-contamination prior?
+
+A wide interval for `theta0` means the model is uncertain about how often DNA enters a sample at an unoccupied site. It is tempting to narrow the prior to make that interval look more precise. Doing so also changes the model’s expectations about the contamination rate and can move the point estimate.
+
+A separate [targeted sensitivity study](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/theta0-prior-mean/REPORT.md) compared the current Beta(1,20) prior with historical Beta(1,30), keeping the collection-slope prior and other settings fixed. The historical prior has a lower mean, 3.2% rather than 4.8%, and concentrates more strongly near zero. Under three low-contamination, non-spatial designs, with ten simulated communities per design, current-prior intervals were about 10-19% wider and estimates had less downward mean error. Average absolute error changed little, with uncertainty spanning either prior doing better; individual validation communities sometimes overshot the truth under the current prior.
+
+The current-prior 95% intervals contained the simulated truth 97-98% of the time. That is observed overcoverage in these designs, not proof of general calibration or of excessively wide intervals in your own survey. Some fits retained numerical diagnostic flags. The beta release keeps Beta(1,20), and the broader calibration study remains open. Check chain agreement and how conclusions respond to scientifically justified priors; choosing a tighter prior just to reach 95% coverage in this small simulation grid is not supported. These field-contamination results are separate from the high laboratory-contamination stress test below.
 
 ### Why rare and common species are pulled towards the middle
 
@@ -1368,4 +1375,4 @@ This truth join is valid for the unchanged teaching dataset. If you simulate new
 
 The figures are rendered from a compact saved bundle, not refitted while knitting the vignette. The bundle retains the complete simulation, generating inputs, case-selection rules, posterior summaries, source hashes, seeds, diagnostics and the hashes of the full fits. The original package examples `sampledata` and `sampleresults` are separate and are not used here.
 
-The fits were run at occJSDM revision **eeb1675**. The simulation seed is **20260919**. The recorded R version is **R version 4.5.0 (2025-04-11)**. The complete package versions for each fit are retained in `lesson$manifests[["default"]]$session`, and likewise for the other fits. Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above.
+The fits were run at occJSDM revision **a56f554**. The simulation seed is **20260919**. The recorded R version is **R version 4.5.0 (2025-04-11)**. The complete package versions for each fit are retained in `lesson$manifests[["default"]]$session`, and likewise for the other fits. Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above.

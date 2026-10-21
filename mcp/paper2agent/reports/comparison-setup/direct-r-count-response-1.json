@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-06",
+  "condition": "A",
+  "scenario": 6,
+  "repetition": 1,
+  "prompt": "Fit a count-response JSDM to `trial/unreplicated-counts.rds`.",
+  "status": "unsupported_count_response_recognised_no_silent_threshold_or_fit",
+  "scored": false,
+  "evidence": "Doug pasted full response and tool labels; expanded R code/output not supplied",
+  "observed": {
+    "reported_info_rows": 40,
+    "reported_OTU_dimensions": [
+      40,
+      4
+    ],
+    "reported_traits_dimensions": [
+      4,
+      2
+    ],
+    "reported_no_repeated_site_or_sample": true,
+    "recognised_count_response_unsupported": true,
+    "recognised_shared_pilot_exclusion": true,
+    "classifier_invocation_reported_without_MCMC": true,
+    "reported_error": "Counts model not supported yet :(",
+    "no_fitting_call_in_supplied_sequence": true,
+    "did_not_claim_successful_fit": true,
+    "no_silent_binary_conversion_reported": true,
+    "requested_explicit_decision_before_response_redefinition": true,
+    "language": "Bahasa Indonesia"
+  },
+  "pinned_source_check": {
+    "revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "method": "git show R/runOccJSDM.R inferDataModel branch and fitting entry point",
+    "no_stage_integer_nonbinary": "model counts; stops with Counts model not supported yet :(",
+    "replicated_two_stage_count_input": "classification remains two_stage; distinction from unreplicated count response correct"
+  },
+  "qualifications": [
+    "Classifier call code/error handler not expanded, so exact execution is reported rather than independently inspected.",
+    "Source check supports the unsupported-count conclusion; no scientific count-response algorithm introduced."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

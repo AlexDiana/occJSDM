@@ -1,0 +1,157 @@
+{
+  "all_passed": true,
+  "installed_source_bodies_identical": true,
+  "saved_reference_cases": {
+    "binary": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "occupancy": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "two_stage": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "no_traits": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "renamed_single_covariates": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "permuted_trait_rows": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "categorical_traits": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "changed_seed_thinning2": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "changed_seed_same_schedule": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "alignment_global_ordered": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "alignment_global_shuffled": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "alignment_local_ordered": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "alignment_local_shuffled": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "alignment_character_ordered": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "alignment_character_shuffled": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "alignment_identifier_covariates": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "alignment_occupancy_shuffled": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "boundary_two_stage_NA_OTU": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    }
+  },
+  "changed_cases": {
+    "binary_single": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "B0_dimensions": [
+        1,
+        20,
+        2
+      ],
+      "baseline_dimensions": [
+        40,
+        1
+      ]
+    },
+    "occupancy_changed": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "B0_dimensions": [
+        3,
+        20,
+        2
+      ],
+      "baseline_dimensions": [
+        40,
+        3
+      ]
+    },
+    "two_stage_changed": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "B0_dimensions": [
+        3,
+        20,
+        2
+      ],
+      "baseline_dimensions": [
+        40,
+        3
+      ]
+    }
+  },
+  "tolerance": 0,
+  "nonfinite": "Native R all.equal preserves NA/NaN locations and attributes; diagnostic CSV NA remains null in JSON"
+}

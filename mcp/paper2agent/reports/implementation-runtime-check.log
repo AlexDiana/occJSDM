@@ -1,0 +1,348 @@
+FFF.                                                                     [100%]
+=================================== FAILURES ===================================
+____________ test_effective_factor_cap_and_pinned_runtime_identity _____________
+
+    def test_effective_factor_cap_and_pinned_runtime_identity():
+        o=options(NATIVE['cases']['binary']);o['listParams']['n_factors']=99
+>       fit=asyncio.run(call('fit_model',dict(data_path='notebooks/quickstart/data/binary_data.rds',options=o,seed=1702)))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/code/implementation/test_quickstart.py:113: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:205: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:128: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/code/implementation/test_quickstart.py:37: in call
+    return (await client.call_tool(name,args)).data
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+occJSDM-env/lib/python3.14/site-packages/fastmcp/client/mixins/tools.py:336: in call_tool
+    return await self._parse_call_tool_result(
+occJSDM-env/lib/python3.14/site-packages/fastmcp/client/mixins/tools.py:272: in _parse_call_tool_result
+    return await _parse_call_tool_result(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'fit_model'
+result = CallToolResult(meta={'io.modelcontextprotocol/serverInfo': {'name': 'quickstart', 'version': '4.0.3'}}, content=[TextC...644a05b8b69899d043b145", annotations=None, meta=None)], structured_content=None, is_error=True, result_type='complete')
+tool_output_schemas = {}
+list_tools_fn = <bound method ClientSession.list_tools of <mcp.client.session.ClientSession object at 0x10ae28050>>
+client_name = 'Client-4e89', raise_on_error = True
+
+    async def _parse_call_tool_result(
+        name: str,
+        result: mcp_types.CallToolResult,
+        tool_output_schemas: dict[str, dict[str, Any] | None],
+        list_tools_fn: Any,  # Callable[[], Awaitable[None]]
+        client_name: str | None = None,
+        raise_on_error: bool = False,
+    ) -> CallToolResult:
+        """Parse an mcp_types.CallToolResult into our CallToolResult dataclass.
+    
+        Args:
+            name: Tool name (for schema lookup)
+            result: Raw MCP protocol result
+            tool_output_schemas: Dictionary mapping tool names to their output schemas
+            list_tools_fn: Async function to refresh tool schemas if needed
+            client_name: Optional client name for logging
+            raise_on_error: Whether to raise ToolError on errors
+    
+        Returns:
+            CallToolResult: Parsed result with structured data
+        """
+        # Local import: CallToolResult is under TYPE_CHECKING at module level to
+        # avoid a circular import (client.client -> mixins.tools -> client.client),
+        # but we need the concrete class here to construct the return value.
+        from fastmcp.client.client import CallToolResult
+    
+        data = None
+        if result.is_error and raise_on_error:
+            if result.content and isinstance(result.content[0], mcp_types.TextContent):
+                msg = result.content[0].text
+            else:
+                msg = f"Tool '{name}' returned an error"
+>           raise ToolError(msg)
+E           fastmcp.exceptions.ToolError: Error calling tool 'fit_model': Native R startup or operation failed (exit 1); inspect local logs in /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-c12c239701644a05b8b69899d043b145
+
+occJSDM-env/lib/python3.14/site-packages/fastmcp/client/mixins/tools.py:373: ToolError
+----------------------------- Captured stderr call -----------------------------
+[10/05/26 17:47:16] Error calling tool 'fit_model'                              
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/server/server.py:1492 in call_tool            │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/tools/base.py:440 in _run                     │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/quickstart.py:87 in          │
+                    │ fit_model                                                │
+                    │                                                          │
+                    │    84 │   shutil.copyfile(path,snapshot)                 │
+                    │    85 │   input_hash = digest(snapshot)                  │
+                    │    86 │   requested = options.model_dump()               │
+                    │ ❱  87 │   native = await                                 │
+                    │       run_r('fit_model',dict(data_path=str(snapshot),opt │
+                    │    88 │   pending = out/'fit.rds.pending'                │
+                    │    89 │   if not pending.is_file() or not native.get('re │
+                    │    90 │   │   raise RuntimeError('Native fit did not pas │
+                    │       published')                                        │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/runtime.py:116 in run_r      │
+                    │                                                          │
+                    │   113 │   │   │   raise                                  │
+                    │   114 │   result_path = out/'result.json'                │
+                    │   115 │   if not result_path.is_file():                  │
+                    │ ❱ 116 │   │   raise RuntimeError(f'Native R startup or o │
+                    │       {process.returncode}); inspect local logs in {out} │
+                    │   117 │   result = json.loads(result_path.read_text(),pa │
+                    │       ()).throw(ValueError('Nonfinite JSON from R')))    │
+                    │   118 │   if process.returncode != 0 or result.get('stat │
+                    │   119 │   │   raise RuntimeError('Native R error: ' + re │
+                    │       execution') + f'. Local logs: {out}')              │
+                    ╰──────────────────────────────────────────────────────────╯
+                    RuntimeError: Native R startup or operation failed (exit 1);
+                    inspect local logs in                                       
+                    /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mc
+                    p/paper2agent/artifacts/calls/fit_model-c12c239701644a05b8b6
+                    9899d043b145                                                
+------------------------------ Captured log call -------------------------------
+ERROR    fastmcp.server.server:server.py:1541 Error calling tool 'fit_model'
+Traceback (most recent call last):
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/server/server.py", line 1492, in call_tool
+    return await tool._run(arguments or {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/base.py", line 440, in _run
+    return await self.run(arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 389, in run
+    result = await self._run_body(
+             ^^^^^^^^^^^^^^^^^^^^^
+        type_adapter, exec_is_async, arguments, strict=strict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 430, in _run_body
+    result = await self._execute(
+             ^^^^^^^^^^^^^^^^^^^^
+        type_adapter, exec_is_async, arguments, strict=strict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 485, in _execute
+    result = await result
+             ^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 82, in wrapper
+    return await fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/quickstart.py", line 87, in fit_model
+    native = await run_r('fit_model',dict(data_path=str(snapshot),options=requested,seed=seed),out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/runtime.py", line 116, in run_r
+    raise RuntimeError(f'Native R startup or operation failed (exit {process.returncode}); inspect local logs in {out}')
+RuntimeError: Native R startup or operation failed (exit 1); inspect local logs in /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-c12c239701644a05b8b69899d043b145
+______________ test_constant_chain_null_and_tampered_fit_rejected ______________
+
+    def test_constant_chain_null_and_tampered_fit_rejected():
+        module()
+        fit_id,fp=register_reference_for_test(ROOT/'notebooks/quickstart/data/diagnostic_constant_species_fit.rds')
+>       r=asyncio.run(call('diagnostics',dict(fit_id=fit_id,max_rows=20)))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/code/implementation/test_quickstart.py:137: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:205: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:128: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/code/implementation/test_quickstart.py:37: in call
+    return (await client.call_tool(name,args)).data
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+occJSDM-env/lib/python3.14/site-packages/fastmcp/client/mixins/tools.py:336: in call_tool
+    return await self._parse_call_tool_result(
+occJSDM-env/lib/python3.14/site-packages/fastmcp/client/mixins/tools.py:272: in _parse_call_tool_result
+    return await _parse_call_tool_result(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'diagnostics'
+result = CallToolResult(meta={'io.modelcontextprotocol/serverInfo': {'name': 'quickstart', 'version': '4.0.3'}}, content=[TextC...684e25a333ee2e7200460a", annotations=None, meta=None)], structured_content=None, is_error=True, result_type='complete')
+tool_output_schemas = {}
+list_tools_fn = <bound method ClientSession.list_tools of <mcp.client.session.ClientSession object at 0x10ae40050>>
+client_name = 'Client-e74e', raise_on_error = True
+
+    async def _parse_call_tool_result(
+        name: str,
+        result: mcp_types.CallToolResult,
+        tool_output_schemas: dict[str, dict[str, Any] | None],
+        list_tools_fn: Any,  # Callable[[], Awaitable[None]]
+        client_name: str | None = None,
+        raise_on_error: bool = False,
+    ) -> CallToolResult:
+        """Parse an mcp_types.CallToolResult into our CallToolResult dataclass.
+    
+        Args:
+            name: Tool name (for schema lookup)
+            result: Raw MCP protocol result
+            tool_output_schemas: Dictionary mapping tool names to their output schemas
+            list_tools_fn: Async function to refresh tool schemas if needed
+            client_name: Optional client name for logging
+            raise_on_error: Whether to raise ToolError on errors
+    
+        Returns:
+            CallToolResult: Parsed result with structured data
+        """
+        # Local import: CallToolResult is under TYPE_CHECKING at module level to
+        # avoid a circular import (client.client -> mixins.tools -> client.client),
+        # but we need the concrete class here to construct the return value.
+        from fastmcp.client.client import CallToolResult
+    
+        data = None
+        if result.is_error and raise_on_error:
+            if result.content and isinstance(result.content[0], mcp_types.TextContent):
+                msg = result.content[0].text
+            else:
+                msg = f"Tool '{name}' returned an error"
+>           raise ToolError(msg)
+E           fastmcp.exceptions.ToolError: Error calling tool 'diagnostics': Native R startup or operation failed (exit 1); inspect local logs in /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-3d9e7afc67684e25a333ee2e7200460a
+
+occJSDM-env/lib/python3.14/site-packages/fastmcp/client/mixins/tools.py:373: ToolError
+----------------------------- Captured stderr call -----------------------------
+[10/05/26 17:47:30] Error calling tool 'diagnostics'                            
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/server/server.py:1492 in call_tool            │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/tools/base.py:440 in _run                     │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/quickstart.py:120 in         │
+                    │ diagnostics                                              │
+                    │                                                          │
+                    │   117 │   """                                            │
+                    │   118 │   path, manifest = resolve_fit(fit_id)           │
+                    │   119 │   out = fresh_output('diagnostics')              │
+                    │ ❱ 120 │   native = await run_r('diagnostics',dict(fit_pa │
+                    │   121 │   result = response('Screening covers selected c │
+                    │       diagnostics are inconclusive.',native,out)         │
+                    │   122 │                                                  │
+                    │       result.update(fit_id=fit_id,model=manifest['model' │
+                    │       s'])                                               │
+                    │   123 │   result['artifacts'].append(artifact('diagnosti │
+                    │       native convergence diagnostic table'))             │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/runtime.py:116 in run_r      │
+                    │                                                          │
+                    │   113 │   │   │   raise                                  │
+                    │   114 │   result_path = out/'result.json'                │
+                    │   115 │   if not result_path.is_file():                  │
+                    │ ❱ 116 │   │   raise RuntimeError(f'Native R startup or o │
+                    │       {process.returncode}); inspect local logs in {out} │
+                    │   117 │   result = json.loads(result_path.read_text(),pa │
+                    │       ()).throw(ValueError('Nonfinite JSON from R')))    │
+                    │   118 │   if process.returncode != 0 or result.get('stat │
+                    │   119 │   │   raise RuntimeError('Native R error: ' + re │
+                    │       execution') + f'. Local logs: {out}')              │
+                    ╰──────────────────────────────────────────────────────────╯
+                    RuntimeError: Native R startup or operation failed (exit 1);
+                    inspect local logs in                                       
+                    /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mc
+                    p/paper2agent/artifacts/calls/diagnostics-3d9e7afc67684e25a3
+                    33ee2e7200460a                                              
+------------------------------ Captured log call -------------------------------
+ERROR    fastmcp.server.server:server.py:1541 Error calling tool 'diagnostics'
+Traceback (most recent call last):
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/server/server.py", line 1492, in call_tool
+    return await tool._run(arguments or {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/base.py", line 440, in _run
+    return await self.run(arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 389, in run
+    result = await self._run_body(
+             ^^^^^^^^^^^^^^^^^^^^^
+        type_adapter, exec_is_async, arguments, strict=strict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 430, in _run_body
+    result = await self._execute(
+             ^^^^^^^^^^^^^^^^^^^^
+        type_adapter, exec_is_async, arguments, strict=strict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 485, in _execute
+    result = await result
+             ^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 82, in wrapper
+    return await fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/quickstart.py", line 120, in diagnostics
+    native = await run_r('diagnostics',dict(fit_path=str(path),max_rows=max_rows),out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/runtime.py", line 116, in run_r
+    raise RuntimeError(f'Native R startup or operation failed (exit {process.returncode}); inspect local logs in {out}')
+RuntimeError: Native R startup or operation failed (exit 1); inspect local logs in /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-3d9e7afc67684e25a333ee2e7200460a
+_________ test_timeout_reaps_process_and_keeps_pending_fit_unpublished _________
+
+tmp_path = PosixPath('/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/pytest-of-douglasyu/pytest-102/test_timeout_reaps_process_and0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ae30170>
+
+    def test_timeout_reaps_process_and_keeps_pending_fit_unpublished(tmp_path,monkeypatch):
+        module();from tools import runtime
+        monkeypatch.setenv('P2A_RSCRIPT',str(fake_rscript(tmp_path)))
+        monkeypatch.setenv('P2A_TIMEOUT_SECONDS','0.2')
+        out=runtime.fresh_output('fit_model')
+        with pytest.raises(RuntimeError,match='exceeded'):
+            asyncio.run(runtime.run_r('fit_model',{},out))
+>       pid=int((out/'child.pid').read_text())
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/code/implementation/test_quickstart.py:159: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-8f012cc80d624ab3b3c7aced87309be0/child.pid')
+mode = 'r', buffering = -1, encoding = 'locale', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-8f012cc80d624ab3b3c7aced87309be0/child.pid'
+
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+=========================== short test summary info ============================
+FAILED tests/code/implementation/test_quickstart.py::test_effective_factor_cap_and_pinned_runtime_identity
+FAILED tests/code/implementation/test_quickstart.py::test_constant_chain_null_and_tampered_fit_rejected
+FAILED tests/code/implementation/test_quickstart.py::test_timeout_reaps_process_and_keeps_pending_fit_unpublished
+3 failed, 1 passed, 48 deselected in 39.60s

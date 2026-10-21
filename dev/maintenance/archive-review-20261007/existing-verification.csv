@@ -1,0 +1,12 @@
+evidence_file,rows,passing,kind
+dev/simstudy/occupancy-intercept-prior/results/verify-fits-A1.csv,80,80,Historical numerical audit record inspected; audit not rerun today
+dev/simstudy/occupancy-intercept-prior/results/verify-tables-A1.csv,1408,1408,Historical numerical audit record inspected; audit not rerun today
+dev/simstudy/occupancy-intercept-prior/results/verify-fits-A2.csv,36,36,Historical numerical audit record inspected; audit not rerun today
+dev/simstudy/occupancy-intercept-prior/results/verify-tables-A2.csv,861,861,Historical numerical audit record inspected; audit not rerun today
+dev/simstudy/occupancy-intercept-prior/results/verify-fits-B.csv,104,104,Historical numerical audit record inspected; audit not rerun today
+dev/simstudy/occupancy-intercept-prior/results/verify-tables-B.csv,1369,1369,Historical numerical audit record inspected; audit not rerun today
+dev/simstudy/occupancy-intercept-prior/results/verify-phase-A.csv,20,20,Historical numerical audit record inspected; audit not rerun today
+dev/simstudy/occupancy-intercept-prior/results/verify-final.csv,19,19,Historical numerical audit record inspected; audit not rerun today
+dev/simstudy/convergence-flag-diagnosis/results/impact/reproduction.csv,33,33,Historical numerical audit record inspected; audit not rerun today
+/Users/douglasyu/src/occJSDM/dev/simstudy/results/pr11-current-20260927/verification-selected.csv,110,not a Boolean table; hashes checked today,Historical maximum posterior probability discrepancy 2.59792187762287e-14
+/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-targeted-20260927/verification-selected-independent.csv,81,not a Boolean table; hashes checked today,Historical maximum posterior probability discrepancy 1.45439216225896e-14

@@ -1,0 +1,37 @@
+[
+  {
+    "path": "/Users/douglasyu/Documents/Codex/2026-09-10/fam/work/nonspatial-bias-recheck-20260914",
+    "exists": true,
+    "type": "directory"
+  },
+  {
+    "path": "/Users/douglasyu/Documents/Codex/2026-09-10/fam/work/nonspatial-design-recheck-20260919",
+    "exists": true,
+    "type": "directory"
+  },
+  {
+    "path": "/Users/douglasyu/Documents/Codex/2026-09-10/fam/work/jsdm-sample-size-20260919",
+    "exists": true,
+    "type": "directory"
+  },
+  {
+    "path": "/Users/douglasyu/Documents/Codex/2026-09-10/fam/work/lesson-n-environment-20260922/run-r",
+    "exists": true,
+    "type": "file"
+  },
+  {
+    "path": "/Users/douglasyu/Documents/Codex/2026-09-10/fam/work/lesson-n-pilot-20260922",
+    "exists": true,
+    "type": "directory"
+  },
+  {
+    "path": "/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples",
+    "exists": true,
+    "type": "directory"
+  },
+  {
+    "path": "/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-post-pr14-20261007",
+    "exists": true,
+    "type": "directory"
+  }
+]

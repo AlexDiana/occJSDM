@@ -34,7 +34,7 @@ Suppose we know with certainty which species occupy each surveyed site. Can a jo
 
 We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated observations**. gllvm fits generalised linear latent variable models by approximate likelihood. sjSDM is a fast JSDM fitted by optimisation in PyTorch, a Python machine-learning library. Hmsc is a Bayesian hierarchical JSDM widely used in community ecology.
 
-Why compare an eDNA package with packages that have no detection model? Only occJSDM models detection error. This lesson checks that its ecological core, the part it shares with these established JSDMs, does as well as theirs on perfectly observed data. Here there is no DNA collection failure, PCR detection error or false positive. As the [quickstart](occJSDM.md#the-example-data) notes, when `info` has only one row per site, `runOccJSDM()` skips the detection stages and fits a JSDM to the observed presence/absence. That is the mode used here. The detection processes matter in [Lesson 2](occJSDM-lesson-2.md), but here we remove them to examine the ecological model itself.
+Why compare an eDNA package with packages that have no detection model? Only occJSDM models detection error. This lesson checks that its ecological core, the part it shares with these established JSDMs, does as well as theirs on perfectly observed data. Here there is no DNA collection failure, PCR detection error or false positive. As the [quickstart](occJSDM-00-quickstart.md#the-example-data) notes, when `info` has only one row per site, `runOccJSDM()` skips the detection stages and fits a JSDM to the observed presence/absence. That is the mode used here. The detection processes matter in [Lesson 2](occJSDM-lesson-2.md), but here we remove them to examine the ecological model itself.
 
 This lesson works through **one community**. [Lesson 6](occJSDM-lesson-6.md) repeats the experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits. Section 5 explains why the sjSDM fit needed several starts and what its two solutions mean.
 
@@ -47,7 +47,7 @@ You will learn to:
 5. Separate reliable computation from accurate ecological estimation.
 6. Use what makes the model joint to predict one species from another.
 
-All teaching code is visible. Knit this file, or run its chunks with `vignettes` as the working directory. Rendering reads a compact results bundle and does **not** fit any models. The optional simulation and fitting chunks are shown with `eval=FALSE`; run them deliberately if you want to repeat the experiment. Knitting needs only the four packages loaded below and ggtern, which installing occJSDM also installs; gllvm, sjSDM and Hmsc are needed only for the optional fits in the appendix.
+All teaching code is visible. Knit this file, or run its chunks with `vignettes` as the working directory. Rendering reads a compact results bundle and does **not** fit any models. The optional simulation and fitting chunks are shown with `eval=FALSE`; run them deliberately if you want to repeat the experiment. Knitting needs only the four packages loaded below; gllvm, sjSDM and Hmsc are needed only for the optional fits in the appendix.
 
 **What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R for Data Science on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. The unusual operations, base R's `sweep()` and `integrate()`, are explained where they appear.
 
@@ -94,11 +94,10 @@ predictions <- predictions |>
     absolute_error_pp = abs(signed_error_pp)
   )
 
-# This theme also works after occJSDM loads its ternary-plot dependency.
-theme_set(ggtern::theme_bw(base_size = 12))
+theme_set(ggplot2::theme_bw(base_size = 12))
 ```
 
-The last line sets ggtern's version of `theme_bw()`; [Lesson 3](occJSDM-lesson-3.md#what-this-lesson-answers) explains why the lessons use it.
+The last line sets a white-background theme for all the plots in this lesson. Individual plots can still add their own theme settings.
 
 `comparison` is a list. Here is every element it holds:
 
@@ -249,7 +248,7 @@ The four packages fit in two different ways. occJSDM and Hmsc use Bayesian sampl
 
 Hmsc uses **probit**, whereas the other three use **logit**, as does this simulator. Both turn an ecological score into a probability, but their curves differ. This is why we compare probabilities rather than raw coefficient sizes. The priors and fitting approximations also differ: this is a comparison of these configurations with equal data, not an experiment changing only the package name. The probit link also means Hmsc's coefficients cannot be checked against the logit truth, which is why [Lesson 6's coefficient checks](occJSDM-lesson-6.md#how-close-are-the-environmental-effects) leave them out.
 
-To fit sjSDM yourself, install it from Doug's fork, release [v0.1.0](https://github.com/dougwyu/s-jSDM/releases/tag/v0.1.0), which runs on Apple Silicon and uses PyTorch only. The fits in this lesson ran under the fork's later release v0.2.1 (sjSDM 1.0.7) with its optional Mojo backend switched off. We did not refit under v0.1.0. Our reason is an argument from reading the two releases' code, not a rerun. With the backend switch at zero, v0.2.1's fitting code reaches the same PyTorch loss as v0.1.0 line for line, apart from integer conversions of tensor sizes. A rerun under v0.1.0 is planned. We did not test the CRAN release of sjSDM.
+To fit sjSDM yourself, install it from Doug's fork, release [v0.1.0](https://github.com/dougwyu/s-jSDM/releases/tag/v0.1.0), which runs on Apple Silicon and uses PyTorch only. The fits in this lesson ran under the fork's later release v0.2.1 (sjSDM 1.0.7) with its optional Mojo backend switched off. We reran the selected start under v0.1.0 with the same seed, data and settings, and it reproduced the recorded fit exactly: every coefficient and loading, and the loss at every epoch, after both the 3,000-epoch fit and the 1,000-epoch continuation. We did not test the CRAN release of sjSDM.
 
 ## 3. What a joint model adds to factoring a matrix
 
@@ -779,7 +778,7 @@ Try these exercises with the saved tables, without refitting:
 
 The appendix below holds each package's fitting call and what the runs cost, the evidence for the two sjSDM optima, and the reproduction record.
 
-Continue to [Lesson 6](occJSDM-lesson-6.md), or return to the [Quickstart](occJSDM.md), [Lesson 2](occJSDM-lesson-2.md) or [Lesson 3](occJSDM-lesson-3.md).
+Continue to [Lesson 6](occJSDM-lesson-6.md), or return to the [Quickstart](occJSDM-00-quickstart.md), [Lesson 2](occJSDM-lesson-2.md) or [Lesson 3](occJSDM-lesson-3.md).
 
 ## Appendix: evidence and reproduction
 

@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "tolerance": 0,
+  "fit_count": 4,
+  "table_call_count": 8,
+  "checks": {
+    "binary_single_fit": {
+      "full_six_components": true,
+      "settings": true,
+      "fit_input_registry_hashes": true
+    },
+    "binary_repeat_fit": {
+      "full_six_components": true,
+      "settings": true,
+      "fit_input_registry_hashes": true
+    },
+    "occupancy_changed_fit": {
+      "full_six_components": true,
+      "settings": true,
+      "fit_input_registry_hashes": true
+    },
+    "two_stage_changed_fit": {
+      "full_six_components": true,
+      "settings": true,
+      "fit_input_registry_hashes": true
+    },
+    "binary_single_diagnostics": {
+      "full_csv_byte_exact": true,
+      "operation": "diagnostics"
+    },
+    "binary_single_summary": {
+      "full_csv_byte_exact": true,
+      "operation": "summarise_fit"
+    },
+    "occupancy_changed_diagnostics": {
+      "full_csv_byte_exact": true,
+      "operation": "diagnostics"
+    },
+    "occupancy_changed_summary": {
+      "full_csv_byte_exact": true,
+      "operation": "summarise_fit"
+    },
+    "two_stage_changed_diagnostics": {
+      "full_csv_byte_exact": true,
+      "operation": "diagnostics"
+    },
+    "two_stage_changed_summary": {
+      "full_csv_byte_exact": true,
+      "operation": "summarise_fit"
+    },
+    "summary_repeat": {
+      "full_csv_byte_exact": true,
+      "operation": "summarise_fit"
+    },
+    "diagnostics_repeat": {
+      "full_csv_byte_exact": true,
+      "operation": "diagnostics"
+    }
+  },
+  "R_version": "R version 4.5.0 (2025-04-11)",
+  "occJSDM_origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+  "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+}

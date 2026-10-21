@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "agent_id": "/root/mcp_implementer",
+  "started_at": "2026-10-05T18:16:17.496554+00:00",
+  "ended_at": "2026-10-05T18:19:18.364356+00:00",
+  "status": "implementation_complete_pending_fresh_independent_verifier",
+  "scope": "FastMCP 4.0.3 strict input validation on module and mounted stdio server only; no scientific, native R, runtime or input-schema changes.",
+  "root_cause": "FunctionTool._run passes active server strict_input_validation to TypeAdapter.validate_python. The default False overrides strict Pydantic model and field flags and accepts/coerces bool, float and string integers.",
+  "supported_api": {
+    "constructor": "FastMCP(..., strict_input_validation=True)",
+    "installed_code": [
+      "occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py",
+      "occJSDM-env/lib/python3.14/site-packages/fastmcp/server/server.py"
+    ]
+  },
+  "before_hashes": {
+    "src/tools/quickstart.py": "1b326fa079d421706508c47f2e80be90b711171027c0f8f91714ec3948e3486b",
+    "src/occJSDM_mcp.py": "48dabef38a3c6383e77cc4cf5460862dccca71d717ff24458783c6a8f6c4e20d",
+    "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+    "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7"
+  },
+  "after_hashes": {
+    "src/tools/quickstart.py": "9fdb02fd732e10d2cab8e5ccfa8b3a0ec78e957db0a61339b1de73fb51b5a225",
+    "src/occJSDM_mcp.py": "e2674e0ba068a0845f63d22c5af1e169816d2a0baad80654676b64d0723046f7",
+    "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+    "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7"
+  },
+  "production_changes": [
+    {
+      "path": "src/tools/quickstart.py",
+      "change": "Set quickstart_mcp strict_input_validation=True."
+    },
+    {
+      "path": "src/occJSDM_mcp.py",
+      "change": "Set active mounted stdio server strict_input_validation=True."
+    }
+  ],
+  "produced_files": [
+    {
+      "path": "src/tools/quickstart.py",
+      "sha256": "9fdb02fd732e10d2cab8e5ccfa8b3a0ec78e957db0a61339b1de73fb51b5a225"
+    },
+    {
+      "path": "src/occJSDM_mcp.py",
+      "sha256": "e2674e0ba068a0845f63d22c5af1e169816d2a0baad80654676b64d0723046f7"
+    }
+  ],
+  "tests": [
+    {
+      "stage": "RED",
+      "command": "occJSDM-env/bin/python -m pytest -q tests/code/implementation/test_transport_strictness.py::test_stdio_rejects_boolean_seed_without_publishing > reports/cloud-transfer/transport-strictness-red.log 2>&1",
+      "exit_code": 1,
+      "failed": 1,
+      "elapsed_seconds": 3.15,
+      "evidence": "Real fresh stdio interpreter accepted seed=True, coerced it to integer1 and published a completed native fit and manifest. Historical invalid publication retained only in this isolated evidence project.",
+      "coerced_seed_in_manifest": 1,
+      "historical_evidence_project": "reports/cloud-transfer/boolean-seed-ffc7c08e575f473f808fe164184e4eaa"
+    },
+    {
+      "stage": "GREEN",
+      "command": "occJSDM-env/bin/python -m pytest -q tests/code/implementation/test_transport_strictness.py > reports/cloud-transfer/transport-strictness-green.log 2>&1",
+      "exit_code": 0,
+      "passed": 3,
+      "elapsed_seconds": 5.92,
+      "negative_stdio_payloads": 21,
+      "negative_module_payloads": 1,
+      "positive_native_calls": 3,
+      "assertions": "Fresh top-level stdio rejects boolean/string/float seed, coercible nested numeric settings, bad max_rows types for both downstream tools, bare covariate string and nonstring covariate element. No new manifests or registry publication. Valid integer1702 creates native binary fit with20 retained draws and both downstream tools return bounded rows and short-fit qualifications. Module input validation also rejects Boolean seed before file access."
+    },
+    {
+      "stage": "GREEN_GUARDS",
+      "command": "occJSDM-env/bin/python -m pytest -q tests/code/implementation/test_quickstart.py -k 'unknown_and_unsupported or input_paths_confined or symlink_escape or rows_cap or timeout or cancellation' > reports/cloud-transfer/transport-strictness-guards.log 2>&1",
+      "exit_code": 0,
+      "passed": 14,
+      "deselected": 52,
+      "elapsed_seconds": 1.89,
+      "assertions": "Existing schema bounds and unknown-option rejection, path confinement, symlink escape, output-row cap, deadline and cancellation process reap tests pass."
+    }
+  ],
+  "schema": {
+    "evidence": "reports/cloud-transfer/transport-strictness-schema-check.json",
+    "exactly_equal_to": "reports/implementation-inventory.json",
+    "tool_count": 4,
+    "max_rows_minimum": 1,
+    "max_rows_maximum": 20,
+    "seed_minimum": 0,
+    "seed_maximum": 2147483647
+  },
+  "test_files": [
+    {
+      "path": "tests/code/implementation/test_transport_strictness.py",
+      "sha256": "48e31c31f3c6f91ccdebc709b9afd93c10eac3384338f433fe2b86c17588ab0c"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "reports/cloud-transfer/transport-strictness-red.log",
+      "sha256": "8a8eddf659e4129f8325eff2003bf9e085edfc6a799d8320e62bbc9049c07aac"
+    },
+    {
+      "path": "reports/cloud-transfer/transport-strictness-green.log",
+      "sha256": "eb2f34ec7621e7b23c77f3cba2de7f19d82ac02a69b2f61be7e4da542c25499f"
+    },
+    {
+      "path": "reports/cloud-transfer/transport-strictness-guards.log",
+      "sha256": "9d67a299e3293100ac8ff5a39a132f5525d2a31e14bde1a758dc14f804f53b60"
+    },
+    {
+      "path": "reports/cloud-transfer/transport-strictness-schema-check.json",
+      "sha256": "66bd6c95e00e2d009afb586ac48a0fb12d68403715b1ce7d1998354ed0ff1a9a"
+    }
+  ],
+  "runtime_conditions": "Existing isolated Mac Python/R runtimes, R subprocesses with permitted local socket activation through require_escalated. No dependencies or runtime files changed. Separate UUID evidence projects prevent cross-run publication races.",
+  "verification_limitations": [
+    "Scientific baseline suite was not repeated for this two-line transport registration fix. Prior native comparison evidence remains immutable. Fresh independent Cloud transfer verifier must accept the final transport and scientific behavior before delivery."
+  ],
+  "diagnostic_attempts": [
+    {
+      "command": "First ad hoc schema-check heredoc",
+      "exit_code": 1,
+      "reason": "Unmatched parenthesis in diagnostic script only; corrected next invocation passed exact schema equality."
+    }
+  ],
+  "prior_reports_unchanged": true,
+  "production_files_frozen_during_green": true
+}

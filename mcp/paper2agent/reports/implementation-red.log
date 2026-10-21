@@ -1,0 +1,66 @@
+F
+=================================== FAILURES ===================================
+_____ test_unknown_and_unsupported_options_fail_before_outputs[mutation0] ______
+
+    def module():
+        try:
+>           return importlib.import_module('tools.quickstart')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/code/implementation/test_quickstart.py:19: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'tools.quickstart', import_ = <function _gcd_import at 0x1028b3e20>
+
+>   ???
+E   ModuleNotFoundError: No module named 'tools.quickstart'
+
+<frozen importlib._bootstrap>:1335: ModuleNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+mutation = {'spatCovariates': ['x', 'y']}
+
+    @pytest.mark.parametrize('mutation',[{'spatCovariates':['x','y']},{'threshold':0},{'threshold':1.5},{'listParams':{'n_factors':-1}},{'listParams':{'n_factors':2,'prior':0}},{'MCMCparams':{'nchain':1,'nburn':0,'niter':10,'nthin':1}}])
+    def test_unknown_and_unsupported_options_fail_before_outputs(mutation):
+        o=options(NATIVE['cases']['two_stage']);o.update(mutation)
+        before=set((ROOT/'artifacts').glob('**/manifest.json'))
+        with pytest.raises(Exception):
+>           asyncio.run(call('fit_model',dict(data_path='notebooks/quickstart/data/two_stage_data.rds',options=o,seed=1702)))
+
+tests/code/implementation/test_quickstart.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:205: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:128: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/code/implementation/test_quickstart.py:36: in call
+    async with Client(module().quickstart_mcp) as client:
+                      ^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def module():
+        try:
+            return importlib.import_module('tools.quickstart')
+        except ModuleNotFoundError:
+>           pytest.fail('Four-tool wrapper has not been implemented')
+E           Failed: Four-tool wrapper has not been implemented
+
+tests/code/implementation/test_quickstart.py:21: Failed
+=========================== short test summary info ============================
+FAILED tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation0]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed in 0.57s

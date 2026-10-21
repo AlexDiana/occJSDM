@@ -17,8 +17,11 @@ reference:
   contents:
   - computeDiagnostics
   - returnConvergenceDiagnostics
+  - returnPosteriorDraws
   - plotTraceplot
   - extractWAIC
+  - computeSiteWAIC
+  - compareSiteWAIC
 
 - title: Occupancy and detection probabilities
   desc: >
@@ -69,8 +72,8 @@ reference:
   - plotOrdinationScores
   - returnResidualCorrelationMatrix
   - plotResidualCorrelationMatrix
-  - returnVariancePartitioning
-  - plotVariancePartitioning
+  - returnVariationPartitioning
+  - plotVariationPartitioning
 
 - title: Example data
   desc: Shipped with the package; used by the vignettes.

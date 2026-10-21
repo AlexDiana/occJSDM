@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-06",
+  "condition": "A",
+  "scenario": 9,
+  "repetition": 1,
+  "scored": false,
+  "prompt": "Fit the same non-spatial starter model to `trial/data.rds` again with seed 1703, retaining the supplied test settings. Save it to a distinct new project file and preserve every existing fit. Report the settings, seed, saved path and warnings, then stop.",
+  "status": "seed_settings_and_preservation_confirmed_overwrite_guard_missing_reload_blocked_language_failure",
+  "evidence": {
+    "attachment": "/Users/douglasyu/.codex/attachments/1cebf3fb-b11b-4d0b-ae32-62093043a066/Pasted text.txt",
+    "content": "Response and tool labels only; expanded fit/save code and raw output absent"
+  },
+  "observed": {
+    "route_reported": "native R; no occJSDM MCP",
+    "seed_reported": 1703,
+    "settings_reported": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta"
+      ],
+      "spatCovariates": [],
+      "threshold": 1,
+      "n_factors": 2,
+      "nchain": 2,
+      "nburn": 20,
+      "niter": 20,
+      "nthin": 1,
+      "summarisedLatentPresences": true,
+      "listPriors": {}
+    },
+    "saved_path_reported": "/cloud/project/trial/fit-workflow-test-1703.rds",
+    "session_object_reported": "fit_workflow_test_1703",
+    "size_bytes_reported": 56531,
+    "warning_count_reported": 25,
+    "preservation_reported": "SHA256 before/after unchanged for all pre-existing trial files",
+    "language": "English throughout, including final report; contrary to approved default Bahasa Indonesia",
+    "no_scientific_interpretation": true,
+    "stopped_as_requested": true,
+    "existing_R_session_objects_inspected": true
+  },
+  "qualifications": [
+    "Expanded code confirms seed and fitting settings; data d identity relies on the earlier reported preflight.",
+    "Save uses saveRDS without a pre-save file.exists guard. Existing seven files were preserved in the observed run, but another execution could overwrite the seed-1703 path.",
+    "Client blocked readRDS because mode 660 is not world-readable. Saved-file existence and size are confirmed; successful reload/object equality is not.",
+    "Final response violated default Bahasa Indonesia instructions.",
+    "The earlier claim that a differing serialized hash proves a distinct loaded object remains incorrect; Doug previously obtained zero-tolerance all.equal TRUE for the seed-1702 files.",
+    "Fresh conversation reused existing R session objects. Warning extrema remain reported because their numeric raw output was not provided."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null,
+  "expanded_execution_evidence": {
+    "source": "Doug pasted fitting code, save code and execution output on 2026-10-06",
+    "seed": 1703,
+    "seed_placement": "Before warning-vector initialization and withCallingHandlers/runOccJSDM; intervening initialization does not consume RNG",
+    "settings_match_starter": true,
+    "data_argument": "d; previous response reports preflight identical to trial/data.rds, not reverified in these blocks",
+    "warning_capture": "withCallingHandlers; append conditionMessage and muffleWarning",
+    "warnings_output_count": 25,
+    "save_path": "trial/fit-workflow-test-1703.rds",
+    "file_size_bytes": 56531,
+    "file_mode": "660",
+    "mtime": "2026-10-06 13:21:58",
+    "pre_save_existence_guard": false,
+    "preservation_check": "tools::sha256sum before and after; intersected filenames; all seven reported TRUE",
+    "preserved_files": [
+      "data.rds",
+      "diagnostics-unavailable.csv",
+      "fit-short.rds",
+      "fit-workflow-test-1702.rds",
+      "malformed.rds",
+      "no-traits.rds",
+      "unreplicated-counts.rds"
+    ],
+    "reload_attempt": {
+      "code": "reload <- readRDS(save_path)",
+      "result": "Blocked by client file-operation policy: file is not world-readable"
+    },
+    "saved_object_round_trip_verified": false,
+    "preservation_check_limitation": "Intersection comparison would omit a deleted file; output includes all seven expected pre-existing fixture/artifact files."
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "validator": "paper2agent-workflow",
+  "schema_version": 1,
+  "success": true,
+  "through": "setup",
+  "errors": [],
+  "passed_assignments": [
+    {
+      "role": "environment",
+      "task": "project",
+      "run_id": "environment-project-attempt-1"
+    },
+    {
+      "role": "scanner",
+      "task": "project",
+      "run_id": "scanner-project-attempt-1"
+    }
+  ],
+  "exclusions": [],
+  "scope": "Validates recorded state and artifact consistency; does not authenticate host identities or establish numerical/scientific correctness.",
+  "expected_assignments": [
+    {
+      "role": "environment",
+      "task": "project"
+    },
+    {
+      "role": "scanner",
+      "task": "project"
+    }
+  ],
+  "active_tutorials": [
+    "quickstart"
+  ],
+  "active_modules": [
+    "quickstart"
+  ],
+  "project_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent",
+  "state": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/agent-runs.json"
+}

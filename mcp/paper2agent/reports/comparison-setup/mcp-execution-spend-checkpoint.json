@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-07",
+  "time_local": "06:17:12",
+  "source": "Doug supplied weekly usage dashboard screenshot after all ten B execution rehearsal cases.",
+  "screenshots": [
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_mSqcG1/Screenshot 2026-10-07 at 06.17.12.png"
+  ],
+  "screenshot_sha256": "48bf2aca2127c689c30969a6dec40dffe5bc6625115fea6157c05cf98bfb6ba6",
+  "selected_time_window": "This Week's Usage",
+  "displayed_total_USD": 2.58,
+  "displayed_by_model_USD": {
+    "Claude Sonnet 5.5": 2.21,
+    "DeepSeek V4.1 Flash": 0.37,
+    "Apodex 1.1 Mini (free)": 0.0,
+    "Others": 0.0
+  },
+  "previous_total_USD": 2.54,
+  "displayed_increase_USD": 0.04,
+  "previous_DeepSeek_USD": 0.33,
+  "DeepSeek_displayed_increase_USD": 0.04,
+  "previous_Sonnet_USD": 2.21,
+  "Sonnet_displayed_increase_USD": 0.0,
+  "conservative_remaining_USD": 2.42,
+  "amount_precision": "Rounded dashboard totals, not individual generation receipts; pending charges or display lag are not measured.",
+  "cost_attribution": "US$0.04 DeepSeek increase since B cases 1-5 checkpoint coincides with cases 6-10 and operator follow-ups. US$0.10 increase since the pre-B US$0.27 DeepSeek checkpoint coincides with B preflight and all ten execution rehearsals, including searches/corrections/failures. Exclusive attribution and per-request costs unavailable.",
+  "paid_calls_made_by_Codex": 0,
+  "cap_USD": 5,
+  "automated_enforcement_verified": false,
+  "following_case_allowed_within_observed_budget": "B teaching-occupancy-detection rehearsal"
+}

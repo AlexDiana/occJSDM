@@ -1,0 +1,212 @@
+{
+  "status": "ok",
+  "screening": {
+    "total_rows": 12,
+    "rhat_flagged": 8,
+    "ess_flagged": 12,
+    "flagged_rows": 12,
+    "unavailable_rhat": 1,
+    "unavailable_ess": 0,
+    "unavailable_rows": 1,
+    "thresholds": {
+      "rhat": 1.01,
+      "ess": 400
+    },
+    "blocks": [
+      "beta0_psi",
+      "beta_psi"
+    ],
+    "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+    "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+  },
+  "rows": [
+    {
+      "param": "beta0_psi",
+      "idx1": 1,
+      "idx2": 1,
+      "label1": "OTU_1",
+      "label2": "1",
+      "mean": 3.7,
+      "sd": 0,
+      "q2.5": 3.7,
+      "q97.5": 3.7,
+      "rhat": null,
+      "ess": 0
+    },
+    {
+      "param": "beta0_psi",
+      "idx1": 2,
+      "idx2": 1,
+      "label1": "OTU_2",
+      "label2": "1",
+      "mean": -0.16541560472821468,
+      "sd": 0.40000913951239625,
+      "q2.5": -0.8337468860646643,
+      "q97.5": 0.47591269510929557,
+      "rhat": 1.1362792899441403,
+      "ess": 138.32645582584422
+    },
+    {
+      "param": "beta0_psi",
+      "idx1": 3,
+      "idx2": 1,
+      "label1": "OTU_3",
+      "label2": "1",
+      "mean": -0.2850040761975393,
+      "sd": 0.3421380925800118,
+      "q2.5": -0.8979584553328868,
+      "q97.5": 0.42312074627162555,
+      "rhat": 0.9939030891835066,
+      "ess": 79.39942335384228
+    },
+    {
+      "param": "beta0_psi",
+      "idx1": 4,
+      "idx2": 1,
+      "label1": "OTU_4",
+      "label2": "1",
+      "mean": -0.5210996948391653,
+      "sd": 0.42012796695102655,
+      "q2.5": -1.2886130245210938,
+      "q97.5": 0.12418589734520026,
+      "rhat": 1.0082764674915172,
+      "ess": 41.6966553945317
+    },
+    {
+      "param": "beta_psi",
+      "idx1": 1,
+      "idx2": 1,
+      "label1": "X_psi.EnvCov.1",
+      "label2": "OTU_1",
+      "mean": 3.468871720899786,
+      "sd": 1.2525647061954832,
+      "q2.5": 1.6951215442437189,
+      "q97.5": 5.962123920598529,
+      "rhat": 1.799003165827036,
+      "ess": 6.218325109230856
+    },
+    {
+      "param": "beta_psi",
+      "idx1": 1,
+      "idx2": 2,
+      "label1": "X_psi.EnvCov.1",
+      "label2": "OTU_2",
+      "mean": 2.546977277574183,
+      "sd": 0.446234416561118,
+      "q2.5": 1.7631440950215747,
+      "q97.5": 3.305278018981095,
+      "rhat": 1.201161984423724,
+      "ess": 23.92879913923882
+    },
+    {
+      "param": "beta_psi",
+      "idx1": 1,
+      "idx2": 3,
+      "label1": "X_psi.EnvCov.1",
+      "label2": "OTU_3",
+      "mean": 1.057369717593438,
+      "sd": 0.323325560642824,
+      "q2.5": 0.4459173601884171,
+      "q97.5": 1.6355075096647598,
+      "rhat": 0.9934481070214909,
+      "ess": 36.0598177340621
+    },
+    {
+      "param": "beta_psi",
+      "idx1": 1,
+      "idx2": 4,
+      "label1": "X_psi.EnvCov.1",
+      "label2": "OTU_4",
+      "mean": -1.6607311726633152,
+      "sd": 0.45299508724775106,
+      "q2.5": -2.486707063449145,
+      "q97.5": -1.0155215205587667,
+      "rhat": 1.9350768107112517,
+      "ess": 26.97960392998948
+    },
+    {
+      "param": "beta_psi",
+      "idx1": 2,
+      "idx2": 1,
+      "label1": "X_psi.EnvCov.2",
+      "label2": "OTU_1",
+      "mean": 1.1945080454911234,
+      "sd": 0.5080222747133452,
+      "q2.5": 0.08544837574423107,
+      "q97.5": 1.9465017911948088,
+      "rhat": 1.0638678732043825,
+      "ess": 18.887350551335324
+    },
+    {
+      "param": "beta_psi",
+      "idx1": 2,
+      "idx2": 2,
+      "label1": "X_psi.EnvCov.2",
+      "label2": "OTU_2",
+      "mean": 2.0064900854744003,
+      "sd": 0.6057132689533675,
+      "q2.5": 1.0155332614068544,
+      "q97.5": 3.328597391927816,
+      "rhat": 1.4429231000797071,
+      "ess": 9.07369599849897
+    },
+    {
+      "param": "beta_psi",
+      "idx1": 2,
+      "idx2": 3,
+      "label1": "X_psi.EnvCov.2",
+      "label2": "OTU_3",
+      "mean": 0.08454720585781,
+      "sd": 0.28845343631202197,
+      "q2.5": -0.31990511835428465,
+      "q97.5": 0.7599817908845666,
+      "rhat": 1.319864950498381,
+      "ess": 24.295891356465518
+    },
+    {
+      "param": "beta_psi",
+      "idx1": 2,
+      "idx2": 4,
+      "label1": "X_psi.EnvCov.2",
+      "label2": "OTU_4",
+      "mean": 2.461163389752093,
+      "sd": 0.8453927817084986,
+      "q2.5": 1.1318125317175867,
+      "q97.5": 3.9203064724036265,
+      "rhat": 2.1027240859722514,
+      "ess": 7.542600505070666
+    }
+  ],
+  "total_rows": 12,
+  "warnings": [],
+  "warning_count": 0,
+  "schema_version": 1,
+  "message": "Screening covers selected coefficient blocks; unavailable diagnostics are inconclusive.",
+  "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+  "artifacts": [
+    {
+      "kind": "log",
+      "description": "Captured native R console output",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-29e66e01c3b542e2b77d34a2f68c32da/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "log",
+      "description": "Captured native R startup diagnostics",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-29e66e01c3b542e2b77d34a2f68c32da/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "diagnostics",
+      "description": "Complete native convergence diagnostic table",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-29e66e01c3b542e2b77d34a2f68c32da/diagnostics.csv",
+      "sha256": "a7d74210a101a7c775d9b27fa07f3e4ff5ac98897f180a61c8bb03d20abd4d8f"
+    }
+  ],
+  "fit_id": "fit_3dca9f1a9f79403d87c898765945509b",
+  "model": "binary",
+  "settings": {},
+  "fit_qualifications": [
+    "Verifier boundary fixture: modified saved native chains; never interpret scientifically."
+  ]
+}

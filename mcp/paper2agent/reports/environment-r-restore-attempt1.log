@@ -1,0 +1,141 @@
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+The following package(s) will be updated:
+
+# CRAN -----------------------------------------------------------------------
+- lattice         [0.22-7 -> 0.22-9]
+- MASS            [7.3-65 -> 7.3-66]
+- base64enc       [* -> 0.1-6]
+- bayesm          [* -> 3.1-7]
+- cli             [* -> 3.6.6]
+- coda            [* -> 0.19-4.1]
+- compositions    [* -> 2.0-9]
+- cpp11           [* -> 0.5.5]
+- DEoptimR        [* -> 1.2-0]
+- digest          [* -> 0.6.39]
+- dplyr           [* -> 1.2.1]
+- farver          [* -> 2.1.2]
+- FastGP          [* -> 1.3]
+- generics        [* -> 0.1.4]
+- ggcorrplot      [* -> 0.2.0]
+- ggforce         [* -> 0.5.0]
+- ggplot2         [* -> 4.0.3]
+- ggrepel         [* -> 0.9.8]
+- ggtern          [* -> 4.0.0]
+- glue            [* -> 1.8.1]
+- gridExtra       [* -> 2.3.1]
+- gtable          [* -> 0.3.6]
+- hexbin          [* -> 1.28.5]
+- isoband         [* -> 0.3.0]
+- jsonlite        [* -> 2.0.0]
+- labeling        [* -> 0.4.3]
+- latex2exp       [* -> 0.9.8]
+- lifecycle       [* -> 1.0.5]
+- magrittr        [* -> 2.0.5]
+- mvtnorm         [* -> 1.4-2]
+- pillar          [* -> 1.11.1]
+- pkgconfig       [* -> 2.0.3]
+- plyr            [* -> 1.8.9]
+- polyclip        [* -> 1.10-7]
+- proto           [* -> 1.0.0]
+- purrr           [* -> 1.2.2]
+- R6              [* -> 2.6.1]
+- RColorBrewer    [* -> 1.1-3]
+- Rcpp            [* -> 1.1.2]
+- RcppArmadillo   [* -> 15.4.0-1]
+- RcppEigen       [* -> 0.3.4.0.2]
+- RcppParallel    [* -> 5.1.11-2]
+- renv            [* -> 1.2.3]
+- reshape2        [* -> 1.4.5]
+- rlang           [* -> 1.3.0]
+- robustbase      [* -> 0.99-7]
+- S7              [* -> 0.2.2]
+- scales          [* -> 1.4.0]
+- stringi         [* -> 1.8.7]
+- stringr         [* -> 1.6.0]
+- systemfonts     [* -> 1.3.2]
+- tensorA         [* -> 0.36.2.1]
+- tibble          [* -> 3.3.1]
+- tidyr           [* -> 1.3.2]
+- tidyselect      [* -> 1.2.1]
+- tweenr          [* -> 2.0.3]
+- utf8            [* -> 1.2.6]
+- vctrs           [* -> 0.7.3]
+- viridisLite     [* -> 0.4.3]
+- withr           [* -> 3.0.3]
+
+# Local ----------------------------------------------------------------------
+- occJSDM         [* -> 0.1.0]
+
+- Querying repositories for available source packages ... Done!
+renv was unable to query available packages from the following repositories:
+- # https://cloud.r-project.org/src/contrib ------------------------------------
+error downloading 'https://cloud.r-project.org/src/contrib/PACKAGES.rds' [error code 6]
+error downloading 'https://cloud.r-project.org/src/contrib/PACKAGES.gz' [error code 6]
+error downloading 'https://cloud.r-project.org/src/contrib/PACKAGES' [error code 6]
+
+
+renv was unable to query available packages from the following repositories:
+- # https://cloud.r-project.org/src/contrib ------------------------------------
+error downloading 'https://cloud.r-project.org/src/contrib/PACKAGES.rds' [error code 6]
+error downloading 'https://cloud.r-project.org/src/contrib/PACKAGES.gz' [error code 6]
+error downloading 'https://cloud.r-project.org/src/contrib/PACKAGES' [error code 6]
+
+
+
+Traceback (most recent calls last):
+38: renv::restore(project = target, library = renv::paths$library(project = target), 
+        lockfile = file.path(target, "renv.lock"), prompt = FALSE)
+37: renv_restore_run_actions(project, diff, current, lockfile, rebuild, 
+        strict, descriptions)
+36: descriptions %||% renv_graph_init(packages, records = lockrecords, 
+        project = project)
+35: renv_graph_init(packages, records = lockrecords, project = project)
+34: renv_graph_resolve(remote, envir, records = records, fields = fields)
+33: catch(renv_graph_description(record))
+32: tryCatch(withCallingHandlers(eval(substitute(expr), envir = envir), 
+        error = renv_error_capture), error = renv_error_tag)
+31: tryCatchList(expr, classes, parentenv, handlers)
+30: tryCatchOne(expr, names, parentenv, handlers[[1L]])
+29: doTryCatch(return(expr), name, parentenv, handler)
+28: withCallingHandlers(eval(substitute(expr), envir = envir), error = renv_error_capture)
+27: eval(substitute(expr), envir = envir)
+26: eval(substitute(expr), envir = envir)
+25: renv_graph_description(record)
+24: case(source == "repository" ~ renv_graph_description_repository(record), 
+        source == "bioconductor" ~ renv_graph_description_bioconductor(record), 
+        source == "github" ~ renv_graph_description_github(record), 
+        source == "gitlab" ~ renv_graph_description_gitlab(record), 
+        source == "bitbucket" ~ renv_graph_description_bitbucket(record), 
+        source == "git" ~ renv_graph_description_git(record), source == 
+            "local" ~ renv_graph_description_local(record), source == 
+            "url" ~ as.list(record), TRUE ~ renv_graph_description_repository(record))
+23: renv_graph_description_repository(record)
+22: catch(renv_graph_description_crandb(package, version))
+21: tryCatch(withCallingHandlers(eval(substitute(expr), envir = envir), 
+        error = renv_error_capture), error = renv_error_tag)
+20: tryCatchList(expr, classes, parentenv, handlers)
+19: tryCatchOne(expr, names, parentenv, handlers[[1L]])
+18: doTryCatch(return(expr), name, parentenv, handler)
+17: withCallingHandlers(eval(substitute(expr), envir = envir), error = renv_error_capture)
+16: eval(substitute(expr), envir = envir)
+15: eval(substitute(expr), envir = envir)
+14: renv_graph_description_crandb(package, version)
+13: download(url, destfile = destfile, quiet = TRUE)
+12: renv_download_impl(url = url, destfile = tempfile, type = type, 
+        request = "GET", headers = headers)
+11: catch(withCallingHandlers(downloader(url, destfile, type, request, 
+        headers), warning = function(cnd) invokeRestart("muffleWarning")))
+10: tryCatch(withCallingHandlers(eval(substitute(expr), envir = envir), 
+        error = renv_error_capture), error = renv_error_tag)
+ 9: tryCatchList(expr, classes, parentenv, handlers)
+ 8: tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 7: doTryCatch(return(expr), name, parentenv, handler)
+ 6: withCallingHandlers(eval(substitute(expr), envir = envir), error = renv_error_capture)
+ 5: eval(substitute(expr), envir = envir)
+ 4: eval(substitute(expr), envir = envir)
+ 3: withCallingHandlers(downloader(url, destfile, type, request, 
+        headers), warning = function(cnd) invokeRestart("muffleWarning"))
+ 2: downloader(url, destfile, type, request, headers)
+ 1: <condition-handler>(...)
+Execution halted

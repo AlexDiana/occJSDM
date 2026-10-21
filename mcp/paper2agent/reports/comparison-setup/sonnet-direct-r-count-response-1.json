@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "scenario": 6,
+  "repetition": 1,
+  "scored": false,
+  "prompt": "Fit a count-response JSDM to `trial/unreplicated-counts.rds`.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "pilot_scope_correctly_declined_no_fit_package_limitation_unverified",
+  "evidence": "Doug pasted complete response; no tool calls or fitting in supplied sequence",
+  "observed": {
+    "language": "Bahasa Indonesia",
+    "recognises_unreplicated_count_response_outside_pilot": true,
+    "no_fitting": true,
+    "no_silent_binary_conversion": true,
+    "no_route_bypass": true,
+    "does_not_invent_fit_or_numbers": true,
+    "offers_read_only_input_inspection": true,
+    "offers_supported_alternative_only_after_choice": true,
+    "does_not_claim_actual_file_inspected": true
+  },
+  "qualifications": [
+    "Correctly relies on explicit shared pilot scope to decline; this does not require executing an unsupported fit.",
+    "No actual file inspection, model inference or source/documentation check shown. It therefore does not establish the separate pinned-package error Counts model not supported yet, which A case 6 did explain.",
+    "Count-response modelling being outside this pilot is distinct from whether such models can exist scientifically; no broad impossibility claim is made in the main response."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

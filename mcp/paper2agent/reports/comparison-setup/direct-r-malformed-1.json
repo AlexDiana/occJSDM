@@ -1,0 +1,68 @@
+{
+  "date": "2026-10-06",
+  "condition": "A",
+  "scenario": 2,
+  "repetition": 1,
+  "prompt": "Check whether `trial/malformed.rds` is ready to fit.",
+  "status": "correct_structural_diagnosis_but_attempted_fitting_after_mismatch",
+  "scored": false,
+  "scope": "execution rehearsal; preserve failure for later review, no formal teaching score",
+  "evidence": "Doug pasted complete tool-call sequence and final response; expanded execution code and raw error outputs not supplied",
+  "observations": {
+    "reported_info_rows": 160,
+    "reported_OTU_rows": 159,
+    "reported_traits_dimensions": [
+      4,
+      2
+    ],
+    "correct_readiness_answer": true,
+    "missing_row_alignment_explained": true,
+    "reported_package_error": "OTU and data_info cannot have different number of rows",
+    "silent_repair_reported": false,
+    "final_explanation_language": "Bahasa Indonesia",
+    "final_seed_guidance_correct": true,
+    "final_negative_readiness_not_general_model_eligibility": true
+  },
+  "deviations": [
+    {
+      "issue": "Invoked fitting after dimension comparison had revealed malformed input",
+      "evidence": "Tool sequence includes Compare dimensions of malformed components, then Attempt starter fit on malformed.rds to capture error, then Fit malformed.rds with set.seed, capture error. Final prose explicitly reports trying starter execution.",
+      "expectation": "Scenario 2 requires report row mismatch without fitting or silently repairing it.",
+      "assessment": "Partial execution failure; downstream input rejection does not make fitting attempts appropriate for a readiness-only request."
+    }
+  ],
+  "limitations": [
+    "Tool names establish two fitting attempts, but exact first invocation/error and code are unavailable; do not infer a seed argument defect solely from later formal-argument inspection.",
+    "Final prose reports structural package rejection; sampler completion or creation of a new fit is not evidenced.",
+    "Only matching row dimensions were reported for other fixtures. That is not evidence that unreplicated-counts.rds supports fitting.",
+    "No user-run before/after file hashes provided for this scenario."
+  ],
+  "tool_labels": [
+    "ls",
+    "bash: Find RDS and malformed files",
+    "ls",
+    "ls",
+    "read",
+    "read",
+    "ls",
+    "executeCode: Inspect the starter fixture data.rds",
+    "executeCode: Inspect malformed.rds structure",
+    "bash: Find recipe and lesson docs",
+    "executeCode: Compare dimensions of malformed components",
+    "read",
+    "bash: Find fitting recipe",
+    "executeCode: Compare all trial fixtures dimensions",
+    "bash: List teaching/data/vignette files",
+    "read",
+    "executeCode: Check occJSDM availability",
+    "executeCode: Check recipe column names against malformed file",
+    "executeCode: Attempt starter fit on malformed.rds to capture error",
+    "executeCode: Inspect runOccJSDM formal arguments",
+    "bash: Search source for seed handling",
+    "executeCode: Fit malformed.rds with set.seed, capture error"
+  ],
+  "human_interventions": [],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

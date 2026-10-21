@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-06",
+  "condition": "C -- Sonnet direct R",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "helper": "prepare-sonnet-direct-r.py",
+  "delivery_path": "/private/tmp/prepare-sonnet-direct-r.py",
+  "sha256": "7b3d34c27a61556aa2c013f7ecd7dd16ec129a05b117874a6cab01b131753a30",
+  "changes_from_A_helper": "Only condition labels and explicit operator-confirmed project ID changed; isolation/native verification function ASTs identical",
+  "checks": {
+    "filesystem_preservation_and_rollback_tests": {
+      "passed": 6,
+      "command": "python3 -m pytest -q /private/tmp/test_sonnet_direct_r_setup.py"
+    },
+    "rejects_A_project_argument": {
+      "argument": "13077262",
+      "exit_code": 2,
+      "expected": true
+    }
+  },
+  "Cloud_execution": "pending; no remote changes made by Codex",
+  "confirmation_scope": "Argument is operator confirmation, not automatic Cloud identity detection",
+  "preserves": "Scientific source, isolated R runtime, teaching inputs and saved fit bytes; archives MCP implementation and settings privately outside project"
+}

@@ -65,11 +65,10 @@ site_colours <- c("100" = "#56B4E9", "300" = "#D55E00")
 # The fitted response is shown by line type, so these colours keep one meaning.
 response_linetypes <- c(quadratic = "solid", linear = "dotdash")
 
-# Keep the registered ternary theme elements valid when vignettes share a session.
-theme_set(ggtern::theme_bw(base_size = 12))
+theme_set(ggplot2::theme_bw(base_size = 12))
 ```
 
-The last line sets ggtern's version of `theme_bw()`; [Lesson 3](occJSDM-lesson-3.md#what-this-lesson-answers) explains why the lessons use it.
+The last line sets a white-background theme for all the plots in this lesson. Individual plots can still add their own theme settings.
 
 ## 1. Does more data help when ecology becomes harder?
 
@@ -169,6 +168,8 @@ knitr::kable(
 Hmsc's flagged fits are not confined to one kind of ecology. Every scenario has them, from `r with(unresolved_by_scenario, round(100 * min(hmsc_flagged / hmsc_fits)))`% to `r with(unresolved_by_scenario, round(100 * max(hmsc_flagged / hmsc_fits)))`% of its fits. gllvm's failures are concentrated in the trait experiment, `r unresolved_by_scenario$gllvm_failed[unresolved_by_scenario$scenario == "traits"]` of `r sum(unresolved_by_scenario$gllvm_failed)`, and `r with(extension$manifest, sum(package == "gllvm" & completed & !fit_ok & use_traits))` of those had traits supplied. The remaining `r xfun::n2w(sum(unresolved_by_scenario$gllvm_failed[unresolved_by_scenario$scenario != "traits"]))` came from the `r knitr::combine_words(unresolved_by_scenario$scenario[unresolved_by_scenario$scenario != "traits" & unresolved_by_scenario$gllvm_failed > 0])` scenario.
 
 All **`r status_total$flagged` flagged fits remain in the scored results** and are marked as unresolved in the comparisons below. Failed combinations remain in the counts and archive but cannot contribute a prediction error; paired comparisons require estimates at both settings. Read the number of available communities and their diagnostic status alongside each average, because leaving out difficult failed cases can affect that average. We did not keep refitting until favourable results appeared. Nor did we use the known truth to choose a start. sjSDM has fewer attempted combinations because it did not enter the trait experiment. These counts describe the specified datasets, settings and budgets, and passing diagnostics does not establish ecological accuracy.
+
+A later check refitted 46 of Hmsc's flagged fits, those whose failing quantities included an environmental coefficient, with four times the longer attempt's iterations (32,000 warm-up and 64,000 further iterations per chain): 33 of the 46 then passed the convergence checks, and nothing reported here moved by more than a fraction of a percentage point. The flagged fits are kept as they are, so that every package is judged on the same budget; the [report of that check](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/hmsc-longer-runs/REPORT.md) records the comparison.
 
 ### What ecological changes did we simulate?
 
@@ -401,7 +402,7 @@ fit_with_traits <- occJSDM::runOccJSDM(
 )
 ```
 
-As in [Lesson 5](occJSDM-lesson-5.md), `info` has one row per site, so `runOccJSDM()` fits a JSDM to the observed presence/absence with no detection stages. `traits` has one row per species, as in the [quickstart](occJSDM.md). `n_lattrait = 0` turns off occJSDM's optional latent species-trait factors in both arms, so only the measured traits differ between them (`extension/PLAN.md`, line 11). The MCMC settings are the first attempt's; a fit that failed its checks was rerun with `nburn = 8000` and `niter = 16000`.
+As in [Lesson 5](occJSDM-lesson-5.md), `info` has one row per site, so `runOccJSDM()` fits a JSDM to the observed presence/absence with no detection stages. `traits` has one row per species, as in the [quickstart](occJSDM-00-quickstart.md). `n_lattrait = 0` turns off occJSDM's optional latent species-trait factors in both arms, so only the measured traits differ between them (`extension/PLAN.md`, line 11). The MCMC settings are the first attempt's; a fit that failed its checks was rerun with `nburn = 8000` and `niter = 16000`.
 
 ```{r extension-trait-prediction-errors, fig.height=7}
 if (nrow(extension$overall) > 0) {
@@ -691,7 +692,7 @@ A larger coverage study should add independent communities, assess marginal-prob
 
 The appendix below holds six things. They are the acceptance rules for each fit, the detailed prediction errors, the interval widths and coverage by community, the diagnostic sensitivity, the trait relationships, and how to filter the saved results yourself.
 
-Continue to [Lesson 7](occJSDM-lesson-7.md), on spatial landscapes and survey design, or return to [Lesson 5](occJSDM-lesson-5.md) or the [Quickstart](occJSDM.md).
+Continue to [Lesson 7](occJSDM-lesson-7.md), on spatial landscapes and survey design, or return to [Lesson 5](occJSDM-lesson-5.md) or the [Quickstart](occJSDM-00-quickstart.md).
 
 ## Appendix: evidence and reproduction
 

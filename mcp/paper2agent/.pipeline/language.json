@@ -1,0 +1,11 @@
+{
+  "language": "r",
+  "package": "occJSDM",
+  "source_commit": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+  "evidence": [
+    "DESCRIPTION declares R package and Rcpp backend",
+    "Public runOccJSDM API in R/runOccJSDM.R"
+  ],
+  "hardware": "CPU non-spatial fitting; no GPU requirement",
+  "source_path": "repo/occJSDM"
+}

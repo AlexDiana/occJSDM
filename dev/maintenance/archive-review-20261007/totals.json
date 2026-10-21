@@ -1,0 +1,12 @@
+{
+  "archive": "/Users/douglasyu/src/occJSDM/dev/simstudy/results",
+  "started_utc": "2026-10-07T14:56:21.419757+00:00",
+  "completed_utc": "2026-10-07T14:56:22.274555+00:00",
+  "immediate_directories": 17,
+  "regular_files": 14096,
+  "symlinks": 0,
+  "logical_bytes": 93985353133,
+  "allocated_bytes": 94019526656,
+  "errors": [],
+  "method": "os.walk without following symlinks; lstat sizes, allocation, mtime, device and inode; no fit deserialization or payload hash"
+}

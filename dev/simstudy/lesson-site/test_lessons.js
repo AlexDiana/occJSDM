@@ -8,7 +8,7 @@ const path = require("node:path");
 const nav = require(path.resolve("assets/js/lessons.js"));
 
 test("finds lesson pages, with or without .html", () => {
-  assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM.html", nav.LESSONS), 0);
+  assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-00-quickstart.html", nav.LESSONS), 0);
   assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-lesson-0.html", nav.LESSONS), 1);
   assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-lesson-1.html", nav.LESSONS), 2);
   assert.equal(nav.lessonIndex("/occJSDM/vignettes/occJSDM-lesson-1", nav.LESSONS), 2);
@@ -73,7 +73,7 @@ test("marks the last heading at or above the reading line as current", () => {
 
 test("lists every lesson source, in order, with its YAML title", () => {
   const stems = fs.readdirSync("vignettes")
-    .filter(f => /^occJSDM(-lesson-\d+)?\.Rmd$/.test(f))
+    .filter(f => /^occJSDM(-00-quickstart|-lesson-\d+)\.Rmd$/.test(f))
     .map(f => f.replace(/\.Rmd$/, ""))
     .sort();
   assert.deepEqual(nav.LESSONS.map(l => l.stem).slice().sort(), stems);

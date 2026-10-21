@@ -1,0 +1,40 @@
+{
+  "status": "ok",
+  "screening": {
+    "total_rows": 12,
+    "rhat_flagged": 9,
+    "ess_flagged": 12,
+    "flagged_rows": 12,
+    "unavailable_rhat": 0,
+    "unavailable_ess": 0,
+    "unavailable_rows": 0,
+    "thresholds": {
+      "rhat": 1.01,
+      "ess": 400
+    },
+    "blocks": [
+      "beta0_psi",
+      "beta_psi"
+    ],
+    "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+    "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+  },
+  "rows": [
+    {
+      "param": "beta0_psi",
+      "idx1": 1,
+      "idx2": 1,
+      "label1": "OTU_1",
+      "label2": "1",
+      "mean": 1.191042112996934,
+      "sd": 0.64093452864556422,
+      "q2.5": 0.063769177194899843,
+      "q97.5": 2.0236285543812156,
+      "rhat": 1.1214706760909381,
+      "ess": 16.221897318434834
+    }
+  ],
+  "total_rows": 12,
+  "warnings": [],
+  "warning_count": 0
+}

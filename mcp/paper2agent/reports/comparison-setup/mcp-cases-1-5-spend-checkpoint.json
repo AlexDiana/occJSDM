@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-06",
+  "time_local": "23:16",
+  "source": "Doug supplied weekly usage dashboard screenshot after B execution rehearsal cases 1-5.",
+  "screenshots": [
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_uRFnLE/Screenshot 2026-10-06 at 23.16.33.png"
+  ],
+  "screenshot_sha256": "04670323eec28b0a2a9cabaab7eb2e3e1f404482091d81800304ef47e34d426e",
+  "selected_time_window": "This Week's Usage",
+  "displayed_total_USD": 2.54,
+  "displayed_by_model_USD": {
+    "Claude Sonnet 5.5": 2.21,
+    "DeepSeek V4.1 Flash": 0.33,
+    "Apodex 1.1 Mini (free)": 0.0,
+    "Others": 0.0
+  },
+  "previous_total_USD": 2.48,
+  "displayed_increase_USD": 0.06,
+  "previous_DeepSeek_USD": 0.27,
+  "DeepSeek_displayed_increase_USD": 0.06,
+  "previous_Sonnet_USD": 2.21,
+  "Sonnet_displayed_increase_USD": 0.0,
+  "conservative_remaining_USD": 2.46,
+  "amount_precision": "Rounded dashboard totals, not individual generation receipts; pending charges or display lag are not measured.",
+  "cost_attribution": "US$0.06 DeepSeek increase since the pre-B checkpoint coincides with B preflight and cases 1-5, including case 3 correction and all searches/retries. Exclusive attribution and per-request costs are unavailable; total US$0.33 includes earlier A and MCP testing.",
+  "paid_calls_made_by_Codex": 0,
+  "cap_USD": 5,
+  "automated_enforcement_verified": false,
+  "following_case_allowed_within_observed_budget": 6
+}

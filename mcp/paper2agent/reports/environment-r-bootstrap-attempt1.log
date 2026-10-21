@@ -1,0 +1,14 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+Warning message:
+renv took longer than expected (11 seconds) to activate the sandbox.
+
+The sandbox can be disabled by setting:
+
+    RENV_CONFIG_SANDBOX_ENABLED = FALSE
+
+within an appropriate start-up .Renviron file.
+
+See `?renv::config` for more details. 
+- Synchronizing project library with the cache ... Done!
+- The cache has been disabled for this project.
+LIBRARY=/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20

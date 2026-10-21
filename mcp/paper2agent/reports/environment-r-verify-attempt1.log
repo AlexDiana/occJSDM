@@ -1,0 +1,14 @@
+Warning message:
+renv took longer than expected (14 seconds) to activate the sandbox.
+
+The sandbox can be disabled by setting:
+
+    RENV_CONFIG_SANDBOX_ENABLED = FALSE
+
+within an appropriate start-up .Renviron file.
+
+See `?renv::config` for more details. 
+Warning message:
+package ‘digest’ was built under R version 4.5.2 
+Error: all(vapply(origins, function(p) identical(p$version, lock$Packages[[p$package]]$Version),  .... is not TRUE
+Execution halted

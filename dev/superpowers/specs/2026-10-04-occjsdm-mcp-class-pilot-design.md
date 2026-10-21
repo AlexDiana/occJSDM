@@ -1,6 +1,6 @@
 # occJSDM MCP class pilot design
 
-Status: draft for Doug's review, first written 4 October 2026; updated 5 October 2026 with the Paper2Agent implementation approach, workshop model fallback and teaching requirements. Implementation and Cloud feasibility testing have not started.
+Status: Doug approved the implementation plan on 5 October 2026. First written 4 October 2026; updated 5 October 2026 with the Paper2Agent approach, workshop model fallback, lesson-guidance goal and model-cost comparison. Local baseline preparation and an unscored direct-R Cloud smoke test have begun; the small fit/save/diagnostics/reload sequence completed with setup assistance. Local MCP conversion and independent verification have passed on macOS arm64, including real stdio calls with a separately restored native runtime. Full Cloud feasibility testing and controlled model comparisons remain pending.
 
 ## Intended outcome
 
@@ -32,7 +32,11 @@ Do not expose spatial fitting in the initial MCP workflow. The current TODO reco
 
 ## Class and lesson integration
 
+Doug clarified on 5 October 2026 that the eventual goal is an agent that helps each student work through the existing lesson sequence. It should use the reviewed lesson text, identify the lesson and section the student is working on, explain concepts, help with running R chunks and understanding errors, discuss the student's results, and offer questions, graduated hints and challenge problems in the student's preferred language. Let the student attempt the work and choose the pace. The four-tool quickstart pilot establishes the technical foundation for this broader teaching goal; completing it does not establish support for every lesson.
+
 Preserve the existing lesson sequence and add a short, clearly optional AI-assisted analysis extension after the existing fitting and diagnostics lessons. Reuse existing teaching datasets and explanations where they fit. The extension should explain the MCP tool workflow, accepted input object, fit settings, how to read convergence output, and how to inspect the saved R result directly. It should show that the assistant can help operate and explain the package while the statistical estimates still come from occJSDM.
+
+After the pilot, extend the teaching instructions and reviewed references lesson by lesson, and add only the computational tools that each lesson needs. Explanations, questions and hints belong to the conversational model and its teaching instructions; supported calculations belong to the MCP tools. Where a lesson uses computations outside the available tools, guide the student through the existing R code or use its verified saved results, clearly stating which route supplied the answer. Before claiming a lesson is supported, rehearse a student exchange covering its learning objectives, a misunderstanding or execution error, and an exercise checked against the lesson's evidence. Doug's review of the lesson text remains a prerequisite for its use as teaching material.
 
 Provide a non-AI route through the existing lessons and R functions. It should remain possible to teach if students cannot access the selected model, encounter rate limits, or cannot use the MCP integration.
 
@@ -48,6 +52,8 @@ Evaluate both tool use and Indonesian scientific explanation when selecting a mo
 
 ## Feasibility gate and success criteria
 
+Evaluate the possible cost benefit before adopting the MCP for the class: compare an inexpensive model using the repository and R directly, the same model using the MCP, and a more capable model, with actual costs measured using the same direct R route. Use matched student tasks, inputs, settings and teaching instructions; compare execution correctness, teaching quality, reliability, time and actual model charges including failed attempts and retries. Begin the direct R baselines before conversion and complete the comparison after the MCP works in Cloud. The MCP may reduce programming effort and retries, but its ability to make an inexpensive model sufficient is a hypothesis to test. If direct R already offers better workshop value, defer MCP classroom packaging and retain that route.
+
 The first deliverable is a disposable technical pilot, not package integration. Assistant availability and the presence of OpenRouter in the provider list are verified in Doug's Posit Cloud project. The pilot must confirm a student can connect an individual OpenRouter key, select a free, inexpensive or paid model that supports tool calls, connect to an MCP server running in the project, invoke a tool, and receive the expected result. Verify a complete small non-spatial fit and diagnostic summary in the Cloud project's resource and runtime limits. Record the versions, exact setup steps, model identifier, and any limitations. If any required connection is unavailable, revise the client or hosting architecture before integrating it into the package or class project.
 
 The class-ready workflow is successful when a student can start from the shared project, provide an eligible RDS input, get validation feedback, run the supported fit, retrieve diagnostics, and locate the saved result without editing MCP configuration by hand. The same lesson must remain teachable through the non-AI route.
@@ -59,7 +65,7 @@ The class-ready workflow is successful when a student can start from the shared 
 - The model provider is OpenRouter using individual API keys, with free or inexpensive models preferred and a paid model permitted for the workshop.
 - The first workflow supports an occJSDM-ready RDS object and non-spatial fitting plus diagnostics.
 - The MCP layer uses allowlisted tools with constrained inputs, bounded runtime settings, and project-scoped file access.
-- Existing lessons remain the teaching foundation; add one optional lesson extension and a guided setup/checklist.
+- Existing lessons remain the teaching foundation. The pilot adds one optional lesson extension and a guided setup/checklist; the eventual teaching agent will guide students through the reviewed lesson sequence in stages.
 - No central hosting service, shared class API key, arbitrary R execution, spatial fitting or broad analysis assistant is part of this pilot. A paid model is an allowed workshop fallback, not a student subscription requirement.
 
 ## Risks and mitigations

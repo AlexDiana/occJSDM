@@ -1,0 +1,16 @@
+F
+=================================== FAILURES ===================================
+____________ test_effective_factor_cap_and_pinned_runtime_identity _____________
+
+    def test_effective_factor_cap_and_pinned_runtime_identity():
+        o=options(NATIVE['cases']['binary']);o['listParams']['n_factors']=99
+        fit=asyncio.run(call('fit_model',dict(data_path='notebooks/quickstart/data/binary_data.rds',options=o,seed=1702)))
+        manifest=json.loads(Path(next(a['path'] for a in fit['artifacts'] if a['kind']=='manifest')).read_text())
+>       assert manifest['effective_settings']['listParams']['n_factors']==4
+E       assert 99 == 4
+
+tests/code/implementation/test_quickstart.py:115: AssertionError
+=========================== short test summary info ============================
+FAILED tests/code/implementation/test_quickstart.py::test_effective_factor_cap_and_pinned_runtime_identity
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 51 deselected in 15.09s

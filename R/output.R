@@ -2097,36 +2097,36 @@ plotLatentPresences <- function(latentPresences,
 
 # OTHER -------
 
-#' extractWAIC
+#' Extract an observed-data site WAIC, or the legacy stored score
 #'
-#' Compute the WAIC for model comparison
-#'
-#' @details
-#' Compute the WAIC for model comparison
-#'
-#' @param fitModel Output from the function runOccJSDM
-#'
-#' @return The WAIC
-#'
-#' @examples
-#' \dontrun{
-#' extractWAIC(fitModel)
-#' }
-#'
+#' @param fitModel Output from [runOccJSDM()].
+#' @param type `"site"` (default) computes observed-data WAIC using
+#'   [computeSiteWAIC()]. `"legacy"` retrieves the old stored scalar, which
+#'   includes sampled latent states and is not a new-site prediction criterion.
+#' @param ... Arguments passed to [computeSiteWAIC()], for example the original
+#'   `threshold` for an old saved fit or numerical integration settings.
+#' @return A numeric score. For pointwise contributions, uncertainty and
+#'   integration diagnostics, call [computeSiteWAIC()] directly.
+#' @details The default now performs numerical post-processing rather than
+#'   reading a scalar. It supports non-spatial binary, occupancy and two-stage
+#'   fits. It stops for unsupported targets or failed numerical integration.
+#'   Fitting is unchanged; `results_output$WAIC` still stores the legacy score
+#'   for compatibility. Do not use that score to choose a factor count for
+#'   new-site predictions. Legacy scores and site WAIC values are not comparable.
+#' @md
 #' @export
-#'
-extractWAIC <- function(fitModel){
-
-  fitModel$results_output$WAIC
-
+extractWAIC <- function(fitModel, type = c("site", "legacy"), ...) {
+  type <- match.arg(type)
+  if (type == "legacy") return(fitModel$results_output$WAIC)
+  computeSiteWAIC(fitModel, ...)$WAIC
 }
 
-#' returnVariancePartitioning
+#' returnVariationPartitioning
 #'
-#' Compute the variance partitioning for each species
+#' Compute the variation partitioning for each species
 #'
 #' @details
-#' Compute the variance partitioning for each species
+#' Compute the variation partitioning for each species
 #'
 #' @param fitModel Output from the function runOccJSDM
 #'
@@ -2134,14 +2134,14 @@ extractWAIC <- function(fitModel){
 #'
 #' @examples
 #' \dontrun{
-#' returnVariancePartitioning(fitModel)
+#' returnVariationPartitioning(fitModel)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
 #'
-returnVariancePartitioning <- function(fitModel){
+returnVariationPartitioning <- function(fitModel){
 
   varPart_output <- fitModel$results_output$jsdm_output$varPart_output
 
@@ -2151,12 +2151,15 @@ returnVariancePartitioning <- function(fitModel){
 
 }
 
-#' plotVariancePartitioning
+#' plotVariationPartitioning
 #'
-#' Plot the variance partitioning for each species
+#' Plot the variation partitioning for each species
 #'
 #' @details
-#' Plot the variance partitioning for each species
+#' This ternary plot uses ggtern, which is loaded when this function is called.
+#' The user's active ggplot2 theme is preserved. With ggtern 4.0.0, the function
+#' also corrects two invalid ternary tick-length defaults, so ordinary ggplot2
+#' themes continue to work after drawing the ternary plot.
 #'
 #' @param fitModel Output from the function runOccJSDM
 #'
@@ -2164,15 +2167,14 @@ returnVariancePartitioning <- function(fitModel){
 #'
 #' @examples
 #' \dontrun{
-#' plotVariancePartitioning(fitModel)
+#' plotVariationPartitioning(fitModel)
 #' }
 #'
 #' @export
 #' @import dplyr
 #' @import ggplot2
-#' @importFrom ggtern ggtern theme_showarrows
 #'
-plotVariancePartitioning <- function(fitModel){
+plotVariationPartitioning <- function(fitModel){
 
   varPart_output <- fitModel$results_output$jsdm_output$varPart_output
 
@@ -2180,6 +2182,35 @@ plotVariancePartitioning <- function(fitModel){
 
   plotVarPart(varPart_output, speciesNames)
 
+}
+
+#' Deprecated variation-partitioning names
+#'
+#' `returnVariancePartitioning()` and `plotVariancePartitioning()` are the
+#' old names of [returnVariationPartitioning()] and
+#' [plotVariationPartitioning()]. They still work, but warn and will be
+#' removed in a future release.
+#'
+#' @param fitModel Output from the function runOccJSDM
+#'
+#' @return As for the new functions.
+#'
+#' @name variance-partitioning-deprecated
+#' @keywords internal
+NULL
+
+#' @rdname variance-partitioning-deprecated
+#' @export
+returnVariancePartitioning <- function(fitModel){
+  .Deprecated("returnVariationPartitioning", package = "occJSDM")
+  returnVariationPartitioning(fitModel)
+}
+
+#' @rdname variance-partitioning-deprecated
+#' @export
+plotVariancePartitioning <- function(fitModel){
+  .Deprecated("plotVariationPartitioning", package = "occJSDM")
+  plotVariationPartitioning(fitModel)
 }
 
 

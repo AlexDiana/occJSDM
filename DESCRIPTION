@@ -1,7 +1,7 @@
 Package: occJSDM
 Type: Package
 Title: Simultaneous Fitting of an eDNA-Aware Occupancy and Joint Species Distribution Model
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person(
       "Alex", "Diana",
@@ -42,7 +42,10 @@ Imports:
     tibble,
     ggrepel,
     FastGP,
-    RcppParallel
+    RcppParallel,
+    utils,
+    parallel,
+    tools
 LinkingTo: 
     Rcpp,
     RcppArmadillo,
@@ -54,6 +57,7 @@ Suggests:
     gt,
     knitr,
     patchwork,
+    pkgload,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr

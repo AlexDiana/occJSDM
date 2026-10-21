@@ -1,0 +1,4 @@
+occJSDM gp probe on t1-r0.08-n900-rep1 (900 sites), 300 support points, one chain 
+iterations 15: 126.7 seconds 
+iterations 30: 245.9 seconds 
+per-iteration cost 7.9 seconds, fixed cost about 7.5 seconds 

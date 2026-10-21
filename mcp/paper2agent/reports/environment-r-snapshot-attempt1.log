@@ -1,0 +1,39 @@
+- The project is out-of-sync -- use `renv::status()` for details.
+Warning message:
+renv took longer than expected (14 seconds) to activate the sandbox.
+
+The sandbox can be disabled by setting:
+
+    RENV_CONFIG_SANDBOX_ENABLED = FALSE
+
+within an appropriate start-up .Renviron file.
+
+See `?renv::config` for more details. 
+renv was unable to query available packages from the following repositories:
+- # https://cloud.r-project.org/src/contrib ------------------------------------
+error downloading 'https://cloud.r-project.org/src/contrib/PACKAGES.rds' [error code 6]
+error downloading 'https://cloud.r-project.org/src/contrib/PACKAGES.gz' [error code 6]
+error downloading 'https://cloud.r-project.org/src/contrib/PACKAGES' [error code 6]
+
+
+renv was unable to query available packages from the following repositories:
+- # https://cloud.r-project.org/bin/macosx/big-sur-arm64/contrib/4.5 -----------
+error downloading 'https://cloud.r-project.org/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES.rds' [error code 6]
+error downloading 'https://cloud.r-project.org/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES.gz' [error code 6]
+error downloading 'https://cloud.r-project.org/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES' [error code 6]
+
+
+The following package(s) were installed from an unknown source:
+- occJSDM [0.1.0]
+renv may be unable to restore these packages in the future.
+Consider reinstalling these packages from a known source (e.g. CRAN).
+
+Error in renv_snapshot_validate_report(valid, prompt, force) : 
+  aborting snapshot due to pre-flight validation failure
+Calls: <Anonymous> -> renv_snapshot_validate_report
+Traceback (most recent calls last):
+3: renv::snapshot(project = file.path(root, "r-runtime"), type = "all", 
+       prompt = FALSE)
+2: renv_snapshot_validate_report(valid, prompt, force)
+1: stop("aborting snapshot due to pre-flight validation failure")
+Execution halted

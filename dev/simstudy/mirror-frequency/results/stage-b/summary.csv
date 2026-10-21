@@ -1,0 +1,2 @@
+"stage","library_revision","n_repeats","chains_per_repeat","n_chains","n_near_truth","n_mirror","n_both","n_unknown","n_outside_near_truth","mirror_share","mirror_ci_low","mirror_ci_high","repeats_with_mirror","repeats_with_any_outside_near_truth","mirror_by_position","nburn","niter","nthin","mean_elapsed_seconds","anchor_md5","analysed"
+"b","274833180065442b842f1ab8b5366384a04c1575",25,4,100,97,3,0,0,3,0.03,0.0062299715383064,0.08517605297428,3,3,"3;0;0;0","24000","12000","1",622.511870145798,"e235c2fa641eb05c36232bec0d513bc8","2026-10-14 01:53:20 BST"

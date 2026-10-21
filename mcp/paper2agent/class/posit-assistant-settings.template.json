@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "occJSDM": {
+      "type": "local",
+      "command": [
+        "/cloud/project/mcp/paper2agent/occJSDM-env/bin/python",
+        "/cloud/project/mcp/paper2agent/src/occJSDM_mcp.py"
+      ],
+      "environment": {
+        "P2A_PROJECT_ROOT": "/cloud/project",
+        "P2A_R_PROJECT": "/cloud/project/mcp/paper2agent/cloud-r-runtime",
+        "P2A_TIMEOUT_SECONDS": "600"
+      },
+      "timeout": 30000
+    }
+  }
+}

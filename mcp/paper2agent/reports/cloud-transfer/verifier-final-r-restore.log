@@ -1,0 +1,219 @@
+- One or more packages recorded in the lockfile are not installed.
+- Use `renv::status()` for more details.
+The following package(s) will be updated:
+
+# Local ----------------------------------------------------------------------
+- occJSDM         [* -> 0.1.0]
+
+# Repository -----------------------------------------------------------------
+- lattice         [0.22-7 -> 0.22-9]
+- MASS            [7.3-65 -> 7.3-66]
+- base64enc       [* -> 0.1-6]
+- bayesm          [* -> 3.1-7]
+- cli             [* -> 3.6.6]
+- coda            [* -> 0.19-4.1]
+- compositions    [* -> 2.0-9]
+- cpp11           [* -> 0.5.5]
+- DEoptimR        [* -> 1.2-0]
+- digest          [* -> 0.6.39]
+- dplyr           [* -> 1.2.1]
+- farver          [* -> 2.1.2]
+- FastGP          [* -> 1.3]
+- generics        [* -> 0.1.4]
+- ggcorrplot      [* -> 0.2.0]
+- ggforce         [* -> 0.5.0]
+- ggplot2         [* -> 4.0.3]
+- ggrepel         [* -> 0.9.8]
+- ggtern          [* -> 4.0.0]
+- glue            [* -> 1.8.1]
+- gridExtra       [* -> 2.3.1]
+- gtable          [* -> 0.3.6]
+- hexbin          [* -> 1.28.5]
+- isoband         [* -> 0.3.0]
+- jsonlite        [* -> 2.0.0]
+- labeling        [* -> 0.4.3]
+- latex2exp       [* -> 0.9.8]
+- lifecycle       [* -> 1.0.5]
+- magrittr        [* -> 2.0.5]
+- mvtnorm         [* -> 1.4-2]
+- pillar          [* -> 1.11.1]
+- pkgconfig       [* -> 2.0.3]
+- plyr            [* -> 1.8.9]
+- polyclip        [* -> 1.10-7]
+- proto           [* -> 1.0.0]
+- purrr           [* -> 1.2.2]
+- R6              [* -> 2.6.1]
+- RColorBrewer    [* -> 1.1-3]
+- Rcpp            [* -> 1.1.2]
+- RcppArmadillo   [* -> 15.4.0-1]
+- RcppEigen       [* -> 0.3.4.0.2]
+- RcppParallel    [* -> 5.1.11-2]
+- renv            [* -> 1.2.3]
+- reshape2        [* -> 1.4.5]
+- rlang           [* -> 1.3.0]
+- robustbase      [* -> 0.99-7]
+- S7              [* -> 0.2.2]
+- scales          [* -> 1.4.0]
+- stringi         [* -> 1.8.7]
+- stringr         [* -> 1.6.0]
+- systemfonts     [* -> 1.3.2]
+- tensorA         [* -> 0.36.2.1]
+- tibble          [* -> 3.3.1]
+- tidyr           [* -> 1.3.2]
+- tidyselect      [* -> 1.2.1]
+- tweenr          [* -> 2.0.3]
+- utf8            [* -> 1.2.6]
+- vctrs           [* -> 0.7.3]
+- viridisLite     [* -> 0.4.3]
+- withr           [* -> 3.0.3]
+
+- Querying repositories for available source packages ... Done!
+# Downloading packages -------------------------------------------------------
+renv was unable to query available packages from the following repositories:
+- # file:///Users/douglasyu/src/contrib ----------------------------------------
+error downloading 'file:///Users/douglasyu/src/contrib/PACKAGES.rds' [error code 37]
+error downloading 'file:///Users/douglasyu/src/contrib/PACKAGES.gz' [error code 37]
+error downloading 'file:///Users/douglasyu/src/contrib/PACKAGES' [error code 37]
+
+
+renv was unable to query available packages from the following repositories:
+- # file:///Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/final extraction/occJSDM-mcp/relocated-r-runtime/offline-repository/bin/macosx/big-sur-arm64/contrib/4.5 --------
+error downloading 'file:///Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/final extraction/occJSDM-mcp/relocated-r-runtime/offline-repository/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES.rds' [error code 3]
+error downloading 'file:///Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/final extraction/occJSDM-mcp/relocated-r-runtime/offline-repository/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES.gz' [error code 3]
+error downloading 'file:///Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/final extraction/occJSDM-mcp/relocated-r-runtime/offline-repository/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES' [error code 3]
+
+- # file:///Users/douglasyu/bin/macosx/big-sur-arm64/contrib/4.5 ---------------
+error downloading 'file:///Users/douglasyu/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES.rds' [error code 37]
+error downloading 'file:///Users/douglasyu/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES.gz' [error code 37]
+error downloading 'file:///Users/douglasyu/bin/macosx/big-sur-arm64/contrib/4.5/PACKAGES' [error code 37]
+
+
+[?25l  (0/60) Downloading: tensorA, utf8, generics, tidyr, ...                                                                                                       [31m✖[0m tensorA 0.36.2.1                        
+  (1/60) Downloading: utf8, generics, tidyr, renv, ...                                                                                                          [31m✖[0m utf8 1.2.6                              
+  (2/60) Downloading: generics, tidyr, renv, robustbase, ...                                                                                                    [31m✖[0m generics 0.1.4                          
+  (3/60) Downloading: tidyr, renv, robustbase, stringi, ...                                                                                                     [31m✖[0m tidyr 1.3.2                             
+  (4/60) Downloading: renv, robustbase, stringi, lattice, ...                                                                                                   [31m✖[0m renv 1.2.3                              
+  (5/60) Downloading: robustbase, stringi, lattice, digest, ...                                                                                                 [31m✖[0m robustbase 0.99-7                       
+  (6/60) Downloading: stringi, lattice, digest, magrittr, ...                                                                                                   [31m✖[0m stringi 1.8.7                           
+  (7/60) Downloading: lattice, digest, magrittr, RcppEigen, ...                                                                                                 [31m✖[0m lattice 0.22-9                          
+  (8/60) Downloading: digest, magrittr, RcppEigen, RColorBrewer, ...                                                                                            [31m✖[0m digest 0.6.39                           
+  (9/60) Downloading: magrittr, RcppEigen, RColorBrewer, bayesm, ...                                                                                            [31m✖[0m magrittr 2.0.5                          
+  (10/60) Downloading: RcppEigen, RColorBrewer, bayesm, mvtnorm, ...                                                                                            [31m✖[0m RcppEigen 0.3.4.0.2                     
+  (11/60) Downloading: RColorBrewer, bayesm, mvtnorm, plyr, ...                                                                                                 [31m✖[0m RColorBrewer 1.1-3                      
+  (12/60) Downloading: bayesm, mvtnorm, plyr, jsonlite, ...                                                                                                     [31m✖[0m bayesm 3.1-7                            
+  (13/60) Downloading: mvtnorm, plyr, jsonlite, ggrepel, ...                                                                                                    [31m✖[0m mvtnorm 1.4-2                           
+  (14/60) Downloading: plyr, jsonlite, ggrepel, cpp11, ...                                                                                                      [31m✖[0m plyr 1.8.9                              
+  (15/60) Downloading: jsonlite, ggrepel, cpp11, gridExtra, ...                                                                                                 [31m✖[0m jsonlite 2.0.0                          
+  (16/60) Downloading: ggrepel, cpp11, gridExtra, purrr, ...                                                                                                    [31m✖[0m ggrepel 0.9.8                           
+  (17/60) Downloading: cpp11, gridExtra, purrr, viridisLite, ...                                                                                                [31m✖[0m cpp11 0.5.5                             
+  (18/60) Downloading: gridExtra, purrr, viridisLite, scales, ...                                                                                               [31m✖[0m gridExtra 2.3.1                         
+  (19/60) Downloading: purrr, viridisLite, scales, tweenr, ...                                                                                                  [31m✖[0m purrr 1.2.2                             
+  (20/60) Downloading: viridisLite, scales, tweenr, isoband, ...                                                                                                [31m✖[0m viridisLite 0.4.3                       
+  (21/60) Downloading: scales, tweenr, isoband, cli, ...                                                                                                        [31m✖[0m scales 1.4.0                            
+  (22/60) Downloading: tweenr, isoband, cli, rlang, ...                                                                                                         [31m✖[0m tweenr 2.0.3                            
+  (23/60) Downloading: isoband, cli, rlang, polyclip, ...                                                                                                       [31m✖[0m isoband 0.3.0                           
+  (24/60) Downloading: cli, rlang, polyclip, RcppArmadillo, ...                                                                                                 [31m✖[0m cli 3.6.6                               
+  (25/60) Downloading: rlang, polyclip, RcppArmadillo, base64enc, ...                                                                                           [31m✖[0m rlang 1.3.0                             
+  (26/60) Downloading: polyclip, RcppArmadillo, base64enc, withr, ...                                                                                           [31m✖[0m polyclip 1.10-7                         
+  (27/60) Downloading: RcppArmadillo, base64enc, withr, proto, ...                                                                                              [31m✖[0m RcppArmadillo 15.4.0-1                  
+  (28/60) Downloading: base64enc, withr, proto, reshape2, ...                                                                                                   [31m✖[0m base64enc 0.1-6                         
+  (29/60) Downloading: withr, proto, reshape2, coda, ...                                                                                                        [31m✖[0m withr 3.0.3                             
+  (30/60) Downloading: proto, reshape2, coda, FastGP, ...                                                                                                       [31m✖[0m proto 1.0.0                             
+  (31/60) Downloading: reshape2, coda, FastGP, dplyr, ...                                                                                                       [31m✖[0m reshape2 1.4.5                          
+  (32/60) Downloading: coda, FastGP, dplyr, ggplot2, ...                                                                                                        [31m✖[0m coda 0.19-4.1                           
+  (33/60) Downloading: FastGP, dplyr, ggplot2, latex2exp, ...                                                                                                   [31m✖[0m FastGP 1.3                              
+  (34/60) Downloading: dplyr, ggplot2, latex2exp, compositions, ...                                                                                             [31m✖[0m dplyr 1.2.1                             
+  (35/60) Downloading: ggplot2, latex2exp, compositions, ggtern, ...                                                                                            [31m✖[0m ggplot2 4.0.3                           
+  (36/60) Downloading: latex2exp, compositions, ggtern, vctrs, ...                                                                                              [31m✖[0m latex2exp 0.9.8                         
+  (37/60) Downloading: compositions, ggtern, vctrs, R6, ...                                                                                                     [31m✖[0m compositions 2.0-9                      
+  (38/60) Downloading: ggtern, vctrs, R6, lifecycle, ...                                                                                                        [31m✖[0m ggtern 4.0.0                            
+  (39/60) Downloading: vctrs, R6, lifecycle, stringr, ...                                                                                                       [31m✖[0m vctrs 0.7.3                             
+  (40/60) Downloading: R6, lifecycle, stringr, MASS, ...                                                                                                        [31m✖[0m R6 2.6.1                                
+  (41/60) Downloading: lifecycle, stringr, MASS, pkgconfig, ...                                                                                                 [31m✖[0m lifecycle 1.0.5                         
+  (42/60) Downloading: stringr, MASS, pkgconfig, RcppParallel, ...                                                                                              [31m✖[0m stringr 1.6.0                           
+  (43/60) Downloading: MASS, pkgconfig, RcppParallel, pillar, ...                                                                                               [31m✖[0m MASS 7.3-66                             
+  (44/60) Downloading: pkgconfig, RcppParallel, pillar, ggcorrplot, ...                                                                                         [31m✖[0m pkgconfig 2.0.3                         
+  (45/60) Downloading: RcppParallel, pillar, ggcorrplot, hexbin, ...                                                                                            [31m✖[0m RcppParallel 5.1.11-2                   
+  (46/60) Downloading: pillar, ggcorrplot, hexbin, gtable, ...                                                                                                  [31m✖[0m pillar 1.11.1                           
+  (47/60) Downloading: ggcorrplot, hexbin, gtable, glue, ...                                                                                                    [31m✖[0m ggcorrplot 0.2.0                        
+  (48/60) Downloading: hexbin, gtable, glue, Rcpp, ...                                                                                                          [31m✖[0m hexbin 1.28.5                           
+  (49/60) Downloading: gtable, glue, Rcpp, ggforce, ...                                                                                                         [31m✖[0m gtable 0.3.6                            
+  (50/60) Downloading: glue, Rcpp, ggforce, systemfonts, ...                                                                                                    [31m✖[0m glue 1.8.1                              
+  (51/60) Downloading: Rcpp, ggforce, systemfonts, DEoptimR, ...                                                                                                [31m✖[0m Rcpp 1.1.2                              
+  (52/60) Downloading: ggforce, systemfonts, DEoptimR, tibble, ...                                                                                              [31m✖[0m ggforce 0.5.0                           
+  (53/60) Downloading: systemfonts, DEoptimR, tibble, tidyselect, ...                                                                                           [31m✖[0m systemfonts 1.3.2                       
+  (54/60) Downloading: DEoptimR, tibble, tidyselect, farver, ...                                                                                                [31m✖[0m DEoptimR 1.2-0                          
+  (55/60) Downloading: tibble, tidyselect, farver, labeling, ...                                                                                                [31m✖[0m tibble 3.3.1                            
+  (56/60) Downloading: tidyselect, farver, labeling, S7                                                                                                         [31m✖[0m tidyselect 1.2.1                        
+  (57/60) Downloading: farver, labeling, S7                                                                                                                     [31m✖[0m farver 2.1.2                            
+  (58/60) Downloading: labeling, S7                                                                                                                             [31m✖[0m labeling 0.4.3                          
+  (59/60) Downloading: S7                                                                                                                                       [31m✖[0m S7 0.2.2                                
+                                                                                [32m✔[0m occJSDM 0.1.0                           
+Successfully downloaded 61 packages in 2.5 seconds.
+
+# Installing packages --------------------------------------------------------
+                                                                                [32m✔[0m base64enc 0.1-6                          [installed binary]
+                                                                                [32m✔[0m cli 3.6.6                                [installed binary]
+                                                                                [32m✔[0m cpp11 0.5.5                              [installed binary]
+                                                                                [32m✔[0m DEoptimR 1.2-0                           [installed binary]
+                                                                                [32m✔[0m digest 0.6.39                            [installed binary]
+                                                                                [32m✔[0m farver 2.1.2                             [installed binary]
+                                                                                [32m✔[0m generics 0.1.4                           [installed binary]
+                                                                                [32m✔[0m glue 1.8.1                               [installed binary]
+                                                                                [32m✔[0m jsonlite 2.0.0                           [installed binary]
+                                                                                [32m✔[0m labeling 0.4.3                           [installed binary]
+                                                                                [32m✔[0m latex2exp 0.9.8                          [installed binary]
+                                                                                [32m✔[0m lattice 0.22-9                           [installed binary]
+                                                                                [32m✔[0m magrittr 2.0.5                           [installed binary]
+                                                                                [32m✔[0m MASS 7.3-66                              [installed binary]
+                                                                                [32m✔[0m mvtnorm 1.4-2                            [installed binary]
+                                                                                [32m✔[0m pkgconfig 2.0.3                          [installed binary]
+                                                                                [32m✔[0m polyclip 1.10-7                          [installed binary]
+                                                                                [32m✔[0m proto 1.0.0                              [installed binary]
+                                                                                [32m✔[0m R6 2.6.1                                 [installed binary]
+                                                                                [32m✔[0m RColorBrewer 1.1-3                       [installed binary]
+                                                                                [32m✔[0m Rcpp 1.1.2                               [installed binary]
+                                                                                [32m✔[0m RcppParallel 5.1.11-2                    [installed binary]
+                                                                                [32m✔[0m renv 1.2.3                               [installed binary]
+                                                                                [32m✔[0m rlang 1.3.0                              [installed binary]
+                                                                                [32m✔[0m S7 0.2.2                                 [installed binary]
+                                                                                [32m✔[0m stringi 1.8.7                            [installed binary]
+                                                                                [32m✔[0m tensorA 0.36.2.1                         [installed binary]
+                                                                                [32m✔[0m utf8 1.2.6                               [installed binary]
+                                                                                [32m✔[0m viridisLite 0.4.3                        [installed binary]
+                                                                                [32m✔[0m withr 3.0.3                              [installed binary]
+                                                                                [32m✔[0m robustbase 0.99-7                        [installed binary]
+                                                                                [32m✔[0m coda 0.19-4.1                            [installed binary]
+                                                                                [32m✔[0m hexbin 1.28.5                            [installed binary]
+                                                                                [32m✔[0m plyr 1.8.9                               [installed binary]
+                                                                                [32m✔[0m RcppArmadillo 15.4.0-1                   [installed binary]
+                                                                                [32m✔[0m RcppEigen 0.3.4.0.2                      [installed binary]
+                                                                                [32m✔[0m isoband 0.3.0                            [installed binary]
+                                                                                [32m✔[0m lifecycle 1.0.5                          [installed binary]
+                                                                                [32m✔[0m bayesm 3.1-7                             [installed binary]
+                                                                                [32m✔[0m FastGP 1.3                               [installed binary]
+                                                                                [32m✔[0m gtable 0.3.6                             [installed binary]
+                                                                                [32m✔[0m scales 1.4.0                             [installed binary]
+                                                                                [32m✔[0m systemfonts 1.3.2                        [installed binary]
+                                                                                [32m✔[0m vctrs 0.7.3                              [installed binary]
+                                                                                [32m✔[0m compositions 2.0-9                       [installed binary]
+                                                                                [32m✔[0m gridExtra 2.3.1                          [installed binary]
+                                                                                [32m✔[0m ggplot2 4.0.3                            [installed binary]
+                                                                                [32m✔[0m pillar 1.11.1                            [installed binary]
+                                                                                [32m✔[0m purrr 1.2.2                              [installed binary]
+                                                                                [32m✔[0m stringr 1.6.0                            [installed binary]
+                                                                                [32m✔[0m tidyselect 1.2.1                         [installed binary]
+                                                                                [32m✔[0m tweenr 2.0.3                             [installed binary]
+                                                                                [32m✔[0m ggrepel 0.9.8                            [installed binary]
+                                                                                [32m✔[0m ggtern 4.0.0                             [installed binary]
+                                                                                [32m✔[0m tibble 3.3.1                             [installed binary]
+                                                                                [32m✔[0m reshape2 1.4.5                           [installed binary]
+                                                                                [32m✔[0m ggforce 0.5.0                            [installed binary]
+                                                                                [32m✔[0m dplyr 1.2.1                              [installed binary]
+                                                                                [32m✔[0m ggcorrplot 0.2.0                         [installed binary]
+                                                                                [32m✔[0m tidyr 1.3.2                              [installed binary]
+  (60/61) Installing: occJSDM                                                     (60/61) Installing: occJSDM                                                     (60/61) Installing: occJSDM                                                     (60/61) Installing: occJSDM                                                     (60/61) Installing: occJSDM                                                     (60/61) Installing: occJSDM                                                     (60/61) Installing: occJSDM                                                     (60/61) Installing: occJSDM                                                                                                                                   [32m✔[0m occJSDM 0.1.0                            [built from source in 34s]
+Successfully installed 61 packages in 36 seconds.
+[?25hWarning message:
+package ‘digest’ was built under R version 4.5.2 
+Restore and isolated origin/version checks passed: /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/final extraction/occJSDM-mcp/relocated-r-runtime 

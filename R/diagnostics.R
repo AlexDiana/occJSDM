@@ -22,9 +22,13 @@ as4d <- function(param_output) {
   if (nd == 4) {
     return(param_output)
   } else if (nd == 3) {
-    return(array(param_output, dim = c(d[1], 1, d[2], d[3])))
+    dn <- dimnames(param_output)
+    if (!is.null(dn)) dn <- list(dn[[1]], NULL, dn[[2]], dn[[3]])
+    return(array(param_output, dim = c(d[1], 1, d[2], d[3]), dimnames = dn))
   } else if (nd == 2) {
-    return(array(param_output, dim = c(1, 1, d[1], d[2])))
+    dn <- dimnames(param_output)
+    if (!is.null(dn)) dn <- list(NULL, NULL, dn[[1]], dn[[2]])
+    return(array(param_output, dim = c(1, 1, d[1], d[2]), dimnames = dn))
   } else {
     stop("param_output must be an array with 2, 3, or 4 dimensions")
   }
@@ -58,64 +62,6 @@ computeESSparams <- function(param_output) {
   }
 
   ESS_param
-}
-
-computeMinESS <- function(results_output) {
-
-  beta0_psi_output <- results_output$jsdm_output$B0_output
-  beta_psi_output <- results_output$jsdm_output$B_output
-  beta_theta_output <- results_output$beta_theta_output
-  L_output <- results_output$jsdm_output$L_output
-
-  ESS_beta0psi <- rep(NA, dim(beta0_psi_output)[1])
-  for (x in 1:length(ESS_beta0psi)) {
-    chains <- lapply(1:dim(beta0_psi_output)[3],
-                     function(i) coda::mcmc(beta0_psi_output[x, , i]))
-    mcmc_list <- coda::mcmc.list(chains)
-    ESS_beta0psi[x] <- coda::effectiveSize(mcmc_list)
-  }
-
-  ESS_betapsi <- matrix(NA, dim(beta_psi_output)[1],dim(beta_psi_output)[2])
-  if(dim(beta_psi_output)[1] > 1){
-    for (x in 1:nrow(ESS_betapsi)) {
-      for (y in 1:ncol(ESS_betapsi)) {
-        chains <- lapply(1:dim(beta_psi_output)[4], function(i) coda::mcmc(beta_psi_output[x, y, , i]))
-        mcmc_list <- coda::mcmc.list(chains)
-        ESS_betapsi[x,y] <- coda::effectiveSize(mcmc_list)
-      }
-    }
-  }
-
-  if(!is.null(beta_theta_output)){
-    ESS_betatheta <- matrix(NA, dim(beta_theta_output)[1],dim(beta_theta_output)[2])
-    for (x in 1:nrow(ESS_betatheta)) {
-      for (y in 1:ncol(ESS_betatheta)) {
-        chains <- lapply(1:dim(beta_theta_output)[4], function(i) coda::mcmc(beta_theta_output[x, y, , i]))
-        mcmc_list <- coda::mcmc.list(chains)
-        ESS_betatheta[x,y] <- coda::effectiveSize(mcmc_list)
-      }
-    }
-  } else {
-    ESS_betatheta <- NULL
-  }
-
-  ESS_L <- matrix(NA, dim(L_output)[1],dim(L_output)[2])
-  if(dim(L_output)[1] > 0){
-    for (x in 1:nrow(ESS_L)) {
-      for (y in 1:ncol(ESS_L)) {
-        chains <- lapply(1:dim(L_output)[4], function(i) coda::mcmc(L_output[x, y, , i]))
-        mcmc_list <- coda::mcmc.list(chains)
-        ESS_L[x,y] <- coda::effectiveSize(mcmc_list)
-      }
-    }
-  }
-
-
-  return(min(ESS_beta0psi,
-             ESS_betatheta,
-             ESS_betapsi[!is.na(ESS_betapsi)],
-             ESS_L[ESS_L != 0]))
-
 }
 
 #' Compute Gelman-Rubin Rhat for an MCMC output array
@@ -171,9 +117,9 @@ computeRhat <- function(param_output) {
 #' @param param_output A numeric array with 2, 3, or 4 dimensions.
 #' @param param_name A label for the parameter, stored in the `param` column.
 #' @param dimnames1 Optional labels for the first index dimension (e.g.
-#'   covariate names). Defaults to `1:dim1`.
+#'   covariate names). Defaults to the array's labels, or `1:dim1` if unlabelled.
 #' @param dimnames2 Optional labels for the second index dimension (e.g.
-#'   species names). Defaults to `1:dim2`.
+#'   species names). Defaults to the array's labels, or `1:dim2` if unlabelled.
 #'
 #' @return A tibble with columns `param`, `label1`, `label2`, `chain`, `iter`,
 #'   `value`.
@@ -187,8 +133,10 @@ paramOutputToLong <- function(param_output, param_name = "parameter",
   niter <- dim(param_output)[3]
   nchain <- dim(param_output)[4]
 
-  label1 <- if (!is.null(dimnames1)) dimnames1 else as.character(seq_len(dim1))
-  label2 <- if (!is.null(dimnames2)) dimnames2 else as.character(seq_len(dim2))
+  label1 <- if (!is.null(dimnames1)) dimnames1 else dimnames(param_output)[[1]]
+  label2 <- if (!is.null(dimnames2)) dimnames2 else dimnames(param_output)[[2]]
+  if (is.null(label1)) label1 <- as.character(seq_len(dim1))
+  if (is.null(label2)) label2 <- as.character(seq_len(dim2))
 
   purrr::map_dfr(seq_len(dim1), function(x) {
     purrr::map_dfr(seq_len(dim2), function(y) {
@@ -270,9 +218,9 @@ summarisePosterior <- function(param_output, param_name = "parameter",
 #'   one or both of the leading index dimensions).
 #' @param param_name A label for the parameter, used for the y-axis title.
 #' @param dimnames1 Optional labels for the first index dimension (e.g.
-#'   covariate names). Defaults to `1:dim1`.
+#'   covariate names). Defaults to the array's labels, or `1:dim1` if unlabelled.
 #' @param dimnames2 Optional labels for the second index dimension (e.g.
-#'   species names). Defaults to `1:dim2`.
+#'   species names). Defaults to the array's labels, or `1:dim2` if unlabelled.
 #'
 #' @return A `ggplot` object.
 #' @export
@@ -502,5 +450,3 @@ computeDiagnostics <- function(results_output){
   invisible(NULL)
 
 }
-
-

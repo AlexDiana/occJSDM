@@ -1,0 +1,564 @@
+{
+  "status": "passed",
+  "r_version": "R version 4.5.0 (2025-04-11)",
+  "r_arch": "aarch64",
+  "rscript": "/usr/local/bin/Rscript",
+  "project": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime",
+  "library": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
+  "lib_paths": ["/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20", "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"],
+  "loaded_namespace_origins": [
+    {
+      "package": "jsonlite",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/jsonlite"
+    },
+    {
+      "package": "gtable",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/gtable"
+    },
+    {
+      "package": "dplyr",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/dplyr"
+    },
+    {
+      "package": "compiler",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/compiler"
+    },
+    {
+      "package": "renv",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/renv"
+    },
+    {
+      "package": "stats",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/stats"
+    },
+    {
+      "package": "tidyselect",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/tidyselect"
+    },
+    {
+      "package": "Rcpp",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp"
+    },
+    {
+      "package": "bayesm",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/bayesm"
+    },
+    {
+      "package": "stringr",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/stringr"
+    },
+    {
+      "package": "parallel",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/parallel"
+    },
+    {
+      "package": "occJSDM",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM"
+    },
+    {
+      "package": "gridExtra",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/gridExtra"
+    },
+    {
+      "package": "tidyr",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/tidyr"
+    },
+    {
+      "package": "scales",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/scales"
+    },
+    {
+      "package": "lattice",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/lattice"
+    },
+    {
+      "package": "base",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/base"
+    },
+    {
+      "package": "ggplot2",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/ggplot2"
+    },
+    {
+      "package": "hexbin",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/hexbin"
+    },
+    {
+      "package": "R6",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/R6"
+    },
+    {
+      "package": "plyr",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/plyr"
+    },
+    {
+      "package": "generics",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/generics"
+    },
+    {
+      "package": "ggcorrplot",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/ggcorrplot"
+    },
+    {
+      "package": "robustbase",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/robustbase"
+    },
+    {
+      "package": "MASS",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/MASS"
+    },
+    {
+      "package": "datasets",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/datasets"
+    },
+    {
+      "package": "methods",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/methods"
+    },
+    {
+      "package": "ggrepel",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/ggrepel"
+    },
+    {
+      "package": "tibble",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/tibble"
+    },
+    {
+      "package": "ggtern",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/ggtern"
+    },
+    {
+      "package": "proto",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/proto"
+    },
+    {
+      "package": "pillar",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/pillar"
+    },
+    {
+      "package": "RColorBrewer",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RColorBrewer"
+    },
+    {
+      "package": "rlang",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/rlang"
+    },
+    {
+      "package": "stringi",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/stringi"
+    },
+    {
+      "package": "compositions",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/compositions"
+    },
+    {
+      "package": "utils",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/utils"
+    },
+    {
+      "package": "S7",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/S7"
+    },
+    {
+      "package": "RcppParallel",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppParallel"
+    },
+    {
+      "package": "cli",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/cli"
+    },
+    {
+      "package": "magrittr",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/magrittr"
+    },
+    {
+      "package": "digest",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/digest"
+    },
+    {
+      "package": "grid",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/grid"
+    },
+    {
+      "package": "graphics",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/graphics"
+    },
+    {
+      "package": "latex2exp",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/latex2exp"
+    },
+    {
+      "package": "lifecycle",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/lifecycle"
+    },
+    {
+      "package": "DEoptimR",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/DEoptimR"
+    },
+    {
+      "package": "vctrs",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/vctrs"
+    },
+    {
+      "package": "glue",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/glue"
+    },
+    {
+      "package": "tensorA",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/tensorA"
+    },
+    {
+      "package": "farver",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/farver"
+    },
+    {
+      "package": "purrr",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/purrr"
+    },
+    {
+      "package": "grDevices",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/grDevices"
+    },
+    {
+      "package": "tools",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74/tools"
+    },
+    {
+      "package": "pkgconfig",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/pkgconfig"
+    }
+  ],
+  "packages": [
+    {
+      "package": "base64enc",
+      "version": "0.1-6",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/base64enc"
+    },
+    {
+      "package": "bayesm",
+      "version": "3.1-7",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/bayesm"
+    },
+    {
+      "package": "cli",
+      "version": "3.6.6",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/cli"
+    },
+    {
+      "package": "coda",
+      "version": "0.19-4.1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/coda"
+    },
+    {
+      "package": "compositions",
+      "version": "2.0-9",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/compositions"
+    },
+    {
+      "package": "cpp11",
+      "version": "0.5.5",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/cpp11"
+    },
+    {
+      "package": "DEoptimR",
+      "version": "1.2-0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/DEoptimR"
+    },
+    {
+      "package": "digest",
+      "version": "0.6.39",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/digest"
+    },
+    {
+      "package": "dplyr",
+      "version": "1.2.1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/dplyr"
+    },
+    {
+      "package": "farver",
+      "version": "2.1.2",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/farver"
+    },
+    {
+      "package": "FastGP",
+      "version": "1.3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/FastGP"
+    },
+    {
+      "package": "generics",
+      "version": "0.1.4",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/generics"
+    },
+    {
+      "package": "ggcorrplot",
+      "version": "0.2.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/ggcorrplot"
+    },
+    {
+      "package": "ggforce",
+      "version": "0.5.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/ggforce"
+    },
+    {
+      "package": "ggplot2",
+      "version": "4.0.3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/ggplot2"
+    },
+    {
+      "package": "ggrepel",
+      "version": "0.9.8",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/ggrepel"
+    },
+    {
+      "package": "ggtern",
+      "version": "4.0.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/ggtern"
+    },
+    {
+      "package": "glue",
+      "version": "1.8.1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/glue"
+    },
+    {
+      "package": "gridExtra",
+      "version": "2.3.1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/gridExtra"
+    },
+    {
+      "package": "gtable",
+      "version": "0.3.6",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/gtable"
+    },
+    {
+      "package": "hexbin",
+      "version": "1.28.5",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/hexbin"
+    },
+    {
+      "package": "isoband",
+      "version": "0.3.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/isoband"
+    },
+    {
+      "package": "jsonlite",
+      "version": "2.0.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/jsonlite"
+    },
+    {
+      "package": "labeling",
+      "version": "0.4.3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/labeling"
+    },
+    {
+      "package": "latex2exp",
+      "version": "0.9.8",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/latex2exp"
+    },
+    {
+      "package": "lattice",
+      "version": "0.22-9",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/lattice"
+    },
+    {
+      "package": "lifecycle",
+      "version": "1.0.5",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/lifecycle"
+    },
+    {
+      "package": "magrittr",
+      "version": "2.0.5",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/magrittr"
+    },
+    {
+      "package": "MASS",
+      "version": "7.3-66",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/MASS"
+    },
+    {
+      "package": "mvtnorm",
+      "version": "1.4-2",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/mvtnorm"
+    },
+    {
+      "package": "occJSDM",
+      "version": "0.1.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM"
+    },
+    {
+      "package": "pillar",
+      "version": "1.11.1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/pillar"
+    },
+    {
+      "package": "pkgconfig",
+      "version": "2.0.3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/pkgconfig"
+    },
+    {
+      "package": "plyr",
+      "version": "1.8.9",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/plyr"
+    },
+    {
+      "package": "polyclip",
+      "version": "1.10-7",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/polyclip"
+    },
+    {
+      "package": "proto",
+      "version": "1.0.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/proto"
+    },
+    {
+      "package": "purrr",
+      "version": "1.2.2",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/purrr"
+    },
+    {
+      "package": "R6",
+      "version": "2.6.1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/R6"
+    },
+    {
+      "package": "RColorBrewer",
+      "version": "1.1-3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RColorBrewer"
+    },
+    {
+      "package": "Rcpp",
+      "version": "1.1.2",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/Rcpp"
+    },
+    {
+      "package": "RcppArmadillo",
+      "version": "15.4.0-1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppArmadillo"
+    },
+    {
+      "package": "RcppEigen",
+      "version": "0.3.4.0.2",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppEigen"
+    },
+    {
+      "package": "RcppParallel",
+      "version": "5.1.11-2",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/RcppParallel"
+    },
+    {
+      "package": "renv",
+      "version": "1.2.3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/renv"
+    },
+    {
+      "package": "reshape2",
+      "version": "1.4.5",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/reshape2"
+    },
+    {
+      "package": "rlang",
+      "version": "1.3.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/rlang"
+    },
+    {
+      "package": "robustbase",
+      "version": "0.99-7",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/robustbase"
+    },
+    {
+      "package": "S7",
+      "version": "0.2.2",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/S7"
+    },
+    {
+      "package": "scales",
+      "version": "1.4.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/scales"
+    },
+    {
+      "package": "stringi",
+      "version": "1.8.7",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/stringi"
+    },
+    {
+      "package": "stringr",
+      "version": "1.6.0",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/stringr"
+    },
+    {
+      "package": "systemfonts",
+      "version": "1.3.2",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/systemfonts"
+    },
+    {
+      "package": "tensorA",
+      "version": "0.36.2.1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/tensorA"
+    },
+    {
+      "package": "tibble",
+      "version": "3.3.1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/tibble"
+    },
+    {
+      "package": "tidyr",
+      "version": "1.3.2",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/tidyr"
+    },
+    {
+      "package": "tidyselect",
+      "version": "1.2.1",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/tidyselect"
+    },
+    {
+      "package": "tweenr",
+      "version": "2.0.3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/tweenr"
+    },
+    {
+      "package": "utf8",
+      "version": "1.2.6",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/utf8"
+    },
+    {
+      "package": "vctrs",
+      "version": "0.7.3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/vctrs"
+    },
+    {
+      "package": "viridisLite",
+      "version": "0.4.3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/viridisLite"
+    },
+    {
+      "package": "withr",
+      "version": "3.0.3",
+      "origin": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/withr"
+    }
+  ],
+  "lock_packages": 74,
+  "source_commit": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+  "source_archive_sha256": "0f4c5f364b326b401ec37d8fe882771888f86f585abbfa13afcd645268e60cbe",
+  "cellar_sha256": "eb9f9004aec5c2b24e404aa7afd795792d9344083a1a441d1262b2ada57bed05",
+  "device_probe": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/environment-device-probe.pdf",
+  "capabilities": {
+    "jpeg": true,
+    "png": true,
+    "tiff": true,
+    "tcltk": true,
+    "X11": false,
+    "aqua": true,
+    "http/ftp": true,
+    "sockets": true,
+    "libxml": false,
+    "fifo": true,
+    "cledit": false,
+    "iconv": true,
+    "NLS": true,
+    "Rprof": true,
+    "profmem": true,
+    "cairo": true,
+    "ICU": true,
+    "long.double": false,
+    "libcurl": true
+  }
+}
