@@ -39,16 +39,29 @@
 #' @export
 #' @import dplyr
 #'
-runOccPlus <- function(data,
+runeDITHOccPlus <- function(data,
                        n_factors,
                        threshold = 0,
                        occCovariates = c(),
                        ordCovariates = c(),
                        collCovariates = c(),
+                       edith_params,
                        MCMCparams = list(nchain = 2,
                                          nburn = 5000,
                                          niter = 5000,
                                          nthin = 1)){
+
+  {
+    d = 2
+    threshold = 1
+    occCovariates = c("X_psi.1","X_psi.2")
+    ordCovariates = c("X_ord.1","X_ord.2")
+    collCovariates = c("X_theta.1")
+    MCMCparams = list(nchain = 2,
+                      nburn = 5000,
+                      niter = 5000,
+                      nthin = 1)
+  }
 
   data_info <- as.data.frame(data$info)
   OTU <- data$OTU
@@ -70,99 +83,109 @@ runOccPlus <- function(data,
     }
   }
 
-  # sort the data
+  # clean the data
   {
     data_info <- data_info %>%
       dplyr::arrange(Site, Sample, Primer)
-  }
 
-  # samples per site
-  {
-    M_df <- data_info %>%
-      dplyr::group_by(Site, Sample) %>%
-      slice(1) %>%
-      dplyr::group_by(Site) %>%
-      dplyr::summarise(M = n())
 
-    M <- M_df$M
-    names(M) <- M_df$Site
-
-    n <- length(M)
-
-    sumM <- c(0, cumsum(M)[-n])
-
-    siteNames <- unique(data_info$Site)
-
-    data_info_sample <- as.numeric(factor(data_info$Sample, levels = unique(data_info$Sample)))
-
-  }
-
-  # marker per samples
-  {
-    # number of markers
-
-    L_df <- data_info %>%
-      dplyr::group_by(Site, Sample, Primer) %>%
-      dplyr::slice(1) %>%
-      dplyr::group_by(Site, Sample) %>%
-      dplyr::summarise(L = n())
-
-    L <- L_df$L
-    names(L) <- L_df$Sample
-
-    # number of observations
+    # samples per site
     {
-      L_all <- data_info %>%
+      M_df <- data_info %>%
+        dplyr::group_by(Site, Sample) %>%
+        slice(1) %>%
+        dplyr::group_by(Site) %>%
+        dplyr::summarise(M = n())
+
+      M <- M_df$M
+      names(M) <- M_df$Site
+
+      n <- length(M)
+
+      sumM <- c(0, cumsum(M)[-n])
+
+      siteNames <- unique(data_info$Site)
+
+      data_info_sample <- as.numeric(factor(data_info$Sample, levels = unique(data_info$Sample)))
+
+      }
+
+    # marker per samples
+    {
+      # number of markers
+
+      P_df <- data_info %>%
         dplyr::group_by(Site, Sample, Primer) %>%
         dplyr::slice(1) %>%
         dplyr::group_by(Site, Sample) %>%
-        dplyr::summarise(L_m = n())
-      L_all <- L_all$L_m
+        dplyr::summarise(P = n())
 
-      sumL <- c(0, cumsum(L_all)[-length(L_all)])
+      P <- P_df$P
+      names(P) <- P_df$Sample
+
+      # number of observations
+      {
+        P_all <- data_info %>%
+          dplyr::group_by(Site, Sample, Primer) %>%
+          dplyr::slice(1) %>%
+          dplyr::group_by(Site, Sample) %>%
+          dplyr::summarise(P_m = n())
+        P_all <- P_all$P_m
+
+        sumP <- c(0, cumsum(P_all)[-length(P_all)])
+
+      }
+
+      primerNames <- unique(data_info$Primer)
+      # sumL <- c(0, cumsum(L)[-length(L)])
 
     }
 
-    primerNames <- unique(data_info$Primer)
-    # sumL <- c(0, cumsum(L)[-length(L)])
+    # pcr per marker
+    {
+      data_K <- data_info %>%
+        dplyr::group_by(Site, Sample, Primer) %>%
+        dplyr::summarise(K = n(),
+                         dplyr::across(contains("Species"),function(x){sum(x > 0)})
+        ) %>%
+        dplyr::ungroup()#%>%
+      # ungroup() %>%
+      # mutate(across(contains("Species"), function(x){sum(x > 0)}))
+
+      K <- data_K$K
+
+      numP <- length(K)
+
+      sumK <- c(0, cumsum(K)[-numP])
+
+      maxP = max(P)
+
+      idx_z <- rep(1:n, M)
+      idx_k <- as.numeric(as.factor(data_info_sample))
+
+      primerIdx <- as.numeric(as.factor(data_info$Primer))
+    }
+
+    y <- OTU
+
+    logy1 <- log(OTU + 1)
 
   }
 
-  # pcr per marker
+  # eDITH params
   {
-    data_K <- data_info %>%
-      dplyr::group_by(Site, Sample, Primer) %>%
-      dplyr::summarise(K = n(),
-                       dplyr::across(contains("Species"),function(x){sum(x > 0)})
-      ) %>%
-      dplyr::ungroup()#%>%
-    # ungroup() %>%
-    # mutate(across(contains("Species"), function(x){sum(x > 0)}))
+    numRegions <- length(unique(edith_params$idx_region))
 
-    K <- data_K$K
+    edith_params$idx_descendants <- createDescendants(edith_params$idx_ancestors)
 
-    numL <- length(K)
-
-    sumK <- c(0, cumsum(K)[-numL])
-
-    maxL = max(L)
-
-    idx_z <- rep(1:n, M)
-    idx_k <- as.numeric(as.factor(data_info_sample))
-
-    primerIdx <- as.numeric(as.factor(data_info$Primer))
   }
-
-  y <- OTU
-
-  logy1 <- log(OTU + 1)
 
   # data infos
   {
     n <- length(M)
     S <- ncol(logy1)
     N <- sum(M)
-    N2 <- numL
+    N2 <- numP
     N3 <- nrow(logy1)
 
     speciesNames <- colnames(data$OTU)
@@ -210,75 +233,110 @@ runOccPlus <- function(data,
   # create covariates matrix
   {
 
+
     if(is.null(dim(OTU))){
       S <- 1
     } else {
       S <- ncol(OTU)
     }
 
-    if(length(ordCovariates) > 0){
+    # For occupancy covariates (group by Site, includes intercept)
+    X_psi <- process_covariates(data_info, occCovariates, "Site", n,
+                                remove_intercept = FALSE)
 
-      X_ord <- data_info %>%
-        dplyr::group_by(Site) %>%
-        dplyr::summarise(across(all_of(ordCovariates),
-                                function(x) {x[1]}))
+    # For collection covariates (group by Sample, includes intercept)
+    X_theta <- process_covariates(data_info, collCovariates, "Sample", N,
+                                  remove_intercept = FALSE)
 
-      sitesNames <- X_ord$Site
+    # For the spatial field
+    Xs <- process_covariates(data_info, spatCovariates, "Site", n,
+                             remove_intercept = TRUE)
 
-      X_ord <- X_ord %>%
-        dplyr::select(-Site) %>%
-        dplyr::mutate_if(is.numeric, scale) %>%
-        dplyr::mutate(dplyr::across(tidyselect::where(~ !is.numeric(.x)), as.factor)) %>%
-        dplyr::mutate(dplyr::across(tidyselect::where(is.numeric), ~ ifelse(is.na(.), 0, .))) %>%
-        stats::model.matrix(~., .)
+    # For the traits
+    {
+      if(!is.null(traitsMatrix)){
+        speciesNamesInTraitsMatrix <- rownames(traitsMatrix)
+        if(!all(speciesNames %in% speciesNamesInTraitsMatrix)){
+          stop("Species names in OTU not present in traits matrix")
+        }
 
-      X_ord <- X_ord[,-1,drop=F]
-
-      rownames(X_ord) <- sitesNames
-
-    } else {
-      X_ord <- matrix(0, n, 0)
-    }
-
-    if(length(occCovariates) > 0){
-
-      X_psi <- data_info %>%
-        dplyr::group_by(Site) %>%
-        dplyr::summarise(dplyr::across(all_of(occCovariates),
-                                       function(x) {x[1]})) %>%
-        dplyr::select(-Site) %>%
-        dplyr::mutate_if(is.numeric, scale) %>%
-        dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
-        model.matrix(~., .)
-
-      # X_psi <- X_psi[,-1,drop=F]
-
-    } else {
-
-      X_psi <- matrix(1, n, 1)
+        idx_speciesNames <- match(speciesNames, speciesNamesInTraitsMatrix)
+        Tr <- traitsMatrix
+        Tr <- Tr[idx_speciesNames,]
+        g <- ncol(Tr)
+        traitsNames <- colnames(Tr)
+      } else {
+        g <- 0
+        Tr <- matrix(NA, S, g)
+      }
 
     }
 
-    if(length(collCovariates) > 0){
+    if(F){
+      if(length(ordCovariates) > 0){
 
-      X_theta <- data_info %>%
-        dplyr::group_by(Sample) %>%
-        dplyr::summarise(dplyr::across(dplyr::all_of(collCovariates),
-                                       function(x) {x[1]})) %>%
-        dplyr::select(-Sample) %>%
-        dplyr::mutate_if(is.numeric, scale) %>%
-        dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
-       model.matrix(~., .)
+        X_ord <- data_info %>%
+          dplyr::group_by(Site) %>%
+          dplyr::summarise(across(all_of(ordCovariates),
+                                  function(x) {x[1]}))
 
-    } else {
+        sitesNames <- X_ord$Site
 
-      X_theta <- matrix(1, N, 1)
+        X_ord <- X_ord %>%
+          dplyr::select(-Site) %>%
+          dplyr::mutate_if(is.numeric, scale) %>%
+          dplyr::mutate(dplyr::across(tidyselect::where(~ !is.numeric(.x)), as.factor)) %>%
+          dplyr::mutate(dplyr::across(tidyselect::where(is.numeric), ~ ifelse(is.na(.), 0, .))) %>%
+          stats::model.matrix(~., .)
 
+        X_ord <- X_ord[,-1,drop=F]
+
+        rownames(X_ord) <- sitesNames
+
+      } else {
+        X_ord <- matrix(0, n, 0)
+      }
+
+      if(length(occCovariates) > 0){
+
+        X_psi <- data_info %>%
+          dplyr::group_by(Site) %>%
+          dplyr::summarise(dplyr::across(all_of(occCovariates),
+                                         function(x) {x[1]})) %>%
+          dplyr::select(-Site) %>%
+          dplyr::mutate_if(is.numeric, scale) %>%
+          dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
+          model.matrix(~., .)
+
+        # X_psi <- X_psi[,-1,drop=F]
+
+      } else {
+
+        X_psi <- matrix(1, n, 1)
+
+      }
+
+      if(length(collCovariates) > 0){
+
+        X_theta <- data_info %>%
+          dplyr::group_by(Sample) %>%
+          dplyr::summarise(dplyr::across(dplyr::all_of(collCovariates),
+                                         function(x) {x[1]})) %>%
+          dplyr::select(-Sample) %>%
+          dplyr::mutate_if(is.numeric, scale) %>%
+          dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor)) %>%
+          model.matrix(~., .)
+
+      } else {
+
+        X_theta <- matrix(1, N, 1)
+
+      }
     }
 
     ncov_psi <- ncol(X_psi)
     ncov_theta <- ncol(X_theta)
-    ncov_ord <- ncol(X_ord)
+
 
   }
 
@@ -479,7 +537,7 @@ runOccPlus <- function(data,
       LL <- matrix(1, n_factors, S)
 
 
-      theta <- computeTheta(X_theta, beta_theta)
+      theta <- computeTheta(X_theta, beta_theta, logb, idx_z)
 
       p <- matrix(.9, maxL, S)
       q <- matrix(.05, maxL, S)
@@ -503,14 +561,25 @@ runOccPlus <- function(data,
 
       }
 
-      # sample z
+      # sample logb
 
-      z <- sample_z_cpp(w, psi, theta, theta0, M, sumM)
+      logb <- update_logb(logb, w, X_psi, beta_psi, U, LL,
+                          X_theta, beta_theta, sigma,
+                          tau, M_site, edith_params,
+                          sigma_proposals = .02)
+
+      # sample tau
+
+      tau <- sample_tau()
+
+      # sample sigma
+
+      sigma <- sample_sigma(logb, X_psi, beta_psi, U, LL, a_sigma, b_sigma)
 
       # sample psi
 
       {
-        list_betapsiLL <- sample_psivars(z, X_psi, beta_psi, X_ord, beta_ord,
+        list_betapsiLL <- sample_psivars(logb, X_psi, beta_psi, X_ord, beta_ord,
                                          E, LL, prior_beta_psi, prior_beta_psi_sd)
         beta_psi <- list_betapsiLL$beta_psi
         beta_ord <- list_betapsiLL$beta_ord
@@ -549,7 +618,7 @@ runOccPlus <- function(data,
       # sample theta
       beta_theta <- sample_betatheta_cpp(w, z, beta_theta, idx_z, X_theta,
                                      b_betatheta, B_betatheta)
-      theta <- computeTheta(X_theta, beta_theta)
+      theta <- computeTheta(X_theta, beta_theta, logb, idx_z)
 
       # sample pq
       # list_pq <- sample_pq(y, w, primerIdx, idx_k, maxL, a_p, b_p, a_q, b_q)

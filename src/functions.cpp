@@ -160,7 +160,6 @@ return X;
 }
 
 // [[Rcpp::export]]
-
 double rpg(int n, double z){
 
   double x = 0;
@@ -169,6 +168,102 @@ double rpg(int n, double z){
   }
 
   return(x);
+}
+
+// [[Rcpp::export]]
+double compute_edith_contribution(
+    double A_s_i,
+    double L_ij,
+    double v_ij,
+    double logb,
+    double tau,
+    double Q_j
+) {
+
+  // IntegerVector idx_list = as<IntegerVector>(idx_ancestors[i]);
+
+  double denom = v_ij * tau;
+  double weight = A_s_i * exp(-L_ij / denom);
+  double term = weight * exp(logb) / Q_j;
+
+  return term;
+}
+
+double compute_edith_contribution_element(
+    NumericVector A_s_i,
+    NumericMatrix::Row L_i,
+    NumericMatrix::Row v_i,
+    NumericMatrix::Column logb_i,
+    double tau,
+    double Q_j,
+    IntegerVector idx_list
+){
+
+  double sum_term = 0;
+
+  for (int k = 0; k < idx_list.size(); k++) {
+
+    // double denom = v_i[idx_list[k] - 1] * tau;
+    // double weight = A_s_i[idx_list[k] - 1] * exp(-L_i[idx_list[k] - 1] / denom);
+    // sum_term = weight * logb_i[idx_list[k] - 1] / Q_j;
+
+    sum_term += compute_edith_contribution(
+      A_s_i[idx_list[k] - 1],
+           L_i[idx_list[k] - 1],
+              v_i[idx_list[k] - 1],
+                 logb_i[idx_list[k] - 1],
+                       tau,
+                       Q_j
+    );
+
+  }
+
+  return sum_term;
+
+}
+
+// [[Rcpp::export]]
+NumericMatrix compute_C_hat_cpp(
+    NumericVector A_s_i,
+    NumericMatrix L_ij,
+    NumericMatrix v_ij,
+    NumericMatrix logb,
+    NumericVector tau,
+    IntegerVector idx_region,
+    List idx_ancestors,
+    NumericVector Q_j
+) {
+
+  int n = L_ij.nrow();
+  int S = logb.ncol();
+
+  NumericMatrix C_hat(n, S);
+
+  for (int j = 0; j < S; j++) {
+
+    for (int i = 0; i < n; i++) {
+
+      IntegerVector idx_list = as<IntegerVector>(idx_ancestors[i]);
+
+      NumericMatrix::Row L_i = L_ij.row(i);
+      NumericMatrix::Row v_i = v_ij.row(i);
+      NumericMatrix::Column logb_j = logb.column(j);
+
+      C_hat(i,j) = compute_edith_contribution_element(
+        A_s_i,
+        L_i,
+        v_i,
+        logb_j,
+        tau[idx_region[i] - 1],
+           Q_j[i],
+        idx_list
+      );
+
+    }
+
+  }
+
+  return C_hat;
 }
 
 // [[Rcpp::export]]
@@ -216,7 +311,8 @@ arma::mat diagMatrixProd(arma::mat& X, arma::vec& D){
 }
 
 // [[Rcpp::export]]
-arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b, arma::vec& Omega, arma::vec& k){
+arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b,
+                          arma::vec& Omega, arma::vec& k){
 
   // arma::mat cov_matrix = arma::inv(arma::trans(X) * Omega * X + arma::inv(B));
   arma::mat tX = arma::trans(X);
@@ -812,142 +908,257 @@ double dlaplace(double x, double sigma){
 
 }
 
+// [[Rcpp::export]]
+double rinvgamma_cpp(double a, double b){
+  return 1 / R::rgamma(a, 1 / b);
+}
 
-// // [[Rcpp::export]]
-// arma::mat computeGenzLoglik_cpp(const arma::mat& lower, const arma::mat& upper,
-//                            const arma::mat& Y, const arma::cube& u,
-//                            const arma::mat& L) {
-//
-//   int n = lower.n_rows;
-//   int d = lower.n_cols;
-//   int M = u.n_cols;
-//
-//   arma::mat y_sign = 2 * Y - 1;
-//
-//   arma::mat logP_all = arma::zeros(n, M);
-//
-//   for (int i = 0; i < n; ++i) {
-//     for (int m = 0; m < M; ++m) {
-//
-//       arma::vec y = arma::zeros(d);
-//       arma::vec logP_m = arma::zeros(d);
-//       // arma::cube grad_aistar = arma::zeros(d, d, d);
-//       // arma::cube grad_bistar = arma::zeros(d, d, d);
-//       // arma::cube grad_y = arma::zeros(d, d, d);
-//
-//       arma::vec abistar(d);
-//
-//       for (int idx_d = 0; idx_d < d; ++idx_d) {
-//
-//         double ai = lower(i, idx_d);
-//         double bi = upper(i, idx_d);
-//
-//         double ai_star, bi_star;
-//
-//         if (idx_d == 0) {
-//           ai_star = ai / L(idx_d, idx_d);
-//           bi_star = bi / L(idx_d, idx_d);
-//
-//         } else {
-//
-//           double sum_ai = dot(L.submat(idx_d, 0, idx_d, idx_d - 1), y.subvec(0, idx_d - 1));
-//           double sum_bi = sum_ai; // same dot product
-//
-//           ai_star = (ai - sum_ai) / L(idx_d, idx_d);
-//           bi_star = (bi - sum_bi) / L(idx_d, idx_d);
-//
-//         }
-//
-//         double Y_idxd = (y_sign(i, idx_d) + 1) / 2.0;
-//
-//         // double u_val = u(i, m, idx_d);
-//
-//         if (y_sign(i, idx_d) == 1) {
-//           y[idx_d] = sim_rnormtrunc_modified2(ai_star, Y_idxd, u(i, m, idx_d));
-//         } else {
-//           y[idx_d] = sim_rnormtrunc_modified2(bi_star, Y_idxd, u(i, m, idx_d));
-//         }
-//
-//         double logP;
-//         arma::mat grad_logP;
-//
-//         if (Y_idxd == 1) {
-//           logP = R::pnorm(ai_star, 0.0, 1.0, false, true);
-//         } else {
-//           logP = R::pnorm(bi_star, 0.0, 1.0, true, true);
-//         }
-//
-//         logP_m[idx_d] = logP;
-//
-//       }
-//
-//       logP_all(i, m) = accu(logP_m);
-//     }
-//   }
-//
-//   // double loglik = accu(logP_all);
-//
-//   return logP_all;
-// }
+// [[Rcpp::export]]
+arma::vec update_sigma_cpp(arma::vec sigma,
+                         arma::mat logz_tilde,
+                         double a_sigma,
+                         double b_sigma){
+
+  int S = logz_tilde.n_cols;
+  int n = logz_tilde.n_rows;
+
+  for(int j = 0; j < S; j++){
+
+    int n_samples = 0;
+    double sumsq = 0;
+
+    for (int i = 0; i < n; i++) {
+
+      sumsq += pow(logz_tilde(i,j), 2);
+
+    }
+
+    sigma[j] = sqrt(rinvgamma_cpp(a_sigma + n_samples / 2.0, b_sigma + sumsq / 2));
+  }
+
+  return sigma;
+}
+
+// [[Rcpp::export]]
+NumericVector update_tau_cpp(
+    NumericVector tau,
+    NumericMatrix logb,
+    NumericMatrix w,
+    arma::mat Xtheta_betatheta,
+    arma::vec M_site,
+    IntegerVector sumM,
+    NumericVector A_s_i,
+    NumericMatrix L_ij,
+    NumericMatrix v_ij,
+    IntegerVector idx_region,
+    List idx_ancestors,
+    List idx_descendants,
+    NumericVector Q_j,
+    double sd_proposal,
+    double a_tau,
+    double b_tau){
+
+  int n_regions = tau.size();
+  int n = M_site.size();
+  int S = logb.ncol();
+
+  for(int l = 0; l < n_regions; l++){
+
+    double logtau_old = log(tau[l]);
+    double logtau_new = R::rnorm(logtau_old, sd_proposal);
+
+    double loglik_new = 0;
+    double loglik_old = 0;
+
+    for(int j = 0; j < S; j++){
+
+      NumericMatrix::Column logb_j = logb.column(j);
+
+      for(int i = 0; i < n; i++){
+
+        if(idx_region[i] == (l + 1)){
+
+          IntegerVector idx_anc = as<IntegerVector>(idx_ancestors[i]);
+          IntegerVector idx_desc = as<IntegerVector>(idx_descendants[i]);
+
+          NumericMatrix::Row L_i = L_ij.row(i);
+          NumericMatrix::Row v_i = v_ij.row(i);
+
+          for(int k = 0; k < idx_desc.size(); k++){ // loop through the sites affected
+
+            int idx_descendant = idx_desc[k] - 1;
+
+            double conc_old =
+              compute_edith_contribution_element(
+                A_s_i,
+                L_i,
+                v_i,
+                logb_j,
+                exp(logtau_old),
+                   Q_j[i],
+                      idx_anc
+              );
+
+            double conc_new =
+              compute_edith_contribution_element(
+                A_s_i,
+                L_i,
+                v_i,
+                logb_j,
+                exp(logtau_new),
+                Q_j[i],
+                   idx_anc
+              );
+
+            for(int m = 0; m < M_site[idx_descendant]; m++){
+
+              int idx_sample = sumM[idx_descendant] + m;
+
+              double p_current = 1 / (1 + exp(- Xtheta_betatheta(idx_sample, j) - conc_old));
+              double p_star = 1 / (1 + exp(- Xtheta_betatheta(idx_sample, j) - conc_new));
+
+              loglik_new += R::dbinom(w(idx_sample, j), 1, p_star, 1);
+              loglik_old += R::dbinom(w(idx_sample, j), 1, p_current, 1);
+
+            }
+
+          }
+
+        }
+
+      }
 
 
 
-// // [[Rcpp::export]]
-// NumericMatrix sample_cimk_cpp(const NumericMatrix& y,
-//                               const NumericMatrix& logy1,
-//                               NumericMatrix w,
-//                               double mu1,
-//                               double sigma1,
-//                               double mu0,
-//                               double sigma0,
-//                               const NumericMatrix& p,
-//                               const NumericMatrix& q,
-//                               IntegerVector idx_k,
-//                               IntegerVector primerIdx,
-//                               int maxL) {
-//
-//   int N3 = idx_k.size();
-//   int S = p.ncol();
-//
-//   NumericMatrix c_imk(N3, S);
-//
-//   for (int s = 0; s < S; s++) {
-//     for (int i = 0; i < N3; i++) {
-//
-//       double term1_loglik = R::dnorm(logy1(i,s), mu1, sigma1, 1);
-//       double term2_loglik = 0;
-//
-//       if(logy1(i,s) == 0){
-//         term2_loglik = log(pi0);
-//       } else {
-//         term2_loglik = R::dnorm(y(i,s), 0, sigma0, 1) - log(.5);
-//         // term2_loglik = dlaplace(logy1(i,s), sigma0);
-//       }
-//
-//       int idx_primer = primerIdx[i] - 1;
-//       double term1_prior, term2_prior;
-//
-//       if(w(idx_k[i] - 1,s) == 1){
-//         term1_prior = log(p(idx_primer,s));
-//         term2_prior = log(1 - p(idx_primer,s));
-//         // term2_prior = R::dbinom(0, 1, p(idx_primer,s), 1);
-//       } else {
-//         term1_prior = log(q(idx_primer,s));
-//         term2_prior = log(1 - q(idx_primer,s));
-//         // term1_prior = R::dbinom(1, 1, q(idx_primer,s), 1);
-//         // term2_prior = R::dbinom(0, 1, q(idx_primer,s), 1);
-//       }
-//
-//       double term12_diff = (term1_loglik + term1_prior) - (term2_loglik + term2_prior);
-//
-//       // double p_cimk1 = exp(term12_diff) / (exp(term12_diff) + 1);
-//       double p_cimk1 = 1 / (exp(-term12_diff) + 1);
-//
-//       c_imk(i,s) = R::rbinom(1, p_cimk1);
-//
-//     }
-//   }
-//
-//   return(c_imk);
-// }
+    }
 
+    double logproposal = logtau_new - logtau_old;
+
+    double logprior = R::dgamma(exp(logtau_new), a_tau, b_tau, 1) -
+      R::dgamma(exp(logtau_old), a_tau, b_tau, 1);
+
+    double mh_ratio = exp(loglik_new - loglik_old +
+                          logprior + logproposal);
+Rcout << mh_ratio << std::endl;
+    if(R::runif(0,1) < mh_ratio){
+
+      tau[l] = exp(logtau_new);
+
+    }
+
+  }
+
+  return tau;
+}
+
+// [[Rcpp::export]]
+NumericMatrix update_logz_cpp(NumericMatrix logb,
+                              NumericMatrix w,
+                              arma::mat prior_logb,
+                              arma::vec sigma,
+                              arma::mat Xtheta_betatheta,
+                              arma::vec tau,
+                              arma::vec M_site,
+                              IntegerVector sumM,
+                              double sigma_proposals,
+                              NumericVector A_s_i,
+                              NumericMatrix L_ij,
+                              NumericMatrix v_ij,
+                              IntegerVector idx_region,
+                              List idx_ancestors,
+                              List idx_descendants,
+                              NumericVector Q_j){
+
+  int n = M_site.size();
+  int S = logb.ncol();
+
+  for(int i = 0; i < n; i++){
+
+    IntegerVector idx_anc = as<IntegerVector>(idx_ancestors[i]);
+    IntegerVector idx_desc = as<IntegerVector>(idx_descendants[i]);
+
+    NumericMatrix::Row L_i = L_ij.row(i);
+    NumericMatrix::Row v_i = v_ij.row(i);
+
+    for(int j = 0; j < S; j++){
+
+      NumericMatrix::Column logb_j = logb.column(j);
+
+      double logb_current = logb(i, j);
+
+      double logb_new = R::rnorm(logb_current, sigma_proposals);
+
+      double loglik_new = 0;
+      double loglik_old = 0;
+
+      for(int k = 0; k < idx_desc.size(); k++){ // loop through the sites affected
+
+        int idx_descendant = idx_desc[k] - 1;
+
+        double conc_old =
+          compute_edith_contribution_element(
+            A_s_i,
+            L_i,
+            v_i,
+            logb_j,
+            tau[idx_region[i] - 1],
+               Q_j[i],
+                  idx_anc
+          );
+
+        double conc_element_old =
+          compute_edith_contribution(
+            A_s_i[i],
+            L_ij(i,idx_descendant),
+            v_ij(i,idx_descendant),
+                 logb_current,
+                 tau[idx_region[i] - 1],
+                    Q_j[i]
+          );
+
+        double conc_element_new =
+          compute_edith_contribution(
+            A_s_i[i],
+            L_ij(i,idx_descendant),
+            v_ij(i,idx_descendant),
+                 logb_new,
+                 tau[idx_region[i] - 1],
+                    Q_j[i]
+          );
+
+        double conc_new = conc_old -
+          conc_element_old +
+          conc_element_new;
+
+        for(int m = 0; m < M_site[idx_descendant]; m++){
+
+          int idx_sample = sumM[idx_descendant] + m;
+
+          double p_current = 1 / (1 + exp(- Xtheta_betatheta(idx_sample, j) - conc_old));
+          double p_star = 1 / (1 + exp(- Xtheta_betatheta(idx_sample, j) - conc_new));
+
+          loglik_new += R::dbinom(w(idx_sample, j), 1, p_star, 1);
+          loglik_old += R::dbinom(w(idx_sample, j), 1, p_current, 1);
+
+        }
+
+      }
+
+      double logprior = R::dnorm(logb_new, prior_logb(i,j), sigma[j], 1) -
+        R::dnorm(logb_current, prior_logb(i,j), sigma[j], 1);
+
+      double log_mhratio = logprior + loglik_new - loglik_old;
+
+      if(R::runif(0,1) < exp(log_mhratio)){
+
+        logb(i, j) = logb_new;
+
+      }
+
+    }
+
+  }
+
+  return logb;
+
+}

@@ -1,4 +1,19 @@
 
+createDescendants <- function(idx_ancestors){
+
+  n <- length(idx_ancestors)
+  idx_descendants <- vector("list", n)
+
+  # Invert the relationship
+  for (i in seq_along(idx_ancestors)) {
+    for (a in idx_ancestors[[i]]) {
+      idx_descendants[[a]] <- c(idx_descendants[[a]], i)
+    }
+  }
+
+  idx_descendants
+}
+
 logistic <- function(x){
   1 / (1 + exp(-x))
 }
@@ -20,7 +35,224 @@ computeTheta <- function(X_theta, beta_theta){
 }
 
 # OK
-sample_z <- function( w, psi, theta, theta0){
+# update_tau <- function(tau, w, sd_tau){
+#
+#   tau <- rep(0, n_regions)
+#
+#   for (i in seq_len(n_regions)) {
+#
+#     tau_star <- rnorm(1, tau, sd = sd_tau)
+#
+#     conc_old <- compu
+#     conc_star <-
+#
+#   }
+#
+# }
+
+update_logb <- function(logb, w, X_psi, beta_psi, U, LL,
+                        X_theta, beta_theta, sigma,
+                        tau, M, sumM, edith_params,
+                        sigma_proposals = .02){
+
+  prior_logb <- X_psi %*% beta_psi + U %*% LL
+  Xtheta_betatheta <- X_theta %*% beta_theta
+
+  A_si <- edith_params$A_si
+  Q_j <- edith_params$Q_j
+  L_ij <- edith_params$L_ij
+  nu_ij <- edith_params$nu_ij
+  idx_ancestors <- edith_params$idx_ancestors
+  idx_descendants <- edith_params$idx_descendants
+  idx_region <- edith_params$idx_region
+
+  logb <- update_logz_cpp(
+    logb,
+    w,
+    prior_logb,
+    sigma,
+    Xtheta_betatheta,
+    tau,
+    M,
+    sumM,
+    sigma_proposals = 0.02,
+    A_si,
+    L_ij,
+    nu_ij,
+    idx_region,
+    idx_ancestors,
+    idx_descendants,
+    Q_j
+  )
+
+  logb
+
+}
+
+update_tau <- function(tau, logb, w, X_theta, betatheta, M_site, sumM,
+                      edith_params, sd_proposal = .05, a_tau, b_tau){
+
+  Xtheta_betatheta <- X_theta %*% beta_theta
+
+  A_si <- edith_params$A_si
+  Q_j <- edith_params$Q_j
+  L_ij <- edith_params$L_ij
+  nu_ij <- edith_params$nu_ij
+  idx_ancestors <- edith_params$idx_ancestors
+  idx_descendants <- edith_params$idx_descendants
+  idx_region <- edith_params$idx_region
+
+  tau <- update_tau_cpp(tau, logb, w, Xtheta_betatheta, M_site, sumM,
+                        A_si, L_ij, nu_ij, idx_region, idx_ancestors, idx_descendants,
+                    Q_j, sd_proposal, a_tau, b_tau)
+
+  tau
+
+}
+
+sample_sigma <- function(logb, X_psi, beta_psi, U, LL, a_sigma, b_sigma) {
+
+  logb <- logb - X_psi %*% beta_psi - U %*% LL
+
+  sigma <- update_sigma_cpp(sigma, logb, a_sigma, b_sigma)
+
+  sigma
+
+}
+
+compute_edith_contribution_element_r <- function(
+  A_s_i, L_i, v_i, logb_i, tau, Q_j, idx_list
+){
+
+  sum_term <- 0
+
+  for (k in seq_along(idx_list)) {
+
+    sum_term <- sum_term + compute_edith_contribution(
+      A_s_i[idx_list[k]],
+      L_i[idx_list[k]],
+      v_i[idx_list[k]],
+      logb_i[idx_list[k]],
+      tau,
+      Q_j
+    )
+
+  }
+
+  sum_term
+
+}
+
+update_logz_r <- function(logb,
+                          w,
+                          prior_logb,
+                          sigma,
+                          Xtheta_betatheta,
+                          tau,
+                          M_site,
+                          sigma_proposals,
+                          A_s_i,
+                          L_ij,
+                          nu_ij,
+                          idx_region,
+                          idx_ancestors,
+                          idx_descendants,
+                          Q_j){
+
+    n <- length(M)
+    S <- ncol(log_b)
+
+    for (i in 1:n) {
+
+      idx_anc <- idx_ancestors[[i]]
+      idx_desc <- idx_descendants[[i]]
+
+      L_i <- L_ij[i,]
+      nu_i <- nu_ij[i,]
+      logb_i <- logb[,i]
+
+      for (j in 1:S) {
+
+        logb_current <- logb[i,j]
+
+        logb_new <- rnorm(1, logb_current, sigma_proposals)
+
+        loglik_new <- 0
+        loglik_old <- 0
+
+        for (k in seq_along(idx_desc)) { # loop through the sites affected
+
+          idx_descendant <- idx_desc[k]
+
+          conc_old =
+            compute_edith_contribution_element_r(
+              A_s_i,
+              L_i,
+              v_i,
+              logb_i,
+              tau[idx_region[i]],
+              Q_j[i],
+              idx_anc
+            )
+
+          conc_element_old =
+            compute_edith_contribution(
+              A_s_i[i],
+              L_ij(i,idx_descendant),
+              v_ij(i,idx_descendant),
+              logb_current,
+              tau[idx_region[i]],
+              Q_j[i]
+            )
+
+          conc_element_new =
+            compute_edith_contribution(
+              A_s_i[i],
+              L_ij(i,idx_descendant),
+              v_ij(i,idx_descendant),
+              logb_new,
+              tau[idx_region[i] - 1],
+              Q_j[i]
+            )
+
+          conc_new <-  conc_old -
+            conc_element_old +
+            conc_element_new;
+
+          # for(m in 1:M_site[idx_descendant]){
+          #
+          #   p_current = 1 / (1 + exp(- Xtheta_betatheta(sumM[idx_descendant] + m, j) - conc_old));
+          #   p_star = 1 / (1 + exp(- Xtheta_betatheta(sumM[idx_descendant] + m, j) - conc_new));
+          #
+          #   loglik_new += R::dbinom(w(sum_m + m, j), 1, p_star, 1);
+          #   loglik_old += R::dbinom(w(sum_m + m, j), 1, p_current, 1);
+          #
+          # }
+
+        }
+
+        # double logprior = R::dnorm(logb_new, prior_logb(i,j), sigma[j], 1) -
+        #   R::dnorm(logb_current, prior_logb(i,j), sigma[j], 1);
+        #
+        # double logposterior = logprior + loglik_new - loglik_old;
+        #
+        # if(R::runif(0,1) < exp(logposterior)){
+        #
+        #   logb(i, j) = logb_new;
+        #
+        # }
+
+      }
+
+
+    }
+
+    logb
+
+}
+
+# OK
+sample_z <- function(w, psi, theta, theta0){
 
   S <- ncol(psi)
   n <- nrow(psi)
@@ -266,7 +498,7 @@ sample_betapsiLL <- function(beta_psi, LL, Omega, X_psi, k, U,
 }
 
 # OK
-sample_LL <- function(beta_psi, LL, Omega, X_psi, k, U,
+sample_LL <- function(beta_psi, LL, X_psi, logb, U,
                              prior_beta_psi, prior_beta_psi_sd){
 
   ncov_psi <- ncol(X_psi)
@@ -276,7 +508,7 @@ sample_LL <- function(beta_psi, LL, Omega, X_psi, k, U,
 
   LL <- matrix(NA, d, S)
 
-  k <- k - Omega * X_psi %*% beta_psi
+  logb <- logb - X_psi %*% beta_psi
 
   for (s in 1:S) {
 
@@ -287,11 +519,11 @@ sample_LL <- function(beta_psi, LL, Omega, X_psi, k, U,
 
     if(elem1 > 0){
 
-      k_current <- k[,s] - Omega[,s] * U[,s]
+      logb_current <- logb[,s] -  U[,s]
 
     } else {
 
-      k_current <- k[,s]
+      logb_current <- logb[,s]
 
     }
 
@@ -306,7 +538,7 @@ sample_LL <- function(beta_psi, LL, Omega, X_psi, k, U,
       b_current <- rep(prior_beta_psi, elemNonZero)
       B_current <- diag(prior_beta_psi_sd, nrow = elemNonZero)
 
-      LL_s <- sample_beta_cpp(X_all, B_current, b_current, Omega[,s], k_current)
+      LL_s <- sample_beta_cpp(X_all, B_current, b_current, rep(1, nrow(X_all)), logb_current)
       LL[seq_len(elemNonZero),s] <- LL_s
 
     }
@@ -334,7 +566,7 @@ sample_LL <- function(beta_psi, LL, Omega, X_psi, k, U,
 
 }
 
-sample_betapsi <- function(beta_psi, LL, Omega, X_psi, k, U,
+sample_betapsi <- function(beta_psi, LL, X_psi, logb, U,
                              prior_beta_psi, prior_beta_psi_sd){
 
   ncov_psi <- ncol(X_psi)
@@ -345,20 +577,14 @@ sample_betapsi <- function(beta_psi, LL, Omega, X_psi, k, U,
 
   for (s in 1:S) {
 
-    # if(elem1 > 0){
-
-    k_current <- k[,s] - Omega[,s] * U %*% LL[,s]
-
-    # } else {
-    #
-    #   k_current <- k[,s]
-    #
-    # }
+    logb_current <- logb[,s] - U %*% LL[,s]
 
     b_current <- rep(prior_beta_psi, ncov_psi)
     B_current <- diag(prior_beta_psi_sd, nrow = ncov_psi)
 
-    beta_psi[,s] <- sample_beta_cpp(X_psi, B_current, b_current, Omega[,s], k_current)
+
+    beta_psi[,s] <- sample_beta_cpp(X_psi, B_current, b_current,
+                                    rep(1, nrow(X_psi)), as.vector(logb_current))
 
   }
 
@@ -367,42 +593,33 @@ sample_betapsi <- function(beta_psi, LL, Omega, X_psi, k, U,
 }
 
 # OK
-sample_betaord <- function(k, LL, X_ord, X_psi, beta_psi, E, Omega){
+sample_betaord <- function(logb, LL, X_ord, X_psi, beta_psi, E){
 
   ncov_ord <- ncol(X_ord)
   d <- nrow(LL)
   S <- ncol(LL)
 
   Omega_vec <- as.vector(Omega)
-  # Omega_diag <- diag(Omega_vec, nrow = length(Omega_vec))
 
-  # k <- (z - .5) / Omega - X_psi %*% beta_psi - E %*% LL
-  k_new <- k - (X_psi %*% beta_psi + E %*% LL) * Omega
+  logb_new <- logb - (X_psi %*% beta_psi + E %*% LL)
 
   Xtilde <- kronecker(t(LL), X_ord)
-  #
-  # Sigma_post <- t(Xtilde) %*% Omega_diag %*% Xtilde
-  #
-  # # mu_post <- solve(Sigma_post) %*% t(Xtilde) %*% Omega_diag %*% as.vector(k)
-  # mu_post <- solve(Sigma_post) %*% t(Xtilde) %*% as.vector(k_new)
-  #
-  # beta_ord <- mvrnorm(n = 1, mu_post, solve(Sigma_post))
 
   beta_ord <- sample_beta_cpp(Xtilde,
                               diag(2, nrow = ncol(Xtilde)),
                               rep(0, ncol(Xtilde)),
-                              Omega_vec,
-                              k_new)
+                              rep(1, nrow(Xtilde)),
+                              logb_new)
 
   matrix(beta_ord, ncov_ord, d, byrow = F)
 }
 
-sample_E <- function(k, Omega, X_psi, beta_psi, X_ord, beta_ord, LL){
+sample_E <- function(logb, X_psi, beta_psi, X_ord, beta_ord, LL){
 
   d <- nrow(LL)
-  n <- nrow(k)
+  n <- nrow(logb)
 
-  k_new <- k - Omega * (X_psi %*% beta_psi + X_ord %*% beta_ord %*% LL)
+  logb_new <- logb - (X_psi %*% beta_psi + X_ord %*% beta_ord %*% LL)
 
   E <- matrix(NA, n, d)
 
@@ -411,7 +628,9 @@ sample_E <- function(k, Omega, X_psi, beta_psi, X_ord, beta_ord, LL){
 
   for (i in 1:n) {
 
-    E[i,] <- sample_beta_cpp(t(LL), B_current, b_current, Omega[i,], k_new[i,])
+    E[i,] <- sample_beta_cpp(t(LL), B_current, b_current,
+                             rep(1, length(logb_new[i,])),
+                             logb_new[i,])
 
   }
 
@@ -444,45 +663,27 @@ sample_betaordE <- function(k, Omega, X_psi, beta_psi, X_ord, LL){
 
 }
 
-sample_psivars <- function(z, X_psi, beta_psi, X_ord, beta_ord, E, LL,
+sample_psivars <- function(logb, X_psi, beta_psi, X_ord, beta_ord, E, LL,
                            prior_beta_psi, prior_beta_psi_sd){
 
   ncov_psi <- ncol(X_psi)
   ncov_ord <- ncol(X_ord)
 
-  k <- z - .5
-
-  # sample Omega
-  {
-    U <- (X_ord %*% beta_ord + E)
-    Xbeta_coef <- X_psi %*% beta_psi + U %*% LL
-
-    Omega <- samplePGvariables(Xbeta_coef)
-  }
-
-  # sample beta psi and LL
-  {
-    # list_betapsiLL <- sample_betapsiLL(beta_psi, LL, Omega, X_psi, k, U,
-    #                                    prior_beta_psi, prior_beta_psi_sd)
-    # beta_psi <- list_betapsiLL$beta_psi
-    # LL <- list_betapsiLL$LL
-  }
-
   if(ncov_psi > 0){
-    beta_psi <- sample_betapsi(beta_psi, LL, Omega, X_psi, k, U,
+    beta_psi <- sample_betapsi(beta_psi, LL, X_psi, logb, U,
                                prior_beta_psi, prior_beta_psi_sd)
   }
 
-  LL <- sample_LL(beta_psi, LL, Omega, X_psi, k, U,
+  LL <- sample_LL(beta_psi, LL, X_psi, logb, U,
                   prior_beta_psi, prior_beta_psi_sd)
 
-  E <- sample_E(k, Omega, X_psi, beta_psi, X_ord, beta_ord, LL)
+  E <- sample_E(logb, X_psi, beta_psi, X_ord, beta_ord, LL)
 
   if(ncov_ord > 0){
     # list_betaordE <- sample_betaordE(k, Omega, X_psi, beta_psi, X_ord, LL)
     # beta_ord <- list_betaordE$beta_ord
     # E <- list_betaordE$E
-    beta_ord <- sample_betaord(k, LL, X_ord, X_psi, beta_psi, E, Omega)
+    beta_ord <- sample_betaord(logb, LL, X_ord, X_psi, beta_psi, E)
   }
 
   list("beta_psi" = beta_psi,
