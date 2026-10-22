@@ -1,3 +1,9 @@
+# occJSDM (development version)
+
+## Behaviour changes
+
+-   `runOccJSDM()` now rejects a read `threshold` below 1. Values between 0 and 1 used to be accepted; for integer read counts they gave the same detections as the default of 1.
+
 # occJSDM 0.2.0
 
 Third beta, released on GitHub as `v0.2.0-beta`. It adds parallel chains and a faster spatial sampler. Seeded fits give different numbers from 0.1.1.

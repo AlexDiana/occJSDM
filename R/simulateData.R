@@ -339,8 +339,6 @@ simulateOccJSDMData <- function(list_datasettings,
         })
       })
 
-<<<<<<< HEAD
-=======
       # Simulate read counts; runOccJSDM() converts them to binary detections
       # at a positive threshold rather than fitting continuous intensities. Given
       # a true detection (cimk_true == 1), log(y + 1) ~ Normal(mu1, sigma1); given
@@ -351,7 +349,6 @@ simulateOccJSDMData <- function(list_datasettings,
       mu0_true <- get_param(list_params, "mu0", 1.5)
       sigma0_true <- get_param(list_params, "sigma0", 1)
 
->>>>>>> b8b713e8134cd2d00062daee3e2091eca96b8e2b
       logy1 <- matrix(0, N3, S)
       logy1[cimk_true == 1] <- rnorm(sum(cimk_true == 1), mu1_true, sigma1_true)
       logy1[cimk_true == 2] <- rnorm(sum(cimk_true == 2), mu0_true, sigma0_true)

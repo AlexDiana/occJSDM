@@ -298,11 +298,9 @@ create_waic_quantities <- function(n_obs){
 #' @param threshold Threshold used to truncate the reads to binary detections
 #' for occupancy/two-stage models. Reads greater than or equal to the
 #' threshold are considered a detection (default \code{1}). Must be
-#' a single positive numeric value. Values between \code{0} and \code{1}
-#' are accepted, but observations are still converted to binary detections.
-#' For integer read counts, positive thresholds up to \code{1} give the
-#' same detections as the default. Continuous detection modeling
-#' (\code{threshold = 0}) is not supported.
+#' a single numeric value of at least \code{1}; smaller values raise an
+#' error. Continuous detection modeling (\code{threshold = 0}) is not
+#' supported.
 #' @param occCovariates (Optional) vector of the names of the occupancy
 #' covariates (site-level). Names should match column names in
 #' \code{data$info}.
@@ -642,7 +640,7 @@ runOccJSDM <- function(data,
       if (!is.numeric(threshold) || length(threshold) != 1) {
         stop("'threshold' must be a single numeric value.")
       }
-      if (threshold < 1) { # You already note threshold > 0 in your code, enforce it cleanly!
+      if (threshold < 1) {
         stop("'threshold' must not be less than 1.")
       }
 
