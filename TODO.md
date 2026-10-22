@@ -11,6 +11,8 @@ Open work is listed first, then the fixed-bug record and completed work. Decided
 
 ## Finishing the beta (Doug and Alex)
 
+The beta ends with one more GitHub prerelease once the items in this group are done, not with a CRAN submission, so CRAN housekeeping (for example *Remove `.onLoad()`'s global `mc.cores` setting*) stays under *Later*. Decided 22 October 2026.
+
 ### Next major task
 
 - **Review the teaching lessons line by line (Doug):** Lessons 0 to 7 exist as first drafts in the public repository, with rendered versions and numerical validation records. Review every lesson line by line of every lesson for correctness, consistency and clear presentation before publication. Complete the remaining content and technical checks as the review progresses: verify all examples against the current package, correct any outdated API or model-limit explanations, and rerender changed lessons. To publish a lesson, remove its page and figure-folder lines from the `exclude` list in `_config.yml` (and `vignettes/teaching-data/` once any lesson that uses it is published), remove its lines from `.Rbuildignore` (and restore `vignettes/teaching-data` and, for Lesson 6, `lesson-4-calibration-tables.R` in `vignettes/.install_extras`), set its `published` flag in `assets/js/lessons.js` (the Node test in `dev/simstudy/lesson-site/` checks the flags against `_config.yml`), and restore its link in the README's Getting started section. When Lesson 0 is published, delete `vignettes/simulateOccJSDMData.Rmd` and point the quickstart's "Where to go next" and the README's Getting started section to Lesson 0 instead of `vignette("simulateOccJSDMData")`. Its content is already in Lesson 0 and in `?simulateOccJSDMData` (PR #22); check nothing is lost before deleting.
