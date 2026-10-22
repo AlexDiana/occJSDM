@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "status": "local_pilot_verified_Cloud_pending",
+  "recorded_at": "2026-10-05T17:55:44.068133Z",
+  "branch": "codex/occjsdm-mcp-pilot",
+  "tools": [
+    "validate_data",
+    "fit_model",
+    "diagnostics",
+    "summarise_fit"
+  ],
+  "independent_tests": 37,
+  "earlier_implementation_tests": 66,
+  "implementation_test_qualification": "66 passed before the verifier added the missing Path import; the final 37 independent tests and both strict stdio sets validate repaired code.",
+  "verification_report": "reports/verification-quickstart.json",
+  "verification_report_sha256": "4cd5eca89e670c701f6e1d7b26c209bd5568a3797441b646781120416cce75ec",
+  "checks": {
+    "mcp-project-environment.json": {
+      "success": true,
+      "cases": 19,
+      "python": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/bin/python",
+      "sha256": "9397e67f8e7208ddb515bcbc78c2764834c96ee26a9d853b380d7b8547aa71bd"
+    },
+    "mcp-clean-environment.json": {
+      "success": true,
+      "cases": 19,
+      "python": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/clean-python-runtime/bin/python",
+      "sha256": "68e89d5fda04cb75c60bd1a24bb426f5c6a2897a0ff987635ff574fec7a92a52"
+    },
+    "coordinator-stdio-project-science.json": {
+      "success": true,
+      "complete_native_fits": 4,
+      "complete_table_calls": 5,
+      "publication_hash_checks": 4,
+      "tolerance": 0,
+      "R_project": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime",
+      "sha256": "71b3f506a9b19b80987b3488a570ef7a072f22b1df0efbe2a85c84960f95c479"
+    },
+    "coordinator-stdio-clean-science.json": {
+      "success": true,
+      "complete_native_fits": 4,
+      "complete_table_calls": 5,
+      "publication_hash_checks": 4,
+      "tolerance": 0,
+      "R_project": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/clean-r-runtime-socket",
+      "sha256": "c467318dfe9f8f5543628b117835db2042f4bb0ddffe0a38a851af8b0202d12d"
+    }
+  },
+  "files_sha256": {
+    "src/tools/quickstart.py": "1b326fa079d421706508c47f2e80be90b711171027c0f8f91714ec3948e3486b",
+    "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7",
+    "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+    "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b",
+    "src/occJSDM_mcp.py": "48dabef38a3c6383e77cc4cf5460862dccca71d717ff24458783c6a8f6c4e20d",
+    "src/requirements.txt": "88baf75a05128242f0e1e485330bf272ac296d73ecd16690ae0d060e65432ea3",
+    "r-runtime/activate.R": "efbff9abaab1163265e85755a49ab6205b5004b9c5ee19a932797b513165e2c3",
+    "r-runtime/renv.lock": "9ca6b63b191e675ec283d0e6c2b064c5d405e89b0c6143290262791e190cf651",
+    "r-runtime/restore-runtime.R": "a699a999e3e13e43b3b8a2bd21776e702f8af6a019d7cc07b5e211bb63dc9aff"
+  },
+  "platform": "macOS arm64 R4.5.0 Python3.14.6 FastMCP4.0.3",
+  "fresh_R_scope": "Documented dependency binary archives restored into separate project/library; occJSDM rebuilt from pinned source. Host Rscript reused and declared. No Cloud/Linux claim.",
+  "acceptance_dependency": "Diagnostics/summary cases use explicit independently verified registered fits in this local project; fit calls create fresh artifacts. This is not relocated archive acceptance.",
+  "pending": [
+    "User-run Cloud restore, registration and four-tool calls on two inputs",
+    "Matched direct-R/MCP model and teaching/cost trials within US$5 cap",
+    "Workshop adoption, relocated ZIP installation and copied student project rehearsal"
+  ],
+  "paid_model_calls_by_Codex": 0,
+  "workflow_complete": false,
+  "delivery_ZIP_created": false,
+  "git_whitespace_check": {
+    "authored_source_configuration_docs_and_tests": "passed",
+    "full_check": "Reports whitespace in original renv bootstrap and raw terminal/help captures; retained byte-for-byte to preserve recorded upstream/evidence hashes.",
+    "excluded_from_style_only": [
+      "mcp/paper2agent/reports/**",
+      "mcp/paper2agent/r-runtime/renv/activate.R"
+    ]
+  }
+}

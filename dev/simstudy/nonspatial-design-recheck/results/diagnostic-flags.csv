@@ -1,0 +1,3 @@
+"key","type","metric","item","rhat","mcse"
+"qfar_K6-sites300-08","group","occupancy","high",1.05517974566568,0.00549471089870427
+"qnear_K6-sites300-10","group","occupancy","low",1.05052695031829,0.00375636998241007

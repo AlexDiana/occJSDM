@@ -1,11 +1,47 @@
-#include <RcppArmadilloExtensions/sample.h>
+// [[Rcpp::depends(RcppParallel)]]
+#include <RcppArmadillo.h>
+#include <random>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+// [[Rcpp::plugins(openmp)]]
+
+#include "rng.h"
+#include <RcppParallel.h>
+#include <cmath>
+#include <algorithm>
+
+// inline double exprnd(double rate) {
+//   std::exponential_distribution<double> dist(rate);
+//   return dist(get_rng());
+// }
 
 using namespace Rcpp;
+using namespace RcppParallel;
+
+//' Seed the package's C++ random number generators
+//'
+//' Sets the seed for the package's serial C++ sampling stream.
+//' Called by \code{runOccJSDM()} with a draw from R's RNG, which is what makes
+//' \code{set.seed()} control the sampler. Not intended to be called directly.
+//'
+//' @param seed a non-negative integer.
+//' @keywords internal
+// [[Rcpp::export]]
+void setOccJSDMSeed(unsigned int seed) {
+  occjsdm_rng_base_seed() = seed;
+  // Re-seed the engine and reset cached distribution state on the next draw.
+  occjsdm_rng_generation() += 1u;
+}
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-const double TRUNC = .64;
-const double TRUNC_RECIP = 1.0 / .64;
+// TRUNC = 0.64 and TRUNC_RECIP = 1/0.64, the truncation point from
+// Windle (2013), were declared here but never used, and drew an
+// -Wunused-const-variable warning that made R CMD check report a
+// WARNING on installation. Removed rather than silenced; restore them
+// if the Polya-Gamma sampler is ever changed to use the truncated form.
 
 // Mathematical constants computed using Wolfram Alpha
 #define MATH_PI        3.141592653589793238462643383279502884197169399375105820974
@@ -19,9 +55,7 @@ const double TRUNC_RECIP = 1.0 / .64;
 #define MATH_LOG_2_PI  -0.45158270528945486472619522989488214357179467855505631739
 #define MATH_LOG_PI_2  0.451582705289454864726195229894882143571794678555056317392
 
-// old code
-
-double aterm(int n, double x, double t) {
+static double aterm(int n, double x, double t) {
   double f = 0;
   if(x <= t) {
     f = MATH_LOG_PI + (double)std::log(n + 0.5) + 1.5*(MATH_LOG_2_PI- (double)std::log(x)) - 2*(n + 0.5)*(n + 0.5)/x;
@@ -32,11 +66,12 @@ double aterm(int n, double x, double t) {
   return (double)exp(f);
 }
 
-double exprnd(double mu) {
-  return -mu * (double)std::log(1.0 - (double)R::runif(0.0,1.0));
+static double exprnd(double mu) {
+  // return -mu * (double)std::log(1.0 - (double)R::runif(0.0,1.0));
+  return -mu * (double)std::log(1.0 - (double)runif());
 }
 
-double truncgamma() {
+static double truncgamma() {
   double c = MATH_PI_2;
   double X, gX;
 
@@ -46,7 +81,8 @@ double truncgamma() {
     X = exprnd(1.0) * 2.0 + c;
     gX = MATH_SQRT_PI_2 / (double)std::sqrt(X);
 
-    if(R::runif(0.0,1.0) <= gX) {
+    // if(R::runif(0.0,1.0) <= gX) {
+    if(runif() <= gX) {
       done = true;
     }
   }
@@ -54,19 +90,22 @@ double truncgamma() {
   return X;
 }
 
-double randinvg(double mu) {
+static double randinvg(double mu) {
   // sampling
-  double u = R::rnorm(0.0,1.0);
+
+  // double u = R::rnorm(0.0,1.0);
+  double u = rnorm();
   double V = u*u;
   double out = mu + 0.5*mu * ( mu*V - (double)std::sqrt(4.0*mu*V + mu*mu * V*V) );
 
-  if(R::runif(0.0,1.0) > mu /(mu+out)) {
+  // if(R::runif(0.0,1.0) > mu /(mu+out)) {
+  if(runif() > mu /(mu+out)) {
     out = mu*mu / out;
   }
   return out;
 }
 
-double tinvgauss(double z, double t) {
+static double tinvgauss(double z, double t) {
   double X, u;
   double mu = 1.0/z;
 
@@ -75,7 +114,8 @@ double tinvgauss(double z, double t) {
     // Sampler based on truncated gamma
     // Algorithm 3 in the Windle (2013) PhD thesis, page 128
     while(1) {
-      u = R::runif(0.0, 1.0);
+      // u = R::runif(0.0, 1.0);
+      u = runif();
       X = 1.0 / truncgamma();
 
       if ((double)std::log(u) < (-z*z*0.5*X)) {
@@ -93,82 +133,103 @@ double tinvgauss(double z, double t) {
   return X;
 }
 
-double samplepg(double z) {
+static double samplepg(double z) {
   //  PG(b, z) = 0.25 * J*(b, z/2)
   z = (double)std::fabs((double)z) * 0.5;
 
   // Point on the intersection IL = [0, 4/ log 3] and IR = [(log 3)/pi^2, \infty)
-double t = MATH_2_PI;
+  double t = MATH_2_PI;
 
-// Compute p, q and the ratio q / (q + p)
-// (derived from scratch; derivation is not in the original paper)
-double K = z*z/2.0 + MATH_PI2/8.0;
-double logA = (double)std::log(4.0) - MATH_LOG_PI - z;
-double logK = (double)std::log(K);
-double Kt = K * t;
-double w = (double)std::sqrt(MATH_PI_2);
+  // Compute p, q and the ratio q / (q + p)
+  // (derived from scratch; derivation is not in the original paper)
+  double K = z*z/2.0 + MATH_PI2/8.0;
+  double logA = (double)std::log(4.0) - MATH_LOG_PI - z;
+  double logK = (double)std::log(K);
+  double Kt = K * t;
+  double w = (double)std::sqrt(MATH_PI_2);
 
-double logf1 = logA + R::pnorm(w*(t*z - 1),0.0,1.0,1,1) + logK + Kt;
-double logf2 = logA + 2*z + R::pnorm(-w*(t*z+1),0.0,1.0,1,1) + logK + Kt;
-double p_over_q = (double)std::exp(logf1) + (double)std::exp(logf2);
-double ratio = 1.0 / (1.0 + p_over_q);
+  double logf1 = logA + R::pnorm(w*(t*z - 1),0.0,1.0,1,1) + logK + Kt;
+  double logf2 = logA + 2*z + R::pnorm(-w*(t*z+1),0.0,1.0,1,1) + logK + Kt;
+  double p_over_q = (double)std::exp(logf1) + (double)std::exp(logf2);
+  double ratio = 1.0 / (1.0 + p_over_q);
 
-double u, X;
+  double u, X;
 
-// Main sampling loop; page 130 of the Windle PhD thesis
-while(1)
-{
-  // Step 1: Sample X ? g(x|z)
-  u = R::runif(0.0,1.0);
-  if(u < ratio) {
-    // truncated exponential
-    X = t + exprnd(1.0)/K;
-  }
-  else {
-    // truncated Inverse Gaussian
-    X = tinvgauss(z, t);
-  }
-
-  // Step 2: Iteratively calculate Sn(X|z), starting at S1(X|z), until U ? Sn(X|z) for an odd n or U > Sn(X|z) for an even n
-  int i = 1;
-  double Sn = aterm(0, X, t);
-  double U = R::runif(0.0,1.0) * Sn;
-  int asgn = -1;
-  bool even = false;
-
+  // Main sampling loop; page 130 of the Windle PhD thesis
   while(1)
   {
-    Sn = Sn + asgn * aterm(i, X, t);
-
-    // Accept if n is odd
-    if(!even && (U <= Sn)) {
-      X = X * 0.25;
-      return X;
+    // Step 1: Sample X ? g(x|z)
+    // u = R::runif(0.0,1.0);
+    u = runif();
+    if(u < ratio) {
+      // truncated exponential
+      X = t + exprnd(1.0)/K;
+    }
+    else {
+      // truncated Inverse Gaussian
+      X = tinvgauss(z, t);
     }
 
-    // Return to step 1 if n is even
-    if(even && (U > Sn)) {
-      break;
-    }
+    // Step 2: Iteratively calculate Sn(X|z), starting at S1(X|z), until U ? Sn(X|z) for an odd n or U > Sn(X|z) for an even n
+    int i = 1;
+    double Sn = aterm(0, X, t);
+    // double U = R::runif(0.0,1.0) * Sn;
+    double U = runif() * Sn;
+    int asgn = -1;
+    bool even = false;
 
-    even = !even;
-    asgn = -asgn;
-    i++;
+    while(1)
+    {
+      Sn = Sn + asgn * aterm(i, X, t);
+
+      // Accept if n is odd
+      if(!even && (U <= Sn)) {
+        X = X * 0.25;
+        return X;
+      }
+
+      // Return to step 1 if n is even
+      if(even && (U > Sn)) {
+        break;
+      }
+
+      even = !even;
+      asgn = -asgn;
+      i++;
+    }
   }
+  return X;
 }
-return X;
+
+// Pure C++ replacement for R::pnorm(x, 0.0, 1.0, 1, 1)
+// Completely thread-safe for OpenMP and avoids R-API lock contention.
+inline double fast_log_pnorm(double x) {
+  // Phi(x) = 0.5 * erfc(-x / sqrt(2))
+  // 0.70710678118654752440 is 1 / sqrt(2)
+  return std::log(0.5 * std::erfc(-x * 0.70710678118654752440));
 }
 
 // [[Rcpp::export]]
 double rpg(int n, double z){
 
-  double x = 0;
-  for(int i = 0; i < n; i++){
-    x += samplepg(z);
-  }
-
-  return(x);
-}
+// static double samplepg_fast(double z) {
+//   double orig_z = (double)std::fabs((double)z);
+//
+//   // -------------------------------------------------------------
+//   // FAST PATH: Normal Approximation for large Z
+//   // Skips the expensive rejection loop.
+//   // Mean = 1 / (2z), Var = 1 / (4z^3)
+//   // -------------------------------------------------------------
+//   if (orig_z > 12.0) {
+//     double mu = 0.5 / orig_z;
+//     double var = 0.25 / (orig_z * orig_z * orig_z);
+//
+//     // Assumes your custom rnorm() returns a standard normal draw
+//     double draw = mu + std::sqrt(var) * rnorm();
+//
+//     // Ensure strict positivity (draws < 0 are astronomically rare here)
+//     return (draw > 1e-12) ? draw : mu;
+//   }
 
 // [[Rcpp::export]]
 double compute_edith_contribution(
@@ -268,37 +329,98 @@ NumericMatrix compute_C_hat_cpp(
 
 // [[Rcpp::export]]
 arma::mat samplePGvariables(arma::mat &Xbeta){
+=======
+  // -------------------------------------------------------------
+  // EXACT SAMPLER: Devroye method for Z <= 12
+  // -------------------------------------------------------------
+  // PG(b, z) = 0.25 * J*(b, z/2)
+  z = orig_z * 0.5;
 
-  int n1 = Xbeta.n_rows;
-  int n2 = Xbeta.n_cols;
+  double t = MATH_2_PI; // Point on the intersection
+  double K = z*z/2.0 + MATH_PI2/8.0;
+  double logA = (double)std::log(4.0) - MATH_LOG_PI - z;
+  double logK = (double)std::log(K);
+  double Kt = K * t;
+  double w = (double)std::sqrt(MATH_PI_2);
 
-  arma::mat Omega_mat(n1, n2);
+  // Replaced R::pnorm with pure C++ fast_log_pnorm
+  double logf1 = logA + fast_log_pnorm(w*(t*z - 1)) + logK + Kt;
+  double logf2 = logA + 2*z + fast_log_pnorm(-w*(t*z+1)) + logK + Kt;
 
-  for(int i = 0; i < n1; i++){
-    for(int j = 0; j < n2; j++){
+  double p_over_q = (double)std::exp(logf1) + (double)std::exp(logf2);
+  double ratio = 1.0 / (1.0 + p_over_q);
 
-      Omega_mat(i,j) = rpg(1, Xbeta(i, j));
+  double u, X;
 
+  // Main sampling loop
+  while(1) {
+    // Step 1: Sample X ~ g(x|z)
+    u = runif();
+    if(u < ratio) {
+      X = t + exprnd(1.0)/K; // truncated exponential
+    } else {
+      X = tinvgauss(z, t);   // truncated Inverse Gaussian
+    }
+>>>>>>> 358d957986125b8910b352c6cd92a0c8c4156813
+
+    // Step 2: Iteratively calculate Sn(X|z)
+    int i = 1;
+    double Sn = aterm(0, X, t);
+    double U = runif() * Sn;
+    int asgn = -1;
+    bool even = false;
+
+    while(1) {
+      Sn = Sn + asgn * aterm(i, X, t);
+
+      // Accept if n is odd
+      if(!even && (U <= Sn)) {
+        return X * 0.25; // Return directly
+      }
+
+      // Return to step 1 if n is even
+      if(even && (U > Sn)) {
+        break;
+      }
+
+      even = !even;
+      asgn = -asgn;
+      i++;
     }
   }
-
-  return(Omega_mat);
+  return X;
 }
 
-arma::vec mvrnormArma(arma::vec mu, arma::mat sigma) {
-  int ncols = sigma.n_cols;
-  arma::vec Y = arma::randn(ncols);
-  return mu + arma::chol(sigma) * Y;
+static double rpg(int n, double z){
+
+  double x = 0;
+  for(int i = 0; i < n; i++){
+    x += samplepg(z);
+  }
+
+  return(x);
 }
 
-arma::vec mvrnormArmaQuick(arma::vec mu, arma::mat cholsigma) {
+static arma::vec mvrnormArmaQuick(arma::vec mu, arma::mat cholsigma) {
   int ncols = cholsigma.n_cols;
   arma::vec Y = arma::randn(ncols);
   return mu + cholsigma * Y;
 }
 
-// [[Rcpp::export]]
-arma::mat diagMatrixProd(arma::mat& X, arma::vec& D){
+static arma::vec mvrnormArmaQuick_TS(const arma::vec& mu, const arma::mat& cholsigma) {
+  int ncols = cholsigma.n_cols;
+  arma::vec Y(ncols);
+
+  // The historical _TS suffix does not permit parallel sampling. All callers
+  // now use the serial, R-seeded stream in rng.h on the main thread.
+  for(int i = 0; i < ncols; ++i) {
+    Y[i] = rnorm();
+  }
+
+  return mu + cholsigma * Y;
+}
+
+static arma::mat diagMatrixProd(arma::mat& X, arma::vec& D){
 
   arma::mat result(X.n_rows, D.size());
   for(int i = 0; i < result.n_rows; i++){
@@ -311,7 +433,7 @@ arma::mat diagMatrixProd(arma::mat& X, arma::vec& D){
 }
 
 // [[Rcpp::export]]
-arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b,
+static arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b,
                           arma::vec& Omega, arma::vec& k){
 
   // arma::mat cov_matrix = arma::inv(arma::trans(X) * Omega * X + arma::inv(B));
@@ -329,8 +451,68 @@ arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b,
   return(result);
 }
 
-// [[Rcpp::export]]
-arma::vec sample_Omega_cpp(arma::mat& X, arma::vec& beta, arma::vec& n){
+// High-performance multivariate normal sampler given lower-triangular Cholesky factor L
+// where Precision Matrix = L * L.t()  => Covariance = (L * L.t())^{-1}
+inline arma::vec mvrnorm_from_chol_prec(const arma::vec& mean, const arma::mat& L) {
+  arma::vec z = arma::randn<arma::vec>(mean.n_elem);
+  // Solves L.t() * x = z  => Var(x) = (L * L.t())^{-1}
+  arma::vec x = arma::solve(arma::trimatu(L.t()), z);
+  return mean + x;
+}
+
+static arma::vec sample_beta_cpp_TS_opt(const arma::mat& X,
+                                        const arma::mat& invB,
+                                        const arma::vec& invB_b,
+                                        const arma::vec& Omega,
+                                        const arma::vec& k) {
+  // X is (N_sub x P)
+  // Fast compute of X.t() * diag(Omega) * X without dense matrix multiplication
+  arma::mat X_weighted = X;
+  X_weighted.each_col() %= arma::sqrt(Omega); // Weighted rows
+  arma::mat Xt_Omega_X = X_weighted.t() * X_weighted;
+
+  // Precision matrix: Xt * Omega * X + B_inv
+  arma::mat Prec = Xt_Omega_X + invB;
+
+  // Cholesky decomposition: Prec = L * L.t()
+  arma::mat L;
+  bool success = arma::chol(L, Prec, "lower");
+  if (!success) {
+    // Fallback for numerical edge cases
+    Prec.diag() += 1e-8;
+    L = arma::chol(Prec, "lower");
+  }
+
+  // Mean vector computation via triangular solves
+  arma::vec rhs = X.t() * k + invB_b;
+  arma::vec tmp = arma::solve(arma::trimatl(L), rhs);
+  arma::vec mu  = arma::solve(arma::trimatu(L.t()), tmp);
+
+  // Sample beta ~ N(mu, Prec^{-1})
+  return mvrnorm_from_chol_prec(mu, L);
+}
+
+static arma::vec sample_beta_cpp_TS(arma::mat& X, arma::mat& B, arma::vec& b,
+                          arma::vec& Omega, arma::vec& k){
+
+  arma::mat invB = arma::inv(B);
+
+  // arma::mat cov_matrix = arma::inv(arma::trans(X) * Omega * X + arma::inv(B));
+  arma::mat tX = arma::trans(X);
+  arma::mat tXOmega = diagMatrixProd(tX, Omega);
+  // arma::mat cov_matrix = arma::inv(tXOmega * X + arma::inv(B));
+  // arma::vec result = mvrnormArma(cov_matrix * (arma::trans(X) * k + arma::inv(B) * b), cov_matrix);
+
+  arma::mat L = arma::trans(arma::chol(tXOmega * X + invB));
+  arma::vec tmp = arma::solve(arma::trimatl(L), tX * k + invB * b);
+  arma::vec alpha = arma::solve(arma::trimatu(arma::trans(L)),tmp);
+
+  arma::vec result = mvrnormArmaQuick_TS(alpha, arma::trans(arma::inv(arma::trimatl(L))));
+
+  return(result);
+}
+
+static arma::vec sample_Omega_cpp(arma::mat& X, arma::vec& beta, arma::vec& n){
 
   int nsize = n.size();
   arma::vec Omega_vec(nsize);
@@ -345,8 +527,45 @@ arma::vec sample_Omega_cpp(arma::mat& X, arma::vec& beta, arma::vec& n){
   return(Omega_vec);
 }
 
-// [[Rcpp::export]]
-arma::vec sample_beta_nocov_cpp(arma::vec beta, arma::mat& X, arma::vec b,
+struct SampleOmegaWorker : public RcppParallel::Worker {
+
+  // Use raw Armadillo references directly (no RMatrix/RVector)
+  const arma::mat& X;
+  const arma::vec& beta;
+  const arma::vec& n;
+  arma::vec& Omega_vec;
+
+  SampleOmegaWorker(const arma::mat& X, const arma::vec& beta, const arma::vec& n, arma::vec& Omega_vec)
+    : X(X), beta(beta), n(n), Omega_vec(Omega_vec) {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    // Standard Armadillo property
+    std::size_t p = beta.n_elem;
+
+    for (std::size_t i = begin; i < end; ++i) {
+      // Calculate dot product
+      double b = 0.0;
+      for (std::size_t j = 0; j < p; ++j) {
+        b += X(i, j) * beta[j];
+      }
+
+      // Sampling body is invoked directly on the main thread.
+      Omega_vec[i] = rpg(n[i], b);
+    }
+  }
+};
+
+arma::vec sample_Omega_parallel(arma::mat& X, arma::vec& beta, arma::vec& n) {
+  int nsize = n.size();
+  arma::vec Omega_vec(nsize);
+
+  SampleOmegaWorker worker(X, beta, n, Omega_vec);
+  worker(0, nsize);
+
+  return Omega_vec;
+}
+
+static arma::vec sample_beta_nocov_cpp(arma::vec beta, arma::mat& X, arma::vec b,
                                 arma::mat B, arma::vec n, arma::vec k){
 
   arma::vec Omega = sample_Omega_cpp(X, beta, n);
@@ -356,231 +575,115 @@ arma::vec sample_beta_nocov_cpp(arma::vec beta, arma::mat& X, arma::vec b,
   return(beta);
 }
 
-double log_L_gamma_cpp(arma::vec gamma, arma::mat X, arma::vec indexes_covariates,
-                       arma::vec b, arma::mat B, arma::vec Omega, arma::vec k){
+static arma::vec sample_beta_nocov_cpp_TS(arma::vec beta, arma::mat& X, arma::vec b,
+                                arma::mat B, arma::vec n, arma::vec k){
 
+  arma::vec Omega = sample_Omega_cpp(X, beta, n);
+  // arma::vec Omega = sample_Omega_parallel(X, beta, n);
 
-  IntegerVector index_present(indexes_covariates.size());
-  int l = 0;
-  for(int i = 0; i < indexes_covariates.size(); i++){
-    if(gamma[indexes_covariates[i]-1] == 1){
-      index_present[l] = i;
-      l += 1;
-    }
-  }
+  beta = sample_beta_cpp(X, B, b, Omega, k);
 
-  arma::mat X_gamma(X.n_rows, l);
-  arma::vec b_gamma(l);
-  arma::mat B_gamma(l, l);
-
-  for(int i = 0; i < l; i++){
-    X_gamma.col(i) = X.col(index_present[i]);
-    b_gamma[i] = b[index_present[i]];
-    for(int j = 0; j < l; j++){
-      B_gamma(i,j) = B(index_present[i], index_present[j]);
-    }
-  }
-
-  arma::mat tX = arma::trans(X_gamma);
-  arma::mat tXOmega = diagMatrixProd(tX, Omega);
-  arma::mat cholXgOmX = arma::chol(tXOmega * X_gamma + arma::inv(B_gamma));
-
-  double firstTerm = (.5) * log(det(arma::inv(B_gamma))) - log(det(cholXgOmX));
-
-  arma::mat tXKbplusBb = arma::trans(X_gamma) * k + arma::inv(B_gamma) * b_gamma;
-
-  arma::vec v = solve(arma::trimatl(arma::trans(cholXgOmX)),tXKbplusBb);
-  arma::mat vtv = arma::trans(v) * v;
-
-  arma::mat secondTerm = - .5 * ( (arma::trans(b_gamma) * arma::inv(B_gamma) * b_gamma) - vtv);
-
-  // double firstTerm = (.5) * log(det(arma::inv(B_gamma))) -
-    //   (.5) * log(det(arma::trans(X_gamma) * Omega * X_gamma + arma::inv(B_gamma)));
-
-  // arma::mat tXKbplusBb = arma::trans(X_gamma) * k + arma::inv(B_gamma) * b_gamma;
-
-  // arma::mat secondTerm = - .5 * ( (arma::trans(b_gamma) * arma::inv(B_gamma) * b_gamma) -
-                                       //     arma::trans(tXKbplusBb) * arma::inv(arma::trans(X_gamma) * Omega * X_gamma +
-                                                                                    //     arma::inv(B_gamma)) * tXKbplusBb);
-
-  return(firstTerm + secondTerm(0,0));
+  return(beta);
 }
 
-int sample_int(IntegerVector samples) {
-  // Rcpp::IntegerVector pool = Rcpp::seq(1, 10);
-  std::random_shuffle(samples.begin(), samples.end());
-  return samples[0];
-}
+/////////////////////////////////////////////////
+/////////  Z SAMPLER
+/////////////////////////////////////////////////
 
-arma::vec sample_gamma_cpp(arma::vec gamma, arma::mat X, arma::vec Omega,
-                           arma::vec b, arma::mat B, int ncov, arma::vec k,
-                           arma::vec indexes_covariates, int fixedIndexes,
-                           double d_bar){
 
-  arma::vec gamma_star = gamma;
+// Define the RcppParallel worker
+struct ZProbWorker : public Worker {
+  // Thread-safe wrappers for inputs
+  const RMatrix<double> w, psi, theta;
+  const RVector<double> theta0;
+  const RVector<int> M, sumM;
+  const int n;
 
-  double h_ratio = 1;
+  // Output matrix for probabilities
+  RMatrix<double> p_mat;
 
-  if(R::runif(0, 1) < .33333){ // add
+  // Constructor
+  ZProbWorker(const NumericMatrix& w, const NumericMatrix& psi,
+              const NumericMatrix& theta, const NumericVector& theta0,
+              const IntegerVector& M, const IntegerVector& sumM,
+              int n, NumericMatrix& p_mat)
+    : w(w), psi(psi), theta(theta), theta0(theta0),
+      M(M), sumM(sumM), n(n), p_mat(p_mat) {}
 
-    if((sum(gamma) - fixedIndexes) != ncov){
+  // Parallel loop
+  void operator()(std::size_t begin, std::size_t end) {
+    for (std::size_t s = begin; s < end; s++) {
+      for (int i = 0; i < n; i++) {
 
-      // Find zero covariates
-      int numOfZeroCov = ncov - (sum(gamma) - fixedIndexes);
-      IntegerVector zeroCov(numOfZeroCov);
-      int i = 0;
-      for(int l = fixedIndexes; l < gamma.size(); l++){
-        if(gamma[l] == 0) {
-          zeroCov[i] = l;
-          i += 1;
+        double log_p1 = 0.0;
+        double log_p0 = 0.0;
+
+        for (int m = 0; m < M[i]; m++) {
+          int idx = sumM[i] + m;
+          double w_val = w(idx, s);
+
+          // Pure C++ alternative to R::dbinom(..., size=1)
+          if (w_val == 1.0) {
+            log_p1 += std::log(theta(idx, s));
+            log_p0 += std::log(theta0[s]);
+          } else {
+            log_p1 += std::log(1.0 - theta(idx, s));
+            log_p0 += std::log(1.0 - theta0[s]);
+          }
         }
+
+        // Add psi contribution
+        log_p1 += std::log(psi(i, s));
+        log_p0 += std::log(1.0 - psi(i, s));
+
+        // Log-sum-exp for numerical stability
+        double maxlog = std::max(log_p1, log_p0);
+        double p1 = std::exp(log_p1 - maxlog);
+        double p0 = std::exp(log_p0 - maxlog);
+
+        p_mat(i, s) = p1 / (p1 + p0);
       }
-
-      int covariate_to_update = sample_int(zeroCov);
-
-      gamma_star[covariate_to_update] = 1;
-
-      h_ratio = (ncov -(sum(gamma) - fixedIndexes)) / (ncov - (sum(gamma) - fixedIndexes) - 1 + ((ncov - d_bar) / (d_bar)) );
-
     }
-
-  } else if(R::runif(0, 1) < .5){ // delete
-
-    if((sum(gamma) - fixedIndexes) != 0){
-
-      // Find non zero covariates
-      int numOfNonZeroCov = sum(gamma) - fixedIndexes;
-      IntegerVector nonZeroCov(numOfNonZeroCov);
-      int i = 0;
-      for(int l = fixedIndexes; l < gamma.size(); l++){
-        if(gamma[l] == 1) {
-          nonZeroCov[i] = l;
-          i += 1;
-        }
-      }
-
-      int covariate_to_update = sample_int(nonZeroCov);
-
-      gamma_star[covariate_to_update] = 0;
-
-      h_ratio = (ncov - (sum(gamma) - fixedIndexes) + ((ncov - d_bar) / (d_bar)) ) / (ncov - (sum(gamma) - fixedIndexes) + 1);
-
-    }
-
-  } else { // swap
-
-    if((sum(gamma) - fixedIndexes) != 0 & (sum(gamma) - fixedIndexes) != ncov){
-
-      // Find zero covariates
-      int numOfZeroCov = ncov - (sum(gamma) - fixedIndexes);
-      IntegerVector zeroCov(numOfZeroCov);
-      int i = 0;
-      for(int l = fixedIndexes; l < gamma.size(); l++){
-        if(gamma[l] == 0) {
-          zeroCov[i] = l;
-          i += 1;
-        }
-      }
-      int covariates2_to_swap = sample_int(zeroCov);
-
-      // Find non zero covariates
-      int numOfNonZeroCov = sum(gamma) - fixedIndexes;
-      IntegerVector nonZeroCov(numOfNonZeroCov);
-      i = 0;
-      for(int l = fixedIndexes; l < gamma.size(); l++){
-        if(gamma[l] == 1) {
-          nonZeroCov[i] = l;
-          i += 1;
-        }
-      }
-
-      int covariates1_to_swap = sample_int(nonZeroCov);
-
-      gamma_star[covariates1_to_swap] = 0;
-      gamma_star[covariates2_to_swap] = 1;
-
-      h_ratio = 1;
-
-    }
-
   }
-
-  double L_gamma_star = log_L_gamma_cpp(gamma_star, X, indexes_covariates, b, B, Omega, k);
-
-  double L_gamma = log_L_gamma_cpp(gamma, X, indexes_covariates, b, B, Omega, k);
-
-  h_ratio = h_ratio * exp(L_gamma_star - L_gamma);
-
-  if(R::runif(0, 1) < h_ratio){
-    gamma = gamma_star;
-  }
-
-  return(gamma);
-}
+};
 
 // [[Rcpp::export]]
-List sample_gamma_beta_cpp(arma::vec gamma, arma::vec beta, arma::mat X,
-                           arma::vec b, arma::mat B, int D, arma::vec n, arma::vec k,
-                           arma::vec indexes_covariates, int fixedIndexes, double d_bar){
+NumericMatrix sample_z_cpp_parallel(const NumericMatrix& w,
+                           const NumericMatrix& psi,
+                           const NumericMatrix& theta,
+                           const NumericVector& theta0,
+                           const IntegerVector& M,
+                           const IntegerVector& sumM) {
 
-  // resize beta and X
-  IntegerVector index_present(indexes_covariates.size());
-  int l = 0;
-  for(int i = 0; i < indexes_covariates.size(); i++){
-    if(gamma[indexes_covariates[i]-1] == 1){
-      index_present[l] = i;
-      l += 1;
+  int S = psi.ncol();
+  int n = psi.nrow();
+
+  // Allocate matrix to hold computed probabilities
+  NumericMatrix p_mat(n, S);
+
+  // Initialize and run the parallel worker
+  ZProbWorker worker(w, psi, theta, theta0, M, sumM, n, p_mat);
+  parallelFor(0, S, worker);
+
+  // Sequential sampling on the main thread using R's RNG
+  NumericMatrix z(n, S);
+  for (int s = 0; s < S; s++) {
+    for (int i = 0; i < n; i++) {
+      z(i, s) = R::rbinom(1.0, p_mat(i, s));
     }
   }
 
-  arma::mat X_gamma(X.n_rows, l);
-  arma::vec beta_gamma(l);
-
-  for(int i = 0; i < l; i++){
-    X_gamma.col(i) = X.col(index_present[i]);
-    beta_gamma[i] = beta[index_present[i]];
-  }
-
-  // sample Omega
-  arma::vec Omega = sample_Omega_cpp(X_gamma, beta_gamma, n);
-
-  // sample gamma
-  gamma = sample_gamma_cpp(gamma, X, Omega, b, B, D, k, indexes_covariates, fixedIndexes, d_bar);
-
-  // resize X, b and B
-  l = 0;
-  for(int i = 0; i < indexes_covariates.size(); i++){
-    if(gamma[indexes_covariates[i]-1] == 1){
-      index_present[l] = i;
-      l += 1;
-    }
-  }
-
-  arma::mat X_gamma2(X.n_rows, l);
-  arma::vec b_gamma(l);
-  arma::mat B_gamma(l, l);
-
-  for(int i = 0; i < l; i++){
-    X_gamma2.col(i) = X.col(index_present[i]);
-    b_gamma[i] = b[index_present[i]];
-    for(int j = 0; j < l; j++){
-      B_gamma(i,j) = B(index_present[i], index_present[j]);
-    }
-  }
-
-  // sample beta
-  arma::vec beta_new = sample_beta_cpp(X_gamma2, B_gamma, b_gamma, Omega, k);
-
-  for(int i = 0; i < l; i++){
-    beta[index_present[i]] = beta_new[i];
-  }
-
-  return List::create(_["gamma"] = gamma,
-                      _["beta"] = beta,
-                      _["Omega"] = Omega);
+  return z;
 }
 
-// [[Rcpp::export]]
+// De-exported 2 August 2026: superseded by sample_z_cpp_parallel(), which
+// runOccJSDM() has called since 41abe69. Nothing in R/ or src/ referenced this
+// any longer, so it was reaching R only as an unused RcppExports wrapper.
+// The body is kept rather than deleted, as the serial reference implementation
+// of what the parallel version computes. Do not restore the export tag without
+// a caller: the dead-wrapper count is what TODO.md group D tracks.
+//
+// [[Rcpp::export]] -- removed, see above
 NumericMatrix sample_z_cpp(const NumericMatrix& w,
                            const NumericMatrix& psi,
                            const NumericMatrix& theta,
@@ -624,90 +727,83 @@ NumericMatrix sample_z_cpp(const NumericMatrix& w,
   return z;
 }
 
-// [[Rcpp::export]]
-NumericMatrix sample_w_cpp(const NumericMatrix& logy1,
-                           double mu0, double sigma0,
-                           double mu1, double sigma1,
-                           const NumericMatrix& theta,
-                           const NumericVector& theta0,
-                           const NumericMatrix& p,
-                           const NumericMatrix& q,
-                           const IntegerVector& M,
-                           const IntegerVector& K,
-                           const IntegerVector& sumL,
-                           const IntegerVector& sumM,
-                           const IntegerVector& sumK,
-                           int maxL,
-                           const NumericMatrix& z) {
+// Define the RcppParallel worker
+struct ProbWorker : public Worker {
+  // Input matrices and vectors (wrapped for thread-safe access)
+  const RMatrix<double> y, y_NA, theta;
+  const RVector<double> theta0;
+  const RMatrix<double> log_p, log_1p, log_q, log_1q, z;
 
-  int S = theta.ncol();
-  int N = theta.nrow();
-  int n = M.size();
+  const RVector<int> M, K, sumL, sumM, sumK, P, primerId;
+  const int n;
 
-  NumericMatrix w(N, S);
+  // Output matrix to store the probabilities
+  RMatrix<double> p_mat;
 
-  for (int s = 0; s < S; s++) {
-    for (int i = 0; i < n; i++) {
-      for (int m = 0; m < M[i]; m++) {
+  // Constructor
+  ProbWorker(const NumericMatrix& y, const NumericMatrix& y_NA, const NumericMatrix& theta,
+             const NumericVector& theta0, const NumericMatrix& log_p, const NumericMatrix& log_1p,
+             const NumericMatrix& log_q, const NumericMatrix& log_1q, const NumericMatrix& z,
+             const IntegerVector& M, const IntegerVector& K, const IntegerVector& sumL,
+             const IntegerVector& sumM, const IntegerVector& sumK, const IntegerVector& P,
+             const IntegerVector& primerId, int n, NumericMatrix& p_mat)
+    : y(y), y_NA(y_NA), theta(theta), theta0(theta0),
+      log_p(log_p), log_1p(log_1p), log_q(log_q), log_1q(log_1q), z(z),
+      M(M), K(K), sumL(sumL), sumM(sumM), sumK(sumK), P(P), primerId(primerId),
+      n(n), p_mat(p_mat) {}
 
-        // compute log p(w = 1)
-        double log_p1 = 0.0;
-        for (int l = 0; l < maxL; l++) {
-          int idxL = sumL[sumM[i] + m] + l;
-          for (int k = 0; k < K[idxL]; k++) {
-            int idxK = sumK[idxL] + k;
-            if(logy1(idxK, s) == 0){
-              log_p1 += log(1 - p(l,s));
-            } else {
-              log_p1 += log(p(l,s)) + R::dnorm(logy1(idxK, s), mu1, sigma1, true);
+  // Parallel loop over 's'
+  void operator()(std::size_t begin, std::size_t end) {
+    for (std::size_t s = begin; s < end; s++) {
+      for (int i = 0; i < n; i++) {
+        for (int m = 0; m < M[i]; m++) {
+
+          int nprimers = P[sumM[i] + m];
+
+          // compute log p(w = 1) and log p(w = 0) in one pass for efficiency
+          double log_p1 = 0.0;
+          double log_p0 = 0.0;
+
+          for (int l = 0; l < nprimers; l++) {
+            int idxL = sumL[sumM[i] + m] + l;
+            int primerRow = primerId[idxL] - 1; // 0-based global primer identity
+            for (int k = 0; k < K[idxL]; k++) {
+
+              int idxK = sumK[idxL] + k;
+
+              if(y_NA(idxK, s) == 0) {
+                log_p1 += y(idxK, s) * log_p(primerRow, s) + (1 - y(idxK, s)) * log_1p(primerRow, s);
+                log_p0 += y(idxK, s) * log_q(primerRow, s) + (1 - y(idxK, s)) * log_1q(primerRow, s);
+              }
             }
           }
-        }
 
-        // compute log p(w = 0)
-        double log_p0 = 0.0;
-        for (int l = 0; l < maxL; l++) {
-          int idxL = sumL[sumM[i] + m] + l;
-          for (int k = 0; k < K[idxL]; k++) {
-            int idxK = sumK[idxL] + k;
-            if(logy1(idxK, s) == 0){
-              log_p0 += log(1 - q(l,s));
-            } else {
-              log_p0 += log(q(l,s)) + R::dnorm(logy1(idxK, s), mu0, sigma0, true);
-            }
+          // conditional on z[i, s]
+          if (z(i, s) == 1.0) {
+            log_p1 += std::log(theta(sumM[i] + m, s));
+            log_p0 += std::log(1 - theta(sumM[i] + m, s));
+          } else {
+            log_p1 += std::log(theta0[s]);
+            log_p0 += std::log(1 - theta0[s]);
           }
+
+          // numerical stability
+          double maxlog = std::max(log_p1, log_p0);
+          double p1exp = std::exp(log_p1 - maxlog);
+          double p0exp = std::exp(log_p0 - maxlog);
+
+          // store the probability
+          p_mat(sumM[i] + m, s) = p1exp / (p1exp + p0exp);
         }
-
-        // conditional on z[i, s]
-        if (z(i, s) == 1.0) {
-          // log_p1 += log(theta(sumM[i] + m, s));
-          // log_p0 += log(1 - theta(sumM[i] + m, s));;//R::dbinom(0.0, 1.0, theta(sumM[i] + m, s), true);
-          log_p1 += R::dbinom(1.0, 1.0, theta(sumM[i] + m, s), true);
-          log_p0 += R::dbinom(0.0, 1.0, theta(sumM[i] + m, s), true);
-        } else {
-          log_p1 += //log(theta0[s]);
-            R::dbinom(1.0, 1.0, theta0[s], true);
-          log_p0 += //log(1 - theta0[s]);
-            R::dbinom(0.0, 1.0, theta0[s], true);
-        }
-
-        // numerical stability
-        double maxlog = std::max(log_p1, log_p0);
-        double p1exp = std::exp(log_p1 - maxlog);
-        double p0exp = std::exp(log_p0 - maxlog);
-        double p_ws1 = p1exp / (p1exp + p0exp);
-
-        // sample w
-        w(sumM[i] + m, s) = R::rbinom(1.0, p_ws1);
       }
     }
   }
+};
 
-  return w;
-}
 
 // [[Rcpp::export]]
-NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
+NumericMatrix sample_w_cim_cipp_parallel(const NumericMatrix& y,
+                                const NumericMatrix& y_NA,
                                 const NumericMatrix& theta,
                                 const NumericVector& theta0,
                                 const NumericMatrix& p,
@@ -717,6 +813,62 @@ NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
                                 const IntegerVector& sumL,
                                 const IntegerVector& sumM,
                                 const IntegerVector& sumK,
+                                const IntegerVector& P,
+                                const IntegerVector& primerId,
+                                int maxL,
+                                const NumericMatrix& z) {
+
+  int S = theta.ncol();
+  int N = theta.nrow();
+  int n = M.size();
+
+  // Precompute logs sequentially (this is very fast and not worth parallelizing)
+  NumericMatrix log_p(maxL, S), log_1p(maxL, S);
+  NumericMatrix log_q(maxL, S), log_1q(maxL, S);
+
+  for(int s = 0; s < S; s++) {
+    for(int l = 0; l < maxL; l++) {
+      log_p(l, s) = std::log(p(l, s));
+      log_1p(l, s) = std::log(1.0 - p(l, s));
+      log_q(l, s) = std::log(q(l, s));
+      log_1q(l, s) = std::log(1.0 - q(l, s));
+    }
+  }
+
+  // Allocate a matrix to hold the calculated probabilities
+  NumericMatrix p_mat(N, S);
+
+  // Initialize the worker and run it in parallel
+  ProbWorker worker(y, y_NA, theta, theta0, log_p, log_1p, log_q, log_1q, z,
+                    M, K, sumL, sumM, sumK, P, primerId, n, p_mat);
+
+  parallelFor(0, S, worker);
+
+  // Sequentially sample from R's binomial distribution using the parallel-computed probabilities
+  NumericMatrix w(N, S);
+  for (int s = 0; s < S; s++) {
+    for (int i = 0; i < N; i++) {
+      w(i, s) = R::rbinom(1.0, p_mat(i, s));
+    }
+  }
+
+  return w;
+}
+
+// Native reference body; no R wrapper (maintenance review, 7 October 2026).
+NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
+                                const NumericMatrix& y_NA,
+                                const NumericMatrix& theta,
+                                const NumericVector& theta0,
+                                const NumericMatrix& p,
+                                const NumericMatrix& q,
+                                const IntegerVector& M,
+                                const IntegerVector& K,
+                                const IntegerVector& sumL,
+                                const IntegerVector& sumM,
+                                const IntegerVector& sumK,
+                                const IntegerVector& P,
+                                const IntegerVector& primerId,
                                 int maxL,
                                 const NumericMatrix& z) {
 
@@ -726,7 +878,10 @@ NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
 
   NumericMatrix w(N, S);
 
-  // Precompute logs for p and q
+  // Precompute logs for p and q. Rows here are indexed by *global* primer
+  // identity (1..maxL, the number of distinct primers in the whole dataset),
+  // not by a primer's position within a given sample's block, since P (the
+  // number of primers actually used) can differ across samples.
   NumericMatrix log_p(maxL, S), log_1p(maxL, S);
   NumericMatrix log_q(maxL, S), log_1q(maxL, S);
 
@@ -743,37 +898,39 @@ NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
     for (int i = 0; i < n; i++) {
       for (int m = 0; m < M[i]; m++) {
 
+        int nprimers = P[sumM[i] + m];
+
         // compute log p(w = 1)
         double log_p1 = 0.0;
-        for (int l = 0; l < maxL; l++) {
+        for (int l = 0; l < nprimers; l++) {
           int idxL = sumL[sumM[i] + m] + l;
+          int primerRow = primerId[idxL] - 1; // 0-based global primer identity
           for (int k = 0; k < K[idxL]; k++) {
+
             int idxK = sumK[idxL] + k;
 
-            log_p1 += y(idxK, s) * log_p(l, s) + (1 - y(idxK, s)) * log_1p(l, s);
+            if(y_NA(idxK, s) == 0){
 
-            // if(y(idxK, s) == 0){
-            //   log_p1 += log(1 - p(l,s));
-            // } else {
-            //   log_p1 += log(p(l,s));
-            // }
+              log_p1 += y(idxK, s) * log_p(primerRow, s) + (1 - y(idxK, s)) * log_1p(primerRow, s);
+
+            }
+
           }
         }
 
         // compute log p(w = 0)
         double log_p0 = 0.0;
-        for (int l = 0; l < maxL; l++) {
+        for (int l = 0; l < nprimers; l++) {
           int idxL = sumL[sumM[i] + m] + l;
+          int primerRow = primerId[idxL] - 1;
           for (int k = 0; k < K[idxL]; k++) {
             int idxK = sumK[idxL] + k;
 
-            log_p0 += y(idxK, s) * log_q(l,s) + (1 - y(idxK, s)) * log_1q(l,s);
+            if(y_NA(idxK, s) == 0){
 
-            // if(y(idxK, s) == 0){
-            //   log_p0 += log(1 - q(l,s));
-            // } else {
-            //   log_p0 += log(q(l,s));
-            // }
+              log_p0 += y(idxK, s) * log_q(primerRow,s) + (1 - y(idxK, s)) * log_1q(primerRow,s);
+
+            }
           }
         }
 
@@ -805,6 +962,10 @@ NumericMatrix sample_w_cim_cipp(const NumericMatrix& y,
   return w;
 }
 
+
+///////////////////////////////
+///// BETA THETA
+//////////////////////////////
 
 // [[Rcpp::export]]
 arma::mat sample_betatheta_cpp(const arma::mat& w,
@@ -854,21 +1015,97 @@ arma::mat sample_betatheta_cpp(const arma::mat& w,
   return beta_theta;
 }
 
+// 1. Define the RcppParallel Worker
+struct BetaThetaWorker : public Worker {
+  // Inputs (Read-only references to Armadillo objects)
+  const arma::mat& w;
+  const arma::mat& z_all;
+  const arma::mat& X_theta;
+  const arma::vec& b_betatheta;
+  const arma::mat& B_betatheta;
+
+  // Output (Passed by reference so we can modify it in place)
+  arma::mat& beta_theta;
+
+  // Constructor
+  BetaThetaWorker(const arma::mat& w, const arma::mat& z_all,
+                  const arma::mat& X_theta, const arma::vec& b_betatheta,
+                  const arma::mat& B_betatheta, arma::mat& beta_theta)
+    : w(w), z_all(z_all), X_theta(X_theta), b_betatheta(b_betatheta),
+      B_betatheta(B_betatheta), beta_theta(beta_theta) {}
+
+  // Sampling body executed on the main thread.
+  void operator()(std::size_t begin, std::size_t end) {
+
+    for (std::size_t s = begin; s < end; ++s) {
+
+      // All Armadillo allocations inside this loop are thread-local
+      arma::vec z_col = z_all.col(s);
+      arma::uvec find_ones = arma::find(z_col == 1);
+
+      if (!find_ones.is_empty()) {
+
+        // Extract the column subset
+        arma::vec w_sub = w.elem(find_ones + s * w.n_rows);
+        arma::vec k = w_sub - 0.5;
+
+        arma::vec n = arma::ones<arma::vec>(k.n_elem);
+        arma::mat X_thetasubset = X_theta.rows(find_ones);
+
+        // arma::vec beta_sub = ;
+
+        beta_theta.col(s) = sample_beta_nocov_cpp_TS(beta_theta.col(s), X_thetasubset,
+                       b_betatheta, B_betatheta, n, k);
+      }
+    }
+  }
+};
+
+
+// 2. Main exported function
 // [[Rcpp::export]]
-List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w, IntegerVector primerIdx,
-                   IntegerVector idx_k, int maxL, double a_p, double b_p,
+arma::mat sample_betatheta_cpp_parallel(const arma::mat& w,
+                                        const arma::mat& z,
+                                        arma::mat beta_theta,
+                                        const arma::uvec& idx_z,
+                                        const arma::mat& X_theta,
+                                        const arma::vec& b_betatheta,
+                                        const arma::mat& B_betatheta) {
+
+  int S = beta_theta.n_cols;
+
+  // Do these main thread pre-computations first to avoid parallel race conditions
+  arma::uvec idx_z_cpp = idx_z - 1;
+  arma::mat z_all = z.rows(idx_z_cpp);
+
+  // Instantiate the worker
+  BetaThetaWorker worker(w, z_all, X_theta, b_betatheta, B_betatheta, beta_theta);
+
+  // Both the PG engine and sample_beta_cpp()'s R/Armadillo normal draw must
+  // stay on the main thread. A TBB thread limit is not a sampling contract.
+  worker(0, S);
+
+  return beta_theta;
+}
+
+// Native reference body; no R wrapper (maintenance review, 7 October 2026).
+List sample_pq_cpp(NumericMatrix& c_imk,
+                   IntegerMatrix& y_NA,
+                   NumericMatrix w,
+                   IntegerVector idx_p_k, IntegerVector idx_w_k,
+                   int maxP, double a_p, double b_p,
                    double a_q, double b_q) {
 
   int S = w.ncol();
-  int n_k = idx_k.size();
+  int n_k = idx_w_k.size();
 
-  NumericMatrix p(maxL, S);
-  NumericMatrix q(maxL, S);
+  NumericMatrix p(maxP, S);
+  NumericMatrix q(maxP, S);
 
   // Main loop through columns (S)
   for (int s = 0; s < S; ++s) {
 
-    for (int l = 0; l < maxL; ++l) {
+    for (int l = 0; l < maxP; ++l) {
 
       int w1_primerl_cases_1 = 0;
       int w1_primerl_cases_0 = 0;
@@ -877,16 +1114,20 @@ List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w, IntegerVector primerIdx
 
       for (int i = 0; i < n_k; ++i) {
 
-        int idx_ki = idx_k[i] - 1;
+        int idx_ki = idx_w_k[i] - 1;
 
-        if(primerIdx[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 1){
-          w1_primerl_cases_1 += 1;
-        } else if(primerIdx[i] == (l+1) & w(idx_ki, s) == 1 & c_imk(i,s) == 0){
-          w1_primerl_cases_0 += 1;
-        } else if(primerIdx[i] == (l+1) & w(idx_ki, s) == 0 & c_imk(i,s) == 2){
-          w0_primerl_cases_1 += 1;
-        } else {
-          w0_primerl_cases_0 += 1;
+        if(y_NA(i,s) == 0){
+
+          if(idx_p_k[i] == (l+1) && w(idx_ki, s) == 1 && c_imk(i,s) == 1){
+            w1_primerl_cases_1 += 1;
+          } else if(idx_p_k[i] == (l+1) && w(idx_ki, s) == 1 && c_imk(i,s) == 0){
+            w1_primerl_cases_0 += 1;
+          } else if(idx_p_k[i] == (l+1) && w(idx_ki, s) == 0 && c_imk(i,s) == 2){
+            w0_primerl_cases_1 += 1;
+          } else if(idx_p_k[i] == (l+1) && w(idx_ki, s) == 0 && c_imk(i,s) == 0){
+            w0_primerl_cases_0 += 1;
+          }
+
         }
 
       }
@@ -902,10 +1143,114 @@ List sample_pq_cpp(NumericMatrix c_imk, NumericMatrix w, IntegerVector primerIdx
   );
 }
 
-double dlaplace(double x, double sigma){
+// 1. Define the RcppParallel Worker to compute Beta parameters
+struct BetaParamWorker : public Worker {
+  // Inputs (Read-only, mapped for thread safety)
+  const RMatrix<double> c_imk;
+  const RMatrix<int> y_NA;
+  const RMatrix<double> w;
+  const RVector<int> idx_p_k;
+  const RVector<int> idx_w_k;
 
-  return(- log(sigma) - x / sigma);
+  int maxP;
+  double a_p, b_p, a_q, b_q;
 
+  // Outputs (Shape parameters for the Beta distributions)
+  RMatrix<double> alpha_p;
+  RMatrix<double> beta_p;
+  RMatrix<double> alpha_q;
+  RMatrix<double> beta_q;
+
+  // Constructor to initialise matrices/vectors
+  BetaParamWorker(const NumericMatrix& c_imk, const IntegerMatrix& y_NA,
+                  const NumericMatrix& w, const IntegerVector& idx_p_k,
+                  const IntegerVector& idx_w_k, int maxP,
+                  double a_p, double b_p, double a_q, double b_q,
+                  NumericMatrix& alpha_p, NumericMatrix& beta_p,
+                  NumericMatrix& alpha_q, NumericMatrix& beta_q)
+    : c_imk(c_imk), y_NA(y_NA), w(w), idx_p_k(idx_p_k), idx_w_k(idx_w_k),
+      maxP(maxP), a_p(a_p), b_p(b_p), a_q(a_q), b_q(b_q),
+      alpha_p(alpha_p), beta_p(beta_p), alpha_q(alpha_q), beta_q(beta_q) {}
+
+  // Work function executing the parallel loop
+  void operator()(std::size_t begin, std::size_t end) {
+    int n_k = idx_w_k.size();
+
+    // Iterate over columns 's' assigned to this thread
+    for (std::size_t s = begin; s < end; ++s) {
+      for (int l = 0; l < maxP; ++l) {
+
+        int w1_primerl_cases_1 = 0;
+        int w1_primerl_cases_0 = 0;
+        int w0_primerl_cases_1 = 0;
+        int w0_primerl_cases_0 = 0;
+
+        for (int i = 0; i < n_k; ++i) {
+          int idx_ki = idx_w_k[i] - 1;
+
+          if(y_NA(i,s) == 0){
+            if(idx_p_k[i] == (l+1) && w(idx_ki, s) == 1 && c_imk(i,s) == 1){
+              w1_primerl_cases_1 += 1;
+            } else if(idx_p_k[i] == (l+1) && w(idx_ki, s) == 1 && c_imk(i,s) == 0){
+              w1_primerl_cases_0 += 1;
+            } else if(idx_p_k[i] == (l+1) && w(idx_ki, s) == 0 && c_imk(i,s) == 2){
+              w0_primerl_cases_1 += 1;
+            } else if(idx_p_k[i] == (l+1) && w(idx_ki, s) == 0 && c_imk(i,s) == 0){
+              w0_primerl_cases_0 += 1;
+            }
+          }
+        }
+
+        // Store parameters directly in the thread-safe RMatrix
+        alpha_p(l, s) = a_p + w1_primerl_cases_1;
+        beta_p(l, s)  = b_p + w1_primerl_cases_0;
+        alpha_q(l, s) = a_q + w0_primerl_cases_1;
+        beta_q(l, s)  = b_q + w0_primerl_cases_0;
+      }
+    }
+  }
+};
+
+// 2. Main exported function
+// [[Rcpp::export]]
+List sample_pq_cpp_parallel(NumericMatrix& c_imk,
+                            IntegerMatrix& y_NA,
+                            NumericMatrix w,
+                            IntegerVector idx_p_k, IntegerVector idx_w_k,
+                            int maxP, double a_p, double b_p,
+                            double a_q, double b_q) {
+
+  int S = w.ncol();
+
+  // Allocate matrices for the Beta shape parameters
+  NumericMatrix alpha_p(maxP, S);
+  NumericMatrix beta_p(maxP, S);
+  NumericMatrix alpha_q(maxP, S);
+  NumericMatrix beta_q(maxP, S);
+
+  // Instantiate and run the worker
+  BetaParamWorker worker(c_imk, y_NA, w, idx_p_k, idx_w_k, maxP,
+                         a_p, b_p, a_q, b_q,
+                         alpha_p, beta_p, alpha_q, beta_q);
+
+  parallelFor(0, S, worker);
+
+  // Allocate output matrices
+  NumericMatrix p(maxP, S);
+  NumericMatrix q(maxP, S);
+
+  // Quickly generate the random numbers on the main thread using computed parameters
+  for (int s = 0; s < S; ++s) {
+    for (int l = 0; l < maxP; ++l) {
+      p(l, s) = R::rbeta(alpha_p(l, s), beta_p(l, s));
+      q(l, s) = R::rbeta(alpha_q(l, s), beta_q(l, s));
+    }
+  }
+
+  return List::create(
+    _["p"] = p,
+    _["q"] = q
+  );
 }
 
 // [[Rcpp::export]]
@@ -1091,6 +1436,7 @@ NumericMatrix update_logz_cpp(NumericMatrix logb,
       double loglik_new = 0;
       double loglik_old = 0;
 
+<<<<<<< HEAD
       for(int k = 0; k < idx_desc.size(); k++){ // loop through the sites affected
 
         int idx_descendant = idx_desc[k] - 1;
@@ -1160,5 +1506,104 @@ NumericMatrix update_logz_cpp(NumericMatrix logb,
   }
 
   return logb;
+}
 
+//// WAIC FUNCTIONS
+
+// Inline helper for the logistic function
+inline double logistic(double x) {
+  return 1.0 / (1.0 + std::exp(-x));
+}
+
+// [[Rcpp::export]]
+NumericVector computeModelLoglikJSDM_cpp(NumericMatrix z,
+                                         NumericMatrix eta,
+                                         String model,
+                                         Nullable<NumericVector> tau = R_NilValue) {
+  int n = z.nrow();
+  int S = z.ncol();
+  NumericVector logliks(n * S);
+  int idx = 0;
+
+  if (model == "continuous") {
+    if (tau.isNull()) {
+      stop("tau must be provided for continuous model");
+    }
+    NumericVector tau_vec(tau);
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < S; ++j) {
+        logliks[idx++] = R::dnorm(z(i, j), eta(i, j), tau_vec[j], 1);
+      }
+    }
+  } else if (model == "binary") {
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < S; ++j) {
+        double psi = logistic(eta(i, j));
+        logliks[idx++] = R::dbinom(z(i, j), 1, psi, 1);
+      }
+    }
+  } else if (model == "counts") {
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < S; ++j) {
+        double mu = std::exp(eta(i, j));
+        logliks[idx++] = R::dpois(z(i, j), mu, 1);
+      }
+    }
+  } else {
+    stop("Unknown model type");
+  }
+
+  return logliks;
+}
+
+// [[Rcpp::export]]
+NumericVector computeModelLoglikFirstStage_cpp(NumericMatrix w,
+                                               NumericMatrix z,
+                                               NumericMatrix theta,
+                                               NumericVector theta0,
+                                               IntegerVector idx_z_w) {
+  int n_w = w.nrow();
+  int S_w = w.ncol();
+  NumericVector logliks(n_w * S_w);
+  int idx = 0;
+
+  for (int i = 0; i < n_w; ++i) {
+    // Convert 1-based R index to 0-based C++ index
+    int z_row_idx = idx_z_w[i] - 1;
+
+    for (int s = 0; s < S_w; ++s) {
+      if (z(z_row_idx, s) == 1) {
+        logliks[idx++] = R::dbinom(w(i, s), 1, theta(i, s), 1);
+      } else {
+        logliks[idx++] = R::dbinom(w(i, s), 1, theta0[s], 1);
+      }
+    }
+  }
+
+  return logliks;
+}
+
+// [[Rcpp::export]]
+NumericVector computeModelLoglikSecondStage_cpp(NumericMatrix y, NumericMatrix w, NumericMatrix p, NumericMatrix q, IntegerVector idx_w_k, IntegerVector idx_p_k) {
+  int n_y = y.nrow();
+  int S_y = y.ncol();
+  NumericVector logliks(n_y * S_y);
+  int idx = 0;
+
+  // Outer loop is columns (s), inner is rows (i) to match the R version's flattening behavior
+  for (int s = 0; s < S_y; ++s) {
+    for (int i = 0; i < n_y; ++i) {
+      int w_row_idx = idx_w_k[i] - 1; // Convert to 0-based index
+      int p_row_idx = idx_p_k[i] - 1; // Convert to 0-based index
+
+      if (w(w_row_idx, s) == 1) {
+        logliks[idx++] = R::dbinom(y(i, s), 1, p(p_row_idx, s), 1);
+      } else {
+        logliks[idx++] = R::dbinom(y(i, s), 1, q(p_row_idx, s), 1);
+      }
+    }
+  }
+
+  return logliks;
+>>>>>>> 358d957986125b8910b352c6cd92a0c8c4156813
 }

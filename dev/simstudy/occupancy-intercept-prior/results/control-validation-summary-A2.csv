@@ -1,0 +1,15 @@
+"phase","quantity","controls","compared","max_abs_difference"
+"A2","estimate",9,9,0
+"A2","truth",9,9,0
+"A2","lower",9,9,0
+"A2","upper",9,9,0
+"A2","signed_error",9,9,4.44089209850063e-14
+"A2","mean_abs_cell_error",9,9,4.79616346638068e-14
+"A2","coverage",9,9,4.9960036108132e-16
+"A2","published_signed_error",9,9,9.99200722162641e-15
+"A2","published_mean_abs_cell_error",9,9,1.77635683940025e-15
+"A2","published_coverage",9,9,0
+"A2","rare_group",9,9,5.32907051820075e-15
+"A2","b0",9,9,4.44089209850063e-16
+"A2","cells_and_groups_unequal",9,9,0
+"A2","containment_differences",9,9,0

@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "scenario": 9,
+  "repetition": 1,
+  "scored": false,
+  "prompt": "Fit the same non-spatial starter model to `trial/data.rds` again with seed 1703, retaining the supplied test settings. Save it to a distinct new project file and preserve every existing fit. Report the settings, seed, saved path and warnings, then stop.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "seed_settings_guard_saved_file_and_warnings_confirmed_report_warning_split_wrong_language_failure",
+  "evidence": "Doug pasted complete response and tool labels; Run seed 1703 repeat fit and save code/raw output not yet supplied",
+  "observed": {
+    "language": "English",
+    "native_route_in_tool_sequence": true,
+    "reported_seed": 1703,
+    "reported_settings": {
+      "nchain": 2,
+      "nburn": 20,
+      "niter": 20,
+      "nthin": 1,
+      "n_factors": 2,
+      "threshold": 1,
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta"
+      ],
+      "spatCovariates": [],
+      "listPriors": "defaults"
+    },
+    "saved_path_reported": "/cloud/project/trial/fit-workflow-test-seed1703.rds",
+    "saved_size_bytes_reported": 56531,
+    "pre_save_existence_check_reported": true,
+    "no_existing_files_overwritten_claimed": true,
+    "warning_total_reported": 25,
+    "Rhat_warning_count_claimed": 13,
+    "ESS_warning_count_claimed": 12,
+    "Rhat_warning_sets_listed": [
+      "beta_theta",
+      "p",
+      "q",
+      "theta0",
+      "B0",
+      "B",
+      "G",
+      "A",
+      "C",
+      "U",
+      "L",
+      "sigmah"
+    ],
+    "ESS_warning_sets_listed": [
+      "beta_theta",
+      "p",
+      "q",
+      "theta0",
+      "B0",
+      "B",
+      "G",
+      "A",
+      "C",
+      "U",
+      "L",
+      "sigmab",
+      "sigmah"
+    ],
+    "short_fit_restraint_and_beta_limits": true,
+    "seed1702_file_read_block_reported": "File not world-readable",
+    "does_not_claim_successful_comparison": true,
+    "stops_as_requested": true
+  },
+  "issues": [
+    {
+      "claim": "13 Rhat warnings and 12 ESS warnings",
+      "assessment": "Listed sets count 12 Rhat and 13 ESS; they match A seed-1703 categories. Total 25 is consistent, but category counts are reversed."
+    },
+    {
+      "issue": "English despite shared default",
+      "assessment": "No user language-switch request appears in the fixed prompt."
+    }
+  ],
+  "qualifications": [
+    "Actual seed placement, scientific settings, pre-save guard and preservation need expanded execution code.",
+    "Do not compare changed-seed fit against seed-1702 reference expecting equality; they are different random runs.",
+    "The reported world-readability block is consistent with prior file-policy observations; exact error not expanded yet."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null,
+  "expanded_execution_evidence": {
+    "source": "Doug pasted existing fit/save code, native console diagnostics and complete 25-warning vector",
+    "pre_save_guard": "stopifnot(!file.exists(out))",
+    "data_read": "trial/data.rds",
+    "required_covariate_names_checked": true,
+    "seed_code": "set.seed(1703)",
+    "seed_immediately_before_fitting": true,
+    "runOccJSDM_namespace": "occJSDM::",
+    "settings_match_frozen_starter": true,
+    "listPriors": "omitted; defaults unchanged",
+    "summarisedLatentPresences": "omitted; default TRUE",
+    "saved_path": "/cloud/project/trial/fit-workflow-test-seed1703.rds",
+    "saved_exists": true,
+    "saved_size_bytes": 56531,
+    "warning_count": 25,
+    "Rhat_warning_count": 12,
+    "ESS_warning_count": 13,
+    "reported_numeric_extrema_confirmed": {
+      "Rhat_sigmah": 3.098,
+      "Rhat_C": 2.966,
+      "ESS_B_min": 4.0,
+      "ESS_G_min": 5.8
+    },
+    "session_object_assigned": "fit",
+    "file_writes_in_supplied_code": [
+      "saveRDS(fit, out)"
+    ],
+    "limits": [
+      "No before/after hash check for prior files shown, so their full byte preservation is not independently verified.",
+      "Existing memory object fit is replaced; distinct guarded file preserves prior file paths, not all R session names.",
+      "No saved-file reload or zero-tolerance comparison shown; not required to match seed-1702 because seed changed."
+    ]
+  }
+}

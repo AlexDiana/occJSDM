@@ -1,0 +1,25 @@
+{
+  "created": "2026-10-10 14:23:59",
+  "communities": 10,
+  "thresholds": {
+    "pattern_median": 0.6,
+    "pattern_floor": 0.4,
+    "pattern_count": 8,
+    "slope_low": 0.5,
+    "slope_high": 1.5,
+    "headroom_pp": 1,
+    "communities": 10
+  },
+  "budget": {
+    "nburn": 3000,
+    "niter": 4000,
+    "thin": 10,
+    "ext_nburn": 8000,
+    "ext_niter": 16000
+  },
+  "r_version": "R version 4.5.0 (2025-04-11)",
+  "r_home": "/Users/douglasyu/src/occJSDM/dev/simstudy/results/spatial-package-comparison-20261008/runtime/R-home",
+  "packages": ["1.1.2", "15.4.0.1", "1.7.0"],
+  "sources": ["2687ddcec5b652893b95fdc7066ef374", "6e74865f7295a2f3ae675827e60c7756", "8d1bd4b5785261b0ca61e092ba1b1303", "1e89e30981679bcf9a3a61e0dbc0b0a8", "fefad7e04730a28b153bd4e74c82dc39", "2bf5976975dc8d7ef97db02f71994099", "54a87b5ee1b787d87aa97c940ea9d565", "f54b0d6d28359274b6bb6b7a6d760121", "6756638685baa6df7dfe1dd4b392e15d", "a8e2d9e46f54f5278097b40ac6cf262b", "ed3bd64fba867165f9b75eb8f791d4e3", "17adc70eefce364edc3458ce65ad2ac1", "77c526495c30c12beaf7ba76d254d1c9", "0600e005dcdea9a9ca924fa8c237c5f5", "d516be03113de086f45058f3dcac4e30", "ceb6dff02864db39163bc02bfd9c2dc2", "8154a611d1b7ab926eb32bf441e9af3e"],
+  "git": "8b758432aa81e5e4f97037b8f185b8420164798d"
+}

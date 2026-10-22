@@ -1,0 +1,595 @@
+[
+  {
+    "name": "validate-binary-single-first",
+    "tool": "validate_data",
+    "arguments": {
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "occCovariates": [
+        "habitat_changed"
+      ],
+      "collCovariates": []
+    },
+    "required_inputs": [
+      "data_path",
+      "occCovariates",
+      "collCovariates"
+    ],
+    "expected_subset": {
+      "eligible": true,
+      "model": "binary",
+      "dimensions": [
+        40,
+        1
+      ],
+      "traits_present": false,
+      "issues": [],
+      "design": {
+        "species_count": 1,
+        "n_sites": 40,
+        "missing_observations": 0
+      }
+    },
+    "min_artifacts": 2,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "validate-binary-single-repeat",
+    "tool": "validate_data",
+    "arguments": {
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "occCovariates": [
+        "habitat_changed"
+      ],
+      "collCovariates": []
+    },
+    "required_inputs": [
+      "data_path",
+      "occCovariates",
+      "collCovariates"
+    ],
+    "expected_subset": {
+      "eligible": true,
+      "model": "binary",
+      "dimensions": [
+        40,
+        1
+      ],
+      "traits_present": false,
+      "issues": [],
+      "design": {
+        "species_count": 1,
+        "n_sites": 40,
+        "missing_observations": 0
+      }
+    },
+    "min_artifacts": 2,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "fit-binary_single",
+    "tool": "fit_model",
+    "arguments": {
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "options": {
+        "occCovariates": [
+          "habitat_changed"
+        ],
+        "collCovariates": [],
+        "threshold": 1,
+        "listParams": {
+          "n_factors": 0
+        },
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 2
+        }
+      },
+      "seed": 2401
+    },
+    "required_inputs": [
+      "data_path",
+      "options",
+      "seed"
+    ],
+    "expected_subset": {
+      "model": "binary",
+      "readback_valid": true,
+      "effective_n_factors": 0,
+      "kept_draws_per_chain": 20,
+      "total_iterations_per_chain": 60,
+      "dimensions": [
+        40,
+        1
+      ],
+      "runtime": {
+        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+      }
+    },
+    "min_artifacts": 4,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "fit-occupancy_changed",
+    "tool": "fit_model",
+    "arguments": {
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/occupancy_changed_data.rds",
+      "options": {
+        "occCovariates": [
+          "habitat_changed",
+          "habitat_factor"
+        ],
+        "collCovariates": [
+          "collection_changed"
+        ],
+        "threshold": 2,
+        "listParams": {
+          "n_factors": 1
+        },
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 2
+        }
+      },
+      "seed": 2402
+    },
+    "required_inputs": [
+      "data_path",
+      "options",
+      "seed"
+    ],
+    "expected_subset": {
+      "model": "occupancy",
+      "readback_valid": true,
+      "effective_n_factors": 1,
+      "kept_draws_per_chain": 20,
+      "total_iterations_per_chain": 60,
+      "dimensions": [
+        80,
+        3
+      ],
+      "runtime": {
+        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+      }
+    },
+    "min_artifacts": 4,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "fit-two_stage_changed",
+    "tool": "fit_model",
+    "arguments": {
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/two_stage_changed_data.rds",
+      "options": {
+        "occCovariates": [
+          "habitat_changed",
+          "habitat_factor"
+        ],
+        "collCovariates": [
+          "collection_changed"
+        ],
+        "threshold": 3,
+        "listParams": {
+          "n_factors": 1
+        },
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 3
+        }
+      },
+      "seed": 2404
+    },
+    "required_inputs": [
+      "data_path",
+      "options",
+      "seed"
+    ],
+    "expected_subset": {
+      "model": "two_stage",
+      "readback_valid": true,
+      "effective_n_factors": 1,
+      "kept_draws_per_chain": 20,
+      "total_iterations_per_chain": 80,
+      "dimensions": [
+        160,
+        3
+      ],
+      "runtime": {
+        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+      }
+    },
+    "min_artifacts": 4,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "fit-binary_single-repeat",
+    "tool": "fit_model",
+    "arguments": {
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "options": {
+        "occCovariates": [
+          "habitat_changed"
+        ],
+        "collCovariates": [],
+        "threshold": 1,
+        "listParams": {
+          "n_factors": 0
+        },
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 2
+        }
+      },
+      "seed": 2401
+    },
+    "required_inputs": [
+      "data_path",
+      "options",
+      "seed"
+    ],
+    "expected_subset": {
+      "model": "binary",
+      "readback_valid": true,
+      "effective_n_factors": 0,
+      "kept_draws_per_chain": 20,
+      "total_iterations_per_chain": 60,
+      "dimensions": [
+        40,
+        1
+      ],
+      "runtime": {
+        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+      }
+    },
+    "min_artifacts": 4,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "diagnostics-single-first",
+    "tool": "diagnostics",
+    "arguments": {
+      "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+      "max_rows": 2
+    },
+    "required_inputs": [
+      "fit_id"
+    ],
+    "expected_subset": {
+      "model": "binary",
+      "total_rows": 2,
+      "screening": {
+        "total_rows": 2,
+        "rhat_flagged": 2,
+        "ess_flagged": 2,
+        "flagged_rows": 2,
+        "unavailable_rhat": 0,
+        "unavailable_ess": 0,
+        "unavailable_rows": 0,
+        "thresholds": {
+          "rhat": 1.01,
+          "ess": 400
+        }
+      }
+    },
+    "min_artifacts": 3,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "summary-single-first",
+    "tool": "summarise_fit",
+    "arguments": {
+      "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+      "max_rows": 20
+    },
+    "required_inputs": [
+      "fit_id"
+    ],
+    "expected_subset": {
+      "model": "binary",
+      "total_rows": 1,
+      "rows": [
+        {
+          "species": "verifier_species_1"
+        }
+      ],
+      "screening": {
+        "total_rows": 2,
+        "rhat_flagged": 2,
+        "ess_flagged": 2,
+        "flagged_rows": 2,
+        "unavailable_rhat": 0,
+        "unavailable_ess": 0,
+        "unavailable_rows": 0,
+        "thresholds": {
+          "rhat": 1.01,
+          "ess": 400
+        }
+      }
+    },
+    "min_artifacts": 4,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "diagnostics-single-repeat",
+    "tool": "diagnostics",
+    "arguments": {
+      "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+      "max_rows": 2
+    },
+    "required_inputs": [
+      "fit_id"
+    ],
+    "expected_subset": {
+      "model": "binary",
+      "total_rows": 2,
+      "screening": {
+        "total_rows": 2,
+        "rhat_flagged": 2,
+        "ess_flagged": 2,
+        "flagged_rows": 2,
+        "unavailable_rhat": 0,
+        "unavailable_ess": 0,
+        "unavailable_rows": 0,
+        "thresholds": {
+          "rhat": 1.01,
+          "ess": 400
+        }
+      }
+    },
+    "min_artifacts": 3,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "summary-single-repeat",
+    "tool": "summarise_fit",
+    "arguments": {
+      "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+      "max_rows": 20
+    },
+    "required_inputs": [
+      "fit_id"
+    ],
+    "expected_subset": {
+      "model": "binary",
+      "total_rows": 1,
+      "rows": [
+        {
+          "species": "verifier_species_1"
+        }
+      ],
+      "screening": {
+        "total_rows": 2,
+        "rhat_flagged": 2,
+        "ess_flagged": 2,
+        "flagged_rows": 2,
+        "unavailable_rhat": 0,
+        "unavailable_ess": 0,
+        "unavailable_rows": 0,
+        "thresholds": {
+          "rhat": 1.01,
+          "ess": 400
+        }
+      }
+    },
+    "min_artifacts": 4,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "diagnostics-constant-chain",
+    "tool": "diagnostics",
+    "arguments": {
+      "fit_id": "fit_3dca9f1a9f79403d87c898765945509b",
+      "max_rows": 20
+    },
+    "required_inputs": [
+      "fit_id"
+    ],
+    "expected_subset": {
+      "screening": {
+        "total_rows": 12,
+        "rhat_flagged": 8,
+        "ess_flagged": 12,
+        "flagged_rows": 12,
+        "unavailable_rhat": 1,
+        "unavailable_ess": 0,
+        "unavailable_rows": 1,
+        "thresholds": {
+          "rhat": 1.01,
+          "ess": 400
+        }
+      }
+    },
+    "min_artifacts": 3,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  },
+  {
+    "name": "path-escape",
+    "tool": "validate_data",
+    "arguments": {
+      "data_path": "/etc/passwd",
+      "occCovariates": [],
+      "collCovariates": []
+    },
+    "required_inputs": [
+      "data_path",
+      "occCovariates",
+      "collCovariates"
+    ],
+    "error_contains": "Path escapes"
+  },
+  {
+    "name": "unknown-fit",
+    "tool": "summarise_fit",
+    "arguments": {
+      "fit_id": "../fit.rds"
+    },
+    "required_inputs": [
+      "fit_id"
+    ],
+    "error_contains": "Unknown fit_id"
+  },
+  {
+    "name": "diagnostics-max21",
+    "tool": "diagnostics",
+    "arguments": {
+      "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+      "max_rows": 21
+    },
+    "required_inputs": [
+      "fit_id"
+    ],
+    "error_contains": "validation"
+  },
+  {
+    "name": "summary-max21",
+    "tool": "summarise_fit",
+    "arguments": {
+      "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+      "max_rows": 21
+    },
+    "required_inputs": [
+      "fit_id"
+    ],
+    "error_contains": "validation"
+  },
+  {
+    "name": "unsupported-spatial",
+    "tool": "fit_model",
+    "arguments": {
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "options": {
+        "occCovariates": [
+          "habitat_changed"
+        ],
+        "collCovariates": [],
+        "threshold": 1,
+        "listParams": {
+          "n_factors": 0
+        },
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 2
+        },
+        "spatCovariates": [
+          "x",
+          "y"
+        ]
+      },
+      "seed": 2401
+    },
+    "required_inputs": [
+      "data_path",
+      "options",
+      "seed"
+    ],
+    "error_contains": "validation"
+  },
+  {
+    "name": "native-single-two-stage-dimension-error",
+    "tool": "fit_model",
+    "arguments": {
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/two_stage_single_data.rds",
+      "options": {
+        "occCovariates": [
+          "habitat_changed"
+        ],
+        "collCovariates": [
+          "collection_changed"
+        ],
+        "threshold": 3,
+        "listParams": {
+          "n_factors": 0
+        },
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 3
+        }
+      },
+      "seed": 2403
+    },
+    "required_inputs": [
+      "data_path",
+      "options",
+      "seed"
+    ],
+    "error_contains": "incorrect number of dimensions"
+  },
+  {
+    "name": "composed-row-identity-failure",
+    "tool": "fit_model",
+    "arguments": {
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/row_mismatch.rds",
+      "options": {
+        "occCovariates": [
+          "habitat_changed",
+          "habitat_factor"
+        ],
+        "collCovariates": [
+          "collection_changed"
+        ],
+        "threshold": 2,
+        "listParams": {
+          "n_factors": 1
+        },
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 2
+        }
+      },
+      "seed": 2402
+    },
+    "required_inputs": [
+      "data_path",
+      "options",
+      "seed"
+    ],
+    "error_contains": "row identifiers"
+  },
+  {
+    "name": "traits-alias-report",
+    "tool": "validate_data",
+    "arguments": {
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/verification/quickstart/traits_alias.rds",
+      "occCovariates": [
+        "habitat_changed"
+      ],
+      "collCovariates": []
+    },
+    "required_inputs": [
+      "data_path",
+      "occCovariates",
+      "collCovariates"
+    ],
+    "expected_subset": {
+      "eligible": false,
+      "model": null
+    },
+    "min_artifacts": 2,
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls",
+    "unique_artifacts": true
+  }
+]

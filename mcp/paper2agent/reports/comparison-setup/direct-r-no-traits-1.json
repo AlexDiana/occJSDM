@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-06",
+  "condition": "A",
+  "scenario": 4,
+  "repetition": 1,
+  "prompt": "Can I analyse `trial/no-traits.rds` without species traits?",
+  "status": "optional_traits_recognised_correctly_from_actual_input_and_source",
+  "scored": false,
+  "scope": "execution and explanation rehearsal; no scientific/Indonesian adoption pass",
+  "evidence": "Doug pasted complete response and four expanded-tool screenshots at 13:29:50, 13:30:08, 13:30:27 and 13:30:45",
+  "observed": {
+    "no_traits_components": [
+      "info",
+      "OTU"
+    ],
+    "info_dimensions": [
+      160,
+      8
+    ],
+    "OTU_dimensions": [
+      160,
+      4
+    ],
+    "trait_element_present": false,
+    "actual_input_columns_read": true,
+    "correct_collection_covariate": "X_theta",
+    "unique_sites": 40,
+    "unique_samples": 80,
+    "unique_primers": 1,
+    "rows_per_site": 4,
+    "rows_per_site_sample": 2,
+    "two_stage_structure_correctly_explained": true,
+    "no_trait_invention_or_file_change_in_shown_R_code": true,
+    "no_fit_in_supplied_tool_sequence": true,
+    "support_answer": "yes; optional traits",
+    "trait_regression_removed_explained": true,
+    "occupancy_detection_latent_factor_model_retained_explained": true,
+    "language": "Bahasa Indonesia"
+  },
+  "pinned_source_check": {
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "method": "git show pinned R/runOccJSDM.R and R/output.R",
+    "trait_absence_handling": "Tr <- matrix(NA, S, 0); g <- ncol(Tr)",
+    "returnTraitsCoeff_error": "No Traits Present",
+    "plotTraitsCoefficients_calls": "returnTraitsCoeff"
+  },
+  "qualifications": [
+    "No native no-traits fit was executed by this model; support explained from source and actual input, no completed-fit claim made.",
+    "The printed label samples/site incorrectly accompanies a global unique Sample count of 80; final explanation correctly distinguishes two samples per site.",
+    "No complete object equality check between original data and no-traits observations appears in supplied output; no unchanged-observation hash claim made.",
+    "Repeated file searches and listings create possible overhead; exact tokens/time/provider charges unavailable."
+  ],
+  "screenshots": [
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_reBryS/Screenshot 2026-10-06 at 13.29.50.png",
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_NMgH1U/Screenshot 2026-10-06 at 13.30.08.png",
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_rV8I62/Screenshot 2026-10-06 at 13.30.27.png",
+    "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_ijbYbz/Screenshot 2026-10-06 at 13.30.45.png"
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

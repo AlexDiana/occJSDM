@@ -1,0 +1,11 @@
+"key","species","species_name","label","separated_quantities","drifting_quantities","separated_loadings","drifting_loadings","max_separation","max_rhat"
+"design-qfar_K6-sites300-05",1,"OTU_1","agrees","","","","",0.1212807,1.001549
+"design-qfar_K6-sites300-05",2,"OTU_2","agrees","","","","",0.1867863,1.002052
+"design-qfar_K6-sites300-05",3,"OTU_3","agrees","","","","",0.1411481,1.001375
+"design-qfar_K6-sites300-05",4,"OTU_4","agrees","","","","",0.1355075,1.000966
+"design-qfar_K6-sites300-05",5,"OTU_5","agrees","","","","",0.147135,1.001283
+"design-qfar_K6-sites300-05",6,"OTU_6","agrees","","","","",0.1414596,1.001535
+"design-qfar_K6-sites300-05",7,"OTU_7","agrees","","","","",0.2752511,1.005826
+"design-qfar_K6-sites300-05",8,"OTU_8","agrees","","","","",0.1699678,1.001458
+"design-qfar_K6-sites300-05",9,"OTU_9","agrees","","","","",0.1775459,1.002463
+"design-qfar_K6-sites300-05",10,"OTU_10","agrees","","","","",0.1892133,1.002113

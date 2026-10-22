@@ -1,0 +1,975 @@
+{
+  "schema_version": 1,
+  "created": "2026-10-06",
+  "status": "unscored_rehearsal_review_prepared_human_review_pending",
+  "protocol": "../class/model-trial.md",
+  "protocol_sha256": "5fc4673e0d361a7104f40160a76fabb509c8e57e049cc3decb5ca016953ca1b6",
+  "conditions": {
+    "A": {
+      "model_id": "deepseek/deepseek-v4.1-flash",
+      "route": "direct_R",
+      "occJSDM_MCP_enabled": false,
+      "status": "not_run_controlled",
+      "project_url": "https://posit.cloud/spaces/828411/content/13077262",
+      "project_copy": "created by Doug, 2026-10-06",
+      "setup_status": "prepared/restarted; reported instruction and direct R check match fixture; expanded R code/output not supplied",
+      "setup_helper": "comparison-setup/prepare-direct-r.py",
+      "Cloud_check": "comparison-setup/direct-r-cloud-check.json",
+      "restart": {
+        "R": "confirmed by Doug",
+        "Assistant": "reloaded by Doug",
+        "occJSDM_MCP_absent": "confirmed by Doug via completion of steps 1-3",
+        "fresh_conversation": "confirmed by Doug",
+        "model_UI_label": "DeepSeek V4.1 Flash (Medium), selected as instructed; actual provider routing not yet captured"
+      },
+      "assistant_preflight": "comparison-setup/direct-r-assistant-preflight.json",
+      "first_workflow": "comparison-setup/direct-r-workflow-1.json",
+      "first_workflow_status": "native_saved_object_comparison_passed_user_reported_overwrite_guard_missing",
+      "execution_rehearsal_status": "First set of ten scenarios observed, unscored; failures and evidence limitations retained",
+      "teaching_rehearsal_status": "First conceptual, R-chunk, source-error and full challenge/hint/language-only/worked-answer exchanges observed; unscored; evidence limitations and errors retained"
+    },
+    "B": {
+      "model_id": "deepseek/deepseek-v4.1-flash",
+      "route": "MCP",
+      "occJSDM_MCP_enabled": true,
+      "status": "not_run_controlled",
+      "spend_baseline": {
+        "date": "2026-10-06",
+        "time_local": "20:56",
+        "displayed_DeepSeek_USD": 0.27,
+        "displayed_account_total_USD": 2.48,
+        "conservative_remaining_USD": 2.52,
+        "precision": "Rounded dashboard baseline before B project preparation; earlier DeepSeek calls included"
+      },
+      "project_url": "https://posit.cloud/spaces/828411/content/13082983",
+      "project_copy": "Created by Doug; new URL supplied 2026-10-06",
+      "setup_status": "native_runtime_source_fixture_integrity_passed_user_reported_MCP_availability_self_reported_actual_operation_pending",
+      "setup_preflight": "comparison-setup/mcp-comparison-copy-preflight.json",
+      "actual_client_tool_availability": "All four supported MCP operation labels present in workflow transcript; persisted fit/diagnostic/summary requests/results verified by operator terminal output. validate_data label visible in scenarios 1 and 2; raw transport payloads uncollected.",
+      "actual_model_UI_label": "Not visible in supplied preflight screenshot; requested DeepSeek V4.1 Flash (Medium)",
+      "reference_registry_entry_exists": true,
+      "first_workflow": "comparison-setup/mcp-workflow-1.json",
+      "first_workflow_status": "native_artifacts_settings_reference_identity_and_full_tables_verified_user_supplied_extra_copy_blocked",
+      "first_fit_id_reported": "fit_8a6a7d51459e4af5a2ad29701273469b",
+      "first_fit_path_reported": "/cloud/project/artifacts/calls/fit_model-8aae2ce49a614903a1bf8b5ffa8e8c60/fit.rds",
+      "execution_rehearsal_status": "All ten first-repetition execution cases recorded as unscored rehearsals; case 10 object inspection complete, formal review and trials pending.",
+      "configuration_followup": "Operator supplied registration and unavailable-diagnostic fixture; first workflow terminal artifact verification completed.",
+      "first_workflow_terminal_artifacts_verified": true,
+      "malformed_input_rehearsal": {
+        "evidence": "comparison-setup/mcp-malformed-1.json",
+        "status": "correct_MCP_mismatch_rejection_no_fit_or_repair_reported_native_inspection_duplicated_language_lapse",
+        "raw_payload_verified": false
+      },
+      "missing_covariate_rehearsal": {
+        "evidence": "comparison-setup/mcp-missing-covariate-1.json",
+        "status": "corrected_one_covariate_MCP_fit_settings_and_full_diagnostics_verified_user_supplied",
+        "correction_pending": false,
+        "fit_id_reported": "fit_c23785deda5143bda536848cda21beb4",
+        "native_artifact_verification_pending": false,
+        "native_artifacts_verified": true
+      },
+      "no_traits_rehearsal": {
+        "evidence": "comparison-setup/mcp-no-traits-1.json",
+        "status": "supported_no_traits_route_correctly_explained_MCP_validation_reported_no_fit_extensive_search_and_language_lapse_retained",
+        "MCP_validation_label_present": true,
+        "no_fit_observed": true,
+        "raw_payload_verified": false,
+        "visible_tool_call_count": 31
+      },
+      "spatial_scope_rehearsal": {
+        "evidence": "comparison-setup/mcp-spatial-1.json",
+        "status": "correct_spatial_scope_refusal_no_bypass_redundant_full_covariate_fit_suggestion",
+        "no_fit_or_bypass_observed": true,
+        "visible_tool_call_count": 18
+      },
+      "cases_1_5_spend_checkpoint": {
+        "evidence": "comparison-setup/mcp-cases-1-5-spend-checkpoint.json",
+        "displayed_DeepSeek_USD": 0.33,
+        "displayed_increase_since_pre_B_USD": 0.06,
+        "exclusive_attribution": false
+      },
+      "count_response_rehearsal": {
+        "evidence": "comparison-setup/mcp-count-response-1.json",
+        "status": "correct_count_scope_and_native_inference_rejection_MCP_validation_no_fit_or_thresholding",
+        "no_fit_or_silent_thresholding_observed": true,
+        "MCP_validation_label_present": true,
+        "raw_payload_verified": false,
+        "visible_tool_call_count": 20
+      },
+      "short_diagnostics_rehearsal": {
+        "evidence": "comparison-setup/mcp-short-diagnostics-1.json",
+        "status": "substantially_correct_MCP_saved_fit_diagnostic_restraint_reference_counts_match_no_refit",
+        "registered_fit_id": "fit_8a6a7d51459e4af5a2ad29701273469b",
+        "reference_artifact_byte_identity_previously_verified": true,
+        "no_refit_observed": true,
+        "visible_tool_call_count": 11
+      },
+      "unavailable_diagnostics_rehearsal": {
+        "evidence": "comparison-setup/mcp-unavailable-diagnostics-1.json",
+        "status": "unavailable_Rhat_not_pass_correct_32_rows_and_NA_mechanisms_explained_no_one_chain_fit",
+        "no_fit_observed": true,
+        "correct_supplied_table_interpretation": true,
+        "visible_tool_call_count": 10
+      },
+      "seed_repeat_rehearsal": {
+        "evidence": "comparison-setup/mcp-seed-repeat-1.json",
+        "status": "seed1703_MCP_repeat_native_settings_readback_and_known_prior_fit_hashes_verified_user_supplied",
+        "fit_id_reported": "fit_50edc6acf31747f699dd4e7ea7d05242",
+        "native_artifact_verification_pending": false,
+        "visible_tool_call_count": 17,
+        "verified_fit_sha256": "e60026f34c8afa9d684396720bd374df46d3ae2fc9fb67ac5a93fc74c6a6d1e0",
+        "verified_warning_count": 25
+      },
+      "object_inspection_rehearsal": {
+        "evidence": "comparison-setup/mcp-object-inspection-1.json",
+        "status": "usable_MCP_identifier_disk_object_distinction_and_console_inspection_honest_client_read_guard_no_refit",
+        "visible_tool_call_count": 9,
+        "scored": false
+      },
+      "execution_rehearsal_spend_checkpoint": {
+        "evidence": "comparison-setup/mcp-execution-spend-checkpoint.json",
+        "displayed_total_USD": 2.58,
+        "displayed_DeepSeek_USD": 0.37,
+        "period_DeepSeek_increase_since_pre_B_USD": 0.1,
+        "exclusive_attribution_verified": false
+      },
+      "teaching_rehearsal_status": "All five first-repetition shared teaching exchanges recorded unscored, including all four diagnostic-challenge stages.",
+      "first_execution_and_teaching_rehearsal_recorded": true,
+      "post_teaching_spend_checkpoint": {
+        "evidence": "comparison-setup/mcp-final-spend-checkpoint.json",
+        "displayed_total_USD": 2.65,
+        "DeepSeek_total_USD": 0.44,
+        "B_execution_period_increase_USD": 0.1,
+        "B_teaching_period_increase_USD": 0.07,
+        "B_full_period_increase_USD": 0.17,
+        "exclusive_cost_attribution_verified": false
+      }
+    },
+    "C": {
+      "model_id": "anthropic/claude-sonnet-5.5",
+      "route": "direct_R",
+      "occJSDM_MCP_enabled": false,
+      "status": "not_run_controlled",
+      "spend_baseline": {
+        "date": "2026-10-06",
+        "displayed_Sonnet_USD": 0.93,
+        "displayed_account_total_USD": 1.2,
+        "precision": "Rounded dashboard; no controlled C calls yet"
+      },
+      "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+      "project_copy": "Created by Doug; URL supplied 2026-10-06",
+      "setup_status": "Cloud helper completed; reference hashes and native runtime/counts match A; client restart and model selection pending",
+      "setup_helper": "comparison-setup/prepare-sonnet-direct-r.py",
+      "setup_checks": "comparison-setup/sonnet-direct-r-checks.json",
+      "Cloud_check": "comparison-setup/sonnet-direct-r-cloud-check.json",
+      "model_UI_label": "Anthropic: Claude Sonnet 5.5 (Medium)",
+      "reasoning_UI_label": "Medium",
+      "actual_provider_routing": "not captured",
+      "first_workflow": "comparison-setup/sonnet-direct-r-workflow-1.json",
+      "first_workflow_status": "native_saved_object_comparison_passed_user_reported_overwrite_guard_verified_teaching_errors_retained",
+      "client_native_execution": "observed via tool sequence; explicit post-restart MCP inventory not supplied",
+      "instruction_delivery_check": "Confirmed for case 3 by full initial message pasted by Doug on 2026-10-06; shared behavioral text included, Markdown rendering differences only. Exact messages for earlier C cases not supplied.",
+      "mid_rehearsal_spend": {
+        "date": "2026-10-06",
+        "after_scenarios": 5,
+        "displayed_Sonnet_total_USD": 1.4,
+        "increase_from_baseline_USD": 0.47,
+        "attribution": "Coincides with C cases 1-5; rounded totals, no per-request receipts"
+      },
+      "execution_rehearsal_status": "First set of ten execution scenarios observed, unscored; numerical verification and failures preserved. First teaching exchange set also recorded.",
+      "execution_rehearsal_spend_checkpoint": {
+        "date": "2026-10-06",
+        "time_local": "20:12",
+        "after_scenarios": 10,
+        "displayed_Sonnet_total_USD": 1.81,
+        "increase_from_baseline_USD": 0.88,
+        "attribution": "Rounded dashboard change coincides with C execution rehearsal; exclusive attribution and request-level costs unavailable"
+      },
+      "teaching_rehearsal_status": "First five matched teaching exchanges including complete challenge/hint/language-only/worked-answer sequence observed, all unscored. First exchange conversation carryover disclosed; default-language and conceptual issues retained; alternative coda Rhat window documented.",
+      "teaching_conversation_control": "Doug reports no fresh conversation after duplicate first-teaching response; original response retained unscored with carryover limitation. Duplicate is not a second case.",
+      "first_execution_and_teaching_rehearsal_recorded": true,
+      "post_teaching_spend_checkpoint": {
+        "date": "2026-10-06",
+        "time_local": "20:56",
+        "displayed_Sonnet_total_USD": 2.21,
+        "increase_during_teaching_period_USD": 0.4,
+        "increase_from_C_baseline_USD": 1.28,
+        "attribution": "Rounded dashboard changes; coincides with C rehearsal, exclusive and per-request attribution unavailable"
+      }
+    },
+    "D": {
+      "route": "MCP",
+      "model_family": "Sonnet",
+      "status": "deferred_by_user",
+      "date": "2026-10-07",
+      "reason": "Doug considers the DeepSeek A/B comparison sufficient for now. No D project preparation or paid prompts requested."
+    }
+  },
+  "controls": {
+    "same_cheap_model_and_generation_settings_for_A_B": true,
+    "cheap_reasoning_UI_label": "Medium",
+    "API_reasoning_parameters": null,
+    "fresh_conversations_and_clean_project_copies_required": true,
+    "grading_material_excluded_from_model_context": true,
+    "same_source_runtime_inputs_seeds_scientific_settings_and_reviewed_instructions_required": true,
+    "pre_existing_smoke_outputs_are_unscored": true,
+    "repetitions_per_condition": 3,
+    "scenarios_per_repetition": 10,
+    "numerical_oracle": "Native R in actual Cloud runtime; full-precision complete tables, preserved artifacts and settings",
+    "ten_scenarios_defined_in": "../class/model-trial.md"
+  },
+  "readiness": {
+    "Cloud_MCP_execution": "passed_user_reported",
+    "both_native_schedule_resource_measurements": "passed_user_reported",
+    "CPU_allocation": "pending",
+    "current_Cloud_tool_inventory": "passed_user_reported: four tools listed after publication",
+    "clean_project_inventory_and_file_hashes": "curation and reference integrity passed_user_reported; 80 student files recorded in private grader manifest",
+    "teaching_instructions_Doug_review": "approved by Doug, 2026-10-06; exact existing instruction text retained",
+    "Indonesian_terminology_review": "pending",
+    "reviewer_acceptance_threshold_recorded_before_scoring": "pending",
+    "actual_provider_routing_and_generation_parameters": "pending"
+  },
+  "saved_fit_first_teaching_case": {
+    "status": "fit_manifest_and_input_integrity_passed_user_reported_2026_10_06",
+    "fit_id_for_B": "fit_fa9d078129f9450cabc029f0af695958",
+    "source_path": "/cloud/project/artifacts/calls/fit_model-e9e007efc3d2441ebe2d90a19871f75f/fit.rds",
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "native_reference": "reports/cloud-pilot.json, smaller pilot full native fit comparison at zero tolerance",
+    "known_counts": {
+      "rows": 32,
+      "rhat_above_1_01": 29,
+      "ess_below_400": 32,
+      "rhat_unavailable": 0,
+      "ess_unavailable": 0
+    },
+    "scientific_interpretation": "Execution fixture, unsuitable for ecological inference",
+    "direct_R_conditions_use_same_artifact_bytes": true,
+    "fit_sha256": "446556b0ab908541034af3fb5369864e8164531086e25d3256d19f0078fbd5f8",
+    "input_sha256": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+    "verification": "Doug ran the read-only Python check: registry manifest SHA256, saved fit SHA256 and preserved input SHA256 assertions passed; pasted full runtime and settings",
+    "seed": 1702,
+    "settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta"
+      ],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      },
+      "spatCovariates": [],
+      "summarisedLatentPresences": true,
+      "listPriors": {}
+    },
+    "runtime": {
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.1.0",
+      "renv_version": "1.2.3",
+      "Rscript": "/opt/R/4.6.1/lib/R/bin/Rscript",
+      "occJSDM_path": "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/occJSDM",
+      "thread_env": {
+        "OMP_NUM_THREADS": "",
+        "OPENBLAS_NUM_THREADS": "",
+        "MKL_NUM_THREADS": "",
+        "RCPP_PARALLEL_NUM_THREADS": ""
+      }
+    }
+  },
+  "scoring": {
+    "execution_and_teaching_scored_separately": true,
+    "teaching_categories": [
+      "scientific_correctness",
+      "clarity",
+      "hint_quality",
+      "Indonesian_terminology"
+    ],
+    "scale": {
+      "0": "incorrect or unhelpful",
+      "1": "substantially correct with a material omission",
+      "2": "accurate and useful"
+    },
+    "critical_failures": [
+      "fabricated completed fit or number",
+      "false convergence claim for flagged or unavailable diagnostics",
+      "ecological inference from short execution fit",
+      "claim that beta interval calibration is established"
+    ],
+    "bypasses_retries_and_human_interventions_preserved": true,
+    "failed_attempt_cost_included": true,
+    "adoption_review": "Doug and Indonesian reviewer; thresholds recorded before new outcomes"
+  },
+  "budget": {
+    "cap_USD": 5,
+    "snapshot_reference": "reports/model-trial.json: spend_snapshot",
+    "conservative_remaining_USD_at_snapshot": 3.96,
+    "automated_enforcement_verified": false,
+    "per_condition_actual_cost": null,
+    "updated_checkpoint": "received 2026-10-07 07:02 after all B execution and teaching rehearsals; weekly total US$2.65",
+    "latest_displayed_total_USD": 2.65,
+    "latest_displayed_DeepSeek_USD": 0.44,
+    "conservative_remaining_USD_at_latest_checkpoint": 2.35,
+    "latest_displayed_Sonnet_USD": 2.21,
+    "current_post_B_case5_checkpoint_pending": false,
+    "next_paid_prompt_waits_for_current_spend": false,
+    "current_post_B_case10_checkpoint_pending": false,
+    "current_post_B_teaching_checkpoint_pending": false
+  },
+  "results": [
+    {
+      "condition": "A",
+      "scenario": 1,
+      "scored": false,
+      "evidence": "comparison-setup/direct-r-workflow-1.json",
+      "status": "native_saved_object_comparison_passed_user_reported_overwrite_guard_missing"
+    },
+    {
+      "condition": "A",
+      "scenario": 2,
+      "scored": false,
+      "status": "correct_structural_diagnosis_but_attempted_fitting_after_mismatch",
+      "evidence": "comparison-setup/direct-r-malformed-1.json"
+    },
+    {
+      "condition": "A",
+      "scenario": 3,
+      "scored": false,
+      "status": "covariate_correction_executed_correctly_teaching_errors_observed",
+      "evidence": "comparison-setup/direct-r-missing-covariate-1.json"
+    },
+    {
+      "condition": "A",
+      "scenario": 4,
+      "scored": false,
+      "status": "optional_traits_recognised_correctly_from_actual_input_and_source",
+      "evidence": "comparison-setup/direct-r-no-traits-1.json"
+    },
+    {
+      "condition": "A",
+      "scenario": 5,
+      "scored": false,
+      "status": "scope_respected_with_misleading_spatial_input_explanation",
+      "evidence": "comparison-setup/direct-r-spatial-1.json"
+    },
+    {
+      "condition": "A",
+      "scenario": 6,
+      "scored": false,
+      "status": "unsupported_count_response_recognised_no_silent_threshold_or_fit",
+      "evidence": "comparison-setup/direct-r-count-response-1.json"
+    },
+    {
+      "condition": "A",
+      "scenario": 7,
+      "scored": false,
+      "status": "substantially_correct_diagnostic_restraint_traceplot_verified_computation_outputs_partial",
+      "evidence": "comparison-setup/direct-r-short-diagnostics-1.json"
+    },
+    {
+      "condition": "A",
+      "scenario": 8,
+      "scored": false,
+      "status": "missing_not_pass_correct_teaching_explanation_incomplete",
+      "evidence": "comparison-setup/direct-r-unavailable-diagnostics-1.json"
+    },
+    {
+      "condition": "A",
+      "scenario": 9,
+      "scored": false,
+      "status": "seed_settings_and_preservation_confirmed_overwrite_guard_missing_reload_blocked_language_failure",
+      "evidence": "comparison-setup/direct-r-seed-repeat-1.json"
+    },
+    {
+      "condition": "A",
+      "scenario": 10,
+      "scored": false,
+      "status": "usable_inspection_commands_traits_mislabelled_disk_identity_unverified",
+      "evidence": "comparison-setup/direct-r-object-inspection-1.json"
+    },
+    {
+      "condition": "C",
+      "scenario": 1,
+      "scored": false,
+      "status": "native_saved_object_comparison_passed_user_reported_overwrite_guard_verified_teaching_errors_retained",
+      "evidence": "comparison-setup/sonnet-direct-r-workflow-1.json"
+    },
+    {
+      "condition": "C",
+      "scenario": 2,
+      "scored": false,
+      "status": "correct_mismatch_diagnosis_no_fit_language_failure_and_redundant_question",
+      "evidence": "comparison-setup/sonnet-direct-r-malformed-1.json"
+    },
+    {
+      "condition": "C",
+      "scenario": 3,
+      "scored": false,
+      "status": "chosen_covariate_verified_unnecessary_clarifications_language_instruction_failure_confirmed",
+      "evidence": "comparison-setup/sonnet-direct-r-missing-covariate-1.json"
+    },
+    {
+      "condition": "C",
+      "scenario": 4,
+      "scored": false,
+      "status": "correct_optional_traits_conclusion_weak_signature_based_justification",
+      "evidence": "comparison-setup/sonnet-direct-r-no-traits-1.json"
+    },
+    {
+      "condition": "C",
+      "scenario": 5,
+      "scored": false,
+      "status": "spatial_scope_respected_language_failure_and_unnecessary_questions",
+      "evidence": "comparison-setup/sonnet-direct-r-spatial-1.json"
+    },
+    {
+      "condition": "C",
+      "scenario": 6,
+      "scored": false,
+      "status": "pilot_scope_correctly_declined_no_fit_package_limitation_unverified",
+      "evidence": "comparison-setup/sonnet-direct-r-count-response-1.json"
+    },
+    {
+      "condition": "C",
+      "scenario": 7,
+      "scored": false,
+      "status": "substantially_correct_diagnostic_restraint_beta_limitations_not_discussed",
+      "evidence": "comparison-setup/sonnet-direct-r-short-diagnostics-1.json"
+    },
+    {
+      "condition": "C",
+      "scenario": 8,
+      "scored": false,
+      "status": "missing_not_pass_correct_32_row_CSV_read_but_reported_28_language_failure",
+      "evidence": "comparison-setup/sonnet-direct-r-unavailable-diagnostics-1.json"
+    },
+    {
+      "condition": "C",
+      "scenario": 9,
+      "scored": false,
+      "status": "seed_settings_guard_saved_file_and_warnings_confirmed_report_warning_split_wrong_language_failure",
+      "evidence": "comparison-setup/sonnet-direct-r-seed-repeat-1.json"
+    },
+    {
+      "condition": "C",
+      "scenario": 10,
+      "scored": false,
+      "status": "usable_object_inspection_commands_honest_identity_limit_seed_schedule_metadata_misleading",
+      "evidence": "comparison-setup/sonnet-direct-r-object-inspection-1.json"
+    },
+    {
+      "condition": "B",
+      "scenario": 1,
+      "scored": false,
+      "status": "native_artifacts_settings_reference_identity_and_full_tables_verified_user_supplied_extra_copy_blocked",
+      "evidence": "comparison-setup/mcp-workflow-1.json"
+    },
+    {
+      "condition": "B",
+      "scenario": 2,
+      "scored": false,
+      "status": "correct_MCP_mismatch_rejection_no_fit_or_repair_reported_native_inspection_duplicated_language_lapse",
+      "evidence": "comparison-setup/mcp-malformed-1.json"
+    },
+    {
+      "condition": "B",
+      "scenario": 3,
+      "scored": false,
+      "status": "corrected_one_covariate_MCP_fit_settings_and_full_diagnostics_verified_user_supplied",
+      "evidence": "comparison-setup/mcp-missing-covariate-1.json",
+      "correction_pending": false,
+      "native_artifact_verification_pending": false,
+      "native_artifacts_verified": true
+    },
+    {
+      "condition": "B",
+      "scenario": 4,
+      "scored": false,
+      "status": "supported_no_traits_route_correctly_explained_MCP_validation_reported_no_fit_extensive_search_and_language_lapse_retained",
+      "evidence": "comparison-setup/mcp-no-traits-1.json"
+    },
+    {
+      "condition": "B",
+      "scenario": 5,
+      "scored": false,
+      "status": "correct_spatial_scope_refusal_no_bypass_redundant_full_covariate_fit_suggestion",
+      "evidence": "comparison-setup/mcp-spatial-1.json"
+    },
+    {
+      "condition": "B",
+      "scenario": 6,
+      "scored": false,
+      "status": "correct_count_scope_and_native_inference_rejection_MCP_validation_no_fit_or_thresholding",
+      "evidence": "comparison-setup/mcp-count-response-1.json"
+    },
+    {
+      "condition": "B",
+      "scenario": 7,
+      "scored": false,
+      "status": "substantially_correct_MCP_saved_fit_diagnostic_restraint_reference_counts_match_no_refit",
+      "evidence": "comparison-setup/mcp-short-diagnostics-1.json"
+    },
+    {
+      "condition": "B",
+      "scenario": 8,
+      "scored": false,
+      "status": "unavailable_Rhat_not_pass_correct_32_rows_and_NA_mechanisms_explained_no_one_chain_fit",
+      "evidence": "comparison-setup/mcp-unavailable-diagnostics-1.json"
+    },
+    {
+      "condition": "B",
+      "scenario": 9,
+      "scored": false,
+      "status": "seed1703_MCP_repeat_native_settings_readback_and_known_prior_fit_hashes_verified_user_supplied",
+      "evidence": "comparison-setup/mcp-seed-repeat-1.json",
+      "native_artifact_verification_pending": false
+    },
+    {
+      "condition": "B",
+      "scenario": 10,
+      "scored": false,
+      "status": "usable_MCP_identifier_disk_object_distinction_and_console_inspection_honest_client_read_guard_no_refit",
+      "evidence": "comparison-setup/mcp-object-inspection-1.json"
+    }
+  ],
+  "adoption": {
+    "status": "not_decided",
+    "MCP_cost_benefit_established": false,
+    "workshop_ready": false
+  },
+  "last_updated": "2026-10-07",
+  "comparison_base_project": {
+    "url": "https://posit.cloud/spaces/828411/content/13076906",
+    "provided_by": "Doug, 2026-10-06",
+    "status": "curated base verified; Doug confirmed R and occJSDM MCP restart; ready for separate condition copies; no scored trials started",
+    "source_project_url": "https://posit.cloud/spaces/828411/content/13067379",
+    "original_project_to_preserve": true,
+    "inventory": {
+      "supplied_by": "Doug, 2026-10-06",
+      "isolated_runtime_present": true,
+      "source_cellar_archives": [
+        "occJSDM_0.1.0.tar.gz",
+        "occJSDM_b7b7001e56cea8e3931b09c917ea0e29e6cef3c6.tar.gz"
+      ],
+      "occJSDM_server_configured": true,
+      "R_launcher_override": "none",
+      "developer_and_previous_artifacts_present": true
+    },
+    "curation_helper": "comparison-setup/prepare-comparison-base.py",
+    "local_preparation_checks": {
+      "filesystem_tests_passed": 10,
+      "independent_review": "comparison-setup/review.json",
+      "native_portability_check": "comparison-setup/local-native-check.json",
+      "Cloud_execution": "passed_user_reported"
+    },
+    "Cloud_check": "comparison-setup/cloud-check.json",
+    "restart": {
+      "R": "confirmed by Doug, 2026-10-06",
+      "occJSDM_MCP": "confirmed by Doug via /mcp, 2026-10-06"
+    }
+  },
+  "teaching_instruction_approval": {
+    "reviewer": "Doug",
+    "date": "2026-10-06",
+    "file": "class/assistant-instructions.md",
+    "sha256": "08a4e50a465167233d45c94f496a64ab9babd3e7557ea39f05cb3c0b83103d21",
+    "scope": "shared teaching instructions; Indonesian glossary/terminology expert review and adoption criteria remain pending",
+    "delivery": "paste identical approved instruction text into initial message of each trial; automatic project loading not yet verified"
+  },
+  "next_execution_prompt": null,
+  "next_scenario": {
+    "id": "human-review-recorded-DeepSeek-comparison",
+    "stage": "Doug and Indonesian scientist review comparison-review.md and referenced excerpts; record teaching corrections and prospective acceptance thresholds.",
+    "scope": "No new paid runs, retrospective formal scores, implementation changes or workshop selection."
+  },
+  "spend_checkpoints": [
+    {
+      "date": "2026-10-06",
+      "source": "Doug supplied Screenshot 2026-10-06 at 13.41.57.png",
+      "screenshot": "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_ubOPco/Screenshot 2026-10-06 at 13.41.57.png",
+      "selected_time_window": "This Week's Usage",
+      "displayed_total_USD": 1.1,
+      "displayed_by_model_USD": {
+        "Claude Sonnet 5.5": 0.93,
+        "DeepSeek V4.1 Flash": 0.17,
+        "Nemotron 3 Super": 0.0,
+        "Others": 0.0
+      },
+      "amount_precision": "Rounded dashboard totals, not generation receipts",
+      "previous_total_USD": 1.04,
+      "displayed_increase_USD": 0.06,
+      "conservative_remaining_USD": 3.9,
+      "cost_attribution": "DeepSeek increase coincides with Condition A setup and cases 1-5, but no isolated receipts; per-case costs unavailable",
+      "paid_calls_made_by_Codex": 0
+    },
+    {
+      "date": "2026-10-06",
+      "source": "Doug supplied weekly usage and Spend By Model screenshots at 17:32",
+      "screenshots": [
+        "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_tEuMEp/Screenshot 2026-10-06 at 17.32.07.png",
+        "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_zmZOH7/Screenshot 2026-10-06 at 17.32.24.png"
+      ],
+      "selected_time_window": "This Week's Usage",
+      "displayed_total_USD": 1.2,
+      "displayed_by_model_USD": {
+        "Claude Sonnet 5.5": 0.93,
+        "DeepSeek V4.1 Flash": 0.27,
+        "Apodex 1.1 Mini (free)": 0.0,
+        "Others": 0.0
+      },
+      "previous_total_USD": 1.1,
+      "displayed_increase_USD": 0.1,
+      "previous_DeepSeek_USD": 0.17,
+      "DeepSeek_displayed_increase_USD": 0.1,
+      "conservative_remaining_USD": 3.8,
+      "amount_precision": "Rounded dashboard model/time-bucket totals, not generation receipts",
+      "cost_attribution": "Increase since previous checkpoint coincides with later A rehearsal tasks; per-case receipts unavailable. DeepSeek weekly total also includes earlier tests and cannot be attributed wholly to A.",
+      "daily_chart_and_table": {
+        "DeepSeek_displayed_min_USD": 0.08,
+        "DeepSeek_displayed_max_USD": 0.19,
+        "DeepSeek_displayed_avg_USD": 0.13,
+        "DeepSeek_total_USD": 0.27,
+        "scope": "Daily chart buckets; these are not individual request prices."
+      },
+      "pre_condition_C_Sonnet_displayed_USD": 0.93,
+      "paid_calls_made_by_Codex": 0
+    },
+    {
+      "date": "2026-10-06",
+      "source": "Doug supplied weekly usage and Spend By Model screenshots at 19:18",
+      "screenshots": [
+        "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_8jvIvU/Screenshot 2026-10-06 at 19.18.13.png",
+        "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_YKfBq8/Screenshot 2026-10-06 at 19.18.27.png"
+      ],
+      "selected_time_window": "This Week's Usage",
+      "displayed_total_USD": 1.67,
+      "displayed_by_model_USD": {
+        "Claude Sonnet 5.5": 1.4,
+        "DeepSeek V4.1 Flash": 0.27,
+        "Nemotron 3 Super": 0.0,
+        "Others": 0.0
+      },
+      "previous_total_USD": 1.2,
+      "displayed_increase_USD": 0.47,
+      "Sonnet_starting_checkpoint_USD": 0.93,
+      "Sonnet_displayed_increase_since_C_start_USD": 0.47,
+      "conservative_remaining_USD": 3.33,
+      "amount_precision": "Rounded dashboard totals and daily aggregates, not generation receipts",
+      "cost_attribution": "US$0.47 Sonnet increase coincides with C cases 1-5. Exact per-case costs and exclusive attribution not available; no token receipts supplied.",
+      "paid_calls_made_by_Codex": 0
+    },
+    {
+      "date": "2026-10-06",
+      "time_local": "20:12",
+      "source": "Doug supplied usage and Spend By Model screenshots at 20:12, after C execution case 10 and before C teaching exchanges",
+      "screenshots": [
+        "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_f7fjia/Screenshot 2026-10-06 at 20.12.30.png",
+        "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_VxY32j/Screenshot 2026-10-06 at 20.12.42.png"
+      ],
+      "selected_time_window": "Weekly usage context; title outside latest cropped overview, daily chart Oct 2-6",
+      "displayed_total_USD": 2.08,
+      "displayed_by_model_USD": {
+        "Claude Sonnet 5.5": 1.81,
+        "DeepSeek V4.1 Flash": 0.27,
+        "Apodex 1.1 Mini (free)": 0.0,
+        "Others": 0.0
+      },
+      "previous_total_USD": 1.67,
+      "displayed_increase_USD": 0.41,
+      "previous_Sonnet_USD": 1.4,
+      "Sonnet_displayed_increase_USD": 0.41,
+      "Sonnet_starting_checkpoint_USD": 0.93,
+      "Sonnet_displayed_increase_since_C_start_USD": 0.88,
+      "conservative_remaining_USD": 2.92,
+      "amount_precision": "Rounded dashboard totals and daily aggregates, not generation receipts",
+      "cost_attribution": "Sonnet US$0.88 increase since C baseline coincides with ten execution rehearsal cases; exclusive attribution and per-case costs unavailable. US$0.41 increase since midpoint coincides with C cases 6-10.",
+      "daily_chart_and_table": {
+        "Sonnet_displayed_min_USD": 0.88,
+        "Sonnet_displayed_max_USD": 0.93,
+        "Sonnet_displayed_avg_USD": 0.9,
+        "Sonnet_total_USD": 1.81,
+        "DeepSeek_displayed_min_USD": 0.08,
+        "DeepSeek_displayed_max_USD": 0.19,
+        "DeepSeek_displayed_avg_USD": 0.13,
+        "DeepSeek_total_USD": 0.27,
+        "scope": "Daily aggregates; these are not per-request prices."
+      },
+      "paid_calls_made_by_Codex": 0
+    },
+    {
+      "date": "2026-10-06",
+      "time_local": "20:56",
+      "source": "Doug supplied weekly usage screenshot after completing C teaching rehearsal",
+      "screenshots": [
+        "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_10yfzA/Screenshot 2026-10-06 at 20.56.56.png"
+      ],
+      "selected_time_window": "This Week's Usage",
+      "displayed_total_USD": 2.48,
+      "displayed_by_model_USD": {
+        "Claude Sonnet 5.5": 2.21,
+        "DeepSeek V4.1 Flash": 0.27,
+        "Apodex 1.1 Mini (free)": 0.0,
+        "Others": 0.0
+      },
+      "previous_total_USD": 2.08,
+      "displayed_increase_USD": 0.4,
+      "previous_Sonnet_USD": 1.81,
+      "Sonnet_displayed_increase_USD": 0.4,
+      "Sonnet_starting_checkpoint_USD": 0.93,
+      "Sonnet_displayed_increase_since_C_start_USD": 1.28,
+      "Sonnet_execution_period_increase_USD": 0.88,
+      "Sonnet_teaching_period_increase_USD": 0.4,
+      "conservative_remaining_USD": 2.52,
+      "amount_precision": "Rounded dashboard totals, not generation receipts",
+      "cost_attribution": "US$0.40 Sonnet increase since execution endpoint coincides with C teaching exchanges. Total US$1.28 increase since C baseline coincides with execution and teaching rehearsal. Exclusive attribution and per-request costs not established. DeepSeek total includes earlier tests, not only A.",
+      "paid_calls_made_by_Codex": 0
+    },
+    {
+      "date": "2026-10-06",
+      "time_local": "23:16",
+      "source": "Doug supplied weekly usage dashboard screenshot after B execution rehearsal cases 1-5.",
+      "screenshots": [
+        "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_uRFnLE/Screenshot 2026-10-06 at 23.16.33.png"
+      ],
+      "screenshot_sha256": "04670323eec28b0a2a9cabaab7eb2e3e1f404482091d81800304ef47e34d426e",
+      "selected_time_window": "This Week's Usage",
+      "displayed_total_USD": 2.54,
+      "displayed_by_model_USD": {
+        "Claude Sonnet 5.5": 2.21,
+        "DeepSeek V4.1 Flash": 0.33,
+        "Apodex 1.1 Mini (free)": 0.0,
+        "Others": 0.0
+      },
+      "previous_total_USD": 2.48,
+      "displayed_increase_USD": 0.06,
+      "previous_DeepSeek_USD": 0.27,
+      "DeepSeek_displayed_increase_USD": 0.06,
+      "previous_Sonnet_USD": 2.21,
+      "Sonnet_displayed_increase_USD": 0.0,
+      "conservative_remaining_USD": 2.46,
+      "amount_precision": "Rounded dashboard totals, not individual generation receipts; pending charges or display lag are not measured.",
+      "cost_attribution": "US$0.06 DeepSeek increase since the pre-B checkpoint coincides with B preflight and cases 1-5, including case 3 correction and all searches/retries. Exclusive attribution and per-request costs are unavailable; total US$0.33 includes earlier A and MCP testing.",
+      "paid_calls_made_by_Codex": 0,
+      "cap_USD": 5,
+      "automated_enforcement_verified": false,
+      "following_case_allowed_within_observed_budget": 6
+    },
+    {
+      "date": "2026-10-07",
+      "time_local": "06:17:12",
+      "source": "Doug supplied weekly usage dashboard screenshot after all ten B execution rehearsal cases.",
+      "screenshots": [
+        "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_mSqcG1/Screenshot 2026-10-07 at 06.17.12.png"
+      ],
+      "screenshot_sha256": "48bf2aca2127c689c30969a6dec40dffe5bc6625115fea6157c05cf98bfb6ba6",
+      "selected_time_window": "This Week's Usage",
+      "displayed_total_USD": 2.58,
+      "displayed_by_model_USD": {
+        "Claude Sonnet 5.5": 2.21,
+        "DeepSeek V4.1 Flash": 0.37,
+        "Apodex 1.1 Mini (free)": 0.0,
+        "Others": 0.0
+      },
+      "previous_total_USD": 2.54,
+      "displayed_increase_USD": 0.04,
+      "previous_DeepSeek_USD": 0.33,
+      "DeepSeek_displayed_increase_USD": 0.04,
+      "previous_Sonnet_USD": 2.21,
+      "Sonnet_displayed_increase_USD": 0.0,
+      "conservative_remaining_USD": 2.42,
+      "amount_precision": "Rounded dashboard totals, not individual generation receipts; pending charges or display lag are not measured.",
+      "cost_attribution": "US$0.04 DeepSeek increase since B cases 1-5 checkpoint coincides with cases 6-10 and operator follow-ups. US$0.10 increase since the pre-B US$0.27 DeepSeek checkpoint coincides with B preflight and all ten execution rehearsals, including searches/corrections/failures. Exclusive attribution and per-request costs unavailable.",
+      "paid_calls_made_by_Codex": 0,
+      "cap_USD": 5,
+      "automated_enforcement_verified": false,
+      "following_case_allowed_within_observed_budget": "B teaching-occupancy-detection rehearsal"
+    },
+    {
+      "date": "2026-10-07",
+      "time_local": "07:02:22",
+      "source": "Doug supplied final weekly usage dashboard after B ten execution cases and five complete shared teaching exchanges.",
+      "screenshots": [
+        "/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/TemporaryItems/NSIRD_screencaptureui_IhNrHC/Screenshot 2026-10-07 at 07.02.22.png"
+      ],
+      "screenshot_sha256": "498aaf57dd6f5b5699f054a8edb244075e6bc8babd4a43e59cde2a55f8d4c016",
+      "selected_time_window": "This Week's Usage",
+      "displayed_total_USD": 2.65,
+      "displayed_by_model_USD": {
+        "Claude Sonnet 5.5": 2.21,
+        "DeepSeek V4.1 Flash": 0.44,
+        "Apodex 1.1 Mini (free)": 0.0,
+        "Others": 0.0
+      },
+      "previous_total_USD": 2.58,
+      "displayed_increase_USD": 0.07,
+      "previous_DeepSeek_USD": 0.37,
+      "DeepSeek_displayed_increase_USD": 0.07,
+      "previous_Sonnet_USD": 2.21,
+      "Sonnet_displayed_increase_USD": 0.0,
+      "pre_B_DeepSeek_USD": 0.27,
+      "B_execution_period_DeepSeek_increase_USD": 0.1,
+      "B_teaching_period_DeepSeek_increase_USD": 0.07,
+      "pre_B_to_final_DeepSeek_increase_USD": 0.17,
+      "conservative_remaining_USD": 2.35,
+      "cap_USD": 5,
+      "automated_enforcement_verified": false,
+      "paid_calls_made_by_Codex": 0,
+      "amount_precision": "Rounded dashboard totals, not individual generation receipts. Pending charges and display lag unmeasured.",
+      "cost_attribution": "US$0.17 DeepSeek dashboard increase since pre-B checkpoint coincides with B preflight, execution cases, corrections/searches/failed actions and five teaching exchanges. Period increase, not exclusively attributed per-request cost. US$0.44 DeepSeek total also includes earlier A and MCP testing.",
+      "next_action": "Review existing A/B/C rehearsal evidence and resolve reviewer/provider/control gates before new scored or adoption trials; no additional paid Assistant prompt requested."
+    }
+  ],
+  "teaching_results": [
+    {
+      "condition": "A",
+      "exchange": "teaching-occupancy-detection",
+      "scored": false,
+      "status": "core_hierarchy_correct_false_positive_omission_and_overstatements",
+      "evidence": "comparison-setup/direct-r-teaching-occupancy-detection-1.json"
+    },
+    {
+      "condition": "A",
+      "exchange": "teaching-threshold-baseline",
+      "scored": false,
+      "status": "threshold_correct_baseline_contrast_useful_site_probability_state_and_latent_terms_incomplete",
+      "evidence": "comparison-setup/direct-r-teaching-threshold-baseline-1.json"
+    },
+    {
+      "condition": "A",
+      "exchange": "teaching-R-chunk",
+      "scored": false,
+      "status": "mostly_correct_explanation_overgeneralises_missing_value_filtering",
+      "evidence": "comparison-setup/direct-r-teaching-R-chunk-1.json"
+    },
+    {
+      "condition": "A",
+      "exchange": "teaching-source-error",
+      "scored": false,
+      "status": "correct_path_resolution_and_helper_purpose",
+      "evidence": "comparison-setup/direct-r-teaching-source-error-1.json"
+    },
+    {
+      "condition": "A",
+      "exchange": "teaching-diagnostic-challenge",
+      "scored": false,
+      "status": "challenge_hint_language_only_and_worked_answer_observed_substantially_correct_with_interval_qualification",
+      "evidence": "comparison-setup/direct-r-teaching-diagnostic-challenge-1.json"
+    },
+    {
+      "condition": "C",
+      "exchange": "teaching-occupancy-detection",
+      "scored": false,
+      "status": "Bahasa_and_manageable_question_correct_detection_stages_mislabelled_state_probability_blurred_false_positives_omitted",
+      "evidence": "comparison-setup/sonnet-direct-r-teaching-occupancy-detection-1.json"
+    },
+    {
+      "condition": "C",
+      "exchange": "teaching-threshold-baseline",
+      "scored": false,
+      "status": "readonly_fixture_design_correct_threshold_rule_left_unresolved_baseline_species_scope_unclear_latent_factors_acknowledged",
+      "evidence": "comparison-setup/sonnet-direct-r-teaching-threshold-baseline-1.json"
+    },
+    {
+      "condition": "C",
+      "exchange": "teaching-R-chunk",
+      "scored": false,
+      "status": "mostly_correct_selected_scope_MC_error_and_conditional_NA_filtering_explained_minor_output_and_provenance_gaps",
+      "evidence": "comparison-setup/sonnet-direct-r-teaching-R-chunk-1.json"
+    },
+    {
+      "condition": "C",
+      "exchange": "teaching-source-error",
+      "scored": false,
+      "status": "correct_relative_path_and_knitr_hook_explanation_English_default_language_failure",
+      "evidence": "comparison-setup/sonnet-direct-r-teaching-source-error-1.json"
+    },
+    {
+      "condition": "C",
+      "exchange": "teaching-diagnostic-challenge",
+      "scored": false,
+      "status": "challenge_hint_language_only_and_worked_answer_observed_substantially_correct_alternate_Rhat_window_documented",
+      "evidence": "comparison-setup/sonnet-direct-r-teaching-diagnostic-challenge-1.json"
+    },
+    {
+      "condition": "B",
+      "exchange": "teaching-occupancy-detection",
+      "scored": false,
+      "status": "fixture_hierarchy_and_latent_state_probability_distinction_correct_false_positive_acknowledgment_contradicted_by_final_requirement_PCR_information_overstated",
+      "evidence": "comparison-setup/mcp-teaching-occupancy-detection-1.json"
+    },
+    {
+      "condition": "B",
+      "exchange": "teaching-threshold-baseline",
+      "scored": false,
+      "status": "threshold_ge_rule_and_species_baseline_correct_latent_reference_omitted_conditional_state_summary_and_inference_trigger_imprecise",
+      "evidence": "comparison-setup/mcp-teaching-threshold-baseline-1.json"
+    },
+    {
+      "condition": "B",
+      "exchange": "teaching-R-chunk",
+      "scored": false,
+      "status": "substantially_correct_no_execution_diagnostic_scope_and_NA_OR_example_correct_session_type_unverified_large_Rhat_warning_not_explicit",
+      "evidence": "comparison-setup/mcp-teaching-R-chunk-1.json"
+    },
+    {
+      "condition": "B",
+      "exchange": "teaching-source-error",
+      "scored": false,
+      "status": "correct_root_relative_source_path_and_HTML_knitr_hook_explanation_Bahasa_no_file_changes",
+      "evidence": "comparison-setup/mcp-teaching-source-error-1.json"
+    },
+    {
+      "condition": "B",
+      "exchange": "teaching-diagnostic-challenge",
+      "scored": false,
+      "status": "challenge_hint_language_only_and_explicit_worked_answer_sequence_complete_substantially_correct_closing_ESS_counts_iterations_imprecision",
+      "evidence": "comparison-setup/mcp-teaching-diagnostic-challenge-1.json",
+      "completed_rehearsal_sequence": true
+    }
+  ],
+  "rehearsal_completion": {
+    "date": "2026-10-07",
+    "execution_cases_per_condition": 10,
+    "teaching_exchanges_per_condition": 5,
+    "conditions": [
+      "A",
+      "B",
+      "C"
+    ],
+    "all_records_unscored": true,
+    "formal_controlled_comparison_completed": false,
+    "final_spend_checkpoint": "comparison-setup/mcp-final-spend-checkpoint.json",
+    "known_control_limits": [
+      "C first teaching conversation carryover admitted.",
+      "Actual provider routing and generation parameters not independently collected for all conditions.",
+      "Initial instruction delivery/automatic loading not independently established in every conversation.",
+      "Indonesian reviewer terminology review and acceptance thresholds pending.",
+      "No per-generation token/cost/latency receipts."
+    ]
+  },
+  "review": {
+    "report": "comparison-review.md",
+    "structured_evidence": "comparison-review.json",
+    "status": "unscored_rehearsal_review_prepared_human_review_pending",
+    "scored": false,
+    "user_position": "MCP worth including as new-user execution interface; workshop possible as support for required vignette-based learning. Authoritative model teaching excluded."
+  },
+  "learning_workflow_requirement": {
+    "date": "2026-10-07",
+    "source": "Doug explicit instruction in this conversation",
+    "user_statement": "all users need to learn from the vignette lessons and not trust sonnet or deepseek to teach them about occjsdm",
+    "authoritative_learning_material": "occJSDM vignettes and lessons, with scientific and Indonesian review before workshop use",
+    "assistant_role": "Help navigate lessons, execute supported native analyses through MCP or direct R, and inspect real outputs; explanations require checking against lessons and package documentation.",
+    "paper_position": "Include MCP as a practical interface for new users; no claim of autonomous teaching reliability or demonstrated learning benefit.",
+    "workshop_position": "Possible supplement to required vignette-based learning, pending material review and execution/longer-fit requirements.",
+    "historical_trial_evidence": "Preserved unscored; no prompt or result rewritten.",
+    "implementation_or_published_material_changes": false
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "status": "independent_local_verification_passed_with_explicit_linux_execution_limit",
+  "verifier": "/root/resource_observer_verifier",
+  "production_files": {
+    "reports/resource-benchmark/measure_rscript.py": "a82985f443b9b2f7bb90ae6f619d1dc0380c8b8303608a1a1b9691c8cdf4f4b7",
+    "reports/resource-benchmark/setup-resource-benchmark.py": "3e1f528efce9c9d74ba2416bd4feb4565083d52a050bdd7c1d2493fefb606c87"
+  },
+  "read_only_dependencies": [
+    "src/tools/runtime.py",
+    "class/posit-assistant-settings.template.json"
+  ],
+  "commands": [
+    {
+      "command": "mcp/paper2agent/occJSDM-env/bin/python -m pytest mcp/paper2agent/tests/code/implementation/test_resource_launcher.py mcp/paper2agent/tests/code/implementation/test_resource_setup.py -q",
+      "exit": 0,
+      "result": "6 passed in 0.71s"
+    },
+    {
+      "command": "python3 /private/tmp/verify_occjsdm_resource_observer.py",
+      "exit": 0,
+      "result": "native R result/stdout/stderr bytes match; inherited cwd/env; child CPU/RSS accounting; timeout/cancellation/stubborn-descendant process-group cleanup verified"
+    },
+    {
+      "command": "python3 /private/tmp/verify_occjsdm_resource_setup.py",
+      "exit": 0,
+      "result": "embedded source bytes exact; 0755 launcher discoverable; 0600 settings/backup modes retained; install/remove/reinstall; unrelated intervening edits preserved; conflicting file/state/override and invalid environment refused without settings mutation"
+    }
+  ],
+  "scientific_source_reuse": "Observer invokes native PATH Rscript once with exactly original five dispatcher arguments and inherited cwd, environment and output streams. No R runtime or scientific source was changed. Native comparison used a seeded base-R smoke dispatcher, without fitting models.",
+  "native_and_resource_evidence": {
+    "base": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/occjsdm-observer-verifier-qw_ml3s4",
+    "source_sha256": "a82985f443b9b2f7bb90ae6f619d1dc0380c8b8303608a1a1b9691c8cdf4f4b7",
+    "native_r_comparison": {
+      "identical_stdout_stderr_result_bytes": true,
+      "report": {
+        "native_executable": "/usr/local/bin/Rscript",
+        "native_returncode": 0,
+        "termination_signal": null,
+        "elapsed_seconds": 0.09199045901186764,
+        "user_cpu_seconds": 0.062592,
+        "system_cpu_seconds": 0.020484,
+        "peak_individual_child_rss_bytes": 65994752,
+        "platform": "darwin",
+        "cpu_scope": "Native R dispatcher, including startup and waited descendants; excludes MCP and model latency",
+        "memory_scope": "Largest individual waited child peak RSS; not simultaneous process-tree or Cloud-project memory"
+      }
+    },
+    "accounting": {
+      "measured": {
+        "cwd": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/occjsdm-observer-verifier-qw_ml3s4/accounting",
+        "env": "forwarded",
+        "child_peak": 100106240,
+        "child_waited_peak": 100122624,
+        "self_peak": 17203200,
+        "child_user": 0.095695,
+        "self_user": 0.017287999999999998
+      },
+      "observed": {
+        "native_executable": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/occjsdm-observer-verifier-qw_ml3s4/accounting/Rscript",
+        "native_returncode": 0,
+        "termination_signal": null,
+        "elapsed_seconds": 0.2842396249761805,
+        "user_cpu_seconds": 0.11548299999999999,
+        "system_cpu_seconds": 0.13955299999999998,
+        "peak_individual_child_rss_bytes": 100122624,
+        "platform": "darwin",
+        "cpu_scope": "Native R dispatcher, including startup and waited descendants; excludes MCP and model latency",
+        "memory_scope": "Largest individual waited child peak RSS; not simultaneous process-tree or Cloud-project memory"
+      }
+    },
+    "timeout": {
+      "error": "Native R operation exceeded 0.7 seconds; no completed fit was published. Logs: /private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/occjsdm-observer-verifier-qw_ml3s4/timeout",
+      "elapsed": 0.8050680420128629,
+      "living_after_reap": {
+        "native": false,
+        "child": false
+      },
+      "report": {
+        "native_executable": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/occjsdm-observer-verifier-qw_ml3s4/timeout/Rscript",
+        "native_returncode": -15,
+        "termination_signal": 15,
+        "elapsed_seconds": 0.5442305419710465,
+        "user_cpu_seconds": 0.016359,
+        "system_cpu_seconds": 0.007143999999999999,
+        "peak_individual_child_rss_bytes": 17203200,
+        "platform": "darwin",
+        "cpu_scope": "Native R dispatcher, including startup and waited descendants; excludes MCP and model latency",
+        "memory_scope": "Largest individual waited child peak RSS; not simultaneous process-tree or Cloud-project memory"
+      },
+      "ids": {
+        "native": 80832,
+        "child": 80833,
+        "group": 80830
+      }
+    },
+    "cancellation": {
+      "error": "CancelledError",
+      "elapsed": 0.36564445903059095,
+      "living_after_reap": {
+        "native": false,
+        "child": false
+      },
+      "report": {
+        "native_executable": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/occjsdm-observer-verifier-qw_ml3s4/cancellation/Rscript",
+        "native_returncode": -15,
+        "termination_signal": 15,
+        "elapsed_seconds": 0.1853217919706367,
+        "user_cpu_seconds": 0.015959,
+        "system_cpu_seconds": 0.006698,
+        "peak_individual_child_rss_bytes": 17137664,
+        "platform": "darwin",
+        "cpu_scope": "Native R dispatcher, including startup and waited descendants; excludes MCP and model latency",
+        "memory_scope": "Largest individual waited child peak RSS; not simultaneous process-tree or Cloud-project memory"
+      },
+      "ids": {
+        "native": 80837,
+        "child": 80840,
+        "group": 80836
+      }
+    },
+    "stubborn_child": {
+      "error": "Native R operation exceeded 0.7 seconds; no completed fit was published. Logs: /private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/occjsdm-observer-verifier-qw_ml3s4/stubborn_child",
+      "elapsed": 0.8060132920509204,
+      "living_after_reap": {
+        "native": false,
+        "child": false
+      },
+      "report": {
+        "native_executable": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/occjsdm-observer-verifier-qw_ml3s4/stubborn_child/Rscript",
+        "native_returncode": -15,
+        "termination_signal": 15,
+        "elapsed_seconds": 0.6294423330109566,
+        "user_cpu_seconds": 0.016937,
+        "system_cpu_seconds": 0.007029,
+        "peak_individual_child_rss_bytes": 17121280,
+        "platform": "darwin",
+        "cpu_scope": "Native R dispatcher, including startup and waited descendants; excludes MCP and model latency",
+        "memory_scope": "Largest individual waited child peak RSS; not simultaneous process-tree or Cloud-project memory"
+      },
+      "ids": {
+        "native": 80842,
+        "child": 80843,
+        "group": 80841
+      }
+    },
+    "stubborn_all": {
+      "error": "Native R operation exceeded 0.7 seconds; no completed fit was published. Logs: /private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/occjsdm-observer-verifier-qw_ml3s4/stubborn_all",
+      "elapsed": 2.8065184160368517,
+      "living_after_reap": {
+        "native": false,
+        "child": false
+      },
+      "report": null,
+      "ids": {
+        "native": 80847,
+        "child": 80850,
+        "group": 80846
+      }
+    }
+  },
+  "installer_evidence": {
+    "embedded_source_exact": true,
+    "launcher_mode": "0755",
+    "test_settings_mode_and_backup_mode": "0600",
+    "backup_original_bytes": true,
+    "prior_override_restoration": "existing tests",
+    "absent_override_removal": true,
+    "intervening_other_settings_retained": true,
+    "changed_override_refuses_removal": true,
+    "conflicting_existing_launcher_preserved": true,
+    "repeated_install_refuses": true
+  },
+  "termination_review": {
+    "private_group_guard": "os.getpgrp()==os.getpid() prevents shared caller group cleanup",
+    "revised_observer_cleanup": "After a received termination signal it closes report, then kills its owned group including itself. Timeout/cancellation preserve native_returncode=-15 and termination_signal=15; observer itself terminates by SIGKILL. Stubborn descendant leak reproduced before fix and absent after fix.",
+    "stubborn_native": "Existing runtime escalates group SIGKILL after two seconds, cleaning native and descendant; no resource report can be saved when observer itself is forcibly killed."
+  },
+  "cpu_and_rss_scope_review": {
+    "cpu": "user/system CPU of native child and descendants whose usage propagates through waited ancestors; excludes observer, MCP server and model latency. Fresh observer has no previous waited children.",
+    "rss": "largest individual waited child/propagated descendant peak, not simultaneous process-tree peak. Darwin measured bytes agree exactly with native waited-child ru_maxrss. Linux KiB multiplication by 1024 is supported by Linux man-pages documentation, but no Linux runtime was available for empirical verification.",
+    "sources": [
+      "https://man7.org/linux/man-pages/man2/getrusage.2.html",
+      "https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/bsd/kern/kern_resource.c",
+      "local macOS man 2 getrusage"
+    ]
+  },
+  "limitations": [
+    "No empirical Cloud/Linux execution; upload and actual Linux resource report remain operator checks.",
+    "Current Cloud template has no prior P2A_RSCRIPT; arbitrary custom prior launcher fidelity is unsupported because observer selects PATH Rscript. Removal restores previous configured value.",
+    "Descendants that create a new session escape the existing process-group contract.",
+    "Forced SIGKILL before report closure cannot generate a complete report.",
+    "Installer preserves edits made between install and removal; it does not synchronize against simultaneous settings writes."
+  ],
+  "repairs_by_verifier": 0,
+  "excluded_tools": []
+}

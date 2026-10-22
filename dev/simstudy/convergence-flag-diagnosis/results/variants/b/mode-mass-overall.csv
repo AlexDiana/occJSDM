@@ -1,0 +1,6 @@
+"run","method","n_modes","mode","mode_name","draws","share"
+"b","anchored",NA,1,"near-truth",80000,1
+"b","anchored",NA,2,"mirror",0,0
+"b","anchored",NA,NA,"far from both (R18)",578,0.007225
+"b","refitted mixture (named by majority overlap with the anchored labels)",1,1,"near-truth",80000,1
+"b","refitted mixture (named by majority overlap with the anchored labels)",1,2,"mirror",0,0

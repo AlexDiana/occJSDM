@@ -1,0 +1,83 @@
+"table","item","own","stored","pass"
+"summary-means.csv","row set","1 qfar primary all; 1 qfar primary high; 1 qfar primary low; 1 qfar primary middle; 1 qfar primary rare_below_20pct; 1 qnear primary all; 1 qnear primary high; 1 qnear primary low; 1 qnear primary middle; 1 qnear primary rare_below_20pct","1 qfar primary all; 1 qfar primary high; 1 qfar primary low; 1 qfar primary middle; 1 qfar primary rare_below_20pct; 1 qnear primary all; 1 qnear primary high; 1 qnear primary low; 1 qnear primary middle; 1 qnear primary rare_below_20pct",TRUE
+"summary-means.csv","1 qfar primary all communities","10","10",TRUE
+"summary-means.csv","1 qfar primary all mean_signed_error","-1.7638658525337674","-1.76386585253377",TRUE
+"summary-means.csv","1 qfar primary all mean_abs_signed_error","2.6366465453695667","2.6366465453695702",TRUE
+"summary-means.csv","1 qfar primary all mean_abs_cell_error","16.969678846662717","16.969678846662699",TRUE
+"summary-means.csv","1 qfar primary all mean_coverage","0.82430000000000003","0.82430000000000003",TRUE
+"summary-means.csv","1 qnear primary all communities","10","10",TRUE
+"summary-means.csv","1 qnear primary all mean_signed_error","-0.56671292267812023","-0.56671292267812001",TRUE
+"summary-means.csv","1 qnear primary all mean_abs_signed_error","2.1564615624335461","2.1564615624335501",TRUE
+"summary-means.csv","1 qnear primary all mean_abs_cell_error","15.195636838344766","15.1956368383448",TRUE
+"summary-means.csv","1 qnear primary all mean_coverage","0.79889999999999994","0.79890000000000005",TRUE
+"summary-means.csv","1 qfar primary high communities","10","10",TRUE
+"summary-means.csv","1 qfar primary high mean_signed_error","-18.818335994073756","-18.818335994073799",TRUE
+"summary-means.csv","1 qfar primary high mean_abs_signed_error","18.818335994073756","18.818335994073799",TRUE
+"summary-means.csv","1 qfar primary high mean_abs_cell_error","19.342466924845738","19.342466924845699",TRUE
+"summary-means.csv","1 qfar primary high mean_coverage","0.71580356585082916","0.71580356585082905",TRUE
+"summary-means.csv","1 qnear primary high communities","10","10",TRUE
+"summary-means.csv","1 qnear primary high mean_signed_error","-14.779154315456223","-14.7791543154562",TRUE
+"summary-means.csv","1 qnear primary high mean_abs_signed_error","14.779154315456223","14.7791543154562",TRUE
+"summary-means.csv","1 qnear primary high mean_abs_cell_error","15.29931126232567","15.2993112623257",TRUE
+"summary-means.csv","1 qnear primary high mean_coverage","0.7282722378255837","0.72827223782558403",TRUE
+"summary-means.csv","1 qfar primary low communities","10","10",TRUE
+"summary-means.csv","1 qfar primary low mean_signed_error","15.343740178864348","15.3437401788643",TRUE
+"summary-means.csv","1 qfar primary low mean_abs_signed_error","15.343740178864348","15.3437401788643",TRUE
+"summary-means.csv","1 qfar primary low mean_abs_cell_error","15.81532859467451","15.815328594674501",TRUE
+"summary-means.csv","1 qfar primary low mean_coverage","0.78768261803942252","0.78768261803942297",TRUE
+"summary-means.csv","1 qnear primary low communities","10","10",TRUE
+"summary-means.csv","1 qnear primary low mean_signed_error","14.4155385997705","14.4155385997705",TRUE
+"summary-means.csv","1 qnear primary low mean_abs_signed_error","14.4155385997705","14.4155385997705",TRUE
+"summary-means.csv","1 qnear primary low mean_abs_cell_error","14.868156870595215","14.8681568705952",TRUE
+"summary-means.csv","1 qnear primary low mean_coverage","0.72453110989483527","0.72453110989483505",TRUE
+"summary-means.csv","1 qfar primary middle communities","10","10",TRUE
+"summary-means.csv","1 qfar primary middle mean_signed_error","-1.2184606217511473","-1.21846062175115",TRUE
+"summary-means.csv","1 qfar primary middle mean_abs_signed_error","1.788060912735727","1.7880609127357301",TRUE
+"summary-means.csv","1 qfar primary middle mean_abs_cell_error","16.069306701123086","16.0693067011231",TRUE
+"summary-means.csv","1 qfar primary middle mean_coverage","0.93413475220871189","0.934134752208712",TRUE
+"summary-means.csv","1 qnear primary middle communities","10","10",TRUE
+"summary-means.csv","1 qnear primary middle mean_signed_error","-0.72272121031077818","-0.72272121031077796",TRUE
+"summary-means.csv","1 qnear primary middle mean_abs_signed_error","2.9935728482955364","2.9935728482955399",TRUE
+"summary-means.csv","1 qnear primary middle mean_abs_cell_error","15.561524645613753","15.561524645613799",TRUE
+"summary-means.csv","1 qnear primary middle mean_coverage","0.90409910351226597","0.90409910351226597",TRUE
+"summary-means.csv","1 qfar primary rare_below_20pct communities","1","1",TRUE
+"summary-means.csv","1 qfar primary rare_below_20pct mean_signed_error","20.105054484315378","20.105054484315399",TRUE
+"summary-means.csv","1 qfar primary rare_below_20pct mean_abs_signed_error","20.105054484315378","20.105054484315399",TRUE
+"summary-means.csv","1 qfar primary rare_below_20pct mean_abs_cell_error","23.611290278902956","23.611290278902999",TRUE
+"summary-means.csv","1 qfar primary rare_below_20pct mean_coverage","0.73666666666666669","0.73666666666666702",TRUE
+"summary-means.csv","1 qnear primary rare_below_20pct communities","1","1",TRUE
+"summary-means.csv","1 qnear primary rare_below_20pct mean_signed_error","30.523261730928585","30.523261730928599",TRUE
+"summary-means.csv","1 qnear primary rare_below_20pct mean_abs_signed_error","30.523261730928585","30.523261730928599",TRUE
+"summary-means.csv","1 qnear primary rare_below_20pct mean_abs_cell_error","31.961939486189113","31.961939486189099",TRUE
+"summary-means.csv","1 qnear primary rare_below_20pct mean_coverage","0.5033333333333333","0.50333333333333297",TRUE
+"b0-means.csv","row set","1 qfar; 1 qnear","1 qfar; 1 qnear",TRUE
+"b0-means.csv","1 qfar communities","10","10",TRUE
+"b0-means.csv","1 qfar mean_b0_bias","-0.091686661148267512","-0.091686661148267498",TRUE
+"b0-means.csv","1 qfar mean_b0_abs_bias","0.60326848825908452","0.60326848825908497",TRUE
+"b0-means.csv","1 qfar mean_b0_coverage","0.92000000000000004","0.92000000000000004",TRUE
+"b0-means.csv","1 qnear communities","10","10",TRUE
+"b0-means.csv","1 qnear mean_b0_bias","-0.020884258037057089","-0.0208842580370571",TRUE
+"b0-means.csv","1 qnear mean_b0_abs_bias","0.48643417943088807","0.48643417943088801",TRUE
+"b0-means.csv","1 qnear mean_b0_coverage","0.90000000000000002","0.90000000000000002",TRUE
+"beta-theta-means.csv","row set","1 qfar; 1 qnear","1 qfar; 1 qnear",TRUE
+"beta-theta-means.csv","1 qfar communities","10","10",TRUE
+"beta-theta-means.csv","1 qfar mean_bt_bias","0.041430037786046814","0.0414300377860468",TRUE
+"beta-theta-means.csv","1 qfar mean_bt_abs_bias","0.28133168351803117","0.28133168351803101",TRUE
+"beta-theta-means.csv","1 qfar mean_bt_coverage","0.97999999999999998","0.97999999999999998",TRUE
+"beta-theta-means.csv","1 qfar mean_b0_bt_correlation","-0.35846239334830271","-0.35846239334830299",TRUE
+"beta-theta-means.csv","1 qnear communities","10","10",TRUE
+"beta-theta-means.csv","1 qnear mean_bt_bias","0.032910300736145211","0.032910300736145197",TRUE
+"beta-theta-means.csv","1 qnear mean_bt_abs_bias","0.16817941669896014","0.16817941669896",TRUE
+"beta-theta-means.csv","1 qnear mean_bt_coverage","0.97999999999999998","0.97999999999999998",TRUE
+"beta-theta-means.csv","1 qnear mean_b0_bt_correlation","-0.54782140873321594","-0.54782140873321605",TRUE
+"convergence.csv","row set","1 qfar; 1 qnear","1 qfar; 1 qnear",TRUE
+"convergence.csv","1 qnear selected_fits","10","10",TRUE
+"convergence.csv","1 qnear selected_flagged","1","1",TRUE
+"convergence.csv","1 qnear first_flagged","NA","NA",TRUE
+"convergence.csv","1 qnear long_repeats","NA","NA",TRUE
+"convergence.csv","1 qnear missing_fits","0","0",TRUE
+"convergence.csv","1 qfar selected_fits","10","10",TRUE
+"convergence.csv","1 qfar selected_flagged","3","3",TRUE
+"convergence.csv","1 qfar first_flagged","NA","NA",TRUE
+"convergence.csv","1 qfar long_repeats","NA","NA",TRUE
+"convergence.csv","1 qfar missing_fits","0","0",TRUE

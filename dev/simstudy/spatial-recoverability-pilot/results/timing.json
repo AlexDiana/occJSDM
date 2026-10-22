@@ -1,0 +1,18 @@
+{
+  "timing": {
+    "t2-n900-rep1-uniform": {
+      "result": "fitted",
+      "seconds": 476.3205
+    },
+    "t1-r0.15-n900-rep1-uniform": {
+      "result": "fitted",
+      "seconds": 579.1787
+    }
+  },
+  "jobs": {
+    "t1": 180,
+    "t2": 60
+  },
+  "projected_cpu_hours_upper": 36.8976,
+  "note": "Upper bound: every job priced at the 900-site cost; extensions add up to 3x for the jobs that need them."
+}

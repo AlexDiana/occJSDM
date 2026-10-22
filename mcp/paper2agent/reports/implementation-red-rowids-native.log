@@ -1,0 +1,160 @@
+F
+=================================== FAILURES ===================================
+_______ test_actual_rds_contents_and_provided_row_ids[aligned_rows-True] _______
+
+extra_inputs = PosixPath('/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/test-inputs')
+name = 'aligned_rows', eligible = True
+
+    @pytest.mark.parametrize('name,eligible',[('aligned_rows',True),('misaligned_rows',False),('malformed',False),('missing_species',False),('nonnumeric_otu',False),('negative_reads',False),('nan_reads',False),('continuous',False),('constant_covariate',False)])
+    def test_actual_rds_contents_and_provided_row_ids(extra_inputs,name,eligible):
+>       r=asyncio.run(call('validate_data',dict(data_path=str(extra_inputs/(name+'.rds')),occCovariates=['X_psi.EnvCov.1'],collCovariates=[])))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/code/implementation/test_quickstart.py:190: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:205: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:128: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/code/implementation/test_quickstart.py:37: in call
+    return (await client.call_tool(name,args)).data
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+occJSDM-env/lib/python3.14/site-packages/fastmcp/client/mixins/tools.py:336: in call_tool
+    return await self._parse_call_tool_result(
+occJSDM-env/lib/python3.14/site-packages/fastmcp/client/mixins/tools.py:272: in _parse_call_tool_result
+    return await _parse_call_tool_result(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'validate_data'
+result = CallToolResult(meta={'io.modelcontextprotocol/serverInfo': {'name': 'quickstart', 'version': '4.0.3'}}, content=[TextC...714e688fe961183b2200a4", annotations=None, meta=None)], structured_content=None, is_error=True, result_type='complete')
+tool_output_schemas = {}
+list_tools_fn = <bound method ClientSession.list_tools of <mcp.client.session.ClientSession object at 0x10d237620>>
+client_name = 'Client-e375', raise_on_error = True
+
+    async def _parse_call_tool_result(
+        name: str,
+        result: mcp_types.CallToolResult,
+        tool_output_schemas: dict[str, dict[str, Any] | None],
+        list_tools_fn: Any,  # Callable[[], Awaitable[None]]
+        client_name: str | None = None,
+        raise_on_error: bool = False,
+    ) -> CallToolResult:
+        """Parse an mcp_types.CallToolResult into our CallToolResult dataclass.
+    
+        Args:
+            name: Tool name (for schema lookup)
+            result: Raw MCP protocol result
+            tool_output_schemas: Dictionary mapping tool names to their output schemas
+            list_tools_fn: Async function to refresh tool schemas if needed
+            client_name: Optional client name for logging
+            raise_on_error: Whether to raise ToolError on errors
+    
+        Returns:
+            CallToolResult: Parsed result with structured data
+        """
+        # Local import: CallToolResult is under TYPE_CHECKING at module level to
+        # avoid a circular import (client.client -> mixins.tools -> client.client),
+        # but we need the concrete class here to construct the return value.
+        from fastmcp.client.client import CallToolResult
+    
+        data = None
+        if result.is_error and raise_on_error:
+            if result.content and isinstance(result.content[0], mcp_types.TextContent):
+                msg = result.content[0].text
+            else:
+                msg = f"Tool '{name}' returned an error"
+>           raise ToolError(msg)
+E           fastmcp.exceptions.ToolError: Error calling tool 'validate_data': Native R startup or operation failed (exit 1); inspect local logs in /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/validate_data-27d07e5cd5714e688fe961183b2200a4
+
+occJSDM-env/lib/python3.14/site-packages/fastmcp/client/mixins/tools.py:373: ToolError
+----------------------------- Captured stderr call -----------------------------
+[10/05/26 17:49:35] Error calling tool 'validate_data'                          
+                    ╭─────────── Traceback (most recent call last) ────────────╮
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/server/server.py:1492 in call_tool            │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packag │
+                    │ es/fastmcp/tools/base.py:440 in _run                     │
+                    │                                                          │
+                    │                 ... 4 frames hidden ...                  │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/quickstart.py:66 in          │
+                    │ validate_data                                            │
+                    │                                                          │
+                    │    63 │   covariates(occCovariates,collCovariates)       │
+                    │    64 │   path = confined_path(data_path)                │
+                    │    65 │   out = fresh_output('validate_data')            │
+                    │ ❱  66 │   native = await                                 │
+                    │       run_r('validate_data',dict(data_path=str(path),occ │
+                    │       s=collCovariates),out)                             │
+                    │    67 │   return response('Data are eligible for the sup │
+                    │       native['eligible'] else 'Resolve the reported issu │
+                    │    68                                                    │
+                    │    69                                                    │
+                    │                                                          │
+                    │ /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilo │
+                    │ t/mcp/paper2agent/src/tools/runtime.py:116 in run_r      │
+                    │                                                          │
+                    │   113 │   │   │   raise                                  │
+                    │   114 │   result_path = out/'result.json'                │
+                    │   115 │   if not result_path.is_file():                  │
+                    │ ❱ 116 │   │   raise RuntimeError(f'Native R startup or o │
+                    │       {process.returncode}); inspect local logs in {out} │
+                    │   117 │   result = json.loads(result_path.read_text(),pa │
+                    │       ()).throw(ValueError('Nonfinite JSON from R')))    │
+                    │   118 │   if process.returncode != 0 or result.get('stat │
+                    │   119 │   │   raise RuntimeError('Native R error: ' + re │
+                    │       execution') + f'. Local logs: {out}')              │
+                    ╰──────────────────────────────────────────────────────────╯
+                    RuntimeError: Native R startup or operation failed (exit 1);
+                    inspect local logs in                                       
+                    /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mc
+                    p/paper2agent/artifacts/calls/validate_data-27d07e5cd5714e68
+                    8fe961183b2200a4                                            
+------------------------------ Captured log call -------------------------------
+ERROR    fastmcp.server.server:server.py:1541 Error calling tool 'validate_data'
+Traceback (most recent call last):
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/server/server.py", line 1492, in call_tool
+    return await tool._run(arguments or {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/base.py", line 440, in _run
+    return await self.run(arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 389, in run
+    result = await self._run_body(
+             ^^^^^^^^^^^^^^^^^^^^^
+        type_adapter, exec_is_async, arguments, strict=strict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 430, in _run_body
+    result = await self._execute(
+             ^^^^^^^^^^^^^^^^^^^^
+        type_adapter, exec_is_async, arguments, strict=strict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 485, in _execute
+    result = await result
+             ^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py", line 82, in wrapper
+    return await fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/quickstart.py", line 66, in validate_data
+    native = await run_r('validate_data',dict(data_path=str(path),occCovariates=occCovariates,collCovariates=collCovariates),out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/runtime.py", line 116, in run_r
+    raise RuntimeError(f'Native R startup or operation failed (exit {process.returncode}); inspect local logs in {out}')
+RuntimeError: Native R startup or operation failed (exit 1); inspect local logs in /Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/validate_data-27d07e5cd5714e688fe961183b2200a4
+=========================== short test summary info ============================
+FAILED tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[aligned_rows-True]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 52 deselected in 31.48s

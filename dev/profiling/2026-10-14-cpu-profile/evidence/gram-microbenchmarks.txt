@@ -1,0 +1,12 @@
+# Weighted Gram matrix Z' diag(w) Z, one call, milliseconds. R 4.6.1 reference BLAS (libRblas.0.dylib) from R; Accelerate from the standalone C program acc-gram.c; Armadillo from an Rcpp cppFunction linked to R's BLAS.
+
+reference BLAS via R: crossprod(Z, w*Z) [dgemm] vs crossprod(sqrt(w)*Z) [dsyrk]
+n=100 q=25: 0.083 vs 0.051; n=300 q=65: 1.820 vs 1.020; n=900 q=185: 47.3 vs 23.2; n=900 q=305: 124.7 vs 62.6
+
+Armadillo on R's reference BLAS: Z.t()*(w%Z) [dgemm] vs Zw.t()*Zw [dispatched to dsyrk] vs explicit dsyrk
+n=100 q=25: 0.057 vs 0.048 vs 0.035; n=900 q=185: 49.2 vs 23.5 vs 23.4
+
+Accelerate (VECLIB_MAXIMUM_THREADS unset / =1): dgemm vs dsyrk
+n=100 q=25: 0.007/0.005 vs 0.005/0.005; n=300 q=65: 0.024/0.016 vs 0.011/0.011; n=900 q=185: 0.180/0.170 vs 0.153/0.152; n=900 q=305: 0.435/0.433 vs 0.392/0.392
+
+DYLD_LIBRARY_PATH pointing at a libRblas.dylib symlink to libRblas.vecLib.dylib did not change the BLAS R loaded (extSoftVersion still named libRblas.0.dylib), so a whole-fit measurement under vecLib needs the symlink switch in the R framework.

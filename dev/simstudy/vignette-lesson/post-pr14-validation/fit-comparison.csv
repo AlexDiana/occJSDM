@@ -1,0 +1,7 @@
+"fit","posterior_identical","seed_identical","mcmc_identical","new_md5","old_md5","observations_identical","priors_identical"
+"perfect-fit.rds",TRUE,TRUE,TRUE,"cb97f1d9f21e0f90505194ed2f6b51c5","5d7b63f4802f8540e9fcf37dcd7b39a7",TRUE,TRUE
+"default-fit.rds",TRUE,TRUE,TRUE,"7900e83281178f8d60f12af08299311d","035f82108bbd94b1230e82e725de1e1d",TRUE,TRUE
+"alternative-fit.rds",TRUE,TRUE,TRUE,"eec66ec83b4603ed0ebbb7573c4cb12b","c3d639754abd2815e00d5adb1725cc4a",TRUE,TRUE
+"alternative-long-fit.rds",TRUE,TRUE,TRUE,"3663ba15464dc2b63d7d47a46269e738","60383a8c7c37a686f152dacfc8eb24af",TRUE,TRUE
+"prediction/one-factor-fit.rds",TRUE,TRUE,TRUE,"3602958d79d369c9725b1badd46e17e0","c7c3a820ec60b2c141978b7aa87de4ea",TRUE,TRUE
+"unbalanced/unbalanced-fit.rds",TRUE,TRUE,TRUE,"6d7a65a1399e9b714e4ae2f9eda95df4","a5033841c6f51d4ca8b61608cc9c8976",TRUE,TRUE

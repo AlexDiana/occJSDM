@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-06",
+  "condition": "A",
+  "exchange": "teaching-threshold-baseline",
+  "repetition": 1,
+  "scored": false,
+  "prompt": "Using the two-stage model for `trial/data.rds`, explain how `threshold = 1` converts read counts into observed detections, and how baseline occupancy differs from occupancy at a particular site. Do not fit a model or change any files.",
+  "status": "threshold_correct_baseline_contrast_useful_site_probability_state_and_latent_terms_incomplete",
+  "evidence": "Doug pasted full response and tool labels; actual R computations not expanded",
+  "observed": {
+    "language": "Bahasa Indonesia; English follow-up preface",
+    "threshold_rule_correct": true,
+    "threshold_below_one_unsupported_correct": true,
+    "baseline_intercept_per_species_correct": true,
+    "baseline_not_named_survey_site_correct": true,
+    "reported_counts_by_threshold": {
+      "1": [
+        29,
+        13,
+        14,
+        14
+      ],
+      "2": [
+        28,
+        13,
+        13,
+        14
+      ],
+      "3": [
+        26,
+        13,
+        13,
+        13
+      ]
+    },
+    "counts_independently_verified": false,
+    "no_fit_in_supplied_sequence": true,
+    "no_changes_claimed": true
+  },
+  "issues": [
+    {
+      "claim": "Baseline is one value per species",
+      "assessment": "Acceptable conceptual shorthand only if a summary is intended; returnOccupancyRates returns posterior draws per species, not just a single fixed value."
+    },
+    {
+      "claim": "Site occupancy represented by psi_output / z_output vectors",
+      "assessment": "Conflates distinct quantities. psi is the modelled site/species occupancy probability from the linear predictor; z is the latent binary occupancy state. Their posterior means differ: computePredictiveOccupancyProbs uses psi, computeConditionalOccupancyProbs uses z. With summarisedLatentPresences TRUE these outputs are site-by-species matrices of posterior means, not vectors."
+    },
+    {
+      "claim": "Site predictor contains intercept and occupancy covariates, with ellipsis but no latent-factor explanation",
+      "assessment": "Incomplete for this n_factors=2 fit. computePsiCoef includes U %*% L even without spatial covariates. Intercept-only baseline omits covariate and latent-factor contributions, and is not a marginal probability integrating over latent factors."
+    },
+    {
+      "claim": "Different covariate values imply different occupancy probabilities",
+      "assessment": "Can affect predictions, but not a mathematical guarantee: coefficients or combined effects can yield equal probabilities."
+    },
+    {
+      "claim": "Raising threshold to 2 changes two rows",
+      "assessment": "Reported per-species totals establish two species-by-PCR entries changed, not necessarily two distinct PCR rows; exact row attribution unverified."
+    }
+  ],
+  "source_check": {
+    "revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "method": "git show pinned runOccJSDM.R/output.R/jsdmfun.R, read only",
+    "confirmed": [
+      "psi and z stored separately; summarised option stores site/species means",
+      "computePredictiveOccupancyProbs uses psi_output",
+      "returnOccupancyRates transforms B0 posterior draws",
+      "computePsiCoef eta includes B0 + X B + spatial contribution + U L"
+    ]
+  },
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null,
+  "baseline_scale_clarification": {
+    "date": "2026-10-06",
+    "finding": "Pinned create_covariates_matrix standardizes numeric covariates. Zero in the model design corresponds to raw numeric covariate means for the linear fixture, not necessarily raw value zero. B0 baseline sets latent-factor/spatial contributions to zero.",
+    "assessment": "Earlier response correctly uses intercept-only baseline, but its unqualified all covariates zero wording should specify transformed model scale."
+  }
+}

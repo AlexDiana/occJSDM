@@ -1,0 +1,2 @@
+"start","verdict","basin_recorded","basin_v010","native_score_difference","grid_prediction_max_difference_pp","native_raw_max_difference","recorded_seconds","v010_seconds","recorded_python","v010_python","v010_torch","v010_warnings"
+11,"bit-identical","A","A",0,0,0,664.399855136871,313.095330953598,"/Users/douglasyu/src/s-jSDM/work/mojo-backend/reticulate-venv/bin/python","/Users/douglasyu/src/occJSDM/dev/simstudy/results/sjsdm-v0.1.0-env-20261013/venv/bin/python","2.5.1",0

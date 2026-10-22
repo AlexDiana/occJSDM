@@ -1,0 +1,1626 @@
+---
+title: "Checking occJSDM against simulated truth"
+description: >
+  Historical results: parameter recovery and interval coverage in a saved
+  pre-fix simulation bundle of 1000 datasets across ten scenarios, plus a
+  per-species occupancy check. These results predate the corrected beta code.
+---
+
+**Historical validation results.** This article displays the previously saved simulation-study bundle and has not been regenerated for the corrected beta code. Its detection-rate comparisons used nominal read-event probabilities rather than positive-read probabilities, and its collection coefficients were not compared on the fitter's standardised scale. Those comparisons cannot support current bias or interval-coverage claims. See the [non-spatial recheck and prior comparisons](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/nonspatial-bias-recheck.md) and the [current-code paired comparison](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/current-main-recheck/REPORT.md) for the targeted assessments. A full coverage rerun remains future work.
+
+```{r setup, include = FALSE}
+# Every number in this article is rendered from dev/simstudy/validation-data.rds,
+# written by dev/simstudy/export_validation_data.R from a run of
+# dev/simstudy/run_study.R. Nothing here is typed in by hand.
+#
+# It used to be. The article was 882 lines of hand-transcribed HTML, which cost
+# hours to update, could not be checked against the data it described, and went
+# stale invisibly when six commits landed under it between the run and the
+# reader. If you find yourself about to type a number into the prose below,
+# that is the regression this setup exists to prevent -- put it in the bundle
+# and reference it.
+knitr::opts_chunk$set(echo = FALSE, results = "asis", message = FALSE,
+                      warning = FALSE)
+
+# pkgdown knits articles with the working directory set to the article's own
+# directory, plain rmarkdown from wherever the caller happens to be. Resolve
+# against both rather than assuming either.
+vd_path <- local({
+  # Walk up looking for DESCRIPTION rather than taking an rprojroot dependency
+  # for six lines; articles must build with nothing beyond what the package
+  # already needs.
+  root <- normalizePath(".", mustWork = FALSE)
+  for (i in 1:6) {
+    if (file.exists(file.path(root, "DESCRIPTION"))) break
+    parent <- dirname(root)
+    if (identical(parent, root)) break
+    root <- parent
+  }
+  cands <- c(file.path(root, "dev/simstudy/validation-data.rds"),
+             "dev/simstudy/validation-data.rds",
+             "../../dev/simstudy/validation-data.rds")
+  hit <- Filter(file.exists, cands)
+  if (length(hit) == 0L)
+    stop("validation-data.rds not found. Run dev/simstudy/run_study.R, then ",
+         "Rscript dev/simstudy/export_validation_data.R.")
+  hit[1]
+})
+vd <- readRDS(vd_path)
+
+# --- formatting helpers --------------------------------------------------
+
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
+fmt <- function(x, d = 3) formatC(x, format = "f", digits = d)
+pct <- function(x, d = 0) paste0(formatC(100 * x, format = "f", digits = d), "%")
+
+#' Write raw HTML into the document, stripping leading indentation first.
+#'
+#' Not cosmetic. A `results='asis'` chunk hands its output to pandoc as
+#' markdown, and markdown reads any line indented four or more spaces as a
+#' code block -- so indented HTML comes out the far side escaped, as visible
+#' `&lt;p&gt;` in the page rather than a paragraph. Templates below are indented
+#' to match the surrounding markup for readability, so they must be de-indented
+#' on the way out.
+emit <- function(x) cat(gsub("(?m)^[ \t]+", "", x, perl = TRUE))
+
+#' Emit one HTML table in the report's own styling.
+#'
+#' `flag` marks a whole row; `lo` marks individual cells. Both take predicates
+#' over the data frame so the thresholds live with the data rather than being
+#' baked into the markup, which is how the shaded rows in the old hand-written
+#' table drifted out of step with the numbers beside them.
+html_table <- function(df, caption = NULL, digits = NULL,
+                       flag = NULL, lo = NULL, align_first_left = FALSE) {
+  cols <- names(df)
+  digits <- if (is.null(digits)) setNames(rep(3L, length(cols)), cols) else digits
+
+  cell <- function(v, col, i) {
+    classes <- "num"
+    if (!is.null(lo) && isTRUE(lo(df, col, i))) classes <- paste(classes, "lo")
+    txt <- if (is.numeric(v)) fmt(v, digits[[col]] %||% 3L) else as.character(v)
+    if (align_first_left && col == cols[1]) sprintf("<td>%s</td>", txt)
+    else sprintf('<td class="%s">%s</td>', classes, txt)
+  }
+
+  body <- vapply(seq_len(nrow(df)), function(i) {
+    tds <- paste0(vapply(cols, function(cn) cell(df[[cn]][i], cn, i), ""),
+                  collapse = "")
+    cls <- if (!is.null(flag) && isTRUE(flag(df, i))) ' class="flag"' else ""
+    sprintf("<tr%s>%s</tr>", cls, tds)
+  }, "")
+
+  paste0(
+    '<div class="scroller"><table>',
+    if (!is.null(caption)) sprintf("<caption>%s</caption>", caption) else "",
+    "<thead><tr>",
+    paste0(vapply(seq_along(cols), function(j)
+      if (align_first_left && j == 1L) sprintf('<th class="lbl">%s</th>', cols[j])
+      else sprintf("<th>%s</th>", cols[j]), ""), collapse = ""),
+    "</tr></thead><tbody>",
+    paste0(body, collapse = ""),
+    "</tbody></table></div>")
+}
+
+# --- figures --------------------------------------------------------------
+#
+# These were four committed PNGs until 10 August 2026, drawn once and then left
+# behind by every subsequent run -- the same staleness problem as the tables,
+# just harder to notice because a plot does not look wrong when it is out of
+# date. They are drawn from the same bundle as everything else now.
+
+library(ggplot2)
+
+# Deliberately neutral: the surrounding report supplies its own palette and the
+# figures should not fight it. Reads in both pkgdown themes because it commits
+# to neither, using mid-tone greys that hold against a light or dark ground.
+theme_val <- theme_minimal(base_size = 11) +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        strip.text = element_text(face = "bold", size = 9.5),
+        plot.background = element_rect(fill = "transparent", colour = NA),
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        axis.title = element_text(size = 9.5),
+        plot.margin = margin(4, 8, 4, 4))
+
+#' Coverage with a binomial interval, which the old static figures drew but
+#' never documented. n_checked is the number of interval decisions behind each
+#' point, so the error bar shrinks where a block has more elements.
+cov_se <- function(p, n) sqrt(pmax(p * (1 - p), 0) / pmax(n, 1))
+
+# Order blocks consistently everywhere, so the eye can move between figures.
+block_order <- function(x) {
+  ref <- vd$summary[vd$summary$scenario == vd$example_cell, ]
+  lev <- ref$block[order(ref$coverage)]
+  factor(x, levels = union(lev, sort(unique(x))))
+}
+
+#' One panel per parameter block, one point per scenario.
+plot_by_block <- function(what) {
+  d <- vd$summary
+  d$value <- d[[what]]
+  d$block <- block_order(d$block)
+  ggplot(d, aes(x = value, y = scenario)) +
+    geom_vline(xintercept = 0, linetype = "dashed",
+               colour = "grey45", linewidth = 0.4) +
+    geom_point(size = 1.7, colour = "grey20") +
+    facet_wrap(~ block, scales = "free_x") +
+    labs(x = what, y = NULL) +
+    theme_val
+}
+
+#' Coverage per block, pooled across scenarios, against the nominal 0.95.
+plot_coverage_by_block <- function() {
+  d <- vd$summary
+  d$block <- block_order(d$block)
+  d$se <- cov_se(d$coverage, d$n_checked)
+  ggplot(d, aes(x = coverage, y = scenario)) +
+    geom_vline(xintercept = 0.95, linetype = "dashed",
+               colour = "grey45", linewidth = 0.4) +
+    geom_errorbarh(aes(xmin = coverage - 1.96 * se,
+                       xmax = coverage + 1.96 * se),
+                   height = 0, colour = "grey55", linewidth = 0.4) +
+    geom_point(size = 1.7, colour = "grey20") +
+    facet_wrap(~ block) +
+    labs(x = "coverage (dashed line = nominal 0.95)", y = NULL) +
+    theme_val
+}
+
+#' Distribution of psi_cor across every species-fit, for two survey sizes.
+#'
+#' Drawn as a distribution rather than as means because the means understate
+#' what changes. The top of the range barely moves -- species already recovered
+#' well were near the ceiling -- and almost the whole gain is in the left tail,
+#' i.e. in how often a species comes out unusable. A mean hides that entirely.
+plot_sites_distribution <- function() {
+  ex <- vd$extra_cells[["sites_300"]]
+  if (is.null(ex)) return(NULL)
+  b <- vd$occupancy[vd$occupancy$scenario == vd$example_cell &
+                    !is.na(vd$occupancy$share_lat), ]
+  s <- ex$occupancy[!is.na(ex$occupancy$share_lat), ]
+  if (nrow(b) == 0 || nrow(s) == 0) return(NULL)
+
+  d <- rbind(
+    data.frame(arm = "100 sites", psi_cor = b$psi_cor, share_lat = b$share_lat),
+    data.frame(arm = "300 sites", psi_cor = s$psi_cor, share_lat = s$share_lat))
+  d$arm <- factor(d$arm, levels = c("100 sites", "300 sites"))
+
+  # Bands cut on the pooled distribution so both arms are split identically.
+  br <- stats::quantile(d$share_lat, 0:4 / 4)
+  band_lab <- c(
+    sprintf("Occupancy mostly explained by MEASURED covariates (unmeasured share under %.0f%%)", 100 * br[2]),
+    sprintf("Mostly measured (unmeasured share %.0f to %.0f%%)", 100 * br[2], 100 * br[3]),
+    sprintf("Mixed (unmeasured share %.0f to %.0f%%)", 100 * br[3], 100 * br[4]),
+    sprintf("Occupancy mostly explained by UNMEASURED factors (share over %.0f%%)", 100 * br[4]))
+  d$band <- cut(d$share_lat, br, include.lowest = TRUE, labels = band_lab)
+
+  top <- sprintf("EVERY species-fit: %s datasets x %d species, each survey size",
+                 format(length(unique(b$replicate)), big.mark = ","),
+                 length(unique(b$species)))
+  pd <- rbind(transform(d, panel = top),
+              transform(d, panel = as.character(band)))
+  pd$panel <- factor(pd$panel, levels = c(top, band_lab))
+
+  mu <- aggregate(psi_cor ~ arm + panel, pd, mean)
+  mu$lab <- sprintf("mean %.2f", mu$psi_cor)
+
+  ggplot(pd, aes(psi_cor, fill = arm, colour = arm)) +
+    geom_vline(xintercept = 0, colour = "grey35", linewidth = 0.4) +
+    geom_density(alpha = 0.32, linewidth = 0.55, adjust = 1.1) +
+    geom_vline(data = mu, aes(xintercept = psi_cor, colour = arm),
+               linetype = "dashed", linewidth = 0.45, show.legend = FALSE) +
+    geom_text(data = mu, aes(x = psi_cor, y = Inf, label = lab, colour = arm),
+              vjust = 1.35, hjust = -0.1, size = 2.7, show.legend = FALSE) +
+    facet_wrap(~ panel, ncol = 1, scales = "free_y") +
+    scale_fill_manual(values = c("100 sites" = "#8C8C8C",
+                                 "300 sites" = "#1F5F6B"), name = NULL) +
+    scale_colour_manual(values = c("100 sites" = "#5A5A5A",
+                                   "300 sites" = "#1F5F6B"), name = NULL) +
+    labs(x = paste("How well the species was placed across sites:",
+                   "1 = perfectly, 0 = no information about where it is,",
+                   "below 0 = worse than guessing"),
+         y = "share of species-fits",
+         caption = paste("Solid line at 0 marks the no-information point.",
+                         "Dashed lines are arm means.")) +
+    coord_cartesian(xlim = c(-0.6, 1)) +
+    theme_val +
+    theme(axis.text.y = element_blank(),
+          panel.grid.major.y = element_blank(),
+          strip.text = element_text(face = "bold", size = 8.6, hjust = 0),
+          legend.position = "top",
+          axis.title.x = element_text(size = 8.6),
+          plot.caption = element_text(size = 7.3, colour = "grey45", hjust = 0))
+}
+
+#' The transpose: one panel per scenario, one point per block.
+plot_coverage_by_scenario <- function() {
+  d <- vd$summary
+  d$block <- block_order(d$block)
+  d$se <- cov_se(d$coverage, d$n_checked)
+  ggplot(d, aes(x = coverage, y = block)) +
+    geom_vline(xintercept = 0.95, linetype = "dashed",
+               colour = "grey45", linewidth = 0.4) +
+    geom_errorbarh(aes(xmin = coverage - 1.96 * se,
+                       xmax = coverage + 1.96 * se),
+                   height = 0, colour = "grey55", linewidth = 0.4) +
+    geom_point(size = 1.7, colour = "grey20") +
+    facet_wrap(~ scenario) +
+    labs(x = "coverage (dashed line = nominal 0.95)", y = NULL) +
+    theme_val
+}
+```
+
+```{=html}
+<div class="occjsdm-report">
+<style>
+.occjsdm-report {
+  --ground:      #F5F6F4;
+  --ground-sunk: #ECEEEA;
+  --rule:        #D3D8D2;
+  --ink:         #15202B;
+  --ink-soft:    #4E5B62;
+  --ink-faint:   #7C878C;
+  --accent:      #1F5F6B;
+  --good:        #3E7D5A;
+  --warn:        #A06A1B;
+  --bad:         #9E3A2E;
+  --good-fill:   #C5D8C9;
+  --bad-fill:    #E3C0B8;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --sans:  system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono:  ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  border-radius: 8px;
+}
+
+/* Synced to pkgdown's own light/dark toggle (data-bs-theme on <html>)
+   rather than the OS preference, so this block always matches the rest
+   of the page regardless of which one the reader has set. */
+html[data-bs-theme="dark"] .occjsdm-report {
+  --ground:      #12181C;
+  --ground-sunk: #1A2126;
+  --rule:        #2C3740;
+  --ink:         #E4E9E7;
+  --ink-soft:    #A6B2B6;
+  --ink-faint:   #77848A;
+  --accent:      #6BB3BF;
+  --good:        #74B48C;
+  --warn:        #D3A245;
+  --bad:         #DC8371;
+  --good-fill:   #2E4638;
+  --bad-fill:    #4E2E29;
+}
+
+.occjsdm-report .wrap {
+  /* Widened twice. 45rem -> 58rem because the 5-7 column tables were hitting
+     the .scroller fallback constantly; 58rem -> 74rem because the figures
+     are the widest thing here now and were being squeezed, and because at
+     58rem the page reads narrow against the whitespace around it.
+     Paragraphs keep their own cap below, so line length stays readable and
+     only the tables and figures take the extra room. */
+  max-width: 74rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3.25rem;
+}
+
+.occjsdm-report .eyebrow {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.occjsdm-report h1 {
+  font-family: var(--serif);
+  font-size: clamp(2.1rem, 5.5vw, 3rem);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  margin: 0.5rem 0 0;
+}
+
+.occjsdm-report .standfirst {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 1rem 0 0;
+  max-width: 34rem;
+}
+
+.occjsdm-report h2 {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  margin: 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.occjsdm-report h3 {
+  /* Was 0.95rem sans, i.e. SMALLER than the 17px body text and in a
+     different family from h1/h2 -- so subheadings read as bold paragraphs
+     rather than headings, and "Does a bigger survey help?" disappeared into
+     the prose around it. Now serif like the other headings and clearly
+     above body size, sitting between h2's 1.6rem and the text. */
+  font-family: var(--serif);
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0.6rem 0 0;
+  letter-spacing: -0.005em;
+}
+
+.occjsdm-report section { display: flex; flex-direction: column; gap: 1.1rem; }
+/* Prose runs the full column width, matching the tables. A narrower measure
+   is easier to read in the abstract, but here it left the text visibly
+   inset from every table and figure beside it, which reads as a mistake. */
+.occjsdm-report p { margin: 0; max-width: none; }
+
+/* knitr wraps every chunk figure in a <p>, so the prose cap above was
+   squeezing the generated plots to 46rem inside a 74rem column -- which is
+   why they rendered small and hard against the left margin rather than
+   filling the space. Figures are not prose and take the full column. */
+.occjsdm-report p:has(img) { max-width: none; text-align: center; }
+.occjsdm-report img { max-width: 100%; height: auto; display: block;
+                      margin-left: auto; margin-right: auto; }
+.occjsdm-report strong { font-weight: 650; }
+.occjsdm-report code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: var(--ground-sunk);
+  padding: 0.1em 0.34em;
+  border-radius: 2px;
+}
+
+/* ---- the tally: coverage made visible ---- */
+.occjsdm-report .tally-set { display: flex; flex-direction: column; gap: 2rem; }
+.occjsdm-report .tally { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.occjsdm-report .tally-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.occjsdm-report .tally-label { font-size: 0.92rem; color: var(--ink-soft); }
+.occjsdm-report .tally-label b { color: var(--ink); font-weight: 650; }
+
+.occjsdm-report .tally-delta {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  letter-spacing: 0.02em;
+}
+
+.occjsdm-report .tally-row {
+  display: grid;
+  /* First column is sized for a short caption. Do not put long parameter names
+     here: beta_theta needs 73px against this column's 58, and widening it
+     pushed the whole row past 375px on a phone. Parameter names go in the
+     .tally-label, which wraps. */
+  grid-template-columns: 3.6rem 1fr 3.2rem;
+  gap: 0 0.9rem;
+  align-items: center;
+}
+
+.occjsdm-report .tally-when {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+}
+
+.occjsdm-report .tally-score {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: right;
+}
+.occjsdm-report .tally-score.is-good { color: var(--good); }
+.occjsdm-report .tally-score.is-warn { color: var(--warn); }
+.occjsdm-report .tally-score.is-bad  { color: var(--bad); }
+
+.occjsdm-report .marks {
+  display: grid;
+  grid-template-columns: repeat(25, 1fr);
+  gap: 3px;
+}
+@media (max-width: 34rem) { .occjsdm-report .marks { grid-template-columns: repeat(20, 1fr); } }
+
+.occjsdm-report .marks.is-before { opacity: 0.42; }
+.occjsdm-report .mark { aspect-ratio: 1; border-radius: 1px; }
+.occjsdm-report .mark.hit  { background: var(--good-fill); }
+.occjsdm-report .mark.miss { background: var(--bad); }
+
+.occjsdm-report .tally-note { font-size: 0.85rem; color: var(--ink-faint); margin: 0; }
+
+/* ---- tiers ---- */
+.occjsdm-report .tiers { display: flex; flex-direction: column; gap: 0; }
+
+.occjsdm-report .tier {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0 1.25rem;
+  padding: 1.15rem 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+.occjsdm-report .tier:first-child { border-top: 1px solid var(--rule); }
+
+.occjsdm-report .tier-when {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--accent);
+  letter-spacing: 0.03em;
+  padding-top: 0.15rem;
+}
+.occjsdm-report .tier-body { display: flex; flex-direction: column; gap: 0.35rem; }
+.occjsdm-report .tier-body p { font-size: 0.92rem; color: var(--ink-soft); }
+
+/* ---- tables ---- */
+.occjsdm-report .scroller { overflow-x: auto; }
+.occjsdm-report table { border-collapse: collapse; width: 100%; font-size: 1.05em; }
+.occjsdm-report caption {
+  text-align: left;
+  font-size: 1em;
+  color: var(--ink-faint);
+  padding-bottom: 0.6rem;
+}
+.occjsdm-report th, .occjsdm-report td {
+  /* Centred, not left. Numbers left-aligned under a left-aligned header
+     read as ragged text rather than as a column of values. Label cells opt
+     back out below. */
+  text-align: center;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+.occjsdm-report th {
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  font-weight: 600;
+  border-bottom-color: var(--ink-faint);
+}
+/* The label column: html_table() emits it as a bare <td> and marks its
+   header th.lbl. Both stay left-aligned; everything else centres. */
+.occjsdm-report th.lbl, .occjsdm-report td:not([class]) { text-align: left; }
+
+.occjsdm-report td.name { font-family: var(--mono); font-size: 0.95em; white-space: nowrap; }
+.occjsdm-report td.num  { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.occjsdm-report tr.flag td { background: var(--ground-sunk); }
+.occjsdm-report td.num.lo { color: var(--bad);  font-weight: 650; }
+.occjsdm-report td.num.hi { color: var(--accent); font-weight: 650; }
+
+/* ---- callouts ---- */
+.occjsdm-report .pending {
+  border-left: 3px solid var(--accent);
+  padding: 0.9rem 0 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.occjsdm-report .pending p { font-size: 0.92rem; color: var(--ink-soft); }
+
+.occjsdm-report .finding {
+  border-left: 3px solid var(--warn);
+  padding: 0.9rem 0 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.occjsdm-report .finding p { font-size: 0.92rem; color: var(--ink-soft); }
+.occjsdm-report .finding h3 { color: var(--ink); }
+
+.occjsdm-report .fig {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.occjsdm-report .fig img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid var(--rule);
+  /* the PNGs are rendered on a fixed white background; a light card behind
+     them keeps that from looking like a mistake against a dark page */
+  background: #fff;
+  padding: 0.5rem;
+}
+.occjsdm-report .fig figcaption {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+.occjsdm-report footer {
+  border-top: 1px solid var(--rule);
+  padding-top: 1.25rem;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+}
+</style>
+
+<div class="wrap">
+
+  <header>
+```
+
+```{r header-eyebrow}
+emit(sprintf('<div class="eyebrow">occJSDM &middot; validation &middot; %s</div>',
+             format(as.POSIXct(vd$when), "%e %B %Y")))
+```
+
+```{=html}
+    <h1>Checking occJSDM against simulated truth</h1>
+    <p class="standfirst">
+      Two questions, asked of the same model: how close its estimates are to the truth,
+      and how honest the uncertainty around them is. Neither answer implies the other,
+      and the archived runs below gave different answers to them. These results
+      predate the corrected beta and do not establish its current performance.
+    </p>
+  </header>
+
+  <section>
+    <h2>The trick behind every test</h2>
+    <p>
+      All of it rests on one idea: <strong>make fake data where we already know the
+      right answer.</strong> <code>simulateOccJSDMData()</code> lets us choose the true
+      species coefficients, the true detection rates, the true everything &mdash; then
+      generate a dataset from them.
+    </p>
+    <p>
+      We hand that dataset to <code>runOccJSDM()</code>, which knows none of it, and
+      check whether it finds its way back. Real data can never do this. You never know
+      the true occupancy of a species at a site, so you can never tell whether the model
+      got it right.
+    </p>
+    <p>
+      Everything below is one of two questions. <strong>Is the estimate close?</strong>
+      That is accuracy, and it comes first. <strong>Is the stated uncertainty
+      honest?</strong> That is calibration, and it comes second. A model can pass either
+      while failing the other, and this one does exactly that in places.
+    </p>
+  </section>
+
+  <section>
+    <h2>Recovering occupancy, species by species</h2>
+    <p>
+      Start with the thing an occupancy model exists to do: say where each species is.
+      One fit of a hundred sites and ten species, two chains of 500 iterations after 500
+      discarded. Source: <code>tests/testthat/test-recovery-occupancy.R</code>.
+    </p>
+```
+
+```{r species-example}
+ex <- vd$species_example
+cat(html_table(
+  ex[, c("species", "occ_true", "occ_est", "psi_cor", "auc",
+         "drv_cov", "drv_err")],
+  caption = sprintf(paste("One row per species from a single fit: replicate %d",
+                          "of the <code>%s</code> cell. Shaded rows fall below",
+                          "a threshold used by one of the checks below."),
+                    vd$example_replicate, vd$example_cell),
+  digits = list(species = 0, occ_true = 2, occ_est = 3, psi_cor = 3,
+                auc = 3, drv_cov = 3, drv_err = 3),
+  flag = function(d, i) d$psi_cor[i] < 0.30 || d$auc[i] < 0.60,
+  lo = function(d, col, i) {
+    (col == "psi_cor" && d$psi_cor[i] < 0.30) ||
+    (col == "auc" && d$auc[i] < 0.60)
+  }))
+```
+
+```{=html}
+    <p>
+      <b>occ_true</b> is the fraction of the hundred sites where the species really is
+      present; <b>occ_est</b> is the fraction where the model thinks it is. Close values
+      are necessary but not sufficient: a model can get the overall prevalence right
+      while placing the species at entirely the wrong sites.
+    </p>
+    <p>
+      <b>psi_cor</b> catches that. It correlates the estimated chance of presence against
+      the true chance across sites, so it asks whether the species is put in the
+      <em>right places</em> rather than merely the right number of them. It runs from
+      &minus;1 to 1, and 0 means the estimates say nothing about where the species is.
+      <b>auc</b> asks the same question more forgivingly: the chance the model rates a
+      site where the species really is present above one where it really is absent. A
+      coin flip scores 0.5.
+    </p>
+    <p>
+      The last two columns look underneath, at the machinery producing those
+      occupancy estimates. Where a species lives is set by just three numbers: a
+      <em>baseline</em>, saying how common it is overall, and one <em>slope</em> for
+      each of the two environmental covariates, saying how strongly it responds to
+      each. Get those three right and the map comes out right.
+    </p>
+    <p>
+      <b>drv_cov</b> asks whether the model&rsquo;s <em>uncertainty</em> about those
+      three numbers is honest. For each one the model reports not just a best guess
+      but a range it claims the true value sits inside 95% of the time.
+      <code>drv_cov</code> is the fraction of the three ranges that really did
+      contain the truth. With only three, it can take just four values -- 0, 0.33,
+      0.67 or 1 -- which is why it reads 1.000 so often. One species is far too
+      small a sample to measure a 95% rate against. It is here to catch a collapse
+      towards 0, which would mean the truth and the estimates had been lined up
+      wrongly; it is not a calibration figure. The honest version of that
+      measurement needs the whole grid, and appears further down.
+    </p>
+    <p>
+      <b>drv_err</b> asks whether the best guesses themselves are close: the average
+      gap between estimate and truth across the same three numbers. There is no
+      universal good value, because these are log-odds rather than probabilities and
+      a species with strong environmental responses simply has larger numbers to be
+      wrong about. Read it by comparing rows in this table, not against a target.
+    </p>
+```
+
+```{r worst-species}
+# The narrative used to name species 6 and quote its numbers by hand, which
+# meant it silently described the wrong row the moment the study was re-run.
+# Find the weakest row instead, and say only what the data supports about it.
+w <- ex[which.min(ex$psi_cor), ]
+rank_err <- rank(-ex$drv_err)[which.min(ex$psi_cor)]
+ord <- c("worst", "second worst", "third worst")[rank_err]
+
+emit(sprintf('
+    <p>
+      <strong>Species %d is the row to read twice.</strong> Its <code>psi_cor</code>
+      of %s and <code>auc</code> of %s say the model has barely located it%s.
+      %s
+      That pairing between a poor estimate and honest uncertainty about it is the
+      reason this article asks two questions rather than one, and it recurs at grid
+      scale further down.
+    </p>',
+  w$species, fmt(w$psi_cor), fmt(w$auc),
+  if (!is.na(ord)) sprintf(", and its <code>drv_err</code> is the %s here", ord)
+    else "",
+  if (w$drv_cov >= 0.99)
+    sprintf(paste("Yet <code>drv_cov</code> is a perfect %s, because the intervals",
+                  "on its coefficients are wide enough to contain the truth anyway."),
+            fmt(w$drv_cov))
+  else
+    sprintf(paste("Its <code>drv_cov</code> of %s says the intervals on its",
+                  "coefficients do not fully absorb that either."),
+            fmt(w$drv_cov))))
+```
+
+```{=html}
+    </p>
+```
+
+```{r across-replicates}
+# This section is new, and it exists because the sentence it replaces was an
+# admission: "a single fit cannot say whether that is a property of the model
+# or the luck of one dataset." The study fits every cell 100 times and now
+# scores occupancy on all of them, so the question is answerable rather than
+# rhetorical. One table of ten species becomes a distribution over hundreds.
+os <- vd$occupancy_summary
+cell <- os[os$scenario == vd$example_cell, ]
+prev <- vd$occupancy_by_prevalence
+prev_cell <- prev[prev$scenario == vd$example_cell, ]
+
+emit(sprintf('
+    <h3>Is that species unlucky, or is the model?</h3>
+    <p>
+      The table above is one fit. It cannot tell you whether a weak row is a
+      property of the model or the luck of one dataset -- so the study fits the
+      same cell %d times and scores every one. That turns ten numbers into
+      <b>%s species-fits</b>, and the question becomes answerable.
+    </p>
+    <p>
+      Across those, <code>psi_cor</code> averages <b>%s</b>, with the middle 90%%
+      running from %s to %s. The single fit above is therefore %s. %s
+    </p>',
+  cell$R, format(cell$n_species_fit, big.mark = ","),
+  fmt(cell$psi_cor_mean), fmt(cell$psi_cor_q05), fmt(cell$psi_cor_q95),
+  if (abs(mean(ex$psi_cor) - cell$psi_cor_mean) < 0.05) "typical"
+    else if (mean(ex$psi_cor) > cell$psi_cor_mean) "a little better than typical"
+    else "a little worse than typical",
+  sprintf(paste("A weak row like species %d sits inside that spread rather than",
+                "outside it, so it is the ordinary variation between species and",
+                "datasets, not a defect."), w$species)))
+
+if (!is.null(prev_cell) && nrow(prev_cell) > 1) {
+  cat(html_table(
+    prev_cell[, c("prevalence", "n_species_fit", "occ_true",
+                  "psi_cor_mean", "psi_cor_q05", "psi_cor_q95", "auc_mean")],
+    caption = sprintf(paste("Occupancy recovery banded by how common the species",
+                            "actually is, over all %d replicates of",
+                            "<code>%s</code>. The q05 and q95 columns are the",
+                            "middle 90%% of species-fits in each band."),
+                      cell$R, vd$example_cell),
+    digits = list(prevalence = 0, n_species_fit = 0, occ_true = 3,
+                  psi_cor_mean = 3, psi_cor_q05 = 3, psi_cor_q95 = 3,
+                  auc_mean = 3),
+    align_first_left = TRUE))
+
+  best <- prev_cell[which.max(prev_cell$psi_cor_mean), ]
+  worst <- prev_cell[which.min(prev_cell$psi_cor_mean), ]
+  # Is the relationship monotonic in prevalence, or humped? This decides which
+  # claim the paragraph can honestly make. The first full run showed a hump:
+  # recovery climbs from the rarest band, peaks in the middle, then eases off
+  # for the commonest species -- which is why the plain correlation between
+  # prevalence and recovery is near zero while the bands plainly differ.
+  # Quoting that correlation as "rare species are harder" would contradict the
+  # table directly above it.
+  humped <- which.max(prev_cell$psi_cor_mean) < nrow(prev_cell)
+
+  n_rarest <- prev_cell$n_species_fit[1]
+  emit(sprintf('
+    <p>
+      <strong>Prevalence looks like it matters. It mostly does not.</strong>
+      Species in the %s band average %s, the weakest here, against %s in the
+      strongest band (%s), which invites the reading that rare species are the
+      hard ones. Two things argue against it. The weakest band rests on %d of
+      the %s species-fits in this cell, so it is the noisiest number in the
+      table. And across all of them the plain correlation between how common a
+      species is and how well it is placed is <b>%s</b> -- essentially nothing.
+    </p>
+    <p>
+      An earlier version of this page read the bands as evidence that the model
+      struggles with rare species. That does not survive a proper look: the
+      next section finds what actually drives the difference, and prevalence is
+      not it. Rarity travels with the real cause rather than being it.
+    </p>',
+    worst$prevalence, fmt(worst$psi_cor_mean),
+    fmt(best$psi_cor_mean), best$prevalence,
+    n_rarest, format(cell$n_species_fit, big.mark = ","),
+    fmt(cell$cor_prev)))
+}
+```
+
+```{r variance-decomposition}
+# The section this replaces asserted a prevalence effect from a banded table.
+# With the right predictors it evaporates, and something with far more
+# explanatory power takes its place. Everything here is measured, not argued.
+oc <- vd$occupancy
+oc <- oc[oc$scenario == vd$example_cell & !is.na(oc$share_env), ]
+
+if (nrow(oc) > 0) {
+  cr <- function(x) fmt(stats::cor(oc[[x]], oc$psi_cor), 2)
+  fit <- stats::lm(psi_cor ~ sd_eta + share_env + share_spat + occ_true,
+                   data = oc)
+  r2 <- summary(fit)$adj.r.squared
+
+  emit(sprintf('
+    <h3>So what does decide whether a species is recovered?</h3>
+    <p>
+      Each simulated species has its occupancy driven by three things in known
+      proportions: the <b>environmental</b> covariates we measured, the
+      <b>spatial</b> field, and the <b>latent factors</b> standing in for
+      everything we did not measure. The simulator records that split, so it
+      can be set against how well each species was then recovered. Over the
+      %s species-fits in <code>%s</code>:
+    </p>',
+    format(nrow(oc), big.mark = ","), vd$example_cell))
+
+  tbl <- data.frame(
+    `What varies between species` = c(
+      "Share of occupancy driven by measured environment",
+      "Share driven by latent factors (the unmeasured part)",
+      "How much the species' true occupancy varies across sites",
+      "Share driven by the spatial field",
+      "How common the species is"),
+    `correlation with psi_cor` = c(cr("share_env"), cr("share_lat"),
+                                   cr("sd_eta"), cr("share_spat"),
+                                   cr("occ_true")),
+    check.names = FALSE, stringsAsFactors = FALSE)
+  cat(html_table(tbl, align_first_left = TRUE))
+
+  q <- prev_cell  # reuse styling; build the latent-share bands
+  oc$band <- cut(oc$share_lat, stats::quantile(oc$share_lat, 0:5 / 5),
+                 include.lowest = TRUE)
+  agg <- aggregate(cbind(psi_cor, share_env, share_lat) ~ band, oc, mean)
+  agg$n <- as.integer(table(oc$band))
+  names(agg) <- c("latent share (band)", "psi_cor", "share_env", "share_lat", "n")
+  cat(html_table(agg[, c("latent share (band)", "n", "share_env",
+                         "share_lat", "psi_cor")],
+    caption = "Species grouped by how much of their occupancy comes from the unmeasured, latent part of the model.",
+    digits = list(`latent share (band)` = 0, n = 0, share_env = 3,
+                  share_lat = 3, psi_cor = 3),
+    align_first_left = TRUE))
+
+  emit(sprintf('
+    <p>
+      <strong>In these archived runs, species with more of their distribution
+      driven by measured covariates were recovered better.</strong> From %s in the least
+      latent-driven fifth to %s in the most: a factor of nearly three, on the
+      same model and the same data.
+    </p>
+    <p>
+      The environmental coefficients are shared across sites. The latent
+      pathway combines site-specific scores with species loadings that are
+      also shared across sites, so additional sites can inform that pathway
+      too. These archived associations do not isolate which part of the
+      model caused the difference in recovery.
+    </p>
+    <p>
+      A second consideration is a property of the measurement:
+      a species whose true occupancy barely varies between sites has no pattern
+      to find, and the correlation then compares noise with noise. Together
+      with the shares above these account for <b>%s</b> of the variation in
+      <code>psi_cor</code> in this archived analysis; prevalence adds nothing
+      once they are in.
+    </p>
+    <p>
+      <strong>This comparison does not establish current survey guidance.</strong>
+      The most latent-driven group had recovery of roughly %s rather than %s
+      in the least latent-driven group. It motivates checking covariate choice
+      and sampling effort together; it does not show that adding sites cannot
+      help or guarantee recovery in a real survey.
+    </p>',
+    fmt(agg$psi_cor[1]), fmt(agg$psi_cor[nrow(agg)]),
+    pct(r2, 0), fmt(agg$psi_cor[nrow(agg)]), fmt(agg$psi_cor[1])))
+}
+```
+
+```{=html}
+
+    <h3>The checks these numbers have to pass</h3>
+    <p>
+      The table above is one snapshot. The test asserts on pooled summaries of it, with
+      floors set by running the whole thing under eight different sets of random seeds and
+      taking a value comfortably below the worst seen, so a failure means breakage rather
+      than an unlucky draw.
+    </p>
+```
+
+```{r tier2-checks}
+# Floors and swept ranges are the constants from test-recovery-occupancy.R,
+# which records them as text because they are a record of a measurement (eight
+# seed sets, swept once) rather than something recomputed per run. The Result
+# column is computed from the same fit shown above, so the table cannot claim a
+# pass that the numbers beside it do not support.
+chk <- data.frame(
+  `What it measures` = c(
+    "Estimated occupancy tracking the truth, averaged over species",
+    "Species clearing that bar individually",
+    "Telling present sites from absent ones",
+    "Coverage of the coefficients driving occupancy",
+    "Those coefficients tracking their true values"),
+  Result = c(fmt(mean(ex$psi_cor)),
+             sprintf("%d of %d", sum(ex$psi_cor >= 0.30), nrow(ex)),
+             fmt(mean(ex$auc)),
+             fmt(mean(ex$drv_cov)),
+             fmt(stats::cor(ex$occ_est, ex$occ_true))),
+  Floor = c("0.30", as.character(ceiling(nrow(ex) / 2)), "0.60", "0.55", "0.30"),
+  Swept = c("0.498-0.753", "7-10", "0.748-0.855", "0.800-1.000", "0.647-0.900"),
+  check.names = FALSE, stringsAsFactors = FALSE)
+
+n_pass <- sum(c(mean(ex$psi_cor) >= 0.30,
+                sum(ex$psi_cor >= 0.30) >= ceiling(nrow(ex) / 2),
+                mean(ex$auc) >= 0.60,
+                mean(ex$drv_cov) >= 0.55,
+                stats::cor(ex$occ_est, ex$occ_true) >= 0.30))
+
+cat(html_table(chk,
+  caption = sprintf("Asserted quantities. %s on this fit.",
+                    if (n_pass == nrow(chk)) "All five pass"
+                    else sprintf("%d of %d pass", n_pass, nrow(chk))),
+  align_first_left = TRUE))
+```
+
+```{=html}
+    <p>
+      The species are judged pooled rather than each having to pass alone, because a
+      per-species floor proved unworkable: across the eight seed sets the worst individual
+      species ranged from &minus;0.401 to 0.913, so any threshold strict enough to be worth
+      having would fail on ordinary, healthy data. Counting how many clear the bar keeps
+      most of what a per-species check would catch without that fragility.
+    </p>
+  </section>
+
+  <section>
+    <h2>How close are the estimates, across the whole grid?</h2>
+    <p>
+      One fit cannot separate the model from the dataset. The full study fits 1000 of
+      them &mdash; 100 simulated datasets in each of ten scenarios &mdash; and that is
+      enough to say how well each kind of parameter is recovered. Source:
+      <code>tests/testthat/test-coverage-study.R</code>, run via
+      <code>dev/simstudy/run_study.R</code>.
+    </p>
+```
+
+```{r accuracy-table}
+BLOCK_MEANING <- c(
+  B = "species responses to environment",
+  G = "trait effects",
+  p = "detection probability",
+  q = "false-positive rate",
+  B0 = "species intercepts",
+  beta_theta = "collection-covariate effects",
+  resid_cor = "species co-occurrence",
+  theta0 = "collection baseline",
+  sigma_b = "prior scale on species responses")
+
+acc <- vd$accuracy[vd$accuracy$scenario == vd$example_cell, ]
+acc <- acc[order(acc$nrmse, na.last = TRUE), ]
+acc$what <- BLOCK_MEANING[acc$block]
+acc$what[is.na(acc$what)] <- ""
+
+tbl <- data.frame(Parameter = acc$block, `What it is` = acc$what,
+                  bias = acc$bias, nRMSE = acc$nrmse, r = acc$r,
+                  check.names = FALSE, stringsAsFactors = FALSE)
+
+cat(html_table(tbl,
+  caption = sprintf(paste("Reference scenario <code>%s</code>, %d datasets.",
+                          "<b>nRMSE</b> is the typical error divided by how much",
+                          "the true values themselves vary: below 1 the model",
+                          "beats guessing the average, above 1 it does not.",
+                          "<b>r</b> correlates estimates against truth."),
+                    vd$example_cell, vd$R),
+  digits = list(Parameter = 0, `What it is` = 0, bias = 3, nRMSE = 3, r = 3),
+  flag = function(d, i) !is.na(d$nRMSE[i]) && d$nRMSE[i] >= 0.95,
+  lo = function(d, col, i) {
+    (col == "nRMSE" && !is.na(d$nRMSE[i]) && d$nRMSE[i] >= 0.95) ||
+    (col == "r" && !is.na(d$r[i]) && d$r[i] < 0.40)
+  },
+  align_first_left = TRUE))
+```
+
+```{=html}
+```
+
+```{r accuracy-narrative}
+# Classify rather than name. The old prose hard-coded "B and G are recovered
+# well" and "resid_cor and theta0 are not", which is a claim about a particular
+# run: if a fix lands and a parameter moves between those groups, hand-written
+# prose keeps asserting the old grouping while the table above contradicts it.
+code <- function(x) paste0("<code>", x, "</code>", collapse = ", ")
+lst <- function(x) {
+  if (length(x) == 0) return("")
+  if (length(x) == 1) return(code(x))
+  paste(code(x[-length(x)]), "and", code(x[length(x)]))
+}
+
+good <- acc[!is.na(acc$nrmse) & acc$nrmse < 0.70, ]
+poor <- acc[!is.na(acc$nrmse) & (acc$nrmse >= 0.95 | acc$r < 0.40), ]
+mid  <- acc[!acc$block %in% c(good$block, poor$block), ]
+
+if (nrow(good) > 0) emit(sprintf('
+    <p>
+      <strong>Best recovered: %s.</strong> %s sit below 0.7 nRMSE, i.e. comfortably
+      better than ignoring the data would be, correlating with truth at %s. If you
+      are fitting this model to ask which species respond to which environmental
+      gradients, that is the part of the answer that holds up.
+    </p>',
+  lst(good$block),
+  if (nrow(good) == 1) "It sits" else "They sit",
+  paste(fmt(good$r, 2), collapse = " and ")))
+
+if (nrow(mid) > 0) {
+  worst_bias <- mid[which.max(abs(mid$bias)), ]
+  emit(sprintf('
+    <p>
+      <strong>Respectable but not sharp: %s.</strong> These land between 0.7 and
+      0.95 nRMSE. The largest bias among them is %s at %s, so that quantity is
+      being reported as systematically %s than it is.
+    </p>',
+    lst(mid$block), code(worst_bias$block), fmt(worst_bias$bias),
+    if (worst_bias$bias > 0) "higher" else "lower"))
+}
+
+if (nrow(poor) > 0) emit(sprintf('
+    <p>
+      <strong>Not recovered: %s.</strong> %s nRMSE at or near 1 and correlations
+      with truth of %s. For %s, the estimates carry essentially no information
+      about the true values -- an nRMSE above 1 is worse than simply predicting
+      the overall average. %s covered below.
+    </p>',
+  lst(poor$block),
+  if (nrow(poor) == 1) "It has" else "They have",
+  paste(fmt(poor$r, 3), collapse = " and "),
+  if (nrow(poor) == 1) "it" else "these",
+  if (nrow(poor) == 1) "It is" else "They are"))
+```
+
+```{=html}
+    <p>
+      The table above is the <code>base</code> scenario alone. Here is bias and error at
+      full resolution &mdash; one panel per parameter, one point per scenario &mdash; the
+      same pairing used for coverage further down.
+    </p>
+    <figure class="fig">
+```
+
+```{r fig-bias, fig.width = 10, fig.height = 5, dev = "png", dpi = 160}
+print(plot_by_block("bias"))
+```
+
+```{=html}
+      <figcaption>
+        Bias by parameter, across all ten scenarios. <code>B0</code> is negative in every
+        scenario, not just on average, and worst in <code>low_information</code>.
+        <code>beta_theta</code> swings positive there too, while everything else stays
+        close to the dashed zero line. Source data: <code>dev/simstudy/results/</code>,
+        produced by <code>dev/simstudy/run_study.R</code>; see the footer for the run that
+        generated it. Pre-rendered rather than computed at build time, since the underlying
+        CSV is not checked in.
+      </figcaption>
+    </figure>
+    <figure class="fig">
+```
+
+```{r fig-rmse, fig.width = 10, fig.height = 5, dev = "png", dpi = 160}
+print(plot_by_block("rmse"))
+```
+
+```{=html}
+      <figcaption>
+        RMSE by parameter, across all ten scenarios &mdash; raw error, on each parameter&rsquo;s
+        own scale, not the normalised <b>nRMSE</b> in the table above. Each panel has its
+        own x-axis, so compare scenarios <em>within</em> a panel, not the numbers <em>across</em>
+        panels. <code>low_information</code> is the outlier throughout &mdash; worst or
+        near-worst in every block that has it as an option &mdash; consistent with the
+        bias picture: thin data degrades this scenario across the board, not through one
+        failing parameter.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Coverage, at full resolution</h2>
+    <p>
+      The tables above summarise across scenarios. Here is every cell: one panel per
+      parameter, one point per scenario, with a 95% interval on the coverage estimate
+      itself (&plusmn;1.96 standard errors on the underlying binomial proportion).
+      <code>beta_theta</code> sits left of the dashed nominal line in every single
+      scenario &mdash; not just on average &mdash; while <code>theta0</code> and
+      <code>sigma_b</code> sit at or above it almost everywhere. <code>low_information</code>
+      is the one point pulling <code>p</code> down to the floor.
+    </p>
+    <figure class="fig">
+```
+
+```{r fig-cov-block, fig.width = 10, fig.height = 5, dev = "png", dpi = 160}
+print(plot_coverage_by_block())
+```
+
+```{=html}
+      <figcaption>
+        Coverage by parameter, across all ten scenarios. Source data:
+        <code>dev/simstudy/results/</code>, produced by
+        <code>dev/simstudy/run_study.R</code>; see the footer for the run that generated
+        it. Pre-rendered rather than computed at build time, since the underlying CSV is
+        not checked in.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>What &ldquo;coverage&rdquo; means</h2>
+    <p>
+      The model doesn&rsquo;t just report a number for, say, species 3&rsquo;s response
+      to elevation. It reports a <strong>95% credible interval</strong> &mdash; a range,
+      with the claim <em>&ldquo;I&rsquo;m 95% sure the true value is in here.&rdquo;</em>
+    </p>
+    <p>
+      That claim is testable. Simulate 100 datasets where the truth is known, fit all
+      100, and for each ask one question: did the interval contain the truth? Then count.
+      That count is <strong>coverage</strong>. Falling short of the advertised rate is
+      <strong>undercoverage</strong> &mdash; intervals that contain the truth less often
+      than they promise, because they are too narrow or sitting off-centre.
+    </p>
+    <p>
+      It matters in print. Report a 95% interval for a parameter that covers at 72%, and
+      you are overstating your confidence to a reader who has no way to check.
+      Overcoverage &mdash; intervals wider than they need to be &mdash; is the opposite
+      problem: safer, but you are discarding power you actually had. And as the section
+      above shows, an honest interval around a useless estimate is still useless.
+    </p>
+  </section>
+
+  <section>
+    <h2>The ten scenarios</h2>
+    <p>
+      One is the reference design; the other nine each change <strong>exactly one
+      thing</strong> about it. When a cell misbehaves, you know which feature caused it.
+    </p>
+    <p>
+      The reference is a mid-sized survey: 100 sites, 10 species, 2 water samples per
+      site, 2 primers, 3 PCR replicates each, two environmental covariates, one
+      collection covariate, two measured traits, two ordination axes, spatial field on.
+      It exercises every feature at once. Definitions:
+      <code>tests/testthat/helper-simstudy.R</code>.
+    </p>
+    <div class="scroller">
+      <table>
+  <caption>Each variant differs from the reference in one respect only.</caption>
+  <thead>
+    <tr><th>Scenario</th><th>What changes</th><th>What it asks</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="name">spatial_isolated</td><td>traits off</td><td>Does the spatial term work with trait effects out of the way?</td></tr>
+    <tr><td class="name">traits_isolated</td><td>spatial off</td><td>Does the trait&times;environment term work without the spatial field competing?</td></tr>
+    <tr><td class="name">primers_3</td><td>2 &rarr; 3 primers</td><td>Does per-primer detection hold with more primers?</td></tr>
+    <tr><td class="name">low_information</td><td>40 sites, weak detection</td><td>The hard case: thin, realistic eDNA data.</td></tr>
+    <tr><td class="name">d_underfit</td><td>truth 4 axes, fit 2</td><td>Under-specifying the ordination &mdash; the common real mistake.</td></tr>
+    <tr><td class="name">d_overfit</td><td>truth 2 axes, fit 4</td><td>Over-specifying it.</td></tr>
+    <tr><td class="name">species_20</td><td>10 &rarr; 20 species</td><td>Does it hold as the community grows?</td></tr>
+    <tr><td class="name">occupancy</td><td>no PCR stage</td><td>The collapsed form: field replicates only.</td></tr>
+    <tr><td class="name">binary</td><td>no replicates</td><td>Pure JSDM, no detection model.</td></tr>
+  </tbody>
+</table>
+    </div>
+    <figure class="fig">
+```
+
+```{r fig-cov-scen, fig.width = 10, fig.height = 5, dev = "png", dpi = 160}
+print(plot_coverage_by_scenario())
+```
+
+```{=html}
+      <figcaption>
+        The same measurements, grouped the other way: one panel per scenario, so you can
+        read off which parameters misbehave together within a single design.
+        <code>low_information</code> is the one scenario where the whole panel shifts
+        left rather than a single parameter failing on its own &mdash; thin data
+        degrades everything downstream of detection, not just detection itself.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Is the uncertainty honest?</h2>
+    <p>
+      Two parameters from the reference design, each fitted to 100 simulated datasets.
+      Every mark is one interval; the dark ones missed the truth. Both promise to miss
+      five times.
+    </p>
+```
+
+```{r tallies}
+# Two contrasting parameters from the reference cell: the best-calibrated block
+# and the worst. Which two those are is read from the data rather than named,
+# so the section keeps making its point if a fix moves them.
+ref <- vd$summary[vd$summary$scenario == vd$example_cell, ]
+ref <- ref[order(abs(ref$coverage - 0.95)), ]
+
+tally <- function(row, label, note_good, note_bad) {
+  hits <- round(100 * row$coverage)
+  band <- if (abs(row$coverage - 0.95) <= 0.03) "is-good"
+          else if (row$coverage < 0.95) "is-bad" else "is-warn"
+  sprintf('
+<figure class="tally">
+<div class="tally-head">
+<div class="tally-label"><b>%s</b> (<code>%s</code>) -- %s</div>
+<div class="tally-delta">%d of 100</div>
+</div>
+<div class="tally-row">
+<div class="tally-when">n = %d</div>
+<div class="marks" data-hits="%d"></div>
+<div class="tally-score %s">%s</div>
+</div>
+<figcaption class="tally-note">%s</figcaption>
+</figure>',
+    label, row$block,
+    if (band == "is-good") "the interval means what it says"
+      else if (band == "is-bad") "overconfident" else "conservative",
+    hits, row$n_checked, hits, band, fmt(row$coverage),
+    if (band == "is-good") note_good else note_bad)
+}
+
+best <- ref[1, ]
+worst <- ref[nrow(ref), ]
+
+miss_best <- round(100 * (1 - best$coverage))
+miss_worst <- round(100 * (1 - worst$coverage))
+
+emit(sprintf('<div class="tally-set">%s%s</div>',
+  tally(best, BLOCK_MEANING[best$block] %||% best$block,
+        sprintf(paste("%d misses where five were promised. That is within the",
+                      "noise of the measurement, and this is what a calibrated",
+                      "parameter looks like."), miss_best),
+        sprintf("%d misses against five promised.", miss_best)),
+  tally(worst, BLOCK_MEANING[worst$block] %||% worst$block,
+        sprintf("%d misses against five promised.", miss_worst),
+        sprintf(paste("%d misses against five promised, %s times the advertised",
+                      "error rate. A reader quoting these intervals would be",
+                      "substantially more confident than the data warrants."),
+                miss_worst, fmt(miss_worst / 5, 1)))))
+```
+
+```{=html}
+
+    <p>
+      The same measurement for every parameter, summarised across all ten scenarios.
+      Nominal is 0.95, and at 100 datasets the measurement itself carries a standard error
+      of about 0.022, so differences smaller than that are noise.
+    </p>
+```
+
+```{r coverage-summary-table}
+cs <- do.call(rbind, lapply(split(vd$summary, vd$summary$block), function(d) {
+  wi <- which.min(d$coverage)
+  data.frame(
+    Parameter = d$block[1],
+    median = stats::median(d$coverage),
+    lowest = d$coverage[wi],
+    highest = max(d$coverage),
+    # Blank rather than naming a cell when every scenario ties, which is what
+    # a block pinned at 1.000 everywhere does: there is no worst cell to name.
+    `worst cell` = if (diff(range(d$coverage)) < 1e-9) "" else d$scenario[wi],
+    check.names = FALSE, stringsAsFactors = FALSE)
+}))
+cs <- cs[order(cs$median), ]
+
+cat(html_table(cs,
+  caption = "Median across scenarios, with the range and the worst-performing cell.",
+  digits = list(Parameter = 0, median = 3, lowest = 3, highest = 3,
+                `worst cell` = 0),
+  flag = function(d, i) d$median[i] < 0.90,
+  lo = function(d, col, i) {
+    (col == "median" && d$median[i] < 0.90) ||
+    (col == "lowest" && d$lowest[i] < 0.85)
+  },
+  align_first_left = TRUE))
+```
+
+```{=html}
+    <p>
+      <strong>Historical interval coverage.</strong> In this pre-fix bundle,
+      intervals for <code>B</code>, <code>G</code> and <code>B0</code> appeared
+      close to 0.95 in the reference design and in most variants. This does
+      not establish coverage for the corrected beta code. The historical
+      <code>q</code> comparison used the wrong simulated truth; see the
+      opening disclaimer before interpreting these tables.
+    </p>
+    <p>
+      <strong>Historical <code>beta_theta</code> comparison.</strong> The bundle
+      reported median coverage of 0.757, but its collection coefficients were
+      not compared on the fitter's standardised scale. This row cannot establish
+      interval coverage for the corrected beta code; the calibration recheck
+      remains future work.
+    </p>
+    <p>
+      <strong>Historical <code>theta0</code> results.</strong> The bundle reported
+      coverage of 0.982 and an estimate-truth correlation of 0.342. These
+      pre-fix results do not establish the accuracy or interval coverage of
+      the corrected beta code.
+    </p>
+    <p>
+      <strong><code>sigma_b</code> reads 1.000 everywhere</strong> because its prior is
+      tight enough to dominate the data. It is not evidence of anything.
+    </p>
+
+    <div class="finding">
+      <h3>Do not read the <code>resid_cor</code> row as undercoverage</h3>
+      <p>
+        It looks like the second-worst calibrated parameter in the table. It is something
+        stranger, and the number should not be quoted as evidence for or against anything
+        until the measurement is repaired.
+      </p>
+```
+
+```{r resid-cor-degeneracy}
+dg <- vd$degeneracy
+ref_dg <- dg[dg$scenario == vd$example_cell, ]
+alt_dg <- dg[dg$scenario != vd$example_cell, ]
+alt_dg <- alt_dg[which.max(alt_dg$predicted_coverage), ]
+rc <- vd$accuracy[vd$accuracy$scenario == vd$example_cell &
+                  vd$accuracy$block == "resid_cor", ]
+
+emit(sprintf('
+      <p>
+        The credible intervals for residual correlations span almost the entire range
+        a correlation can occupy: <strong>%s are wider than 1.9</strong> on a scale
+        bounded by -1 and 1, median width %s. An interval that wide contains
+        everything, so coverage should be near perfect. It is %s only because %s of
+        the true correlations sit at exactly &plusmn;1, right on the boundary, and
+        fall a hair outside.
+      </p>
+      <p>
+        Coverage here is therefore <em>arithmetically</em> one minus the share of true
+        correlations equal to &plusmn;1: %s predicted against %s measured in the
+        reference cell, and %s against %s in <code>%s</code>. That difference is a
+        property of the simulation, not of the model -- with two ordination axes each
+        species is a two-dimensional vector and many pairs come out exactly collinear;
+        with four that is rare.
+      </p>
+      <p>
+        The honest summary is the accuracy table: residual correlations correlate with
+        truth at <strong>%s</strong>. They are not being recovered, and the intervals
+        are too wide rather than too narrow. If species co-occurrence is what you came
+        for, this configuration of the model does not deliver it, and
+        <code>plotResidualCorrelationMatrix()</code> should be read with that in mind.
+      </p>',
+  pct(ref_dg$share_wide, 1), fmt(ref_dg$median_width),
+  fmt(ref_dg$coverage), pct(ref_dg$share_at_one, 0),
+  fmt(ref_dg$predicted_coverage), fmt(ref_dg$coverage),
+  fmt(alt_dg$predicted_coverage), fmt(alt_dg$coverage), alt_dg$scenario,
+  fmt(rc$r)))
+```
+
+```{=html}
+    </div>
+  </section>
+
+  <section>
+    <h2>Where it breaks down</h2>
+```
+
+```{r breakdown}
+# Find the worst cell from the data rather than asserting it is
+# low_information. If a fix changes which configuration fails hardest, the
+# prose should follow the numbers instead of contradicting them.
+worst_row <- vd$summary[which.min(vd$summary$coverage), ]
+wc <- vd$summary[vd$summary$scenario == worst_row$scenario, ]
+wc <- wc[order(wc$coverage), ]
+wacc <- vd$accuracy[vd$accuracy$scenario == worst_row$scenario, ]
+bias_of <- function(b) {
+  v <- wacc$bias[wacc$block == b]
+  if (length(v) == 0) NA_real_ else v[1]
+}
+others <- utils::head(wc$block[-1], 2)
+
+emit(sprintf('
+    <p>
+      <strong>The hardest cell is <code>%s</code>.</strong> There <code>%s</code>
+      covers at <strong>%s</strong> against a nominal 0.95, with a bias of %s.
+      Everything downstream of it degrades in the same cell: %s. This is the
+      configuration to look at before trusting the model on a small survey.
+    </p>',
+  worst_row$scenario, worst_row$block, fmt(worst_row$coverage),
+  fmt(bias_of(worst_row$block)),
+  paste(sprintf("<code>%s</code> covers at %s", others,
+                fmt(wc$coverage[match(others, wc$block)])),
+        collapse = " and ")))
+
+emit(sprintf('
+    <p>
+      <strong>These are one run at one seed.</strong> Every number here comes from a
+      single execution of the study, %d replicates per cell, so the coverage figures
+      carry a standard error near %s. The occupancy statistics are the exception:
+      those now come with the spread across all %s species-fits shown above, rather
+      than resting on the single fit at the top.
+    </p>',
+  vd$R, fmt(sqrt(0.95 * 0.05 / vd$R), 3),
+  format(sum(vd$occupancy_summary$n_species_fit), big.mark = ",")))
+```
+
+```{=html}
+```
+
+```{r sites-comparison, fig.width = 10, fig.height = 9.5, dev = "png", dpi = 160}
+ex <- vd$extra_cells[["sites_300"]]
+if (!is.null(ex)) {
+  b <- vd$occupancy[vd$occupancy$scenario == vd$example_cell &
+                    !is.na(vd$occupancy$share_lat), ]
+  s <- ex$occupancy[!is.na(ex$occupancy$share_lat), ]
+  q <- function(x, p) as.numeric(stats::quantile(x, p))
+
+  emit(sprintf('
+    <h3>Does a bigger survey help?</h3>
+    <p>
+      The same design with <b>three times the sites</b>, 300 against 100, and
+      everything else held: same species, same samples per site, same primers,
+      same PCR replicates. %s replicates each, so this is a comparison between
+      two distributions rather than between two fits.
+    </p>
+    <p>
+      The means move from <b>%s</b> to <b>%s</b>. That understates it, because
+      the gain is not spread evenly: the top of the range hardly shifts (%s to
+      %s at the 95th percentile, since those species were already near the
+      ceiling) while the bottom moves a long way (%s to %s at the 5th). The
+      share of species-fits coming out below 0.3 -- effectively unusable --
+      falls from <b>%s</b> to <b>%s</b>.
+    </p>
+    <p>
+      So what a bigger survey buys is not that every species is placed better.
+      It is that <strong>far fewer species come out unusable</strong>, which for
+      a real survey is the more valuable guarantee. Note also that both
+      distributions are strongly left-skewed with a tail below zero, so a mean
+      on its own always flatters this quantity.
+    </p>',
+    format(ex$R %||% 100, big.mark = ","),
+    fmt(mean(b$psi_cor), 2), fmt(mean(s$psi_cor), 2),
+    fmt(q(b$psi_cor, .95), 2), fmt(q(s$psi_cor, .95), 2),
+    fmt(q(b$psi_cor, .05), 2), fmt(q(s$psi_cor, .05), 2),
+    pct(mean(b$psi_cor < 0.3), 0), pct(mean(s$psi_cor < 0.3), 0)))
+
+  print(plot_sites_distribution())
+
+  emit(sprintf('
+    <p>
+      The panels below the first split species by how much of their occupancy
+      the model can see directly. The shift is modest where occupancy is
+      governed by measured covariates and largest where it is governed by the
+      unmeasured, latent part -- the band where the 100-site distribution has
+      real mass at and below zero. More sites sharpen the shared loadings that
+      the latent pathway depends on. A plausible reason for the larger gains
+      among species with less directly usable information is that those species
+      benefit more from improved shared loadings; this mechanism was not tested.
+    </p>
+    <p>
+      The historical <code>beta_theta</code> comparison reports coverage changing
+      from %s to %s. Its coefficients were not compared on the fitter&rsquo;s
+      standardised scale, so these numbers cannot establish that more data
+      improves or worsens interval coverage. Current calibration needs a
+      corrected recheck.
+    </p>',
+    fmt(vd$summary$coverage[vd$summary$scenario == vd$example_cell &
+                            vd$summary$block == "beta_theta"]),
+    fmt(ex$summary$coverage[ex$summary$block == "beta_theta"])))
+}
+```
+
+```{=html}
+    <p>
+      <strong>This historical study does not assess spatial range recovery.</strong>
+      Range estimates were excluded from the saved pre-fix tables after poor
+      recovery in those runs. These tables cannot assess the corrected beta
+      spatial sampler; see the <a href="https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/spatial-beta-recheck.md">current spatial validation report</a> for its
+      tested cases and limitations.
+    </p>
+  </section>
+
+  <section>
+    <h2>What runs when</h2>
+    <div class="tiers">
+      <div class="tier">
+        <div class="tier-when">10&nbsp;sec<br>every&nbsp;run</div>
+        <div class="tier-body">
+          <h3>Does it work at all?</h3>
+          <p>
+            Fits every configuration the package offers &mdash; two-stage,
+            occupancy-only, pure JSDM, with and without traits or spatial structure &mdash;
+            and checks each completes and returns sensibly shaped output. One test per bug
+            already fixed, named after it, so none returns unnoticed. Plus the convergence
+            diagnostics, checked against values worked out by hand.
+            <code>test-smoke-configs.R</code>, <code>test-api-contracts.R</code>,
+            <code>test-regression-bugs.R</code>, <code>test-diagnostics.R</code>.
+          </p>
+          <p>
+            Checks <em>shape</em> rather than exact numbers, because any legitimate change
+            to the sampler moves every number and a suite of stored values would turn each
+            such change into a wall of meaningless failures. The current sampler draws
+            random numbers serially on R&rsquo;s main thread. With the same seed,
+            data, settings and software/platform, changing the requested thread count
+            does not change the sampling stream. The archived study also records its
+            thread settings for reproduction.
+          </p>
+        </div>
+      </div>
+
+      <div class="tier">
+        <div class="tier-when">30&nbsp;sec<br>local&nbsp;only</div>
+        <div class="tier-body">
+          <h3>Has anything obviously broken?</h3>
+          <p>
+            Five simulated datasets fitted and compared against known truth, plus the
+            per-species occupancy check at the top of this page. Too few to measure
+            coverage &mdash; these are canaries. Their job is catching a broken connection
+            between truth and estimate, which shows up as coverage near zero rather than
+            merely low. <code>test-recovery.R</code>,
+            <code>test-recovery-occupancy.R</code>.
+          </p>
+        </div>
+      </div>
+```
+
+```{r tier3-runtime}
+pv <- vd$provenance
+n_cells <- length(unique(vd$summary$scenario))
+n_fits <- n_cells * vd$R
+
+emit(sprintf('
+      <div class="tier">
+        <div class="tier-when">%s&nbsp;hr<br>on&nbsp;demand</div>
+        <div class="tier-body">
+          <h3>Is it accurate, and is it honest?</h3>
+          <p>
+            %d simulated datasets for each of %d scenarios: the study behind
+            every grid-scale number on this page. The run reported here fitted the
+            model %s times across %s processor cores in %.0f minutes, %s.
+            <code>test-coverage-study.R</code>, <code>dev/simstudy/run_study.R</code>.
+          </p>
+          <p>
+            Each fit is single-threaded; the parallelism is across replicate
+            processes. That is deliberate and it bounds what this page can claim:
+            these numbers describe occJSDM at one thread per fit, not at the
+            multi-core default a user gets without setting
+            <code>RCPP_PARALLEL_NUM_THREADS</code>.
+          </p>
+        </div>
+      </div>
+    </div>',
+  fmt(vd$elapsed_min / 60, 1), vd$R, n_cells,
+  format(n_fits, big.mark = ","),
+  pv$n_cores %||% "several", vd$elapsed_min,
+  if (identical(vd$failed_replicates, 0L) || isTRUE(vd$failed_replicates == 0))
+    "without a single failure"
+  else sprintf("with %d failed replicate(s) dropped", vd$failed_replicates)))
+```
+
+```{=html}
+  </section>
+```
+
+```{r provenance-footer}
+# Written from the results file, not by hand. The previous version of this
+# footer credited commit f4a59e4, which landed two minutes AFTER the run it
+# describes had finished -- a hand-typed SHA that was wrong from the day it
+# was written and stayed wrong through six more commits.
+mc <- vd$MCMCparams
+emit(sprintf('
+  <footer>
+    <p>
+      Results from a single run of <code>dev/simstudy/run_study.R</code> on %s:
+      R = %d replicates, %d scenarios, %s fits, %d chains of %d iterations after
+      %d burn-in, %s worker processes each pinned to one thread
+      (<code>RCPP_PARALLEL_NUM_THREADS=%s</code>), %.0f minutes, %d failure(s).
+      Package at commit <code>%s</code>%s, version %s, R %s on %s.
+      Full design, measurements and open questions:
+      <code>dev/simstudy/PLAN.md</code>.
+    </p>
+    <p>
+      Every figure and number above is rendered from
+      <code>dev/simstudy/validation-data.rds</code> by this article&rsquo;s own code.
+      To refresh it: run <code>dev/simstudy/run_study.R</code>, then
+      <code>dev/simstudy/export_validation_data.R</code>, then rebuild the site.
+    </p>
+  </footer>',
+  format(as.POSIXct(vd$when), "%e %B %Y"),
+  vd$R, n_cells, format(n_fits, big.mark = ","),
+  mc$nchain %||% NA, mc$niter %||% NA, mc$nburn %||% NA,
+  pv$n_cores %||% "?", pv$rcpp_parallel_threads %||% "?",
+  vd$elapsed_min, vd$failed_replicates %||% 0L,
+  substr(pv$git_sha %||% "unknown", 1, 7),
+  if (isTRUE(pv$git_dirty)) " (working tree not clean)" else "",
+  pv$pkg_version %||% "?", pv$r_version %||% "?", pv$platform %||% "?"))
+```
+
+```{=html}
+
+</div>
+</div>
+
+<script>
+(function () {
+  // Lay out each tally as 100 marks. Misses are spread by a fixed stride
+  // rather than randomised, so the figures stay visually comparable and the
+  // page renders identically every time. Scoped to this article's marks only.
+  document.querySelectorAll('.occjsdm-report .marks').forEach(function (el) {
+    var hits = parseInt(el.dataset.hits, 10);
+    var misses = 100 - hits;
+    var stride = misses > 0 ? 100 / misses : Infinity;
+    var next = stride / 2;
+    var frag = document.createDocumentFragment();
+
+    for (var i = 0; i < 100; i++) {
+      var d = document.createElement('div');
+      var isMiss = misses > 0 && i >= Math.floor(next);
+      if (isMiss) { next += stride; }
+      d.className = 'mark ' + (isMiss ? 'miss' : 'hit');
+      frag.appendChild(d);
+    }
+    el.appendChild(frag);
+  });
+})();
+</script>
+```

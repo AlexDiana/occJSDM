@@ -615,10 +615,6 @@ plotSpeciesRates <- function(data_plot,
 }
 
 
-
-
-
-
 #' returnOccupancyProbs
 #'
 #' Baseline occupancy rate for each species.

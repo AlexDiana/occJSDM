@@ -7,7 +7,7 @@
 plotStage2FPRates(fitModel, idx_species = NULL)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 
 \item{idx_species}{Indexes of the species to be plotted (leave out to plot all the species).}
 }
@@ -19,6 +19,10 @@ False positives rates at the lab stage for each species.
 }
 \details{
 Plots the 95% credible interval of the false positives at the lab stage
+
+Primers are coloured from the colour-blind-safe Okabe-Ito palette in their
+stored order (recycled, with a warning, beyond eight primers); add
+\code{scale_colour_manual()} to the returned plot to use other colours.
 }
 \examples{
 \dontrun{

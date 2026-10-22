@@ -1,0 +1,6 @@
+"check","pass","detail"
+"identical rerun resumes",TRUE,"exit 0 ; fit md5 unchanged TRUE"
+"rerun from a copy of the scripts at another path resumes",TRUE,"repo copy /var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T//RtmpykHJBO/pilot-hardening-14ba332fc955d/relocated-repo ; exit 0 ; fit md5 unchanged TRUE"
+"held lock refuses the key without breaking it",TRUE,"exit 1 ; lock kept TRUE ; fit md5 unchanged TRUE"
+"changed installed library file is refused",TRUE,"exit 1 ; no fits directory TRUE"
+"different source revision is refused",TRUE,"exit 1 ; no fits directory TRUE"

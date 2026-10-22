@@ -1,38 +1,69 @@
-Package: occPlus
+Package: occJSDM
 Type: Package
-Title: Fitting occupancy models for eDNA reads data
-Version: 0.1.0
+Title: Simultaneous Fitting of an eDNA-Aware Occupancy and Joint Species Distribution Model
+Version: 0.2.0
 Authors@R: c(
     person(
       "Alex", "Diana",
-      email = "ad23269@essex.ac.uk",
+      email = "Alex.diana92@yahoo.it",
       role = c("aut", "cre")
+    ),
+    person(
+      "Douglas W.", "Yu",
+      email = "dougwyu@mac.com",
+      role = "aut"
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
-License: What license is it under?
+Description: Fits an occupancy and joint species distribution model (JSDM)
+    to environmental DNA (eDNA) metabarcoding read data within a
+    hierarchical Bayesian framework. Explicitly models the two-stage
+    detection process of field sample collection followed by PCR
+    amplification and sequencing, while optionally accounting for species
+    traits and spatial autocorrelation via a Gaussian process. Models are
+    fit by Markov chain Monte Carlo. See Ji et al. (2025)
+    <doi:10.1111/ele.70302> for methodological details.
+License: Apache License (>= 2)
+URL: https://alexdiana.github.io/occJSDM/, https://github.com/AlexDiana/occJSDM
+BugReports: https://github.com/AlexDiana/occJSDM/issues
 Encoding: UTF-8
 Imports: 
- rstan (>= 2.26.0),
     ggplot2 (>= 3.4.0),
     dplyr,
-    ggplot2,
     tidyr,
-    tidyselect,
     stringr,
     stats,
     ggcorrplot,
     Rcpp,
-    RcppArmadillo
+    ggtern,
+    ggforce,
+    rlang,
+    coda,
+    purrr,
+    tibble,
+    ggrepel,
+    FastGP,
+    RcppParallel,
+    utils,
+    parallel,
+    tools
 LinkingTo: 
     Rcpp,
-    RcppArmadillo
-Remotes:
-    kassambara/ggcorrplot
+    RcppArmadillo,
+    RcppParallel
 LazyData: true
-RoxygenNote: 7.3.2
+LazyDataCompression: xz
 Suggests: 
+    colorspace,
+    gt,
     knitr,
-    rmarkdown
+    patchwork,
+    pkgload,
+    rmarkdown,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
+RoxygenNote: 8.0.0
+Config/testthat/edition: 3
+Depends: 
+    R (>= 4.1.0)
+Config/Needs/website: rmarkdown

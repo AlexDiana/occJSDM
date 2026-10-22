@@ -1,0 +1,241 @@
+"key","community","arrangement","arm","replicate","phase","spatial_term","bin","n","bias","mae","rmse"
+"rep01-spread-binary","rep01","spread","binary",1,"initial","with","all",12800,0.00256283883124611,0.116088160827095,0.153872237901832
+"rep01-spread-binary","rep01","spread","binary",1,"initial","with","up to 0.02",1496,0.0103030913899491,0.113685849241181,0.150068776140318
+"rep01-spread-binary","rep01","spread","binary",1,"initial","with","0.02 to 0.05",5056,0.00467102722011869,0.115157383184839,0.151672391818631
+"rep01-spread-binary","rep01","spread","binary",1,"initial","with","0.05 to 0.1",5128,0.00536084063488928,0.116180976268039,0.154278823881487
+"rep01-spread-binary","rep01","spread","binary",1,"initial","with","above 0.1",1120,-0.0301037429286129,0.12307379681871,0.166377349261206
+"rep01-spread-binary","rep01","spread","binary",1,"initial","without","all",12800,0.00247544134546704,0.11623122628379,0.154402987400637
+"rep01-spread-binary","rep01","spread","binary",1,"initial","without","up to 0.02",1496,0.00990020902534625,0.114264386487075,0.15163726291806
+"rep01-spread-binary","rep01","spread","binary",1,"initial","without","0.02 to 0.05",5056,0.00455232483908838,0.115387997702319,0.152478104649113
+"rep01-spread-binary","rep01","spread","binary",1,"initial","without","0.05 to 0.1",5128,0.0053674981011426,0.116147224991966,0.154385822666665
+"rep01-spread-binary","rep01","spread","binary",1,"initial","without","above 0.1",1120,-0.0300590608294915,0.123049542951898,0.166318260538853
+"rep01-spread-two_stage","rep01","spread","two_stage",1,"long","with","all",12800,0.0547419601305946,0.206649154230163,0.232138352031866
+"rep01-spread-two_stage","rep01","spread","two_stage",1,"long","with","up to 0.02",1496,0.0618278509934031,0.20586097249252,0.231978524848754
+"rep01-spread-two_stage","rep01","spread","two_stage",1,"long","with","0.02 to 0.05",5056,0.0564046464315524,0.206501576549996,0.231986427330971
+"rep01-spread-two_stage","rep01","spread","two_stage",1,"long","with","0.05 to 0.1",5128,0.0573811525728426,0.207619566901848,0.232842047162697
+"rep01-spread-two_stage","rep01","spread","two_stage",1,"long","with","above 0.1",1120,0.0256876623517961,0.203925043917696,0.229798777717503
+"rep01-spread-two_stage","rep01","spread","two_stage",1,"long","without","all",12800,0.0546166363434859,0.206264415588892,0.231745831617109
+"rep01-spread-two_stage","rep01","spread","two_stage",1,"long","without","up to 0.02",1496,0.0613589535298696,0.205170929537367,0.231279772928969
+"rep01-spread-two_stage","rep01","spread","two_stage",1,"long","without","0.02 to 0.05",5056,0.0562137460871798,0.206059034239376,0.231557768814215
+"rep01-spread-two_stage","rep01","spread","two_stage",1,"long","without","0.05 to 0.1",5128,0.0573866583080063,0.207312928730643,0.232508962447176
+"rep01-spread-two_stage","rep01","spread","two_stage",1,"long","without","above 0.1",1120,0.0257182738354433,0.203851458307937,0.229707586382167
+"rep01-pairs-binary","rep01","pairs","binary",1,"initial","with","all",12800,0.0228030967115441,0.1184914594077,0.154481509885216
+"rep01-pairs-binary","rep01","pairs","binary",1,"initial","with","up to 0.02",1320,0.027852014912124,0.117391214518518,0.152804456851618
+"rep01-pairs-binary","rep01","pairs","binary",1,"initial","with","0.02 to 0.05",4528,0.0236266349869497,0.117054296629197,0.151860768748357
+"rep01-pairs-binary","rep01","pairs","binary",1,"initial","with","0.05 to 0.1",5552,0.0252045338779997,0.119071023362269,0.155156475559908
+"rep01-pairs-binary","rep01","pairs","binary",1,"initial","with","above 0.1",1400,0.00585571636585524,0.121878643149854,0.161611372803669
+"rep01-pairs-binary","rep01","pairs","binary",1,"initial","without","all",12800,0.0227130350885226,0.118625921070385,0.155016008926978
+"rep01-pairs-binary","rep01","pairs","binary",1,"initial","without","up to 0.02",1320,0.0274562344001553,0.11816135344507,0.154799679594365
+"rep01-pairs-binary","rep01","pairs","binary",1,"initial","without","0.02 to 0.05",4528,0.0234124367834406,0.11732876676979,0.152706347150255
+"rep01-pairs-binary","rep01","pairs","binary",1,"initial","without","0.05 to 0.1",5552,0.0252429883124411,0.118985433872565,0.155251572770339
+"rep01-pairs-binary","rep01","pairs","binary",1,"initial","without","above 0.1",1400,0.00594573918485129,0.121833584542395,0.161561222518611
+"rep01-pairs-two_stage","rep01","pairs","two_stage",1,"initial","with","all",12800,0.0376819863400045,0.178931498143789,0.205807261082747
+"rep01-pairs-two_stage","rep01","pairs","two_stage",1,"initial","with","up to 0.02",1320,0.0437933195022965,0.17823918091496,0.205703530483263
+"rep01-pairs-two_stage","rep01","pairs","two_stage",1,"initial","with","0.02 to 0.05",4528,0.039003404392575,0.178595159312794,0.204807540240761
+"rep01-pairs-two_stage","rep01","pairs","two_stage",1,"initial","with","0.05 to 0.1",5552,0.0401762756535719,0.178505084544675,0.205098533462661
+"rep01-pairs-two_stage","rep01","pairs","two_stage",1,"initial","with","above 0.1",1400,0.0177543899220132,0.182363104765985,0.21184769779223
+"rep01-pairs-two_stage","rep01","pairs","two_stage",1,"initial","without","all",12800,0.0373723461359524,0.178590397432213,0.205485936422813
+"rep01-pairs-two_stage","rep01","pairs","two_stage",1,"initial","without","up to 0.02",1320,0.0429904108593993,0.177945173192473,0.205449890048629
+"rep01-pairs-two_stage","rep01","pairs","two_stage",1,"initial","without","0.02 to 0.05",4528,0.0385395332667608,0.178160193172493,0.204390621525711
+"rep01-pairs-two_stage","rep01","pairs","two_stage",1,"initial","without","0.05 to 0.1",5552,0.0400486165819634,0.178154630978797,0.204765466714333
+"rep01-pairs-two_stage","rep01","pairs","two_stage",1,"initial","without","above 0.1",1400,0.0176869730791588,0.182318280456378,0.211807955688552
+"rep01-clustered-binary","rep01","clustered","binary",1,"initial","with","all",12800,0.00835597619519934,0.117489587139423,0.153574096574067
+"rep01-clustered-binary","rep01","clustered","binary",1,"initial","with","up to 0.02",464,0.00936028475025405,0.105869083539849,0.134887829687377
+"rep01-clustered-binary","rep01","clustered","binary",1,"initial","with","0.02 to 0.05",1168,0.0135629634985413,0.115279449790632,0.153006826017128
+"rep01-clustered-binary","rep01","clustered","binary",1,"initial","with","0.05 to 0.1",3408,0.0119075316591463,0.118095327766417,0.152928494042919
+"rep01-clustered-binary","rep01","clustered","binary",1,"initial","with","above 0.1",7760,0.00595243736002149,0.11825105492767,0.154985123880114
+"rep01-clustered-binary","rep01","clustered","binary",1,"initial","without","all",12800,0.008196597109302,0.117609152225616,0.15392429235601
+"rep01-clustered-binary","rep01","clustered","binary",1,"initial","without","up to 0.02",464,0.00931166300514806,0.111968909637457,0.1436490230969
+"rep01-clustered-binary","rep01","clustered","binary",1,"initial","without","0.02 to 0.05",1168,0.0132070334758957,0.116401860450576,0.155039336812513
+"rep01-clustered-binary","rep01","clustered","binary",1,"initial","without","0.05 to 0.1",3408,0.0115229585055503,0.117614548737514,0.152667319545642
+"rep01-clustered-binary","rep01","clustered","binary",1,"initial","without","above 0.1",7760,0.00591491928839105,0.11812574991139,0.154896450786636
+"rep01-clustered-two_stage","rep01","clustered","two_stage",1,"initial","with","all",12800,0.0907361042219406,0.223192922898759,0.252532095129874
+"rep01-clustered-two_stage","rep01","clustered","two_stage",1,"initial","with","up to 0.02",464,0.0915405540675314,0.225043258574899,0.253091870799008
+"rep01-clustered-two_stage","rep01","clustered","two_stage",1,"initial","with","0.02 to 0.05",1168,0.0957414190764112,0.232788992488166,0.261404767145644
+"rep01-clustered-two_stage","rep01","clustered","two_stage",1,"initial","with","0.05 to 0.1",3408,0.0940627313124407,0.224081347946404,0.253408055222304
+"rep01-clustered-two_stage","rep01","clustered","two_stage",1,"initial","with","above 0.1",7760,0.0884736534999298,0.221247753105392,0.250747982243407
+"rep01-clustered-two_stage","rep01","clustered","two_stage",1,"initial","without","all",12800,0.0906577137286907,0.22311404670841,0.252451439710804
+"rep01-clustered-two_stage","rep01","clustered","two_stage",1,"initial","without","up to 0.02",464,0.091592768373473,0.225900896252886,0.254046117957536
+"rep01-clustered-two_stage","rep01","clustered","two_stage",1,"initial","without","0.02 to 0.05",1168,0.0955223099460702,0.232803213956944,0.261417669235346
+"rep01-clustered-two_stage","rep01","clustered","two_stage",1,"initial","without","0.05 to 0.1",3408,0.0939042832356796,0.223847916846937,0.253151964887402
+"rep01-clustered-two_stage","rep01","clustered","two_stage",1,"initial","without","above 0.1",7760,0.0884437932883689,0.221166743233278,0.250667884064423
+"rep01-grid-binary","rep01","grid","binary",1,"initial","with","all",12800,0.0171195478742031,0.114001922299543,0.149917701318094
+"rep01-grid-binary","rep01","grid","binary",1,"initial","with","up to 0.02",3200,0.0164110081118585,0.114870366608897,0.1517350778005
+"rep01-grid-binary","rep01","grid","binary",1,"initial","with","0.02 to 0.05",6400,0.016881231651142,0.113842133941741,0.149701166093892
+"rep01-grid-binary","rep01","grid","binary",1,"initial","with","0.05 to 0.1",3200,0.0183047200826698,0.113453054705796,0.148515509557551
+"rep01-grid-binary","rep01","grid","binary",1,"initial","with","above 0.1",0,NA,NA,NA
+"rep01-grid-binary","rep01","grid","binary",1,"initial","without","all",12800,0.0169727665965952,0.114230547162399,0.150635969261235
+"rep01-grid-binary","rep01","grid","binary",1,"initial","without","up to 0.02",3200,0.0161608621914916,0.115432978282981,0.15320791398197
+"rep01-grid-binary","rep01","grid","binary",1,"initial","without","0.02 to 0.05",6400,0.0167525893966967,0.113999623973272,0.150283198441564
+"rep01-grid-binary","rep01","grid","binary",1,"initial","without","0.05 to 0.1",3200,0.0182250254014958,0.113489962420072,0.148734786000879
+"rep01-grid-binary","rep01","grid","binary",1,"initial","without","above 0.1",0,NA,NA,NA
+"rep01-grid-two_stage","rep01","grid","two_stage",1,"long","with","all",12800,0.0819614977669147,0.218384584811034,0.252954787510357
+"rep01-grid-two_stage","rep01","grid","two_stage",1,"long","with","up to 0.02",3200,0.0818473357765332,0.22040091536798,0.254629556385344
+"rep01-grid-two_stage","rep01","grid","two_stage",1,"long","with","0.02 to 0.05",6400,0.0817150269986688,0.217835942375569,0.252621839195606
+"rep01-grid-two_stage","rep01","grid","two_stage",1,"long","with","0.05 to 0.1",3200,0.0825686012937883,0.217465539125018,0.251937888844653
+"rep01-grid-two_stage","rep01","grid","two_stage",1,"long","with","above 0.1",0,NA,NA,NA
+"rep01-grid-two_stage","rep01","grid","two_stage",1,"long","without","all",12800,0.0818187577056208,0.218176712302982,0.252765888986042
+"rep01-grid-two_stage","rep01","grid","two_stage",1,"long","without","up to 0.02",3200,0.0816149586035403,0.220213219676202,0.254411674400506
+"rep01-grid-two_stage","rep01","grid","two_stage",1,"long","without","0.02 to 0.05",6400,0.0815881896748469,0.217614245792948,0.252440265938937
+"rep01-grid-two_stage","rep01","grid","two_stage",1,"long","without","0.05 to 0.1",3200,0.0824836928692479,0.217265137949829,0.251763585003281
+"rep01-grid-two_stage","rep01","grid","two_stage",1,"long","without","above 0.1",0,NA,NA,NA
+"rep02-spread-binary","rep02","spread","binary",2,"initial","with","all",12800,-0.006123334958225,0.117095997172067,0.151668297909423
+"rep02-spread-binary","rep02","spread","binary",2,"initial","with","up to 0.02",1512,-0.0108753399833438,0.118562392733371,0.152958407238133
+"rep02-spread-binary","rep02","spread","binary",2,"initial","with","0.02 to 0.05",5256,-0.0105375952691419,0.116376558806149,0.150756250485426
+"rep02-spread-binary","rep02","spread","binary",2,"initial","with","0.05 to 0.1",5392,-0.00149728091979932,0.117512568606736,0.152663722268661
+"rep02-spread-binary","rep02","spread","binary",2,"initial","with","above 0.1",640,0.00238088444328844,0.116030410901505,0.147606767374883
+"rep02-spread-binary","rep02","spread","binary",2,"initial","without","all",12800,-0.00642821403836811,0.117553272108026,0.152768418926594
+"rep02-spread-binary","rep02","spread","binary",2,"initial","without","up to 0.02",1512,-0.0115819972889747,0.12030960335457,0.156419470635888
+"rep02-spread-binary","rep02","spread","binary",2,"initial","without","0.02 to 0.05",5256,-0.010861317390958,0.117242118059578,0.152435551030188
+"rep02-spread-binary","rep02","spread","binary",2,"initial","without","0.05 to 0.1",5392,-0.00171145169624105,0.117258638776452,0.152644235951258
+"rep02-spread-binary","rep02","spread","binary",2,"initial","without","above 0.1",640,0.00241573744191558,0.116079077979454,0.1477332746673
+"rep02-spread-two_stage","rep02","spread","two_stage",2,"initial","with","all",12800,0.090189588639485,0.192179137113439,0.219458008994854
+"rep02-spread-two_stage","rep02","spread","two_stage",2,"initial","with","up to 0.02",1512,0.0852224985452252,0.192884272628977,0.219973295109735
+"rep02-spread-two_stage","rep02","spread","two_stage",2,"initial","with","0.02 to 0.05",5256,0.0866782948044803,0.189988103168091,0.217331298756481
+"rep02-spread-two_stage","rep02","spread","two_stage",2,"initial","with","0.05 to 0.1",5392,0.0944410059416645,0.194615435066231,0.222117744363148
+"rep02-spread-two_stage","rep02","spread","two_stage",2,"initial","with","above 0.1",640,0.0949426488362878,0.187981310481884,0.212980543576438
+"rep02-spread-two_stage","rep02","spread","two_stage",2,"initial","without","all",12800,0.0901502256129762,0.19182693287427,0.21909679821839
+"rep02-spread-two_stage","rep02","spread","two_stage",2,"initial","without","up to 0.02",1512,0.0851336637607488,0.192360237176292,0.21943352040148
+"rep02-spread-two_stage","rep02","spread","two_stage",2,"initial","without","0.02 to 0.05",5256,0.0866757656336537,0.189644455688754,0.21698839342242
+"rep02-spread-two_stage","rep02","spread","two_stage",2,"initial","without","0.05 to 0.1",5392,0.0943907520993053,0.194276183673752,0.221761721061287
+"rep02-spread-two_stage","rep02","spread","two_stage",2,"initial","without","above 0.1",640,0.0948094199217229,0.187855657361157,0.212855217784666
+"rep02-pairs-binary","rep02","pairs","binary",2,"initial","with","all",12800,0.0045597802761588,0.118131183884557,0.152527290017342
+"rep02-pairs-binary","rep02","pairs","binary",2,"initial","with","up to 0.02",1304,0.00253348430031996,0.116193321139368,0.150855445787222
+"rep02-pairs-binary","rep02","pairs","binary",2,"initial","with","0.02 to 0.05",4544,-0.000965829670521852,0.117110977652145,0.151992414980276
+"rep02-pairs-binary","rep02","pairs","binary",2,"initial","with","0.05 to 0.1",5584,0.00694867725806666,0.119259591457058,0.153593773051637
+"rep02-pairs-binary","rep02","pairs","binary",2,"initial","with","above 0.1",1368,0.015094181448115,0.118761127053388,0.151513899109969
+"rep02-pairs-binary","rep02","pairs","binary",2,"initial","without","all",12800,0.00437897184417185,0.118341928274644,0.153644151661829
+"rep02-pairs-binary","rep02","pairs","binary",2,"initial","without","up to 0.02",1304,0.00204443355933689,0.118869461436927,0.15616230743294
+"rep02-pairs-binary","rep02","pairs","binary",2,"initial","without","0.02 to 0.05",4544,-0.000989356106724776,0.117934231345779,0.153961726828389
+"rep02-pairs-binary","rep02","pairs","binary",2,"initial","without","0.05 to 0.1",5584,0.00668911481308673,0.118475986638084,0.153314120538845
+"rep02-pairs-binary","rep02","pairs","binary",2,"initial","without","above 0.1",1368,0.0150062246174741,0.11864608741185,0.151498895489018
+"rep02-pairs-two_stage","rep02","pairs","two_stage",2,"initial","with","all",12800,0.0723319735663312,0.187207306363764,0.214386936070589
+"rep02-pairs-two_stage","rep02","pairs","two_stage",2,"initial","with","up to 0.02",1304,0.0705283664744986,0.189663332151805,0.215835589453247
+"rep02-pairs-two_stage","rep02","pairs","two_stage",2,"initial","with","0.02 to 0.05",4544,0.0670508086653745,0.184708514934861,0.212431038147066
+"rep02-pairs-two_stage","rep02","pairs","two_stage",2,"initial","with","0.05 to 0.1",5584,0.0749483519119458,0.188687874236205,0.215810952569888
+"rep02-pairs-two_stage","rep02","pairs","two_stage",2,"initial","with","above 0.1",1368,0.0809135965749463,0.187122773926347,0.213635263991782
+"rep02-pairs-two_stage","rep02","pairs","two_stage",2,"initial","without","all",12800,0.0721492648309671,0.186868105899721,0.214132955657253
+"rep02-pairs-two_stage","rep02","pairs","two_stage",2,"initial","without","up to 0.02",1304,0.0701251842387921,0.18947189797938,0.215955020081052
+"rep02-pairs-two_stage","rep02","pairs","two_stage",2,"initial","without","0.02 to 0.05",4544,0.0669097043179909,0.184357373559715,0.212202424740219
+"rep02-pairs-two_stage","rep02","pairs","two_stage",2,"initial","without","0.05 to 0.1",5584,0.074749559555458,0.188271690330408,0.215419890573434
+"rep02-pairs-two_stage","rep02","pairs","two_stage",2,"initial","without","above 0.1",1368,0.0808685033701543,0.186996620095737,0.213502545895681
+"rep02-clustered-binary","rep02","clustered","binary",2,"initial","with","all",12800,-0.00533917866286723,0.113805373642828,0.160593498146598
+"rep02-clustered-binary","rep02","clustered","binary",2,"initial","with","up to 0.02",456,0.0118845362932614,0.0963807877420638,0.131546094495659
+"rep02-clustered-binary","rep02","clustered","binary",2,"initial","with","0.02 to 0.05",1016,0.0176458773757417,0.109371663822529,0.149193798703521
+"rep02-clustered-binary","rep02","clustered","binary",2,"initial","with","0.05 to 0.1",2928,-0.00112870548961699,0.112561242907201,0.158125822730763
+"rep02-clustered-binary","rep02","clustered","binary",2,"initial","with","above 0.1",8400,-0.0105219282350693,0.115721215921648,0.164171330476158
+"rep02-clustered-binary","rep02","clustered","binary",2,"initial","without","all",12800,-0.00541668211672038,0.114098794625353,0.161119248428617
+"rep02-clustered-binary","rep02","clustered","binary",2,"initial","without","up to 0.02",456,0.0117420628205155,0.103552186234393,0.141211858298139
+"rep02-clustered-binary","rep02","clustered","binary",2,"initial","without","0.02 to 0.05",1016,0.0175358139019834,0.109725618037148,0.149858354460058
+"rep02-clustered-binary","rep02","clustered","binary",2,"initial","without","0.05 to 0.1",2928,-0.00129987975447786,0.112643568924422,0.158696920560928
+"rep02-clustered-binary","rep02","clustered","binary",2,"initial","without","above 0.1",8400,-0.0105593155647,0.115707521017283,0.16425509751054
+"rep02-clustered-two_stage","rep02","clustered","two_stage",2,"initial","with","all",12800,0.0681673644566985,0.220511363955935,0.255185026672987
+"rep02-clustered-two_stage","rep02","clustered","two_stage",2,"initial","with","up to 0.02",456,0.0828019141576916,0.214498714012644,0.246487504241708
+"rep02-clustered-two_stage","rep02","clustered","two_stage",2,"initial","with","0.02 to 0.05",1016,0.0865314890126921,0.219945814988302,0.250160186551342
+"rep02-clustered-two_stage","rep02","clustered","two_stage",2,"initial","with","0.05 to 0.1",2928,0.0677620383771343,0.213703645958818,0.242674165412856
+"rep02-clustered-two_stage","rep02","clustered","two_stage",2,"initial","with","above 0.1",8400,0.0652930179743687,0.223279145434603,0.260450616132569
+"rep02-clustered-two_stage","rep02","clustered","two_stage",2,"initial","without","all",12800,0.0680128404354757,0.220394386699187,0.25505745771719
+"rep02-clustered-two_stage","rep02","clustered","two_stage",2,"initial","without","up to 0.02",456,0.0826196780419142,0.215061769828297,0.247332412788704
+"rep02-clustered-two_stage","rep02","clustered","two_stage",2,"initial","without","0.02 to 0.05",1016,0.0861927381640251,0.219586273255906,0.249644378237096
+"rep02-clustered-two_stage","rep02","clustered","two_stage",2,"initial","without","0.05 to 0.1",2928,0.0675127413912656,0.213368477664025,0.242353888463849
+"rep02-clustered-two_stage","rep02","clustered","two_stage",2,"initial","without","above 0.1",8400,0.065195316145084,0.22323064600948,0.260380524228898
+"rep02-grid-binary","rep02","grid","binary",2,"initial","with","all",12800,-0.00403730795868359,0.120958929455114,0.15584077104161
+"rep02-grid-binary","rep02","grid","binary",2,"initial","with","up to 0.02",3200,-0.00454159845271637,0.122585366178387,0.156746138358861
+"rep02-grid-binary","rep02","grid","binary",2,"initial","with","0.02 to 0.05",6400,-0.00499523844417817,0.121216743178274,0.157126366621067
+"rep02-grid-binary","rep02","grid","binary",2,"initial","with","0.05 to 0.1",3200,-0.00161715649366163,0.118816865285522,0.152311002917986
+"rep02-grid-binary","rep02","grid","binary",2,"initial","with","above 0.1",0,NA,NA,NA
+"rep02-grid-binary","rep02","grid","binary",2,"initial","without","all",12800,-0.00430216425606743,0.121095748865011,0.156477648417912
+"rep02-grid-binary","rep02","grid","binary",2,"initial","without","up to 0.02",3200,-0.00493201246018667,0.12314356569082,0.158185615298524
+"rep02-grid-binary","rep02","grid","binary",2,"initial","without","0.02 to 0.05",6400,-0.00523680050223028,0.121267942614852,0.157622082123512
+"rep02-grid-binary","rep02","grid","binary",2,"initial","without","0.05 to 0.1",3200,-0.00180304355962271,0.11870354453952,0.152410260101881
+"rep02-grid-binary","rep02","grid","binary",2,"initial","without","above 0.1",0,NA,NA,NA
+"rep02-grid-two_stage","rep02","grid","two_stage",2,"initial","with","all",12800,0.0480885726054547,0.240441853246893,0.269600654751359
+"rep02-grid-two_stage","rep02","grid","two_stage",2,"initial","with","up to 0.02",3200,0.0476679277117651,0.243648392918291,0.271687284522361
+"rep02-grid-two_stage","rep02","grid","two_stage",2,"initial","with","0.02 to 0.05",6400,0.0471001178731782,0.240437623767644,0.270135068418104
+"rep02-grid-two_stage","rep02","grid","two_stage",2,"initial","with","0.05 to 0.1",3200,0.0504861269636957,0.237243772533996,0.266417268996968
+"rep02-grid-two_stage","rep02","grid","two_stage",2,"initial","with","above 0.1",0,NA,NA,NA
+"rep02-grid-two_stage","rep02","grid","two_stage",2,"initial","without","all",12800,0.0476749602874343,0.240156157457692,0.269372524737815
+"rep02-grid-two_stage","rep02","grid","two_stage",2,"initial","without","up to 0.02",3200,0.0470699798354481,0.243217543423651,0.271386883033831
+"rep02-grid-two_stage","rep02","grid","two_stage",2,"initial","without","0.02 to 0.05",6400,0.0467212038010077,0.240191584295194,0.269942333406925
+"rep02-grid-two_stage","rep02","grid","two_stage",2,"initial","without","0.05 to 0.1",3200,0.0501874537122719,0.23702391781673,0.266191024118639
+"rep02-grid-two_stage","rep02","grid","two_stage",2,"initial","without","above 0.1",0,NA,NA,NA
+"rep03-spread-binary","rep03","spread","binary",3,"initial","with","all",12800,-0.00111008337142854,0.117722997149032,0.156763117536179
+"rep03-spread-binary","rep03","spread","binary",3,"initial","with","up to 0.02",1504,0.000250989568525764,0.118077647637676,0.157884602975505
+"rep03-spread-binary","rep03","spread","binary",3,"initial","with","0.02 to 0.05",5544,-0.000555945096706662,0.11795876458175,0.15770506997105
+"rep03-spread-binary","rep03","spread","binary",3,"initial","with","0.05 to 0.1",5128,-0.00235761136846095,0.117057768196963,0.154575134727087
+"rep03-spread-binary","rep03","spread","binary",3,"initial","with","above 0.1",624,0.000938197513240227,0.12024031298925,0.163372280665317
+"rep03-spread-binary","rep03","spread","binary",3,"initial","without","all",12800,-0.00137886409304326,0.117939847970702,0.157441763691781
+"rep03-spread-binary","rep03","spread","binary",3,"initial","without","up to 0.02",1504,-0.000131420127393375,0.118920273247999,0.160040273306646
+"rep03-spread-binary","rep03","spread","binary",3,"initial","without","0.02 to 0.05",5544,-0.000971592684430721,0.11831750442626,0.158571737913226
+"rep03-spread-binary","rep03","spread","binary",3,"initial","without","0.05 to 0.1",5128,-0.00246152498437701,0.116975705066587,0.154698648949792
+"rep03-spread-binary","rep03","spread","binary",3,"initial","without","above 0.1",624,0.000893277953549938,0.120144716248958,0.163289390874759
+"rep03-spread-two_stage","rep03","spread","two_stage",3,"long","with","all",12800,0.10506373049949,0.215432909664532,0.246366961778257
+"rep03-spread-two_stage","rep03","spread","two_stage",3,"long","with","up to 0.02",1504,0.107632415868037,0.22219663865086,0.252416556289061
+"rep03-spread-two_stage","rep03","spread","two_stage",3,"long","with","0.02 to 0.05",5544,0.105704384637682,0.216342311592176,0.247967169099761
+"rep03-spread-two_stage","rep03","spread","two_stage",3,"long","with","0.05 to 0.1",5128,0.103486917832212,0.212958326711123,0.243274721612091
+"rep03-spread-two_stage","rep03","spread","two_stage",3,"long","with","above 0.1",624,0.106138740149126,0.211386897970276,0.242566550649096
+"rep03-spread-two_stage","rep03","spread","two_stage",3,"long","without","all",12800,0.105070905418337,0.215117103748343,0.246099261508425
+"rep03-spread-two_stage","rep03","spread","two_stage",3,"long","without","up to 0.02",1504,0.107586446268778,0.221745407353269,0.25217620766754
+"rep03-spread-two_stage","rep03","spread","two_stage",3,"long","without","0.02 to 0.05",5544,0.105692557096892,0.215973164535245,0.247648062490765
+"rep03-spread-two_stage","rep03","spread","two_stage",3,"long","without","0.05 to 0.1",5128,0.103525241032233,0.212710918268273,0.243035987674106
+"rep03-spread-two_stage","rep03","spread","two_stage",3,"long","without","above 0.1",624,0.106186861551311,0.211309330539052,0.24245783595087
+"rep03-pairs-binary","rep03","pairs","binary",3,"initial","with","all",12800,-0.00345975349137678,0.117756556706895,0.15718493737466
+"rep03-pairs-binary","rep03","pairs","binary",3,"initial","with","up to 0.02",1344,-0.00382230475261647,0.119714847336155,0.160328687968359
+"rep03-pairs-binary","rep03","pairs","binary",3,"initial","with","0.02 to 0.05",4800,-0.00325452484765753,0.117232961732721,0.156736878915762
+"rep03-pairs-binary","rep03","pairs","binary",3,"initial","with","0.05 to 0.1",5712,-0.00312089810161407,0.117410958451956,0.155878277792735
+"rep03-pairs-binary","rep03","pairs","binary",3,"initial","with","above 0.1",944,-0.00603747656454446,0.119721991561259,0.162715581933092
+"rep03-pairs-binary","rep03","pairs","binary",3,"initial","without","all",12800,-0.00368578478777049,0.118035792151937,0.157908657221593
+"rep03-pairs-binary","rep03","pairs","binary",3,"initial","without","up to 0.02",1344,-0.00422011865556173,0.121243963753017,0.163457740987041
+"rep03-pairs-binary","rep03","pairs","binary",3,"initial","without","0.02 to 0.05",4800,-0.00371774213588183,0.117704334195349,0.157726667378131
+"rep03-pairs-binary","rep03","pairs","binary",3,"initial","without","0.05 to 0.1",5712,-0.00315862636255917,0.117294101067186,0.155924640818271
+"rep03-pairs-binary","rep03","pairs","binary",3,"initial","without","above 0.1",944,-0.00595229849069524,0.119641464859421,0.162652595367588
+"rep03-pairs-two_stage","rep03","pairs","two_stage",3,"initial","with","all",12800,0.0756630966369107,0.198285868989441,0.22137075415222
+"rep03-pairs-two_stage","rep03","pairs","two_stage",3,"initial","with","up to 0.02",1344,0.0752172493058892,0.207562589640936,0.229909351287633
+"rep03-pairs-two_stage","rep03","pairs","two_stage",3,"initial","with","0.02 to 0.05",4800,0.0758032563909508,0.200250546343463,0.222786495512762
+"rep03-pairs-two_stage","rep03","pairs","two_stage",3,"initial","with","0.05 to 0.1",5712,0.0760386136797204,0.195370511913652,0.218882719097101
+"rep03-pairs-two_stage","rep03","pairs","two_stage",3,"initial","with","above 0.1",944,0.073312989269294,0.192728830601724,0.216678339725985
+"rep03-pairs-two_stage","rep03","pairs","two_stage",3,"initial","without","all",12800,0.075557959421149,0.197954626144694,0.221040120034472
+"rep03-pairs-two_stage","rep03","pairs","two_stage",3,"initial","without","up to 0.02",1344,0.0750748227404846,0.207313734058829,0.22977717400963
+"rep03-pairs-two_stage","rep03","pairs","two_stage",3,"initial","without","0.02 to 0.05",4800,0.0755555261525042,0.199870494454351,0.22240708279259
+"rep03-pairs-two_stage","rep03","pairs","two_stage",3,"initial","without","0.05 to 0.1",5712,0.0760535467852694,0.195029517585353,0.218511437818494
+"rep03-pairs-two_stage","rep03","pairs","two_stage",3,"initial","without","above 0.1",944,0.07325946404451,0.192587476958264,0.216550487917026
+"rep03-clustered-binary","rep03","clustered","binary",3,"initial","with","all",12800,-0.00798664368726412,0.110400786607107,0.152235499346314
+"rep03-clustered-binary","rep03","clustered","binary",3,"initial","with","up to 0.02",488,-0.0177185351612312,0.096588808791754,0.132495486574771
+"rep03-clustered-binary","rep03","clustered","binary",3,"initial","with","0.02 to 0.05",1192,-0.0124128728439562,0.107825151344331,0.145894938428312
+"rep03-clustered-binary","rep03","clustered","binary",3,"initial","with","0.05 to 0.1",3352,-0.0121230565675945,0.111325493810834,0.151156311759943
+"rep03-clustered-binary","rep03","clustered","binary",3,"initial","with","above 0.1",7768,-0.00491114366551592,0.111264687721967,0.154790493556111
+"rep03-clustered-binary","rep03","clustered","binary",3,"initial","without","all",12800,-0.00816583903104784,0.110730266803159,0.152769931485626
+"rep03-clustered-binary","rep03","clustered","binary",3,"initial","without","up to 0.02",488,-0.0181615450634282,0.105180764837422,0.144136075525393
+"rep03-clustered-binary","rep03","clustered","binary",3,"initial","without","0.02 to 0.05",1192,-0.0127117853184161,0.109722434634606,0.148675661172238
+"rep03-clustered-binary","rep03","clustered","binary",3,"initial","without","0.05 to 0.1",3352,-0.0124162148868615,0.110718941247925,0.150712871815804
+"rep03-clustered-binary","rep03","clustered","binary",3,"initial","without","above 0.1",7768,-0.00500621848688818,0.111238435722487,0.154785227577661
+"rep03-clustered-two_stage","rep03","clustered","two_stage",3,"initial","with","all",12800,0.0629014020034667,0.175396328212618,0.203363973641743
+"rep03-clustered-two_stage","rep03","clustered","two_stage",3,"initial","with","up to 0.02",488,0.0540189597355536,0.176872944077171,0.205019324426878
+"rep03-clustered-two_stage","rep03","clustered","two_stage",3,"initial","with","0.02 to 0.05",1192,0.058869035261252,0.177436255280508,0.206499127675652
+"rep03-clustered-two_stage","rep03","clustered","two_stage",3,"initial","with","0.05 to 0.1",3352,0.0606643529525722,0.178738291849085,0.206319862340427
+"rep03-clustered-two_stage","rep03","clustered","two_stage",3,"initial","with","above 0.1",7768,0.0650434979615078,0.173548433810421,0.201481268673684
+"rep03-clustered-two_stage","rep03","clustered","two_stage",3,"initial","without","all",12800,0.0627553499513114,0.175311024321007,0.203299413251573
+"rep03-clustered-two_stage","rep03","clustered","two_stage",3,"initial","without","up to 0.02",488,0.0535570017187704,0.177705641130717,0.206358010809463
+"rep03-clustered-two_stage","rep03","clustered","two_stage",3,"initial","without","0.02 to 0.05",1192,0.0584461483684963,0.177377997032851,0.206356076232804
+"rep03-clustered-two_stage","rep03","clustered","two_stage",3,"initial","without","0.05 to 0.1",3352,0.060430721740875,0.17837006593194,0.205991592720392
+"rep03-clustered-two_stage","rep03","clustered","two_stage",3,"initial","without","above 0.1",7768,0.0649975636466739,0.173523394048671,0.201455482868619
+"rep03-grid-binary","rep03","grid","binary",3,"initial","with","all",12800,0.0207899782984841,0.115571793958016,0.150449053356989
+"rep03-grid-binary","rep03","grid","binary",3,"initial","with","up to 0.02",3200,0.0224914483156837,0.115169543223052,0.150712862514946
+"rep03-grid-binary","rep03","grid","binary",3,"initial","with","0.02 to 0.05",6400,0.021320634034972,0.115544971359945,0.150369368049785
+"rep03-grid-binary","rep03","grid","binary",3,"initial","with","0.05 to 0.1",3200,0.0180271968083086,0.116027689889122,0.150344304851312
+"rep03-grid-binary","rep03","grid","binary",3,"initial","with","above 0.1",0,NA,NA,NA
+"rep03-grid-binary","rep03","grid","binary",3,"initial","without","all",12800,0.0204570605988137,0.115691571538952,0.151144053081026
+"rep03-grid-binary","rep03","grid","binary",3,"initial","without","up to 0.02",3200,0.0220345571314695,0.11575977579603,0.152371886032892
+"rep03-grid-binary","rep03","grid","binary",3,"initial","without","0.02 to 0.05",6400,0.0210088733948163,0.11555346040443,0.150851439552869
+"rep03-grid-binary","rep03","grid","binary",3,"initial","without","0.05 to 0.1",3200,0.0177759384741529,0.115899589550919,0.150494497718269
+"rep03-grid-binary","rep03","grid","binary",3,"initial","without","above 0.1",0,NA,NA,NA
+"rep03-grid-two_stage","rep03","grid","two_stage",3,"initial","with","all",12800,0.0689608027602726,0.183770052851879,0.208913758175161
+"rep03-grid-two_stage","rep03","grid","two_stage",3,"initial","with","up to 0.02",3200,0.0706920190341522,0.183920482968502,0.209015863259472
+"rep03-grid-two_stage","rep03","grid","two_stage",3,"initial","with","0.02 to 0.05",6400,0.0695535820426715,0.183504557296842,0.20846315103923
+"rep03-grid-two_stage","rep03","grid","two_stage",3,"initial","with","0.05 to 0.1",3200,0.0660440279215958,0.184150613845329,0.20971035177827
+"rep03-grid-two_stage","rep03","grid","two_stage",3,"initial","with","above 0.1",0,NA,NA,NA
+"rep03-grid-two_stage","rep03","grid","two_stage",3,"initial","without","all",12800,0.068678835031264,0.183386559325398,0.208570963246249
+"rep03-grid-two_stage","rep03","grid","two_stage",3,"initial","without","up to 0.02",3200,0.070315347748457,0.183503990985071,0.208660956325072
+"rep03-grid-two_stage","rep03","grid","two_stage",3,"initial","without","0.02 to 0.05",6400,0.0692890933758385,0.183104317228012,0.208109920713238
+"rep03-grid-two_stage","rep03","grid","two_stage",3,"initial","without","0.05 to 0.1",3200,0.0658218056249221,0.183833611860494,0.209400367585253
+"rep03-grid-two_stage","rep03","grid","two_stage",3,"initial","without","above 0.1",0,NA,NA,NA

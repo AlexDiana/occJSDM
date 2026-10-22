@@ -1,0 +1,128 @@
+WARNING: unknown option '-'
+
+Independent final factorial review; no fitting and no checkout edits.
+helpers.R PASS original source/executed/b20-snapshot hashes identical
+run.R PASS original source/executed/b20-snapshot hashes identical
+rescore.R PASS original source/executed/b20-snapshot hashes identical
+run-long.R PASS original source/executed/b20-snapshot hashes identical
+PASS fresh preservation check of all 12 original mean-only compact full-fit/selected/comparison tables.
+PASS selection is exactly one longer replacement per initial diagnostic flag; all 18 files retained.
+design-qnear_K6-field4-01-mean0-b20 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-field4-01-mean0-b30 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-field4-01-mean1-b20 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-field4-01-mean1-b30 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-q20-01-mean0-b20 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes  
+design-qnear_K6-q20-01-mean0-b30 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-q20-01-mean1-b20 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes  
+design-qnear_K6-q20-01-mean1-b30 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-sites300-01-mean0-b20 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes  
+design-qnear_K6-sites300-01-mean0-b30 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes  
+design-qnear_K6-sites300-01-mean1-b20 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes  
+design-qnear_K6-sites300-01-mean1-b30 initial PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes  
+design-qnear_K6-q20-01-mean0-b20 long PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-q20-01-mean1-b20 long PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-sites300-01-mean0-b20 long PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-sites300-01-mean0-b30 long PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-sites300-01-mean1-b20 long PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+design-qnear_K6-sites300-01-mean1-b30 long PASS raw identity, captured Beta/detection/variance/factor settings, executed runner/native/source hashes and selected raw summaries/diagnostics 
+PASS actual historical Beta(1,30) fit arguments and all selected/raw posterior checks.
+Selected unresolved flags:
+                                     key  min_ess max_rhat
+10 design-qnear_K6-sites300-01-mean0-b30 289.9207 1.029448
+11 design-qnear_K6-sites300-01-mean1-b20 247.4630 1.017050
+12 design-qnear_K6-sites300-01-mean1-b30 272.1946 1.023201
+Maximum selected Rhat: 1.029448 
+PASS independent paired and four-arm interaction reconstruction, including all common screens and community t intervals.
+Low historical theta-prior contrast at mean0, percent width and probability-unit error:
+   design        metric       change        lower       upper
+ baseline       covered  0.030000000 -0.004555021  0.06455502
+ baseline          bias  0.012847863  0.010050862  0.01564486
+ baseline width_percent 19.390190983 16.205331390 22.57505058
+   field4       covered -0.010000000 -0.032621572  0.01262157
+   field4          bias  0.008189396  0.006278607  0.01010018
+   field4 width_percent 11.223411807  7.009973941 15.43684967
+ sites300       covered  0.030000000 -0.018282911  0.07828291
+ sites300          bias  0.008495129  0.006658734  0.01033152
+ sites300 width_percent 10.483047107  7.588698906 13.37739531
+Low screened historical width contrast:
+   design communities    change
+ baseline           7 19.055339
+   field4           4  7.139944
+ sites300           2 12.262737
+Low collection-mean relative widths:
+                           contrast   design      change
+ collection mean 1 to 0, theta b=20 baseline  0.09091247
+ collection mean 1 to 0, theta b=30 baseline -0.32848752
+ collection mean 1 to 0, theta b=20   field4 -0.27512988
+ collection mean 1 to 0, theta b=30   field4 -0.31040807
+ collection mean 1 to 0, theta b=20 sites300 -0.01591336
+ collection mean 1 to 0, theta b=30 sites300 -0.15153731
+Low interaction maxima: bias 5.299648e-05 width 0.000509907 
+Factorial minimum ordinary weight ESS 870.9082 max k 0.4439835 
+Importance flags by arm/contamination:
+ contamination collection_mean theta_b  x
+          high               0      20  0
+           low               0      20  0
+          high               1      20  6
+           low               1      20  4
+          high               0      30  6
+           low               0      30 12
+          high               1      30  7
+           low               1      30 13
+Source flags:
+ contamination  x
+          high 18
+           low 17
+initial max absolute mean and width comparison 0.004849878 0.02634894 
+selected max absolute mean and width comparison 0.006028525 0.01177312 
+Full selected mean0 prior contrasts:
+baseline width percent 15.19303 mean error pp 1.414872 
+field4 width percent 11.64342 mean error pp 0.7656502 
+sites300 width percent 5.056084 mean error pp 1.094444 
+Low known-state reference:
+   design theta_b coverage      width         bias
+ baseline      20     0.96 0.07951095 -0.001771814
+   field4      20     0.94 0.06014366 -0.002246194
+ sites300      20     0.93 0.05032149 -0.001928961
+ baseline      30     0.94 0.07306205 -0.006277387
+   field4      30     0.95 0.05720653 -0.004885220
+ sites300      30     0.93 0.04862347 -0.003775997
+Theta20 latent/reference width ratios:
+baseline 1.641251 
+field4 1.689159 
+sites300 1.983365 
+PASS 3674 independent arithmetic assertions.
+PASS fresh current source-hashes.csv 80 entries with exact MD5/SHA-256 and artifact sizes.
+PASS fresh current artifact-hashes.csv 53 entries with exact MD5/SHA-256 and artifact sizes.
+initial design-qnear_K6-field4-01-mean0-b20 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-field4-01-mean0-b30 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-field4-01-mean1-b20 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-field4-01-mean1-b30 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-q20-01-mean0-b20 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-q20-01-mean0-b30 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-q20-01-mean1-b20 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-q20-01-mean1-b30 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-sites300-01-mean0-b20 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-sites300-01-mean0-b30 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-sites300-01-mean1-b20 PASS joint-density importance mean and both mean MCSEs
+initial design-qnear_K6-sites300-01-mean1-b30 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-field4-01-mean0-b20 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-field4-01-mean0-b30 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-field4-01-mean1-b20 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-field4-01-mean1-b30 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-q20-01-mean0-b20 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-q20-01-mean0-b30 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-q20-01-mean1-b20 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-q20-01-mean1-b30 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-sites300-01-mean0-b20 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-sites300-01-mean0-b30 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-sites300-01-mean1-b20 PASS joint-density importance mean and both mean MCSEs
+selected design-qnear_K6-sites300-01-mean1-b30 PASS joint-density importance mean and both mean MCSEs
+PASS 768 fresh comparison MCSE/mean checks from source and raw refit draws.
+Minor report precision note sent to parent: selected full-refit mean0 signed bias shifts upward for all three communities, but baseline/sites300 overshoot zero and their mean absolute errors increase. The ten-community aggregate prior-sensitivity bias reduction remains supported. Recommend explicit signed-error/upward wording for this validation paragraph.
+Review limitations: no new MCMC; reviewed preserved raw draws/code/CSV evidence. Three sites300 selected ESS flags and source/importance flags remain. One validation community per design cannot establish coverage; historical loaded namespace cannot be inferred from Git history. The report preserves these qualifications, leaves defaults unchanged and treats high contamination as prior mismatch.
+PASS fresh original 10 Beta20 raw fit MD5 values against intact original provenance.
+PASS fresh original two figures preserved byte-for-byte.
+PASS fresh original 1,200 Beta20 importance rows unchanged to CSV precision after factorial extension.
+PASS final report explicitly resolves selected-refit signed-error versus absolute-accuracy wording, with independently checked overshoot/error numbers.
+FINAL DISPOSITION: no critical or important findings. The one minor wording note is resolved. Mathematical ratios, selected replacement rules, actual Beta30 fit settings, source/refit means and MCSE, paired/common-screen arithmetic, interaction and report numeric claims pass independent reconstruction. Original compact tables, original 10 Beta20 raw fits, two figures and 1200 importance rows pass fresh preservation checks. Current manifests were exact at review check; report hashes will be refreshed after this wording correction and evidence copy.

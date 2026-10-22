@@ -2,4 +2,67 @@ inst/doc
 .Rproj.user
 /doc/
 /Meta/
-/dev/
+# dev/ holds tracked development guides, Superpowers documents and study
+# sources. Other scratch work remains untracked. Exclude immediate children
+# first, then allow the maintained directories and directory guide.
+# Large simulation outputs remain local and regenerable.
+#
+# One exception inside that exception: dev/simstudy/validation-data.rds IS
+# tracked. It is the compact bundle the validation article renders from,
+# written by export_validation_data.R, and the article cannot build without
+# it on a fresh checkout. Kept small on purpose -- the 155k-row per-element
+# table is dropped, only the summaries and the occupancy rows are carried.
+/dev/*
+!/dev/simstudy/
+!/dev/parallelisation/
+!/dev/superpowers/
+!/dev/release/
+!/dev/profiling/
+!/dev/README.md
+/dev/simstudy/results/
+# Outputs of make_occupancy_maps.R and occupancy_maps.Rmd. Both regenerate in
+# about 90 seconds from the sources beside them, and the rendered report is
+# 3.6 MB of embedded figures. The sources are tracked; the outputs are not.
+/dev/simstudy/mapdata.rds
+/dev/simstudy/occupancy_maps.html
+# deprecated/ IS tracked: it is the record of superseded code (occPlus-era
+# functions, the old vignette, functions_old.cpp), kept in git and excluded
+# from the build via ^deprecated$ in .Rbuildignore. Its existing contents were
+# tracked only by grandfathering -- they predate the ignore rule this replaces
+# -- which meant anything moved there in future would have been silently
+# untracked. That matters because TODO.md group C plans to move more dead
+# code here. Nothing is ignored under deprecated/ now.
+outputs/caiwang_results.rda
+src/*.o
+src/*.so
+src/*.dll
+src/*.dylib
+data/data_out_env_trait.rdata
+analysis/analysis.R
+data/sampledata_orig.rda
+data/data_todoug_20260714.csv
+data/CaiWang_data/
+data/traitdata_caiwang.rdata
+traitdata_caiwang.rdata
+interim_todo.Rmd
+data/sampledata_highp_highthetabaseline.rda
+data/sampleresults_highp_highthetabaseline.rda
+# Rendered from TODO.md as a parse check; regenerable, never a deliverable.
+TODO.html
+# pkgdown build output. Regenerated from _pkgdown.yml + the R docs +
+# vignettes via pkgdown::build_site(); never a deliverable to commit.
+docs
+.posit/assistant
+/.worktrees/
+# Stray graphics device output from headless Rscript calls that plot without
+# an explicit device. Never a deliverable.
+Rplots.pdf
+# Local preview of the GitHub Pages site, written by
+# dev/simstudy/lesson-site/build_preview.R; regenerated on every run.
+/dev/simstudy/lesson-site/preview/
+
+# Finder metadata is not part of development documentation.
+.DS_Store
+
+# Optional MCP outputs when P2A_PROJECT_ROOT is the repository root.
+/artifacts/

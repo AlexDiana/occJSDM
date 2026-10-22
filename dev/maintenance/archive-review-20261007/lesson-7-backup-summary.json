@@ -1,0 +1,51 @@
+{
+  "review_date": "2026-10-07",
+  "original_archive": "/Users/douglasyu/src/occJSDM-worktrees/lesson-2-spatial-sweep/dev/simstudy/results/spatial-design-20261001",
+  "local_status": "deleted with worktree on 2026-10-01T20:54:55Z; no accessible local copy found",
+  "source_revision": "9af859795974839ee6038d00b6d8422ae77b047f",
+  "historical_log": "/Users/douglasyu/.claude/projects/-Users-douglasyu-src-occJSDM/19e4c22b-aa29-4d3d-b934-002c56ed2da1.jsonl",
+  "historical_log_lines": [
+    3226,
+    3233,
+    3238
+  ],
+  "backup_candidate": "Backblaze Computer Backup, historical file view for 1 October 2026",
+  "backup_catalog_root": "/Library/Backblaze.bzpkg/bzdata/bzbackup/bzdatacenter",
+  "backup_transmission_log": "/Library/Backblaze.bzpkg/bzdata/bzlogs/bzreports_lastfilestransmitted/01.zip",
+  "backup_transmission_records": 645,
+  "backup_catalog_records": 936,
+  "backup_unique_paths": 288,
+  "catalog_counts": {
+    "initial_full_fits": 24,
+    "initial_results": 24,
+    "long_full_fits": 3,
+    "long_results": 3,
+    "inputs": 3,
+    "oracle_rds": 106,
+    "source_main_files": 65,
+    "library_files": 24
+  },
+  "expected_selected_results": 24,
+  "catalog_listed_selected_results": 24,
+  "expected_selected_oracle_results": 96,
+  "catalog_listed_selected_oracle_results": 96,
+  "long_fit_terminal_records": [
+    {
+      "relative_path": "long/rep01-grid-two_stage-fit.rds",
+      "catalog_timestamp": "20261001203259"
+    },
+    {
+      "relative_path": "long/rep03-spread-two_stage-fit.rds",
+      "catalog_timestamp": "20261001203347"
+    },
+    {
+      "relative_path": "long/rep01-spread-two_stage-fit.rds",
+      "catalog_timestamp": "20261001203435"
+    }
+  ],
+  "cloud_files_read": false,
+  "restored": false,
+  "restored_checksums_verified": false,
+  "remaining_access": "Backblaze browser requires sign-in; Time Machine directory access is blocked by macOS privacy controls",
+  "redacted_path_manifest_sha256": "03ec4de2e64d056352b37e23c655cb639d0fcfecdb10e4248d2cb97e89f71570"
+}

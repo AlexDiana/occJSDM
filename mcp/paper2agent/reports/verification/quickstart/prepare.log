@@ -1,0 +1,129 @@
+Site column missing
+Only 0 and 1 detected
+occJSDM has inferred one-stage binary data
+Check your data if this is not what you were expecting!
+Site column missing
+Only 0 and 1 detected
+occJSDM has inferred one-stage binary data
+Check your data if this is not what you were expecting!
+Running MCMC
+
+Parameter Set: B0 (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.042 | Mean:   1.042
+  ESS   | Min:     67.1 | Mean:    67.1
+
+Parameter Set: B (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.041 | Mean:   1.041
+  ESS   | Min:      9.6 | Mean:     9.6
+
+Parameter Set: A (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.024 | Mean:   1.024
+  ESS   | Min:     10.9 | Mean:    10.9
+
+Parameter Set: C (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.067 | Mean:   1.067
+  ESS   | Min:     12.3 | Mean:    12.3
+
+Parameter Set: As_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: sigmab (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.097 | Mean:   1.097
+  ESS   | Min:     40.0 | Mean:    40.0
+
+Parameter Set: sigmabs_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: sigmah (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.041 | Mean:   1.041
+  ESS   | Min:     40.0 | Mean:    40.0
+
+==================================================
+Sample column missing, but detected repeated observations for some sites
+Only 0 and 1 detected
+occJSDM has inferred occupancy data
+Check your data if this is not what you were expecting!
+Sample column missing, but detected repeated observations for some sites
+Only 0 and 1 detected
+occJSDM has inferred occupancy data
+Check your data if this is not what you were expecting!
+Running MCMC
+
+Parameter Set: beta_theta (Flattened N = 6)
+--------------------------------------------------
+  R-hat | Max:    2.842 | Mean:   1.732
+  ESS   | Min:     14.5 | Mean:    26.3
+
+Parameter Set: theta0 (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.007 | Mean:   0.996
+  ESS   | Min:     40.0 | Mean:    40.0
+
+Parameter Set: B0 (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    3.789 | Mean:   2.426
+  ESS   | Min:     13.1 | Mean:    30.0
+
+Parameter Set: B (Flattened N = 6)
+--------------------------------------------------
+  R-hat | Max:    1.851 | Mean:   1.145
+  ESS   | Min:      9.6 | Mean:    16.7
+
+Parameter Set: A (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.063 | Mean:   1.056
+  ESS   | Min:     26.1 | Mean:    39.1
+
+Parameter Set: C (Flattened N = 2)
+--------------------------------------------------
+  R-hat | Max:    1.501 | Mean:   1.259
+  ESS   | Min:     40.0 | Mean:    43.2
+
+Parameter Set: As_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: U (Flattened N = 40)
+--------------------------------------------------
+  R-hat | Max:    1.461 | Mean:   1.070
+  ESS   | Min:     26.8 | Mean:    51.9
+
+Parameter Set: L (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.011 | Mean:   1.001
+  ESS   | Min:     26.9 | Mean:    65.7
+
+Parameter Set: sigmab (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.014 | Mean:   1.014
+  ESS   | Min:     29.3 | Mean:    29.3
+
+Parameter Set: sigmabs_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: sigmah (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.052 | Mean:   1.052
+  ESS   | Min:     27.2 | Mean:    27.2
+
+==================================================
+Detected repeated observation for some sample
+Count data detected
+occJSDM has inferred two stage (eDNA style) data
+Check your data if this is not what you were expecting!
+Detected repeated observation for some sample
+Count data detected
+occJSDM has inferred two stage (eDNA style) data
+Check your data if this is not what you were expecting!
+Running MCMC
+There were 20 warnings (use warnings() to see them)
+Independent direct upstream oracles generated

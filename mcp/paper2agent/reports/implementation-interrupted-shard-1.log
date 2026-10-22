@@ -1,0 +1,6 @@
+....Loop <_UnixSelectorEventLoop running=False closed=True debug=False> that handles pid 25803 is closed
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:133: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+4 passed in 1111.13s (0:18:31)

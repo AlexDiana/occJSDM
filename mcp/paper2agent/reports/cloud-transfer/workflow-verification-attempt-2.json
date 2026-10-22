@@ -1,0 +1,42 @@
+{
+  "validator": "paper2agent-workflow",
+  "schema_version": 1,
+  "success": false,
+  "through": "verification",
+  "errors": [
+    "ValueError: extract-quickstart-transport-strictness-attempt-1: produced file is outside owned_paths: src/tools/runtime.py"
+  ],
+  "passed_assignments": [],
+  "exclusions": [],
+  "scope": "Validates recorded state and artifact consistency; does not authenticate host identities or establish numerical/scientific correctness.",
+  "expected_assignments": [
+    {
+      "role": "environment",
+      "task": "project"
+    },
+    {
+      "role": "executor",
+      "task": "quickstart"
+    },
+    {
+      "role": "implementer",
+      "task": "quickstart"
+    },
+    {
+      "role": "scanner",
+      "task": "project"
+    },
+    {
+      "role": "verifier",
+      "task": "quickstart"
+    }
+  ],
+  "active_tutorials": [
+    "quickstart"
+  ],
+  "active_modules": [
+    "quickstart"
+  ],
+  "project_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent",
+  "state": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/agent-runs.json"
+}

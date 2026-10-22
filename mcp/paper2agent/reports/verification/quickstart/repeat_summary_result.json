@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "estimand": "Baseline occupancy: inverse-logit species intercept, pooled across chains and retained draws",
+  "rows": [
+    {
+      "species": "verifier_species_1",
+      "mean": 0.7137229061587391,
+      "median": 0.7286975961400737,
+      "q2.5": 0.5526874911685935,
+      "q97.5": 0.8592867932960734
+    }
+  ],
+  "total_rows": 1,
+  "screening": {
+    "total_rows": 2,
+    "rhat_flagged": 2,
+    "ess_flagged": 2,
+    "flagged_rows": 2,
+    "unavailable_rhat": 0,
+    "unavailable_ess": 0,
+    "unavailable_rows": 0,
+    "thresholds": {
+      "rhat": 1.01,
+      "ess": 400
+    },
+    "blocks": [
+      "beta0_psi",
+      "beta_psi"
+    ],
+    "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+    "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+  },
+  "qualifications": [
+    "Baseline occupancy is not occupancy at a particular site or observed detections.",
+    "Beta research software: wrapper agreement does not establish unbiased estimates or calibrated intervals.",
+    "Flagged or unavailable diagnostics require investigation before interpretation."
+  ],
+  "warnings": [],
+  "warning_count": 0,
+  "schema_version": 1,
+  "message": "Baseline occupancy summarizes intercept-based draws; inspect diagnostic qualifications.",
+  "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+  "artifacts": [
+    {
+      "kind": "log",
+      "description": "Captured native R console output",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-b434c671c325414d8bc85db192770005/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "log",
+      "description": "Captured native R startup diagnostics",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-b434c671c325414d8bc85db192770005/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "summary",
+      "description": "Full per-species baseline occupancy summary",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-b434c671c325414d8bc85db192770005/summary.csv",
+      "sha256": "5586b6fe31e4688cc42c6af21564b3f58ec83e9937921f99a76e80a3f0f246c1"
+    },
+    {
+      "kind": "diagnostics",
+      "description": "Full native diagnostic qualifications",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-b434c671c325414d8bc85db192770005/diagnostics.csv",
+      "sha256": "583cc576d8a4b4a5036e521ae0596cbf701cdb9fe2c544748831027c7e64968f"
+    }
+  ],
+  "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+  "model": "binary",
+  "settings": {
+    "occCovariates": [
+      "habitat_changed"
+    ],
+    "collCovariates": [],
+    "threshold": 1,
+    "listParams": {
+      "n_factors": 0
+    },
+    "MCMCparams": {
+      "nchain": 2,
+      "nburn": 20,
+      "niter": 20,
+      "nthin": 2
+    },
+    "spatCovariates": [],
+    "summarisedLatentPresences": true,
+    "listPriors": {}
+  },
+  "fit_qualifications": [
+    "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+    "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+  ]
+}

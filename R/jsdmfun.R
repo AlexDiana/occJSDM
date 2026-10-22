@@ -1,0 +1,2076 @@
+
+logistic <- function(x){
+  1 / (1 + exp(-x))
+}
+
+reparamFactorModel <- function(U_output, L_output){
+
+  L_output_reparam <- L_output
+  U_output_reparam <- U_output
+
+  d <- dim(L_output)[1]
+  nchain <- dim(L_output)[4]
+  niter <- dim(L_output)[3]
+
+  for (chain in seq_len(nchain)) {
+
+    for (iter in seq_len(niter)) {
+
+      if(d == 0) next
+
+      if(d == 1){
+
+        # Orient the first nonzero loading positively without changing scale.
+        # A zero anchor (or an all-zero draw) must not cause division by zero.
+        loadings <- L_output[1,,iter,chain]
+        nonzero <- which(loadings != 0)
+        direction <- if(length(nonzero) && loadings[nonzero[1]] < 0) -1 else 1
+        L_output_reparam[1,,iter,chain] <- loadings * direction
+        U_output_reparam[,1,iter,chain] <- U_output[,1,iter,chain] * direction
+
+      } else {
+
+        L_current <- matrix(L_output[,,iter,chain], d, dim(L_output)[2])
+        U_current <- matrix(U_output[,,iter,chain], dim(U_output)[1], d)
+
+        qr_decomp <- qr(L_current)
+        Q_current <- qr.Q(qr_decomp, complete = TRUE)
+        R_current <- qr.R(qr_decomp)
+
+        # Only rotate/reflect: U Q Q' L = U L and (Q' L)' (Q' L) = L' L.
+        # Unequal diagonal rescaling would change the species correlations
+        # and the isotropic score prior used for new-site predictions.
+        # Complete Q also handles more factors than loading columns; missing
+        # or zero diagonal entries require no reflection or division.
+        direction <- rep(1, d)
+        direction[seq_along(diag(R_current))] <- ifelse(diag(R_current) < 0, -1, 1)
+        Q_current <- sweep(Q_current, 2, direction, "*")
+
+        # Multiply the original L so QR pivoting never permutes species.
+        L_new <- crossprod(Q_current, L_current)
+        U_new <- U_current %*% Q_current
+
+        L_output_reparam[,,iter,chain] <- L_new
+        U_output_reparam[,,iter,chain] <- U_new
+      }
+
+    }
+  }
+
+  list("L_output" = L_output_reparam,
+       "U_output" = U_output_reparam)
+}
+
+# COVARIATES AND SPLINES FUNCTIONS --------
+
+create_covariates_matrix <- function(df,
+                                     spline_vars = TRUE, # true for all or the names
+                                     df_spline = 5,
+                                     remove_intercept = TRUE,
+                                     min_obs_per_df = 10) {
+
+  if (is.matrix(df)) df <- as.data.frame(df)
+
+  if (any(is.na(df))) stop("NA in covariates matrix")
+
+  names_df   <- colnames(df)
+  df         <- df %>% dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor))
+  is_numeric <- sapply(df, is.numeric)
+
+  # Determine which specific numeric variables get splines
+  if (is.logical(spline_vars)) {
+    if (spline_vars) {
+      target_spline_vars <- names_df[is_numeric] # All numeric
+    } else {
+      target_spline_vars <- character(0)          # None
+    }
+  } else if (is.character(spline_vars)) {
+    # Check that requested variables actually exist and are numeric
+    invalid_vars <- setdiff(spline_vars, names_df)
+    if (length(invalid_vars) > 0) {
+      stop(paste("Requested spline_vars not found in data:", paste(invalid_vars, collapse = ", ")))
+    }
+    non_num <- spline_vars[!is_numeric[spline_vars]]
+    if (length(non_num) > 0) {
+      warning(paste("Ignoring non-numeric variables in spline_vars:", paste(non_num, collapse = ", ")))
+    }
+    target_spline_vars <- intersect(spline_vars, names_df[is_numeric])
+  } else {
+    stop("'spline_vars' must be a logical (TRUE/FALSE) or a character vector of column names.")
+  }
+
+  mean_df    <- rep(NA, ncol(df))
+  sd_df      <- rep(NA, ncol(df))
+  cat_levels <- vector("list", ncol(df))
+  bs_info    <- vector("list", ncol(df))  # Stores spline attributes
+
+  names(mean_df) <- names(sd_df) <- names(cat_levels) <- names(bs_info) <- names_df
+
+  # Standardize numericals and record factor levels
+  for (col in 1:ncol(df)) {
+    col_name <- names_df[col]
+    if (is_numeric[col]) {
+      mean_df[col] <- mean(df[[col]], na.rm = TRUE)
+      sd_df[col]   <- sd(df[[col]], na.rm = TRUE)
+      df[[col]]    <- (df[[col]] - mean_df[col]) / sd_df[col]
+    } else {
+      cat_levels[[col]] <- levels(df[[col]])
+    }
+  }
+
+  # Sample size check rule for splines
+  min_required_obs <- df_spline * min_obs_per_df
+
+  # Build matrix columns
+  list_X <- lapply(1:ncol(df), function(col) {
+
+    col_name <- names_df[col]
+    col_data <- df[[col]]
+
+    # Check if variable is selected for spline AND meets sample size rule
+    should_spline <- (col_name %in% target_spline_vars) &&
+      (length(unique(col_data)) >= min_required_obs)
+
+    if (col_name %in% target_spline_vars && length(unique(col_data)) < min_required_obs) {
+      message(paste0("Note: '", col_name, "' has fewer than ", min_required_obs,
+                     " unique values. Fitting as linear term instead of spline."))
+    }
+
+    if (is_numeric[col] && should_spline) {
+
+      # Generate spline basis
+      bs_obj <- splines::bs(col_data, df = df_spline, intercept = FALSE)
+
+      # Save knot info for prediction step later
+      bs_info[[col]] <<- list(
+        knots          = attr(bs_obj, "knots"),
+        Boundary.knots = attr(bs_obj, "Boundary.knots"),
+        degree         = attr(bs_obj, "degree"),
+        intercept      = attr(bs_obj, "intercept")
+      )
+
+      colnames(bs_obj) <- paste0(col_name, "_s", seq_len(ncol(bs_obj)))
+      return(bs_obj)
+
+    } else if (is_numeric[col]) {
+      # Linear term fallback
+      mat <- matrix(col_data, ncol = 1)
+      colnames(mat) <- col_name
+      return(mat)
+
+    } else {
+      # Categorical variables
+      return(data.frame(col_data, fix.empty.names = FALSE) %>% setNames(col_name))
+    }
+  })
+
+  df_transformed <- do.call(cbind, list_X)
+
+  # Generate dummy design matrix
+  X_final <- stats::model.matrix(~ ., data = as.data.frame(df_transformed))
+
+  if (remove_intercept) {
+    X_final <- X_final[, -1, drop = FALSE]
+  }
+
+  list_matrix <- list(
+    names_df           = names_df,
+    mean_df            = mean_df,
+    sd_df              = sd_df,
+    cat_levels         = cat_levels,
+    is_numeric         = is_numeric,
+    bs_info            = bs_info,
+    target_spline_vars = target_spline_vars
+  )
+
+  return(list(X = X_final, list_matrix = list_matrix, X0 = df))
+}
+
+transform_new_covariates <- function(df, list_matrix, remove_intercept = TRUE) {
+
+  names_df   <- list_matrix$names_df
+  mean_df    <- list_matrix$mean_df
+  sd_df      <- list_matrix$sd_df
+  cat_levels <- list_matrix$cat_levels
+  is_numeric <- list_matrix$is_numeric
+  bs_info    <- list_matrix$bs_info
+
+  if (is.matrix(df)) df <- as.data.frame(df)
+
+  if (any(is.na(df))) stop("NA in covariates matrix")
+
+  missing_cols <- setdiff(names_df, colnames(df))
+  if (length(missing_cols) > 0) {
+    stop(paste("New data is missing required columns:", paste(missing_cols, collapse = ", ")))
+  }
+
+  df <- df[, names_df, drop = FALSE] %>%
+    dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor))
+
+  # 1. Standardize numericals and enforce factor levels
+  for (col in 1:ncol(df)) {
+    if (is_numeric[col]) {
+      df[, col] <- (df[, col] - mean_df[col]) / sd_df[col]
+    } else {
+      df[[col]] <- factor(df[[col]], levels = cat_levels[[col]])
+    }
+  }
+
+  # 2. Evaluate splines or keep linear
+  list_X <- lapply(1:ncol(df), function(col) {
+    col_name <- names_df[col]
+    col_data <- df[[col]]
+
+    if (is_numeric[col] && !is.null(bs_info[[col]])) {
+      # Reconstruct spline using saved training knots
+      info <- bs_info[[col]]
+      bs_obj <- splines::bs(
+        col_data,
+        knots          = info$knots,
+        Boundary.knots = info$Boundary.knots,
+        degree         = info$degree,
+        intercept      = info$intercept
+      )
+
+      colnames(bs_obj) <- paste0(col_name, "_s", seq_len(ncol(bs_obj)))
+      return(bs_obj)
+
+    } else if (is_numeric[col]) {
+      mat <- matrix(col_data, ncol = 1)
+      colnames(mat) <- col_name
+      return(mat)
+
+    } else {
+      return(data.frame(col_data, fix.empty.names = FALSE) %>% setNames(col_name))
+    }
+  })
+
+  df_transformed <- do.call(cbind, list_X)
+
+  X_new <- stats::model.matrix(~ ., data = as.data.frame(df_transformed))
+
+  if (remove_intercept) {
+    X_new <- X_new[, -1, drop = FALSE]
+  }
+
+  return(X_new)
+}
+
+transformCovariatesMatrix <- function(df, list_matrix, remove_intercept){
+
+  names_df <- list_matrix$names_df
+  mean_df <- list_matrix$mean_df
+  sd_df <- list_matrix$sd_df
+  cat_levels <- list_matrix$cat_levels
+  is_numeric <- list_matrix$is_numeric
+
+  if(any(is.na(df))) stop("NA in covariates matrix")
+
+  # missing columns
+  missing_cols <- setdiff(names_df, colnames(df))
+  if (length(missing_cols) > 0) {
+    stop(paste("New data is missing critical columns required by the model:",
+               paste(missing_cols, collapse = ", ")))
+  }
+
+  # sort the new data and convert non numeric to
+  df <- df[,names_df,drop=F] %>%
+    dplyr::mutate(dplyr::across(dplyr::where(~ !is.numeric(.x)), as.factor))
+
+  # standardise numerical and categorical
+  for (col in 1:ncol(df)) {
+    if(is_numeric[col]){
+
+      df[,col] <- (df[,col] - mean_df[col]) / sd_df[col]
+
+    }else{
+
+      levels(df[[col]]) <- cat_levels[[col]]
+
+    }
+  }
+
+  df <- stats::model.matrix(~., df)
+
+  # Remove intercept if requested (first column is always intercept)
+  if (remove_intercept) {
+    df <- df[, -1, drop = FALSE]
+  }
+
+  return(df)
+
+}
+
+# Build a complete environmental design at reference conditions. X0 stores
+# standardized numeric predictors, despite its historical "raw" name. Keeping
+# calculations on that scale also avoids rounding beyond a spline boundary.
+covariate_response_grid <- function(cov_name, X0, X, list_matrix,
+                                    n_points = 200L) {
+  is_numeric <- list_matrix$is_numeric
+  selected <- X0[[cov_name]]
+  if (is_numeric[[cov_name]]) {
+    values <- seq(min(selected), max(selected), length.out = n_points)
+    x <- values * list_matrix$sd_df[[cov_name]] + list_matrix$mean_df[[cov_name]]
+  } else {
+    values <- list_matrix$cat_levels[[cov_name]]
+    x <- factor(values, levels = values)
+  }
+
+  design <- matrix(0, length(values), ncol(X), dimnames = list(NULL, colnames(X)))
+  offset <- 0L
+  # create_covariates_matrix() stores main-effect blocks in names_df order.
+  # Use those blocks directly, never prefix/regexp matching (e.g. x versus x2).
+  for (name in list_matrix$names_df) {
+    reference <- if (is_numeric[[name]]) {
+      stats::median(X0[[name]])
+    } else {
+      list_matrix$cat_levels[[name]][1L]
+    }
+    grid_values <- if (name == cov_name) values else rep(reference, length(values))
+
+    if (is_numeric[[name]]) {
+      spline <- list_matrix$bs_info[[name]]
+      block <- if (is.null(spline)) {
+        matrix(grid_values, ncol = 1L)
+      } else {
+        splines::bs(grid_values, knots = spline$knots,
+                    Boundary.knots = spline$Boundary.knots,
+                    degree = spline$degree, intercept = spline$intercept)
+      }
+      columns <- offset + seq_len(ncol(block))
+    } else {
+      levels <- list_matrix$cat_levels[[name]]
+      columns <- offset + seq_len(ncol(stats::contrasts(X0[[name]])))
+      rows <- match(grid_values, as.character(X0[[name]]))
+      block <- X[rows, columns, drop = FALSE]
+
+      # Copy the actual fitted encoding, including ordered/custom contrasts.
+      # An unused factor level has no training row: reconstruct it only after
+      # checking that the available contrast settings reproduce the fitted rows.
+      if (anyNA(rows)) {
+        factor_grid <- X0[[name]][rep(1L, length(levels))]
+        factor_grid[] <- levels
+        candidates <- stats::model.matrix(~ factor_grid)[, -1L, drop = FALSE]
+        training_rows <- match(as.character(X0[[name]]), levels)
+        if (!isTRUE(all.equal(unname(candidates[training_rows, , drop = FALSE]),
+                              unname(X[, columns, drop = FALSE])))) {
+          stop("Cannot reconstruct unused levels of covariate '", name,
+               "'. Restore the contrast settings used to fit the model.", call. = FALSE)
+        }
+        block[is.na(rows), ] <- candidates[match(grid_values[is.na(rows)], levels), , drop = FALSE]
+      }
+    }
+    design[, columns] <- block
+    offset <- offset + length(columns)
+  }
+  if (offset != ncol(X)) {
+    stop("Stored covariate metadata does not match the fitted design matrix.", call. = FALSE)
+  }
+  list(x = x, X = design)
+}
+
+returnCovariateEffect_base <- function(cov_name, idx_species,
+                                      B0_output_vec, B_output_vec,
+                                      list_matrix, speciesNames, X0, X,
+                                      n_points = 200L,
+                                      link = c("logit", "identity"),
+                                      confidence = .95) {
+  link <- match.arg(link)
+  grid <- covariate_response_grid(cov_name, X0, X, list_matrix, n_points)
+  probabilities <- c(.5, (1 - confidence) / 2, (1 + confidence) / 2)
+  n_draws <- nrow(B0_output_vec)
+
+  species_data <- lapply(idx_species, function(sp) {
+    coefficients <- matrix(B_output_vec[, , sp, drop = FALSE], nrow = n_draws)
+    eta <- sweep(grid$X %*% t(coefficients), 2L, B0_output_vec[, sp], FUN = "+")
+    response <- if (link == "logit") stats::plogis(eta) else eta
+
+    if (list_matrix$is_numeric[[cov_name]]) {
+      interval <- t(apply(response, 1L, stats::quantile, probs = probabilities,
+                          names = FALSE))
+      data.frame(x = grid$x, median = interval[, 1L], lower = interval[, 2L],
+                 upper = interval[, 3L], Species = speciesNames[sp])
+    } else {
+      # Preserve the categorical raw-draw return format, now including level 1.
+      data.frame(x = rep(grid$x, each = n_draws), Species = speciesNames[sp],
+                 draw = rep(paste0("V", seq_len(n_draws)), times = length(grid$x)),
+                 value = as.vector(t(response)))
+    }
+  })
+  dplyr::bind_rows(species_data)
+}
+
+plot_covariate_response <- function(data, cov_name, is_numeric, link, confidence) {
+  if (is_numeric) {
+    plot <- ggplot(data, aes(x = x, y = median)) +
+      geom_ribbon(aes(ymin = lower, ymax = upper), fill = "#3388ff", alpha = .3) +
+      geom_line(color = "#0044cc", linewidth = 1) +
+      scale_x_continuous(breaks = pretty(data$x, n = 5))
+  } else {
+    summary <- data %>%
+      dplyr::group_by(Species, x) %>%
+      dplyr::summarise(
+        median = stats::median(value),
+        lower = stats::quantile(value, (1 - confidence) / 2),
+        upper = stats::quantile(value, (1 + confidence) / 2),
+        .groups = "drop"
+      )
+    plot <- ggplot(summary, aes(x = x, y = median)) +
+      geom_pointrange(aes(ymin = lower, ymax = upper), color = "#0044cc")
+  }
+  plot +
+    facet_wrap(~ Species, scales = "free_y") +
+    labs(title = paste("Response to", cov_name), x = cov_name,
+         y = if (link == "logit") "Occupancy probability" else "Expected response",
+         subtitle = paste("Other numeric covariates at their medians; categorical covariates at their first levels.",
+                          "Latent site and spatial contributions set to zero.", sep = "\n"),
+         caption = paste0("Posterior median and ", 100 * confidence, "% credible interval.")) +
+    theme_bw()
+}
+
+computeSpatialSummaries <- function(Xs, ps, maxPoints = ps){
+
+  n <- nrow(Xs)
+
+  if(ps > 0){
+
+    # isolate unique locations and assign indexes to sites
+    uniqueXs <- which(!duplicated(Xs))
+    X_s <- Xs[uniqueXs,,drop=FALSE]
+
+    # indexes assigning original locations (Xs) to new locations (X_s)
+    Xs_index <- match(
+      do.call(paste, as.data.frame(Xs)),
+      do.call(paste, as.data.frame(X_s))
+    )
+
+    # indexes assigning the new location X_s to the original
+    X_s_index <- match(
+      do.call(paste, as.data.frame(X_s)),
+      do.call(paste, as.data.frame(Xs))
+    )
+
+    # location of support points
+    # X_tilde <- as.matrix(buildGrid(X_s, gridStep = .4))
+
+    # All observed locations can serve as support points. In that case no
+    # clustering is needed, and no location is lost to an n-1 cap.
+    ps <- min(ps,nrow(X_s))
+    if (ps == nrow(X_s)) {
+      X_tilde <- X_s
+    } else {
+      list_kmeans <- kmeans(X_s, centers = ps)
+      X_tilde <- list_kmeans$centers
+    }
+
+    {
+      # ggplot() +
+      #   geom_point(data = NULL, aes(x = X_tilde[,1],
+      #                               y = X_tilde[,2], color = "red")) +
+      #   geom_point(data = NULL, aes(x = X_s[,1],
+      #                               y = X_s[,2]))
+
+    }
+
+    # Whitened columns are global basis functions, not local knot effects.
+    # Retain all of them to represent K_nm K_mm^-1 K_mn independently of knot
+    # ordering. maxPoints is retained for compatibility with internal callers.
+    X_s_centers <- matrix(rep(seq_len(ps), each=nrow(X_s)),nrow(X_s),ps)
+    Xs_centers <- X_s_centers[Xs_index,,drop=FALSE]
+
+  } else {
+
+    Xs_index <- rep(NA, nrow(Xs))
+    X_s_index <- NULL
+    X_tilde <- matrix(NA, ps, 0)
+    X_s_centers <- matrix(NA, nrow(Xs), 0)
+    Xs_centers <- matrix(NA, nrow(Xs), 0)
+    X_s <- matrix(NA, nrow(Xs), 2)
+
+  }
+
+  list(
+    "Xs_index" = Xs_index, # indexes matching original locations to new locations
+    "X_s_index" = X_s_index, # indexes recovering the new unique locations from the original
+    "X_tilde" = X_tilde, # location of support points
+    "X_s_centers" = X_s_centers, # indexes to match new locations to the coefficients
+    "Xs_centers" = Xs_centers, # indexes to match original locations to the coefficients
+    "X_s" = X_s, # new unique locations
+    "ps" = ps) # new number of support points
+
+}
+
+precomputeSORmatrices <- function(l_s_grid, list_Xs, full_gp = FALSE){
+
+  length_grid_ls <- length(l_s_grid)
+
+  X_tilde <- list_Xs$X_tilde
+  X_s <- list_Xs$X_s
+  Xs_index <- list_Xs$Xs_index
+  X_s_centers <- list_Xs$X_s_centers
+
+  X_centers <- nrow(X_tilde)
+  maxPoints <- ncol(X_s_centers)
+  n <- length(Xs_index)
+  ns <- nrow(X_s)
+
+  Ks_all <- array(NA, dim = c(n, maxPoints, length_grid_ls))
+  # Full-GP matrices belong to the standalone fixed-field diagnostic only.
+  # The fitted SoR range conditional needs no n-by-n covariance or inverse.
+  logDetKuu_grid <- if (full_gp) rep(NA, length_grid_ls) else NULL
+  Lm1_grid <- if (full_gp) array(NA, c(ns, ns, length_grid_ls)) else NULL
+
+
+  if(X_centers > 0){
+
+    message("Precomputing spatial covariance matrices")
+
+    for (j in 1:length_grid_ls) {
+
+      # if(F){
+      #   print(paste0("Precomputing covariance matrix ",j," out of ",length_grid_ls))
+      # }
+
+      l_s_current <- l_s_grid[j]
+
+      list_SoRelem <- computeSORmatrix(l_s_current, X_tilde, X_s, Xs_index,
+                                       X_s_centers, full_gp=full_gp)
+
+      Ks_all[,,j] <- list_SoRelem$Ks
+      if (full_gp) {
+        logDetKuu_grid[j] <- list_SoRelem$logDetKuu
+        Lm1_grid[,,j] <- list_SoRelem$sq_term
+      }
+
+    }
+  }
+
+  list("Ks_all" = Ks_all,
+       "logDetKuu_grid" = logDetKuu_grid,
+       "Lm1_grid" = Lm1_grid,
+       "l_s_grid" = l_s_grid)
+
+}
+
+spatialBasis <- function(Xs, X_tilde, l_s) {
+  K_uu <- K2(X_tilde,X_tilde,1,l_s) + diag(1e-5,nrow(X_tilde))
+  L <- FastGP::rcppeigen_get_chol(K_uu)
+  K2(Xs,X_tilde,1,l_s) %*% t(FastGP::rcppeigen_invert_matrix(L))
+}
+
+computeSORmatrix <- function(l_s, X_tilde, X_s, Xs_index, X_s_centers,
+                             full_gp = FALSE){
+
+  ps <- nrow(X_tilde)
+  logDetKuu <- NULL
+  sq_term <- NULL
+
+  if(ps > 0){
+
+    KnmLmt <- spatialBasis(X_s,X_tilde,l_s)
+    Ks <- matrix(KnmLmt[cbind(rep(seq_len(nrow(X_s)),ncol(X_s_centers)),
+                              as.vector(X_s_centers))],nrow(X_s),ncol(X_s_centers))
+    Ks <- Ks[Xs_index,,drop=FALSE]
+
+    if (full_gp) {
+      K_xx <- K2(X_s, X_s, 1, l_s) + diag(exp(-10), nrow = nrow(X_s))
+      logDetKuu <- sum(log(FastGP::rcppeigen_get_diag(K_xx))) * 2
+      sq_term <- FastGP::rcppeigen_get_chol(FastGP::rcppeigen_invert_matrix(K_xx))
+    }
+
+  } else {
+
+    Ks <- matrix(NA, nrow = length(Xs_index), 0)
+    logDetKuu <- NULL
+    sq_term <- NULL
+
+  }
+
+  list("Ks" = Ks,
+       "logDetKuu" = logDetKuu,
+       "sq_term" = sq_term)
+
+}
+
+getDefaultSupportPoints <- function(n) min(floor(n * 0.2), n - 1)
+
+# DATA SIMULATION -------
+
+sampleEffects <- function(n){
+
+  sample((-1):1, n, replace = T)
+
+}
+
+createCovMatrix <- function(n, p){
+
+  X <- as.data.frame(matrix(rnorm(n * p, sd = 10), n, p))
+
+  num_cat <- round(0.2 * p)
+  cat_cols <- sample(1:p, size = num_cat)
+
+  for (col in cat_cols) {
+      X[, col] <- sample(as.character(1:3), size = n, replace = TRUE)
+  }
+
+  X
+
+}
+
+simulateData <- function(
+    n, S, p, g, gt, d, tau, rnb, ds, ns,
+    sigma_b, sigma_bs, sigma_ts, sigma_h, sigma_s, l_s,
+    useSpatField, usingSplines, model){
+
+  # simulate data
+  {
+    speciesNames <- as.character(1:S)
+
+    # Fixed effects matrix
+    X <- createCovMatrix(n, p)
+    if(p > 0) {
+
+      colnames(X) <- paste("EnvCov", seq_len(p))
+      X0 <- X
+      list_X <- create_covariates_matrix(
+        X,
+        spline_vars = usingSplines)
+      X <- list_X$X
+      p0 <- p
+      p <- ncol(X)
+
+    }
+
+
+    # Traits matrix
+    Tr <- matrix(rnorm(S * g), S, g)
+
+    # Spatial locations
+    Xs <- matrix(runif(ns * 2), ns, 2)
+    if(ns < n){
+      Xs <- Xs[sample(1:ns, n, replace = T),]
+    }
+
+    ps <- 0
+  }
+
+  # params
+  {
+
+    # Intercepts
+    B0 <- rnorm(S, sd = 1)
+
+    # Traits covariate coefficients
+    G <- matrix(sampleEffects(p * g), g, p)
+
+    # Unobserved traits
+    A <- matrix(rnorm(gt * S), S, gt)
+
+    # Unobserved response to traits
+    C <- matrix(sampleEffects(p * gt), gt, p)
+    diag(C) <- 1
+    C[lower.tri(C)] <- 0
+
+    # Residual environmental covariates variation
+    Bt <- matrix(rnorm(p * S, sd = sigma_b), S, p)
+
+    # Environmental covariates coefficient
+    B <- t(computeBtcoef(G, Tr, A, C, Bt))
+
+    # Spatial response to traits
+    Gs <- matrix(0, g, ps)
+
+    # Unobserved spatial traits
+    As <- matrix(0, S, gt)
+
+    # Unobserved response to spatial traits
+    Cs <- matrix(0, gt, ps)
+    diag(Cs) <- 1
+    Cs[lower.tri(Cs)] <- 0
+
+    # Residual spatial variation
+    Bst <- matrix(0, S, ps)
+
+    # Spatial covariates coefficient
+    Bs <- t(computeBtcoef(Gs, Tr, As, Cs, Bst))
+
+    #  factor scores
+    U <- matrix(rnorm(n * d, sd = sigma_h), n, d)
+
+    # factor loadings
+    L <- matrix(sampleEffects(d * S), d, S)
+    diag(L) <- 1
+    L[lower.tri(L)] <- 0
+
+  }
+
+  # generate spatial field
+  {
+    if(useSpatField){
+
+      K_mat <- K2(Xs, Xs, sigma_s, l_s) + diag(10^(-5), nrow = ns)
+      LU <- chol(K_mat)
+
+      if(ds > 0){
+
+        Lambda <- matrix(rnorm(ds * S), ds, S)
+        Sigma <- t(Lambda) %*% Lambda + diag(10^(-5), nrow = S)
+        Sigma <- cov2cor(Sigma)
+        LV <- chol(Sigma)
+
+        Z <- matrix(rnorm(n * S), n, S)
+
+        spatField <- t(LU) %*% Z %*% LV
+
+      } else { # shared spatial field
+
+        LU <- chol(K_mat)
+        Z <- rnorm(n)
+
+        spatField <- matrix(t(LU) %*% Z, n, S, byrow = F)
+
+      }
+
+    } else {
+      spatField <- matrix(0, n, S)
+    }
+
+
+    Xs_centers <- matrix(NA, 0, 0)
+    Ks <- matrix(NA, 0, 0)
+
+  }
+
+  # simulate observations
+  list_eta <- computePsiCoef(
+    X, Ks, list_Xs$Xs_centers, Tr,
+    B0, G, A, C, Bt,
+    Gs, As, Cs, Bst,
+    U, L)
+  eta <- list_eta$eta
+  if(useSpatField) eta <- eta + spatField
+  XB <- list_eta$XB
+  SE <- list_eta$SE
+  UL <- list_eta$UL
+
+  # outcomes
+  if(model == "continuous"){
+
+    z <- t(sapply(1:n, function(i){
+      sapply(1:S, function(j){
+        rnorm(1, eta[i,j], tau[j])
+      })
+    }))
+
+  } else if(model == "binary"){
+
+    psi <- logistic(eta)
+
+    z <- t(sapply(1:n, function(i){
+      sapply(1:S, function(j){
+        rbinom(1, 1, psi[i,j])
+      })
+    }))
+
+  } else if (model == "count"){
+
+    mu <- exp(eta)
+
+    z <- t(sapply(1:n, function(i){
+      sapply(1:S, function(j){
+        rnbinom(1, size = rnb[j], mu = mu[i,j])
+      })
+    }))
+
+  }
+
+  varPart <- computeVariancePartitioning_stdevs(XB, SE, UL, model)
+  if(useSpatField) {
+    varPart <- computeVariancePartitioning_stdevs(XB, SE + spatField, UL, model)
+  }
+
+  # save true values
+  {
+    data <- list(
+    "z" = z,
+    "X" = X0,
+    "Tr" = Tr,
+    "Xs" = Xs
+    )
+
+    trueParams <- list(
+      "B0" = B0,
+      "B" = B,
+      "Bt" = Bt,
+      "G" = G,
+      "A" = A,
+      "C" = C,
+      "Bs" = Bs,
+      "Gs" = Gs,
+      "As" = As,
+      "Cs" = Cs,
+      "Bst" = Bst,
+      "SE" = SE,
+      "spatField" = spatField,
+      "U" = U,
+      "L" = L,
+      "sigma_b" = sigma_b,
+      "sigma_bs" = sigma_bs,
+      "sigma_s" = sigma_s,
+      "l_s" = l_s,
+      "eta" = eta,
+      "tau" = tau,
+      "varPart" = varPart
+    )
+  }
+
+  list("data" = data,
+       "trueParams" = trueParams)
+}
+
+# MCMC FUN ---------------------
+
+computeBtcoef <- function(G, Tr, A, C, Btilde){
+
+  Tr %*% G + A %*% C + Btilde
+
+}
+
+computePsiCoef <- function(
+    X, Ks, Xs_centers, Tr,
+    B0, G, A, C, Bt,
+    Gs, As, Cs, Bst,
+    U, L){
+
+  ps <- ncol(Bst)
+
+  n <- nrow(X)
+  S <- length(B0)
+
+  B0_mat <- matrix(B0, n, S, byrow = T)
+
+  B <- t(computeBtcoef(G, Tr, A, C, Bt))
+
+  XB_prod <- X %*% B
+
+  if(ps > 0){
+    Bs <- t(computeBtcoef(Gs, Tr, As, Cs, Bst))
+    XsBs_prod <- KsBproduct(Ks, Bs, Xs_centers)
+  } else {
+    XsBs_prod <- matrix(0, nrow(XB_prod), ncol(XB_prod))
+  }
+
+  # PUL <- P %*% H %*% L
+  PUL <- U %*% L
+
+  eta <- B0_mat + XB_prod + XsBs_prod + PUL
+
+  list("eta" = eta,
+       "XB" = B0_mat + XB_prod,
+       "SE" = XsBs_prod,
+       "UL" = PUL)
+
+}
+
+# sample residual variance of env. covariates coefficients
+sample_sigmab <- function(B, Tr, G, A, C, a_sigmab, b_sigmab){
+
+  p <- nrow(B)
+  S <- ncol(B)
+
+  Bt <- t(B) - computeBtcoef(G, Tr, A, C, matrix(0, S, p))
+
+  sumsq <- sum(Bt^2)
+  n_samples <- p * S
+
+  sqrt(
+    rinvgamma_cpp(a_sigmab + (n_samples / 2), b_sigmab + (sumsq / 2))
+  )
+
+}
+
+# Half-Cauchy prior on the shared residual spatial-coefficient SD. Subtract
+# the same observed/latent trait mean as sample_sigmab(). The auxiliary is
+# refreshed from its full conditional, so it need not be retained in output.
+sample_spatial_sd_half_cauchy <- function(B,Tr,G,A,C,sigma,scale) {
+  residual <- t(B)-computeBtcoef(G,Tr,A,C,matrix(0,ncol(B),nrow(B)))
+  auxiliary <- rinvgamma_cpp(1,1/sigma^2+1/scale^2)
+  sqrt(rinvgamma_cpp((length(B)+1)/2,sum(residual^2)/2+1/auxiliary))
+}
+
+# sample variance of factor scores (U ~ N(0, sigma_h^2), iid across sites/factors)
+sample_sigmah <- function(U, a_sigmah, b_sigmah){
+
+  n <- nrow(U)
+  d <- ncol(U)
+
+  sumsq <- sum(U^2)
+  n_samples <- n * d
+
+  sqrt(
+    rinvgamma_cpp(a_sigmah + (n_samples / 2), b_sigmah + (sumsq / 2))
+  )
+
+}
+
+# sample variances of responses
+sample_tau <- function(z, eta, a_tau, b_tau){
+
+  n <- nrow(z)
+  S <- ncol(z)
+
+  sumsqs <- colSums((z - eta)^2)
+
+  tau <- sapply(1:S, function(s){
+
+    sqrt(
+      rinvgamma_cpp(a_tau + (n / 2), b_tau + (sumsqs[s] / 2))
+    )
+  })
+
+  tau
+}
+
+# Half-Cauchy(scale) prior on each response SD. With v = tau^2,
+# v | auxiliary ~ IG(1/2, 1/auxiliary), auxiliary ~ IG(1/2, 1/scale^2).
+# Refresh the auxiliary conditional on the current SD before drawing the new
+# variance. This Gibbs step has no rejection loop or lower bound on the SD.
+sample_tau_half_cauchy <- function(z,eta,tau,scale) {
+  sumsqs <- colSums((z-eta)^2)
+  vapply(seq_len(ncol(z)),function(s) {
+    auxiliary <- rinvgamma_cpp(1,1/tau[s]^2+1/scale^2)
+    sqrt(rinvgamma_cpp((nrow(z)+1)/2,sumsqs[s]/2+1/auxiliary))
+  },numeric(1))
+}
+
+
+# sample the intercepts, fixed effects, spatial fixed effects and the factor loadings
+# The species intercept has a Normal(0, sigma_b0^2) prior; loadings keep unit variance.
+sample_BBsL <- function(k, X, Tr, U,
+                        G, A, C, sigma_b,
+                        Gs, As, Cs, sigma_bs,
+                        Ks, Xs_centers,
+                        Omega, model, sigma_b0 = 1) {
+
+  p <- ncol(X)
+  ps <- ncol(Cs)
+  d <- ncol(U)
+  S <- ncol(Omega)
+
+  M_B <- t(computeBtcoef(G, Tr, A, C, matrix(0, S, p)))
+  M_Bs <- t(computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps)))
+
+  B0 <- rep(0, S)
+  B <- matrix(0, p, S)
+  Bs <- matrix(0, ps, S)
+  L <- matrix(0, d, S)
+
+  if(1 + p + ps + d > 0){
+
+    B_current <- diag(1, nrow = 1 + p + d + ps)
+    diag(B_current)[1] <- sigma_b0^2
+    diag(B_current)[1 + seq_len(p)] <- sigma_b^2
+    diag(B_current)[1 + p + d + seq_len(ps)] <- sigma_bs^2
+
+    invB_current <- diag(1 / diag(B_current), nrow = 1 + p + d + ps)
+
+    for (s in 1:S) {
+
+      if(model == "continuous"){
+        k_current <- k[,s] * Omega[,s]
+      } else if(model == "binary"){
+        k_current <- k[,s]
+      }
+
+      XU <- cbind(1, X, U)
+
+      b_current <- c(0, M_B[,s], rep(0, d), M_Bs[,s])
+
+      BBsL <- sampleB_SoR(XU, invB_current, b_current, k_current,
+                          Omega[,s], Xs_centers, Ks, ps)
+
+      B0[s] <- BBsL[1]
+      B[seq_len(p),s] <- BBsL[1 + seq_len(p)]
+      L[seq_len(d),s] <- BBsL[1 + p + seq_len(d)]
+      Bs[seq_len(ps),s] <- BBsL[1 + p + d + seq_len(ps)]
+
+
+    }
+
+  }
+
+  Bt <- t(B) - Tr %*% G - A %*% C
+
+  Bts <- t(Bs) - Tr %*% Gs - As %*% Cs
+
+  list("B" = B,
+       "Bt" = Bt,
+       "L" = L,
+       "Bs" = Bs,
+       "Bts" = Bts,
+       "B0" = B0)
+}
+
+# sample traits (observed and unobserved) response to covariates
+sample_GC <- function(B, Tr, A, sigma_b){
+
+  p <- nrow(B)
+  S <- ncol(B)
+  g <- ncol(Tr)
+  gt <- ncol(A)
+
+  G <- matrix(0, g, p)
+  C <- matrix(0, gt, p)
+
+  if(p > 0){
+
+    tB <- t(B)
+
+    B_prior <- diag(2, nrow = g + gt)
+    b_prior <- rep(0, g + gt)
+
+    for (k in 1:p) {
+
+      B_current <- tB[,k]
+
+      if(g + gt > 0){
+
+        TA <- cbind(Tr, A)
+
+        b_prior <- rep(0, g + gt)
+        B_prior <- diag(1, nrow = g + gt)
+
+        GC <- sampleBuniv(TA, B_prior, b_prior, B_current, sigma_b)
+        G[seq_len(g),k] <- GC[seq_len(g)]
+        C[seq_len(gt),k] <- GC[g + seq_len(gt)]
+
+      }
+
+    }
+
+  }
+
+
+
+  Bt <- t(B) - Tr %*% G - A %*% C
+
+  list("G" = G,
+       "C" = C,
+       "Bt" = Bt)
+}
+
+# sample unobserved traits
+sample_A <- function(B, C, Tr, G, sigma_b){
+
+  p <- nrow(B)
+  gt <- nrow(C)
+  S <- ncol(B)
+
+  Btilde <- B - t(Tr %*% G)
+
+  A <- matrix(0, S, gt)
+
+  if(p > 0 & gt > 0){
+
+    B_current <- diag(1, nrow = gt)
+    b_current <- rep(0, gt)
+
+    for (s in 1:S) {
+
+      A[s,] <- sampleBuniv(t(C), B_current, b_current, Btilde[,s], sigma_b)
+
+    }
+
+  }
+
+  Bt <- t(B) - Tr %*% G - A %*% C
+
+  list("A" = A,
+       "Bt" = Bt)
+
+}
+
+
+
+loglik_spatialEffect <- function(KsBs_s, Lm1, logdet, sigma_s){
+
+  xsq <- t(KsBs_s) %*% Lm1
+
+  n_p <- nrow(Lm1)
+
+  loglikelihood <- - n_p / 2 * (log(2 * pi) + log(sigma_s^2)) - .5 * logdet -
+    (1/2) * (1 / sigma_s^2) * (xsq %*% t(xsq))
+
+  loglikelihood
+}
+
+# The weighted Gram matrix Z' diag(w) Z, formed with the symmetric BLAS
+# routine: scaling the rows by sqrt(w) and multiplying the result by its own
+# transpose (dsyrk) does half the arithmetic of crossprod(Z, w * Z) (dgemm)
+# and returns an exactly symmetric matrix. XtOmegaX_SoR() does the same in
+# C++, so the two agree bit for bit on the full basis layout.
+weighted_gram <- function(Z, w) {
+  crossprod(sqrt(w) * Z)
+}
+
+# Integrate the jointly Gaussian B0/B/L/Bs block before choosing a range.
+# The prior is range-independent, while the observation design depends on it.
+# Its Gaussian normalizer avoids holding whitened Bs fixed during a range move.
+spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
+                                      kappa, Omega, Xs_centers,
+                                      list_SoRSummaries, a_l_s, b_l_s,
+                                      location = NULL, sigma_b0 = 1) {
+  n <- nrow(X)
+  p <- ncol(X)
+  d <- ncol(U)
+  ps <- nrow(M_Bs)
+  S <- ncol(Omega)
+  # B0 must be integrated under the same Normal(0, sigma_b0^2) prior that
+  # sample_BBsL_cpp() then uses to draw it.
+  prior_precision <- c(1/sigma_b0^2, rep(1/sigma_b^2,p), rep(1,d), rep(1/sigma_bs^2,ps))
+  prior_means <- rbind(rep(0,S), M_B, matrix(0,d,S), M_Bs)
+  prior_linear <- prior_precision * prior_means
+  constant_omega <- vapply(seq_len(S),function(s) all(Omega[,s]==Omega[1,s]),logical(1))
+  if (!is.null(location)) {
+    if (length(location)!=n || anyNA(location))
+      stop("location must contain one non-missing group label per site row")
+    # Repeated binary observations share spatial basis rows, but retain their
+    # own covariates, factors and PG precisions. Continuous fits keep their
+    # existing constant-precision Gram-matrix shortcut.
+    if (anyDuplicated(location) && !all(constant_omega)) {
+      return(spatial_range_logweights_grouped(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+        kappa,Omega,Xs_centers,list_SoRSummaries,a_l_s,b_l_s,location,sigma_b0))
+    }
+  }
+  grid <- list_SoRSummaries$l_s_grid
+  # Formed once rather than once per grid point and species: the prior
+  # precision matrix, the non-spatial design block, and whether the spatial
+  # basis has the full layout (every site uses every coefficient column, in
+  # order), in which case the basis slice is already the design block H.
+  P <- diag(prior_precision, length(prior_precision))
+  A <- cbind(1, X, U)
+  full_basis <- ncol(Xs_centers) == ps && all(Xs_centers == rep(seq_len(ps), each = n))
+  vapply(seq_along(grid), function(j) {
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,j], nrow=n)
+    if (full_basis) {
+      H <- Ks
+    } else {
+      H <- matrix(0,n,ps)
+      H[cbind(rep(seq_len(n),ncol(Xs_centers)),as.vector(Xs_centers))] <- as.vector(Ks)
+    }
+    Z <- cbind(A, H)
+    # Continuous outcomes share an unweighted Gram matrix across species.
+    # Binary augmentation retains the heterogeneous weighted calculation.
+    gram <- if (any(constant_omega)) crossprod(Z) else NULL
+    linear <- crossprod(Z,kappa) + prior_linear
+    score <- vapply(seq_len(S), function(s) {
+      Q <- if (constant_omega[s]) Omega[1,s]*gram else weighted_gram(Z, Omega[,s])
+      C <- chol(Q + P)
+      v <- backsolve(C, linear[,s], transpose = TRUE)
+      .5*sum(v^2) - sum(log(diag(C)))
+    },numeric(1))
+    sum(score) + dgamma(grid[j],a_l_s,b_l_s,log=TRUE)
+  },numeric(1))
+}
+
+# Exact sufficient crossproducts for observations sharing a spatial row.
+spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+                                           kappa,Omega,Xs_centers,
+                                           list_SoRSummaries,a_l_s,b_l_s,
+                                           location,sigma_b0=1) {
+  n <- nrow(X);p <- ncol(X);d <- ncol(U);ps <- nrow(M_Bs);S <- ncol(Omega)
+  if(length(location)!=n || anyNA(location))
+    stop("location must contain one non-missing group label per site row")
+  stopifnot(n>0L,nrow(U)==n,nrow(Omega)==n,nrow(kappa)==n,ncol(kappa)==S,
+            nrow(M_B)==p,ncol(M_B)==S,ncol(M_Bs)==S,nrow(Xs_centers)==n)
+  group <- match(location,unique(location))
+  first <- which(!duplicated(group))
+  A <- cbind(1,X,U)
+  pa <- ncol(A)
+  precision <- c(1/sigma_b0^2,rep(1/sigma_b^2,p),rep(1,d),rep(1/sigma_bs^2,ps))
+  prior_mean <- rbind(rep(0,S),M_B,matrix(0,d,S),M_Bs)
+  prior_linear <- precision*prior_mean
+  diagonal_precision <- diag(precision,length(precision))
+
+  # Sufficient weighted crossproducts independent of the candidate range.
+  group_weight <- rowsum(Omega,group,reorder=FALSE)
+  group_kappa <- rowsum(kappa,group,reorder=FALSE)
+  linear_A <- crossprod(A,kappa)
+  weighted_A <- lapply(seq_len(S),function(s) Omega[,s]*A)
+  AA <- lapply(seq_len(S),function(s) weighted_gram(A,Omega[,s]))
+  group_weighted_A <- lapply(weighted_A,function(wA) rowsum(wA,group,reorder=FALSE))
+
+  grid <- list_SoRSummaries$l_s_grid
+  vapply(seq_along(grid),function(j) {
+    # Decode the existing full, sparse or permuted coefficient layout before
+    # grouping. This guard prevents silently grouping different design rows.
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,j],nrow=n)
+    H <- matrix(0,n,ps)
+    H[cbind(rep(seq_len(n),ncol(Xs_centers)),as.vector(Xs_centers))] <- as.vector(Ks)
+    Hu <- H[first,,drop=FALSE]
+    if(any(H!=Hu[group,,drop=FALSE]))
+      stop("spatial design rows differ within a supplied location group")
+    linear_H <- crossprod(Hu,group_kappa)
+    score <- vapply(seq_len(S),function(s) {
+      AH <- crossprod(group_weighted_A[[s]],Hu)
+      HH <- weighted_gram(Hu,group_weight[,s])
+      Q <- rbind(cbind(AA[[s]],AH),cbind(t(AH),HH))+diagonal_precision
+      h <- c(linear_A[,s],linear_H[,s])+prior_linear[,s]
+      C <- chol(Q)
+      v <- forwardsolve(t(C),h)
+      .5*sum(v^2)-sum(log(diag(C)))
+    },numeric(1))
+    sum(score)+dgamma(grid[j],a_l_s,b_l_s,log=TRUE)
+  },numeric(1))
+}
+
+# Exact categorical update, including the endpoints without proposal weights.
+sample_ls <- function(logweights) {
+  sample.int(length(logweights),1L,prob=exp(logweights-max(logweights)))
+}
+
+update_jSDMcoef <- function(list_data,
+                            list_params,
+                            list_priors,
+                            list_Xs,
+                            list_SoRSummaries,
+                            model,
+                            computeVarPart){
+
+  # read data
+  {
+    z <- list_data$z
+    X <- list_data$X
+    Tr <- list_data$Tr
+  }
+
+  # read params
+  {
+    B0 <- list_params$B0
+    B <- list_params$B
+    G <- list_params$G
+    A <- list_params$A
+    C <- list_params$C
+    Bt <- list_params$Bt
+    Bs <- list_params$Bs
+    Gs <- list_params$Gs
+    As <- list_params$As
+    Cs <- list_params$Cs
+    Bst <- list_params$Bst
+    U <- list_params$U
+    L <- list_params$L
+    sigma_b <- list_params$sigma_b
+    sigma_bs <- list_params$sigma_bs
+    sigma_h <- list_params$sigma_h
+    idx_ls <- list_params$idx_ls
+    tau <- list_params$tau
+
+    l_s <- list_SoRSummaries$l_s_grid[idx_ls]
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
+  }
+
+  # read priors
+  {
+    a_tau <- list_priors$a_tau
+    b_tau <- list_priors$b_tau
+    a_sigmab <- list_priors$a_sigmab
+    b_sigmab <- list_priors$b_sigmab
+    a_sigmabs <- list_priors$a_sigmabs
+    b_sigmabs <- list_priors$b_sigmabs
+    a_sigmah <- list_priors$a_sigmah
+    b_sigmah <- list_priors$b_sigmah
+    a_l_s <- list_priors$a_l_s
+    b_l_s <- list_priors$b_l_s
+    # Prior SD of the species occupancy intercept (read by runOccJSDM()).
+    sigma_b0 <- list_priors$intercept_prior$sd
+    if (is.null(sigma_b0)) stop("list_priors$intercept_prior$sd is missing")
+  }
+
+  # read state variables
+  {
+    ps <- nrow(Bs)
+  }
+
+  # define transformed target variables
+  if(model == "continuous"){
+    k <- z
+  } else if(model == "binary"){
+    k <- z - .5
+  } else if(model == "count"){
+    # k <- k / w
+  }
+
+  # compute linear predictor
+  list_psiCoef <- computePsiCoef(
+    X, Ks, list_Xs$Xs_centers, Tr,
+    B0, G, A, C, Bt,
+    Gs, As, Cs, Bst,
+    U, L)
+  psiCoef <- list_psiCoef$eta
+  XB <- list_psiCoef$XB
+  SE <- list_psiCoef$SE
+  UL <- list_psiCoef$UL
+
+  # sample variance of continuous output
+  if(model == "continuous"){
+    if (identical(list_priors$noise_prior$type,"half_cauchy")) {
+      tau <- sample_tau_half_cauchy(z,psiCoef,tau,list_priors$noise_prior$scale)
+    } else {
+      tau <- sample_tau(z, psiCoef, a_tau, b_tau)
+    }
+  }
+
+  # sample Omega
+  if(model == "continuous"){
+    Omega <- matrix(1 / tau^2, nrow(z), ncol(z), byrow = T)
+  } else if(model == "binary"){
+    Omega <- samplePGvariables_parallel(psiCoef)
+    # Omega <- samplePGvariables(psiCoef)
+  }
+
+  # Choose range after integrating the coefficient block, then immediately
+  # draw that entire block at the selected range. No intervening update may
+  # condition on the old coefficients after this collapsed step.
+  if (ps > 0) {
+    M_B <- t(computeBtcoef(G,Tr,A,C,matrix(0,ncol(z),ncol(X))))
+    M_Bs <- t(computeBtcoef(Gs,Tr,As,Cs,matrix(0,ncol(z),ps)))
+    kappa <- if (model == "continuous") k*Omega else k
+    logweights <- spatial_range_logweights(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+                                            kappa,Omega,list_Xs$Xs_centers,
+                                            list_SoRSummaries,a_l_s,b_l_s,
+                                            location=list_Xs$Xs_index,
+                                            sigma_b0=sigma_b0)
+    idx_ls <- sample_ls(logweights)
+    l_s <- list_SoRSummaries$l_s_grid[idx_ls]
+    Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
+  }
+
+  # sample fixed effects, spatial trait loadings and factor loadings
+  list_BBsL <- sample_BBsL_cpp(k, X, Tr, U,
+                           G, A, C, sigma_b,
+                           Gs, As, Cs, sigma_bs,
+                           Ks, list_Xs$Xs_centers,
+                           Omega, model,
+                           sigma_b0 = sigma_b0)
+  # list_BBsL <- sample_BBsL_parallel(k, X, Tr, U,
+  #                          G, A, C, sigma_b,
+  #                          Gs, As, Cs, sigma_bs,
+  #                          Ks, list_Xs$Xs_centers,
+  #                          Omega, model,
+  #                          sigma_b0 = sigma_b0)
+  B <- list_BBsL$B
+  Bt <- list_BBsL$Bt
+  Bs <- list_BBsL$Bs
+  Bst <- list_BBsL$Bts
+  L <- list_BBsL$L
+  B0 <- list_BBsL$B0
+
+  # update variance of residuals of environmental covariates
+  sigma_b <- sample_sigmab(B, Tr, G, A, C, a_sigmab, b_sigmab)
+  if(ps > 0){
+    if (identical(list_priors$spatial_sd_prior$type,"half_cauchy")) {
+      sigma_bs <- sample_spatial_sd_half_cauchy(Bs,Tr,Gs,As,Cs,sigma_bs,
+                                               list_priors$spatial_sd_prior$scale)
+    } else {
+      sigma_bs <- sample_sigmab(Bs, Tr, Gs, As, Cs, a_sigmabs, b_sigmabs)
+    }
+  }
+
+  # sample response to traits (observed and unobsered)
+  list_GC <- sample_GC(B, Tr, A, sigma_b)
+  G <- list_GC$G
+  C <- list_GC$C
+  Bt <- list_GC$Bt
+
+  # sample unobserved traits
+  list_A <- sample_A(B, C, Tr, G, sigma_b)
+  A <- list_A$A
+  Bt <- list_A$Bt
+
+  # sample spatial response to traits (observed and unobsered)
+  if(ps > 0){
+    list_GCs <- sample_GC(Bs, Tr, As, sigma_bs)
+    Gs <- list_GCs$G
+    Cs <- list_GCs$C
+    Bst <- list_GCs$Bt
+  }
+
+  # sample unobserved spatial traits
+  if(ps > 0){
+    list_As <- sample_A(Bs, Cs, Tr, Gs, sigma_bs)
+    As <- list_As$A
+    Bst <- list_As$Bt
+  }
+
+  # sample factor scores
+  list_psiCoef <- computePsiCoef(
+    X, Ks, list_Xs$Xs_centers, Tr,
+    B0, G, A, C, Bt,
+    Gs, As, Cs, Bst,
+    U, L)
+  XB <- list_psiCoef$XB
+  SE <- list_psiCoef$SE
+  U <- sample_U_cpp(k, L, XB, SE, Omega, sigma_h, model)
+
+  # update variance of factor scores
+  sigma_h <- sample_sigmah(U, a_sigmah, b_sigmah)
+
+  # output variables
+  {
+    list_psiCoef <- computePsiCoef(
+      X, Ks, list_Xs$Xs_centers, Tr,
+      B0, G, A, C, Bt,
+      Gs, As, Cs, Bst,
+      U, L)
+    eta <- list_psiCoef$eta
+    XB <- list_psiCoef$XB
+    SE <- list_psiCoef$SE
+    UL <- list_psiCoef$UL
+    if(computeVarPart) {
+      variancePartitioning <- computeVariancePartitioning_stdevs(XB, SE, UL, model)
+    } else {
+      variancePartitioning <- NULL
+    }
+
+    if(model == "continuous"){
+      eta <- eta
+      psi <- NULL
+    } else if (model == "binary"){
+      psi <- logistic(eta)
+    }
+  }
+
+  # output params
+
+  list_params <- list(
+   "B0" = B0,
+   "B" = B,
+   "G" = G,
+   "A" = A,
+   "C" = C,
+   "Bt" = Bt,
+   "Bs" = Bs,
+   "Gs" = Gs,
+   "As" = As,
+   "Cs" = Cs,
+   "Bst" = Bst,
+   "U" = U,
+   "L" = L,
+   "sigma_b" = sigma_b,
+   "sigma_bs" = sigma_bs,
+   "sigma_h" = sigma_h,
+   "idx_ls" = idx_ls,
+   "tau" = tau,
+   "eta" = eta,
+   "psi" = psi,
+   "variancePartitioning" = variancePartitioning
+  )
+
+  list_params
+
+}
+
+# OUTPUT -------------
+
+plotCoefficient <- function(param_output,
+                            covName = NULL,
+                            idx_output = NULL){
+
+  if(is.null(covName)){
+    stop("No name provided")
+  }
+
+  # ncov_psi <- fitModel$infos$ncov_psi
+  outputNames <- dimnames(param_output)[[3]]
+  covariatesNames <- dimnames(param_output)[[2]]
+  S <- dim(param_output)[3]
+  idxcov <- which(covariatesNames == covName)
+
+  if(length(idxcov) == 0){
+    stop("Covariate name not found. If you are using a categorical covariates,
+         the name might have changed to code the level. Use
+         colnames(fitModel$Tr) to find the new names")
+  }
+
+  if(is.null(idx_output)){
+    idx_output <- 1:S
+  }
+
+  samples_subset <- matrix(param_output[,idxcov, idx_output],
+                           dim(param_output)[1], length(idx_output))
+
+  data_plot <- apply(samples_subset, 2, function(x) {
+    quantile(x, probs = c(0.025, 0.975))
+  }) %>%
+    t %>%
+    as.data.frame %>%
+    mutate(Output = outputNames[idx_output]) %>%
+    mutate(OutputOrder = order(`2.5%`))
+
+  orderOutputs <- order(data_plot$`2.5%`)
+
+  data_plot %>%
+    ggplot(aes(x =  factor(Output, level = outputNames[orderOutputs]),
+               ymin = `2.5%`,
+               ymax = `97.5%`)) + geom_errorbar() +
+    ggtitle(covName) +
+    theme_bw() +
+    theme(
+      axis.text = element_text(angle = 90,
+                               size = 8),
+      plot.title = element_text(hjust = .5,
+                                size = 15)
+    ) + geom_hline(aes(yintercept = 0), color = "red")
+
+}
+
+computePredictiveProbs <- function(jsdm_output,
+                                   X_new,
+                                   meanX, sdX,
+                                   Xs_new,
+                                   meanXs, sdXs,
+                                   summarised = F,
+                                   confidence = .95,
+                                   model){
+
+  X_new <- as.matrix(X_new)
+
+    S <- #fitModel$infos$S
+    # speciesNames <- fitModel$infos$speciesNames
+    n <- nrow(X_new)
+
+    if(is.null(X_new)) {
+      X_psi <- fitModel$X_psi
+    }
+
+    B0_output <- jsdm_output$B0_output
+    B_output <- jsdm_output$B_output
+    Bs_output <- jsdm_output$Bs_output
+    L_output <- jsdm_output$L_output
+
+    niter <- dim(B_output)[3]
+    nchain <- dim(B_output)[4]
+
+    # transform back coefficients to original scale
+    {
+      list_BB0_output <- transformCoefficients(B0_output, B_output, meanX, sdX)
+      B0_output <- list_BB0_output$B0_output
+      B_output <- list_BB0_output$B_output
+    }
+
+    if(!summarised){
+
+      eta_output <- array(NA, dim = c(nchain * niter, n, S))
+      for (chain in 1:nchain) {
+        for (iter in 1:niter) {
+          psi_output[iter + (chain - 1)*niter,,] <-
+            logistic(
+              computePsiCoef(
+                X_new, Ks_new, Xs_centers_new, Tr,
+
+                beta_psi_output[,,iter,chain], X_ord,
+                          beta_ord_output[,,iter,chain],
+                          LL_output[,,iter,chain])
+            )
+        }
+      }
+
+    } else {
+
+      conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+
+      beta_ord_output <- aperm(apply(beta_ord_output, c(1,2), c), c(2,3,1))
+      beta_psi_output <- aperm(apply(beta_psi_output, c(1,2), c), c(2,3,1))
+      LL_output <- aperm(apply(LL_output, c(1,2), c), c(2,3,1))
+
+      # niter <- dim(beta_ord_output)[3]
+
+      psi_output <- computePsiOutput(
+        X_psi,
+        beta_psi_output,
+        X_ord,
+        beta_ord_output,
+        LL_output,
+        conflevels)
+
+      # psi_output <- array(NA, dim = c(3, n, S))
+      # for (i in 1:n) {
+      #   for (j in 1:S) {
+      #     mcmc_output <- rep(NA, niter)
+      #     for (iter in 1:niter) {
+      #       mcmc_output[iter] <- logistic(
+      #         computePsiE(X_psi[i,,drop=F], beta_psi_output[,j,iter],
+      #                     X_ord[i,,drop=F],
+      #                     beta_ord_output[,,iter],
+      #                     LL_output[,j,iter])
+      #       )
+      #
+      #     }
+      #
+      #     psi_output[,i,j] <- quantile(mcmc_output, conflevels)
+      #
+      #   }
+      # }
+
+    }
+
+    psi_output
+
+    # for (iter in 1:niter) {
+    #   psi_output[iter,,] <-
+    #     logistic(
+    #       matrix(beta0_psi_output[iter,], n, S, byrow = T) +
+    #         X_psi %*% matrix(beta_psi_output[iter,], ncov_psi, S) +
+    #         matrix(U_output[iter,], n, n_factors, byrow = F) %*% matrix(L_output[iter,], n_factors, S)
+    #     )
+    # }
+    #
+    # psi_output
+
+
+
+
+}
+
+
+# valid for logistic regression
+pseudo_R2 <- function(eta, y) {
+
+  S <- ncol(y)
+  n <- nrow(y)
+
+  mean_y <- mean(y, na.rm = T)
+
+  L_null <- sum(
+    sapply(1:S, function(s){
+      sapply(1:n, function(i){
+        dbinom(y[i,s], 1, mean_y, log = T)
+      })
+    })
+  )
+
+  L_full <- sum(
+    sapply(1:S, function(s){
+      sapply(1:n, function(i){
+        dbinom(y[i,s], 1, logistic(eta[i,s]), log = T)
+      })
+    })
+  )
+
+  1 - L_null / L_full
+
+}
+
+partition_r2 <- function(y, A, B, C) {
+
+  null_ll <- logLik(glm(y ~ 1, family = binomial))
+
+  # Get R² for all subsets
+  r2_0 <- 0
+  r2_A <- pseudo_R2(A + B + C)
+  r2_B <- 1 - logLik(glm(y ~ B, family = binomial)) / null_ll
+  r2_C <- 1 - logLik(glm(y ~ C, family = binomial)) / null_ll
+  r2_AB <- 1 - logLik(glm(y ~ A + B, family = binomial)) / null_ll
+  r2_AC <- 1 - logLik(glm(y ~ A + C, family = binomial)) / null_ll
+  r2_BC <- 1 - logLik(glm(y ~ B + C, family = binomial)) / null_ll
+  r2_ABC <- 1 - logLik(glm(y ~ A + B + C, family = binomial)) / null_ll
+
+  # LMG averaging (average over all 6 possible orders)
+  # A's contribution
+  contrib_A <- (r2_A + (r2_AB - r2_B) + (r2_AC - r2_C) + (r2_ABC - r2_BC)) / 4
+  contrib_B <- (r2_B + (r2_AB - r2_A) + (r2_BC - r2_C) + (r2_ABC - r2_AC)) / 4
+  contrib_C <- (r2_C + (r2_AC - r2_A) + (r2_BC - r2_B) + (r2_ABC - r2_AB)) / 4
+
+  # Convert to percentages (all positive because R² only increases when adding variables)
+  total <- contrib_A + contrib_B + contrib_C
+  return(c(A = contrib_A/total*100,
+           B = contrib_B/total*100,
+           C = contrib_C/total*100))
+}
+
+fast_sd <- function(X){
+  n <- nrow(X)
+  result <- sqrt(colSums((t(t(X) - colMeans(X)))^2) / (n - 1))
+  result
+}
+
+SD <- function(eta, model) {
+
+  if(model == "continuous"){
+    # apply(eta, 2, sd)
+    fast_sd(eta)
+  } else if (model == "binary"){
+    # apply(logistic(eta), 2, sd)
+    fast_sd(logistic(eta))
+  } else if (model == "count"){
+    # apply(exp(eta), 2, sd)
+    fast_sd(exp(eta))
+  } else {
+    stop("Using unavailable model")
+  }
+
+}
+
+computeVariancePartitioning_stdevs <- function(XB, SE, UL, model){
+
+  VE   <- SD(XB, model)
+  VS   <- SD(SE, model)
+  VF   <- SD(UL, model)
+  VES  <- SD(XB + SE, model)
+  VEF  <- SD(XB + UL, model)
+  VSF  <- SD(SE + UL, model)
+  VESF <- SD(XB + SE + UL, model)
+
+  VE <- pmax(VE, 0)
+  VES_VS <- pmax(VES - VS, 0)
+  VEF_VF <- pmax(VEF - VF, 0)
+  VESF_VSF <- pmax(VESF - VSF, 0)
+
+  VS <- pmax(VS, 0)
+  VES_VE <- pmax(VES - VE, 0)
+  VSF_VF <- pmax(VSF - VF, 0)
+  VESF_VEF <- pmax(VESF - VEF, 0)
+
+  VF <- pmax(VF, 0)
+  VEF_VE <- pmax(VEF - VE, 0)
+  VSF_VS <- pmax(VSF - VS, 0)
+  VESF_VES <- pmax(VESF - VES, 0)
+
+  CE <- VE + VES_VS + VEF_VF + VESF_VSF
+
+  CS <- VS + VES_VE + VSF_VF + VESF_VEF
+
+  CF <- VF + VEF_VE + VSF_VS + VESF_VES
+
+  Total <- CE + CS + CF
+
+  out <- data.frame(
+    Environmental = CE / Total,
+    Spatial = CS / Total,
+    Biotic = CF / Total,
+    Total = VESF
+  )
+
+  out
+
+}
+
+returnVariancePartitioningMatrix <-  function(varPart_output, speciesNames){
+
+  varPart_output_vec <- apply(varPart_output, c(1,2), c)
+  varPart_output_mean <- apply(varPart_output_vec, c(2,3), mean)
+  varPart_output_sd <- apply(varPart_output_vec, 2, function(x){
+    sqrt(sum(apply(x[,1:3], 2, function(y){
+      var(y)
+    })))
+  })
+
+  vp <- data.frame(
+    Species = speciesNames,
+    Env = varPart_output_mean[,1],
+    Spatial = varPart_output_mean[,2],
+    Biotic = varPart_output_mean[,3],
+    StDev = varPart_output_sd
+  )
+
+  vp
+
+}
+
+plotVarPart <- function(varPart_output, speciesNames){
+
+  load_ggtern_for_plot()
+
+  vp <- returnVariancePartitioningMatrix(varPart_output, speciesNames)
+
+  ggtern::ggtern(vp,
+         aes(x = Env,
+             y = Biotic,
+             z = Spatial)) +
+    geom_point(alpha = 0.7) +
+    # labs(
+    #   L = "Environment",
+    #   T = "Biotic",
+    #   R = "Spatial"
+    # ) +
+    ggtern::theme_bw(base_size = 11) +
+    ggtern::theme_showarrows() +
+    theme(
+      legend.position = "none",
+      tern.axis.title.T = element_text(size = 13),
+      tern.axis.title.L = element_text(size = 13),
+      tern.axis.title.R = element_text(size = 13)
+    )
+
+}
+
+returnSpatialEffectMean <- function(Bs_output, Ks){
+
+  Bs_output_vec <- apply(Bs_output, c(1,2), c)
+  Bs_output_vec <- aperm(Bs_output_vec, c(2,3,1))
+
+  spatEffect_mean <- spatEffectMeanCpp(Bs_output_vec, Ks, Xs_centers)
+
+  spatEffect_mean
+
+}
+
+plotSpatialEffect <- function(spatEffect_output, Xs, idx_species = 1){
+
+  spatEffect_output <- returnSpatialEffect(Bs_output, Ks)
+
+  spatEffect_median <- apply(spatEffect_output, c(2,3),
+                             function(x) {quantile(x, probs = .5)})
+
+  ggplot(data = NULL, aes(x = Xs[,1],
+                          y = Xs[,2],
+                          color = spatEffect_median[,idx_species])) + geom_point()
+
+}
+
+returnCorrelationMatrixOutput <- function(L_output, idx_species, outputNames){
+
+  d <- dim(L_output)[1]
+  S <- dim(L_output)[2]
+
+  if(is.null(idx_species)){
+    idx_species <- 1:S
+  }
+
+  L_output_vec <- apply(L_output, c(1,2), c)
+
+  niter <- dim(L_output_vec)[1]
+
+  Lambda_output <- array(NA, dim = c(niter, S, S))
+
+  for (iter in 1:niter) {
+    L_output_current <- matrix(L_output_vec[iter,,], S, d, byrow = T)
+
+    Lambda_output[iter,,] <- cov2cor(L_output_current %*% t(L_output_current))
+  }
+
+  dimnames(Lambda_output)[[2]] <- outputNames
+  dimnames(Lambda_output)[[3]] <- outputNames
+
+  Lambda_output[,idx_species, idx_species]
+
+}
+
+plotCorrelationMatrix <- function(L_output,
+                                  idx_species,
+                                  speciesNames,
+                                  showSignificance = T,
+                                  confidence = .95){
+
+  Sigma_output <- returnCorrelationMatrixOutput(L_output, idx_species, speciesNames)
+
+  conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+
+  Sigma_quantiles <- apply(Sigma_output, c(2,3),
+                            function(x){quantile(x, probs = conflevels)})
+
+  sig_matrix <- matrix(FALSE,
+                       nrow = dim(Sigma_quantiles)[2],
+                       ncol = dim(Sigma_quantiles)[3])
+  for(i in 1:nrow(sig_matrix)) {
+    for(j in 1:ncol(sig_matrix)) {
+      if(i < j) { # Lower triangle only
+        lower_bound <- Sigma_quantiles[1,i,j]
+        upper_bound <- Sigma_quantiles[3,i,j]
+        sig_matrix[i,j] <- (lower_bound < 0 & upper_bound > 0)
+      }
+    }
+  }
+
+  sig_coords <- which(sig_matrix, arr.ind = TRUE)
+
+  p <- ggcorrplot::ggcorrplot(Sigma_quantiles[2,,],
+                              method = "square",
+                              type = "lower",
+                         lab = F, lab_size = 3,
+                         colors = c("blue", "white", "red"),
+                         title = "Covariance Matrix (as Correlation)") +
+    theme(plot.title = element_text(hjust = 0.5,
+                                    size = 16,
+                                    face = "bold"))
+
+  if(showSignificance){
+
+    annotation_data <- sig_coords[sig_coords[, 1] < sig_coords[, 2], , drop = FALSE]
+
+    # Convert to a data frame for ggplot
+    plot_annotations <- data.frame(
+      x = annotation_data[, 2] - 1,   # j - 1
+      y = annotation_data[, 1],       # i
+      label = "x"
+    )
+
+    # 2. Add everything to your plot in ONE single layer
+    p <- p + geom_text(
+      data = plot_annotations,
+      aes(x = x, y = y, label = label),
+      size = 6,
+      color = "black",
+      fontface = "bold",
+      inherit.aes = FALSE
+    )
+
+    # for(k in 1:nrow(sig_coords)) {
+    #   i <- sig_coords[k, 1]
+    #   j <- sig_coords[k, 2]
+    #   # Only add if in lower triangle and i != j
+    #   if(i < j) {
+    #     p <- p + annotate("text",
+    #                       x = j-1,
+    #                       y = i,
+    #                       label = "x",
+    #                       size = 6,
+    #                       color = "black",
+    #                       fontface = "bold")
+    #   }
+    # }
+
+  }
+
+  p
+}
+
+returnFactorScores <- function(jsdm_output,
+                               confidence = .95){
+
+  U_output <- jsdm_output$U_output
+  U_output_vec <- apply(U_output, c(1,2), c)
+
+  conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+
+  U_output_quantiles <- apply(U_output_vec, c(2,3),
+                           function(x){quantile(x, probs = conflevels)})
+
+  U_output_quantiles
+
+}
+
+plotFactorScores <- function(jsdm_output,
+                             idx_factors,
+                             siteNames,
+                             confidence = .95){
+
+  factorScoresOutput <- returnFactorScores(jsdm_output, confidence)
+
+  if(length(idx_factors) != 2) {
+    stop("Two factors can be used in this plot")
+  }
+
+  factorScoresOutput <- factorScoresOutput[,,idx_factors]
+
+  x_coords <- factorScoresOutput[2, , 1]
+  y_coords <- factorScoresOutput[2, , 2]
+  x_lower <- factorScoresOutput[1, , 1]
+  y_lower <- factorScoresOutput[1, , 2]
+  x_upper <- factorScoresOutput[3, , 1]
+  y_upper <- factorScoresOutput[3, , 2]
+
+  variability <- sqrt((x_upper - x_lower)^2 + (y_upper - y_lower)^2)
+
+  w_x <- x_upper - x_lower
+  w_y <- y_upper - y_lower
+
+  plot_data <- data.frame(
+    x = x_coords,
+    y = y_coords,
+    variability = variability,
+    r = sqrt((w_x * w_y) / pi),
+    name = siteNames
+  )
+
+  p <- ggplot(plot_data, aes(x = x, y = y)) +
+    # geom_point(aes(size = variability), alpha = 0.6, color = "darkblue") +
+    ggforce::geom_circle(aes(x0 = x, y0 = y, r = r),
+                fill = "darkblue", alpha = 0.2, color = "darkblue") +
+    # geom_text_repel(
+    geom_text(
+      aes(label = name),
+      size = 3.5            # Size of the text font
+      # max.overlaps = 20,     # Adjusts how many overlaps it tolerates before hiding some
+      # box.padding = 0.3      # Space around the text box
+    ) +
+    scale_size_area(max_size = 8, name = "Standard Deviation") +
+    theme_minimal() +
+    theme(legend.position = "none") +
+    labs(
+      x = paste0("Factor ",idx_factors[1]),
+      y = paste0("Factor ",idx_factors[2])
+    )
+
+  p
+}
+
+returnFactorLoadings_jsdm <- function(jsdm_output,
+                               confidence = .95){
+
+  L_output <- jsdm_output$L_output
+  L_output_vec <- apply(L_output, c(1,2), c)
+
+  conflevels <- c((1 - confidence)/2, .5, (1 + confidence)/2)
+
+  L_output_quantiles <- apply(L_output_vec, c(2,3),
+                           function(x){quantile(x, probs = conflevels)})
+
+  L_output_quantiles
+
+}
+
+plotFactorLoadings_jsdm <- function(jsdm_output,
+                                    idx_factors,
+                                    speciesNames,
+                                    confidence = .95){
+
+  factorLoadingsOutput <- returnFactorLoadings_jsdm(jsdm_output, confidence)
+
+  if(length(idx_factors) != 2) {
+    stop("Two factors can be used in this plot")
+  }
+
+  factorLoadingsOutput <- factorLoadingsOutput[,idx_factors,]
+
+  x_coords <- factorLoadingsOutput[2, 1, ]
+  y_coords <- factorLoadingsOutput[2, 2, ]
+  x_lower <- factorLoadingsOutput[1, 1, ]
+  y_lower <- factorLoadingsOutput[1, 2, ]
+  x_upper <- factorLoadingsOutput[3, 1, ]
+  y_upper <- factorLoadingsOutput[3, 2, ]
+
+  variability <- sqrt((x_upper - x_lower)^2 + (y_upper - y_lower)^2)
+
+  w_x <- x_upper - x_lower
+  w_y <- y_upper - y_lower
+
+  plot_data <- data.frame(
+    x = x_coords,
+    y = y_coords,
+    variability = variability,
+    r = sqrt((w_x * w_y) / pi),
+    name = speciesNames
+  )
+
+  p <- ggplot(plot_data, aes(x = x, y = y)) +
+    # geom_point(aes(size = variability), alpha = 0.6, color = "darkblue") +
+    ggforce::geom_circle(aes(x0 = x, y0 = y, r = r),
+                fill = "darkblue", alpha = 0.2, color = "darkblue") +
+    # geom_text_repel(
+    geom_text(
+      aes(label = name),
+      size = 3.5            # Size of the text font
+      # max.overlaps = 20,     # Adjusts how many overlaps it tolerates before hiding some
+      # box.padding = 0.3      # Space around the text box
+    ) +
+    scale_size_area(max_size = 8, name = "Standard Deviation") +
+    theme_minimal() +
+    theme(legend.position = "none") +
+    labs(
+      x = paste0("Factor ",idx_factors[1]),
+      y = paste0("Factor ",idx_factors[2])
+    )
+
+  p
+}

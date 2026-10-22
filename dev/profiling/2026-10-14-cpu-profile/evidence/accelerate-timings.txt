@@ -1,0 +1,39 @@
+# Timing runs under Apple's Accelerate BLAS (libRblas.dylib -> libRblas.vecLib.dylib), 14 October 2026, 12:31 to 12:40 BST.
+# Same machine, same PR #31 worktree (2b5fe6d), same scripts and schedules as the morning's reference-BLAS runs, same conditions (battery, Low Power Mode on). ms per iteration = chain elapsed / (nburn + niter).
+
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lrwxr-xr-x@ 1 douglasyu  admin  21 Oct 14 12:31 /Library/Frameworks/R.framework/Resources/lib/libRblas.dylib -> libRblas.vecLib.dylib
+ -InternalBattery-0 (id=23396451)	21%; discharging; 0:51 remaining present: true
+ lowpowermode         1
+package: /Users/douglasyu/src/occJSDM/.worktrees/parallel-chains at 2b5fe6d
+Wed Oct 14 12:31:34 BST 2026
+
+== quickstart-noprof
+fit: quickstart  elapsed: 29.721 user: 28.847 sys: 0.395  chain elapsed: 28.792 
+iterations: 2000  ms per iteration (whole fit): 14.8605 
+== quickstart-proto
+prototype range step installed
+proto check 1: max |diff| = 0.000e+00, max |rel diff| = 0.000e+00, same argmax = TRUE
+proto check 2: max |diff| = 5.684e-14, max |rel diff| = 1.493e-16, same argmax = TRUE
+proto check 3: max |diff| = 5.684e-14, max |rel diff| = 1.954e-16, same argmax = TRUE
+fit: quickstart  elapsed: 27.413 user: 26.625 sys: 0.367  chain elapsed: 26.358 
+iterations: 2000  ms per iteration (whole fit): 13.7065 
+== binary900-noprof
+fit: binary900  elapsed: 8.558 user: 8.237 sys: 0.16  chain elapsed: 4.193 
+iterations: 16  ms per iteration (whole fit): 534.875 
+== binary900-proto
+prototype range step installed
+proto check 1: max |diff| = 3.638e-12, max |rel diff| = 2.684e-16, same argmax = TRUE
+proto check 2: max |diff| = 0.000e+00, max |rel diff| = 0.000e+00, same argmax = TRUE
+proto check 3: max |diff| = 9.095e-13, max |rel diff| = 2.282e-16, same argmax = TRUE
+fit: binary900  elapsed: 7.134 user: 6.974 sys: 0.089  chain elapsed: 3.357 
+iterations: 16  ms per iteration (whole fit): 445.875 
+
+== longer unprofiled runs used for the native-stack samples
+/Users/douglasyu/src/occJSDM/dev/simstudy/results/cpu-profile-accelerate-20261014/quickstart-sampled.log:fit: quickstart  elapsed: 33.483 user: 29.608 sys: 0.436  chain elapsed: 32.53 
+/Users/douglasyu/src/occJSDM/dev/simstudy/results/cpu-profile-accelerate-20261014/quickstart-sampled.log:iterations: 2000  ms per iteration (whole fit): 16.7415 
+/Users/douglasyu/src/occJSDM/dev/simstudy/results/cpu-profile-accelerate-20261014/binary900-sampled.log:fit: binary900  elapsed: 36.344 user: 31.827 sys: 0.389  chain elapsed: 32.251 
+/Users/douglasyu/src/occJSDM/dev/simstudy/results/cpu-profile-accelerate-20261014/binary900-sampled.log:iterations: 120  ms per iteration (whole fit): 302.8667 
+
+== Rprof under Accelerate
+profile-fit.R with Rprof on died with exit status 132 (SIGILL) before printing anything, on the 900-site fit (10 + 10) and again on the quickstart (100 + 100); the partial .Rprof files were written up to the crash. Use the native sampler (sample <pid> 15 -file ...) under Accelerate instead.

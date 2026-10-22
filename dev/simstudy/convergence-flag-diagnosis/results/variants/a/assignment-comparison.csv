@@ -1,0 +1,9 @@
+"run","chain","primary_region","primary_share_mirror","primary_share_far","cut_region","cut_share_mirror","agree_cut","refit_n_modes","refit_region","refit_share_mirror","agree_refit"
+"a",1,"near-truth",0,0.0014,"near-truth",0,TRUE,1,"near-truth",0,TRUE
+"a",2,"near-truth",0,0.0014,"near-truth",0,TRUE,1,"near-truth",0,TRUE
+"a",3,"near-truth",0,7e-04,"near-truth",0,TRUE,1,"near-truth",0,TRUE
+"a",4,"near-truth",0,0.0018,"near-truth",0,TRUE,1,"near-truth",0,TRUE
+"a",5,"near-truth",0,0.0018,"near-truth",0,TRUE,1,"near-truth",0,TRUE
+"a",6,"near-truth",0,0.0031,"near-truth",0,TRUE,1,"near-truth",0,TRUE
+"a",7,"near-truth",0,0.0016,"near-truth",0,TRUE,1,"near-truth",0,TRUE
+"a",8,"near-truth",0,0.0024,"near-truth",0,TRUE,1,"near-truth",0,TRUE

@@ -1,0 +1,4 @@
+lesson6_hmsc_numbers_change: yes
+refits_now_passing: 33 of 46
+flagged_probability_cells: 7 of 36
+flagged_prediction_cells: 0 of 18

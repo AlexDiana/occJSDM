@@ -1,0 +1,526 @@
+{
+  "scan_metadata": {
+    "repository_name": "occJSDM",
+    "paper_name": "Ji et al. (2025), Ecology Letters, doi:10.1111/ele.70302",
+    "scan_date": "2026-10-05",
+    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "language": "r",
+    "evaluated_source_files": 19,
+    "included_source_files": 1,
+    "selected_tool_count": 4,
+    "success": true,
+    "execution_verified": false,
+    "explanation": "Exactly four approved names, one quickstart owning module. Supporting APIs/tests/data are verification references, not additional execution owners. Discovery does not establish runtime/Cloud feasibility."
+  },
+  "tutorials": [
+    {
+      "path": "vignettes/occJSDM.Rmd",
+      "title": "occJSDM: quickstart",
+      "description": "Native RDS quickstart, fitting, diagnostics and baseline occupancy",
+      "type": "markdown",
+      "sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+      "include_in_tools": true,
+      "reason_for_include_or_exclude": "Single owner of approved four operations"
+    },
+    {
+      "path": "README.md",
+      "title": "README.md",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "markdown",
+      "sha256": "a60a56f328270bae8ee9849b8ebce257adc223112d7f644e750605660a426d1c",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "NAMESPACE",
+      "title": "NAMESPACE",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "documentation",
+      "sha256": "c21e8dd853e5e3245e1e833d4040593daed675e680584a7b815d9a8afcf429a7",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "DESCRIPTION",
+      "title": "DESCRIPTION",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "documentation",
+      "sha256": "98f1c08189cd12cd84e09d7d736cc4bdf04972d0ce694277591c0e81735c4339",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "R/runOccJSDM.R",
+      "title": "R/runOccJSDM.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "R/jsdmfun.R",
+      "title": "R/jsdmfun.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "e2d044194621dd2867b176d78438e3e6805b211605a51e019a26aa2298287a84",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "R/output.R",
+      "title": "R/output.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "945f96010698c6b6c1c9ca8c517670ea26ec34531640569342c159b094521f3e",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "R/diagnostics.R",
+      "title": "R/diagnostics.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "R/simulateData.R",
+      "title": "R/simulateData.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "c61b02c2990cbfb1175fcceec78a367064bfc79e2ee8af12e64d1f4781840b77",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "R/data.R",
+      "title": "R/data.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "d698cbeb9faab50c986ab057f0506efe1abe904739f7321cb290795fd357b0b8",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "tests/testthat/helper-fixtures.R",
+      "title": "tests/testthat/helper-fixtures.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "90c2ce4c81a753aeb64992b1fb7522d3825b756e68c088e264b6b8a6c3c6bd6c",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "tests/testthat/test-smoke-configs.R",
+      "title": "tests/testthat/test-smoke-configs.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "1effa305833d1a70ca8bcdc62cdb8609e982303425703d4659bbfc9ebabea99c",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "tests/testthat/test-api-contracts.R",
+      "title": "tests/testthat/test-api-contracts.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "e43994ee58f2ca17a5266a61fe12dcc6cfbda1dda00086578211cb13633c63ea",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "tests/testthat/test-collection-alignment.R",
+      "title": "tests/testthat/test-collection-alignment.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "25596911d0d33acfc83fffa26d7a7d8b433cf3123bfbbffffb171bee0cb84fa9",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "tests/testthat/test-diagnostics.R",
+      "title": "tests/testthat/test-diagnostics.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "0a382a0c66a3b3fe4996c8c4e0c6bcce2ff096c56324eaf083ea9a728793b5ce",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "tests/testthat/test-regression-bugs.R",
+      "title": "tests/testthat/test-regression-bugs.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "290054ecc801535bb480830f47321a806b97222535b575b4b1c66c9da094e62b",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "tests/testthat/test-rng-safety.R",
+      "title": "tests/testthat/test-rng-safety.R",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "script",
+      "sha256": "ad20a80bab4915cf3f0d8d6d23d07d1b0d52652134dd755ff1ef8cbd1c8eac28",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "data/sampledata.rda",
+      "title": "data/sampledata.rda",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "documentation",
+      "sha256": "d0eac67030208302996001b17d7f1a65bec17b1c267f128dcdc3607bb9ee34e9",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    },
+    {
+      "path": "data/sampleresults.rda",
+      "title": "data/sampleresults.rda",
+      "description": "Supporting pinned implementation, provenance or verification evidence",
+      "type": "documentation",
+      "sha256": "cf77884781efbcf6cd9579a5c72267969dba9f23ea3a2ab81145667628de5d53",
+      "include_in_tools": false,
+      "reason_for_include_or_exclude": "Supporting evidence only; duplicate ownership avoided"
+    }
+  ],
+  "tool_review": [
+    {
+      "tool_name": "validate_data",
+      "decision": "expose",
+      "reason": "Distinct requested task; structural checks and native model/covariate preparation make native RDS eligibility review useful without sampling.",
+      "task": "Check an occJSDM-ready RDS and covariate choices before fitting.",
+      "primary_input": "data_path plus explicit occupancy/collection covariate-name lists",
+      "outputs": "inferred model, structural dimensions and replication, missingness counts, traits availability/alignment, actionable issues and eligibility; no raw observation values",
+      "implementation": [
+        {
+          "path": "R/runOccJSDM.R",
+          "symbol": "inferDataModel",
+          "line_start": 139,
+          "line_end": 234,
+          "sha256": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
+          "visibility": "internal",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        },
+        {
+          "path": "R/runOccJSDM.R",
+          "symbol": "process_covariates",
+          "line_start": 9,
+          "line_end": 56,
+          "sha256": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
+          "visibility": "internal",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        },
+        {
+          "path": "R/jsdmfun.R",
+          "symbol": "create_covariates_matrix",
+          "line_start": 66,
+          "line_end": 187,
+          "sha256": "e2d044194621dd2867b176d78438e3e6805b211605a51e019a26aa2298287a84",
+          "visibility": "internal",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        }
+      ],
+      "source_section": "The example data; inferDataModel/process_covariates/create_covariates_matrix",
+      "adaptations": [
+        "Read native RDS and check exact info/OTU/traits components, matching dimensions and supplied row identifiers. Never reorder/repair input observations.",
+        "Use native inferDataModel and native covariate preparation; validation invariance checks prevent first-row selection masking within-unit conflicts.",
+        "Reject unsupported continuous/no-stage counts; preserve two_stage observation NA. Report absent traits as supported.",
+        "Path confinement and explicit species/trait identity requirements are classroom contract adaptations, not new scientific computations."
+      ],
+      "verification_ids": [
+        "bundled_quickstart",
+        "supported_models",
+        "unbalanced_alignment",
+        "traits_and_covariates",
+        "negative_and_boundary_cases"
+      ],
+      "ownership": {
+        "tutorial_id": "quickstart",
+        "source_module": "quickstart",
+        "source_path": "vignettes/occJSDM.Rmd",
+        "source_sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+        "python_module": "src/tools/quickstart.py",
+        "r_module": "src/r_scripts/quickstart.R",
+        "execution_assignment": "quickstart"
+      }
+    },
+    {
+      "tool_name": "fit_model",
+      "decision": "expose",
+      "reason": "Requested nonspatial analysis using the existing public fitting API.",
+      "task": "Fit a supported nonspatial model and save a native result.",
+      "primary_input": "data_path, explicit seed, FitOptions with native covariate names, threshold, n_factors and MCMC settings",
+      "outputs": "fit_id, inferred model, settings/warnings and hashed fit.rds plus manifest",
+      "implementation": [
+        {
+          "path": "R/runOccJSDM.R",
+          "symbol": "runOccJSDM",
+          "line_start": 442,
+          "line_end": 1499,
+          "sha256": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
+          "visibility": "exported",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        }
+      ],
+      "source_section": "Fit the model (adapt spatial example by leaving spatCovariates empty)",
+      "adaptations": [
+        "Always spatCovariates=character(), summarisedLatentPresences=TRUE, upstream default listPriors; do not alter priors or sampler.",
+        "Explicit integer threshold>=1, nchain>=2, nburn>=0, niter>=1, nthin>=1, n_factors>=0; reject unknown or spatial options. These are pilot restrictions.",
+        "Use R set.seed(seed) before runOccJSDM; record input/source/runtime hashes, arguments and thread settings. Native niter is kept draws; total chain iterations nburn+niter*nthin.",
+        "Capture native messages/warnings, atomic successful artifact publication and read-back validation; bounded runtime must not shorten MCMC."
+      ],
+      "verification_ids": [
+        "supported_models",
+        "unbalanced_alignment",
+        "traits_and_covariates",
+        "thinning_and_rng",
+        "negative_and_boundary_cases"
+      ],
+      "ownership": {
+        "tutorial_id": "quickstart",
+        "source_module": "quickstart",
+        "source_path": "vignettes/occJSDM.Rmd",
+        "source_sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+        "python_module": "src/tools/quickstart.py",
+        "r_module": "src/r_scripts/quickstart.R",
+        "execution_assignment": "quickstart"
+      }
+    },
+    {
+      "tool_name": "diagnostics",
+      "decision": "expose",
+      "reason": "Separate post-fit task, bound to existing tidy native diagnostics.",
+      "task": "Inspect convergence for selected occupancy/detection coefficients.",
+      "primary_input": "server-owned fit_id and max_rows default 20, capped at 20",
+      "outputs": "bounded table, flagged/unavailable counts, complete diagnostics CSV and warning metadata",
+      "implementation": [
+        {
+          "path": "R/diagnostics.R",
+          "symbol": "returnConvergenceDiagnostics",
+          "line_start": 310,
+          "line_end": 377,
+          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "visibility": "exported",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        },
+        {
+          "path": "R/diagnostics.R",
+          "symbol": "summarisePosterior",
+          "line_start": 227,
+          "line_end": 258,
+          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "visibility": "internal",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        },
+        {
+          "path": "R/diagnostics.R",
+          "symbol": "computeRhat",
+          "line_start": 134,
+          "line_end": 164,
+          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "visibility": "internal",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        }
+      ],
+      "source_section": "Check that the chains agree",
+      "adaptations": [
+        "Call returnConvergenceDiagnostics directly; no replacement Rhat/ESS computation.",
+        "Screen Rhat>1.01 and ESS<400 per approved teaching contract; preserve upstream warnings separately. Missing/nonfinite statistics serialize as JSON null and never count as convergence success.",
+        "Covers beta0_psi,beta_psi,beta_theta,p,q,theta0 where present, not every latent variable/assumption."
+      ],
+      "verification_ids": [
+        "bundled_quickstart",
+        "supported_models",
+        "negative_and_boundary_cases"
+      ],
+      "ownership": {
+        "tutorial_id": "quickstart",
+        "source_module": "quickstart",
+        "source_path": "vignettes/occJSDM.Rmd",
+        "source_sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+        "python_module": "src/tools/quickstart.py",
+        "r_module": "src/r_scripts/quickstart.R",
+        "execution_assignment": "quickstart"
+      }
+    },
+    {
+      "tool_name": "summarise_fit",
+      "decision": "expose",
+      "reason": "Requested compact interpretation of native baseline occupancy with diagnostic qualification.",
+      "task": "Summarise baseline occupancy draws and retain convergence qualifications.",
+      "primary_input": "server-owned fit_id and max_rows default 20, capped at 20",
+      "outputs": "bounded per-species baseline occupancy mean/median/95% interval, diagnostic counts/warnings, full summary CSV",
+      "implementation": [
+        {
+          "path": "R/output.R",
+          "symbol": "returnOccupancyRates",
+          "line_start": 653,
+          "line_end": 664,
+          "sha256": "945f96010698c6b6c1c9ca8c517670ea26ec34531640569342c159b094521f3e",
+          "visibility": "exported",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        },
+        {
+          "path": "R/diagnostics.R",
+          "symbol": "returnConvergenceDiagnostics",
+          "line_start": 310,
+          "line_end": 377,
+          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "visibility": "exported",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        }
+      ],
+      "source_section": "Look at the results; plotOccupancyRates delegates to returnOccupancyRates",
+      "adaptations": [
+        "Call returnOccupancyRates directly; summarize columns using native R mean/quantile(.025,.5,.975), an explicit approved output adaptation.",
+        "Actual return is pooled draws x species (apply(...,1,c)), opposite the roxygen return description; verify orientation from direct execution, retain column species identifiers.",
+        "Baseline means logistic occupancy intercept, not site-level occupancy or observed detections. Integrate same native diagnostics table, beta limitations and explicit transport-only status for short fixtures."
+      ],
+      "verification_ids": [
+        "bundled_quickstart",
+        "supported_models",
+        "traits_and_covariates",
+        "negative_and_boundary_cases"
+      ],
+      "ownership": {
+        "tutorial_id": "quickstart",
+        "source_module": "quickstart",
+        "source_path": "vignettes/occJSDM.Rmd",
+        "source_sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+        "python_module": "src/tools/quickstart.py",
+        "r_module": "src/r_scripts/quickstart.R",
+        "execution_assignment": "quickstart"
+      }
+    },
+    {
+      "candidate": "sampledata loading, RDS I/O, covariate design preparation",
+      "decision": "internal",
+      "reason": "Prerequisites and validation internals, not independently exposed tools in four-tool scope."
+    },
+    {
+      "candidate": "simulateOccJSDMData",
+      "decision": "internal_for_verification_only",
+      "implementation": {
+        "path": "R/simulateData.R",
+        "symbol": "simulateOccJSDMData",
+        "line_start": 212,
+        "line_end": 419,
+        "sha256": "c61b02c2990cbfb1175fcceec78a367064bfc79e2ee8af12e64d1f4781840b77",
+        "visibility": "exported",
+        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+      },
+      "reason": "Native fixture provenance; simulator tool deferred by approved scope."
+    },
+    {
+      "candidate": "plotOccupancyRates",
+      "decision": "merge",
+      "merge_into": "summarise_fit",
+      "implementation": {
+        "path": "R/output.R",
+        "symbol": "plotOccupancyRates",
+        "line_start": 687,
+        "line_end": 712,
+        "sha256": "945f96010698c6b6c1c9ca8c517670ea26ec34531640569342c159b094521f3e",
+        "visibility": "exported",
+        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+      },
+      "reason": "Numeric baseline operation reused through returnOccupancyRates. No plot output selected."
+    },
+    {
+      "candidate": "computeDiagnostics",
+      "decision": "internal",
+      "implementation": {
+        "path": "R/diagnostics.R",
+        "symbol": "computeDiagnostics",
+        "line_start": 397,
+        "line_end": 504,
+        "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+        "visibility": "exported",
+        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+      },
+      "reason": "runOccJSDM already invokes it. Preserve emitted warnings; do not add a fifth diagnostic tool or substitute console thresholds for approved screens."
+    },
+    {
+      "candidate": "plotDetectionRates, plotTraceplot and other plots",
+      "decision": "defer",
+      "reason": "Useful later teaching operations, excluded from current exact four tools. Scientific plot fidelity not applicable for this numeric pilot; do not claim benchmark-only plots as delivered outputs."
+    },
+    {
+      "candidate": "spatial fitting, predictNewSites, ordination, residual associations, covariate/trait effects, latent-presence tables, variance partitioning, model selection",
+      "decision": "defer",
+      "reason": "Outside current pilot; each future addition needs native reference and fresh verification. Current source has fixes newer than stale AGENTS history, so exclusions are scope decisions, not old bug claims."
+    },
+    {
+      "candidate": "continuous fitting, raw-file conversion, unrestricted R execution",
+      "decision": "exclude",
+      "reason": "Explicit approved scope boundary; no fabricated replacement scientific algorithms."
+    }
+  ],
+  "verification_cases": [
+    {
+      "id": "bundled_quickstart",
+      "sources": [
+        "vignettes/occJSDM.Rmd:27-34",
+        "vignettes/occJSDM.Rmd:68-80",
+        "vignettes/occJSDM.Rmd:87-91",
+        "data/sampledata.rda",
+        "data/sampleresults.rda"
+      ],
+      "procedure": "Load package sampledata and sampleresults. Save sampledata unchanged as RDS. Call inferDataModel(sampledata), returnConvergenceDiagnostics(sampleresults), returnOccupancyRates(sampleresults) directly. Retain hashes, table and draw dimensions/names, warnings. Stored fit is reference postprocessing, not a fresh nonspatial fit.",
+      "compare": "model two_stage; exact diagnostic columns/labels/NA; draws orientation discovered from actual native result; R mean and quantile(.025,.5,.975) summaries per species"
+    },
+    {
+      "id": "supported_models",
+      "sources": [
+        "tests/testthat/helper-fixtures.R:16-86",
+        "tests/testthat/test-smoke-configs.R:30-42"
+      ],
+      "procedure": "Source helper-fixtures.R after loading occJSDM. For binary, occupancy, two_stage use simulate_fixture(model=..., useSpatField=FALSE). Save data_list and true_params with source provenance. Fit with set.seed(explicit seed), spatCovariates=character(), listParams=list(n_factors=2), occCovariates=fixture_occ_covariates(), MCMCparams=FIXTURE_MCMC, summarisedLatentPresences=TRUE. Collection X_theta can be included explicitly after confirming its exact generated column name.",
+      "compare": "model and n/species dimensions; B0 shape [S,20,2]; diagnostics block coverage; direct-vs-wrapper same-runtime outputs for same inputs/settings/seed; no scientific recovery claim"
+    },
+    {
+      "id": "unbalanced_alignment",
+      "sources": [
+        "tests/testthat/test-collection-alignment.R:1-127"
+      ],
+      "procedure": "Use native alignment_samples and alignment_data helpers, without executing test_that sections. Global/local/character sample IDs, unequal primer subsets and K, reverse paired info and OTU rows; use 20/20 schedule for MCP reference while preserving fixture data. Verify native preparation before fitting wrapper.",
+      "compare": "X_theta rows follow typed Site,Sample order; M=(2,2,2), K=(2,1,3,1,2,2,1,2,1); idx_w_k tracks original sample blocks; preserve OTU pairing. Occupancy local sample IDs are a separate inference boundary, not guaranteed success."
+    },
+    {
+      "id": "traits_and_covariates",
+      "sources": [
+        "tests/testthat/test-smoke-configs.R:60-83",
+        "tests/testthat/test-collection-alignment.R:109-127",
+        "tests/testthat/test-api-contracts.R:39-50"
+      ],
+      "procedure": "Native generated fixture with traits removed; categorical trait data from smoke test; trait rows permuted with species rownames intact; select one occupancy/collection covariate; rename a covariate and pass the renamed name; collCovariates Site,Sample using alignment fixture.",
+      "compare": "native no-traits route and reordered-by-name Tr; correct expanded design-column labels; missing selected names error; identifier collection covariates remain valid"
+    },
+    {
+      "id": "thinning_and_rng",
+      "sources": [
+        "R/runOccJSDM.R:1014-1024",
+        "R/runOccJSDM.R:1182-1185",
+        "R/runOccJSDM.R:1263-1286",
+        "tests/testthat/test-regression-bugs.R:101-111",
+        "tests/testthat/test-rng-safety.R:50-69"
+      ],
+      "procedure": "Run same fixed data and explicit seed twice, another seed once, nthin=2 with niter=10, requested threads recorded; execution references serialize fits.",
+      "compare": "same-runtime seed replay; kept-draw count niter, not niter/nthin; total per chain nburn+niter*nthin; thread reproducibility only if tested"
+    },
+    {
+      "id": "negative_and_boundary_cases",
+      "sources": [
+        "R/runOccJSDM.R:498-628",
+        "R/runOccJSDM.R:780-809",
+        "R/jsdmfun.R:66-187",
+        "R/diagnostics.R:134-165",
+        "tests/testthat/test-diagnostics.R:60-82"
+      ],
+      "procedure": "Independently probe malformed RDS object, wrong dimensions, missing/duplicate species names, missing/duplicate trait names, absent covariate, conflicting covariates per Site or Site+Sample, NA covariates/IDs, nonfinite observations, unsupported no-stage counts/continuous. Separately probe NA OTU in two_stage vs occupancy/binary, missing two_stage Primer, occupancy local sample IDs, binary unique explicit Site in unsorted order, niter=1 and one species/no covariates/zero-column traits.",
+      "compare": "capture actual native errors/outcomes; validation must expose limitations without silently repairing observations or implementing new diagnostic math. Constant-chain Rhat must remain unavailable."
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "reviewer": "comparison_curation_review",
+  "assessment": "No Important or Critical findings in reviewed Condition A helper and tests. Native Cloud execution remains operator-run verification.",
+  "condition": "A -- direct R",
+  "project_url": "https://posit.cloud/spaces/828411/content/13077262",
+  "target_confirmation": "Explicit operator assertion, not automated Cloud identity detection",
+  "reviewed_file_sha256": {
+    "reports/comparison-setup/prepare-direct-r.py": "c98bfe2d549541c01f00405bf9d929122b1578aaa70d3d3e660f9d9e0c2376a3",
+    "tests/code/implementation/test_direct_r_setup.py": "06fdd79b7135285be1e5529edabd1779d89d2e52528b2e56562f373666b55684"
+  },
+  "findings": [],
+  "filesystem_tests": {
+    "passed": 16,
+    "direct_r_tests": 6,
+    "command": "python3 -m pytest -q mcp/paper2agent/tests/code/implementation/test_comparison_curation.py mcp/paper2agent/tests/code/implementation/test_direct_r_setup.py"
+  },
+  "additional_failure_checks": [
+    "Corrupt MCP archive payload rejected before project mutation",
+    "Partial discarded-tree cleanup failure explicitly blocks trials while archived MCP content and saved fit remain intact"
+  ],
+  "reviewed_properties": [
+    "Archived MCP trees verified by file hashes, link text and directory inventory before mutation",
+    "Publication and rollback use atomic rename/replace inside project",
+    "Post-publication native callback failure restores original settings and both MCP directories",
+    "Owner read-only discarded directories cleaned without following external directory links",
+    "Provider settings and other MCP server registration preserved; private settings/archive permissions applied",
+    "Only native saved-fit diagnostics executed; no fits or model/provider calls",
+    "Setup helper self-archived and removed from student root after successful preparation"
+  ],
+  "minor_notes": [],
+  "limitations": [
+    "No Cloud login or credentials accessed",
+    "No implementation modified",
+    "Actual Cloud R 4.6.1 helper execution not performed by reviewer",
+    "Self-archival inspected rather than executed against /cloud/project"
+  ],
+  "timeout_hardening": "Resolved: native_check subprocess has timeout=180 seconds. Independent direct-R suite rerun passed all six tests."
+}

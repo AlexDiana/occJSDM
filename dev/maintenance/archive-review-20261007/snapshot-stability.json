@@ -1,0 +1,5 @@
+{
+  "files_checked": 14096,
+  "changes": [],
+  "method": "Restat all inventoried paths after targeted hashing; size and mtime only, not a second payload audit."
+}

@@ -1,0 +1,3 @@
+"basin","starts","count","fresh_count","best_native_score","native_score_spread","refined_score_spread","grid_prediction_spread_pp"
+"A","1 9 10 11",4,3,-484.30426293786,0.0063866350425883,8.49240677780472e-10,0.0782029741061119
+"B","2 3 4 5 6 7 8 12",8,6,-484.431195701442,0.00247894636243018,2.39481323660584e-10,0.0956630273909853

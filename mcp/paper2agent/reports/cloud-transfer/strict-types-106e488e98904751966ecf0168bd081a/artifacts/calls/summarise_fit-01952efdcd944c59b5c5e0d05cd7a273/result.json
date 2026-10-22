@@ -1,0 +1,40 @@
+{
+  "status": "ok",
+  "estimand": "Baseline occupancy: inverse-logit species intercept, pooled across chains and retained draws",
+  "rows": [
+    {
+      "species": "OTU_1",
+      "mean": 0.74956269464857217,
+      "median": 0.79500378816778261,
+      "q2.5": 0.51593745731164786,
+      "q97.5": 0.8832006308334176
+    }
+  ],
+  "total_rows": 4,
+  "screening": {
+    "total_rows": 12,
+    "rhat_flagged": 9,
+    "ess_flagged": 12,
+    "flagged_rows": 12,
+    "unavailable_rhat": 0,
+    "unavailable_ess": 0,
+    "unavailable_rows": 0,
+    "thresholds": {
+      "rhat": 1.01,
+      "ess": 400
+    },
+    "blocks": [
+      "beta0_psi",
+      "beta_psi"
+    ],
+    "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+    "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+  },
+  "qualifications": [
+    "Baseline occupancy is not occupancy at a particular site or observed detections.",
+    "Beta research software: wrapper agreement does not establish unbiased estimates or calibrated intervals.",
+    "Flagged or unavailable diagnostics require investigation before interpretation."
+  ],
+  "warnings": [],
+  "warning_count": 0
+}

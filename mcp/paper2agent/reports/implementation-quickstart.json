@@ -1,0 +1,384 @@
+{
+  "schema_version": 1,
+  "module": "quickstart",
+  "status": "implemented",
+  "project_root": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent",
+  "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+  "exposed_tools": [
+    "validate_data",
+    "fit_model",
+    "diagnostics",
+    "summarise_fit"
+  ],
+  "produced_files": {
+    "src/tools/quickstart.py": "bfe4a4369d077076c4ba7cb2cb0196c5cdbf59540361c6507a8480ee53c4206e",
+    "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+    "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b",
+    "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7"
+  },
+  "production_paths": {
+    "src/tools/quickstart.py": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/quickstart.py",
+    "src/tools/runtime.py": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/runtime.py",
+    "src/tools/__init__.py": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/tools/__init__.py",
+    "src/r_scripts/quickstart.R": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/src/r_scripts/quickstart.R"
+  },
+  "source_lineage": {
+    "validate_data": {
+      "upstream": [
+        {
+          "path": "R/runOccJSDM.R",
+          "symbol": "inferDataModel",
+          "line_start": 139,
+          "line_end": 234,
+          "sha256": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
+          "visibility": "internal",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        },
+        {
+          "path": "R/runOccJSDM.R",
+          "symbol": "process_covariates",
+          "line_start": 9,
+          "line_end": 56,
+          "sha256": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
+          "visibility": "internal",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        },
+        {
+          "path": "R/jsdmfun.R",
+          "symbol": "create_covariates_matrix",
+          "line_start": 66,
+          "line_end": 187,
+          "sha256": "e2d044194621dd2867b176d78438e3e6805b211605a51e019a26aa2298287a84",
+          "visibility": "internal",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        }
+      ],
+      "adaptations": [
+        "Read native RDS and check exact info/OTU/traits components, matching dimensions and supplied row identifiers. Never reorder/repair input observations.",
+        "Use native inferDataModel and native covariate preparation; validation invariance checks prevent first-row selection masking within-unit conflicts.",
+        "Reject unsupported continuous/no-stage counts; preserve two_stage observation NA. Report absent traits as supported.",
+        "Path confinement and explicit species/trait identity requirements are classroom contract adaptations, not new scientific computations."
+      ]
+    },
+    "fit_model": {
+      "upstream": [
+        {
+          "path": "R/runOccJSDM.R",
+          "symbol": "runOccJSDM",
+          "line_start": 442,
+          "line_end": 1499,
+          "sha256": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
+          "visibility": "exported",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        }
+      ],
+      "adaptations": [
+        "Always spatCovariates=character(), summarisedLatentPresences=TRUE, upstream default listPriors; do not alter priors or sampler.",
+        "Explicit integer threshold>=1, nchain>=2, nburn>=0, niter>=1, nthin>=1, n_factors>=0; reject unknown or spatial options. These are pilot restrictions.",
+        "Use R set.seed(seed) before runOccJSDM; record input/source/runtime hashes, arguments and thread settings. Native niter is kept draws; total chain iterations nburn+niter*nthin.",
+        "Capture native messages/warnings, atomic successful artifact publication and read-back validation; bounded runtime must not shorten MCMC."
+      ]
+    },
+    "diagnostics": {
+      "upstream": [
+        {
+          "path": "R/diagnostics.R",
+          "symbol": "returnConvergenceDiagnostics",
+          "line_start": 310,
+          "line_end": 377,
+          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "visibility": "exported",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        },
+        {
+          "path": "R/diagnostics.R",
+          "symbol": "summarisePosterior",
+          "line_start": 227,
+          "line_end": 258,
+          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "visibility": "internal",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        },
+        {
+          "path": "R/diagnostics.R",
+          "symbol": "computeRhat",
+          "line_start": 134,
+          "line_end": 164,
+          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "visibility": "internal",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        }
+      ],
+      "adaptations": [
+        "Call returnConvergenceDiagnostics directly; no replacement Rhat/ESS computation.",
+        "Screen Rhat>1.01 and ESS<400 per approved teaching contract; preserve upstream warnings separately. Missing/nonfinite statistics serialize as JSON null and never count as convergence success.",
+        "Covers beta0_psi,beta_psi,beta_theta,p,q,theta0 where present, not every latent variable/assumption."
+      ]
+    },
+    "summarise_fit": {
+      "upstream": [
+        {
+          "path": "R/output.R",
+          "symbol": "returnOccupancyRates",
+          "line_start": 653,
+          "line_end": 664,
+          "sha256": "945f96010698c6b6c1c9ca8c517670ea26ec34531640569342c159b094521f3e",
+          "visibility": "exported",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        },
+        {
+          "path": "R/diagnostics.R",
+          "symbol": "returnConvergenceDiagnostics",
+          "line_start": 310,
+          "line_end": 377,
+          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "visibility": "exported",
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        }
+      ],
+      "adaptations": [
+        "Call returnOccupancyRates directly; summarize columns using native R mean/quantile(.025,.5,.975), an explicit approved output adaptation.",
+        "Actual return is pooled draws x species (apply(...,1,c)), opposite the roxygen return description; verify orientation from direct execution, retain column species identifiers.",
+        "Baseline means logistic occupancy intercept, not site-level occupancy or observed detections. Integrate same native diagnostics table, beta limitations and explicit transport-only status for short fixtures."
+      ]
+    }
+  },
+  "runtime": {
+    "python": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "fastmcp": "4.0.3",
+    "pydantic": "2.13.5",
+    "Rscript": "/usr/local/bin/Rscript",
+    "R": "4.5.0",
+    "renv_project": "r-runtime",
+    "occJSDM": "0.1.0",
+    "source_identity": "Active project-owned installed DESCRIPTION RemoteSha must match the pinned revision"
+  },
+  "contract": {
+    "input": "Native RDS list(info, OTU, traits), project-confined paths; native traits may be categorical or permuted by species row names",
+    "fitting": "Strict explicit FitOptions, native runOccJSDM, no spatial covariates, summarisedLatentPresences TRUE, upstream default priors, seed passed to R set.seed",
+    "publication": "Input snapshot SHA256; native RDS write and read-back; atomic fit and manifest; server-owned fit_id registry with SHA256 integrity checks",
+    "transport": "Fixed Rscript argv, JSON request/result files, explicit isolated activation under --vanilla, captured logs, 600-second default configurable deadline; timeout/cancel terminate and reap child process group",
+    "diagnostics": "Native selected-block diagnostics, Rhat>1.01 and ESS<400 screening, unavailable counts and nulls, complete native CSV plus preview capped at20",
+    "summary": "Native returnOccupancyRates pooled draws x species; R mean/quantile columns; baseline occupancy and persistent beta/short-fit qualifications"
+  },
+  "necessary_guards": [
+    "info/OTU dimension and supplied row-ID agreement",
+    "unique named species and traits alignment",
+    "within-Site/Sample covariate invariance and native preparation of missing/constant/categorical covariates",
+    "nonfinite/negative reads rejected, NA allowed only in two_stage",
+    "binary unsorted explicit Site rejected for pinned native design/OTU alignment defect",
+    "reused local Sample IDs with missing Primer produce actionable inference guidance",
+    "exact traits component required to avoid partial matching bypassing preflight checks",
+    "path traversal and symlink escapes rejected",
+    "active package must be inside isolated runtime and declare pinned source revision"
+  ],
+  "tdd": {
+    "red": [
+      {
+        "log": "reports/implementation-red.log",
+        "failure": "Expected missing four-tool module"
+      },
+      {
+        "log": "reports/implementation-red-effective.log",
+        "failure": "Requested99 factors incorrectly recorded as effective99 instead of native cap4"
+      },
+      {
+        "log": "reports/implementation-red-rowids-actual.log",
+        "failure": "Explicit aligned row IDs triggered vector-to-scalar logical error"
+      },
+      {
+        "log": "reports/implementation-red-traits-alias.log",
+        "failure": "Partial traits alias bypassed preflight checks"
+      },
+      {
+        "log": "reports/implementation-red-qualification.log",
+        "failure": "Native short-fit qualifications were not persisted or available downstream"
+      }
+    ],
+    "green": {
+      "full_suite": true,
+      "count": 66,
+      "elapsed_seconds": 194.14534645795356,
+      "production_unchanged": true,
+      "checks": [
+        {
+          "command": [
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/bin/python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation0]",
+            "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation3]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[binary]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[no_traits]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[categorical_traits]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_global_ordered]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_local_shuffled]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_identifier_covariates]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[wrong_dimensions]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[missing_Primer]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[within_site_covariate_conflict]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[binary_NA_OTU]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[occupancy_localSampleIDs]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[NaN_occupancy_covariate]",
+            "tests/code/implementation/test_quickstart.py::test_input_paths_confined[/etc/passwd]",
+            "tests/code/implementation/test_quickstart.py::test_rows_cap_and_arbitrary_fit_path[0]",
+            "tests/code/implementation/test_quickstart.py::test_effective_factor_cap_and_pinned_runtime_identity",
+            "tests/code/implementation/test_quickstart.py::test_cancellation_reaps_native_child",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[misaligned_rows-False]",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[nonnumeric_otu-False]",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[continuous-False]",
+            "tests/code/implementation/test_quickstart.py::test_changed_fit_options_match_direct_native[0-2-2-20]"
+          ],
+          "exit_code": 0,
+          "result": [
+            "......................                                                   [100%]",
+            "22 passed in 186.64s (0:03:06)"
+          ],
+          "log": "reports/implementation-green-shard-0.log"
+        },
+        {
+          "command": [
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/bin/python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation1]",
+            "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation4]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[occupancy]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[renamed_single_covariates]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[changed_seed_thinning2]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_global_shuffled]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_character_ordered]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_occupancy_shuffled]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[missing_covariate]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[NA_site_ID]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[within_sample_covariate_conflict]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[occupancy_NA_OTU]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[NA_occupancy_covariate]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[no_stage_count_response]",
+            "tests/code/implementation/test_quickstart.py::test_input_paths_confined[notebooks/../quickstart/data/two_stage_data.rds]",
+            "tests/code/implementation/test_quickstart.py::test_rows_cap_and_arbitrary_fit_path[21]",
+            "tests/code/implementation/test_quickstart.py::test_constant_chain_null_and_tampered_fit_rejected",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[aligned_rows-True]",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[malformed-False]",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[negative_reads-False]",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[constant_covariate-False]",
+            "tests/code/implementation/test_quickstart.py::test_changed_fit_options_match_direct_native[1-3-3-0]"
+          ],
+          "exit_code": 0,
+          "result": [
+            "......................                                                   [100%]",
+            "22 passed in 189.24s (0:03:09)"
+          ],
+          "log": "reports/implementation-green-shard-1.log"
+        },
+        {
+          "command": [
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/bin/python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation2]",
+            "tests/code/implementation/test_quickstart.py::test_unknown_and_unsupported_options_fail_before_outputs[mutation5]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[two_stage]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[permuted_trait_rows]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[changed_seed_same_schedule]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_local_ordered]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[alignment_character_shuffled]",
+            "tests/code/implementation/test_quickstart.py::test_native_fit_and_postprocessing_agreement[boundary_two_stage_NA_OTU]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[missing_trait_species]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[duplicated_species]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[infinite_OTU]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[binary_unsorted_uniqueSite]",
+            "tests/code/implementation/test_quickstart.py::test_validation_rejects_native_failures_and_misleading_successes[Inf_occupancy_covariate]",
+            "tests/code/implementation/test_quickstart.py::test_input_paths_confined[../README.md]",
+            "tests/code/implementation/test_quickstart.py::test_symlink_escape",
+            "tests/code/implementation/test_quickstart.py::test_repeated_calls_fresh_artifacts_and_failed_fit_unpublished",
+            "tests/code/implementation/test_quickstart.py::test_timeout_reaps_process_and_keeps_pending_fit_unpublished",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[default_info_otu_rows-True]",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[missing_species-False]",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[nan_reads-False]",
+            "tests/code/implementation/test_quickstart.py::test_actual_rds_contents_and_provided_row_ids[traits_alias-False]",
+            "tests/code/implementation/test_quickstart.py::test_short_fit_qualification_persists_in_downstream_results"
+          ],
+          "exit_code": 0,
+          "result": [
+            "......................                                                   [100%]",
+            "22 passed in 193.40s (0:03:13)"
+          ],
+          "log": "reports/implementation-green-shard-2.log"
+        }
+      ]
+    }
+  },
+  "comparisons": {
+    "positive_saved_cases": 18,
+    "changed_option_native_cases": 2,
+    "tolerance": 0,
+    "fit_comparison": "R all.equal with attributes for results_output, X_psi, X_theta, Tr and infos",
+    "tables": "Exact full native diagnostic and baseline-summary CSV bytes; null/shape/name checks through FastMCP Client",
+    "changed_options": "n_factors0/1, thresholds2/3, nchain3, nburn0, niter10 and nthin2 compared with independent direct calls using saved source-backed inputs"
+  },
+  "retained_failures": [
+    {
+      "log": "reports/implementation-attempt1.log",
+      "detail": "First smoke sweep stopped after8passes at transient R parse error during edits; no claim for that sweep"
+    },
+    {
+      "log": "reports/implementation-runtime-check.log",
+      "detail": "Startup source guard exposed split installed DESCRIPTION records; initial timeout fixture could be killed before recording pid; guard now reads unique nonmissing active RemoteSha, fixture deadline1s"
+    },
+    {
+      "log": "reports/implementation-red-rowids.log",
+      "detail": "Startup metadata guard prevented reaching row guard on initial attempt"
+    },
+    {
+      "log": "reports/implementation-red-rowids-native.log",
+      "detail": "Installed DESCRIPTION first record lacked RemoteSha; second record contained pinned stamp"
+    },
+    {
+      "log": "reports/implementation-green-console.log",
+      "detail": "Bare pytest initially collected dependency-cache tests with12 collection errors; coordinator added project pytest.ini"
+    },
+    {
+      "log": "reports/implementation-interrupted-suite.json",
+      "detail": "Frozen restricted-sandbox sweep interrupted at coordinator request:13completed assertions,65collected,1111.8s, all identified children reaped; this is not passing evidence"
+    }
+  ],
+  "qualification_repair": {
+    "change": "Only Python manifest/response metadata changed: persist native qualifications and expose fit_qualifications downstream",
+    "old_hashes": {
+      "src/tools/quickstart.py": "e75b60a7b91b7201ef029cf5ff972d843f4bb6ba35bf6cd574be69994fcea68f",
+      "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+      "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b",
+      "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7"
+    },
+    "final_hashes": {
+      "src/tools/quickstart.py": "bfe4a4369d077076c4ba7cb2cb0196c5cdbf59540361c6507a8480ee53c4206e",
+      "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04",
+      "src/tools/__init__.py": "1aab5cf89a57ed81c520bef74abe598e6eecb00ce0f236ce0762133b71e7a81b",
+      "src/r_scripts/quickstart.R": "b8a55ad32a591fd71a5013d90cccbb632e47e559ee68492d4cd2898c65f71fc7"
+    }
+  },
+  "platform_permission": {
+    "final_tests": "Permitted local sockets via exec_command require_escalated; no production or runtime-library change",
+    "cause": "Coordinator Rprof identified renv watchdog serverSocket errors under restricted sandbox causing recursive activation error formatting; see coordinator activation reports",
+    "cancellation": "SIGINT shutdown of restricted sweep logged two closed asyncio child-watch loops; explicit process inventory confirmed workers and native children gone. Dedicated controlled cancellation/timeout tests passed in final suite."
+  },
+  "test_files": {
+    "tests/code/implementation/run_shards.py": "34bb36a2349eb7ef7586a73eeb668ceea0c0830e4c47d8d4f97bac404027cf81",
+    "tests/code/implementation/test_quickstart.py": "1b04df615579aca9e63d8b3c52df295e076099db1efd16dfe8253724de935f1a",
+    "tests/code/implementation/extra_inputs.R": "6f150f9792f3d7ea8251f79e602585d5698b654ec5d0c37a89166c7983c3138e",
+    "tests/code/implementation/compare_native.R": "e60082d486a7fa06fedc0be5541fef0cbf2aa22bb185650f5397f07c6309a2c3",
+    "tests/code/implementation/compare_changed_options.R": "73454f02897ef01df82ffb9dd72c9631b82f65c0dd16b0b0cd0afae66625cd7c"
+  },
+  "limitations": [
+    "Development smoke checks only; independent fresh verification, root stdio integration, clean-runtime and delivery acceptance remain coordinator/verifier responsibilities",
+    "Posit Cloud/client feasibility and classroom teaching trial are not established by local checks",
+    "Reproducibility established for tested runtime/settings/seeds only; full beta inference limitations remain",
+    "Continuous, no-stage counts, spatial, prediction and raw-file conversion operations excluded",
+    "Native niter1 is schema-admissible but errors during native fitting and publishes no fit",
+    "Rscript scientific computations and numerical algorithms are unchanged; mean/quantile baseline summary is the approved output adaptation"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "scenario": 2,
+  "repetition": 1,
+  "scored": false,
+  "prompt": "Check whether `trial/malformed.rds` is ready to fit.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "correct_mismatch_diagnosis_no_fit_language_failure_and_redundant_question",
+  "evidence": "Doug pasted full response and four inspection/listing tool labels; expanded comparison code/raw output not supplied",
+  "observed": {
+    "language": "English throughout despite shared default Bahasa Indonesia",
+    "info_rows_reported": 160,
+    "OTU_rows_reported": 159,
+    "correct_not_ready_conclusion": true,
+    "no_fit_in_supplied_sequence": true,
+    "no_silent_repair_claimed": true,
+    "comparison_with_valid_fixture_reported": {
+      "info_identical": true,
+      "traits_identical": true,
+      "OTU_matches_first_159_rows": true,
+      "missing_last_row": 160
+    },
+    "covariate_names_checked_reported": [
+      "X_psi.EnvCov.1",
+      "X_psi.EnvCov.2",
+      "X_theta"
+    ],
+    "no_NA_in_info_OTU_reported": true
+  },
+  "issues": [
+    {
+      "claim": "Asks student which row is missing after stating row 160; suggests nrow comparison",
+      "assessment": "Redundant question, and nrow comparison establishes a mismatch but cannot identify which row is missing. The valid-fixture comparison, not row counts alone, supports row 160 here."
+    }
+  ],
+  "fixture_source_check": {
+    "file": "reports/comparison-setup/prepare-comparison-base.py",
+    "method": "Read preparation code, no mutation/refit",
+    "confirmed": "Malformed input is copied from valid data and its final OTU row removed; info and traits unchanged. This supports the reported missing-row diagnosis."
+  },
+  "qualifications": [
+    "Actual Cloud comparison code not expanded; fixture preparation independently supports described difference.",
+    "No changes or fitting shown; hash preservation not independently checked for this case."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

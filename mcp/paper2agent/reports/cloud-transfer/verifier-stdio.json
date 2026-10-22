@@ -1,0 +1,1986 @@
+{
+  "success": false,
+  "python": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/occJSDM-env/bin/python",
+  "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "fastmcp": "4.0.3",
+  "server": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/src/occJSDM_mcp.py",
+  "calls": [
+    {
+      "name": "binary_single_validate",
+      "tool": "validate_data",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "eligible": true,
+        "model": "binary",
+        "issues": [],
+        "notes": [
+          "Traits absent: native no-traits route retained."
+        ],
+        "dimensions": [
+          40,
+          1
+        ],
+        "traits_present": false,
+        "design": {
+          "occupancy_columns": [
+            "habitat_changed"
+          ],
+          "collection_columns": [],
+          "trait_columns": [],
+          "n_sites": 40,
+          "n_samples": null,
+          "n_primers": null,
+          "missing_observations": 0,
+          "species_count": 1,
+          "observations": 40
+        },
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Data are eligible for the supported non-spatial workflow.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/validate_data-033a19cdfca745e88d7311c38a54682b/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/validate_data-033a19cdfca745e88d7311c38a54682b/stderr.log",
+            "sha256": "5d8e7100ef22cc821cf175528dd2d63ce189075cbb0a23ad5a92abe8a0d1f9c6"
+          }
+        ]
+      }
+    },
+    {
+      "name": "binary_single_fit",
+      "tool": "fit_model",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "model": "binary",
+        "readback_valid": true,
+        "effective_n_factors": 0,
+        "kept_draws_per_chain": 20,
+        "total_iterations_per_chain": 60,
+        "dimensions": [
+          40,
+          1
+        ],
+        "design": {
+          "occupancy_columns": [
+            "habitat_changed"
+          ],
+          "collection_columns": [],
+          "trait_columns": [],
+          "n_sites": 40,
+          "n_samples": null,
+          "n_primers": null,
+          "missing_observations": 0,
+          "species_count": 1,
+          "observations": 40
+        },
+        "runtime": {
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+          "R": "R version 4.5.0 (2025-04-11)",
+          "occJSDM_version": "0.1.0",
+          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+          "renv_version": "1.2.3",
+          "libPaths": [
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+          ],
+          "thread_env": {
+            "OMP_NUM_THREADS": "",
+            "OPENBLAS_NUM_THREADS": "",
+            "MKL_NUM_THREADS": "",
+            "RCPP_PARALLEL_NUM_THREADS": ""
+          },
+          "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+        },
+        "qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ],
+        "warnings": [
+          "Low ESS in 'B'. Min ESS < 50",
+          "Low ESS in 'A'. Min ESS < 50",
+          "Low ESS in 'C'. Min ESS < 50",
+          "Low ESS in 'sigmab'. Min ESS < 50",
+          "Low ESS in 'sigmah'. Min ESS < 50"
+        ],
+        "warning_count": 5,
+        "schema_version": 1,
+        "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-785924a972ac486b9cd4303e6ee2cc0e/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-785924a972ac486b9cd4303e6ee2cc0e/stderr.log",
+            "sha256": "3ea093d14d227e8982cdf24eb82c50afc3c24f9f55c237165f0842575ea79565"
+          },
+          {
+            "kind": "fit",
+            "description": "Native occJSDM fit, reload with readRDS",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-785924a972ac486b9cd4303e6ee2cc0e/fit.rds",
+            "sha256": "6343cc7fcf25725f313e8f2d919c4b85675cbb415500bd3eb3712b621e7ec5ff"
+          },
+          {
+            "kind": "manifest",
+            "description": "Fit provenance and effective settings",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-785924a972ac486b9cd4303e6ee2cc0e/manifest.json",
+            "sha256": "6bc3add655f9d8a6a57b585b84af493ad4850b94e2b0c7eef9c5c959f712cdbf"
+          }
+        ],
+        "fit_id": "fit_575d59a199d44ce0b302586a666f3c77",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed"
+          ],
+          "collCovariates": [],
+          "threshold": 1,
+          "listParams": {
+            "n_factors": 0
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 2
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "input_sha256": "655ded4dd0a6c66e2b5c260ea1263b32a383ea4b4b271c45b2436024d52f6600"
+      }
+    },
+    {
+      "name": "binary_single_diagnostics",
+      "tool": "diagnostics",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "screening": {
+          "total_rows": 2,
+          "rhat_flagged": 2,
+          "ess_flagged": 2,
+          "flagged_rows": 2,
+          "unavailable_rhat": 0,
+          "unavailable_ess": 0,
+          "unavailable_rows": 0,
+          "thresholds": {
+            "rhat": 1.01,
+            "ess": 400
+          },
+          "blocks": [
+            "beta0_psi",
+            "beta_psi"
+          ],
+          "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+          "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+        },
+        "rows": [
+          {
+            "param": "beta0_psi",
+            "idx1": 1,
+            "idx2": 1,
+            "label1": "verifier_species_1",
+            "label2": "1",
+            "mean": 0.9507457785510375,
+            "sd": 0.42889591471635885,
+            "q2.5": 0.21154657411337388,
+            "q97.5": 1.8093847135057821,
+            "rhat": 1.0420201460968572,
+            "ess": 67.14864549748029
+          },
+          {
+            "param": "beta_psi",
+            "idx1": 1,
+            "idx2": 1,
+            "label1": "habitat_changed",
+            "label2": "verifier_species_1",
+            "mean": 2.3795990181802136,
+            "sd": 0.5950781403925576,
+            "q2.5": 1.507091586640086,
+            "q97.5": 3.259888129786412,
+            "rhat": 1.0410099509656099,
+            "ess": 9.551490040368229
+          }
+        ],
+        "total_rows": 2,
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Screening covers selected coefficient blocks; unavailable diagnostics are inconclusive.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-28403b7228734c83858a99a2d1c5f0b3/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-28403b7228734c83858a99a2d1c5f0b3/stderr.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "diagnostics",
+            "description": "Complete native convergence diagnostic table",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-28403b7228734c83858a99a2d1c5f0b3/diagnostics.csv",
+            "sha256": "583cc576d8a4b4a5036e521ae0596cbf701cdb9fe2c544748831027c7e64968f"
+          }
+        ],
+        "fit_id": "fit_575d59a199d44ce0b302586a666f3c77",
+        "model": "binary",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed"
+          ],
+          "collCovariates": [],
+          "threshold": 1,
+          "listParams": {
+            "n_factors": 0
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 2
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "fit_qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ]
+      }
+    },
+    {
+      "name": "binary_single_summary",
+      "tool": "summarise_fit",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "estimand": "Baseline occupancy: inverse-logit species intercept, pooled across chains and retained draws",
+        "rows": [
+          {
+            "species": "verifier_species_1",
+            "mean": 0.7137229061587391,
+            "median": 0.7286975961400737,
+            "q2.5": 0.5526874911685935,
+            "q97.5": 0.8592867932960734
+          }
+        ],
+        "total_rows": 1,
+        "screening": {
+          "total_rows": 2,
+          "rhat_flagged": 2,
+          "ess_flagged": 2,
+          "flagged_rows": 2,
+          "unavailable_rhat": 0,
+          "unavailable_ess": 0,
+          "unavailable_rows": 0,
+          "thresholds": {
+            "rhat": 1.01,
+            "ess": 400
+          },
+          "blocks": [
+            "beta0_psi",
+            "beta_psi"
+          ],
+          "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+          "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+        },
+        "qualifications": [
+          "Baseline occupancy is not occupancy at a particular site or observed detections.",
+          "Beta research software: wrapper agreement does not establish unbiased estimates or calibrated intervals.",
+          "Flagged or unavailable diagnostics require investigation before interpretation."
+        ],
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Baseline occupancy summarizes intercept-based draws; inspect diagnostic qualifications.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-b29c780012394ea499b3cde946ecbcf7/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-b29c780012394ea499b3cde946ecbcf7/stderr.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "summary",
+            "description": "Full per-species baseline occupancy summary",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-b29c780012394ea499b3cde946ecbcf7/summary.csv",
+            "sha256": "5586b6fe31e4688cc42c6af21564b3f58ec83e9937921f99a76e80a3f0f246c1"
+          },
+          {
+            "kind": "diagnostics",
+            "description": "Full native diagnostic qualifications",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-b29c780012394ea499b3cde946ecbcf7/diagnostics.csv",
+            "sha256": "583cc576d8a4b4a5036e521ae0596cbf701cdb9fe2c544748831027c7e64968f"
+          }
+        ],
+        "fit_id": "fit_575d59a199d44ce0b302586a666f3c77",
+        "model": "binary",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed"
+          ],
+          "collCovariates": [],
+          "threshold": 1,
+          "listParams": {
+            "n_factors": 0
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 2
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "fit_qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ]
+      }
+    },
+    {
+      "name": "occupancy_changed_validate",
+      "tool": "validate_data",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "eligible": true,
+        "model": "occupancy",
+        "issues": [],
+        "notes": [
+          "Traits absent: native no-traits route retained."
+        ],
+        "dimensions": [
+          80,
+          3
+        ],
+        "traits_present": false,
+        "design": {
+          "occupancy_columns": [
+            "habitat_changed",
+            "habitat_factoroak"
+          ],
+          "collection_columns": [
+            "(Intercept)",
+            "collection_changed"
+          ],
+          "trait_columns": [],
+          "n_sites": 40,
+          "n_samples": 80,
+          "n_primers": null,
+          "missing_observations": 0,
+          "species_count": 3,
+          "observations": 80
+        },
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Data are eligible for the supported non-spatial workflow.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/validate_data-62805e012ef8432fa2f08b228d1466de/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/validate_data-62805e012ef8432fa2f08b228d1466de/stderr.log",
+            "sha256": "1c50851ac0f6a9e9ac2f69f56646fe510263b47fbb1c6ea145e48822aa1755d9"
+          }
+        ]
+      }
+    },
+    {
+      "name": "occupancy_changed_fit",
+      "tool": "fit_model",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "model": "occupancy",
+        "readback_valid": true,
+        "effective_n_factors": 1,
+        "kept_draws_per_chain": 20,
+        "total_iterations_per_chain": 60,
+        "dimensions": [
+          80,
+          3
+        ],
+        "design": {
+          "occupancy_columns": [
+            "habitat_changed",
+            "habitat_factoroak"
+          ],
+          "collection_columns": [
+            "(Intercept)",
+            "collection_changed"
+          ],
+          "trait_columns": [],
+          "n_sites": 40,
+          "n_samples": 80,
+          "n_primers": null,
+          "missing_observations": 0,
+          "species_count": 3,
+          "observations": 80
+        },
+        "runtime": {
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+          "R": "R version 4.5.0 (2025-04-11)",
+          "occJSDM_version": "0.1.0",
+          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+          "renv_version": "1.2.3",
+          "libPaths": [
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+          ],
+          "thread_env": {
+            "OMP_NUM_THREADS": "",
+            "OPENBLAS_NUM_THREADS": "",
+            "MKL_NUM_THREADS": "",
+            "RCPP_PARALLEL_NUM_THREADS": ""
+          },
+          "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+        },
+        "qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ],
+        "warnings": [
+          "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
+          "Low ESS in 'beta_theta'. Min ESS < 50",
+          "Low ESS in 'theta0'. Min ESS < 50",
+          "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+          "Low ESS in 'B0'. Min ESS < 50",
+          "Convergence issue in 'B_output'. Max R-hat > 1.1",
+          "Low ESS in 'B'. Min ESS < 50",
+          "Low ESS in 'A'. Min ESS < 50",
+          "Convergence issue in 'C_output'. Max R-hat > 1.1",
+          "Low ESS in 'C'. Min ESS < 50",
+          "Convergence issue in 'U_output'. Max R-hat > 1.1",
+          "Low ESS in 'U'. Min ESS < 50",
+          "Low ESS in 'L'. Min ESS < 50",
+          "Low ESS in 'sigmab'. Min ESS < 50",
+          "Low ESS in 'sigmah'. Min ESS < 50"
+        ],
+        "warning_count": 15,
+        "schema_version": 1,
+        "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-529e11eee39c418d9657a26aef995666/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-529e11eee39c418d9657a26aef995666/stderr.log",
+            "sha256": "dd8dba5e983dd3893fad54f929aab56ca2aff3fa854a094244307dd588a1679c"
+          },
+          {
+            "kind": "fit",
+            "description": "Native occJSDM fit, reload with readRDS",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-529e11eee39c418d9657a26aef995666/fit.rds",
+            "sha256": "525c0926cb92fbcf6917d85544b325e8d5845de1ff06e4251aeb6a8226a28c93"
+          },
+          {
+            "kind": "manifest",
+            "description": "Fit provenance and effective settings",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-529e11eee39c418d9657a26aef995666/manifest.json",
+            "sha256": "ddf94e7b1de1c8687a4277e1102f7f1c3ee27be0b808223f5f9d1c85279d5299"
+          }
+        ],
+        "fit_id": "fit_7028e17cb43b4a78b02405091fc107c5",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed",
+            "habitat_factor"
+          ],
+          "collCovariates": [
+            "collection_changed"
+          ],
+          "threshold": 2,
+          "listParams": {
+            "n_factors": 1
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 2
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "input_sha256": "5819438fc66cf81db8d6c6967dfaf87d28c5474932b82abc37fe7494ed070c56"
+      }
+    },
+    {
+      "name": "occupancy_changed_diagnostics",
+      "tool": "diagnostics",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "screening": {
+          "total_rows": 18,
+          "rhat_flagged": 12,
+          "ess_flagged": 18,
+          "flagged_rows": 18,
+          "unavailable_rhat": 0,
+          "unavailable_ess": 0,
+          "unavailable_rows": 0,
+          "thresholds": {
+            "rhat": 1.01,
+            "ess": 400
+          },
+          "blocks": [
+            "beta0_psi",
+            "beta_psi",
+            "beta_theta",
+            "theta0"
+          ],
+          "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+          "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+        },
+        "rows": [
+          {
+            "param": "beta0_psi",
+            "idx1": 1,
+            "idx2": 1,
+            "label1": "verifier_species_1",
+            "label2": "1",
+            "mean": -1.7107938794389297,
+            "sd": 1.2131387911926605,
+            "q2.5": -3.3457602573767025,
+            "q97.5": 0.4189876759683093,
+            "rhat": 2.2839547267728704,
+            "ess": 25.560810151879174
+          },
+          {
+            "param": "beta0_psi",
+            "idx1": 2,
+            "idx2": 1,
+            "label1": "verifier_species_2",
+            "label2": "1",
+            "mean": -1.8420468183470207,
+            "sd": 0.8068518261598777,
+            "q2.5": -3.44369730800898,
+            "q97.5": -0.5055798315018132,
+            "rhat": 1.2057598726289307,
+            "ess": 13.083121189150319
+          }
+        ],
+        "total_rows": 18,
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Screening covers selected coefficient blocks; unavailable diagnostics are inconclusive.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-e684892a712e464481284400d7deb24b/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-e684892a712e464481284400d7deb24b/stderr.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "diagnostics",
+            "description": "Complete native convergence diagnostic table",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-e684892a712e464481284400d7deb24b/diagnostics.csv",
+            "sha256": "af500ebbb82364a02ff2824aa55c5d4cc31705e1e6c3f5352972be4409e3a4cc"
+          }
+        ],
+        "fit_id": "fit_7028e17cb43b4a78b02405091fc107c5",
+        "model": "occupancy",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed",
+            "habitat_factor"
+          ],
+          "collCovariates": [
+            "collection_changed"
+          ],
+          "threshold": 2,
+          "listParams": {
+            "n_factors": 1
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 2
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "fit_qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ]
+      }
+    },
+    {
+      "name": "occupancy_changed_summary",
+      "tool": "summarise_fit",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "estimand": "Baseline occupancy: inverse-logit species intercept, pooled across chains and retained draws",
+        "rows": [
+          {
+            "species": "verifier_species_1",
+            "mean": 0.20571314099292787,
+            "median": 0.11321855460330997,
+            "q2.5": 0.034034432530308634,
+            "q97.5": 0.6020499105835954
+          },
+          {
+            "species": "verifier_species_2",
+            "mean": 0.16223619151026866,
+            "median": 0.13946168180475674,
+            "q2.5": 0.030962462139804102,
+            "q97.5": 0.37623047573236934
+          }
+        ],
+        "total_rows": 3,
+        "screening": {
+          "total_rows": 18,
+          "rhat_flagged": 12,
+          "ess_flagged": 18,
+          "flagged_rows": 18,
+          "unavailable_rhat": 0,
+          "unavailable_ess": 0,
+          "unavailable_rows": 0,
+          "thresholds": {
+            "rhat": 1.01,
+            "ess": 400
+          },
+          "blocks": [
+            "beta0_psi",
+            "beta_psi",
+            "beta_theta",
+            "theta0"
+          ],
+          "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+          "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+        },
+        "qualifications": [
+          "Baseline occupancy is not occupancy at a particular site or observed detections.",
+          "Beta research software: wrapper agreement does not establish unbiased estimates or calibrated intervals.",
+          "Flagged or unavailable diagnostics require investigation before interpretation."
+        ],
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Baseline occupancy summarizes intercept-based draws; inspect diagnostic qualifications.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-1ad4a3b65db84f2bb998e22111b997ba/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-1ad4a3b65db84f2bb998e22111b997ba/stderr.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "summary",
+            "description": "Full per-species baseline occupancy summary",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-1ad4a3b65db84f2bb998e22111b997ba/summary.csv",
+            "sha256": "978c2260278e648316a2617d7044b089099f4d98b712bfccde174e9687ab743a"
+          },
+          {
+            "kind": "diagnostics",
+            "description": "Full native diagnostic qualifications",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-1ad4a3b65db84f2bb998e22111b997ba/diagnostics.csv",
+            "sha256": "af500ebbb82364a02ff2824aa55c5d4cc31705e1e6c3f5352972be4409e3a4cc"
+          }
+        ],
+        "fit_id": "fit_7028e17cb43b4a78b02405091fc107c5",
+        "model": "occupancy",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed",
+            "habitat_factor"
+          ],
+          "collCovariates": [
+            "collection_changed"
+          ],
+          "threshold": 2,
+          "listParams": {
+            "n_factors": 1
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 2
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "fit_qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ]
+      }
+    },
+    {
+      "name": "two_stage_changed_validate",
+      "tool": "validate_data",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "eligible": true,
+        "model": "two_stage",
+        "issues": [],
+        "notes": [
+          "Traits absent: native no-traits route retained."
+        ],
+        "dimensions": [
+          160,
+          3
+        ],
+        "traits_present": false,
+        "design": {
+          "occupancy_columns": [
+            "habitat_changed",
+            "habitat_factoroak"
+          ],
+          "collection_columns": [
+            "(Intercept)",
+            "collection_changed"
+          ],
+          "trait_columns": [],
+          "n_sites": 40,
+          "n_samples": 80,
+          "n_primers": 1,
+          "missing_observations": 0,
+          "species_count": 3,
+          "observations": 160
+        },
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Data are eligible for the supported non-spatial workflow.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/validate_data-ef7e2b9d11eb4b5195516329e2216d0b/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/validate_data-ef7e2b9d11eb4b5195516329e2216d0b/stderr.log",
+            "sha256": "722b87fe4e6b9d86a8df90b07ac0f7f87d40360f2341571a3d417fedccd161c0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "two_stage_changed_fit",
+      "tool": "fit_model",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "model": "two_stage",
+        "readback_valid": true,
+        "effective_n_factors": 1,
+        "kept_draws_per_chain": 20,
+        "total_iterations_per_chain": 80,
+        "dimensions": [
+          160,
+          3
+        ],
+        "design": {
+          "occupancy_columns": [
+            "habitat_changed",
+            "habitat_factoroak"
+          ],
+          "collection_columns": [
+            "(Intercept)",
+            "collection_changed"
+          ],
+          "trait_columns": [],
+          "n_sites": 40,
+          "n_samples": 80,
+          "n_primers": 1,
+          "missing_observations": 0,
+          "species_count": 3,
+          "observations": 160
+        },
+        "runtime": {
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+          "R": "R version 4.5.0 (2025-04-11)",
+          "occJSDM_version": "0.1.0",
+          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+          "renv_version": "1.2.3",
+          "libPaths": [
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+          ],
+          "thread_env": {
+            "OMP_NUM_THREADS": "",
+            "OPENBLAS_NUM_THREADS": "",
+            "MKL_NUM_THREADS": "",
+            "RCPP_PARALLEL_NUM_THREADS": ""
+          },
+          "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+        },
+        "qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ],
+        "warnings": [
+          "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
+          "Low ESS in 'beta_theta'. Min ESS < 50",
+          "Convergence issue in 'p_output'. Max R-hat > 1.1",
+          "Low ESS in 'p'. Min ESS < 50",
+          "Convergence issue in 'q_output'. Max R-hat > 1.1",
+          "Low ESS in 'q'. Min ESS < 50",
+          "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
+          "Low ESS in 'theta0'. Min ESS < 50",
+          "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+          "Low ESS in 'B0'. Min ESS < 50",
+          "Convergence issue in 'B_output'. Max R-hat > 1.1",
+          "Low ESS in 'B'. Min ESS < 50",
+          "Convergence issue in 'A_output'. Max R-hat > 1.1",
+          "Low ESS in 'A'. Min ESS < 50",
+          "Convergence issue in 'C_output'. Max R-hat > 1.1",
+          "Low ESS in 'C'. Min ESS < 50",
+          "Convergence issue in 'U_output'. Max R-hat > 1.1",
+          "Low ESS in 'U'. Min ESS < 50",
+          "Low ESS in 'L'. Min ESS < 50",
+          "Low ESS in 'sigmah'. Min ESS < 50"
+        ],
+        "warning_count": 20,
+        "schema_version": 1,
+        "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-753a0b796f5d44c8844e2642833cab36/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-753a0b796f5d44c8844e2642833cab36/stderr.log",
+            "sha256": "e6cca90c0772de18fc934b2b1c78bdfaa62ddaebffa0f0d6af3949ce61f27775"
+          },
+          {
+            "kind": "fit",
+            "description": "Native occJSDM fit, reload with readRDS",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-753a0b796f5d44c8844e2642833cab36/fit.rds",
+            "sha256": "f3c3e78f7f22f1344ba8ae747ec41b6311b6bc18a858c37faa8393d389537816"
+          },
+          {
+            "kind": "manifest",
+            "description": "Fit provenance and effective settings",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-753a0b796f5d44c8844e2642833cab36/manifest.json",
+            "sha256": "3209a56b83e1d1724a8a39e8901f1da7a9fc0f7fb69c99947a017b40fbb97cb3"
+          }
+        ],
+        "fit_id": "fit_df98d1077fba4e8f8aed6bbfa1aeec25",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed",
+            "habitat_factor"
+          ],
+          "collCovariates": [
+            "collection_changed"
+          ],
+          "threshold": 3,
+          "listParams": {
+            "n_factors": 1
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 3
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "input_sha256": "0ddbabe91ad4fb32975670463ab8e6bfa0f08f3ce5d343db4394dac910567ac5"
+      }
+    },
+    {
+      "name": "two_stage_changed_diagnostics",
+      "tool": "diagnostics",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "screening": {
+          "total_rows": 24,
+          "rhat_flagged": 18,
+          "ess_flagged": 24,
+          "flagged_rows": 24,
+          "unavailable_rhat": 0,
+          "unavailable_ess": 0,
+          "unavailable_rows": 0,
+          "thresholds": {
+            "rhat": 1.01,
+            "ess": 400
+          },
+          "blocks": [
+            "beta0_psi",
+            "beta_psi",
+            "beta_theta",
+            "p",
+            "q",
+            "theta0"
+          ],
+          "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+          "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+        },
+        "rows": [
+          {
+            "param": "beta0_psi",
+            "idx1": 1,
+            "idx2": 1,
+            "label1": "verifier_species_1",
+            "label2": "1",
+            "mean": 0.3375129875068491,
+            "sd": 0.7075040149540865,
+            "q2.5": -0.6949175088764302,
+            "q97.5": 1.5259665577298465,
+            "rhat": 1.0218220482071294,
+            "ess": 9.382688670225894
+          },
+          {
+            "param": "beta0_psi",
+            "idx1": 2,
+            "idx2": 1,
+            "label1": "verifier_species_2",
+            "label2": "1",
+            "mean": -0.314925646228684,
+            "sd": 1.148963118185109,
+            "q2.5": -2.040246866628665,
+            "q97.5": 1.9328604186266185,
+            "rhat": 2.4868336891489813,
+            "ess": 12.950518613361872
+          }
+        ],
+        "total_rows": 24,
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Screening covers selected coefficient blocks; unavailable diagnostics are inconclusive.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-0db41d1c143b4127966f861d44b117eb/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-0db41d1c143b4127966f861d44b117eb/stderr.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "diagnostics",
+            "description": "Complete native convergence diagnostic table",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-0db41d1c143b4127966f861d44b117eb/diagnostics.csv",
+            "sha256": "40a64aa5f73f1ba525f98c9f7bc8f73b43ec50adcf7798e79d623670e78d3467"
+          }
+        ],
+        "fit_id": "fit_df98d1077fba4e8f8aed6bbfa1aeec25",
+        "model": "two_stage",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed",
+            "habitat_factor"
+          ],
+          "collCovariates": [
+            "collection_changed"
+          ],
+          "threshold": 3,
+          "listParams": {
+            "n_factors": 1
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 3
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "fit_qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ]
+      }
+    },
+    {
+      "name": "two_stage_changed_summary",
+      "tool": "summarise_fit",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "estimand": "Baseline occupancy: inverse-logit species intercept, pooled across chains and retained draws",
+        "rows": [
+          {
+            "species": "verifier_species_1",
+            "mean": 0.57228921958119,
+            "median": 0.5626817419269619,
+            "q2.5": 0.33298717956908497,
+            "q97.5": 0.8206567665320741
+          },
+          {
+            "species": "verifier_species_2",
+            "mean": 0.4328896737432095,
+            "median": 0.3741616142309777,
+            "q2.5": 0.11505315522854216,
+            "q97.5": 0.8735465477590677
+          }
+        ],
+        "total_rows": 3,
+        "screening": {
+          "total_rows": 24,
+          "rhat_flagged": 18,
+          "ess_flagged": 24,
+          "flagged_rows": 24,
+          "unavailable_rhat": 0,
+          "unavailable_ess": 0,
+          "unavailable_rows": 0,
+          "thresholds": {
+            "rhat": 1.01,
+            "ess": 400
+          },
+          "blocks": [
+            "beta0_psi",
+            "beta_psi",
+            "beta_theta",
+            "p",
+            "q",
+            "theta0"
+          ],
+          "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+          "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+        },
+        "qualifications": [
+          "Baseline occupancy is not occupancy at a particular site or observed detections.",
+          "Beta research software: wrapper agreement does not establish unbiased estimates or calibrated intervals.",
+          "Flagged or unavailable diagnostics require investigation before interpretation."
+        ],
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Baseline occupancy summarizes intercept-based draws; inspect diagnostic qualifications.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-967682c3c3a5479299c43f91a90d3e30/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-967682c3c3a5479299c43f91a90d3e30/stderr.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "summary",
+            "description": "Full per-species baseline occupancy summary",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-967682c3c3a5479299c43f91a90d3e30/summary.csv",
+            "sha256": "622db958a07a2bc2b3939003a62edb4076f6d8d8fec1a13bb29824ee125b568c"
+          },
+          {
+            "kind": "diagnostics",
+            "description": "Full native diagnostic qualifications",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-967682c3c3a5479299c43f91a90d3e30/diagnostics.csv",
+            "sha256": "40a64aa5f73f1ba525f98c9f7bc8f73b43ec50adcf7798e79d623670e78d3467"
+          }
+        ],
+        "fit_id": "fit_df98d1077fba4e8f8aed6bbfa1aeec25",
+        "model": "two_stage",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed",
+            "habitat_factor"
+          ],
+          "collCovariates": [
+            "collection_changed"
+          ],
+          "threshold": 3,
+          "listParams": {
+            "n_factors": 1
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 3
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "fit_qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ]
+      }
+    },
+    {
+      "name": "binary_repeat_fit",
+      "tool": "fit_model",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "model": "binary",
+        "readback_valid": true,
+        "effective_n_factors": 0,
+        "kept_draws_per_chain": 20,
+        "total_iterations_per_chain": 60,
+        "dimensions": [
+          40,
+          1
+        ],
+        "design": {
+          "occupancy_columns": [
+            "habitat_changed"
+          ],
+          "collection_columns": [],
+          "trait_columns": [],
+          "n_sites": 40,
+          "n_samples": null,
+          "n_primers": null,
+          "missing_observations": 0,
+          "species_count": 1,
+          "observations": 40
+        },
+        "runtime": {
+          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+          "R": "R version 4.5.0 (2025-04-11)",
+          "occJSDM_version": "0.1.0",
+          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+          "renv_version": "1.2.3",
+          "libPaths": [
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
+            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+          ],
+          "thread_env": {
+            "OMP_NUM_THREADS": "",
+            "OPENBLAS_NUM_THREADS": "",
+            "MKL_NUM_THREADS": "",
+            "RCPP_PARALLEL_NUM_THREADS": ""
+          },
+          "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+        },
+        "qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ],
+        "warnings": [
+          "Low ESS in 'B'. Min ESS < 50",
+          "Low ESS in 'A'. Min ESS < 50",
+          "Low ESS in 'C'. Min ESS < 50",
+          "Low ESS in 'sigmab'. Min ESS < 50",
+          "Low ESS in 'sigmah'. Min ESS < 50"
+        ],
+        "warning_count": 5,
+        "schema_version": 1,
+        "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-ccb9bf5b4c3041d087d33bc637537940/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-ccb9bf5b4c3041d087d33bc637537940/stderr.log",
+            "sha256": "3ea093d14d227e8982cdf24eb82c50afc3c24f9f55c237165f0842575ea79565"
+          },
+          {
+            "kind": "fit",
+            "description": "Native occJSDM fit, reload with readRDS",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-ccb9bf5b4c3041d087d33bc637537940/fit.rds",
+            "sha256": "6343cc7fcf25725f313e8f2d919c4b85675cbb415500bd3eb3712b621e7ec5ff"
+          },
+          {
+            "kind": "manifest",
+            "description": "Fit provenance and effective settings",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-ccb9bf5b4c3041d087d33bc637537940/manifest.json",
+            "sha256": "7470368a116e814fd2f57e17b96dfe9c7ab7d3aec8831479b481eea975be8cad"
+          }
+        ],
+        "fit_id": "fit_383e7f3f86584c7e8f8f0faf4b51d2c1",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed"
+          ],
+          "collCovariates": [],
+          "threshold": 1,
+          "listParams": {
+            "n_factors": 0
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 2
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "input_sha256": "655ded4dd0a6c66e2b5c260ea1263b32a383ea4b4b271c45b2436024d52f6600"
+      }
+    },
+    {
+      "name": "summary_repeat",
+      "tool": "summarise_fit",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "estimand": "Baseline occupancy: inverse-logit species intercept, pooled across chains and retained draws",
+        "rows": [
+          {
+            "species": "verifier_species_1",
+            "mean": 0.57228921958119,
+            "median": 0.5626817419269619,
+            "q2.5": 0.33298717956908497,
+            "q97.5": 0.8206567665320741
+          },
+          {
+            "species": "verifier_species_2",
+            "mean": 0.4328896737432095,
+            "median": 0.3741616142309777,
+            "q2.5": 0.11505315522854216,
+            "q97.5": 0.8735465477590677
+          },
+          {
+            "species": "verifier_species_3",
+            "mean": 0.17598129422743197,
+            "median": 0.1645068007629427,
+            "q2.5": 0.05204127450156958,
+            "q97.5": 0.31552678064904166
+          }
+        ],
+        "total_rows": 3,
+        "screening": {
+          "total_rows": 24,
+          "rhat_flagged": 18,
+          "ess_flagged": 24,
+          "flagged_rows": 24,
+          "unavailable_rhat": 0,
+          "unavailable_ess": 0,
+          "unavailable_rows": 0,
+          "thresholds": {
+            "rhat": 1.01,
+            "ess": 400
+          },
+          "blocks": [
+            "beta0_psi",
+            "beta_psi",
+            "beta_theta",
+            "p",
+            "q",
+            "theta0"
+          ],
+          "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+          "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+        },
+        "qualifications": [
+          "Baseline occupancy is not occupancy at a particular site or observed detections.",
+          "Beta research software: wrapper agreement does not establish unbiased estimates or calibrated intervals.",
+          "Flagged or unavailable diagnostics require investigation before interpretation."
+        ],
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Baseline occupancy summarizes intercept-based draws; inspect diagnostic qualifications.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-5bbf9780de9f4567818108de58d85209/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-5bbf9780de9f4567818108de58d85209/stderr.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "summary",
+            "description": "Full per-species baseline occupancy summary",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-5bbf9780de9f4567818108de58d85209/summary.csv",
+            "sha256": "622db958a07a2bc2b3939003a62edb4076f6d8d8fec1a13bb29824ee125b568c"
+          },
+          {
+            "kind": "diagnostics",
+            "description": "Full native diagnostic qualifications",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/summarise_fit-5bbf9780de9f4567818108de58d85209/diagnostics.csv",
+            "sha256": "40a64aa5f73f1ba525f98c9f7bc8f73b43ec50adcf7798e79d623670e78d3467"
+          }
+        ],
+        "fit_id": "fit_df98d1077fba4e8f8aed6bbfa1aeec25",
+        "model": "two_stage",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed",
+            "habitat_factor"
+          ],
+          "collCovariates": [
+            "collection_changed"
+          ],
+          "threshold": 3,
+          "listParams": {
+            "n_factors": 1
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 3
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "fit_qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ]
+      }
+    },
+    {
+      "name": "diagnostics_repeat",
+      "tool": "diagnostics",
+      "success": true,
+      "is_error": false,
+      "result": {
+        "status": "ok",
+        "screening": {
+          "total_rows": 24,
+          "rhat_flagged": 18,
+          "ess_flagged": 24,
+          "flagged_rows": 24,
+          "unavailable_rhat": 0,
+          "unavailable_ess": 0,
+          "unavailable_rows": 0,
+          "thresholds": {
+            "rhat": 1.01,
+            "ess": 400
+          },
+          "blocks": [
+            "beta0_psi",
+            "beta_psi",
+            "beta_theta",
+            "p",
+            "q",
+            "theta0"
+          ],
+          "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+          "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+        },
+        "rows": [
+          {
+            "param": "beta0_psi",
+            "idx1": 1,
+            "idx2": 1,
+            "label1": "verifier_species_1",
+            "label2": "1",
+            "mean": 0.3375129875068491,
+            "sd": 0.7075040149540865,
+            "q2.5": -0.6949175088764302,
+            "q97.5": 1.5259665577298465,
+            "rhat": 1.0218220482071294,
+            "ess": 9.382688670225894
+          },
+          {
+            "param": "beta0_psi",
+            "idx1": 2,
+            "idx2": 1,
+            "label1": "verifier_species_2",
+            "label2": "1",
+            "mean": -0.314925646228684,
+            "sd": 1.148963118185109,
+            "q2.5": -2.040246866628665,
+            "q97.5": 1.9328604186266185,
+            "rhat": 2.4868336891489813,
+            "ess": 12.950518613361872
+          },
+          {
+            "param": "beta0_psi",
+            "idx1": 3,
+            "idx2": 1,
+            "label1": "verifier_species_3",
+            "label2": "1",
+            "mean": -1.6725546987802056,
+            "sd": 0.6583155539830181,
+            "q2.5": -2.9043143367995357,
+            "q97.5": -0.7744250755027365,
+            "rhat": 0.993125954341955,
+            "ess": 28.58090644038843
+          },
+          {
+            "param": "beta_psi",
+            "idx1": 1,
+            "idx2": 1,
+            "label1": "habitat_changed",
+            "label2": "verifier_species_1",
+            "mean": 1.5760525432664263,
+            "sd": 0.9361281884928713,
+            "q2.5": 0.07985037613328438,
+            "q97.5": 3.2639608803627294,
+            "rhat": 1.858797214419992,
+            "ess": 6.402164059838775
+          },
+          {
+            "param": "beta_psi",
+            "idx1": 1,
+            "idx2": 2,
+            "label1": "habitat_changed",
+            "label2": "verifier_species_2",
+            "mean": 1.3777746078845756,
+            "sd": 1.539436941728539,
+            "q2.5": -1.0264553390614162,
+            "q97.5": 4.252625627208784,
+            "rhat": 2.8072531556349105,
+            "ess": 11.298460897547283
+          },
+          {
+            "param": "beta_psi",
+            "idx1": 1,
+            "idx2": 3,
+            "label1": "habitat_changed",
+            "label2": "verifier_species_3",
+            "mean": 0.11970644307690967,
+            "sd": 0.44213941237483334,
+            "q2.5": -0.7169269839083363,
+            "q97.5": 0.8448775925903521,
+            "rhat": 1.0852729937052312,
+            "ess": 62.31392744386689
+          },
+          {
+            "param": "beta_psi",
+            "idx1": 2,
+            "idx2": 1,
+            "label1": "habitat_factoroak",
+            "label2": "verifier_species_1",
+            "mean": -1.1845771289267735,
+            "sd": 0.7945526029271811,
+            "q2.5": -2.5791373446357424,
+            "q97.5": -0.04044256840648057,
+            "rhat": 1.3053422476324639,
+            "ess": 10.41261232357164
+          },
+          {
+            "param": "beta_psi",
+            "idx1": 2,
+            "idx2": 2,
+            "label1": "habitat_factoroak",
+            "label2": "verifier_species_2",
+            "mean": -0.8760196202101584,
+            "sd": 0.9804461832157455,
+            "q2.5": -2.6840800567096266,
+            "q97.5": 0.9254993155432564,
+            "rhat": 2.951190258628042,
+            "ess": 8.825828620514132
+          },
+          {
+            "param": "beta_psi",
+            "idx1": 2,
+            "idx2": 3,
+            "label1": "habitat_factoroak",
+            "label2": "verifier_species_3",
+            "mean": -0.18197754257295656,
+            "sd": 0.4572702648019099,
+            "q2.5": -0.9145334912979639,
+            "q97.5": 0.5442848497317118,
+            "rhat": 1.107375418337648,
+            "ess": 27.813361685625328
+          },
+          {
+            "param": "beta_theta",
+            "idx1": 1,
+            "idx2": 1,
+            "label1": "(Intercept)",
+            "label2": "verifier_species_1",
+            "mean": -0.7164731257177414,
+            "sd": 0.6355834245322424,
+            "q2.5": -1.5953789523059732,
+            "q97.5": 0.843106826983768,
+            "rhat": 0.9979365785923479,
+            "ess": 24.124810037526906
+          },
+          {
+            "param": "beta_theta",
+            "idx1": 1,
+            "idx2": 2,
+            "label1": "(Intercept)",
+            "label2": "verifier_species_2",
+            "mean": -1.1451581288649857,
+            "sd": 0.6133990121329521,
+            "q2.5": -2.2104900525509494,
+            "q97.5": -0.14885812358049674,
+            "rhat": 1.0802630510800477,
+            "ess": 24.68755030207832
+          },
+          {
+            "param": "beta_theta",
+            "idx1": 1,
+            "idx2": 3,
+            "label1": "(Intercept)",
+            "label2": "verifier_species_3",
+            "mean": -0.4201246556325869,
+            "sd": 1.0049705378838432,
+            "q2.5": -2.453669087995337,
+            "q97.5": 1.4766107633532548,
+            "rhat": 1.006466761565826,
+            "ess": 16.980417628754445
+          },
+          {
+            "param": "beta_theta",
+            "idx1": 2,
+            "idx2": 1,
+            "label1": "collection_changed",
+            "label2": "verifier_species_1",
+            "mean": -1.983086735490652,
+            "sd": 0.8789989406872419,
+            "q2.5": -4.132034740331117,
+            "q97.5": -0.5861888827410513,
+            "rhat": 1.2383013069162951,
+            "ess": 27.682417756668762
+          },
+          {
+            "param": "beta_theta",
+            "idx1": 2,
+            "idx2": 2,
+            "label1": "collection_changed",
+            "label2": "verifier_species_2",
+            "mean": -0.9156706532183284,
+            "sd": 1.002620972429527,
+            "q2.5": -2.716012666643298,
+            "q97.5": 0.6905313682415664,
+            "rhat": 1.1468701520126743,
+            "ess": 40
+          },
+          {
+            "param": "beta_theta",
+            "idx1": 2,
+            "idx2": 3,
+            "label1": "collection_changed",
+            "label2": "verifier_species_3",
+            "mean": -0.656960428054759,
+            "sd": 1.1346116997709712,
+            "q2.5": -3.0065391806634603,
+            "q97.5": 0.9131094522232498,
+            "rhat": 0.9891216682469165,
+            "ess": 19.59272819427792
+          },
+          {
+            "param": "p",
+            "idx1": 1,
+            "idx2": 1,
+            "label1": "1",
+            "label2": "verifier_species_1",
+            "mean": 0.6953147879860189,
+            "sd": 0.11088220773108794,
+            "q2.5": 0.5106137780518827,
+            "q97.5": 0.8696745178303974,
+            "rhat": 1.2197530959429377,
+            "ess": 40
+          },
+          {
+            "param": "p",
+            "idx1": 1,
+            "idx2": 2,
+            "label1": "1",
+            "label2": "verifier_species_2",
+            "mean": 0.7096427569490794,
+            "sd": 0.1413332279898867,
+            "q2.5": 0.48807752550760103,
+            "q97.5": 0.9618645216496242,
+            "rhat": 1.3075152307539242,
+            "ess": 33.67298223302956
+          },
+          {
+            "param": "p",
+            "idx1": 1,
+            "idx2": 3,
+            "label1": "1",
+            "label2": "verifier_species_3",
+            "mean": 0.689397350928865,
+            "sd": 0.17436302030328885,
+            "q2.5": 0.42627281853577664,
+            "q97.5": 0.9670840132897,
+            "rhat": 1.349065177646096,
+            "ess": 14.467587143909132
+          },
+          {
+            "param": "q",
+            "idx1": 1,
+            "idx2": 1,
+            "label1": "1",
+            "label2": "verifier_species_1",
+            "mean": 0.04648623614519376,
+            "sd": 0.021875047422236168,
+            "q2.5": 0.012433856089690437,
+            "q97.5": 0.0880007064139283,
+            "rhat": 1.002048846575629,
+            "ess": 24.044477919285363
+          },
+          {
+            "param": "q",
+            "idx1": 1,
+            "idx2": 2,
+            "label1": "1",
+            "label2": "verifier_species_2",
+            "mean": 0.0241085619401053,
+            "sd": 0.017433980684145114,
+            "q2.5": 0.000645681265543253,
+            "q97.5": 0.05655533703946686,
+            "rhat": 1.1886939859609909,
+            "ess": 72.4579809453309
+          }
+        ],
+        "total_rows": 24,
+        "warnings": [],
+        "warning_count": 0,
+        "schema_version": 1,
+        "message": "Screening covers selected coefficient blocks; unavailable diagnostics are inconclusive.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-b9278972baff40f6afec8c8352cd6ae9/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-b9278972baff40f6afec8c8352cd6ae9/stderr.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "diagnostics",
+            "description": "Complete native convergence diagnostic table",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/diagnostics-b9278972baff40f6afec8c8352cd6ae9/diagnostics.csv",
+            "sha256": "40a64aa5f73f1ba525f98c9f7bc8f73b43ec50adcf7798e79d623670e78d3467"
+          }
+        ],
+        "fit_id": "fit_df98d1077fba4e8f8aed6bbfa1aeec25",
+        "model": "two_stage",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed",
+            "habitat_factor"
+          ],
+          "collCovariates": [
+            "collection_changed"
+          ],
+          "threshold": 3,
+          "listParams": {
+            "n_factors": 1
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 3
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "fit_qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ]
+      }
+    },
+    {
+      "name": "traversal_error",
+      "tool": "validate_data",
+      "success": true,
+      "is_error": true,
+      "error_text": "Error calling tool 'validate_data': Parent traversal (..) is not allowed; use a path within the project"
+    },
+    {
+      "name": "unknown_fit_error",
+      "tool": "diagnostics",
+      "success": true,
+      "is_error": true,
+      "error_text": "Error calling tool 'diagnostics': Unknown fit_id; use an identifier returned by fit_model"
+    },
+    {
+      "name": "preview_limit_error",
+      "tool": "diagnostics",
+      "success": true,
+      "is_error": true,
+      "error_text": "1 validation error for call[diagnostics]\nmax_rows\n  Input should be less than or equal to 20 [type=less_than_equal, input_value=21, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/less_than_equal"
+    },
+    {
+      "name": "spatial_option_error",
+      "tool": "fit_model",
+      "success": true,
+      "is_error": true,
+      "error_text": "1 validation error for call[fit_model]\noptions.spatCovariates\n  Extra inputs are not permitted [type=extra_forbidden, input_value=[], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+    }
+  ],
+  "schemas": {
+    "validate_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "data_path": {
+          "description": "Project-local RDS containing native list(info, OTU, traits); no automatic repairs",
+          "type": "string"
+        },
+        "occCovariates": {
+          "description": "Occupancy covariate column names in info, or an explicit empty list",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "collCovariates": {
+          "description": "Collection covariate column names in info, or an explicit empty list",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "data_path",
+        "occCovariates",
+        "collCovariates"
+      ]
+    },
+    "fit_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "data_path": {
+          "description": "Project-local RDS containing native occJSDM-ready data",
+          "type": "string"
+        },
+        "options": {
+          "additionalProperties": false,
+          "properties": {
+            "occCovariates": {
+              "description": "Selected occupancy columns in info, or an explicit empty list",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "collCovariates": {
+              "description": "Selected collection columns in info, or an explicit empty list",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "threshold": {
+              "description": "Integer read threshold for replicated observations",
+              "minimum": 1,
+              "type": "integer"
+            },
+            "listParams": {
+              "additionalProperties": false,
+              "properties": {
+                "n_factors": {
+                  "description": "Number of native latent factors",
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "n_factors"
+              ],
+              "type": "object",
+              "description": "Native latent-factor settings"
+            },
+            "MCMCparams": {
+              "additionalProperties": false,
+              "properties": {
+                "nchain": {
+                  "description": "Number of chains, at least two for diagnostics",
+                  "minimum": 2,
+                  "type": "integer"
+                },
+                "nburn": {
+                  "description": "Discarded burn-in iterations per chain",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "niter": {
+                  "description": "Retained draws per chain; native very-short-fit errors are preserved",
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "nthin": {
+                  "description": "Iterations between retained draws",
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "nchain",
+                "nburn",
+                "niter",
+                "nthin"
+              ],
+              "type": "object",
+              "description": "Explicit native chain settings"
+            }
+          },
+          "required": [
+            "occCovariates",
+            "collCovariates",
+            "threshold",
+            "listParams",
+            "MCMCparams"
+          ],
+          "type": "object",
+          "description": "Explicit covariates, threshold, latent factors and MCMC settings; unknown and spatial options rejected"
+        },
+        "seed": {
+          "description": "Seed passed to native R set.seed before fitting",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "data_path",
+        "options",
+        "seed"
+      ]
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fit_id": {
+          "description": "Server-owned identifier returned by fit_model",
+          "type": "string"
+        },
+        "max_rows": {
+          "default": 20,
+          "description": "Maximum diagnostic preview rows, capped at 20",
+          "maximum": 20,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "fit_id"
+      ]
+    },
+    "summarise_fit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fit_id": {
+          "description": "Server-owned identifier returned by fit_model",
+          "type": "string"
+        },
+        "max_rows": {
+          "default": 20,
+          "description": "Maximum baseline occupancy preview rows, capped at 20",
+          "maximum": 20,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "fit_id"
+      ]
+    }
+  },
+  "failure": "AssertionError(('seed_type_error', '{\"status\":\"ok\",\"model\":\"binary\",\"readback_valid\":true,\"effective_n_factors\":0,\"kept_draws_per_chain\":20,\"total_iterations_per_chain\":60,\"dimensions\":[40,1],\"design\":{\"occupancy_columns\":[\"habitat_changed\"],\"collection_columns\":[],\"trait_columns\":[],\"n_sites\":40,\"n_samples\":null,\"n_primers\":null,\"missing_observations\":0,\"species_count\":1,\"observations\":40},\"runtime\":{\"source_revision\":\"b7b7001e56cea8e3931b09c917ea0e29e6cef3c6\",\"R\":\"R version 4.5.0 (2025-04-11)\",\"occJSDM_version\":\"0.1.0\",\"occJSDM_path\":\"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM\",\"renv_version\":\"1.2.3\",\"libPaths\":[\"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/library/macos/R-4.5/aarch64-apple-darwin20\",\"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/relocated-r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74\"],\"thread_env\":{\"OMP_NUM_THREADS\":\"\",\"OPENBLAS_NUM_THREADS\":\"\",\"MKL_NUM_THREADS\":\"\",\"RCPP_PARALLEL_NUM_THREADS\":\"\"},\"Rscript\":\"/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript\"},\"qualifications\":[\"Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.\",\"Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling.\"],\"warnings\":[\"Low ESS in \\'B\\'. Min ESS < 50\",\"Convergence issue in \\'A_output\\'. Max R-hat > 1.1\",\"Low ESS in \\'A\\'. Min ESS < 50\",\"Low ESS in \\'C\\'. Min ESS < 50\",\"Convergence issue in \\'sigmab_output\\'. Max R-hat > 1.1\",\"Low ESS in \\'sigmab\\'. Min ESS < 50\",\"Convergence issue in \\'sigmah_output\\'. Max R-hat > 1.1\"],\"warning_count\":7,\"schema_version\":1,\"message\":\"Native non-spatial fit saved; inspect convergence before interpretation.\",\"reference\":\"https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd\",\"artifacts\":[{\"kind\":\"log\",\"description\":\"Captured native R console output\",\"path\":\"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-f4bdaa875cb44db188cdf516a3c8165c/stdout.log\",\"sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"},{\"kind\":\"log\",\"description\":\"Captured native R startup diagnostics\",\"path\":\"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-f4bdaa875cb44db188cdf516a3c8165c/stderr.log\",\"sha256\":\"b2ca676557d2df04c1c438db3948332f66d1ef8a3cd28525aa2ac8feb85182bf\"},{\"kind\":\"fit\",\"description\":\"Native occJSDM fit, reload with readRDS\",\"path\":\"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-f4bdaa875cb44db188cdf516a3c8165c/fit.rds\",\"sha256\":\"55bef3bc9658318d0994e3a2cc3fba861a9e5e519ad4475f60a6fce6b76023dc\"},{\"kind\":\"manifest\",\"description\":\"Fit provenance and effective settings\",\"path\":\"/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/tmp/Cloud pilot relocation/occJSDM-mcp/artifacts/calls/fit_model-f4bdaa875cb44db188cdf516a3c8165c/manifest.json\",\"sha256\":\"826f1061ff7886742367fdc7b810d17fc691a0f32e689122d06c4f60cdc90a9a\"}],\"fit_id\":\"fit_4119b8d24ed04612846ccf9f24e84791\",\"settings\":{\"occCovariates\":[\"habitat_changed\"],\"collCovariates\":[],\"threshold\":1,\"listParams\":{\"n_factors\":0},\"MCMCparams\":{\"nchain\":2,\"nburn\":20,\"niter\":20,\"nthin\":2},\"spatCovariates\":[],\"summarisedLatentPresences\":true,\"listPriors\":{}},\"input_sha256\":\"655ded4dd0a6c66e2b5c260ea1263b32a383ea4b4b271c45b2436024d52f6600\"}'))"
+}

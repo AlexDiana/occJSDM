@@ -1,0 +1,42 @@
+column,source_functions
+2.5%,plotCoefficient; plotFPTPStage2Rates; plotStage2FPRates
+97.5%,plotCoefficient; plotFPTPStage2Rates; plotStage2FPRates
+Biotic,plotVarPart
+Env,plotVarPart
+Max,plotSpeciesRates
+Min,plotSpeciesRates
+Output,plotCoefficient
+Primer,plotDetectionRates; plotLatentPresences; plotStage2FPRates; runOccJSDM
+Sample,plotLatentPresences; runOccJSDM
+Site,plotLatentPresences; runOccJSDM
+Spatial,plotVarPart
+Species,plotDetectionRates; plotFPTPStage2Rates; plotSpeciesRates; plotStage2FPRates; plot_covariate_response
+chain,plotTraceplot
+high,plotOccupancyGradient
+iter,plotTraceplot
+label,plotCorrelationMatrix
+label1,plotTraceplot
+label2,plotTraceplot
+low,plotOccupancyGradient
+lower,plotCumulativeSpeciesDetections; plotDetectionRates; plot_covariate_response
+mean_lower,plotDetectionRates
+med,plotOccupancyGradient
+name,plotFactorLoadings_jsdm; plotFactorScores
+p1,plotFPTPStage2Rates
+p2,plotFPTPStage2Rates
+primer_group,plotLatentPresences
+primer_parity,plotLatentPresences
+q1,plotFPTPStage2Rates
+q2,plotFPTPStage2Rates
+r,plotFactorLoadings_jsdm; plotFactorScores
+rownum,runOccJSDM
+sample_group,plotLatentPresences
+sample_parity,plotLatentPresences
+shade_level,plotLatentPresences
+site_color_idx,plotLatentPresences
+site_group,plotLatentPresences
+species,plotBiplot; plotOccupancyGradient
+upper,plotCumulativeSpeciesDetections; plotDetectionRates; plot_covariate_response
+value,plotTraceplot; plot_covariate_response
+x,plotBiplot; plotCorrelationMatrix; plotFactorLoadings_jsdm; plotFactorScores; plotOccupancyGradient; plot_covariate_response
+y,plotBiplot; plotCorrelationMatrix; plotFactorLoadings_jsdm; plotFactorScores

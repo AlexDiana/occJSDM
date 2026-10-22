@@ -1,0 +1,9 @@
+helpers.R PASS unchanged since completed b20-only study
+run.R PASS unchanged since completed b20-only study
+rescore.R PASS unchanged since completed b20-only study
+PASS all 12 existing full-fit/selected and importance-comparison tables byte-identical to b20 backup.
+mean 0 b 20 PASS independent joint Normal/Beta density ratio and draw order
+mean 0 b 30 PASS independent joint Normal/Beta density ratio and draw order
+mean 1 b 20 PASS independent joint Normal/Beta density ratio and draw order
+mean 1 b 30 PASS independent joint Normal/Beta density ratio and draw order
+PASS factorial interaction equals both differences of differences within floating-point tolerance.

@@ -1,0 +1,14 @@
+function (z, w, idx_z, a_theta0, b_theta0) 
+{
+    S <- ncol(z)
+    z_all <- z[idx_z, ]
+    theta0 <- rep(NA, S)
+    for (s in 1:S) {
+        z0_1 <- sum(z_all[, s] == 0 & w[, s] == 1)
+        z0_0 <- sum(z_all[, s] == 0 & w[, s] == 0)
+        theta0[s] <- rbeta(1, a_theta0 + z0_1, b_theta0 + z0_0)
+        if (s == fixed_species) 
+            theta0[s] <- fixed_value
+    }
+    theta0
+}

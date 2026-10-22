@@ -1,0 +1,22 @@
+Read-only review of bounded theta0 public documentation; no fitting or checkout edits.
+PASS complete R/runOccJSDM parsed expressions unchanged by documentation.
+PASS regenerated runOccJSDM help parses/checks without regeneration.
+Independent absolute-error contrast, Beta30 to Beta20, mean0, low contamination:
+baseline MAE change pp -0.09587024 CI -0.5267478 0.3350073 prior20 coverage 98 mean relative width increase 19.39019 
+field4 MAE change pp -0.0168628 CI -0.2364114 0.2026858 prior20 coverage 98 mean relative width increase 11.22341 
+sites300 MAE change pp -0.02100696 CI -0.3049398 0.2629259 prior20 coverage 97 mean relative width increase 10.48305 
+PASS all public absolute-error uncertainty statements and stated widths/coverage match paired evidence.
+Beta prior means percent: 3.225806 4.761905 ; rounded 3.2 and 4.8 are correct.
+Current/frozen source differences after separate accessor work/help comments: R/diagnostics.R, R/runOccJSDM.R 
+PASS unchanged fitting runners retain source-byte gate; report warns matching source checkout is required, with hashes not bypassed.
+PASS 22 teaching PNGs retain exact decoded pixels versus pre-documentation snapshot; 0 PNG byte streams differ without pixel changes.
+PASS all four unrelated generated help files exactly match HEAD.
+PASS all changed documentation has no em dash.
+PASS new limitation links target existing source paths and anchors; Lesson2 placement follows rate recovery/read-threshold explanation and precedes other prior discussion.
+PASS lesson draft notice is retained; site/publishing/build exclusion settings unchanged.
+PASS closure is limited to targeted theta0 investigation; broad paper calibration and unchanged pending Alex prior-advice review remain open.
+PASS final Lesson2 relocation render completed to HTML and GitHub Markdown without refitting; quickstart and Lesson3 render records also show success. Rendered Lesson2 section remains after the detection-rate recovery/read-threshold explanation, with literal report link and working section anchor.
+Scientific review: theta0 describes DNA collection at an absent site; it is distinct from laboratory q. New prior explanation correctly distinguishes lower signed error from uncertain absolute-error improvement, labels coverage as observed in targeted designs, retains numerical flags, and does not recommend coverage-based prior selection. Good convergence diagnostics are explicitly separated from calibration.
+Disclosure review: README/quickstart/function help and lesson drafts expose the accepted Beta(1,20) disposition. Targeted closure does not close paper calibration or historical loaded-prior attribution. No site publishing changes, no new endorsement of separate blank/control prior advice.
+Minor optional clarity suggestion: use “beta release” in new prior-retention sentences instead of “beta” alone, to distinguish the release stage from a model coefficient or Beta distribution. This does not affect scientific correctness.
+FINAL DISPOSITION: no critical or important findings. Current/frozen production source differences are explicitly disclosed; source-byte gates remain intact. Source/artifact manifests are intentionally being regenerated after review and are excluded from stale-file findings. Review was read-only apart from temporary evidence logs/scripts; no MCMC or help regeneration was run.

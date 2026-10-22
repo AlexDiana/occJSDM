@@ -2,27 +2,27 @@
 % Please edit documentation in R/output.R
 \name{returnOccupancyRates}
 \alias{returnOccupancyRates}
-\title{returnOccupancyProbs}
+\title{returnBaselineOccupancyRates}
 \usage{
 returnOccupancyRates(fitModel)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
-
-\item{idx_species}{Indexes of the species to be plotted (leave out to plot all the species).}
+\item{fitModel}{Output from the function runOccJSDM}
 }
 \value{
-The credible interval plot
+A matrix of size (species x iterations) with the posterior
+samples of the baseline occupancy probability for each species
 }
 \description{
 Baseline occupancy rate for each species.
 }
 \details{
-Returns the 95% credible interval of the baseline occupancy rates
+Returns the posterior samples of the baseline occupancy probability
+(intercept-only, on the probability scale) for each species.
 }
 \examples{
 \dontrun{
-returnOccupancyRates(fitModel, idx_species = 1:5)
+returnBaselineOccupancyRates(fitModel)
 }
 
 }

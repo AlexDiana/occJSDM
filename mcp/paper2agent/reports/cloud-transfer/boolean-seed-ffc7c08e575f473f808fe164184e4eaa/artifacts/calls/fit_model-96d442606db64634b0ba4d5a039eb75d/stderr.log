@@ -1,0 +1,64 @@
+Site column missing
+Only 0 and 1 detected
+occJSDM has inferred one-stage binary data
+Check your data if this is not what you were expecting!
+Site column missing
+Only 0 and 1 detected
+occJSDM has inferred one-stage binary data
+Check your data if this is not what you were expecting!
+Running MCMC
+
+Parameter Set: B0 (Flattened N = 4)
+--------------------------------------------------
+  R-hat | Max:    1.341 | Mean:   1.136
+  ESS   | Min:     13.5 | Mean:    29.5
+
+Parameter Set: B (Flattened N = 8)
+--------------------------------------------------
+  R-hat | Max:    3.204 | Mean:   1.605
+  ESS   | Min:      3.7 | Mean:    18.2
+
+Parameter Set: G (Flattened N = 4)
+--------------------------------------------------
+  R-hat | Max:    1.588 | Mean:   1.260
+  ESS   | Min:      6.3 | Mean:    11.4
+
+Parameter Set: A (Flattened N = 4)
+--------------------------------------------------
+  R-hat | Max:    2.012 | Mean:   1.460
+  ESS   | Min:     10.1 | Mean:    16.3
+
+Parameter Set: C (Flattened N = 2)
+--------------------------------------------------
+  R-hat | Max:    2.238 | Mean:   1.870
+  ESS   | Min:      6.4 | Mean:     8.0
+
+Parameter Set: As_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: U (Flattened N = 80)
+--------------------------------------------------
+  R-hat | Max:    1.414 | Mean:   1.093
+  ESS   | Min:     23.5 | Mean:    66.3
+
+Parameter Set: L (Flattened N = 8)
+--------------------------------------------------
+  R-hat | Max:    1.215 | Mean:   1.062
+  ESS   | Min:     27.2 | Mean:    55.4
+
+Parameter Set: sigmab (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.011 | Mean:   1.011
+  ESS   | Min:      9.4 | Mean:     9.4
+
+Parameter Set: sigmabs_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: sigmah (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    2.661 | Mean:   2.661
+  ESS   | Min:      6.7 | Mean:     6.7
+
+==================================================

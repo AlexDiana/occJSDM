@@ -1,0 +1,83 @@
+"key","warning"
+"qfar_K6-field4-01",NA
+"qfar_K6-field4-02","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-field4-03",NA
+"qfar_K6-field4-04",NA
+"qfar_K6-field4-05",NA
+"qfar_K6-field4-06","Convergence issue in 'theta0_output'. Max R-hat > 1.1"
+"qfar_K6-field4-06","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-field4-07",NA
+"qfar_K6-field4-08","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-field4-09","Convergence issue in 'beta_theta_output'. Max R-hat > 1.1"
+"qfar_K6-field4-09","Low ESS in 'B'. Min ESS < 50"
+"qfar_K6-field4-10",NA
+"qfar_K6-knownU-01","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-knownU-02","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-knownU-03",NA
+"qfar_K6-knownU-04","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-knownU-05",NA
+"qfar_K6-knownU-06",NA
+"qfar_K6-knownU-07",NA
+"qfar_K6-knownU-08",NA
+"qfar_K6-knownU-09","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-knownU-10","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-sites300-01",NA
+"qfar_K6-sites300-02","Convergence issue in 'beta_theta_output'. Max R-hat > 1.1"
+"qfar_K6-sites300-02","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-sites300-03",NA
+"qfar_K6-sites300-04","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-sites300-04","Convergence issue in 'A_output'. Max R-hat > 1.1"
+"qfar_K6-sites300-05","Low ESS in 'B0'. Min ESS < 50"
+"qfar_K6-sites300-06",NA
+"qfar_K6-sites300-07",NA
+"qfar_K6-sites300-08","Low ESS in 'B'. Min ESS < 50"
+"qfar_K6-sites300-09","Convergence issue in 'theta0_output'. Max R-hat > 1.1"
+"qfar_K6-sites300-09","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qfar_K6-sites300-09","Low ESS in 'B'. Min ESS < 50"
+"qfar_K6-sites300-09","Convergence issue in 'A_output'. Max R-hat > 1.1"
+"qfar_K6-sites300-10",NA
+"qnear_K6-field4-01",NA
+"qnear_K6-field4-02","Convergence issue in 'beta_theta_output'. Max R-hat > 1.1"
+"qnear_K6-field4-02","Convergence issue in 'theta0_output'. Max R-hat > 1.1"
+"qnear_K6-field4-02","Convergence issue in 'B0_output'. Max R-hat > 1.1"
+"qnear_K6-field4-02","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qnear_K6-field4-02","Convergence issue in 'G_output'. Max R-hat > 1.1"
+"qnear_K6-field4-02","Convergence issue in 'A_output'. Max R-hat > 1.1"
+"qnear_K6-field4-02","Convergence issue in 'C_output'. Max R-hat > 1.1"
+"qnear_K6-field4-03",NA
+"qnear_K6-field4-04",NA
+"qnear_K6-field4-05",NA
+"qnear_K6-field4-06",NA
+"qnear_K6-field4-07","Convergence issue in 'beta_theta_output'. Max R-hat > 1.1"
+"qnear_K6-field4-07","Convergence issue in 'theta0_output'. Max R-hat > 1.1"
+"qnear_K6-field4-07","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qnear_K6-field4-07","Convergence issue in 'G_output'. Max R-hat > 1.1"
+"qnear_K6-field4-07","Convergence issue in 'A_output'. Max R-hat > 1.1"
+"qnear_K6-field4-07","Convergence issue in 'C_output'. Max R-hat > 1.1"
+"qnear_K6-field4-08",NA
+"qnear_K6-field4-09",NA
+"qnear_K6-field4-10",NA
+"qnear_K6-knownU-01",NA
+"qnear_K6-knownU-02",NA
+"qnear_K6-knownU-03",NA
+"qnear_K6-knownU-04","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qnear_K6-knownU-04","Convergence issue in 'G_output'. Max R-hat > 1.1"
+"qnear_K6-knownU-05",NA
+"qnear_K6-knownU-06",NA
+"qnear_K6-knownU-07",NA
+"qnear_K6-knownU-08",NA
+"qnear_K6-knownU-09",NA
+"qnear_K6-knownU-10",NA
+"qnear_K6-sites300-01",NA
+"qnear_K6-sites300-02","Convergence issue in 'B0_output'. Max R-hat > 1.1"
+"qnear_K6-sites300-03",NA
+"qnear_K6-sites300-04","Low ESS in 'B0'. Min ESS < 50"
+"qnear_K6-sites300-04","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qnear_K6-sites300-04","Low ESS in 'B'. Min ESS < 50"
+"qnear_K6-sites300-05",NA
+"qnear_K6-sites300-06",NA
+"qnear_K6-sites300-07",NA
+"qnear_K6-sites300-08","Convergence issue in 'B0_output'. Max R-hat > 1.1"
+"qnear_K6-sites300-08","Convergence issue in 'B_output'. Max R-hat > 1.1"
+"qnear_K6-sites300-09","Convergence issue in 'beta_theta_output'. Max R-hat > 1.1"
+"qnear_K6-sites300-10",NA

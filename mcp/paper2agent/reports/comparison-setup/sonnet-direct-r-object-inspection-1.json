@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "scenario": 10,
+  "repetition": 1,
+  "scored": false,
+  "prompt": "My saved fit is `trial/fit-workflow-test-seed1703.rds`. Where is my fitted R object, and how can I inspect it myself? Do not refit or overwrite any files.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "usable_object_inspection_commands_honest_identity_limit_seed_schedule_metadata_misleading",
+  "evidence": "Doug pasted complete response and ls label; expanded listing not supplied",
+  "observed": {
+    "language": "Bahasa Indonesia",
+    "file_path": "/cloud/project/trial/fit-workflow-test-seed1703.rds",
+    "file_size_reported": "55.2 KB (consistent with 56531 bytes if using KiB)",
+    "mtime_reported": "6 Oct 18:42; not independently checked",
+    "session_object_reported": "fit; matches earlier actual case-9 assignment",
+    "does_not_assume_file_equals_session_object": true,
+    "does_not_claim_successful_readRDS": true,
+    "user_inspection_commands": [
+      "fit1703 <- readRDS(\"trial/fit-workflow-test-seed1703.rds\")",
+      "class(fit1703)",
+      "names(fit1703)",
+      "str(fit1703, max.level = 1)"
+    ],
+    "no_refit_in_supplied_sequence": true,
+    "no_file_writes_in_supplied_sequence": true,
+    "short_fit_qualification": true,
+    "asks_student_about_component_names": true
+  },
+  "issues": [
+    {
+      "claim": "We can check whether seed 1703 and the agreed full MCMC schedule are stored in the object",
+      "assessment": "Pinned native runOccJSDM infos does not store seed, burn-in or thinning. Draw/chain dimensions reveal kept draws and chain count, not all setup values. Seed and full schedule need execution code or provenance logs; the response should explain that limitation rather than imply these fields can be found."
+    }
+  ],
+  "qualifications": [
+    "File existence and session variable consistent with expanded case-9 evidence; listing output not newly expanded.",
+    "No Assistant reload attempted here, so previous client world-readability restriction not newly tested. The user can run supplied readRDS code in the R console.",
+    "New variable name fit1703 avoids replacing fit, but its absence from the current session was not checked."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

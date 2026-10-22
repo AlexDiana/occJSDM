@@ -1,0 +1,51 @@
+# Timing runs, 14 October 2026, Apple M4 laptop, R 4.6.1 reference BLAS, one chain, RCPP_PARALLEL_NUM_THREADS=1.
+# ms per iteration = chain elapsed / (nburn + niter). 'first pair' ran while an R CMD INSTALL compiled in another process; 'second pair' ran on an otherwise idle machine.
+
+== quickstart-noprof
+fit: quickstart  elapsed: 41.472 user: 40.667 sys: 0.396  chain elapsed: 40.543 
+iterations: 2000  ms per iteration (whole fit): 20.736 
+== quickstart-proto
+prototype range step installed
+proto check 1: max |diff| = 0.000e+00, max |rel diff| = 0.000e+00, same argmax = TRUE
+proto check 2: max |diff| = 0.000e+00, max |rel diff| = 0.000e+00, same argmax = TRUE
+proto check 3: max |diff| = 1.137e-13, max |rel diff| = 3.904e-16, same argmax = TRUE
+fit: quickstart  elapsed: 37.462 user: 35.201 sys: 0.551  chain elapsed: 36.54 
+iterations: 2000  ms per iteration (whole fit): 18.731 
+== quickstart-noprof2
+fit: quickstart  elapsed: 48.595 user: 46.146 sys: 0.75  chain elapsed: 47.492 
+iterations: 2000  ms per iteration (whole fit): 24.2975 
+== quickstart-proto2
+prototype range step installed
+proto check 1: max |diff| = 0.000e+00, max |rel diff| = 0.000e+00, same argmax = TRUE
+proto check 2: max |diff| = 0.000e+00, max |rel diff| = 0.000e+00, same argmax = TRUE
+proto check 3: max |diff| = 1.137e-13, max |rel diff| = 3.904e-16, same argmax = TRUE
+fit: quickstart  elapsed: 37.193 user: 35.373 sys: 0.513  chain elapsed: 36.275 
+iterations: 2000  ms per iteration (whole fit): 18.5965 
+== binary900-noprof
+fit: binary900  elapsed: 109.077 user: 105.964 sys: 1.336  chain elapsed: 105.173 
+iterations: 16  ms per iteration (whole fit): 6817.312 
+== binary900-proto
+prototype range step installed
+proto check 1: max |diff| = 1.819e-12, max |rel diff| = 1.342e-16, same argmax = TRUE
+proto check 2: max |diff| = 9.095e-13, max |rel diff| = 1.771e-16, same argmax = TRUE
+proto check 3: max |diff| = 4.547e-13, max |rel diff| = 1.141e-16, same argmax = TRUE
+fit: binary900  elapsed: 82.508 user: 79.313 sys: 0.877  chain elapsed: 78.432 
+iterations: 16  ms per iteration (whole fit): 5156.75 
+== binary900-noprof2
+fit: binary900  elapsed: 115.836 user: 110.448 sys: 1.627  chain elapsed: 111.358 
+iterations: 16  ms per iteration (whole fit): 7239.75 
+== binary900-proto2
+prototype range step installed
+proto check 1: max |diff| = 1.819e-12, max |rel diff| = 1.342e-16, same argmax = TRUE
+proto check 2: max |diff| = 9.095e-13, max |rel diff| = 1.771e-16, same argmax = TRUE
+proto check 3: max |diff| = 4.547e-13, max |rel diff| = 1.141e-16, same argmax = TRUE
+fit: binary900  elapsed: 80.33 user: 78.887 sys: 0.685  chain elapsed: 76.319 
+iterations: 16  ms per iteration (whole fit): 5020.625 
+
+== load comparison (installed build vs pkgload::load_all, 500 + 500 iterations)
+/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/b83bd4b1-23f0-42d0-b40b-2dbb4884cb28/scratchpad/compare-loadall.log:JIT level: 3 
+/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/b83bd4b1-23f0-42d0-b40b-2dbb4884cb28/scratchpad/compare-loadall.log:is bytecode: FALSE 
+/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/b83bd4b1-23f0-42d0-b40b-2dbb4884cb28/scratchpad/compare-loadall.log:mode: loadall  elapsed: 19.582  chain elapsed: 18.737  ms per iteration: 18.737 
+/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/b83bd4b1-23f0-42d0-b40b-2dbb4884cb28/scratchpad/compare-installed.log:JIT level: 3 
+/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/b83bd4b1-23f0-42d0-b40b-2dbb4884cb28/scratchpad/compare-installed.log:is bytecode: TRUE 
+/private/tmp/claude-501/-Users-douglasyu-src-occJSDM/b83bd4b1-23f0-42d0-b40b-2dbb4884cb28/scratchpad/compare-installed.log:mode: installed  elapsed: 16.802  chain elapsed: 15.852  ms per iteration: 15.852 

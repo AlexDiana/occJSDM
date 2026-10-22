@@ -1,0 +1,20 @@
+"table","item","own","stored","pass"
+"final/decision.csv","row set","2; 3; 5","2; 3; 5",TRUE
+"final/decision.csv","2 phase_a_result","PASS","PASS",TRUE
+"final/decision.csv","2 phase_b_result","FAIL","FAIL",TRUE
+"final/decision.csv","2 passes_both","FALSE","FALSE",TRUE
+"final/decision.csv","2 recommended","FALSE","FALSE",TRUE
+"final/decision.csv","2 consequence","binary-only improvement (passes phase A, fails phase B): does not change the default","binary-only improvement (passes phase A, fails phase B): does not change the default",TRUE
+"final/decision.csv","2 study_decision","no SD passes phases A and B: the default stays at sigma_b0 = 1","no SD passes phases A and B: the default stays at sigma_b0 = 1",TRUE
+"final/decision.csv","3 phase_a_result","PASS","PASS",TRUE
+"final/decision.csv","3 phase_b_result","FAIL","FAIL",TRUE
+"final/decision.csv","3 passes_both","FALSE","FALSE",TRUE
+"final/decision.csv","3 recommended","FALSE","FALSE",TRUE
+"final/decision.csv","3 consequence","binary-only improvement (passes phase A, fails phase B): does not change the default","binary-only improvement (passes phase A, fails phase B): does not change the default",TRUE
+"final/decision.csv","3 study_decision","no SD passes phases A and B: the default stays at sigma_b0 = 1","no SD passes phases A and B: the default stays at sigma_b0 = 1",TRUE
+"final/decision.csv","5 phase_a_result","PASS","PASS",TRUE
+"final/decision.csv","5 phase_b_result","FAIL","FAIL",TRUE
+"final/decision.csv","5 passes_both","FALSE","FALSE",TRUE
+"final/decision.csv","5 recommended","FALSE","FALSE",TRUE
+"final/decision.csv","5 consequence","binary-only improvement (passes phase A, fails phase B): does not change the default","binary-only improvement (passes phase A, fails phase B): does not change the default",TRUE
+"final/decision.csv","5 study_decision","no SD passes phases A and B: the default stays at sigma_b0 = 1","no SD passes phases A and B: the default stays at sigma_b0 = 1",TRUE

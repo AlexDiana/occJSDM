@@ -1,0 +1,41 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_stdio_rejects_boolean_seed_without_publishing ______________
+
+    def test_stdio_rejects_boolean_seed_without_publishing():
+        # Without server-level strictness, True is accepted as1 and produces a scientifically different fit.
+        folder=project('boolean-seed')
+        async def scenario():
+            async with stdio_client(folder) as client:
+                result=await client.call_tool('fit_model',dict(data_path='binary.rds',options=OPTIONS,seed=True),raise_on_error=False)
+                assert result.is_error, f'Boolean seed was accepted and published: {result.data}'
+                text=' '.join(x.text for x in result.content if hasattr(x,'text')).lower()
+                assert 'validation' in text and 'int' in text
+                assert published(folder)==(set(),set())
+>       asyncio.run(scenario())
+
+tests/code/implementation/test_transport_strictness.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:205: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:128: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def scenario():
+        async with stdio_client(folder) as client:
+            result=await client.call_tool('fit_model',dict(data_path='binary.rds',options=OPTIONS,seed=True),raise_on_error=False)
+>           assert result.is_error, f'Boolean seed was accepted and published: {result.data}'
+E           AssertionError: Boolean seed was accepted and published: {'status': 'ok', 'model': 'binary', 'readback_valid': True, 'effective_n_factors': 2, 'kept_draws_per_chain': 20, 'total_iterations_per_chain': 40, 'dimensions': [40, 4], 'design': {'occupancy_columns': ['X_psi.EnvCov.1', 'X_psi.EnvCov.2'], 'collection_columns': [], 'trait_columns': ['Trait_1', 'Trait_2'], 'n_sites': 40, 'n_samples': None, 'n_primers': None, 'missing_observations': 0, 'species_count': 4, 'observations': 40}, 'runtime': {'source_revision': 'b7b7001e56cea8e3931b09c917ea0e29e6cef3c6', 'R': 'R version 4.5.0 (2025-04-11)', 'occJSDM_version': '0.1.0', 'occJSDM_path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM', 'renv_version': '1.2.3', 'libPaths': ['/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20', '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74'], 'thread_env': {'OMP_NUM_THREADS': '', 'OPENBLAS_NUM_THREADS': '', 'MKL_NUM_THREADS': '', 'RCPP_PARALLEL_NUM_THREADS': ''}, 'Rscript': '/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript'}, 'qualifications': ['Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.', 'Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling.'], 'warnings': ["Convergence issue in 'B0_output'. Max R-hat > 1.1", "Low ESS in 'B0'. Min ESS < 50", "Convergence issue in 'B_output'. Max R-hat > 1.1", "Low ESS in 'B'. Min ESS < 50", "Convergence issue in 'G_output'. Max R-hat > 1.1", "Low ESS in 'G'. Min ESS < 50", "Convergence issue in 'A_output'. Max R-hat > 1.1", "Low ESS in 'A'. Min ESS < 50", "Convergence issue in 'C_output'. Max R-hat > 1.1", "Low ESS in 'C'. Min ESS < 50", "Convergence issue in 'U_output'. Max R-hat > 1.1", "Low ESS in 'U'. Min ESS < 50", "Convergence issue in 'L_output'. Max R-hat > 1.1", "Low ESS in 'L'. Min ESS < 50", "Low ESS in 'sigmab'. Min ESS < 50", "Convergence issue in 'sigmah_output'. Max R-hat > 1.1", "Low ESS in 'sigmah'. Min ESS < 50"], 'warning_count': 17, 'schema_version': 1, 'message': 'Native non-spatial fit saved; inspect convergence before interpretation.', 'reference': 'https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd', 'artifacts': [{'kind': 'log', 'description': 'Captured native R console output', 'path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/cloud-transfer/boolean-seed-ffc7c08e575f473f808fe164184e4eaa/artifacts/calls/fit_model-96d442606db64634b0ba4d5a039eb75d/stdout.log', 'sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}, {'kind': 'log', 'description': 'Captured native R startup diagnostics', 'path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/cloud-transfer/boolean-seed-ffc7c08e575f473f808fe164184e4eaa/artifacts/calls/fit_model-96d442606db64634b0ba4d5a039eb75d/stderr.log', 'sha256': '65e8163400804c5dd384ccc5dd4f1ea83182191c5f1b7b1636e3061c28bfb6e0'}, {'kind': 'fit', 'description': 'Native occJSDM fit, reload with readRDS', 'path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/cloud-transfer/boolean-seed-ffc7c08e575f473f808fe164184e4eaa/artifacts/calls/fit_model-96d442606db64634b0ba4d5a039eb75d/fit.rds', 'sha256': '1dd8f9ee58893a1231206631ac0ae85b0fd4add788421b7133a77f126bb7c597'}, {'kind': 'manifest', 'description': 'Fit provenance and effective settings', 'path': '/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/reports/cloud-transfer/boolean-seed-ffc7c08e575f473f808fe164184e4eaa/artifacts/calls/fit_model-96d442606db64634b0ba4d5a039eb75d/manifest.json', 'sha256': 'ae0e62f45687b79e8dfc92ca7e48280485779cc8cc5715f56c72071214f1039f'}], 'fit_id': 'fit_d02235207f904204ba0eeb94053aa3b8', 'settings': {'occCovariates': ['X_psi.EnvCov.1', 'X_psi.EnvCov.2'], 'collCovariates': [], 'threshold': 1, 'listParams': {'n_factors': 2}, 'MCMCparams': {'nchain': 2, 'nburn': 20, 'niter': 20, 'nthin': 1}, 'spatCovariates': [], 'summarisedLatentPresences': True, 'listPriors': {}}, 'input_sha256': '16723e59be15adc39467259f10f7802e02012b15ec79c239732b78e323e62d67'}
+E           assert False
+E            +  where False = CallToolResult(content=[TextContent(type='text', text='{"status":"ok","model":"binary","readback_valid":true,"effectiv...'listPriors': {}}, 'input_sha256': '16723e59be15adc39467259f10f7802e02012b15ec79c239732b78e323e62d67'}, is_error=False).is_error
+
+tests/code/implementation/test_transport_strictness.py:41: AssertionError
+=========================== short test summary info ============================
+FAILED tests/code/implementation/test_transport_strictness.py::test_stdio_rejects_boolean_seed_without_publishing
+1 failed in 3.15s

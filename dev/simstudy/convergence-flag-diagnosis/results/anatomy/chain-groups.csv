@@ -1,0 +1,5 @@
+"key","species","chain","chain_group","chain_mean_psi","species_label","separated_any","partition_matches_separated"
+"design-qfar_K6-sites300-05",6,1,2,0.4754416,"separated","theta0;beta_theta_intercept;B_slope1;B_slope2",TRUE
+"design-qfar_K6-sites300-05",6,2,1,0.4454948,"separated","theta0;beta_theta_intercept;B_slope1;B_slope2",TRUE
+"design-qfar_K6-sites300-05",6,3,2,0.4737027,"separated","theta0;beta_theta_intercept;B_slope1;B_slope2",TRUE
+"design-qfar_K6-sites300-05",6,4,1,0.4500674,"separated","theta0;beta_theta_intercept;B_slope1;B_slope2",TRUE

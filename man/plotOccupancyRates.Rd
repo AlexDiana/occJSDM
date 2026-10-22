@@ -4,21 +4,14 @@
 \alias{plotOccupancyRates}
 \title{plotOccupancyRates}
 \usage{
-plotOccupancyRates(
-  fitModel,
-  idx_species = NULL,
-  confidence = 0.95,
-  sortSpecies = F
-)
+plotOccupancyRates(fitModel, idx_species = NULL, confidence = 0.95)
 }
 \arguments{
-\item{fitModel}{Output from the function runOccPlus}
+\item{fitModel}{Output from the function runOccJSDM}
 
 \item{idx_species}{Indexes of the species to be plotted (leave out to plot all the species).}
 
 \item{confidence}{Confidence level of the estimate,  default to .95}
-
-\item{sortSpecies}{Should species be sorted in the plot?}
 }
 \value{
 The credible interval plot
@@ -31,7 +24,7 @@ Plots the 95% credible interval of the baseline occupancy rates
 }
 \examples{
 \dontrun{
-plotSpeciesRates(fitModel, idx_species = 1:5)
+plotOccupancyRates(fitModel, idx_species = 1:5)
 }
 
 }

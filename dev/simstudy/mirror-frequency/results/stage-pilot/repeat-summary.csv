@@ -1,0 +1,2 @@
+"repeat_index","seed","n_near_truth","n_mirror","n_both","n_unknown","regions","rhat_theta0","rhat_B0","rhat_B_slope1","rhat_B_slope2","rhat_beta_theta_intercept","rhat_mean_psi_original_sites","elapsed_seconds","n_warnings"
+1,20261051,4,0,0,0,"near-truth;near-truth;near-truth;near-truth",1.3565296800385,2.22885487926109,1.58246718825223,1.51895324351912,1.84061812169642,2.30658327897696,3.96673798561096,23

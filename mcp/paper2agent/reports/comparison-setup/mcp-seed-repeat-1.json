@@ -1,0 +1,335 @@
+{
+  "date": "2026-10-07",
+  "condition": "B",
+  "scenario": 9,
+  "repetition": 1,
+  "scored": false,
+  "scope": "Unscored repeat-fitting rehearsal; operator-supplied terminal artifacts verify exact settings, native readback and preservation of files with prior recorded hashes.",
+  "project_url": "https://posit.cloud/spaces/828411/content/13082983",
+  "prompt": "Fit the same non-spatial starter model to `trial/data.rds` again with seed 1703, retaining the supplied test settings. Save it to a distinct new project file and preserve every existing fit. Report the settings, seed, saved path and warnings, then stop.",
+  "original_model_context": "Original starter uses both X_psi.EnvCov.1 and X_psi.EnvCov.2; initial registered fit fit_8a6a7d51459e4af5a2ad29701273469b.",
+  "status": "seed1703_MCP_repeat_native_settings_readback_and_known_prior_fit_hashes_verified_user_supplied",
+  "evidence": {
+    "source": "Doug pasted complete response and 17 tool labels; MCP arguments/results and full hashes not expanded."
+  },
+  "tool_sequence": [
+    "ls",
+    "ls",
+    "ls",
+    "ls",
+    "ls",
+    "read",
+    "ls",
+    "ls",
+    "read",
+    "grep",
+    "ls",
+    "read",
+    "read",
+    "read",
+    "mcp__occJSDM__validate_data",
+    "mcp__occJSDM__fit_model",
+    "ls"
+  ],
+  "visible_tool_call_count": 17,
+  "visible_tool_call_counts_by_type": {
+    "ls": 9,
+    "read": 5,
+    "grep": 1,
+    "mcp__occJSDM__validate_data": 1,
+    "mcp__occJSDM__fit_model": 1
+  },
+  "observed": {
+    "language": "Two English progress messages; final report in Bahasa Indonesia.",
+    "MCP_validate_data_and_fit_model_labels_present": true,
+    "native_R_fitting_bypass_observed": false,
+    "reported_data_eligible": true,
+    "reported_model": "two_stage",
+    "reported_seed": 1703,
+    "reported_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta"
+      ],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      },
+      "spatCovariates": [],
+      "listPriors": "defaults"
+    },
+    "reported_draws_per_chain": 20,
+    "reported_total_iterations_per_chain": 40,
+    "fit_id_reported": "fit_50edc6acf31747f699dd4e7ea7d05242",
+    "saved_fit_path_reported": "/cloud/project/artifacts/calls/fit_model-f35fedfccf354a8d9af54ac83050bb25/fit.rds",
+    "manifest_path_reported": "/cloud/project/artifacts/calls/fit_model-f35fedfccf354a8d9af54ac83050bb25/manifest.json",
+    "fit_sha256_reported": "e60026f3...6d1e0; abbreviated only",
+    "input_sha256_reported": "86a183af...7b584; abbreviated only",
+    "warning_count_reported": 25,
+    "reported_warning_sets": [
+      "beta_theta",
+      "p",
+      "q",
+      "theta0",
+      "B0",
+      "B",
+      "G",
+      "A",
+      "C",
+      "U"
+    ],
+    "old_registry_entries_reported": [
+      "fit_8a6a7d51459e4af5a2ad29701273469b",
+      "fit_c23785deda5143bda536848cda21beb4",
+      "fit_fa9d078129f9450cabc029f0af695958"
+    ],
+    "old_fits_unchanged_claimed": true,
+    "short_fit_unsuitable_for_scientific_interpretation_explained": true,
+    "large_Rhat_not_dismissed_as_short_fit_noise": true,
+    "stopped_after_requested_fit_report": true,
+    "no_diagnostics_summary_or_comparison_call_in_visible_sequence": true
+  },
+  "issues_and_limitations": [
+    "The warning description lists the first ten blocks corresponding to the usual 20-entry preview; it does not enumerate all 25 warnings. Do not infer complete category counts from this preview.",
+    "English explanatory progress messages depart from the Bahasa default if the identical instructions were delivered as requested; final report uses Bahasa.",
+    "Actual model/provider settings and exact initial instruction/condition delivery remain uncollected."
+  ],
+  "requested_next_evidence": "Fresh-conversation matched case 10: inspect the verified seed-1703 saved object without refitting or overwriting files.",
+  "formal_Indonesian_review": "pending",
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null,
+  "native_artifact_verification_pending": false,
+  "terminal_artifact_verification": {
+    "date": "2026-10-07",
+    "source": "Operator-supplied read-only Cloud terminal output; parsed locally by Codex, without direct Cloud access or new fitting.",
+    "attachment_path": "/Users/douglasyu/.codex/attachments/da99c037-5e88-482e-8742-9728769e2086/Pasted text.txt",
+    "attachment_sha256": "b65c870faac444d37d6fa223154ed2918bb680cb22a997e7d99c66c47b428087",
+    "integrity": {
+      "manifest_hash_matches_registry": true,
+      "completed_fit_id_matches": true,
+      "fit_hash_matches_manifest": true,
+      "input_snapshot_hash_matches_manifest": true
+    },
+    "provenance": {
+      "fit_id": "fit_50edc6acf31747f699dd4e7ea7d05242",
+      "fit_path": "/cloud/project/artifacts/calls/fit_model-f35fedfccf354a8d9af54ac83050bb25/fit.rds",
+      "fit_sha256": "e60026f34c8afa9d684396720bd374df46d3ae2fc9fb67ac5a93fc74c6a6d1e0",
+      "input_path": "/cloud/project/trial/data.rds",
+      "input_sha256": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+      "seed": 1703,
+      "model": "two_stage",
+      "requested_settings": {
+        "occCovariates": [
+          "X_psi.EnvCov.1",
+          "X_psi.EnvCov.2"
+        ],
+        "collCovariates": [
+          "X_theta"
+        ],
+        "threshold": 1,
+        "listParams": {
+          "n_factors": 2
+        },
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 1
+        }
+      },
+      "effective_settings": {
+        "occCovariates": [
+          "X_psi.EnvCov.1",
+          "X_psi.EnvCov.2"
+        ],
+        "collCovariates": [
+          "X_theta"
+        ],
+        "threshold": 1,
+        "listParams": {
+          "n_factors": 2
+        },
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 1
+        },
+        "spatCovariates": [],
+        "summarisedLatentPresences": true,
+        "listPriors": {}
+      },
+      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+      "runtime": {
+        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+        "R": "R version 4.6.1 (2026-06-24)",
+        "occJSDM_version": "0.1.0",
+        "occJSDM_path": "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/occJSDM",
+        "renv_version": "1.2.3",
+        "libPaths": [
+          "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu",
+          "/cloud/project/mcp/paper2agent/cloud-r-runtime/sandbox/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/e7c0fad7"
+        ],
+        "thread_env": {
+          "OMP_NUM_THREADS": "",
+          "OPENBLAS_NUM_THREADS": "",
+          "MKL_NUM_THREADS": "",
+          "RCPP_PARALLEL_NUM_THREADS": ""
+        },
+        "Rscript": "/opt/R/4.6.1/lib/R/bin/Rscript"
+      }
+    },
+    "fit_request": {
+      "data_path": "/cloud/project/artifacts/calls/fit_model-f35fedfccf354a8d9af54ac83050bb25/input.rds",
+      "options": {
+        "occCovariates": [
+          "X_psi.EnvCov.1",
+          "X_psi.EnvCov.2"
+        ],
+        "collCovariates": [
+          "X_theta"
+        ],
+        "threshold": 1,
+        "listParams": {
+          "n_factors": 2
+        },
+        "MCMCparams": {
+          "nchain": 2,
+          "nburn": 20,
+          "niter": 20,
+          "nthin": 1
+        }
+      },
+      "seed": 1703,
+      "operation": "fit_model",
+      "output_dir": "/cloud/project/artifacts/calls/fit_model-f35fedfccf354a8d9af54ac83050bb25"
+    },
+    "fit_result": {
+      "status": "ok",
+      "model": "two_stage",
+      "readback_valid": true,
+      "effective_n_factors": 2,
+      "kept_draws_per_chain": 20,
+      "total_iterations_per_chain": 40,
+      "dimensions": [
+        160,
+        4
+      ],
+      "design": {
+        "occupancy_columns": [
+          "X_psi.EnvCov.1",
+          "X_psi.EnvCov.2"
+        ],
+        "collection_columns": [
+          "(Intercept)",
+          "X_theta"
+        ],
+        "trait_columns": [
+          "Trait_1",
+          "Trait_2"
+        ],
+        "n_sites": 40,
+        "n_samples": 80,
+        "n_primers": 1,
+        "missing_observations": 0,
+        "species_count": 4,
+        "observations": 160
+      },
+      "runtime": {
+        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+        "R": "R version 4.6.1 (2026-06-24)",
+        "occJSDM_version": "0.1.0",
+        "occJSDM_path": "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/occJSDM",
+        "renv_version": "1.2.3",
+        "libPaths": [
+          "/cloud/project/mcp/paper2agent/cloud-r-runtime/library/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu",
+          "/cloud/project/mcp/paper2agent/cloud-r-runtime/sandbox/linux-ubuntu-noble/R-4.6/x86_64-pc-linux-gnu/e7c0fad7"
+        ],
+        "thread_env": {
+          "OMP_NUM_THREADS": "",
+          "OPENBLAS_NUM_THREADS": "",
+          "MKL_NUM_THREADS": "",
+          "RCPP_PARALLEL_NUM_THREADS": ""
+        },
+        "Rscript": "/opt/R/4.6.1/lib/R/bin/Rscript"
+      },
+      "qualifications": [
+        "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+        "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+      ],
+      "warnings": [
+        "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
+        "Low ESS in 'beta_theta'. Min ESS < 50",
+        "Convergence issue in 'p_output'. Max R-hat > 1.1",
+        "Low ESS in 'p'. Min ESS < 50",
+        "Convergence issue in 'q_output'. Max R-hat > 1.1",
+        "Low ESS in 'q'. Min ESS < 50",
+        "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
+        "Low ESS in 'theta0'. Min ESS < 50",
+        "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+        "Low ESS in 'B0'. Min ESS < 50",
+        "Convergence issue in 'B_output'. Max R-hat > 1.1",
+        "Low ESS in 'B'. Min ESS < 50",
+        "Convergence issue in 'G_output'. Max R-hat > 1.1",
+        "Low ESS in 'G'. Min ESS < 50",
+        "Convergence issue in 'A_output'. Max R-hat > 1.1",
+        "Low ESS in 'A'. Min ESS < 50",
+        "Convergence issue in 'C_output'. Max R-hat > 1.1",
+        "Low ESS in 'C'. Min ESS < 50",
+        "Convergence issue in 'U_output'. Max R-hat > 1.1",
+        "Low ESS in 'U'. Min ESS < 50"
+      ],
+      "warning_count": 25
+    },
+    "matched_output_directories": [],
+    "current_fixture_sha256": {
+      "trial/data.rds": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+      "trial/fit-short.rds": "446556b0ab908541034af3fb5369864e8164531086e25d3256d19f0078fbd5f8"
+    },
+    "existing_fit_checks": [
+      {
+        "fit_id": "fit_8a6a7d51459e4af5a2ad29701273469b",
+        "status": "complete",
+        "registered_id_matches": true,
+        "manifest_integrity": true,
+        "fit_sha256": "446556b0ab908541034af3fb5369864e8164531086e25d3256d19f0078fbd5f8",
+        "fit_integrity": true,
+        "matches_independently_recorded_prior_hash": true
+      },
+      {
+        "fit_id": "fit_c23785deda5143bda536848cda21beb4",
+        "status": "complete",
+        "registered_id_matches": true,
+        "manifest_integrity": true,
+        "fit_sha256": "268869bffe1ab8649c6cf9be9577bcd63d42d983c09ac13d54dffd2b02af8658",
+        "fit_integrity": true,
+        "matches_independently_recorded_prior_hash": true
+      },
+      {
+        "fit_id": "fit_fa9d078129f9450cabc029f0af695958",
+        "status": "complete",
+        "registered_id_matches": true,
+        "manifest_integrity": true,
+        "fit_sha256": "446556b0ab908541034af3fb5369864e8164531086e25d3256d19f0078fbd5f8",
+        "fit_integrity": true,
+        "matches_independently_recorded_prior_hash": null
+      }
+    ],
+    "qualifications": [
+      "25 warnings captured; only the 20-entry preview is retained here. Complete warning strings and category counts are not established.",
+      "B1 and B3 current hashes match independently retained earlier hashes. The older registered reference passes registry/manifest/fit integrity checks and equals frozen reference bytes; no separate prior full SHA for that identifier was retained.",
+      "Evidence supports checked files only, not preservation of every possible project file.",
+      "Persisted native requests/results do not independently verify provider identity or the full raw MCP transport response."
+    ]
+  }
+}

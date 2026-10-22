@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "scenario": 8,
+  "repetition": 1,
+  "scored": false,
+  "prompt": "`trial/diagnostics-unavailable.csv` has blank Rhat values. Does that mean everything converged?",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "missing_not_pass_correct_32_row_CSV_read_but_reported_28_language_failure",
+  "evidence": "Doug pasted response and single bash label; command and raw CSV output not supplied",
+  "observed": {
+    "language": "English",
+    "correctly_rejects_blank_Rhat_as_convergence": true,
+    "reported_rows": 28,
+    "reported_all_Rhat_blank": true,
+    "reported_ESS_range": [
+      1.3,
+      20
+    ],
+    "says_most_ESS_below_400": true,
+    "requires_at_least_two_chains_explained": true,
+    "one_chain_reason_explicitly_unverified": true,
+    "schedule_not_invented": true,
+    "low_ESS_vs_posterior_width_distinguished": true,
+    "short_chain_ESS_instability_explained": true,
+    "selected_scope_and_no_convergence_proof": true,
+    "no_fit_in_supplied_sequence": true
+  },
+  "issues": [
+    {
+      "claim": "All 28 rows have blank Rhat",
+      "assessment": "Original bash command cats the whole CSV; supplied raw output includes 32 rows, all with blank Rhat. Reported 28 is a demonstrated counting error, not command-limited reading."
+    },
+    {
+      "claim": "Most ESS below 400",
+      "assessment": "Reported maximum 20 implies all finite ESS values below 400; prepared fixture has 32 such rows."
+    },
+    {
+      "issue": "English response",
+      "assessment": "Differs from shared Bahasa Indonesia default; no language switch in supplied prompt."
+    }
+  ],
+  "fixture_check": {
+    "method": "Read earlier local native replica CSV and preparation source, no model rerun",
+    "CSV": "/private/var/folders/s1/wpx8hzv51s9441b4gxsrd_7w0000gn/T/curation-native-tsuaggmz/project/trial/diagnostics-unavailable.csv",
+    "rows": 32,
+    "blank_Rhat": 32,
+    "ESS_below_400": 32,
+    "scope": "Local native replica plus original preparation definition; actual current Cloud CSV bytes not re-read by Codex"
+  },
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null,
+  "expanded_bash_evidence": {
+    "source": "Doug pasted original bash command and complete output",
+    "command": "ls trial 2>/dev/null; cat trial/diagnostics-unavailable.csv",
+    "reads_entire_CSV": true,
+    "output_contains_all_six_blocks": {
+      "beta0_psi": 4,
+      "beta_psi": 8,
+      "beta_theta": 8,
+      "p": 4,
+      "q": 4,
+      "theta0": 4
+    },
+    "confirmed_rows": 32,
+    "confirmed_blank_Rhat": 32,
+    "confirmed_ESS_below_400": 32,
+    "ESS_summary": {
+      "min": 1.29022051186217,
+      "median": 5.11537423422584,
+      "max": 20,
+      "equal_20_count": 7
+    },
+    "verification_method": "Counted supplied block rows and computed summary from the 32 pasted ESS entries; no Cloud rerun",
+    "miscount_confirmed": true,
+    "reason_for_model_miscount": "Not established; no truncation in the supplied command/output"
+  }
+}

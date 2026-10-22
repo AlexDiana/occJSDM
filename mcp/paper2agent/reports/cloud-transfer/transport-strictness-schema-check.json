@@ -1,0 +1,13 @@
+{
+  "schema_unchanged": true,
+  "tool_names": [
+    "diagnostics",
+    "fit_model",
+    "summarise_fit",
+    "validate_data"
+  ],
+  "top_level_strict": true,
+  "module_strict": true,
+  "installed_fastmcp_function_tool": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/tools/function_tool.py",
+  "installed_fastmcp_server": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/occJSDM-env/lib/python3.14/site-packages/fastmcp/server/server.py"
+}

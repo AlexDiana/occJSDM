@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-06",
+  "condition": "C",
+  "scenario": 4,
+  "repetition": 1,
+  "scored": false,
+  "prompt": "Can I analyse `trial/no-traits.rds` without species traits?",
+  "project_url": "https://posit.cloud/spaces/828411/content/13080637",
+  "status": "correct_optional_traits_conclusion_weak_signature_based_justification",
+  "evidence": "Doug pasted full response and three executeCode inspection labels; expanded R code/output not supplied",
+  "observed": {
+    "language": "Bahasa Indonesia",
+    "reported_components": [
+      "info",
+      "OTU"
+    ],
+    "reported_info_dimensions": [
+      160,
+      8
+    ],
+    "reported_OTU_dimensions": [
+      160,
+      4
+    ],
+    "reported_valid_fixture_traits_dimensions": [
+      4,
+      2
+    ],
+    "only_traits_difference_reported": true,
+    "correct_covariate_names": true,
+    "correct_spatial_scope_restraint": true,
+    "correct_optional_traits_conclusion": true,
+    "correct_trait_effect_limitations": true,
+    "correct_examples_of_trait_dependent_functions": [
+      "returnTraitsCoeff",
+      "plotTraitsCoefficients"
+    ],
+    "no_fit_in_supplied_sequence": true,
+    "does_not_claim_completed_fit": true,
+    "asks_student_concept_question_before_fit": true,
+    "explicitly_says_full_docs_unread": true
+  },
+  "issues": [
+    {
+      "claim": "Traits inferred optional because no separate traits argument in runOccJSDM signature",
+      "assessment": "Invalid inference: required components can be nested inside data. Package documentation and explicit data$traits NULL branch provide the actual support; signature alone does not."
+    },
+    {
+      "claim": "First says optional only suspected, then categorically says model still runs",
+      "assessment": "The conclusion is correct against known pinned source, but the response has not shown documentation/source verification or a successful execution. Do not interpret this as a demonstrated fit."
+    }
+  ],
+  "source_support": {
+    "revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "previously_checked_source": "R/runOccJSDM.R handles absent data$traits with an S-by-zero Tr matrix; trait coefficient functions reject no-trait fits.",
+    "fixture_preparation": "no-traits fixture derived by removing traits from valid input"
+  },
+  "qualifications": [
+    "Comparison of actual no-traits and data objects reported, not expanded here.",
+    "Reported behavior is conceptually supported, not newly demonstrated by fitting."
+  ],
+  "charge_USD": null,
+  "tokens": null,
+  "elapsed_seconds": null
+}

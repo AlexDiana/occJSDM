@@ -1,0 +1,1 @@
+PASS: 107 preservation checks. Complete mean-only evidence matches its original MD5/SHA-256 manifests; all 12 original full-fit and comparison tables, four fitting/scoring sources, two original figures and 10 original validation fit files remain unchanged.

@@ -1,0 +1,21 @@
+  start stage epoch    loglik penalised_score max_penalised_gradient
+1     6   fit  3000 -484.0381       -484.4326             0.04577762
+  elapsed_seconds
+1        491.4539
+  start  stage epoch    loglik penalised_score max_penalised_gradient
+1     6 polish   250 -484.0363       -484.4313             0.02725646
+  elapsed_seconds
+1        536.4159
+  start  stage epoch    loglik penalised_score max_penalised_gradient
+1     6 polish   500 -484.0363       -484.4313             0.03335306
+  elapsed_seconds
+1         580.899
+  start  stage epoch    loglik penalised_score max_penalised_gradient
+1     6 polish   750 -484.0361       -484.4312             0.02897204
+  elapsed_seconds
+1        624.7066
+  start  stage epoch    loglik penalised_score max_penalised_gradient
+1     6 polish  1000 -484.0361       -484.4312             0.02078729
+  elapsed_seconds
+1        666.7181
+Completed native multistart fit and continuation: sjSDM-multistart-start-6 

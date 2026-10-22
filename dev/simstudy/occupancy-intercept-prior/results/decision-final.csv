@@ -1,0 +1,4 @@
+"sd","phase_a_result","phase_b_result","passes_both","recommended","consequence","study_decision"
+2,"PASS","FAIL",FALSE,FALSE,"binary-only improvement (passes phase A, fails phase B): does not change the default","no SD passes phases A and B: the default stays at sigma_b0 = 1"
+3,"PASS","FAIL",FALSE,FALSE,"binary-only improvement (passes phase A, fails phase B): does not change the default","no SD passes phases A and B: the default stays at sigma_b0 = 1"
+5,"PASS","FAIL",FALSE,FALSE,"binary-only improvement (passes phase A, fails phase B): does not change the default","no SD passes phases A and B: the default stays at sigma_b0 = 1"

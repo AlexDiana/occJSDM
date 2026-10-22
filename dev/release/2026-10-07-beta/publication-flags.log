@@ -1,0 +1,18 @@
+✔ finds lesson pages, with or without .html (0.722458ms)
+✔ ignores pages that are not lessons (0.067125ms)
+✔ publishes only the quickstart and numbered lessons (0.097417ms)
+✔ labels each lesson's position, but not the guide's (0.127458ms)
+✔ links to the neighbouring pages, with none beyond either end (0.56625ms)
+✔ builds contents entries only for headings with ids, tidying their text (0.132458ms)
+✔ marks the last heading at or above the reading line as current (0.054125ms)
+✔ lists every lesson source, in order, with its YAML title (5.99975ms)
+✔ navigates only between published pages (0.162584ms)
+✔ publishes a page exactly when _config.yml does, figures included (0.366792ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85.229292

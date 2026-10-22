@@ -1,0 +1,208 @@
+Site column missing
+Only 0 and 1 detected
+occJSDM has inferred one-stage binary data
+Check your data if this is not what you were expecting!
+Site column missing
+Only 0 and 1 detected
+occJSDM has inferred one-stage binary data
+Check your data if this is not what you were expecting!
+Running MCMC
+
+Parameter Set: B0 (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.042 | Mean:   1.042
+  ESS   | Min:     67.1 | Mean:    67.1
+
+Parameter Set: B (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.041 | Mean:   1.041
+  ESS   | Min:      9.6 | Mean:     9.6
+
+Parameter Set: A (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.024 | Mean:   1.024
+  ESS   | Min:     10.9 | Mean:    10.9
+
+Parameter Set: C (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.067 | Mean:   1.067
+  ESS   | Min:     12.3 | Mean:    12.3
+
+Parameter Set: As_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: sigmab (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.097 | Mean:   1.097
+  ESS   | Min:     40.0 | Mean:    40.0
+
+Parameter Set: sigmabs_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: sigmah (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.041 | Mean:   1.041
+  ESS   | Min:     40.0 | Mean:    40.0
+
+==================================================
+Sample column missing, but detected repeated observations for some sites
+Only 0 and 1 detected
+occJSDM has inferred occupancy data
+Check your data if this is not what you were expecting!
+Sample column missing, but detected repeated observations for some sites
+Only 0 and 1 detected
+occJSDM has inferred occupancy data
+Check your data if this is not what you were expecting!
+Running MCMC
+
+Parameter Set: beta_theta (Flattened N = 6)
+--------------------------------------------------
+  R-hat | Max:    2.842 | Mean:   1.732
+  ESS   | Min:     14.5 | Mean:    26.3
+
+Parameter Set: theta0 (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.007 | Mean:   0.996
+  ESS   | Min:     40.0 | Mean:    40.0
+
+Parameter Set: B0 (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    3.789 | Mean:   2.426
+  ESS   | Min:     13.1 | Mean:    30.0
+
+Parameter Set: B (Flattened N = 6)
+--------------------------------------------------
+  R-hat | Max:    1.851 | Mean:   1.145
+  ESS   | Min:      9.6 | Mean:    16.7
+
+Parameter Set: A (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.063 | Mean:   1.056
+  ESS   | Min:     26.1 | Mean:    39.1
+
+Parameter Set: C (Flattened N = 2)
+--------------------------------------------------
+  R-hat | Max:    1.501 | Mean:   1.259
+  ESS   | Min:     40.0 | Mean:    43.2
+
+Parameter Set: As_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: U (Flattened N = 40)
+--------------------------------------------------
+  R-hat | Max:    1.461 | Mean:   1.070
+  ESS   | Min:     26.8 | Mean:    51.9
+
+Parameter Set: L (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.011 | Mean:   1.001
+  ESS   | Min:     26.9 | Mean:    65.7
+
+Parameter Set: sigmab (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.014 | Mean:   1.014
+  ESS   | Min:     29.3 | Mean:    29.3
+
+Parameter Set: sigmabs_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: sigmah (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.052 | Mean:   1.052
+  ESS   | Min:     27.2 | Mean:    27.2
+
+==================================================
+Detected repeated observation for some sample
+Count data detected
+occJSDM has inferred two stage (eDNA style) data
+Check your data if this is not what you were expecting!
+Detected repeated observation for some sample
+Count data detected
+occJSDM has inferred two stage (eDNA style) data
+Check your data if this is not what you were expecting!
+Running MCMC
+Detected repeated observation for some sample
+Count data detected
+occJSDM has inferred two stage (eDNA style) data
+Check your data if this is not what you were expecting!
+Detected repeated observation for some sample
+Count data detected
+occJSDM has inferred two stage (eDNA style) data
+Check your data if this is not what you were expecting!
+Running MCMC
+
+Parameter Set: beta_theta (Flattened N = 6)
+--------------------------------------------------
+  R-hat | Max:    1.238 | Mean:   1.076
+  ESS   | Min:     17.0 | Mean:    25.5
+
+Parameter Set: p (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.349 | Mean:   1.292
+  ESS   | Min:     14.5 | Mean:    29.4
+
+Parameter Set: q (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.225 | Mean:   1.138
+  ESS   | Min:     24.0 | Mean:    41.7
+
+Parameter Set: theta0 (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.670 | Mean:   1.255
+  ESS   | Min:     40.0 | Mean:    61.7
+
+Parameter Set: B0 (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    2.487 | Mean:   1.501
+  ESS   | Min:      9.4 | Mean:    17.0
+
+Parameter Set: B (Flattened N = 6)
+--------------------------------------------------
+  R-hat | Max:    2.951 | Mean:   1.853
+  ESS   | Min:      6.4 | Mean:    21.2
+
+Parameter Set: A (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.862 | Mean:   1.420
+  ESS   | Min:      5.1 | Mean:    18.0
+
+Parameter Set: C (Flattened N = 2)
+--------------------------------------------------
+  R-hat | Max:    2.377 | Mean:   2.251
+  ESS   | Min:     12.2 | Mean:    12.9
+
+Parameter Set: As_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: U (Flattened N = 40)
+--------------------------------------------------
+  R-hat | Max:    1.311 | Mean:   1.034
+  ESS   | Min:     27.0 | Mean:    46.7
+
+Parameter Set: L (Flattened N = 3)
+--------------------------------------------------
+  R-hat | Max:    1.036 | Mean:   1.020
+  ESS   | Min:     40.0 | Mean:    40.0
+
+Parameter Set: sigmab (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    0.981 | Mean:   0.981
+  ESS   | Min:     59.8 | Mean:    59.8
+
+Parameter Set: sigmabs_output
+--------------------------------------------------
+  [Skipped: All parameters in this set are fixed/constant]
+
+Parameter Set: sigmah (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    0.990 | Mean:   0.990
+  ESS   | Min:     28.6 | Mean:    28.6
+
+==================================================
+There were 40 warnings (use warnings() to see them)
+Independent direct upstream oracles generated

@@ -1,0 +1,12 @@
+/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM/libs/occJSDM.so:
+	occJSDM.so (compatibility version 0.0.0, current version 0.0.0)
+	/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libomp.dylib (compatibility version 5.0.0, current version 5.0.0)
+	/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib (compatibility version 4.5.0, current version 4.5.0)
+	/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRblas.dylib (compatibility version 0.0.0, current version 0.0.0)
+	/opt/gfortran/lib/gcc/aarch64-apple-darwin20.0/14.2.0/libgfortran.5.dylib (compatibility version 6.0.0, current version 6.0.0)
+	/opt/gfortran/lib/gcc/aarch64-apple-darwin20.0/14.2.0/libquadmath.0.dylib (compatibility version 1.0.0, current version 1.0.0)
+	@rpath/libtbb.dylib (compatibility version 0.0.0, current version 0.0.0)
+	@rpath/libtbbmalloc.dylib (compatibility version 0.0.0, current version 0.0.0)
+	/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libR.dylib (compatibility version 4.5.0, current version 4.5.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2200.27.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)
