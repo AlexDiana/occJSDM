@@ -18,18 +18,6 @@ logistic <- function(x){
   1 / (1 + exp(-x))
 }
 
-computeU <- function(X_ord, beta_ord, E){
-  X_ord %*% beta_ord + E
-}
-
-computePsi <- function(X_psi, beta_psi, U, LL){
-
-  logit_psi = X_psi %*% beta_psi + U %*% LL
-
-  logistic(logit_psi)
-
-}
-
 computeTheta <- function(X_theta, beta_theta){
   logistic(X_theta %*% beta_theta)
 }
@@ -404,12 +392,11 @@ sample_betatheta <- function(w, z, beta_theta, idx_z, X_theta,
   beta_theta
 }
 
-# OK
 sample_theta0 <- function(z, w, idx_z, a_theta0, b_theta0){
 
   S <- ncol(z)
 
-  z_all <- z[idx_z,]
+  z_all <- z[idx_z, , drop = FALSE]
 
   theta0 <- rep(NA, S)
 
@@ -638,11 +625,24 @@ sample_E <- function(logb, X_psi, beta_psi, X_ord, beta_ord, LL){
 
 }
 
-sample_betaordE <- function(k, Omega, X_psi, beta_psi, X_ord, LL){
 
-  d <- nrow(LL)
-  n <- nrow(k)
 
+# WAIC CALCULATIONS -----
+
+update_waic_summary <- function(logliks, list_waic, iter){
+
+  M2 <- list_waic$M2
+  mean_log <- list_waic$mean_log
+  mean_lik <- list_waic$mean_lik
+>>>>>>> 358d957986125b8910b352c6cd92a0c8c4156813
+
+  delta_log <- logliks - mean_log
+  mean_log <- mean_log + delta_log / iter
+
+  delta2_log <- logliks - mean_log
+  M2 <- M2 + delta_log * delta2_log
+
+<<<<<<< HEAD
   k_new <- k - X_psi %*% beta_psi
 
   B_current <- diag(1, nrow = (ncov_ord + n) * d)
@@ -823,20 +823,26 @@ sample_cimk <- function(logy1, mu1, sigma1, pi0, sigma0,
       c_imk[i,s] <- rbinom(1, 1, p_cimk1)
     }
   }
+=======
+  delta_lik <- exp(logliks) - mean_lik
+  mean_lik <- mean_lik + delta_lik / iter
 
-  c_imk
+  list("M2" = M2,
+       "mean_log" = mean_log,
+       "mean_lik" = mean_lik)
+>>>>>>> 358d957986125b8910b352c6cd92a0c8c4156813
+
 }
 
-loglik_sigma1 <- function(w, logy1){
+compute_waic <- function(list_waic, numIters){
 
-  sum(
-    sapply(1:S, function(s){
-      sapply(1:N3, function(i){
+  mean_lik <- list_waic$mean_lik
+  var_loglik <- list_waic$M2 / (numIters - 1)
 
-        p[primerIdx[]]
+  lppd <- sum(log(mean_lik), na.rm = T)
+  p_waic <- sum(var_loglik , na.rm = T)
 
-      })
-    })
-  )
+  WAIC <- - 2 * (lppd - p_waic)
 
+  WAIC
 }
