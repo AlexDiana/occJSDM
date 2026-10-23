@@ -855,7 +855,8 @@ List sample_BBsL_cpp(arma::mat k,
                  arma::mat Xs_centers,
                  arma::mat Omega,
                  std::string model,
-                 double sigma_b0 = 1.0) {
+                 double sigma_b0 = 1.0,
+                 double mu_b0 = 0.0) {
 
   int p = X.n_cols;
   int ps = Cs.n_cols;
@@ -913,6 +914,8 @@ List sample_BBsL_cpp(arma::mat k,
       }
 
       arma::vec b_current(total_dim, arma::fill::zeros);
+      // Occupancy intercept prior mean: 0, or the community mean mu_b0.
+      b_current(0) = mu_b0;
 
       // SAFEGUARD: Only assign subvec if p > 0
       if (p > 0) {
@@ -971,6 +974,7 @@ struct BBSL_Worker : public RcppParallel::Worker {
   // Inputs (Read-only)
   const std::string model;
   const int p, ps, d, total_dim;
+  const double mu_b0;
   const arma::mat& k;
   const arma::mat& Omega;
   const arma::mat& M_B;
@@ -991,10 +995,11 @@ struct BBSL_Worker : public RcppParallel::Worker {
 
   // Constructor to initialize the worker with references to the data
   BBSL_Worker(const std::string model, int p, int ps, int d, int total_dim,
+              double mu_b0,
               const arma::mat& k, const arma::mat& Omega, const arma::mat& M_B, const arma::mat& M_Bs, const arma::mat& XU,
               arma::mat& invB_current, arma::mat& Xs_centers, arma::mat& Ks,
               arma::vec& B0, arma::mat& B, arma::mat& Bs, arma::mat& L)
-    : model(model), p(p), ps(ps), d(d), total_dim(total_dim),
+    : model(model), p(p), ps(ps), d(d), total_dim(total_dim), mu_b0(mu_b0),
       k(k), Omega(Omega), M_B(M_B), M_Bs(M_Bs), XU(XU),
       invB_current(invB_current), Xs_centers(Xs_centers), Ks(Ks),
       B0(B0), B(B), Bs(Bs), L(L) {}
@@ -1012,6 +1017,7 @@ struct BBSL_Worker : public RcppParallel::Worker {
       }
 
       arma::vec b_current(total_dim, arma::fill::zeros);
+      b_current(0) = mu_b0;
       if (p > 0) {
         b_current.subvec(1, p) = M_B.col(s);
       }
@@ -1071,7 +1077,8 @@ List sample_BBsL_parallel(arma::mat k,
                  arma::mat Xs_centers,
                  arma::mat Omega,
                  std::string model,
-                 double sigma_b0 = 1.0) {
+                 double sigma_b0 = 1.0,
+                 double mu_b0 = 0.0) {
 
   int p = X.n_cols;
   int ps = Cs.n_cols;
@@ -1117,7 +1124,7 @@ List sample_BBsL_parallel(arma::mat k,
     }
 
     // Initialize the RcppParallel Worker
-    BBSL_Worker worker(model, p, ps, d, total_dim,
+    BBSL_Worker worker(model, p, ps, d, total_dim, mu_b0,
                        k, Omega, M_B, M_Bs, XU,
                        invB_current, Xs_centers, Ks,
                        B0, B, Bs, L);

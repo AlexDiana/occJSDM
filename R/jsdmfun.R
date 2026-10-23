@@ -945,12 +945,13 @@ sample_tau_half_cauchy <- function(z,eta,tau,scale) {
 
 
 # sample the intercepts, fixed effects, spatial fixed effects and the factor loadings
-# The species intercept has a Normal(0, sigma_b0^2) prior; loadings keep unit variance.
+# The species intercept has a Normal(mu_b0, sigma_b0^2) prior, where mu_b0 is 0
+# unless the community-mean option estimates it; loadings keep unit variance.
 sample_BBsL <- function(k, X, Tr, U,
                         G, A, C, sigma_b,
                         Gs, As, Cs, sigma_bs,
                         Ks, Xs_centers,
-                        Omega, model, sigma_b0 = 1) {
+                        Omega, model, sigma_b0 = 1, mu_b0 = 0) {
 
   p <- ncol(X)
   ps <- ncol(Cs)
@@ -984,7 +985,7 @@ sample_BBsL <- function(k, X, Tr, U,
 
       XU <- cbind(1, X, U)
 
-      b_current <- c(0, M_B[,s], rep(0, d), M_Bs[,s])
+      b_current <- c(mu_b0, M_B[,s], rep(0, d), M_Bs[,s])
 
       BBsL <- sampleB_SoR(XU, invB_current, b_current, k_current,
                           Omega[,s], Xs_centers, Ks, ps)
@@ -1119,16 +1120,16 @@ weighted_gram <- function(Z, w) {
 spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
                                       kappa, Omega, Xs_centers,
                                       list_SoRSummaries, a_l_s, b_l_s,
-                                      location = NULL, sigma_b0 = 1) {
+                                      location = NULL, sigma_b0 = 1, mu_b0 = 0) {
   n <- nrow(X)
   p <- ncol(X)
   d <- ncol(U)
   ps <- nrow(M_Bs)
   S <- ncol(Omega)
-  # B0 must be integrated under the same Normal(0, sigma_b0^2) prior that
+  # B0 must be integrated under the same Normal(mu_b0, sigma_b0^2) prior that
   # sample_BBsL_cpp() then uses to draw it.
   prior_precision <- c(1/sigma_b0^2, rep(1/sigma_b^2,p), rep(1,d), rep(1/sigma_bs^2,ps))
-  prior_means <- rbind(rep(0,S), M_B, matrix(0,d,S), M_Bs)
+  prior_means <- rbind(rep(mu_b0,S), M_B, matrix(0,d,S), M_Bs)
   prior_linear <- prior_precision * prior_means
   constant_omega <- vapply(seq_len(S),function(s) all(Omega[,s]==Omega[1,s]),logical(1))
   if (!is.null(location)) {
@@ -1139,7 +1140,8 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
     # existing constant-precision Gram-matrix shortcut.
     if (anyDuplicated(location) && !all(constant_omega)) {
       return(spatial_range_logweights_grouped(X,U,M_B,M_Bs,sigma_b,sigma_bs,
-        kappa,Omega,Xs_centers,list_SoRSummaries,a_l_s,b_l_s,location,sigma_b0))
+        kappa,Omega,Xs_centers,list_SoRSummaries,a_l_s,b_l_s,location,sigma_b0,
+        mu_b0))
     }
   }
   grid <- list_SoRSummaries$l_s_grid
@@ -1177,7 +1179,7 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
 spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
                                            kappa,Omega,Xs_centers,
                                            list_SoRSummaries,a_l_s,b_l_s,
-                                           location,sigma_b0=1) {
+                                           location,sigma_b0=1,mu_b0=0) {
   n <- nrow(X);p <- ncol(X);d <- ncol(U);ps <- nrow(M_Bs);S <- ncol(Omega)
   if(length(location)!=n || anyNA(location))
     stop("location must contain one non-missing group label per site row")
@@ -1188,7 +1190,7 @@ spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
   A <- cbind(1,X,U)
   pa <- ncol(A)
   precision <- c(1/sigma_b0^2,rep(1/sigma_b^2,p),rep(1,d),rep(1/sigma_bs^2,ps))
-  prior_mean <- rbind(rep(0,S),M_B,matrix(0,d,S),M_Bs)
+  prior_mean <- rbind(rep(mu_b0,S),M_B,matrix(0,d,S),M_Bs)
   prior_linear <- precision*prior_mean
   diagonal_precision <- diag(precision,length(precision))
 
@@ -1222,6 +1224,15 @@ spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
     },numeric(1))
     sum(score)+dgamma(grid[j],a_l_s,b_l_s,log=TRUE)
   },numeric(1))
+}
+
+# Conjugate draw of the community mean of the occupancy intercepts, for the
+# experimental b0_prior = "community": B0[s] ~ Normal(mu_b0, sigma_b0^2) for
+# every species and mu_b0 ~ Normal(mu_b0_mean, mu_b0_sd^2). The centre is the
+# one read_intercept_prior() records, 0 at present.
+sample_mu_b0 <- function(B0, sigma_b0, mu_b0_sd, mu_b0_mean = 0) {
+  precision <- 1/mu_b0_sd^2 + length(B0)/sigma_b0^2
+  rnorm(1, (mu_b0_mean/mu_b0_sd^2 + sum(B0)/sigma_b0^2)/precision, sqrt(1/precision))
 }
 
 # Exact categorical update, including the endpoints without proposal weights.
@@ -1264,6 +1275,7 @@ update_jSDMcoef <- function(list_data,
     sigma_h <- list_params$sigma_h
     idx_ls <- list_params$idx_ls
     tau <- list_params$tau
+    mu_b0 <- list_params$mu_b0
 
     l_s <- list_SoRSummaries$l_s_grid[idx_ls]
     Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
@@ -1284,6 +1296,10 @@ update_jSDMcoef <- function(list_data,
     # Prior SD of the species occupancy intercept (read by runOccJSDM()).
     sigma_b0 <- list_priors$intercept_prior$sd
     if (is.null(sigma_b0)) stop("list_priors$intercept_prior$sd is missing")
+    # Experimental: estimate the intercepts' prior mean instead of fixing it at 0.
+    community_b0 <- identical(list_priors$intercept_prior$type, "community")
+    if (!community_b0) mu_b0 <- 0
+    if (is.null(mu_b0)) stop("list_params$mu_b0 is missing")
   }
 
   # read state variables
@@ -1339,7 +1355,7 @@ update_jSDMcoef <- function(list_data,
                                             kappa,Omega,list_Xs$Xs_centers,
                                             list_SoRSummaries,a_l_s,b_l_s,
                                             location=list_Xs$Xs_index,
-                                            sigma_b0=sigma_b0)
+                                            sigma_b0=sigma_b0,mu_b0=mu_b0)
     idx_ls <- sample_ls(logweights)
     l_s <- list_SoRSummaries$l_s_grid[idx_ls]
     Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=nrow(z))
@@ -1351,19 +1367,26 @@ update_jSDMcoef <- function(list_data,
                            Gs, As, Cs, sigma_bs,
                            Ks, list_Xs$Xs_centers,
                            Omega, model,
-                           sigma_b0 = sigma_b0)
+                           sigma_b0 = sigma_b0, mu_b0 = mu_b0)
   # list_BBsL <- sample_BBsL_parallel(k, X, Tr, U,
   #                          G, A, C, sigma_b,
   #                          Gs, As, Cs, sigma_bs,
   #                          Ks, list_Xs$Xs_centers,
   #                          Omega, model,
-  #                          sigma_b0 = sigma_b0)
+  #                          sigma_b0 = sigma_b0, mu_b0 = mu_b0)
   B <- list_BBsL$B
   Bt <- list_BBsL$Bt
   Bs <- list_BBsL$Bs
   Bst <- list_BBsL$Bts
   L <- list_BBsL$L
   B0 <- list_BBsL$B0
+
+  # update the intercepts' community mean, used by the next iteration's range
+  # and coefficient draws
+  if (community_b0) {
+    mu_b0 <- sample_mu_b0(B0, sigma_b0, list_priors$intercept_prior$mu_b0_sd,
+                          list_priors$intercept_prior$mu_b0_mean)
+  }
 
   # update variance of residuals of environmental covariates
   sigma_b <- sample_sigmab(B, Tr, G, A, C, a_sigmab, b_sigmab)
@@ -1461,6 +1484,7 @@ update_jSDMcoef <- function(list_data,
    "sigma_h" = sigma_h,
    "idx_ls" = idx_ls,
    "tau" = tau,
+   "mu_b0" = mu_b0,
    "eta" = eta,
    "psi" = psi,
    "variancePartitioning" = variancePartitioning
