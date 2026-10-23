@@ -209,127 +209,25 @@ inline double fast_log_pnorm(double x) {
   return std::log(0.5 * std::erfc(-x * 0.70710678118654752440));
 }
 
-// [[Rcpp::export]]
-double rpg(int n, double z){
+static double samplepg_fast(double z) {
+  double orig_z = (double)std::fabs((double)z);
 
-// static double samplepg_fast(double z) {
-//   double orig_z = (double)std::fabs((double)z);
-//
-//   // -------------------------------------------------------------
-//   // FAST PATH: Normal Approximation for large Z
-//   // Skips the expensive rejection loop.
-//   // Mean = 1 / (2z), Var = 1 / (4z^3)
-//   // -------------------------------------------------------------
-//   if (orig_z > 12.0) {
-//     double mu = 0.5 / orig_z;
-//     double var = 0.25 / (orig_z * orig_z * orig_z);
-//
-//     // Assumes your custom rnorm() returns a standard normal draw
-//     double draw = mu + std::sqrt(var) * rnorm();
-//
-//     // Ensure strict positivity (draws < 0 are astronomically rare here)
-//     return (draw > 1e-12) ? draw : mu;
-//   }
+  // -------------------------------------------------------------
+  // FAST PATH: Normal Approximation for large Z
+  // Skips the expensive rejection loop.
+  // Mean = 1 / (2z), Var = 1 / (4z^3)
+  // -------------------------------------------------------------
+  if (orig_z > 12.0) {
+    double mu = 0.5 / orig_z;
+    double var = 0.25 / (orig_z * orig_z * orig_z);
 
-// [[Rcpp::export]]
-double compute_edith_contribution(
-    double A_s_i,
-    double L_ij,
-    double v_ij,
-    double logb,
-    double tau,
-    double Q_j
-) {
+    // Assumes your custom rnorm() returns a standard normal draw
+    double draw = mu + std::sqrt(var) * rnorm();
 
-  // IntegerVector idx_list = as<IntegerVector>(idx_ancestors[i]);
-
-  double denom = v_ij * tau;
-  double weight = A_s_i * exp(-L_ij / denom);
-  double term = weight * exp(logb) / Q_j;
-
-  return term;
-}
-
-double compute_edith_contribution_element(
-    NumericVector A_s_i,
-    NumericMatrix::Row L_i,
-    NumericMatrix::Row v_i,
-    NumericMatrix::Column logb_i,
-    double tau,
-    double Q_j,
-    IntegerVector idx_list
-){
-
-  double sum_term = 0;
-
-  for (int k = 0; k < idx_list.size(); k++) {
-
-    // double denom = v_i[idx_list[k] - 1] * tau;
-    // double weight = A_s_i[idx_list[k] - 1] * exp(-L_i[idx_list[k] - 1] / denom);
-    // sum_term = weight * logb_i[idx_list[k] - 1] / Q_j;
-
-    sum_term += compute_edith_contribution(
-      A_s_i[idx_list[k] - 1],
-           L_i[idx_list[k] - 1],
-              v_i[idx_list[k] - 1],
-                 logb_i[idx_list[k] - 1],
-                       tau,
-                       Q_j
-    );
-
+    // Ensure strict positivity (draws < 0 are astronomically rare here)
+    return (draw > 1e-12) ? draw : mu;
   }
 
-  return sum_term;
-
-}
-
-// [[Rcpp::export]]
-NumericMatrix compute_C_hat_cpp(
-    NumericVector A_s_i,
-    NumericMatrix L_ij,
-    NumericMatrix v_ij,
-    NumericMatrix logb,
-    NumericVector tau,
-    IntegerVector idx_region,
-    List idx_ancestors,
-    NumericVector Q_j
-) {
-
-  int n = L_ij.nrow();
-  int S = logb.ncol();
-
-  NumericMatrix C_hat(n, S);
-
-  for (int j = 0; j < S; j++) {
-
-    for (int i = 0; i < n; i++) {
-
-      IntegerVector idx_list = as<IntegerVector>(idx_ancestors[i]);
-
-      NumericMatrix::Row L_i = L_ij.row(i);
-      NumericMatrix::Row v_i = v_ij.row(i);
-      NumericMatrix::Column logb_j = logb.column(j);
-
-      C_hat(i,j) = compute_edith_contribution_element(
-        A_s_i,
-        L_i,
-        v_i,
-        logb_j,
-        tau[idx_region[i] - 1],
-           Q_j[i],
-        idx_list
-      );
-
-    }
-
-  }
-
-  return C_hat;
-}
-
-// [[Rcpp::export]]
-arma::mat samplePGvariables(arma::mat &Xbeta){
-=======
   // -------------------------------------------------------------
   // EXACT SAMPLER: Devroye method for Z <= 12
   // -------------------------------------------------------------
@@ -361,7 +259,6 @@ arma::mat samplePGvariables(arma::mat &Xbeta){
     } else {
       X = tinvgauss(z, t);   // truncated Inverse Gaussian
     }
->>>>>>> 358d957986125b8910b352c6cd92a0c8c4156813
 
     // Step 2: Iteratively calculate Sn(X|z)
     int i = 1;
@@ -395,7 +292,7 @@ static double rpg(int n, double z){
 
   double x = 0;
   for(int i = 0; i < n; i++){
-    x += samplepg(z);
+    x += samplepg_fast(z);
   }
 
   return(x);
@@ -432,7 +329,6 @@ static arma::mat diagMatrixProd(arma::mat& X, arma::vec& D){
   return(result);
 }
 
-// [[Rcpp::export]]
 static arma::vec sample_beta_cpp(arma::mat& X, arma::mat& B, arma::vec& b,
                           arma::vec& Omega, arma::vec& k){
 
@@ -1253,260 +1149,6 @@ List sample_pq_cpp_parallel(NumericMatrix& c_imk,
   );
 }
 
-// [[Rcpp::export]]
-double rinvgamma_cpp(double a, double b){
-  return 1 / R::rgamma(a, 1 / b);
-}
-
-// [[Rcpp::export]]
-arma::vec update_sigma_cpp(arma::vec sigma,
-                         arma::mat logz_tilde,
-                         double a_sigma,
-                         double b_sigma){
-
-  int S = logz_tilde.n_cols;
-  int n = logz_tilde.n_rows;
-
-  for(int j = 0; j < S; j++){
-
-    int n_samples = 0;
-    double sumsq = 0;
-
-    for (int i = 0; i < n; i++) {
-
-      sumsq += pow(logz_tilde(i,j), 2);
-
-    }
-
-    sigma[j] = sqrt(rinvgamma_cpp(a_sigma + n_samples / 2.0, b_sigma + sumsq / 2));
-  }
-
-  return sigma;
-}
-
-// [[Rcpp::export]]
-NumericVector update_tau_cpp(
-    NumericVector tau,
-    NumericMatrix logb,
-    NumericMatrix w,
-    arma::mat Xtheta_betatheta,
-    arma::vec M_site,
-    IntegerVector sumM,
-    NumericVector A_s_i,
-    NumericMatrix L_ij,
-    NumericMatrix v_ij,
-    IntegerVector idx_region,
-    List idx_ancestors,
-    List idx_descendants,
-    NumericVector Q_j,
-    double sd_proposal,
-    double a_tau,
-    double b_tau){
-
-  int n_regions = tau.size();
-  int n = M_site.size();
-  int S = logb.ncol();
-
-  for(int l = 0; l < n_regions; l++){
-
-    double logtau_old = log(tau[l]);
-    double logtau_new = R::rnorm(logtau_old, sd_proposal);
-
-    double loglik_new = 0;
-    double loglik_old = 0;
-
-    for(int j = 0; j < S; j++){
-
-      NumericMatrix::Column logb_j = logb.column(j);
-
-      for(int i = 0; i < n; i++){
-
-        if(idx_region[i] == (l + 1)){
-
-          IntegerVector idx_anc = as<IntegerVector>(idx_ancestors[i]);
-          IntegerVector idx_desc = as<IntegerVector>(idx_descendants[i]);
-
-          NumericMatrix::Row L_i = L_ij.row(i);
-          NumericMatrix::Row v_i = v_ij.row(i);
-
-          for(int k = 0; k < idx_desc.size(); k++){ // loop through the sites affected
-
-            int idx_descendant = idx_desc[k] - 1;
-
-            double conc_old =
-              compute_edith_contribution_element(
-                A_s_i,
-                L_i,
-                v_i,
-                logb_j,
-                exp(logtau_old),
-                   Q_j[i],
-                      idx_anc
-              );
-
-            double conc_new =
-              compute_edith_contribution_element(
-                A_s_i,
-                L_i,
-                v_i,
-                logb_j,
-                exp(logtau_new),
-                Q_j[i],
-                   idx_anc
-              );
-
-            for(int m = 0; m < M_site[idx_descendant]; m++){
-
-              int idx_sample = sumM[idx_descendant] + m;
-
-              double p_current = 1 / (1 + exp(- Xtheta_betatheta(idx_sample, j) - conc_old));
-              double p_star = 1 / (1 + exp(- Xtheta_betatheta(idx_sample, j) - conc_new));
-
-              loglik_new += R::dbinom(w(idx_sample, j), 1, p_star, 1);
-              loglik_old += R::dbinom(w(idx_sample, j), 1, p_current, 1);
-
-            }
-
-          }
-
-        }
-
-      }
-
-
-
-    }
-
-    double logproposal = logtau_new - logtau_old;
-
-    double logprior = R::dgamma(exp(logtau_new), a_tau, b_tau, 1) -
-      R::dgamma(exp(logtau_old), a_tau, b_tau, 1);
-
-    double mh_ratio = exp(loglik_new - loglik_old +
-                          logprior + logproposal);
-Rcout << mh_ratio << std::endl;
-    if(R::runif(0,1) < mh_ratio){
-
-      tau[l] = exp(logtau_new);
-
-    }
-
-  }
-
-  return tau;
-}
-
-// [[Rcpp::export]]
-NumericMatrix update_logz_cpp(NumericMatrix logb,
-                              NumericMatrix w,
-                              arma::mat prior_logb,
-                              arma::vec sigma,
-                              arma::mat Xtheta_betatheta,
-                              arma::vec tau,
-                              arma::vec M_site,
-                              IntegerVector sumM,
-                              double sigma_proposals,
-                              NumericVector A_s_i,
-                              NumericMatrix L_ij,
-                              NumericMatrix v_ij,
-                              IntegerVector idx_region,
-                              List idx_ancestors,
-                              List idx_descendants,
-                              NumericVector Q_j){
-
-  int n = M_site.size();
-  int S = logb.ncol();
-
-  for(int i = 0; i < n; i++){
-
-    IntegerVector idx_anc = as<IntegerVector>(idx_ancestors[i]);
-    IntegerVector idx_desc = as<IntegerVector>(idx_descendants[i]);
-
-    NumericMatrix::Row L_i = L_ij.row(i);
-    NumericMatrix::Row v_i = v_ij.row(i);
-
-    for(int j = 0; j < S; j++){
-
-      NumericMatrix::Column logb_j = logb.column(j);
-
-      double logb_current = logb(i, j);
-
-      double logb_new = R::rnorm(logb_current, sigma_proposals);
-
-      double loglik_new = 0;
-      double loglik_old = 0;
-
-<<<<<<< HEAD
-      for(int k = 0; k < idx_desc.size(); k++){ // loop through the sites affected
-
-        int idx_descendant = idx_desc[k] - 1;
-
-        double conc_old =
-          compute_edith_contribution_element(
-            A_s_i,
-            L_i,
-            v_i,
-            logb_j,
-            tau[idx_region[i] - 1],
-               Q_j[i],
-                  idx_anc
-          );
-
-        double conc_element_old =
-          compute_edith_contribution(
-            A_s_i[i],
-            L_ij(i,idx_descendant),
-            v_ij(i,idx_descendant),
-                 logb_current,
-                 tau[idx_region[i] - 1],
-                    Q_j[i]
-          );
-
-        double conc_element_new =
-          compute_edith_contribution(
-            A_s_i[i],
-            L_ij(i,idx_descendant),
-            v_ij(i,idx_descendant),
-                 logb_new,
-                 tau[idx_region[i] - 1],
-                    Q_j[i]
-          );
-
-        double conc_new = conc_old -
-          conc_element_old +
-          conc_element_new;
-
-        for(int m = 0; m < M_site[idx_descendant]; m++){
-
-          int idx_sample = sumM[idx_descendant] + m;
-
-          double p_current = 1 / (1 + exp(- Xtheta_betatheta(idx_sample, j) - conc_old));
-          double p_star = 1 / (1 + exp(- Xtheta_betatheta(idx_sample, j) - conc_new));
-
-          loglik_new += R::dbinom(w(idx_sample, j), 1, p_star, 1);
-          loglik_old += R::dbinom(w(idx_sample, j), 1, p_current, 1);
-
-        }
-
-      }
-
-      double logprior = R::dnorm(logb_new, prior_logb(i,j), sigma[j], 1) -
-        R::dnorm(logb_current, prior_logb(i,j), sigma[j], 1);
-
-      double log_mhratio = logprior + loglik_new - loglik_old;
-
-      if(R::runif(0,1) < exp(log_mhratio)){
-
-        logb(i, j) = logb_new;
-
-      }
-
-    }
-
-  }
-
-  return logb;
-}
 
 //// WAIC FUNCTIONS
 
@@ -1605,5 +1247,4 @@ NumericVector computeModelLoglikSecondStage_cpp(NumericMatrix y, NumericMatrix w
   }
 
   return logliks;
->>>>>>> 358d957986125b8910b352c6cd92a0c8c4156813
 }
