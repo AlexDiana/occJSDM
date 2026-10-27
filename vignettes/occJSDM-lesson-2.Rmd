@@ -50,7 +50,7 @@ known_truth <- lesson$input$sim$true_params
 occupancy_results <- as_tibble(lesson$cells)
 ```
 
-`survey_data` contains the covariates, traits and PCR observations supplied to the model. `known_truth` is kept separate so that we can check the model's answers against it. This is not the quickstart's `sampledata`: this survey was simulated with its truth kept, so that every answer the model gives can be checked against it.
+`survey_data` contains the covariates, traits and PCR observations supplied to the model. `known_truth` is kept separate so that we can check the model's answers against it. This is not the Quickstart's `sampledata`: this survey was simulated with its truth kept, so that every answer the model gives can be checked against it.
 
 ```{r lesson-overview}
 names(lesson)
@@ -132,7 +132,7 @@ The example has:
 - **two primers and six PCR replicates per primer per sample**;
 - no spatial effects.
 
-That is `r length(unique(survey_data$info$Sample))` field samples and `r format(nrow(survey_data$info), big.mark = ",")` PCR observations for each species. What the model reads is the structure: repeated field samples at each site and repeated PCRs within each sample. Three field samples per site matches the quickstart's `sampledata`. That dataset has three primers with two PCRs each, where this survey has two primers with six. The numbers of primers and PCRs are a choice made for this lesson. Environmental values are simulated quantities with arbitrary units. We do not give them a real-world interpretation such as degrees Celsius.
+That is `r length(unique(survey_data$info$Sample))` field samples and `r format(nrow(survey_data$info), big.mark = ",")` PCR observations for each species. What the model reads is the structure: repeated field samples at each site and repeated PCRs within each sample. Three field samples per site matches the Quickstart's `sampledata`. That dataset has three primers with two PCRs each, where this survey has two primers with six. The numbers of primers and PCRs are a choice made for this lesson. Environmental values are simulated quantities with arbitrary units. We do not give them a real-world interpretation such as degrees Celsius.
 
 ## Three questions, three different truths
 
@@ -202,9 +202,9 @@ perfect_data <- list(
 
 **The following fitting chunk is optional and is not run when knitting.** The simulator settings and seed are shown in Lesson 0, and the code here uses that same saved dataset.
 
-The call has no `collCovariates` and no `threshold`: with one row per site there are no detection stages, so neither applies. `n_factors = 2` asks for the two hidden site factors, which the quickstart calls latent factors. `n_lattrait = 1` adds one unmeasured trait: a way in which species resemble each other in their responses to the environment that the two measured traits do not capture. Both settings match the simulation.
+The call has no `collCovariates` and no `threshold`: with one row per site there are no detection stages, so neither applies. `n_factors = 2` asks for the two hidden site factors, which the Quickstart calls latent factors. `n_lattrait = 1` adds one unmeasured trait: a way in which species resemble each other in their responses to the environment that the two measured traits do not capture. Both settings match the simulation.
 
-`MCMCparams` sets how long the sampler runs. The fit is made by MCMC, which produces the draws described above. A **chain** is one independent run of the sampler from its own starting point, and the convergence section checks that the chains agree. `nchain = 4` runs four chains. `nburn = 3000` discards each chain's first 3,000 iterations while it settles, and `niter = 6000` keeps the next 6,000 iterations of each chain. `nthin = 1` retains every one of those iterations. The quickstart uses the package default of two chains, each with 5,000 burn-in and 5,000 kept iterations. Four chains give the convergence check more independent runs to compare, and the convergence section shows that these lengths were enough for the perfect-observation and default-prior fits.
+`MCMCparams` sets how long the sampler runs. The fit is made by MCMC, which produces the draws described above. A **chain** is one independent run of the sampler from its own starting point, and the convergence section checks that the chains agree. `nchain = 4` runs four chains. `nburn = 3000` discards each chain's first 3,000 iterations while it settles, and `niter = 6000` keeps the next 6,000 iterations of each chain. `nthin = 1` retains every one of those iterations. The Quickstart uses the package default of two chains, each with 5,000 burn-in and 5,000 kept iterations. Four chains give the convergence check more independent runs to compare, and the convergence section shows that these lengths were enough for the perfect-observation and default-prior fits.
 
 ```{r reproduce-perfect-fit, eval=FALSE}
 library(occJSDM)
@@ -246,9 +246,9 @@ fit <- runOccJSDM(
 
 ## Are the calculations stable enough to interpret?
 
-Before reading any estimate, check that the chains agree, as the quickstart does; an estimate from chains that disagree is not an estimate.
+Before reading any estimate, check that the chains agree, as the Quickstart does; an estimate from chains that disagree is not an estimate.
 
-Two checks do this. Rhat compares the chains: values close to one mean they agree. Effective sample size (ESS) estimates how much independent information the correlated draws of a parameter contain. These are checks on numerical sampling, not checks that the model's biological conclusions are correct. For your own fit, `returnConvergenceDiagnostics()` gives both for every parameter, as in the quickstart. Here we read the same checks from the saved file.
+Two checks do this. Rhat compares the chains: values close to one mean they agree. Effective sample size (ESS) estimates how much independent information the correlated draws of a parameter contain. These are checks on numerical sampling, not checks that the model's biological conclusions are correct. For your own fit, `returnConvergenceDiagnostics()` gives both for every parameter, as in the Quickstart. Here we read the same checks from the saved file.
 
 We screen at an Rhat of 1.01 and an ESS of 400, following Vehtari, Gelman, Simpson, Carpenter and Bürkner (2021), "Rank-normalization, folding, and localization: An improved R-hat for assessing convergence of MCMC", *Bayesian Analysis* 16(2), 667-718. Their Rhat threshold of 1.01 is stricter than the older 1.1, which can pass chains that have not yet mixed. An ESS of 400 gives each of four chains about 100 effective draws, the minimum they suggest for reliable Rhat and interval estimates. They defined these thresholds for a rank-normalised Rhat and its matching effective sample size, whereas `returnConvergenceDiagnostics()` reports the classical statistics from the `coda` package. Treat the screens as a guide, not an exact test.
 
@@ -566,7 +566,7 @@ ggplot(detection_rates, aes(x = estimate, y = species)) +
 
 The laboratory rates are recovered well: `r with(detection_rates, sum(param != "theta0" & truth >= lower & truth <= upper))` of the `r sum(detection_rates$param != "theta0")` intervals for `p` and `q` contain the true value. The intervals are comparatively narrow, none wider than `r with(detection_rates, format_percent(max((upper - lower)[param != "theta0"] / estimate[param != "theta0"]), 0))` of its estimate, because every sample's twelve PCRs give the model many repeated laboratory results to learn from. The field-contamination rate is harder: `r with(detection_rates, sum(param == "theta0" & truth >= lower & truth <= upper))` of its `r sum(detection_rates$param == "theta0")` intervals contain the true value, but they are wide, from `r with(detection_rates, knitr::combine_words(format_percent(range(((upper - lower) / estimate)[param == "theta0"]), 0), and = " to ", oxford_comma = FALSE))` of the estimate and reaching up to `r format_percent(max(detection_rates$upper[detection_rates$param == "theta0"]))`. They are wide because field-stage contamination happens only at unoccupied sites, and a contaminated sample looks like any other sample with DNA.
 
-The black crosses for `p` and `q` are lower than the simulator's settings in Lesson 0, because some simulated laboratory events produce zero reads and so never appear as positives. [Lesson 0](occJSDM-lesson-0.md#decide-how-collection-and-pcr-can-fail) explains how the simulator turns events into read counts.
+The black crosses for `p` and `q` are lower than the simulator's settings in Lesson 0, because some simulated laboratory events produce zero reads and so never appear as positives. [Lesson 0](occJSDM-lesson-0.md#specify-the-observation-model-decide-how-collection-and-pcr-can-fail) explains how the simulator turns events into read counts.
 
 ### Why keep the current field-contamination prior?
 

@@ -128,6 +128,20 @@ Save new general Superpowers specs to `dev/superpowers/specs/` and implementatio
 
 **Then copyedit for clarity and accuracy, keeping the teaching.** Doug liked a copyedit that kept every one of these additions while splitting long sentences, replacing "and/or", fixing a missing full stop, removing an aside that repeated its sentence, and correcting one point of substance (with one row per site, `runOccJSDM()` skips the detection stages, not the occupancy model). Both passes matter: the teaching content first, then the polish. Doug reviews each lesson line by line before it is published (see the publishing item in `TODO.md`).
 
+**Rules from Doug's Lesson 0 review (27 October 2026).** His edits and comments on Lesson 0 add these, for every lesson:
+
+- **Define every symbol, object and setting where it first appears, or say it is unused.** He asked "what is `tau`?", "explain 'remainder'", "what is `lesson$cases`?" and "where was `eta` defined?". A setting that has no effect (`tau`, `sigma_bs`, `sigma_ts` in a two-stage simulation) still gets one sentence saying so and why.
+- **Say why a chunk, table or figure is there before showing it.** "What is the point of this?" was his question about a correct but unmotivated scatter plot.
+- **Give R objects the names the text uses.** Text that says `info`, `OTU` and `traits` must not be followed by code that calls them `observation_info`, `read_counts` and `species_traits`.
+- **One term for one thing.** Prefer the reader's term with the alternative in brackets once: "false negative (a missed detection)", then "false negative" throughout, including the labels in code.
+- **Use bullet lists for parallel items**, such as the two stages of an eDNA survey or the four error probabilities.
+- **Show yes/no states with filled and hollow points, not a colour ramp.** A ramp shared with probabilities made absence look darker than presence.
+- **Put practical warnings in a callout**, such as not filtering low-read cells out of the OTU table.
+- **State what occJSDM does and does not use.** It never sees read counts, only positive or negative PCRs at `threshold` (recommend leaving `threshold = 1`); say so wherever read counts are discussed.
+- **Cut sentences that state the obvious and sections that outgrow their purpose.** He asked for the unequal-replication section to say only that unbalanced data can be made at every level and that occJSDM handles them, at a cost.
+- **Check every claim against the rendered numbers.** A general claim (for example, that naive occupancy usually understates occupancy) must not contradict the lesson's own data; in Lesson 0 it overstates for both species shown.
+- **Never hard-code a number the data produce.** Use inline R, so that the text stays correct if the data change.
+
 ## Evidence behind the group B items, moved out of TODO
 
 `TODO.md` was trimmed on 30 July to be a to-do list rather than an investigation log. The reasoning that justified each conclusion lives here so the items themselves stay short. Do not re-investigate these.
