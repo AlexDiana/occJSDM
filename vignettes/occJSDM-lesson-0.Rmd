@@ -25,7 +25,7 @@ source("lesson-links.R")
 
 occJSDM uses the results from an eDNA survey to estimate which species occupy which sites. It accounts for *false negatives* (from imperfect field collection, imperfect PCR detection, or both) and for *false positives* (from contamination in the field, in the lab or both). The [Quickstart](occJSDM-00-quickstart.md) lesson shows an example fit on the package's simulated, example dataset.
 
-**This is Lesson 0, and it is optional because it is somewhat technical**. Read this lesson if you want to understand where that simulated dataset came from, change the simulation settings to create a new simulated dataset, or learn how to prepare the tables and figures yourself. The reason that we simulate a dataset is because with a simulated dataset, we know which species are in which sites, so when we fit a model to the dataset, we can measure how close the model's answer are to the right answers. We cannot do this with a real survey, because we do not know the truth.
+**This is Lesson 0, and it is optional because it is somewhat technical**. Read this lesson if you want to understand where that simulated dataset came from, change the simulation settings to create a new simulated dataset, or learn how to prepare the tables and figures yourself. The reason that we simulate a dataset is because with a simulated dataset, we know which species are in which sites, so when we fit a model to the dataset, we can measure how close the model's answers are to the right answers. We cannot do this with a real survey, because we do not know the truth.
 
 This simulated survey has no spatial structure. Its sites do have coordinates, which let us draw maps, but location does not generate its environmental values or enter its fitted model. That makes it a good place to start: the model's answers can be checked without also asking whether it has captured a spatial pattern.
 
@@ -33,11 +33,11 @@ This simulated survey has no spatial structure. Its sites do have coordinates, w
 
 ## Load the teaching data and the R tools
 
-The teaching data are in the occJSDM repository, not in the installed package, so first clone or download [the repository from GitHub](https://github.com/AlexDiana/occJSDM). The code reads the data by paths relative to the repository's `vignettes` directory, **so that directory must be your working directory for this lesson.**
+The teaching data are in the occJSDM repository, not in the installed package, so first clone or download [the repository from GitHub](https://github.com/AlexDiana/occJSDM). The code reads the data by paths relative to the repository's `vignettes` directory, **so that directory must be your working directory for this lesson.** Knitting the lesson, or running a chunk with its green arrow in RStudio, does this automatically. If you instead send lines to the console from the repository root, first run `setwd("vignettes")`.
 
-<!--# why are the teaching data in the occjSDM repo and not in the installed package? is this temporary until i approve the vignettes? -->
+The teaching data are kept out of the installed package on purpose, not just until the lessons are approved. The saved simulations and model fits take about 11 MB, far more than an R package should carry, and the lessons are web pages built from the repository rather than vignettes installed with the package.
 
-**What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr, the verbs listed below. If any are new to you, the two chapters of R **for Data Science** on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here. Operations that are unusual, such as joining two tables on species identity, are explained when they appear.
+**What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr, the verbs listed below. If any are new to you, the two chapters of *R for Data Science* on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here. Operations that are unusual, such as joining two tables on species identity, are explained when they appear.
 
 - `select()` and `pull()` to choose columns, or to take one column out as a vector.
 - `filter()`, `distinct()`, `arrange()`, `slice_head()` and `slice_sample()` to keep, deduplicate, order and pick rows, including a random pick.
@@ -46,7 +46,6 @@ The teaching data are in the occJSDM repository, not in the installed package, s
 - `pivot_longer()` to move from one column per measurement to one row per measurement.
 
 ```{r load-data, message=FALSE}
-setwd("vignettes") # this vignette runs inside the vignettes/ directory
 library(dplyr)
 library(tidyr)
 library(tibble)
@@ -68,19 +67,23 @@ format_percent <- function(probability, digits = 1) {
 Here is what the saved file holds.
 
 ```{r lesson-contents}
-# these are the data tables that occJSDM receives, stored together in one R list
+# These are the data tables that occJSDM receives, stored together in one R list.
 str(survey_data, max.level = 1)
-View(survey_data$info)
-View(survey_data$OTU)
-View(survey_data$traits)
+
+# In RStudio, View() opens each table in a spreadsheet-like viewer.
+if (interactive()) {
+  View(survey_data$info)
+  View(survey_data$OTU)
+  View(survey_data$traits)
+}
 
 names(lesson)
 names(known_truth)
 ```
 
-`survey_data` is the eDNA and trait data that occJSDM model receives from the ecologist in three tables: `info`, `OTU` and `traits`.
+`survey_data` is the eDNA and trait data that occJSDM receives from the ecologist, in three tables: `info`, `OTU` and `traits`.
 
-`known_truth` is the true (simulated) community, which the occJSDM is not allowed to see when it fits the model. `z_true` records whether each species truly occupies each site, and `w_true` whether its DNA truly entered each field sample. `jsdmParams_true` holds the ecological model's coefficients and each site's true occupancy score for each species. `beta_theta_true` holds the collection coefficients, and `p_true` and `q_true` the laboratory rates. "Decide how collection and PCR can fail" (below) explains the two-stage process that these truths describe.
+`known_truth` is the true (simulated) community, which occJSDM is not allowed to see when it fits the model. `z_true` records whether each species truly occupies each site, and `w_true` whether its DNA truly entered each field sample. `jsdmParams_true` holds the ecological model's coefficients and each site's true occupancy score for each species. `beta_theta_true` holds the collection coefficients, and `p_true` and `q_true` the laboratory rates. "Specify the observation model" (below) explains the two-stage process that these truths describe.
 
 `lesson` is the saved file that Lesson 2 also reads. `input` holds the simulation. `cases` holds the four detection examples that Lesson 2 selected. Most of the other components summarise Lesson 2's model fits, which this lesson does not use.
 
@@ -108,7 +111,7 @@ tibble(
 
 There are `r n_field_samples` field samples and `r format(n_pcr_observations, big.mark = ",")` PCR reactions. In metabarcoding, each PCR reaction yields multiple read counts, one for every detected species, so there are not separate PCRs per species. Here, six PCR replicates means **six per primer per field sample**.
 
-These numbers are chosen for teaching. 100 sites and 10 species make a community small enough for the lessons to display every site and species. 3 replicate field samples per site is realistic, matches the Quickstart's `sampledata`, and let occJSDM weigh a sample's positive detection against that site's other samples to infer false positives. (3 replicate field samples is the minimum needed to make this inference. [Lesson 2's appendix](occJSDM-lesson-2.md#why-the-survey-has-three-field-samples-per-site) explains why 2 samples per site are not enough.) Finally, 2 primers with 6 PCRs each give every sample `r n_primers * pcrs_per_primer` PCR. The lab replicates let occJSDM estimate the laboratory detection and false-positive rates. We recommend a minimum of 3 lab replicates per primer. Of course, your own surveys will differ from these numbers.
+These numbers are chosen for teaching. 100 sites and 10 species make a community small enough for the lessons to display every site and species. 3 replicate field samples per site is realistic, matches the Quickstart's `sampledata`, and lets occJSDM weigh a sample's positive detection against that site's other samples to infer false positives. (3 replicate field samples is the minimum needed to make this inference. [Lesson 2's appendix](occJSDM-lesson-2.md#why-the-survey-has-three-field-samples-per-site) explains why 2 samples per site are not enough.) Finally, 2 primers with 6 PCRs each give every sample `r n_primers * pcrs_per_primer` PCRs. The lab replicates let occJSDM estimate the laboratory detection and false-positive rates. We recommend a minimum of 3 lab replicates per primer. Of course, your own surveys will differ from these numbers.
 
 The simulator software uses these variable names: `M` is the vector that holds the number of field samples at each site, and `K` is the vector that holds the number of PCRs for each combination of field sample and primer. `K` runs through the samples in order, with each sample's primers together. By using vectors, we allow the possibility of unequal replication (e.g. most sites got 3 field replicates but some only got 2). In this dataset, every sample got `K=6` PCR replicates, so their order does not matter. A **trait** is a measured property of each species, such as body size. An **occupancy covariate** describes the habitat at a site, such as canopy cover, that could plausibly affect whether a species is present or absent at that site. A **collection covariate** describes how each field sample was taken, such as the volume of water filtered, which changes how likely a sample is to capture DNA, not whether the species is present or absent.
 
@@ -146,7 +149,9 @@ The simulator gives each of these four events a probability:
 
 [Lesson 1](occJSDM-lesson-1.md#what-an-occupancy-model-does) runs a greatly simplified version of this process, with a single detection probability and no false positives. [Lesson 2](occJSDM-lesson-2.md#three-questions-three-different-truths) runs the full (two-stage) model.
 
-In the simulation, we let the species differ in how reliably they are collected and detected. For example, the probability that primer 1 detects DNA in the sample rises from `r lesson$input$params$p[1, 1]` to `r lesson$input$params$p[1, n_species]` across the ten species. We let the second primer have generally slightly higher probabilities.
+The two probabilities of a true event, `theta` and `p`, are not single numbers. `p` has one value for each primer and species. `theta` has one value for each field sample and species, because it also depends on the sample's collection covariate (see below).
+
+In the simulation, we let the species differ in how reliably they are collected and detected. For example, the probability that primer 1 detects DNA in the sample rises from `r lesson$input$params$p[1, 1]` to `r lesson$input$params$p[1, n_species]` across the ten species. The second primer has slightly higher probabilities.
 
 ```{r observation-settings}
 primer_1_detection <- seq(0.35, 0.85, length.out = n_species)
@@ -178,17 +183,13 @@ str(observation_settings)
 - `mu1` and `sigma1`: the mean and standard deviation, on a log-read scale, of the read count from a true detection event.
 - `mu0` and `sigma0`: the same for a laboratory false-positive event.
 
-<!--# I"m confused about about collection covariates. is this theta, and if so, are there multiple thetas?  there should be. -->
+There is therefore not one `theta` but many: each field sample has its own collection probability for each species. On the logit scale, `theta` is the species' intercept plus its slope times the sample's collection covariate. `theta_baseline` sets the intercept, as `logit(theta_baseline)`, and the simulator draws each species' slope as -1, 0 or 1. The collection covariate itself is drawn from a standard normal distribution for each field sample. With `r n_field_samples` field samples and `r n_species` species, the survey has `r format(n_field_samples * n_species, big.mark = ",")` values of `theta`. `known_truth$beta_theta_true` holds the intercepts (first row) and slopes (second row).
 
 The setting values we choose make OTU_1 the hardest species to detect. It has the lowest collection probability at baseline (`r observation_settings$theta_baseline[1]`) and the lowest PCR detection probability on both primers (`r round(observation_settings$p[1, 1], 2)` and `r round(observation_settings$p[2, 1], 2)`). OTU_10 is the easiest, at `r observation_settings$theta_baseline[n_species]`, `r round(observation_settings$p[1, n_species], 2)` and `r round(observation_settings$p[2, n_species], 2)`. The maps below compare the two species. `pmin(0.95, ...)` caps primer 2's probabilities at 0.95. No value exceeds the cap with these settings, but the cap keeps every probability valid if you raise the first line. The two primers' `q` run in opposite directions across the species, so no species has a high laboratory false-positive rate on both primers. `theta0` increases from species to species such that field contamination is commonest for OTU_10.
 
-<!--# below:  "The simulator function turns each collection event" instead of just "The simulator function turns each event"? -->
+Next, the simulator turns the outcome of each PCR into a read count. A PCR has one of three outcomes for each species: a **detection event** (the species' DNA is in the sample and the PCR amplifies it, probability `p`), a **laboratory false-positive event** (the DNA is not in the sample but contamination is amplified, probability `q`), or no event, which gives zero reads. For each event, the simulator draws a value on the log-read scale, converts it with `round(exp(log_read) - 1)` and sets negative counts to zero. Given the `mu1` and `mu0` values from above of `r observation_settings$mu1` and `r observation_settings$mu0`, respectively, a true detection event therefore gives about `r round(exp(observation_settings$mu1) - 1)` reads at the median, and a laboratory false-positive event about `r round(exp(observation_settings$mu0) - 1)`. A field-stage false positive gives as many reads as a true detection, because its sample truly holds the species' DNA. An event can also produce zero reads, when the draw falls below `log(1.5)`. With these settings, that almost never happens to a true detection event (`r format_percent(pnorm(log(1.5), observation_settings$mu1, observation_settings$sigma1), 4)` of them), but it does happen to `r format_percent(pnorm(log(1.5), observation_settings$mu0, observation_settings$sigma0))` of laboratory false-positive events, which is about one in `r round(1 / pnorm(log(1.5), observation_settings$mu0, observation_settings$sigma0))`.
 
-The simulator function turns each event into a read count. It draws a value on the log-read scale, converts it with `round(exp(log_read) - 1)` and sets negative counts to zero. Given the `mu` and `mu0` values from above of `r observation_settings$mu1` and `r observation_settings$mu0`, respectively, a true detection event therefore gives about `r round(exp(observation_settings$mu1) - 1)` reads at the median, and a laboratory false-positive event about `r round(exp(observation_settings$mu0) - 1)`. A field-stage false positive gives as many reads as a true detection, because its sample truly holds the species' DNA. An event can also produce zero reads, when the draw falls below `log(1.5)`. With these settings, that almost never happens to a true detection event (`r format_percent(pnorm(log(1.5), observation_settings$mu1, observation_settings$sigma1), 4)` of them), but it does happen to `r format_percent(pnorm(log(1.5), observation_settings$mu0, observation_settings$sigma0))` of laboratory false-positive events, which is about one in `r round(1 / pnorm(log(1.5), observation_settings$mu0, observation_settings$sigma0))`.
-
-<!--# I don't understand the following paragraph, especially the phrase "these event probabilities. Explain more simply. Also, we recommend setting threshold = 1 rather than trying to adjust the model using this parameter. -->
-
-The fitted model uses positive or negative results for a given threshold. Its `p` and `q` must therefore be compared with the probability of a **threshold-positive result**, not simply with these event probabilities. Here the probability of a threshold-positive laboratory false positive is about `r format_percent(1 - pnorm(log(1.5), observation_settings$mu0, observation_settings$sigma0), 0)` of the `q` set above. Lesson 2 compares its fitted rates with these threshold-positive truths.
+occJSDM does not use the read counts themselves. `runOccJSDM()` only asks whether each PCR has at least `threshold` reads, and we recommend leaving `threshold` at its default of 1. A laboratory false-positive event that produced zero reads is therefore invisible: it looks like an ordinary negative PCR. So the rate at which contamination actually produces a positive PCR is a little lower than the `q` set above, about `r format_percent(1 - pnorm(log(1.5), observation_settings$mu0, observation_settings$sigma0), 0)` of it. (The same is true of `p`, but by a negligible amount.) Lesson 2 therefore compares its fitted `p` and `q` with these slightly lower rates of positive PCRs, not with the settings above.
 
 occJSDM assumes that the survey was run with good field and laboratory practice, so that contamination, and therefore false positives, are infrequent. It expresses this through its **priors**, the starting beliefs about plausible rates that the observations then update. The default priors on `q` and `theta0` are both Beta(1, 20), which has mean 1/(1 + 20), about `r format_percent(1 / (1 + 20))`, and puts 95% of its weight below `r format_percent(qbeta(0.95, 1, 20))`. This simulation's contamination rates are chosen using that assumption: the lab false-positive probability `q` runs from `r format_percent(min(lesson$input$params$q))` to `r format_percent(max(lesson$input$params$q))`, and the field false-positive probability `theta0` runs from `r format_percent(min(lesson$input$params$theta0))` to `r format_percent(max(lesson$input$params$theta0))`. Lesson 2 explains [how good practice enters the model](occJSDM-lesson-2.md#how-does-good-practice-enter-the-model) and [stress-tests the effect of violating this assumption in practice](occJSDM-lesson-2.md#what-changes-if-we-are-less-confident-about-low-contamination) by refitting with priors that expect more contamination.
 
@@ -196,9 +197,7 @@ occJSDM assumes that the survey was run with good field and laboratory practice,
 
 Now we specify the ecological model, which sets the probability that each species occupies each site. On the logit scale it adds three parts: the species' baseline occupancy, its responses to each site's known (i.e. measured) environmental covariates, and, optionally, its responses to each site's hidden (i.e. unmeasured) environmental covariates. Hidden environmental covariates need not represent particular biological mechanisms. An inverse logit function then turns the sum of these three terms into a probability.
 
-<!--# explain 'remainder' -->
-
-Optionally, we can let each species' responses to the environment be determined in part by its traits, some of which we measure and some which we don't, plus a remainder of its own (See **How traits build each species' responses** below for an explanation of the remainder.)
+Optionally, we can let each species' responses to the environment be determined in part by its traits, some of which we measure and some of which we don't. Whatever part of a species' response its traits do not explain is its own **remainder**, a species-specific amount added on top, so two species with identical traits can still respond differently. **How traits drive each species' responses** (below) gives the formula.
 
 Because several species are likely to respond to any given hidden factor, groups of responding species will occur together more or less often than the measured environment predicts. These manifest as the associations between species that a joint species distribution model estimates, and the number of factors is what the Quickstart's `n_factors` sets. [Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-does) explains them in more detail.
 
@@ -214,16 +213,14 @@ ecological_settings <- list(
   sigma_h = 1,                    # Spread of the hidden site factors.
   sigma_s = 0.5,                  # Spatial setting, off here; see the appendix.
   l_s = 0.3,                      # Spatial setting, off here; see the appendix.
-  tau = rep(1, n_species),         # Required setting, unused for binary occupancy.
+  tau = rep(1, n_species),         # Required, but used only by model = "continuous".
   useSpatField = FALSE
 )
 
 str(ecological_settings)
 ```
 
-<!--# what is tau? -->
-
-`tau` is the only setting with one value per species; every other setting is a single number or a switch.
+`tau` must be supplied, but it has no effect on this survey. It is used only when the simulator is asked for `model = "continuous"` data, where it is the standard deviation of the random noise added to each species' continuous response. It is the only setting with one value per species; every other setting is a single number or a switch.
 
 `gt = 1` gives each species one unmeasured trait, which although not in the trait table, also shapes how the species responds to the environment. We also choose to simulate 2 hidden environmental covariates. In Lesson 2, occJSDM will try to estimate 1 hidden trait with `n_lattrait = 1` and two hidden environmental covariates with `n_factors = 2`, although of course, normally, we would not know *a priori* how many of these hidden factors to try to estimate.
 
@@ -231,9 +228,7 @@ str(ecological_settings)
 
 An important choice for this lesson is `useSpatField = FALSE`: in this simulation, we do not create any spatial fields (= patchy, unmeasured environmental covariates) or simulate any dispersal processes. The simulator still draws site coordinates, whether or not the field is on, which let us visualise the data in a map. `ds`, `sigma_s` and `l_s` set the spatial field, so they have no effect while `useSpatField = FALSE`; [the appendix](#simulate-a-survey-with-a-spatial-field) shows how to switch it on.
 
-<!--# briefly explain what sigma_bs and sigma_ts do.  -->
-
-`Finally, sigma_bs` and `sigma_ts` are accepted but have no effect. The simulator has no residual spatial coefficients to draw with `sigma_bs`, and it passes `sigma_ts` on without using it, so one could also just leave them both out.
+Finally, `sigma_bs` and `sigma_ts` are accepted but have no effect. In the fitted model, `sigma_bs` sets how much species differ in their responses to spatial covariates, but the simulator never generates such responses. `sigma_ts` is passed on and never used. You can leave both out.
 
 ## How traits drive each species' responses
 
@@ -266,7 +261,7 @@ unmeasured_effects
 describe_effect <- function(entry) c("lowers", "does not change", "raises")[entry + 2]
 ```
 
-Covariate 1 and Covariate 2 are the two environmental covariates mapped below, the columns `X_psi.EnvCov.1` and `X_psi.EnvCov.2` of `info` that "Understand the three input objects" describes. In this survey `Tr` is `r nrow(Tr)` species by `r ncol(Tr)` traits, and `G` is `r nrow(jsdm_truth$G)` traits by `r ncol(jsdm_truth$G)` covariates. `A` is `r nrow(jsdm_truth$A)` species by `r ncol(jsdm_truth$A)` unmeasured trait, and `C` is `r nrow(jsdm_truth$C)` by `r ncol(jsdm_truth$C)`.
+Covariate 1 and Covariate 2 are the two environmental covariates mapped below, the columns `X_psi.EnvCov.1` and `X_psi.EnvCov.2` of `info` that "Extract the three model-input objects" describes. In this survey `Tr` is `r nrow(Tr)` species by `r ncol(Tr)` traits, and `G` is `r nrow(jsdm_truth$G)` traits by `r ncol(jsdm_truth$G)` covariates. `A` is `r nrow(jsdm_truth$A)` species by `r ncol(jsdm_truth$A)` unmeasured trait, and `C` is `r nrow(jsdm_truth$C)` by `r ncol(jsdm_truth$C)`.
 
 `Bt` and the sum are `r nrow(jsdm_truth$Bt)` species by `r ncol(jsdm_truth$Bt)` covariates. Read `G` one row at a time. `r rownames(trait_effects)[1]` `r describe_effect(trait_effects[1, 1])` the response to Covariate 1 and `r describe_effect(trait_effects[1, 2])` the response to Covariate 2. `r rownames(trait_effects)[2]` `r describe_effect(trait_effects[2, 1])` the response to Covariate 1 and `r describe_effect(trait_effects[2, 2])` the response to Covariate 2. In `C`, the unmeasured trait `r describe_effect(unmeasured_effects[1, 1])` the response to Covariate 1 and `r describe_effect(unmeasured_effects[1, 2])` the response to Covariate 2.
 
@@ -281,9 +276,7 @@ all.equal(unname(rebuilt_B), jsdm_truth$B)
 
 `all.equal()` returns `TRUE`: the three parts add up to the coefficients that set every species' occupancy probability in this survey.
 
-<!--# The following needs simpler explanation. What coefficients? the species-specific coefficient B for a given environmental covariate? What is the point of this?  to see how much of B's value is explained by the Tr value: B = t(Tr %*% G + A %*% C + Bt)? -->
-
-How visible is the trait part in the species coefficients? The chunk below picks a covariate and a measured trait that acts on it, preferring a covariate on which only one measured trait acts. It plots each species' true coefficient for that covariate against its value of the trait. The line beside the points is that trait's part alone, its `G` entry times the trait value.
+Each species has one coefficient for each environmental covariate: one column of `B`. How much of a species' coefficient do its measured traits explain? If they explain most of it, species with similar trait values respond to the environment in similar ways, and a model can learn `G` from the survey. If the remainder dominates, traits tell us little. The plot below shows this for one covariate and one measured trait that acts on it (the chunk prefers a covariate on which only one measured trait acts). Each point is a species: its true coefficient for that covariate against its value of the trait. The line is that trait's part alone, its `G` entry times the trait value.
 
 ```{r trait-coefficient-scatter, fig.height=4.5, fig.cap="Each point is one species: its true coefficient for the covariate against its value of a measured trait that acts on it. The line is that trait's part of the coefficient alone. The vertical gaps between the points and the line are the parts of the coefficient that this trait does not explain."}
 # Prefer the covariate on which the fewest measured traits act (at least one).
@@ -318,17 +311,13 @@ ggplot(trait_scatter, aes(x = trait_value)) +
 
 The chunk picks `r covariate_names[shown_covariate]` and `r colnames(Tr)[shown_trait]`, whose `G` entry is `r trait_slope`, so the line has slope `r trait_slope`. The points `r if (trait_slope > 0) "rise" else "fall"` with the line, because the sign of the slope follows the `G` entry. They scatter around it because the other parts add to each species' coefficient. `r if (only_this_trait) "Here no other measured trait and no unmeasured trait acts on this covariate, so the gaps are the remainder alone." else "Here the gaps are the remainder plus the other traits, measured or unmeasured, that act on this covariate."` `r if (length(untouched_traits) > 0) paste(knitr::combine_words(untouched_traits), "has a") else "Had a trait's"` `G` entry `r if (length(untouched_traits) > 0) "of 0 for this covariate. Plotted against it, the coefficients" else "been 0, the coefficients plotted against it"` would vary only through parts that do not involve that trait, and no trend would be expected.
 
-<!--# The following also needs more explanation. What structure and why are these sentences needed?  -->
-
-This is the structure that `runOccJSDM()` estimates when it is given a trait table and `n_lattrait`, the number of unmeasured traits. A survey of ten species gives few points from which to learn `G`, and [Lesson 3's trait section](occJSDM-lesson-3.md#traits-ask-a-harder-different-question) asks how well it can be recovered.
+occJSDM estimates this same formula. When you give `runOccJSDM()` a trait table and set `n_lattrait`, the number of unmeasured traits, it estimates `G`, `A`, `C` and each species' remainder from the survey. With ten species there are only ten points like those above from which to learn `G`, so [Lesson 3's trait section](occJSDM-lesson-3.md#traits-ask-a-harder-different-question) asks how well it can be recovered.
 
 ## Recreate the dataset if you want to
 
 The simulator draws the environmental values, traits, coefficients and hidden factors from the settings above. It then calculates occupancy probabilities and draws actual presence or absence from those probabilities.
 
-The following optional chunk shows the simulator call itself. It is displayed but not run when knitting, because the figures use the saved simulation. To recreate the data yourself, run the chunk with occJSDM installed. `model = "two_stage"` produces PCR read counts. The simulator can also produce `"occupancy"` data, with one record per field sample and no PCR stage, and `"binary"` presence/absence data, like the presence/absence case described in the Quickstart.
-
-<!--# does model = "occupancy" produce one record per field sample or produce a one-stage model: M>1, K=1? -->
+The following optional chunk shows the simulator call itself. It is displayed but not run when knitting, because the figures use the saved simulation. To recreate the data yourself, run the chunk with occJSDM installed. `model = "two_stage"` produces PCR read counts. The simulator can also produce `"occupancy"` data, with one record per field sample and no PCR stage, and `"binary"` presence/absence data, like the presence/absence case described in the Quickstart. `"occupancy"` data have one record per field sample: whether the sample captured the species' DNA. That is a classic single-stage occupancy dataset in which the field samples are the replicates. It is not the same as two-stage data with one PCR per sample (`K = 1`), which would still include PCR failures and laboratory false positives.
 
 ```{r simulate-survey, eval=FALSE}
 library(occJSDM)
@@ -344,67 +333,48 @@ new_simulation <- simulateOccJSDMData(
 
 new_survey_data <- new_simulation$data_list
 new_known_truth <- new_simulation$true_params
-
-# Label the truth matrices explicitly, as in the saved teaching dataset.
-site_ids <- as.character(seq_len(n_sites))
-sample_ids <- as.character(seq_len(n_field_samples))
-species_ids <- colnames(new_survey_data$OTU)
-
-dimnames(new_known_truth$z_true) <- list(site_ids, species_ids)
-dimnames(new_known_truth$w_true) <- list(sample_ids, species_ids)
-dimnames(new_known_truth$jsdmParams_true$eta) <- list(site_ids, species_ids)
 ```
 
-<!--# the code after the comment starting "Label the truth matrices" is awkward. Why isn't this done automatically by simulateOccJSDMData? or are these commands only necessary for this lesson?-->
+`simulateOccJSDMData()` labels the truth matrices with the same site, sample and species IDs as `info` and `OTU`, so truth can be joined to observations by identifier, as below.
 
-The last block labels the truth matrices with site, sample and species IDs, as in the saved dataset, because the joins below match truth to observations by those identifiers.
-
-<!--# What do you mean by the next sentence? Do you mean "if you change a setting in simulateOccJSDMData(), the saved model fit (teaching-data/nonspatial-lesson.rds) no longer fits your new dataset? I also don't understand what you mean by "Simply replacing a covariate column after simulation would also break the match between observations and their generating model."  It seems obvious to the point of superfluity.-->
-
-If you change a setting, the old fitted results no longer match your new dataset: fit it again before comparing estimates with truth. Simply replacing a covariate column after simulation would also break the match between observations and their generating model. The appendix records the package revision and seed of the saved simulation, and the R version recorded with the matching fits.
+If you run this chunk with different settings, you get a new dataset, and the model fits saved in `teaching-data/nonspatial-lesson.rds` no longer belong to it: fit the new dataset before comparing estimates with truth. The appendix records the package revision and seed of the saved simulation, and the R version recorded with the matching fits.
 
 ## Extract the three model-input objects from the simulator output
 
-occJSDM receives three input tables: `info` describes each PCR reaction, `OTU` holds its read counts, and `traits` describes each species. We extract these tables from the object `survey_data`, which we previously extracted from the saved `teaching-data/nonspatial-lesson.rds` file above (not the newly created `new_survey_data`).
-
-<!--# are you using survey_data instead of new_survey_data because you want to use the saved simulation, not whatever was produced in the previous chunk?  -->
-
-<!--# the text names the three objects as info, OTU, and traits, but this chunks uses different names:  observation_info, read_counts, and species_traits, which is confusing. is it possible to change to the standard names:  info, OTU, and traits? -->
+occJSDM receives three input tables: `info` describes each PCR reaction, `OTU` holds its read counts, and `traits` describes each species. We extract these tables from `survey_data`, the saved simulation loaded at the start, not from `new_survey_data`, so that everything below matches the model fits in Lesson 2.
 
 ```{r inspect-inputs}
-observation_info <- as_tibble(survey_data$info) # study design
-read_counts <- as_tibble(survey_data$OTU) # OTU table
+info <- as_tibble(survey_data$info) # study design and covariates
+OTU <- as_tibble(survey_data$OTU) # read counts
 
-species_traits <- survey_data$traits |> # trait table
+traits <- survey_data$traits |> # trait table
   as.data.frame() |>
   rownames_to_column("species") |>
   as_tibble()
 
-observation_info |>
+info |>
   slice_head(n = 36) |>
   knitr::kable(digits = 2)
 
-read_counts |>
+OTU |>
   slice_head(n = 18) |>
   knitr::kable()
 
-species_traits |>
+traits |>
   knitr::kable(digits = 3)
 ```
 
-The `info` table contains the study design and the predictors. It has one row per PCR reaction: its `Site`, its field `Sample` and its `Primer`, followed by the covariates. Columns beginning `X_psi.` are the occupancy covariates, `X_theta` is the collection covariate, and `Xs.1` and `Xs.2` are the site coordinates. The first 36 rows are site 1's replicates: samples 1 to 3 in that site, primers 1 to 2 in each sample, and PCRs 1-6 of each primer ($3 * 2 * 6 = 36$). Therefore, **Site conditions** (`X_psi`) repeat across all 36 rows because all the samples, primers, and PCRs belong to the same site. **Collection conditions** (`X_theta`) repeat across only the 12 PCRs from the each field sample, since different samples can have different collection covariates (e.g. water volume).
+The `info` table contains the study design and the predictors. It has one row per PCR reaction: its `Site`, its field `Sample` and its `Primer`, followed by the covariates. Columns beginning `X_psi.` are the occupancy covariates, `X_theta` is the collection covariate, and `Xs.1` and `Xs.2` are the site coordinates. The first 36 rows are site 1's replicates: samples 1 to 3 in that site, primers 1 to 2 in each sample, and PCRs 1 to 6 of each primer ($3 \times 2 \times 6 = 36$). Therefore, **Site conditions** (`X_psi`) repeat across all 36 rows because all the samples, primers, and PCRs belong to the same site. **Collection conditions** (`X_theta`) repeat across only the 12 PCRs from each field sample, since different samples can have different collection covariates (e.g. water volume).
 
-There is no column that numbers the PCR replicates. Each row of `info` is one PCR, and the PCR replicates of a sample and primer are simply the rows that share the same `Site`, `Sample` and `Primer`. occJSDM treats those replicates as interchangeable, so it never needs to know which was PCR 1 and which was PCR 6, and `runOccJSDM()` counts them for each sample and primer. The rows also need not arrive in any particular order, because `runOccJSDM()` sorts them by `Site`, `Sample` and `Primer` itself, moving each `OTU` row with its `info` row. What matters is that row *i* of `info` and row *i* of `OTU` describe the same PCR.
+There is no column that numbers the PCR replicates. Each row of `info` is one PCR, and the PCR replicates of a sample and primer are simply the rows that share the same `Site`, `Sample` and `Primer`. occJSDM treats those replicates as interchangeable, so it never needs to know which was PCR 1 and which was PCR 6, and `runOccJSDM()` counts them for each sample and primer. The rows also need not arrive in any particular order, because `runOccJSDM()` sorts them by `Site`, `Sample` and `Primer` itself, moving each `OTU` row with its `info` row. What matters is that row *i* of `info` and row *i* of `OTU` describe the same PCR, so never sort one of them on its own.
 
 The `OTU` table has one row per PCR reaction, **in the same order as `info`**, and one read-count column per species. OTU stands for operational taxonomic unit: these columns correspond to the OTU table from your own bioinformatic pipeline. OTU can contain the read counts because `runOccJSDM()` converts the counts to a binary detection/non-detection at the user-defined read-count `threshold` (default = 1).
 
-Rows of `info` and `OTU` must stay paired. Sorting either one on its own would associate read counts with the wrong sample. When we join other tables below, we use explicit site or species identifiers.
-
 > IMPORTANT
 >
-> If use [DAMe](https://github.com/dougwyu/DAMe) for your bioinformatic pipeline, build the OTU table using DAMe's `--per-pcr` output, as its [tutorial](https://github.com/dougwyu/DAMe/blob/master/tutorial/README.md#per-pcr-otu-tables-for-occupancy-and-detection-models) explains, because DAMe's defaults to filtering on a per-sample basis, meaning that samples with weak detections failing to meet DAMe's filter criteria are deleted. occJSDM needs these weak detections to infer false positives.
+> If you use [DAMe](https://github.com/dougwyu/DAMe) for your bioinformatic pipeline, build the OTU table from DAMe's `--per-pcr` output, as its [tutorial](https://github.com/dougwyu/DAMe/blob/master/tutorial/README.md#per-pcr-otu-tables-for-occupancy-and-detection-models) explains. By default, DAMe filters on a per-sample basis, so weak detections in samples that fail its filter criteria are deleted. occJSDM needs these weak detections to infer false positives.
 >
-> Similarly, you build your OTU table using another pipeline, like DADA2, do not carry out the common procedure where you filter out low-read OTU cells (e.g. set cells ≤ 2 reads to 0). occJSDM needs to see these detection events to infer false positives.
+> Similarly, if you build your OTU table with another pipeline, such as DADA2, do not carry out the common step of filtering out low-read OTU cells (for example, setting cells with 2 or fewer reads to 0). occJSDM needs to see these detection events to infer false positives.
 
 Finally, the `traits` table has one row per species (OTU), with two simulated trait measurements. Its row names must match the column names of `OTU`, because `runOccJSDM()` matches traits to species by name.
 
@@ -412,10 +382,10 @@ Finally, the `traits` table has one row per species (OTU), with two simulated tr
 
 Because the simulation kept the truth, we can label every PCR (= every row of the OTU table) with what actually produced its result. That reveals the false positives and false negatives that occJSDM has to infer.
 
-We need a new table format to link the `OTU` *observations* to the ecological 'truth', which was created by the simulator. Use `bind_cols` to combine `observation_info` and `read_counts`, number the PCR replicates within each sample and primer, and then use `pivot_longer` to format a new table with **one row per species and PCR reaction**. Finally, add the column `positive` designating a detection as positive if that row (i.e. that species in that PCR) has ≥ 1 read, which matches our use of `threshold = 1`.
+We need a new table format to link the `OTU` *observations* to the ecological 'truth', which was created by the simulator. Use `bind_cols` to combine `info` and `OTU`, number the PCR replicates within each sample and primer (the `PCR` column is only for display; occJSDM never needs it), and then use `pivot_longer` to format a new table with **one row per species and PCR reaction**. Finally, add the column `positive` designating a detection as positive if that row (i.e. that species in that PCR) has ≥ 1 read, which matches our use of `threshold = 1`.
 
 ```{r make-observation-table}
-observed_pcrs <- bind_cols(observation_info, read_counts) |>
+observed_pcrs <- bind_cols(info, OTU) |>
   group_by(Site, Sample, Primer) |>
   mutate(PCR = row_number()) |>
   ungroup() |>
@@ -453,7 +423,7 @@ observations_with_truth <- observed_pcrs |>
     source = case_when(
       is.na(positive) ~ "Missing",
       positive == 0 & presence == 0 ~ "True negative",
-      positive == 0 ~ "Missed detection",
+      positive == 0 ~ "False negative",
       dna_in_sample == 0 ~ "Laboratory false positive",
       presence == 0 ~ "Field-stage false positive",
       TRUE ~ "True detection"
@@ -476,15 +446,13 @@ knitr::kable(weak_pcrs)
 
 `left_join()` attaches the true states by site, sample and species identity, so the tables need not share a row order. Sample IDs are unique across the whole survey in this dataset, so sample plus species identifies a sample state.
 
-The columns `presence` and `dna_in_sample` are **known-truth labels supplied by the simulation,** and the new `source` column uses these known-truth labels to interpret each `read_count` observation for each species in each PCR. A negative PCR is a **true negative** if the species does not occupy the site and a **false negative** (missed detection**)** if it does. A positive PCR in a sample without DNA is a **laboratory false positive**, contamination in the laboratory, even if the species happened to occupy the site. A positive from DNA in an unoccupied site's sample is a **field-stage false positive**, contamination in the field. Any other positive is a **true detection**.
+The columns `presence` and `dna_in_sample` are **known-truth labels supplied by the simulation,** and the new `source` column uses these known-truth labels to interpret each `read_count` observation for each species in each PCR. A negative PCR is a **true negative** if the species does not occupy the site and a **false negative** (a missed detection) if it does. A positive PCR in a sample without DNA is a **laboratory false positive**, contamination in the laboratory, even if the species happened to occupy the site. A positive from DNA in an unoccupied site's sample is a **field-stage false positive**, contamination in the field. Any other positive is a **true detection**.
 
-The `weak_case` table shows Lesson 2's weak true-detection example: `r weak_case$species` at Site `r weak_case$Site` in Sample `r weak_case$Sample`. This species truly occupies the site (`presence` = 1), and its DNA was successfully collected into the sample (`dna_in_sample` = 1). Yet only `r sum(weak_pcrs$positive)` of the `r nrow(weak_pcrs)` PCRs are positive, with `r knitr::combine_words(weak_pcrs$reads[weak_pcrs$positive == 1])` reads, from primer `r knitr::combine_words(unique(weak_pcrs$Primer[weak_pcrs$positive == 1]))`. The other `r sum(weak_pcrs$positive == 0)` are missed detections.
+The `weak_case` table shows Lesson 2's weak true-detection example: `r weak_case$species` at Site `r weak_case$Site` in Sample `r weak_case$Sample`. This species truly occupies the site (`presence` = 1), and its DNA was successfully collected into the sample (`dna_in_sample` = 1). Yet only `r sum(weak_pcrs$positive)` of the `r nrow(weak_pcrs)` PCRs are positive, with `r knitr::combine_words(weak_pcrs$reads[weak_pcrs$positive == 1])` reads, from primer `r knitr::combine_words(unique(weak_pcrs$Primer[weak_pcrs$positive == 1]))`. The other `r sum(weak_pcrs$positive == 0)` are false negatives.
 
 Because of the known-truth labels from the simulator, we know that this is a weak detection of a true presence, but occJSDM does not know. It has to decide between a weak detection of a true presence or a false-positive detection of a true absence. In Lesson 2, we ask which explanation occJSDM favours: weak detection or false positive.
 
-<!--# I don't understand what lesson$cases is. Is it  -->
-
-`lesson$cases` records the four detection examples that Lesson 2 selected before fitting, and Lesson 2 compares the fitted probabilities for this sample with these states.
+`weak_case` comes from `lesson$cases`, a small table saved with the teaching data. It lists four examples, each one species in one field sample, that Lesson 2 uses to show how occJSDM reasons about individual detections: `r knitr::combine_words(tolower(lesson$cases$case))`. They were picked from the known truth and the observed PCRs before any model was fitted, so they were not chosen to make the model look good. This lesson uses them only for the table above and to mark their sites on the map below.
 
 Across the whole survey, how common is each outcome? Count the PCRs with each label, with the median read count of each.
 
@@ -499,24 +467,24 @@ source_counts
 pcrs_with <- setNames(source_counts$pcrs, source_counts$source)
 ```
 
-Each row is the outcome of each of the 36000 total observations (= 100 sites \* 10 species \* 3 sites \* 2 primers \* 6 PCRs). `pcrs` counts the species-PCR combinations with it, and `median_reads` is their median read count. Most combinations are negative: `r format(pcrs_with[["True negative"]], big.mark = ",")` true negatives at sites the species does not occupy and `r format(pcrs_with[["Missed detection"]], big.mark = ",")` missed detections at sites it does. A missed detection is any negative PCR at a truly occupied site.
+Each row is one kind of outcome. Together the rows cover all `r format(nrow(observations_with_truth), big.mark = ",")` observations, one per species and PCR (`r n_sites` sites $\times$ `r samples_per_site` samples $\times$ `r n_primers` primers $\times$ `r pcrs_per_primer` PCRs $\times$ `r n_species` species). `pcrs` counts the observations with each outcome, and `median_reads` is their median read count. Most observations are negative: `r format(pcrs_with[["True negative"]], big.mark = ",")` true negatives at sites the species does not occupy and `r format(pcrs_with[["False negative"]], big.mark = ",")` false negatives at sites it does. A false negative is any negative PCR at a truly occupied site.
 
-Missed detections include the negative PCRs of present species whose DNA failed to be collected in the field in stage 1 (`r format(sum(observations_with_truth$source == "Missed detection" & observations_with_truth$dna_in_sample == 0), big.mark = ",")` of them), plus the PCRs that failed to amplify successfully collected DNA in the lab in stage 2. That is why missed detections outnumber the `r format(pcrs_with[["True detection"]], big.mark = ",")` true detections.
+False negatives include the negative PCRs of present species whose DNA failed to be collected in the field in stage 1 (`r format(sum(observations_with_truth$source == "False negative" & observations_with_truth$dna_in_sample == 0), big.mark = ",")` of them), plus the PCRs that failed to amplify successfully collected DNA in the lab in stage 2. That is why false negatives outnumber the `r format(pcrs_with[["True detection"]], big.mark = ",")` true detections.
 
-Of the `r format(sum(observations_with_truth$positive), big.mark = ",")` total positive PCRs, `r format(pcrs_with[["Laboratory false positive"]], big.mark = ",")` are laboratory false positives, and `r format(pcrs_with[["Field-stage false positive"]], big.mark = ",")` are field-stage false positives. Together, they make `r format_percent((pcrs_with[["Laboratory false positive"]] + pcrs_with[["Field-stage false positive"]]) / sum(observations_with_truth$positive))` of all PCR positives: $(960+803)/(960+803+6344)$.
+Of the `r format(sum(observations_with_truth$positive), big.mark = ",")` total positive PCRs, `r format(pcrs_with[["Laboratory false positive"]], big.mark = ",")` are laboratory false positives, and `r format(pcrs_with[["Field-stage false positive"]], big.mark = ",")` are field-stage false positives. Together, they make `r format_percent((pcrs_with[["Laboratory false positive"]] + pcrs_with[["Field-stage false positive"]]) / sum(observations_with_truth$positive))` of all positive PCRs.
 
-The read counts follow the simulator settings. Laboratory false positives have a median of only `r source_counts$median_reads[source_counts$source == "Laboratory false positive"]` reads, against `r source_counts$median_reads[source_counts$source == "True detection"]` for true detections. These are median read counts of positive PCRs only and follow occJSDM's assumption that good practice has been followed so that contamination is rare and weak.
+The read counts follow the simulator settings. Laboratory false positives have a median of only `r source_counts$median_reads[source_counts$source == "Laboratory false positive"]` reads, against `r source_counts$median_reads[source_counts$source == "True detection"]` for true detections. These are median read counts of positive PCRs only. They mirror a survey run with good practice, in which laboratory contamination is rare and usually weak.
 
-The laboratory false positives' median sits above the simulator setting's median of about `r round(exp(observation_settings$mu0) - 1)` reads because their zero-read events, about 1 in `r round(1 / pnorm(log(1.5), observation_settings$mu0, observation_settings$sigma0))`, are left out. The true detections' median also differs from the simulator setting's `r round(exp(observation_settings$mu1) - 1)` only by chance, because almost none of their events give zero reads. Field-stage false positives have `r source_counts$median_reads[source_counts$source == "Field-stage false positive"]`, as many as true detections, because their samples really do contain the species' DNA. A low read count can therefore hint at a laboratory false positive, but in this simulation nothing in the reads reveals contamination in the field.
+The laboratory false positives' median sits above the simulator setting's median of about `r round(exp(observation_settings$mu0) - 1)` reads because their zero-read events, about 1 in `r round(1 / pnorm(log(1.5), observation_settings$mu0, observation_settings$sigma0))`, are left out. The true detections' median also differs from the simulator setting's `r round(exp(observation_settings$mu1) - 1)` only by chance, because almost none of their events give zero reads. Field-stage false positives have `r source_counts$median_reads[source_counts$source == "Field-stage false positive"]`, as many as true detections, because the simulator treats their samples like any sample that contains the species' DNA. In a real survey, field contamination usually comes from trace amounts of DNA, so it would probably give low read counts too.
 
-<!--# as background, i think realistically, the field contamination would also result in low read counts because DNA contamination would be from trace sources. I don't know if this observation affects only the simulator and does not affect occJSDM, since occJSDM converts read counts to binary outcomes anyway. If it is the case that read count information is not used by occJSDM, then that should be explained here. -->
+None of these read counts matter to occJSDM, which never sees them. `runOccJSDM()` turns every count into a positive or a negative PCR at `threshold`, so a positive with 2 reads and one with 2,000 reads look the same to the model. The read-count settings therefore affect a fit only through how often an event produces zero reads and so is not seen at all. To a person reading the OTU table, a low count may hint at contamination, but occJSDM infers false positives from the pattern of positives across field samples and PCRs, not from read counts.
 
 ## Put the sites and environmental conditions on a map
 
-To visualise the environmental conditions on a map, we create a simplified table from `info` with one site per row, and we assign `Xs.1` to "east" and `Xs.2` to "west", with coordinates between zero and one.
+To visualise the environmental conditions on a map, we create a simplified table from `info` with one site per row, and we assign `Xs.1` to "east" and `Xs.2` to "north". The coordinates run from zero to one in arbitrary units.
 
 ```{r prepare-site-table}
-site_covariates <- observation_info |>
+site_covariates <- info |>
   transmute(
     Site = as.character(Site),
     east = Xs.1,
@@ -531,7 +499,7 @@ site_covariates |>
   knitr::kable(digits = 3)
 ```
 
-The map marks the sites of the four detection examples in `lesson$cases`. <!--# what is the significance of lesson$cases? -->
+The map marks the sites of the four detection examples in `lesson$cases`, described above.
 
 ```{r sampling-locations, fig.height=4.5, fig.cap="The 100 simulated sampling sites. The highlighted sites hold the four detection examples used in Lesson 2; the laboratory false-positive and field-stage false-positive examples share Site 1. They were selected from known truth and observed detection patterns, before examining fitted probabilities."}
 example_sites <- lesson$cases |>
@@ -575,7 +543,7 @@ The covariate values are in arbitrary units, from `r round(min(environment_long$
 
 Consider OTU_1 and OTU_10, the species used in Lesson 2's detection examples. The settings above make them the hardest and the easiest species to detect, so their maps show how *detectability* translates to *detections*.
 
-First calculate whether there was *any* positive PCR for each species at each site. This deliberately simple rule ignores imperfect detection, so it gives what is known as a 'naive' occupancy estimate, which misses occupied sites where no PCR found the species' DNA (false-negative error). It also counts unoccupied sites where contamination produced a positive (false-positive error). Naive occupancy can therefore understate or overstate where a species occurs. However, in occJSDM, we assume that good field and lab practice has been followed such that contamination is reasonably expected to be infrequent and weak. Thus, false negatives are typically expected to be more frequent than false positives, and naive occupancy is expected to underestimate true occupancy on net.
+First calculate whether there was *any* positive PCR for each species at each site. This deliberately simple rule ignores imperfect detection, so it gives what is known as a 'naive' occupancy estimate, which misses occupied sites where no PCR found the species' DNA (false-negative error). It also counts unoccupied sites where contamination produced a positive (false-positive error). Naive occupancy can therefore understate or overstate where a species occurs. However, in occJSDM, we assume that good field and lab practice has been followed such that contamination is reasonably expected to be infrequent and weak. Even so, rare contamination adds up when each site has many PCRs. With `r samples_per_site * n_primers * pcrs_per_primer` PCRs at each site, a small chance of a false positive in each PCR makes at least one stray positive at a site likely, so naive occupancy can overstate occupancy even when contamination is rare. In this survey it does so for both species below.
 
 ```{r prepare-species-maps}
 site_detections <- observations_with_truth |>
@@ -621,23 +589,32 @@ truth_map_data <- species_truth |>
   )
 ```
 
-The explicit missing-data check prevents an unobserved site from being treated as a negative. `eta` from `known_truth$jsdmParams_true$eta` is each site's true occupancy score for each species: the sum of the baseline, environmental responses and hidden-factor effects, on the logit scale. `plogis()`, the inverse logit, converts it to an occupancy probability.
+Two details of this chunk. First, `any_positive` is set to `NA`, not 0, for a site with no PCR results at all, so that a site that was never observed is not counted as a negative. Every site in this survey has results, so this does not arise here, but it can in your own data. Second, `eta` is the true occupancy score that the simulator saved in `known_truth$jsdmParams_true$eta`, one value for each site and species. It is the sum of the three parts described in "Specify the ecological model": the baseline, the responses to the measured environment and the responses to the hidden factors, on the logit scale. `plogis()`, the inverse logit, converts it to an occupancy probability.
 
-<!--# i don't understand the preceding paragraph. what missing-data check? where was eta defined?  -->
-
-```{r truth-and-observation-maps, fig.width=9, fig.height=6, fig.cap=paste0("Left: generating occupancy probability. Middle: the actual presence/absence drawn using that probability. Right: whether any of the ", samples_per_site * n_primers * pcrs_per_primer, " PCRs at that site was positive. The middle and right panels contain only zeros and ones; their differences expose missed occurrences and false detections. All values come from the matching simulation; no fitted estimates are shown here.")}
-ggplot(truth_map_data, aes(x = east, y = north, colour = value)) +
-  geom_point(size = 2) +
+```{r truth-and-observation-maps, fig.width=9, fig.height=6, fig.cap=paste0("Left: true occupancy probability. Middle: the actual presence (filled) or absence (hollow) drawn using that probability. Right: whether any of the ", samples_per_site * n_primers * pcrs_per_primer, " PCRs at that site was positive (filled) or none was (hollow). Differences between the middle and right panels expose false negatives and false positives. All values come from the simulation; no fitted estimates are shown here.")}
+# Probabilities are shown by colour; the 0/1 states by filled (1) or hollow (0) circles.
+ggplot(truth_map_data, aes(x = east, y = north)) +
+  geom_point(
+    data = filter(truth_map_data, quantity == "True occupancy probability"),
+    aes(colour = value), size = 2
+  ) +
+  geom_point(
+    data = filter(truth_map_data, quantity != "True occupancy probability"),
+    aes(shape = factor(value, levels = c(1, 0))), size = 2
+  ) +
   facet_grid(species ~ quantity) +
-  scale_colour_viridis_c(limits = c(0, 1), name = "Probability / state") +
+  scale_colour_viridis_c(limits = c(0, 1), name = "Occupancy\nprobability") +
+  scale_shape_manual(
+    values = c("1" = 16, "0" = 1),
+    labels = c("1" = "Present / positive", "0" = "Absent / no positive"),
+    name = "State"
+  ) +
   scale_x_continuous(breaks = c(0, 0.5, 1)) +
   scale_y_continuous(breaks = c(0, 0.5, 1)) +
   coord_equal() +
   labs(x = "East coordinate", y = "North coordinate") +
   theme_minimal(base_size = 11)
 ```
-
-<!--# I'm confused by the colour coding on the maps. The legend has a yellow to blue gradient for probability, but the middle and rightmost maps use yellow and blue for presence/absence, detection/non-detection. I can see what you are doing (presence = 1 and absence = 0), but the middle and rightmost maps should probably use hollow and filled circles because it is confusing to indicate absence with a dark colour and presence with a light colour. One naturally thinks that a dark circle is presence.-->
 
 Read one row of maps from left to right. A high-probability site need not be occupied in this particular realization (*a true absence, despite the environmental conditions*). And an occupied site might produce no positive PCRs (*a false negative, despite true presence*). An unoccupied site can have a positive PCR (*a false positive*), from contamination in the field or in the laboratory. To see how often each happens, we count the sites in each combination of true presence and any positive PCR. Then, at the occupied sites, check whether any field sample collected the species' DNA.
 
@@ -679,25 +656,19 @@ rule_summary <- species_truth |>
 rule_summary
 ```
 
-In the `rule_summary` table, `occupied` is the number of truly occupied sites, `rule_sites` is the naive number of sites deemed to have the species, `missed` is the number of truly occupied sites with no positive (false negatives), and `false_sites` is the number of unoccupied sites with at least one detection (false positives). In this instance of the simulation, the naive rule `r rule_summary$rule[rule_summary$species == "OTU_1"]` for OTU_1, placing the species at `r rule_summary$rule_sites[rule_summary$species == "OTU_1"]` sites against `r rule_summary$occupied[rule_summary$species == "OTU_1"]` truly occupied. It also `r rule_summary$rule[rule_summary$species == "OTU_10"]` vor OTU_10, with `r rule_summary$rule_sites[rule_summary$species == "OTU_10"]` detections against `r rule_summary$occupied[rule_summary$species == "OTU_10"]` true presences.
+In the `rule_summary` table, `occupied` is the number of truly occupied sites, `rule_sites` is the naive number of sites deemed to have the species, `missed` is the number of truly occupied sites with no positive (false negatives), and `false_sites` is the number of unoccupied sites with at least one detection (false positives). In this instance of the simulation, the naive rule `r rule_summary$rule[rule_summary$species == "OTU_1"]` for OTU_1, placing the species at `r rule_summary$rule_sites[rule_summary$species == "OTU_1"]` sites against `r rule_summary$occupied[rule_summary$species == "OTU_1"]` truly occupied. It `r rule_summary$rule[rule_summary$species == "OTU_10"]` for OTU_10, with `r rule_summary$rule_sites[rule_summary$species == "OTU_10"]` detections against `r rule_summary$occupied[rule_summary$species == "OTU_10"]` true presences.
 
-However, the reasons differ across species.
+However, the reasons differ between the two species.
 
-OTU_1 is simulated to be hard to collect and to detect, despite its high true occupancy of the landscape, which we expect to cause many false negative errors. On the other hand, we have the possibility of false-positive errors due to contamination in the field or lab. The `occupied_sites` table shows how the simulation injected both types of errors into our (naive) detection dataset. At `24` of its occupied sites, no field sample truly collected its DNA (i.e. the `dna_collected` column is FALSE). However, the naive rule still found positive detections at `20` sites, and because we know that DNA was not collected, these positive detections must have arisen through laboratory contamination (= false-positive errors).
+**OTU_1** is hard to collect and hard to detect, so we would expect many false negatives. Yet only `r rule_summary$missed[rule_summary$species == "OTU_1"]` of its `r rule_summary$occupied[rule_summary$species == "OTU_1"]` occupied sites have no positive PCR. Part of the reason is hidden. The `occupied_sites` table shows that at `r with(occupied_sites, sum(species == "OTU_1" & !dna_collected))` occupied sites, no field sample collected OTU_1's DNA (`dna_collected` is FALSE), so every PCR there should have been negative. Yet `r with(occupied_sites, sum(species == "OTU_1" & !dna_collected & any_positive))` of those sites have a positive PCR anyway, which can only have come from laboratory contamination. On the map of positives these sites look right, but for the wrong reason: a false positive has hidden a false negative. On top of that, `r with(species_truth, sum(species == "OTU_1" & presence == 0 & any_positive == 1))` of the `r with(species_truth, sum(species == "OTU_1" & presence == 0))` sites where OTU_1 is absent have a positive PCR, which is why the naive rule overstates its occupancy.
 
-<!--# I find the next four paragraphs to be difficult to understand. Rewrite to be shorter and easier to understand. Focus on the false positives and negatives. -->
-
-The naive rule misses the other 4, and none of the sites where its DNA was collected. OTU_1 is absent from only `r with(species_truth, sum(species == "OTU_1" & presence == 0))` sites, and `r with(species_truth, sum(species == "OTU_1" & presence == 0 & any_positive == 1))` of them have a positive PCR. Its map of positives therefore looks much like its map of presence, but partly for the wrong reasons.
-
-OTU_1 is simulated to be both hard to collect and hard to detect. The `occupied_sites` table shows how that translates into detections. At `r with(occupied_sites, sum(species == "OTU_1" & !dna_collected))` of its occupied sites, no field sample truly collected its DNA (`dna_collected` is FALSE). The naive rule still finds positive detections at `r with(occupied_sites, sum(species == "OTU_1" & !dna_collected & any_positive))` sites, but we now know that these must have been through laboratory false positives. The naive rule misses the other `r with(occupied_sites, sum(species == "OTU_1" & !dna_collected & !any_positive))`, and `r with(occupied_sites, if (any(species == "OTU_1" & dna_collected & !any_positive)) sum(species == "OTU_1" & dna_collected & !any_positive) else "none")` of the sites where its DNA was collected. OTU_1 is absent from only `r with(species_truth, sum(species == "OTU_1" & presence == 0))` sites, and `r with(species_truth, sum(species == "OTU_1" & presence == 0 & any_positive == 1))` of them have a positive PCR. Its map of positives therefore looks much like its map of presence, but partly for the wrong reasons.
-
-OTU_10 is simulated to be easy to collect and detect. Its DNA reached a field sample at `r with(occupied_sites, if (all(dna_collected[species == "OTU_10"])) paste("every one of its", sum(species == "OTU_10")) else paste(sum(species == "OTU_10" & dna_collected), "of its", sum(species == "OTU_10")))` occupied sites, and the rule misses `r if (with(species_truth, any(species == "OTU_10" & presence == 1 & any_positive == 0))) with(species_truth, sum(species == "OTU_10" & presence == 1 & any_positive == 0)) else "none"` of them. Of its `r with(rule_summary[rule_summary$species == "OTU_10", ], missed + false_sites)` errors, `r rule_summary$false_sites[rule_summary$species == "OTU_10"]` are false positives. It is absent from `r with(species_truth, sum(species == "OTU_10" & presence == 0))` sites, and `r with(species_truth, sum(species == "OTU_10" & presence == 0 & any_positive == 1))` of them have a positive PCR, `r with(observations_with_truth, n_distinct(Site[species == "OTU_10" & source == "Field-stage false positive"]))` of them with a field-stage false positive. With `r samples_per_site * n_primers * pcrs_per_primer` PCRs at each site, even a few percent chance of a laboratory false positive in each PCR makes at least one stray positive likely. OTU_10 also has the highest field contamination rate. The rule therefore places OTU_10 at `r with(species_truth, sum(species == "OTU_10" & any_positive == 1))` sites, against `r sum(species_truth$species == "OTU_10" & species_truth$presence == 1)` truly occupied. Lesson 2 asks how much of this uncertainty the fitted model can resolve.
-
-OTU_10 is easy to collect and detect. Its DNA reached a field sample at `r with(occupied_sites, if (all(dna_collected[species == "OTU_10"])) paste("every one of its", sum(species == "OTU_10")) else paste(sum(species == "OTU_10" & dna_collected), "of its", sum(species == "OTU_10")))` occupied sites, and the rule misses `r if (with(species_truth, any(species == "OTU_10" & presence == 1 & any_positive == 0))) with(species_truth, sum(species == "OTU_10" & presence == 1 & any_positive == 0)) else "none"` of them. Of its `r with(rule_summary[rule_summary$species == "OTU_10", ], missed + false_sites)` errors, `r rule_summary$false_sites[rule_summary$species == "OTU_10"]` are false positives. It is absent from `r with(species_truth, sum(species == "OTU_10" & presence == 0))` sites, and `r with(species_truth, sum(species == "OTU_10" & presence == 0 & any_positive == 1))` of them have a positive PCR, `r with(observations_with_truth, n_distinct(Site[species == "OTU_10" & source == "Field-stage false positive"]))` of them with a field-stage false positive. With `r samples_per_site * n_primers * pcrs_per_primer` PCRs at each site, even a few percent chance of a laboratory false positive in each PCR makes at least one stray positive likely. OTU_10 also has the highest field contamination rate. The rule therefore places OTU_10 at `r with(species_truth, sum(species == "OTU_10" & any_positive == 1))` sites, against `r sum(species_truth$species == "OTU_10" & species_truth$presence == 1)` truly occupied. Lesson 2 asks how much of this uncertainty the fitted model can resolve.
+**OTU_10** is easy to collect and detect, so false negatives are rare: its DNA reached a field sample at `r with(occupied_sites, if (all(dna_collected[species == "OTU_10"])) paste("every one of its", sum(species == "OTU_10")) else paste(sum(species == "OTU_10" & dna_collected), "of its", sum(species == "OTU_10")))` occupied sites, and the naive rule misses `r if (with(species_truth, any(species == "OTU_10" & presence == 1 & any_positive == 0))) with(species_truth, sum(species == "OTU_10" & presence == 1 & any_positive == 0)) else "none"` of them. Its errors are false positives instead: `r with(species_truth, sum(species == "OTU_10" & presence == 0 & any_positive == 1))` of the `r with(species_truth, sum(species == "OTU_10" & presence == 0))` sites where it is absent have a positive PCR, `r with(observations_with_truth, n_distinct(Site[species == "OTU_10" & source == "Field-stage false positive"]))` of them from field contamination. With `r samples_per_site * n_primers * pcrs_per_primer` PCRs at each site, even a few percent chance of a laboratory false positive in each PCR makes at least one stray positive likely, and OTU_10 also has the highest field contamination rate. Lesson 2 asks how much of this occJSDM can correct.
 
 ## Unequal numbers of field samples
 
-Real surveys may lose field samples, resulting in unbalanced datasets. Here we simulate this by removing one **field sample at each of three distinct sites**, keeping every PCR row of all remaining samples. The samples were chosen with seed 3947, fixed before any model was fitted, so that they could not be chosen after seeing results. The choice does not use the species' states, PCR detections or model results.
+Real surveys are often unbalanced: a field sample is lost, a primer fails on some samples, or some PCRs are not run. occJSDM accepts unequal replication at every level: different numbers of field samples per site, of primers per sample, and of PCRs per sample and primer. Nothing needs to be declared, because `runOccJSDM()` counts the rows in each site, sample and primer itself. To make a dataset unbalanced, drop the rows of whatever was lost from both `info` and `OTU`, and keep the identifiers of what remains. A lost sample is represented by **absent rows**, not by zero reads or `NA` results.
+
+Here we remove one **field sample at each of three randomly chosen sites**. The seed, 3947, was fixed before any model was fitted.
 
 ```{r unbalanced-select-samples}
 sample_keys <- survey_data$info |>
@@ -716,11 +687,7 @@ removed_samples <- sample_keys |>
 removed_samples
 ```
 
-<!--# I don't understand the purpose of the rest of this section. Shorten it. I just want to establish that it is possible to *create* unbalanced datasets at all observation levels and that occJSDM can handle such datasets, although there is a cost. -->
-
-This removes `r knitr::combine_words(paste("Sample", removed_samples$Sample, "from Site", removed_samples$Site), oxford_comma = FALSE)`. `group_by(Site)` makes `slice_sample(n = 1)` choose exactly one sample within each selected site. We keep the original global sample IDs, so the remaining IDs are no longer consecutive. occJSDM accepts that: [Lesson 2's fit of this survey](occJSDM-lesson-2.md#fit-a-survey-with-unequal-replication) ran with the original IDs.
-
-The metadata and OTU matrix describe the same PCR rows. `anti_join()` drops metadata rows whose `(Site, Sample)` key is in the removal table. Keeping their original row numbers lets us apply **the identical selection to both tables**. The chunk then counts the samples at each site and the PCRs in each sample and primer, and `stopifnot()` checks the reduced survey's structure. It confirms the expected numbers of rows and samples and that every site remains. It also confirms that every remaining sample has both primers and six PCRs, and that the species and traits are unchanged. It stops with an error if any check fails. Run checks like these after every subset of your own data.
+This removes `r knitr::combine_words(paste("Sample", removed_samples$Sample, "from Site", removed_samples$Site), oxford_comma = FALSE)`. The chunk below drops the same rows from both tables, and `stopifnot()` checks the result, stopping with an error if any check fails. Run checks like these whenever you subset your own data.
 
 ```{r unbalanced-paired-rows}
 retained_rows <- survey_data$info |>
@@ -755,17 +722,15 @@ samples_per_site_unbalanced |>
   count(samples, name = "sites")
 ```
 
-There are `r sum(samples_per_site_unbalanced$samples == samples_per_site)` sites with `r samples_per_site` samples and `r sum(samples_per_site_unbalanced$samples == samples_per_site - 1)` sites with `r samples_per_site - 1`. We removed `r nrow(removed_samples)` samples and `r nrow(survey_data$info) - nrow(unbalanced_data$info)` PCR rows: `r n_distinct(unbalanced_data$info$Sample)` field samples and `r format(nrow(unbalanced_data$info), big.mark = ",")` PCR rows remain, still covering all `r nrow(samples_per_site_unbalanced)` sites and `r ncol(unbalanced_data$OTU)` species. Every retained sample has both primers and six PCRs per primer. No retained read count or covariate changes.
+`r sum(samples_per_site_unbalanced$samples == samples_per_site)` sites still have `r samples_per_site` field samples and `r sum(samples_per_site_unbalanced$samples == samples_per_site - 1)` now have `r samples_per_site - 1`. We keep the original sample IDs, so they are no longer consecutive, which occJSDM accepts. The original `known_truth` still describes every simulated sample, including the removed ones.
 
-A lost sample is represented by **absent rows**. It is not an observed sample with zero reads, and it is not a collection of `NA` PCR results. The original `known_truth` still describes all `r nrow(known_truth$z_true)` sites, all `r ncol(known_truth$z_true)` species and all `r nrow(known_truth$w_true)` simulated samples, including those we removed from the observed survey. Lesson 2 fits this reduced survey and compares the resulting probabilities with those same truths.
-
-Unequal replication at every level is accepted by occJSDM: different numbers of field samples per site, of primers per sample, and of PCRs per sample and primer. `runOccJSDM()` counts the rows in each site, sample and primer block, so nothing needs declaring. Besides Lesson 2's fit of this survey, the package's tests fit a survey in which some samples lack a primer and blocks have one to three PCRs. On your own survey, drop the rows of whatever was lost, keep the identifiers of what remains, and judge the result by the fit. `plotCumulativeSpeciesDetections()` is no guide here: it takes a single number of samples per site and of PCRs, so it describes a balanced design.
+The cost of unequal replication is less information where replicates were lost, and so less certainty about those sites. [Lesson 2](occJSDM-lesson-2.md#fit-a-survey-with-unequal-replication) fits this reduced survey and compares its answers with the same truths.
 
 Continue to [Lesson 1: What occupancy models and joint species distribution models do](occJSDM-lesson-1.md), then [Lesson 2: Fit the model and compare its answers with truth](occJSDM-lesson-2.md).
 
 ## Appendix: evidence and reproduction
 
-The appendix below records the package revision, seed and software environment of the saved simulation, and how the lesson's code for the unequal survey is checked. It also shows how to simulate a survey with a spatial field.
+This appendix records the package revision, seed and software environment of the saved simulation, and how the lesson's code for the unequal survey is checked. It also shows how to simulate a survey with a spatial field.
 
 The simulation was made at occJSDM revision **`r substr(lesson$input$source_commit, 1, 7)`** with seed **`r lesson$input$seed`**. The recorded R version of the matching fits is **`r lesson$manifests$default$session$R.version$version.string`**. Exact reproduction requires the recorded code and software environment as well as the seed, because a different package or R version can turn the same seed into different random draws. To install that revision, pass it as the `ref` argument of `remotes::install_github("AlexDiana/occJSDM")`. The package versions are recorded in `lesson$manifests[["default"]]$session`. Instructions for regenerating the saved bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md).
 
