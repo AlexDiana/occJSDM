@@ -329,6 +329,16 @@ create_waic_quantities <- function(n_obs){
 #' runs here with its RcppParallel thread count set to \code{ncores} for the
 #' duration and restored afterwards, and no progress file is written. Defaults
 #' to \code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1, ncores = 1)}.
+#' With \code{listPriors$b0_prior = "community"} in an occupancy or two-stage
+#' fit, three further settings control the shift step described under
+#' \code{listPriors}: \code{b0_shift} (logical, default \code{TRUE};
+#' \code{FALSE} switches the step off), \code{b0_shift_sd} (the proposal
+#' standard deviation of the shift, a finite positive number; by default it
+#' starts at \code{2 / sqrt(S)} and is adapted during burn-in towards an
+#' acceptance rate of 0.44, and a given value is used as it is) and
+#' \code{b0_shift_proposals} (the number of proposals per iteration, a whole
+#' number of at least 1, default \code{5}). Any of the three given in another
+#' kind of fit is an error.
 #' @param summarisedLatentPresences (Optional) logical, default \code{TRUE}.
 #' If \code{TRUE}, the returned latent-presence/probability arrays
 #' (\code{z_output}, \code{w_output}, \code{psi_output}, \code{theta_output})
@@ -411,6 +421,34 @@ create_waic_quantities <- function(n_obs){
 #' occupancy and two-stage data; if you try a larger value for binary data,
 #' check chain convergence.
 #'
+#' \code{b0_prior = "community"} (experimental, off by default) estimates the
+#' centre of that prior instead of fixing it at 0: each species' \code{B0} has
+#' a Normal(\code{mu_b0}, \code{sigma_b0}^2) prior, and the community mean
+#' \code{mu_b0} has a Normal(0, \code{mu_b0_sd}^2) prior with \code{mu_b0_sd}
+#' defaulting to \code{2}, which puts about 95\% of the prior on community
+#' mean baseline occupancies between 2\% and 98\%. \code{mu_b0} is drawn from
+#' its conjugate conditional distribution each iteration, so the species are
+#' pulled towards their own community's average rather than towards 50\%,
+#' which matters when most species are rare. In occupancy and two-stage fits
+#' the occupancy states are latent, each species' intercept is pinned only
+#' through them, and the direction in which every intercept and \code{mu_b0}
+#' move together is explored slowly by the Gibbs steps alone. Each iteration
+#' therefore also proposes a common shift of every \code{B0} and of
+#' \code{mu_b0}, accepted by Metropolis under the first-stage likelihood with
+#' the occupancy states integrated out, immediately before those states are
+#' drawn afresh; the settings \code{b0_shift}, \code{b0_shift_sd} and
+#' \code{b0_shift_proposals} of \code{MCMCparams} control it, and the
+#' proposal scale and acceptance rates of each chain are recorded in
+#' \code{infos$b0_shift}. Its draws are returned in
+#' \code{results_output$jsdm_output$mu_b0_output}, a \code{niter} by
+#' \code{nchain} array, and the applied prior is saved in
+#' \code{infos$intercept_prior}. The default, \code{b0_prior = "fixed"},
+#' leaves fits unchanged; \code{mu_b0_sd} requires \code{"community"} and must
+#' be a finite positive number. With few species the community mean is weakly
+#' determined, and in occupancy and two-stage fits it can trade off against
+#' the collection intercepts, so check the convergence of \code{mu_b0} and
+#' \code{B0}. This option is under review and is not a recommended setting.
+#'
 #' @section Field-contamination uncertainty:
 #' \code{theta0} is the probability that DNA enters a field sample when
 #' the species is absent from the site. Its default is Beta(1,20), set by
@@ -450,7 +488,12 @@ create_waic_quantities <- function(n_obs){
 #'   \code{\link{plotOccupancyRates}}, \code{\link{plotDetectionRates}}). It
 #'   also records \code{MCMCparams} (the resolved \code{nchain}, \code{nburn},
 #'   \code{niter} and \code{nthin}), \code{chain_seeds} (a 2 by \code{nchain}
-#'   matrix of the R and C++ seeds of each chain) and \code{execution} (how
+#'   matrix of the R and C++ seeds of each chain), \code{b0_shift} (present
+#'   only when \code{b0_prior = "community"} in an occupancy or two-stage fit:
+#'   whether the shift step was enabled and, when it was, its proposals per
+#'   iteration, whether the proposal sd was adapted, and each chain's final
+#'   proposal sd and acceptance rates over the kept iterations and over
+#'   burn-in) and \code{execution} (how
 #'   the fit was run: \code{ncores}, \code{workers}, \code{threads_per_worker},
 #'   \code{thread_setting} (\code{"budget"} or \code{"ambient"}),
 #'   \code{blas_threads_requested} (the BLAS thread settings requested of the
@@ -986,6 +1029,8 @@ runOccJSDM <- function(data,
     a_sigmabs <- 10; b_sigmabs <- 1
     spatial_sd_prior <- read_spatial_sd_prior(listPriors,ps>0)
     intercept_prior <- read_intercept_prior(listPriors)
+    # NULL unless b0_prior = "community" in an occupancy or two-stage fit.
+    b0_shift <- read_b0_shift(MCMCparams, intercept_prior, model)
     a_sigmah <- 10; b_sigmah <- 1
     a_tau <- 5; b_tau <- 5
     noise_prior <- if (model == "continuous") read_noise_prior(listPriors) else NULL
@@ -1065,6 +1110,8 @@ runOccJSDM <- function(data,
       sigmah_output <- array(NA, dim = c(niter, nchain))
       idx_ls_output <- array(NA, dim = c(niter, nchain))
       varPart_output <- array(NA, dim = c(S, 4, niter, nchain))
+      mu_b0_output <- if (identical(intercept_prior$type, "community"))
+        array(NA, dim = c(niter, nchain)) else NULL
     }
 
   }
@@ -1108,6 +1155,7 @@ runOccJSDM <- function(data,
   latent_sums <- NULL
   waic_parts <- vector("list", nchain)
   elapsed <- rep(NA_real_, nchain)
+  shift_parts <- vector("list", nchain)
   batches <- split(seq_len(nchain), ceiling(seq_len(nchain) / budget$workers))
   for (batch in batches) {
     results <- run_chain_batch(handle, batch, seeds)
@@ -1149,11 +1197,13 @@ runOccJSDM <- function(data,
         idx_ls_output[,chain] <- dr$idx_ls
         varPart_output[,,,chain] <- dr$varPart
         tau_output[,,chain] <- dr$tau
+        if (!is.null(mu_b0_output)) mu_b0_output[,chain] <- dr$mu_b0
       }
 
       latent_sums <- add_latent_sums(latent_sums, res$latent_sums)
       waic_parts[chain] <- list(res$waic)
       elapsed[chain] <- res$elapsed
+      shift_parts[chain] <- list(res$b0_shift)
       rm(dr)
     }
     rm(results, res)
@@ -1244,6 +1294,8 @@ runOccJSDM <- function(data,
     "varPart_output" = varPart_output,
     "tau_output" = tau_output
   )
+  # Present only when b0_prior = "community", so default fits keep their shape.
+  jsdm_results_output$mu_b0_output <- mu_b0_output
 
   results_output <- list(
     "jsdm_output" = jsdm_results_output,
@@ -1297,6 +1349,9 @@ runOccJSDM <- function(data,
   infos$noise_prior <- noise_prior
   infos$spatial_sd_prior <- spatial_sd_prior
   infos$intercept_prior <- intercept_prior
+  # Present only when the community prior is on in an occupancy or two-stage
+  # fit, so default fits keep their shape.
+  infos$b0_shift <- b0_shift_record(b0_shift, shift_parts)
   infos$MCMCparams <- list(nchain = as.integer(nchain), nburn = as.integer(nburn),
                            niter = as.integer(niter), nthin = as.integer(nthin))
   infos$chain_seeds <- seeds
@@ -1324,11 +1379,27 @@ runOccJSDM <- function(data,
 }
 
 # The occupancy intercept prior is Normal(0, sd^2); it is not the collection intercept.
+# The experimental b0_prior = "community" makes it Normal(mu_b0, sd^2) with
+# mu_b0 ~ Normal(0, mu_b0_sd^2) estimated. The default list is unchanged.
 read_intercept_prior <- function(priors) {
   sd <- get_param(priors, "sigma_b0", 1)
   if (!is.numeric(sd) || length(sd) != 1L || !is.finite(sd) || sd <= 0)
     stop("sigma_b0 must be a finite positive number")
-  list(mean = 0, sd = unname(sd))
+  type <- get_param(priors, "b0_prior", "fixed")
+  if (!is.character(type) || length(type) != 1L || is.na(type) ||
+      !type %in% c("fixed", "community"))
+    stop("b0_prior must be 'fixed' or 'community'")
+  if (type == "fixed") {
+    if ("mu_b0_sd" %in% names(priors))
+      stop("mu_b0_sd requires b0_prior = 'community'")
+    return(list(mean = 0, sd = unname(sd)))
+  }
+  mu_b0_sd <- get_param(priors, "mu_b0_sd", 2)
+  if (!is.numeric(mu_b0_sd) || length(mu_b0_sd) != 1L || !is.finite(mu_b0_sd) ||
+      mu_b0_sd <= 0)
+    stop("mu_b0_sd must be a finite positive number")
+  list(type = "community", sd = unname(sd), mu_b0_mean = 0,
+       mu_b0_sd = unname(mu_b0_sd))
 }
 
 # This prior controls spatial coefficients, not continuous-response noise.
