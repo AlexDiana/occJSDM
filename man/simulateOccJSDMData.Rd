@@ -123,7 +123,10 @@ A list with two elements:
   and \code{z_true} (the \code{n} by \code{S} true occupancy states). For
   \code{"two_stage"} there are also \code{w_true} (one row per sample:
   whether the sample collected the species' DNA), \code{p_true} and
-  \code{q_true}.}
+  \code{q_true}. \code{eta} and \code{z_true} have rows named by site
+  id and \code{w_true} rows named by sample id, matching the \code{Site}
+  and \code{Sample} columns of \code{info}; all three have columns named
+  by species, matching the columns of \code{OTU}.}
   \item{data_list}{The simulated survey, in the form
   \code{runOccJSDM()} takes as its \code{data} argument: \code{info}, a
   data frame with one row per observation (the \code{Site},
