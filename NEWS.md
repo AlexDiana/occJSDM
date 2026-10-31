@@ -5,6 +5,10 @@
 -   `runOccJSDM()` now rejects a read `threshold` below 1. Values between 0 and 1 used to be accepted; for integer read counts they gave the same detections as the default of 1.
 -   `simulateOccJSDMData()` now names the rows of `jsdmParams_true$eta` and `z_true` by site and of `w_true` by sample, matching the `Site` and `Sample` columns of `info`, and names their columns by species, matching `OTU`. Truth can be joined to observations by identifier without labelling the matrices first. Only names are added; the simulated values are unchanged.
 
+## Bug fixes
+
+-   `runOccJSDM()` now decides between the one- and two-stage models by looking for repeated (`Site`, `Sample`) pairs, not repeated `Sample` values. A one-stage survey whose sample IDs restart at each site (1, 2, 3 at every site) used to be fitted as two-stage. Sample IDs may restart at each site in either design.
+
 # occJSDM 0.2.0
 
 Third beta, released on GitHub as `v0.2.0-beta`. It adds parallel chains and a faster spatial sampler. Seeded fits give different numbers from 0.1.1.
