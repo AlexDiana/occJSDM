@@ -11,7 +11,9 @@
 #'     the shipped example) and columns:
 #'     \describe{
 #'       \item{Site}{Integer site id.}
-#'       \item{Sample}{Integer sample id (unique across sites).}
+#'       \item{Sample}{Integer sample id. Unique across the whole survey
+#'         in the shipped example; \code{runOccJSDM()} identifies a sample
+#'         by its (Site, Sample) pair, so ids may also restart at each site.}
 #'       \item{Primer}{Integer primer id (1:P within each sample).}
 #'       \item{X_psi.*}{Occupancy covariates (site-level, repeated across
 #'         each site's replicates); named \code{X_psi.EnvCov.1},

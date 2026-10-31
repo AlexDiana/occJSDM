@@ -163,7 +163,13 @@ inferDataModel <- function(data){
 
       } else { # sample column present
 
-        if(all(!duplicated(data_info$Sample))){ # no repeated observation in each sample
+        # Sample IDs may restart at 1 within each site, so a repeated
+        # observation of a sample is a repeated (Site, Sample) pair, not a
+        # repeated Sample value. Testing Sample alone read a one-stage survey
+        # numbered 1, 2, 3 at every site as two-stage.
+        site_sample <- data_info[, c("Site", "Sample"), drop = FALSE]
+
+        if(all(!duplicated(site_sample))){ # no repeated observation in each sample
 
           stages_type <- "one_stage"
           message("No repeated observation for any sample")
