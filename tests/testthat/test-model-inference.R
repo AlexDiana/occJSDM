@@ -81,3 +81,27 @@ test_that("a one-stage fit accepts site-local sample IDs", {
   expect_identical(fit$infos$model, "occupancy")
   expect_identical(fit$infos$n, FIXTURE_N)
 })
+
+test_that("NA outside the two-stage model stops with a clean message", {
+  data <- make_data(make_info(K = 1L))
+  data$OTU[1, 1] <- NA
+  err <- expect_error(suppressMessages(runOccJSDM(data)),
+                      "allowed only in the two-stage model")
+  expect_false(grepl("FALSE", conditionMessage(err)))
+})
+
+test_that("a one-stage fit accepts unequal samples per site", {
+  # A lost field sample is deleted, not recorded as NA, which leaves some
+  # sites with fewer samples than others.
+  info <- make_info(n = FIXTURE_N, M = 3L, K = 1L)
+  info <- info[!(info$Site <= FIXTURE_N %/% 2L & info$Sample %% 3L == 0L), ]
+  info$X_psi.EnvCov.1 <- stats::rnorm(nrow(info))
+  info$X_psi.EnvCov.2 <- stats::rnorm(nrow(info))
+  data <- make_data(info)
+  fit <- suppressMessages(suppressWarnings(
+    runOccJSDM(data,
+               occCovariates = fixture_occ_covariates(),
+               MCMCparams = FIXTURE_MCMC)))
+  expect_identical(fit$infos$model, "occupancy")
+  expect_identical(sort(unique(as.integer(table(info$Site)))), c(2L, 3L))
+})

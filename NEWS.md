@@ -8,6 +8,7 @@
 ## Bug fixes
 
 -   `runOccJSDM()` now decides between the one- and two-stage models by looking for repeated (`Site`, `Sample`) pairs, not repeated `Sample` values. A one-stage survey whose sample IDs restart at each site (1, 2, 3 at every site) used to be fitted as two-stage. Sample IDs may restart at each site in either design.
+-   The error for `NA` observations outside the two-stage model no longer ends in a stray "FALSE", and now suggests deleting a row that is wholly missing.
 
 # occJSDM 0.2.0
 

@@ -669,7 +669,9 @@ runOccJSDM <- function(data,
       mode(y_NA) <- "integer"
 
       if(sum(y_NA) > 0 & model != "two_stage"){
-        stop("NAs are allowed only in the two-stage model", .call = F)
+        stop("NAs are allowed only in the two-stage model. ",
+             "If a whole row is missing, delete the row instead.",
+             call. = FALSE)
       }
     }
 
