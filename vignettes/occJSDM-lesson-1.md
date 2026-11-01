@@ -1,28 +1,28 @@
 Lesson 1: What occupancy models and joint species distribution models do
 ================
 
-## Where this lesson fits
+## What this lesson is about
 
-This lesson explains, by hand and without fitting a model, the two ideas that the other lessons use. The first half shows what a single-season occupancy model does with replicate samples, using one species from the survey of [Lesson 0 (optional)](occJSDM-lesson-0.md) and [Lesson 2](occJSDM-lesson-2.md). The second half shows what a joint species distribution model adds to modelling each species on its own, using a small table typed into the code. This is the first required lesson, so every reader starts here, before Lesson 2. Lesson 0 explains where the survey comes from, but you do not need it here. Every chunk runs when the lesson is knitted, in a few seconds: nothing is fitted by MCMC and no saved fit is read. Run the chunks in order with the repository’s `vignettes` directory as the working directory; knitting handles this automatically.
+This lesson explains, by hand and without fitting a model,
 
-**What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R for Data Science on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. Operations that are unusual, such as joining two tables on species identity, are explained where they appear.
+1.  what a one-species, single-season occupancy model does with replicate samples, and
+
+2.  what a *joint* species distribution model adds to the simpler alternative of modelling each species on its own.
+
+This is the first required lesson, so every reader starts here. It assumes no familiarity with occJSDM or with occupancy models. Run the code chunks in order; they take a few seconds and read no saved files.
+
+**What this lesson assumes you know about R.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr, the verbs listed below. If any is new, the two chapters of *R for Data Science* on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything in an afternoon. Operations that are unusual are explained where they appear.
 
 - `select()` and `filter()` to choose columns and keep rows.
-- `distinct()`, `arrange()` and `count()` to deduplicate, order and count rows.
+- `arrange()` and `count()` to order and count rows.
 - `mutate()` and `if_else()` to add or recode columns, and `group_by()` and `summarise()` to summarise by group.
-- `left_join()` to combine tables on shared identifiers.
-- `pivot_wider()` to move from one row per measurement to one column per measurement.
+- `uncount()` to repeat each row a given number of times.
 
 ``` r
 library(dplyr)
 library(tidyr)
 library(tibble)
 library(ggplot2)
-
-lesson <- readRDS("teaching-data/nonspatial-lesson.rds")
-truth_samples <- as_tibble(lesson$samples) |> filter(arm == "default")
-survey_info <- lesson$input$sim$data_list$info
-known_truth <- lesson$input$sim$true_params
 
 format_percent <- function(probability, digits = 1) {
   paste0(formatC(100 * probability, format = "f", digits = digits), "%")
@@ -31,49 +31,75 @@ format_percent <- function(probability, digits = 1) {
 theme_set(ggplot2::theme_minimal(base_size = 12))
 ```
 
-`lesson` is the saved file that Lesson 2 reads. We use three parts of it. `truth_samples` has one row per species and field sample, with the simulation’s true states. `survey_info` is the survey’s `info` table, with one row per PCR and the site, sample and covariate columns that Lesson 2 describes. `known_truth` holds the coefficients the simulation used, which we use only to check answers. `format_percent()` prints probabilities as percentages in the text.
+`format_percent()` prints probabilities as percentages in the text.
 
 ## What an occupancy model does
 
-Every presence/absence survey raises the same question: if we did not find a species at a site, was it absent, or did we miss it? A single-season occupancy model answers it from replicate samples, taken at each site within one season. It assumes three things:
+**Every presence/absence survey raises the same question: if we did not find a species at a site, was it truly absent, or did we miss it?** A single-season occupancy model answers the question by using replicate samples, taken at each site within one season. The model assumes three things:
 
-- Each site is either occupied by the species or not, for the whole season. The probability that a site is occupied is `psi`.
-- Each replicate sample at an occupied site detects the species with probability `p`, independently of the other samples.
-- An unoccupied site never produces a detection. This is the no-false-positive assumption. This half of the lesson keeps it, and Lesson 2 drops it.
+- Each site is either occupied by the species or not, for the whole season. The probability that a site is occupied by the species is `psi`.
+- Each replicate sample at an occupied site detects the species with probability `p`, independently of the other samples. Since we realistically let `p` be less than 1, it is possible for all replicates to fail to detect a species despite it being present, which is a false-negative error.
+- An unoccupied site never produces a detection. This is the no-false-positive assumption. In Lesson 2, we relax this assumption and allow false positives.
 
-Lesson 2 names the two ways a survey can be wrong. A **false negative** is a species that is present but not detected, and a **false positive** is a detection of a species that is absent. This model allows only false negatives.
+To see what the model does, we **simulate** a survey of one species in which these three assumptions hold exactly. Simulating means that we choose the values of `psi` and `p` ourselves and generate the dataset with them. This lets us check the model’s answers against the truth. A real survey never sees the truth and is subject to **false-negative error**: a species that is present but not detected. (Lesson 2 moves to a realistic eDNA survey, with many species, a field stage and a laboratory stage, and both false positives and false negatives.)
 
-We use the survey from Lessons 0 and 2: 100 sites with 3 field samples each. That survey is a **two-stage process**: DNA is collected in the field, then detected by PCR in the laboratory. To keep to one stage, we take one species and give each field sample a single record. In this lesson a sample counts as a detection when the species occupies the site and its DNA entered the sample. We build that record from the simulation’s true states, not from the PCRs, so the no-false-positive assumption holds by construction. A sample contaminated at a site the species does not occupy, a **field-stage false positive**, counts here as a non-detection. The laboratory stage, with its own errors, is left out entirely. Building the record this way also means that the per-sample detection probability `p` is, by construction, Lesson 2’s collection probability: the probability that DNA enters a field sample when the species occupies the site.
+The survey has 100 sites with 3 samples each, set in the chunk below. Each site has a habitat covariate, which we will call `environment`, and the probability that the site is occupied by the species rises with the value of the `environment` covariate. Each sample has an `effort` covariate, such as the volume of water filtered, and the probability that the sample detects the species (when it is present) rises with the value of the `effort` covariate.
 
-We use OTU_3. It occupies 58% of the sites, so there are occupied and empty sites to tell apart. Its collection probability rises with the collection covariate, which the covariate section uses. And enough of its occupied sites were missed by every sample to make finding them worthwhile.
+To start, we ignore both these covariates and treat `psi` and `p` as single numbers, as the simplest occupancy model does.
 
 ``` r
-focal_species <- "OTU_3"
+set.seed(4)
+n_sites <- 100
+samples_per_site <- 3
 
-one_stage <- truth_samples |>
-  filter(species == focal_species) |>
-  mutate(detected = as.integer(z == 1 & w == 1)) |>
-  select(Site, Sample, z, w, detected)
+# The true coefficients, on the logit scale
+true_coefficients <- c(psi_intercept = 0, psi_environment = 1,
+                       p_intercept = -0.5, p_effort = 1)
+
+sites <- tibble(Site = 1:n_sites, 
+                environment = rnorm(n_sites)) |>
+  mutate(psi = plogis(true_coefficients[["psi_intercept"]] +
+                        true_coefficients[["psi_environment"]] * environment),
+         z = rbinom(n_sites, size = 1, prob = psi))
+
+one_stage <- sites |>
+  uncount(samples_per_site) |>
+  group_by(Site) |>
+  mutate(Sample = row_number()) |>
+  ungroup() |>
+  mutate(effort = rnorm(n()),
+         p = plogis(true_coefficients[["p_intercept"]] +
+                      true_coefficients[["p_effort"]] * effort),
+         detected = rbinom(n(), size = 1, prob = z * p)) |>
+  select(Site, Sample, environment, effort, z, detected)
 
 head(one_stage, 9)
 ```
 
-    #> # A tibble: 9 × 5
-    #>    Site Sample     z     w detected
-    #>   <dbl>  <dbl> <int> <int>    <int>
-    #> 1     1      1     1     1        1
-    #> 2     1      2     1     0        0
-    #> 3     1      3     1     0        0
-    #> 4     2      4     0     0        0
-    #> 5     2      5     0     0        0
-    #> 6     2      6     0     0        0
-    #> 7     3      7     1     1        1
-    #> 8     3      8     1     0        0
-    #> 9     3      9     1     1        1
+    #> # A tibble: 9 × 6
+    #>    Site Sample environment effort     z detected
+    #>   <int>  <int>       <dbl>  <dbl> <int>    <int>
+    #> 1     1      1       0.217  0.877     0        0
+    #> 2     1      2       0.217 -0.816     0        0
+    #> 3     1      3       0.217  1.54      0        0
+    #> 4     2      1      -0.542  1.37      1        1
+    #> 5     2      2      -0.542 -0.483     1        0
+    #> 6     2      3      -0.542  0.550     1        1
+    #> 7     3      1       0.891 -0.857     1        0
+    #> 8     3      2       0.891 -0.707     1        0
+    #> 9     3      3       0.891 -2.10      1        0
 
-There is one row per field sample. `z` is the true site state (1 if OTU_3 occupies the site), `w` is the true sample state (1 if its DNA entered the sample), and `detected` is our one-stage record. Sample identifiers run across the whole survey, so the first nine rows are the first three sites. Among them, OTU_3 occupies site 1 and site 3, and its DNA reached 3 of those sites’ samples. At an empty site, no sample can count as a detection. Across the survey, 3 samples received OTU_3 DNA at sites it did not occupy; in this table they count as non-detections.
+The code chunk works in two steps, first simulate the sites and then simulate the samples.
 
-An occupancy model works with each site’s detection history, so we count the detections at each site. `occupied` is the true site state, which a real survey would not know; we keep it to check the answers.
+- `rnorm()` draws each covariate value at random, with mean 0 and standard deviation 1.
+- `plogis()` turns `intercept + slope * covariate` into a probability between 0 and 1. The intercepts and slopes in `true_coefficients` are on this logit scale. With a slope of 1, a site one standard deviation above the average habitat has a probability of occupancy of 73.1%, against 50.0% at an average site.
+- `rbinom(size = 1, prob = psi)` flips a coin for each site that comes up 1 with probability `psi`. The result, `z`, is the true site state: 1 if the species occupies the site.
+- `uncount()` repeats each site’s row 3 times, representing one row per sample, and `Sample` numbers the samples 1 to 3 within each site. Some surveys instead number samples across the whole survey, as Lesson 2’s data do; occJSDM accepts either, because it identifies a sample by its `Site` and `Sample` together.
+- A sample detects the species with probability `z * p`. At an occupied site this is `p`. At an empty site it is 0, so an empty site can never produce a detection. That one multiplication is the no-false-positive assumption.
+
+`one_stage` has one row per sample and so 3 rows per site. `z` is the truth, which a real survey would not know, and `detected` is what the survey records. In the first three sites, the species is absent from site 1, so none of its samples detects it. It is present at site 2, and 2 of its 3 samples detected it. It is also present at site 3, but 0 of its 3 samples detected it: a false negative at the site level, which looks exactly like site 1 in the survey’s records.
+
+An occupancy model works with each site’s **detection history**, so we count the detections at each site. We keep the true state, in the column `occupied`, to check the answers, and we summarise the result in a table.
 
 ``` r
 site_history <- one_stage |>
@@ -91,17 +117,45 @@ count(site_history, detections, occupied)
     #> # A tibble: 5 × 3
     #>   detections occupied     n
     #>        <int>    <int> <int>
-    #> 1          0        0    42
-    #> 2          0        1    10
-    #> 3          1        1    26
-    #> 4          2        1    19
-    #> 5          3        1     3
+    #> 1          0        0    50
+    #> 2          0        1    12
+    #> 3          1        1    19
+    #> 4          2        1    14
+    #> 5          3        1     5
 
-Each row is a combination of detections and true state, and `n` is the number of sites with it. Every sample detected the species at 3 sites, two samples did at 19 and one at 26. Every site with a detection is occupied, because this table has no false positives. The rows that matter are the 52 sites with no detections. Because the simulation lets us peek, we can see that 10 of them were occupied and missed by every sample, and the other 42 were truly empty. A real survey sees only the `detections` column. The job of the occupancy model is to estimate how many of the all-negative sites are occupied, without peeking.
+Each row of the summary table is a combination of detections and the true state (0/1), and the number `n` of sites with that combination. At 5 sites, all 3 samples detected the species. At 14 sites, 2 of 3 samples detected it, and at 19 sites, only 1 did. Because there are no false positives in this survey, every site with a detection is truly occupied.
 
-The simplest estimate of occupancy ignores that job. **Naive occupancy** is the fraction of sites with at least one detection, and it counts every all-negative site as empty.
+Now we consider the sites with no detections. We have seen that 1 or 2 of the 3 samples at an occupied site can miss the species, so all 3 can miss it too. In this survey that happened at 12 sites: the species was present, but no sample detected it. These sites are the **false negatives**. At the other 50 sites with no detections, the species was truly absent: these are the **true negatives**. In total, 62 sites have no detections. A real survey sees only the `detections` column, so these two groups look identical.
 
-The occupancy model needs one line of arithmetic for each kind of site. A site where the species was detected in `d` of its `M` samples must be occupied, so its probability is `psi * p^d * (1 - p)^(M - d)`: occupied, then detected `d` times and missed `M - d` times. A site with no detections could be in either state, so its probability is the sum of two routes: `psi * (1 - p)^M`, occupied but missed by every sample, plus `1 - psi`, empty. Multiplying these probabilities over all sites gives the **likelihood**, the probability of the survey’s whole pattern for a given `psi` and `p`. Maximum likelihood chooses the pair that makes the observed pattern most probable.
+The job of an occupancy model is to estimate how many of the 62 all-negative sites are in fact occupied, without peeking at the truth.
+
+We start with the simplest method: just ignore the possibility of false negatives. This is known as **naive occupancy**, and it is the fraction of sites with at least one detection. Every all-negative site is counted as empty.
+
+To do better than naive occupancy, we apply an occupancy model. It needs one calculation for each kind of site.
+
+A site where the species was detected in `d` of its `M` samples must be occupied, so its probability is `psi * p^d * (1 - p)^(M - d)`: occupied, then detected `d` times and missed `M - d` times. A site with no detections could be in either state, so its probability is the sum of two routes: `psi * (1 - p)^M`, occupied but missed by every sample, plus `1 - psi`, empty. Multiplying these probabilities over all sites gives the **likelihood**, the probability of the survey’s whole pattern for a given `psi` and `p`. Maximum likelihood chooses the pair that makes the observed pattern most probable.
+
+A small example shows what that means. Take just two sites with 3 samples each: site A, where the species was detected in 2 samples, and site B, where it was never detected. Guess that `psi` is 0.5 and `p` is 0.4, and ask how probable each site’s record would be if the guess were right. Then try a second guess, with `p` raised to 0.6.
+
+``` r
+two_site_likelihood <- function(psi, p) {
+  site_A <- psi * p^2 * (1 - p)          # occupied, detected twice, missed once
+  site_B <- psi * (1 - p)^3 + (1 - psi)  # occupied and missed three times, or empty
+  c(site_A = site_A, site_B = site_B, likelihood = site_A * site_B)
+}
+
+guesses <- rbind(first_guess = two_site_likelihood(psi = 0.5, p = 0.4),
+                 second_guess = two_site_likelihood(psi = 0.5, p = 0.6))
+round(guesses, 3)
+```
+
+    #>              site_A site_B likelihood
+    #> first_guess   0.048  0.608      0.029
+    #> second_guess  0.072  0.532      0.038
+
+With the first guess, site A’s record has probability 0.048. Site B’s record has probability 0.608: the two routes to no detections, 0.108 for occupied but missed and 0.5 for empty, are added, because either produces the same record. The sites are independent, so the probability of seeing both records is the product of the two, 0.029. That product is the likelihood of the first guess. The second guess scores 0.038, which is higher, so it explains these two sites better. Maximum likelihood is this comparison made systematically over every possible guess, with all 100 sites in the product.
+
+The likelihood is not the probability that a guess is correct. The data stay fixed and the guesses change, and the likelihood scores how well each guess explains the data. A product of 100 numbers below 1 is also extremely small, too small for a computer to handle reliably, which is why the code below adds the logarithms of the site probabilities instead of multiplying the probabilities. The best guess is the same either way.
 
 The function below writes the two lines on the log scale, so that the product over sites becomes a sum. `optim()` searches for the best pair. It searches on the logit scale, and `plogis()` turns each number it tries into a probability between 0 and 1. `fnscale = -1` tells it to maximise rather than minimise.
 
@@ -126,38 +180,31 @@ round(estimates, 3)
 ```
 
     #>   psi     p 
-    #> 0.617 0.394
+    #> 0.453 0.457
 
-The model estimates that a site is occupied with probability 61.7% and that each sample at an occupied site detects the species with probability 39.4%. The information about `p` comes from the sites with detections, where we know the species was present. At those sites, 50.7% of samples detected it, which is higher than the model’s `p`. The difference is not a mistake. A site joins that group only if at least one of its samples succeeded, so the raw share overstates how often a sample succeeds. The likelihood corrects for this.
+The model estimates that a site is occupied with probability 45.3% and that each sample at an occupied site detects the species with probability 45.7%. The information about `p` comes from the sites with detections, where we know the species was present. At those sites, 54.4% of samples detected it, which is higher than the model’s `p`. The difference is not a mistake. A site joins that group only if at least one of its samples succeeded, so the raw share overstates how often a sample succeeds. The likelihood corrects for this.
 
-Now we compare these with the truth. The true collection probability of each sample is calculated from that sample’s collection covariate and the species’ true coefficients, as in Lesson 2.
+Now we compare these with the truth. The true detection probability of each sample is calculated from that sample’s effort and the true coefficients, exactly as in the simulation. We average it over the samples at occupied sites, because `p` describes only those: at an empty site there is nothing to detect.
 
 ``` r
-species_column <- match(focal_species, colnames(lesson$input$sim$data_list$OTU))
-collection_truth <- survey_info |>
-  distinct(Sample, X_theta) |>
-  mutate(true_collection = plogis(known_truth$beta_theta_true[1, species_column] +
-                                    known_truth$beta_theta_true[2, species_column] * X_theta))
-
-occupied_samples <- one_stage |>
-  filter(z == 1) |>
-  left_join(collection_truth, by = "Sample")
+true_p <- plogis(true_coefficients[["p_intercept"]] +
+                   true_coefficients[["p_effort"]] * one_stage$effort)
 
 round(c(
   naive_occupancy = naive_occupancy,
   estimated_psi = estimates[["psi"]],
   true_fraction_occupied = mean(site_history$occupied),
   estimated_p = estimates[["p"]],
-  true_mean_collection = mean(occupied_samples$true_collection)
+  true_mean_p = mean(true_p[one_stage$z == 1])
 ), 3)
 ```
 
     #>        naive_occupancy          estimated_psi true_fraction_occupied 
-    #>                  0.480                  0.617                  0.580 
-    #>            estimated_p   true_mean_collection 
-    #>                  0.394                  0.419
+    #>                  0.380                  0.453                  0.500 
+    #>            estimated_p            true_mean_p 
+    #>                  0.457                  0.393
 
-Naive occupancy, 48.0%, is too low, because it counts the missed sites as absent. The model’s `psi`, 61.7%, is close to the true fraction of sites occupied, 58.0%. Its `p`, 39.4%, is close to the true mean collection probability of the samples at occupied sites, 41.9%. That match is a feature of how we built the table: a detection here means that DNA was collected at an occupied site, so the detection probability is the collection probability. Neither estimate is exact: both come from one survey of 100 sites, of which only 58 were occupied.
+Naive occupancy, 38.0%, is too low, because it counts the missed sites as absent. The model’s `psi`, 45.3%, is closer to the true fraction of sites occupied, 50.0%, but still low, and its `p`, 45.7%, is higher than the true mean detection probability of the samples at occupied sites, 39.3%. Part of the gap is chance: the estimates come from one survey of 100 sites, of which only 50 were occupied. Part of it is that this model assumes every sample has the same `p`, while in our survey `p` rises with effort. The sites with detections are mostly sites whose samples happened to be good, so `p` estimated from them is too high. A `p` that is too high makes a complete miss look rarer than it is, so the model adds back too few missed sites, and `psi` comes out too low. The section on covariates removes most of this gap by giving the model the effort of each sample.
 
 ## The sites where the species was missed
 
@@ -178,7 +225,7 @@ round(c(occupied_and_missed = occupied_and_missed,
 ```
 
     #>   occupied_and_missed                 empty conditional_occupancy 
-    #>                 0.137                 0.383                 0.264
+    #>                 0.073                 0.547                 0.117
 
 ``` r
 missed <- site_history |> filter(detections == 0)
@@ -189,34 +236,25 @@ c(no_detection_sites = nrow(missed),
 ```
 
     #> no_detection_sites  expected_occupied  actually_occupied 
-    #>               52.0               13.7               10.0
+    #>               62.0                7.3               12.0
 
-Readers often find this step the hardest, so take it slowly, counting whole sites rather than probabilities. Of 100 sites like these, the model expects 61.7 to be occupied. At each occupied site, the chance that all 3 samples miss the species is `(1 - p)^M`, 22.2%, so it expects 13.7 occupied sites to produce no detections. It also expects 38.3 sites to be truly empty. Both groups end up in the same place in the survey, among the sites with no detections, and nothing in the detections tells them apart. The **conditional probability of occupancy** is the occupied group’s share of the all-negative sites: `psi * (1 - p)^M / (psi * (1 - p)^M + 1 - psi)`, which is 26.4% here. In words, given that a site produced no detections, it is the probability that the species is nonetheless there.
+<!--# START HERE. Is this section calculating the number of false-negative sites, not which sites are false negatives, since this section doesn't consider covariates? -->
 
-Multiplying by the number of all-negative sites gives how many of them the model expects to be occupied: 52 sites times 26.4% is 13.7. The simulation shows that 10 actually were. This is also where `psi` comes from. The 48 sites with detections, plus the 13.7 expected among the all-negative sites, make 61.7% of the 100 sites, which is the model’s estimate of `psi`. An occupancy model does not simply scale up naive occupancy. It adds back the sites that its detection probability says were missed.
+Readers often find this step the hardest, so take it slowly, counting whole sites rather than probabilities. Of 100 sites like these, the model expects `psi =` 45.3 to be occupied. At each occupied site, the chance that all 3 samples miss the species is `(1 - p)^M`, 16.0%, so it expects 7.3 occupied sites to produce no detections. It also expects 54.7 sites to be truly empty. Both groups end up in the same place in the survey, among the sites with no detections, and nothing in the detections tells them apart. The **conditional probability of occupancy** is the occupied group’s share of the all-negative sites: `psi * (1 - p)^M / (psi * (1 - p)^M + 1 - psi)`, which is 11.7% here. In words, given that a site produced no detections, it is the probability that the species is nonetheless there.
+
+Multiplying by the number of all-negative sites gives how many of them the model expects to be occupied: 62 sites times 11.7% is 7.3. The simulation shows that 12 actually were. This is also where `psi` comes from. The 38 sites with detections, plus the 7.3 expected among the all-negative sites, make 45.3% of the 100 sites, which is the model’s estimate of `psi`. An occupancy model does not simply scale up naive occupancy. It adds back the sites that its detection probability says were missed.
 
 This model gives every all-negative site the same conditional probability, because it knows nothing that distinguishes one site from another. The next section gives it something.
 
 ## Covariates say which sites those are
 
-Two kinds of measured covariate can tell the all-negative sites apart. An **occupancy covariate** describes the habitat: where the habitat suits the species, a site is more likely to be occupied before we look at any samples. A **collection covariate** describes how each sample was taken: where collection was poor, a miss is less surprising. In this survey the occupancy covariates are `X_psi.EnvCov.1` and `X_psi.EnvCov.2`, and the collection covariate is `X_theta`, measured for each field sample. Think of `X_theta` as sampling effort, such as the volume of water filtered; in the simulation it is a measurement in arbitrary units.
+Two kinds of measured covariate can tell the all-negative sites apart. An **occupancy covariate** describes the habitat: where the habitat suits the species, a site is more likely to be occupied before we look at any samples. A **collection covariate** describes how each sample was taken: where collection was poor, a miss is less surprising. In our survey the occupancy covariate is `environment`, measured once per site, and the collection covariate is `effort`, measured for each sample.
 
-Each covariate enters through the same logistic link as in Lesson 2. A site’s occupancy probability is `plogis(a + b * environment)` and a sample’s detection probability is `plogis(c + d * effort)`. We scale both covariates to mean 0 and standard deviation 1, so that `a` and `c` describe an average site and an average sample, and the slopes are changes per standard deviation. We use only `X_psi.EnvCov.1`, which keeps the hand calculation to four numbers, two for each part of the model. OTU_3 responds to both habitat covariates in the simulation. On your own survey, include every habitat covariate you measured, as Lesson 2’s fits do.
+Each covariate enters through the same logistic link that the simulation used. A site’s occupancy probability is `plogis(a + b * environment)` and a sample’s detection probability is `plogis(c + d * effort)`, four numbers in all. Both covariates were simulated with mean 0 and standard deviation 1, so `a` and `c` describe an average site and an average sample, and the slopes are changes per standard deviation. On your own survey, `scale()` puts measured covariates on the same footing.
 
-The likelihood has the same two lines as before. The only change is that each site now has its own `psi`, and each sample its own `p`. Here `distinct()` keeps one copy of each site’s habitat value and each sample’s effort value, because `survey_info` repeats them on every PCR row.
+The likelihood has the same two lines as before. The only change is that each site now has its own `psi`, and each sample its own `p`.
 
 ``` r
-site_covariates <- survey_info |>
-  distinct(Site, environment = X_psi.EnvCov.1)
-sample_covariates <- survey_info |>
-  distinct(Site, Sample, effort = X_theta)
-
-history_cov <- one_stage |>
-  left_join(site_covariates, by = "Site") |>
-  left_join(sample_covariates, by = c("Site", "Sample")) |>
-  mutate(environment = as.numeric(scale(environment)),
-         effort = as.numeric(scale(effort)))
-
 covariate_loglik <- function(par, d) {
   psi <- plogis(par[1] + par[2] * d$environment)
   p <- plogis(par[3] + par[4] * d$effort)
@@ -235,21 +273,21 @@ covariate_loglik <- function(par, d) {
     log(psi * exp(ll_if_occupied) + (1 - psi)))))
 }
 
-fit_cov <- optim(c(0, 0, 0, 0), covariate_loglik, d = history_cov,
+fit_cov <- optim(c(0, 0, 0, 0), covariate_loglik, d = one_stage,
                  control = list(fnscale = -1), method = "BFGS")
 coefficients <- setNames(fit_cov$par, c("psi_intercept", "psi_environment", "p_intercept", "p_effort"))
 round(coefficients, 3)
 ```
 
     #>   psi_intercept psi_environment     p_intercept        p_effort 
-    #>           0.485          -0.959          -0.397           0.767
+    #>          -0.162           1.150          -0.517           1.604
 
-The four numbers are on the logit scale. The habitat slope, `psi_environment`, is negative, so OTU_3 is more likely to occupy sites with low values of `X_psi.EnvCov.1`. The effort slope, `p_effort`, is positive: a sample’s chance of detecting the species is 40.2% at average effort, 7.6% at the lowest effort in the survey and 87.9% at the highest.
+The four numbers are on the logit scale. The habitat slope, `psi_environment`, is positive, so the species is more likely to occupy sites with high values of `environment`. The effort slope, `p_effort`, is positive: a sample’s chance of detecting the species is 37.3% at average effort, 0.6% at the lowest effort in the survey and 99.0% at the highest.
 
 Now we repeat the conditional calculation for each all-negative site, with that site’s own numbers. The chance that every sample misses a species that is present is the product of `1 - p` over the site’s samples. A site whose samples were all taken with little effort therefore has a high chance of missing it. The conditional probability then has the same form as before: `psi * miss / (psi * miss + 1 - psi)`.
 
 ``` r
-missed_by_site <- history_cov |>
+missed_by_site <- one_stage |>
   mutate(
     psi = plogis(coefficients[["psi_intercept"]] + coefficients[["psi_environment"]] * environment),
     p = plogis(coefficients[["p_intercept"]] + coefficients[["p_effort"]] * effort)
@@ -275,19 +313,19 @@ head(missed_by_site, n_shown)
 
     #> # A tibble: 10 × 7
     #>     Site environment mean_effort   psi  miss occupied conditional
-    #>    <dbl>       <dbl>       <dbl> <dbl> <dbl>    <int>       <dbl>
-    #>  1    87      -1.31       -1.16  0.851 0.481        1       0.733
-    #>  2    61      -1.45       -0.872 0.867 0.352        1       0.696
-    #>  3    85      -1.10       -0.698 0.824 0.336        1       0.611
-    #>  4    19      -1.28       -0.247 0.847 0.262        0       0.592
-    #>  5    51      -0.732      -0.718 0.766 0.306        0       0.501
-    #>  6    71      -0.935      -0.243 0.799 0.238        0       0.486
-    #>  7    31      -0.193      -1.04  0.661 0.451        1       0.468
-    #>  8    98      -1.33        0.222 0.853 0.146        1       0.458
-    #>  9    56      -0.329      -0.460 0.690 0.303        1       0.403
-    #> 10    57      -0.374      -0.476 0.699 0.276        1       0.391
+    #>    <int>       <dbl>       <dbl> <dbl> <dbl>    <int>       <dbl>
+    #>  1    97      2.33        -0.515 0.925 0.390        1       0.829
+    #>  2    55      1.97        -0.812 0.891 0.374        1       0.754
+    #>  3     3      0.891       -1.22  0.703 0.714        1       0.629
+    #>  4    23      1.31        -0.399 0.793 0.335        1       0.562
+    #>  5    30      1.24        -0.104 0.780 0.263        0       0.482
+    #>  6    49      0.724       -0.515 0.662 0.425        0       0.454
+    #>  7    80     -0.0517      -1.33  0.445 0.809        1       0.393
+    #>  8    60      1.35        -0.102 0.800 0.158        0       0.387
+    #>  9    42      0.182       -1.08  0.512 0.554        1       0.367
+    #> 10    31      0.153       -0.630 0.504 0.494        0       0.334
 
-Each row is one all-negative site, ranked by its conditional probability of occupancy. `environment` is the site’s scaled habitat value and `mean_effort` the mean scaled effort of its samples. `psi` is the site’s probability of occupancy from its habitat, `miss` is the chance that all its samples miss a species that is present, and `occupied` is the simulation’s answer. Read the top rows from left to right. Suitable habitat raises `psi`, low collection effort raises `miss`, and the sites where both are high are where the species most probably hides. At the top site, site 87, the habitat gives a probability of occupancy of 85.1%, and the chance that its samples would all miss the species is 48.1%. Together they give 73.3%.
+Each row is one all-negative site, ranked by its conditional probability of occupancy. `environment` is the site’s scaled habitat value and `mean_effort` the mean scaled effort of its samples. `psi` is the site’s probability of occupancy from its habitat, `miss` is the chance that all its samples miss a species that is present, and `occupied` is the simulation’s answer. Read the top rows from left to right. Suitable habitat raises `psi`, low collection effort raises `miss`, and the sites where both are high are where the species most probably hides. At the top site, site 97, the habitat gives a probability of occupancy of 92.5%, and the chance that its samples would all miss the species is 39.0%. Together they give 82.9%.
 
 ``` r
 missed_by_site |>
@@ -304,10 +342,10 @@ missed_by_site |>
     #> # A tibble: 2 × 4
     #>   group       sites expected_occupied actually_occupied
     #>   <chr>       <int>             <dbl>             <int>
-    #> 1 most likely    10               5.3                 7
-    #> 2 the others     42               6.7                 3
+    #> 1 most likely    10               5.2                 6
+    #> 2 the others     52               5.4                 6
 
-The simulation’s `occupied` column confirms the ranking. Of the 10 all-negative sites the model ranks as most likely to be occupied, 7 were occupied. Of the other 42, only 3 were. The `expected_occupied` column adds up the conditional probabilities in each group. Across all the all-negative sites the model expected 12 to be occupied, against 10 that were. The model without covariates gave every one of these sites the same 26.4%. Habitat and effort cannot say for certain which sites are occupied, because the habitat covariate explains only part of where OTU_3 occurs. They do say where to look. On your own survey, this is the reason to record collection conditions for every sample: without them, a miss in a poor sample looks the same as a miss in a good one.
+The simulation’s `occupied` column confirms the ranking. Of the 10 all-negative sites the model ranks as most likely to be occupied, 6 were occupied. Of the other 52, only 6 were. The `expected_occupied` column adds up the conditional probabilities in each group. Across all the all-negative sites the model expected 10.6 to be occupied, against 12 that were. The model without covariates gave every one of these sites the same 11.7%. Habitat and effort cannot say for certain which sites are occupied, because even where the habitat suits the species, whether it is there is still chance: the simulation drew `z` with `rbinom()`. They do say where to look. On your own survey, this is the reason to record collection conditions for every sample: without them, a miss in a poor sample looks the same as a miss in a good one.
 
 These are the two covariate groups that `runOccJSDM()` takes: `occCovariates` for occupancy, which the package calls `psi`, and `collCovariates` for collection, which it calls `theta`.
 
@@ -333,44 +371,35 @@ ggplot(replicate_design, aes(samples, chance_of_missing)) +
 
 ![](occJSDM-lesson-1_files/figure-gfm/replicate-design-1.png)<!-- -->
 
-Each point is the chance that a site occupied by OTU_3 produces no detections, for a given number of samples. One sample misses the species 60.6% of the time. This survey’s 3 samples miss it 22.2% of the time, which is why the previous sections found occupied sites among the all-negative ones. Reaching a 5% chance of missing would take 6 samples per site.
+Each point is the chance that a site occupied by the species produces no detections, for a given number of samples. One sample misses the species 54.3% of the time. This survey’s 3 samples miss it 16.0% of the time, which is why the previous sections found occupied sites among the all-negative ones. Reaching a 5% chance of missing would take 5 samples per site.
 
 The number of replicates is a design decision, and the detection probability sets it. A pilot survey that estimates `p` for the species you care most about tells you how many samples you need; a species that is harder to detect needs more. The covariate section suggests a second lever: raising the effort per sample raises `p`, and a higher `p` needs fewer samples.
 
-The package fits this one-stage occupancy model too. It does so when `info` has repeated rows for each site but no `Sample` column, so that each row is one sample with one detection record. The chunk below builds that input from the same true states for all ten species, and it is not run when knitting. `pivot_wider()` turns the one-row-per-species table into one column per species, and the covariates are joined onto the same rows, so `info` and `OTU` line up row for row. The records are already 0 or 1, so the default `threshold` of one read leaves them unchanged. `n_factors = 2` asks for two hidden site factors, which the second half of this lesson explains; the package’s default is none.
+The package fits this one-stage occupancy model too. It does so when `info` has repeated rows for each site but no `Sample` column, so that each row is one sample with one detection record. The chunk below builds that input from our simulated survey, and it is not run when knitting. `info` holds the site and the covariates, and `OTU` holds the detection records as a matrix with one column per species, here just one, so the two line up row for row. The records are already 0 or 1, so the default `threshold` of one read leaves them unchanged.
 
 ``` r
 library(occJSDM)
 
-one_stage_survey <- truth_samples |>
-  mutate(detected = as.integer(z == 1 & w == 1)) |>
-  select(species, Site, Sample, detected) |>
-  pivot_wider(names_from = species, values_from = detected) |>
-  left_join(distinct(survey_info, Site, Sample, X_psi.EnvCov.1, X_psi.EnvCov.2, X_theta),
-            by = c("Site", "Sample")) |>
-  arrange(Site, Sample)
-
 one_stage_data <- list(
-  info = one_stage_survey |>
-    select(Site, X_psi.EnvCov.1, X_psi.EnvCov.2, X_theta) |>
+  info = one_stage |>
+    select(Site, environment, effort) |>
     as.data.frame(),
-  OTU = one_stage_survey |>
-    select(starts_with("OTU_")) |>
+  OTU = one_stage |>
+    select(species = detected) |>
     as.matrix()
 )
 
 fit_one_stage <- runOccJSDM(
   data = one_stage_data,
-  occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
-  collCovariates = "X_theta",
-  listParams = list(n_factors = 2),
+  occCovariates = "environment",
+  collCovariates = "effort",
   spatCovariates = NULL,
   MCMCparams = list(nchain = 2, nburn = 2000, niter = 2000, nthin = 1)
 )
 # occJSDM prints "occJSDM has inferred occupancy data" for this shape.
 ```
 
-The message confirms that `runOccJSDM()` inferred the one-stage model. It is the hand calculation’s model extended by the second habitat covariate: its occupancy part uses both `X_psi.EnvCov.1` and `X_psi.EnvCov.2`, as the advice above recommends, where the hand calculation used only the first. Its collection probability, `theta`, is the per-sample detection probability that the hand calculation called `p`, and it depends on `X_theta` as our `p` depended on effort. The package fits all ten species together, with the hidden site factors that the second half of this lesson describes. It also estimates a rate of field-stage false positives, with a prior that expects the rate to be small, as Lesson 2 explains. This table has none, so the hand calculation leaves that rate out. The chain settings are short, for a quick look; check that the chains agree before reading the results, as Lesson 2 shows.
+The message confirms that `runOccJSDM()` inferred the one-stage model. It is the hand calculation’s model with covariates. Its collection probability, `theta`, is the per-sample detection probability that the hand calculation called `p`, and it depends on `effort` as our `p` did. Given many species, the package fits them all together, with the hidden site factors that the second half of this lesson describes. It also estimates a rate of field-stage false positives, with a prior that expects the rate to be small, as Lesson 2 explains. Our survey has none, so the hand calculation leaves that rate out. The chain settings are short, for a quick look; check that the chains agree before reading the results, as Lesson 2 shows.
 
 False positives are excluded from this half of the lesson by construction. They arrive in Lesson 2 with the second stage, PCR detection in the laboratory, which brings laboratory false positives as well as field-stage ones. There, the same replication logic protects site occupancy against contamination at collection.
 
@@ -416,7 +445,7 @@ round(svd(suitability)$d, 3)
 
 Each species has a score on each hidden gradient: species_A is a wet-ground specialist, species_E a shade specialist and species_C sits between them. Each site has a score on the same gradients. A cell of `suitability` is the site’s scores multiplied by the species’ scores and added up, so it is high where the two line up. Take site_3, at 1 on both gradients, and species_C, at 0.6 on both: their cell is 1 times 0.6 plus 1 times 0.6, which is 1.2. The wet site with no shade, site_1, scores 1.5 for species_A and 0 for species_E.
 
-The table has 30 numbers, but the second printout shows that only 2 of its singular values are not zero. The number of singular values that are not zero is the number of independent patterns in a table, so every column here is a mixture of the same 2 patterns. The two small tables hold 22 numbers and reproduce all 30. In this lesson’s survey, 100 sites by 10 species is 1000 cells, while two hidden factors need 220 scores.
+The table has 30 numbers, but the second printout shows that only 2 of its singular values are not zero. The number of singular values that are not zero is the number of independent patterns in a table, so every column here is a mixture of the same 2 patterns. The two small tables hold 22 numbers and reproduce all 30. Lesson 2’s survey, 100 sites by 10 species, is 1,000 cells, while two hidden factors need 2 × (100 + 10) = 220 scores.
 
 A survey does not record suitability. It records presence or absence, which depends on suitability. Suppose, for the toy, that a species is present wherever its suitability exceeds 0.5.
 

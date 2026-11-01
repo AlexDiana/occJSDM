@@ -142,6 +142,19 @@ Save new general Superpowers specs to `dev/superpowers/specs/` and implementatio
 - **Check every claim against the rendered numbers.** A general claim (for example, that naive occupancy usually understates occupancy) must not contradict the lesson's own data; in Lesson 0 it overstates for both species shown.
 - **Never hard-code a number the data produce.** Use inline R, so that the text stays correct if the data change.
 
+**Rules from Doug's Lesson 1 review (31 October 2026).** His line-by-line review of Lesson 1 adds these, for every lesson:
+
+- **Do not promise what the lesson does not do.** The toy section said it would "fit a JSDM to the survey data" but only fits a stacked SDM with `lm()` and two ordinations. Lesson 2 said Lesson 1 fits no model, although it ends with a `runOccJSDM()` fit.
+- **After cutting text, search for whatever still refers to it.** Doug cut the toy correlation matrix, and the closing bullets still pointed at it. Check links from other lessons too: they target section anchors.
+- **Describe methods as they work.** `optim()` searches uphill from a starting guess; it does not calculate the likelihood "over every possible pair".
+- **Round every inline number, and use variables, not constants, inside inline R.** The text had printed "0.4774775" and "51.884 sites", and one inline expression divided by a literal 3 instead of using `samples_per_site`.
+- **Spell out the calculation when an everyday word has a stricter statistical meaning.** "The correlation between two species' loadings" reads to a statistician as a Pearson correlation, which is only ever +1 or -1 with two gradients. "Multiply their loadings gradient by gradient and add up the products" is right for every reader.
+- **Make abstract claims concrete.** "A JSDM can reason about tables you do not have" became three named cases: a site not surveyed, a site where only some species were recorded, and a repeat survey of the same sites.
+- **Use only methods the reader has already met.** Doug objected to mentioning fitted SDMs before the lesson had shown how to fit one; the fix was to fit a stacked SDM on the page.
+- **Demonstrate on realistic inputs, not on quantities only a simulation has.** Doug moved the toy ordination from the constructed leftover suitability to the observed presence/absence residuals, accepting less tidy numbers, because ordinating the leftover was "kind of cheating".
+- **Help the reader through the structure.** Bridge sections with a transition sentence, end each numbered step with a one-line summary, and give headings that say what the section is. "What you can now recognise in the other lessons" became "Where these ideas come back", with a lead-in.
+- **Keep the code tidy for the reader.** Do not print the same object twice, label every chunk, finish every code comment and do not repeat one across chunks, and colour a table (the `heat_table()` helper in Lesson 1) when the text discusses a pattern in it.
+
 ## Evidence behind the group B items, moved out of TODO
 
 `TODO.md` was trimmed on 30 July to be a to-do list rather than an investigation log. The reasoning that justified each conclusion lives here so the items themselves stay short. Do not re-investigate these.
