@@ -74,7 +74,7 @@ fit <- runOccJSDM(
 - `occCovariates`, `collCovariates` and `spatCovariates` name the columns in `info` to use for occupancy, for collection and for the spatial field.
   - The example includes the `spatCovariates` line to show how the full model is specified. The beta's spatial model is very underpowered, though, so we recommend leaving that line out of your own fits for now.
 - The optional species trait data are taken from `sampledata$traits`.
-- `n_factors` is the number of latent factors that capture associations between species.
+- `n_factors` is the number of hidden environmental covariates (statistically, latent factors) that capture associations between species.
 - `MCMCparams` sets the number of chains, the burn-in and kept iterations, and the thinning. Adding `ncores = 2` to the list runs the two chains on two cores at once; `ncores` is the total number of cores the fit may use.
 - The priors have defaults, which `listPriors` changes. `?runOccJSDM` describes every argument.
 
