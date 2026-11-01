@@ -19,7 +19,7 @@ source("lesson-links.R")
 
 occJSDM uses eDNA surveys to estimate which species occupy which sites. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). It models the species jointly: their responses to the environment, the role of their traits, and associations between species that the covariates do not explain, optionally with a spatial field, although note that the spatial field submodel requires considerable field data. It can also analyse ordinary presence/absence surveys, in which each species is recorded as present or absent at each site and the records are assumed to be free of detection error. In that case occJSDM fits only the joint species distribution model (JSDM).
 
-This quickstart takes you from raw data to every main result occJSDM produces. It shows how to format the input data, fit a two-stage eDNA model, check that the fit has converged, and then draw each result as a figure and save it as a table. It does not explain the model; the lessons do that, and the README's [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) section says what to bear in mind before relying on the estimates.
+This quickstart takes you from raw data to every main result occJSDM produces. It shows how to format the input data, fit a two-stage eDNA model, check that the fit has converged, and then draw each result as a figure and save it as a table. It does not explain the model; the lessons do that.
 
 ## The example data
 
@@ -500,10 +500,129 @@ plotCumulativeSpeciesDetections(fit, M = 6, K = 6, primer = 1, byK = FALSE)
 
 Where the intervals stop rising, extra effort adds little. Here extra PCR replicates soon stop helping, while extra field samples keep adding species for longer, so for this survey more water samples would pay off better than more PCRs.
 
+## Save the results as tables {#save-the-results-as-tables}
+
+Every result above can be saved as a table, one row per estimate, for a paper's supplement, a report or further analysis. Each is an ordinary data frame, so `write.csv()` saves it, for example:
+
+```{r write csv example, eval=FALSE}
+write.csv(occ_site, "occupancy_by_site.csv", row.names = FALSE)
+```
+
+`summarise_draws()`, defined in the detection section, gives the mean and 95% interval of a set of posterior draws, and the tables below use it throughout.
+
+### Occupancy at each site
+
+The two occupancy probabilities for every site and species, with the raw evidence beside them: how many of the site's water samples had at least one positive PCR, and how many of its PCRs were positive.
+
+```{r table site occupancy}
+positive <- OTU >= fit$infos$threshold  # PCR by species: detection or not
+site_sample <- interaction(info$Site, info$Sample, drop = TRUE)
+sample_positive <- rowsum(positive * 1, site_sample) > 0  # water sample by species
+sample_site <- info$Site[match(rownames(sample_positive), site_sample)]
+site_ids <- as.character(fit$infos$siteNames)
+samples_positive <- rowsum(sample_positive * 1, sample_site)[site_ids, species]
+samples_total <- as.vector(table(sample_site)[site_ids])
+pcrs_positive <- rowsum(positive * 1, info$Site)[site_ids, species]
+pcrs_total <- as.vector(table(info$Site)[site_ids])
+
+occ_site$positive_samples <- as.vector(samples_positive)
+occ_site$samples <- rep(samples_total, times = length(species))
+occ_site$positive_pcrs <- as.vector(pcrs_positive)
+occ_site$pcrs <- rep(pcrs_total, times = length(species))
+head(occ_site)
+```
+
+### Expected species richness
+
+```{r table richness}
+head(richness)
+```
+
+### Each species' occupancy and detection
+
+One row per species: baseline occupancy, then each detection probability and false-positive rate from the detection figure, each with its mean and 95% interval.
+
+```{r table detection profile}
+baseline_draws <- returnOccupancyRates(fit)
+baseline_table <- data.frame(species = species,
+  t(sapply(species, function(s) summarise_draws(baseline_draws[, s]))))
+names(baseline_table)[-1] <- paste0("baseline_occupancy_", names(baseline_table)[-1])
+
+detection_long$quantity <- with(detection_long, ifelse(
+  stage == "Field",
+  ifelse(rate == "true positive", "collection", "field_false_positive"),
+  paste0(ifelse(rate == "true positive", "detection_", "lab_false_positive_"),
+         sub(" ", "", primer))))
+detection_wide <- reshape(
+  detection_long[, c("species", "quantity", "mean", "lower", "upper")],
+  idvar = "species", timevar = "quantity", direction = "wide", sep = "_")
+# reshape() names columns statistic first ("mean_collection"); put the quantity first.
+names(detection_wide) <- sub("^(mean|lower|upper)_(.*)$", "\\2_\\1", names(detection_wide))
+detection_profile <- merge(baseline_table, detection_wide, by = "species", sort = FALSE)
+names(detection_profile)
+head(detection_profile[, 1:7])
+```
+
+### Environmental effects
+
+One row per species and coefficient, on the logit scale, with whether the 95% interval excludes zero:
+
+```{r table covariate effects}
+cov_effects <- expand.grid(coefficient = dimnames(B)[[2]], species = species,
+                           stringsAsFactors = FALSE)[, c("species", "coefficient")]
+cov_effects <- cbind(cov_effects, t(mapply(function(s, k) summarise_draws(B[, k, s]),
+                                           cov_effects$species, cov_effects$coefficient)))
+cov_effects$excludes_zero <- cov_effects$lower > 0 | cov_effects$upper < 0
+rownames(cov_effects) <- NULL
+head(cov_effects)
+```
+
+### Trait-by-environment effects
+
+One row per trait and covariate:
+
+```{r table trait effects}
+trait_env <- expand.grid(trait = dimnames(G)[[3]], covariate = dimnames(G)[[2]],
+                         stringsAsFactors = FALSE)
+trait_env <- cbind(trait_env, t(mapply(function(tr, k) summarise_draws(G[, k, tr]),
+                                       trait_env$trait, trait_env$covariate)))
+trait_env$excludes_zero <- trait_env$lower > 0 | trait_env$upper < 0
+rownames(trait_env) <- NULL
+trait_env
+```
+
+### Residual associations
+
+Only the species pairs whose residual correlation has a 95% interval that excludes zero, which keeps the table short however many species there are:
+
+```{r table associations}
+pairs_idx <- which(pair, arr.ind = TRUE)
+assoc_all <- data.frame(
+  species_1 = species[pairs_idx[, 1]],
+  species_2 = species[pairs_idx[, 2]],
+  median = cor_q["50%", , ][pairs_idx],
+  lower = cor_q["2.5%", , ][pairs_idx],
+  upper = cor_q["97.5%", , ][pairs_idx]
+)
+assoc_pairs <- subset(assoc_all, lower > 0 | upper < 0)
+rownames(assoc_pairs) <- NULL
+nrow(assoc_pairs)
+head(assoc_pairs[order(-abs(assoc_pairs$median)), ])
+```
+
+### Convergence
+
+The convergence table from the start of this page is itself worth reporting, at least for the flagged parameters:
+
+```{r table convergence}
+head(diagnostics[, c("param", "label1", "label2", "rhat", "ess")])
+```
+
 ## Where to go next
 
-- `?runOccJSDM` for every fitting argument, including the priors.
-- `vignette("simulateOccJSDMData", package = "occJSDM")` to simulate a survey whose truth you know.
+- `?runOccJSDM` for every fitting argument, including the priors, and the help page of each function used above.
+- [Lesson 3](https://github.com/AlexDiana/occJSDM/blob/main/vignettes/occJSDM-lesson-3.md) reads these same outputs against a simulated survey whose truth is known, to show how far each can be trusted.
+- `vignette("simulateOccJSDMData", package = "occJSDM")` to simulate a survey of your own design.
 - The [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) section of the README, before relying on the estimates.
 
 The detailed teaching lessons are first drafts only and are awaiting a full line-by-line review.

@@ -10,6 +10,11 @@
 -   `runOccJSDM()` now decides between the one- and two-stage models by looking for repeated (`Site`, `Sample`) pairs, not repeated `Sample` values. A one-stage survey whose sample IDs restart at each site (1, 2, 3 at every site) used to be fitted as two-stage. Sample IDs may restart at each site in either design.
 -   The error for `NA` observations outside the two-stage model no longer ends in a stray "FALSE", and now suggests deleting a row that is wholly missing.
 
+## Documentation
+
+-   The quickstart vignette now tours every main result: occupancy at each site, environmental and trait-by-environment effects, collection, detection and false-positive rates, residual associations and ordination, variation partitioning, expected species richness, prediction at new sites and the value of extra samples or PCRs, each also saved as a table. It no longer explains the model; the lessons do.
+-   New example data for it: `quickstartdata`, a simulated river eDNA survey modelled on Ji et al. (2025), with a categorical occupancy covariate, and `quickstartresults`, its fit without a spatial field. `sampledata` and `sampleresults` are unchanged.
+
 # occJSDM 0.2.0
 
 Third beta, released on GitHub as `v0.2.0-beta`. It adds parallel chains and a faster spatial sampler. Seeded fits give different numbers from 0.1.1.
