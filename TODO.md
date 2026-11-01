@@ -39,7 +39,7 @@ The beta ends with one more GitHub prerelease once the items in this group are d
 
 ### Needs Alex
 
-Suggested order: PR #37, then PR #36, then PR #38 (stacked on #36), then the two small items. Each item says what to do, where to look and what Doug does afterwards.
+Suggested order: PR #37, then PR #36, then PR #38 (stacked on #36), then the three small items. Each item says what to do, where to look and what Doug does afterwards.
 
 - **Review PR #37 (small):** [PR #37](https://github.com/AlexDiana/occJSDM/pull/37) makes a partial `MCMCparams` list, for example `list(nchain = 1)`, run the documented 5,000 + 5,000 instead of 1,000 + 1,000.
   - *Do:* read `resolve_mcmc_params()` and its NEWS entry, then approve. Seeded fits were checked bit-identical to main, and the full suite passes.
@@ -56,6 +56,8 @@ Suggested order: PR #37, then PR #36, then PR #38 (stacked on #36), then the two
   - *Files to look at:* the advice itself is `vignettes/occJSDM-lesson-2.Rmd` line 535 (the rendered copy is `vignettes/occJSDM-lesson-2.md` line 637). It points readers at the `listPriors` entries `a_theta0` and `b_theta0`, documented in `R/runOccJSDM.R` (the `listPriors` parameter from line 328, and the `theta0` paragraph at lines 404 to 419), which feed the Beta update in `R/mcmcfun.R` (`sample_theta0`, line 11). The evidence the lesson cites for keeping the default prior is `dev/simstudy/theta0-prior-mean/REPORT.md`.
 - **Keep or delete `thinOutput()` (low priority):** an internal helper that thins posterior draws. Nothing in the public workflow uses it, and the shipped example was refitted for beta without it. It was rewritten (it keeps posterior means, nested JSDM arrays and the scalar WAIC, and tests check that it thins iterations rather than sites or species), but the rewrite has not been reviewed, which is why it is not under *Fixed bugs*. Alex to review it or delete it.
   - *Files to look at:* `R/output.R` holds the function, `thinOutput()` at line 91 (documented from line 65), and its internal helper `thinElement()` at line 32 (documented from line 1). The tests to read alongside it are `tests/testthat/test-regression-bugs.R` lines 401 to 456 ("Fixed bugs 16"). It is internal: it has no entry in `NAMESPACE` and no page in `man/`, so deleting it means removing only the code in `R/output.R` and that test. \### Checks for Doug
+- **Name the collection intercept `beta0_theta`, to match `beta0_psi` (Doug, 1 November 2026):** occupancy keeps its intercept apart from the slopes (`beta0_psi` and `beta_psi`), but collection keeps its intercept inside `beta_theta`, as the row whose `label1` is `(Intercept)`. Readers counting parameters in `returnConvergenceDiagnostics()` find this confusing; the expanded Quickstart has to explain it.
+  - *Do:* decide whether to split it. Doing so changes output names that users see, in `returnConvergenceDiagnostics()`, `returnPosteriorDraws()` and the stored `beta_theta` output, so it needs a NEWS entry and updated tests, lessons and the Quickstart. `beta_theta` appears in `R/output.R`, `R/diagnostics.R`, `R/posterior-draws.R`, `R/mcmcfun.R`, `R/runOccJSDM.R`, `R/site-waic.R` and `R/chains.R`, and in nine test files.
 
 ## The paper: eDITH and spike-ins in occJSDM (Qin Pu, in a fork)
 
