@@ -129,7 +129,8 @@
 #'     \code{info} and one column per species (for example
 #'     \code{Mammalia_Carnivora_1}).}
 #'   \item{traits}{A species by trait matrix with row names matching
-#'     \code{colnames(OTU)} and columns \code{body_mass} (kg) and
+#'     \code{colnames(OTU)} and columns \code{log10_body_mass} (log10 of body
+#'     mass in kg) and
 #'     \code{red_listed} (1 if the species is on the IUCN Red List, else 0).}
 #' }
 #'
@@ -152,7 +153,7 @@
 #'   threshold = 1,
 #'   occCovariates = c("elevation", "hmi", "protected"),
 #'   collCovariates = c("water_volume"),
-#'   MCMCparams = list(nchain = 2, nburn = 2000, niter = 2000, nthin = 3,
+#'   MCMCparams = list(nchain = 2, nburn = 2000, niter = 2000, nthin = 2,
 #'                     ncores = 2),
 #'   summarisedLatentPresences = TRUE
 #' )

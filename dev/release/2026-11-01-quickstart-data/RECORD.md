@@ -10,23 +10,29 @@
 
 ## Runs
 
-All on the M4 MacBook Air, R 4.6.1, Accelerate BLAS, AC power, Low Power Mode off, package at `aca06cb` (clean `R/`, `src/`, `data/`), seed 20261101, 2 chains on 2 cores. Fits saved in `~/occjsdm-runs/quickstart/` (not in the repository). Flags use the Quickstart's rule, `rhat > 1.01` or `ess < 400`, over the 220 rows of `returnConvergenceDiagnostics()`.
+All on the M4 MacBook Air, R 4.6.1, Accelerate BLAS, AC power, Low Power Mode off, seed 20261101, 2 chains on 2 cores. Fits saved in `~/occjsdm-runs/quickstart/` (not in the repository). Flags use the Quickstart's rule, `rhat > 1.01` or `ess < 400`, over the 220 rows of `returnConvergenceDiagnostics()`.
 
-- 1,000 burn-in + 1,000 kept, `nthin = 1`: 0.3 minutes, 76 flagged; worst `theta0` of `Mammalia_Rodentia_2` (R-hat 1.04, ESS 106). `runOccJSDM()` warned that `sigmah` has R-hat above 1.1.
-- 10,000 + 10,000, `nthin = 1`: 4.1 minutes, 0 flagged, no warnings. Compresses to about 81 MB, too large to ship.
-- 20,000 + 20,000, `nthin = 1`: 8 minutes, 1 flagged (`beta0_psi` of `Aves_Passeriformes_2`, R-hat 1.01, ESS 923), no warnings.
-- 2,000 + 2,000, `nthin = 2`: 1.2 minutes, 9 flagged, no warnings.
-- **2,000 + 2,000, `nthin = 3`: 1.4 minutes, 3 flagged, no warnings. Shipped.** 16.3 MB.
+First version of the data (body mass in kg, Red List effect on protection 1.4, hidden-covariate loadings SD 0.7):
+
+- 1,000 burn-in + 1,000 kept, `nthin = 1`: 0.3 minutes, 76 flagged. `runOccJSDM()` warned that `sigmah` has R-hat above 1.1.
+- 10,000 + 10,000, `nthin = 1`: 4.1 minutes, 0 flagged. Compresses to about 81 MB, too large to ship.
+- 20,000 + 20,000, `nthin = 1`: 8 minutes, 1 flagged.
+- 2,000 + 2,000, `nthin = 2`: 1.2 minutes, 9 flagged; `nthin = 3`: 1.4 minutes, 3 flagged.
+
+Three changes to the simulation followed, each to make a figure tell its story; each was refitted at 2,000 + 2,000:
+
+- Body mass stored as log10 (raw kg, from 0.01 to 225, let two ungulates dominate the standardised trait). `nthin = 3`: 7 flagged.
+- Red List effect on protection raised from 1.4 to 2.0 (its trait-by-environment interval had crossed zero). `nthin = 3`: 6 flagged.
+- Hidden-covariate loadings SD raised from 0.7 to 1.5 (no species pair was clearly associated). `nthin = 3`: 1 flagged; `nthin = 1`: 43 flagged; **`nthin = 2`: 1.2 minutes, 4 flagged, no warnings. Shipped**, 16.5 MB.
 
 ## The shipped fit's flags
 
-All three involve the two species planted with field contamination (`theta0 = 0.12`, against 0.01 for the rest), which also have low true occupancy (0.15 and 0.28): with few occupied sites, a detection is hard to attribute to presence or to contamination. All have R-hat of about 1.00; ESS is what fails.
+All four fail on R-hat (1.01 to 1.04); every ESS is above 400.
 
-- `beta0_psi` (baseline occupancy) of `Aves_Passeriformes_2`, ESS 280.
-- `theta0` (field false-positive rate) of `Mammalia_Rodentia_2`, ESS 384.
-- `beta_theta` intercept (collection) of `Mammalia_Rodentia_2`, ESS 380.
+- `theta0` (field false-positive rate) of `Mammalia_Artiodactyla_2`, R-hat 1.04. The Quickstart features it: one chain makes more and higher excursions than the other. The species is estimated to occupy about 80 of the 100 sites, leaving few unoccupied sites to inform its field false-positive rate.
+- `beta0_psi` of `Mammalia_Carnivora_1` and of `Mammalia_Eulipotyphla_2`, and `beta_psi` for `hmi` of `Mammalia_Artiodactyla_2`, R-hat 1.01.
 
-The Quickstart features `theta0` of `Mammalia_Rodentia_2`. A longer run (10,000 + 10,000) cleared every flag.
+In the shipped fit, the trait-by-environment coefficients are -0.55 (95% interval -0.91 to -0.22) for log10 body mass on `hmi` and 0.81 (0.25 to 1.38) for Red List status on protection, and 76 of the 190 species pairs have residual correlations whose interval excludes zero.
 
 ## Names in the fit
 

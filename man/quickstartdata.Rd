@@ -29,7 +29,8 @@ A list with three elements, in the format expected by
     \code{info} and one column per species (for example
     \code{Mammalia_Carnivora_1}).}
   \item{traits}{A species by trait matrix with row names matching
-    \code{colnames(OTU)} and columns \code{body_mass} (kg) and
+    \code{colnames(OTU)} and columns \code{log10_body_mass} (log10 of body
+    mass in kg) and
     \code{red_listed} (1 if the species is on the IUCN Red List, else 0).}
 }
 }

@@ -30,7 +30,7 @@ speciesNames <- unlist(lapply(names(groups), function(g) paste0(g, "_", seq_len(
 S <- length(speciesNames)
 class <- sub("_.*", "", speciesNames)
 
-# Traits: body mass (kg) by group, and IUCN Red List status (0/1), more
+# Traits: body mass (kg, stored as log10) by group, and IUCN Red List status (0/1), more
 # likely for large mammals.
 log_mass_mean <- c(Mammalia_Carnivora = log(8), Mammalia_Artiodactyla = log(60),
                    Mammalia_Rodentia = log(0.3), Mammalia_Eulipotyphla = log(0.02),
@@ -39,7 +39,8 @@ log_mass_mean <- c(Mammalia_Carnivora = log(8), Mammalia_Artiodactyla = log(60),
 group_of <- sub("_[0-9]+$", "", speciesNames)
 body_mass <- signif(exp(rnorm(S, log_mass_mean[group_of], 0.5)), 3)
 red_listed <- c(1, 0, 1,  1, 1, 0,  0, 0, 0,  0, 0,  0, 0, 1,  1, 0, 0,  0, 0, 0)
-traits <- cbind(body_mass = body_mass, red_listed = red_listed)
+# Body mass is supplied on the log10 scale, as is usual for so skewed a trait.
+traits <- cbind(log10_body_mass = round(log10(body_mass), 3), red_listed = red_listed)
 rownames(traits) <- speciesNames
 
 # Sites: elevation, Human Modification Index and protection status. Protected
@@ -62,11 +63,11 @@ B <- rbind(
   # with human modification.
   hmi = -0.4 - 0.7 * z_mass + rnorm(S, 0, 0.25),
   # Planted trait-by-protected effect: Red Listed species favour protected sites.
-  protected = 0.1 + 1.4 * red_listed + rnorm(S, 0, 0.3)
+  protected = 0.1 + 2.0 * red_listed + rnorm(S, 0, 0.3)
 )
 d <- 2
 U <- matrix(rnorm(n * d), n, d)
-L <- matrix(rnorm(d * S, 0, 0.7), d, S)
+L <- matrix(rnorm(d * S, 0, 1.5), d, S)
 psi <- logistic(matrix(B0, n, S, byrow = TRUE) + X %*% B + U %*% L)
 z <- matrix(rbinom(n * S, 1, psi), n, S)
 

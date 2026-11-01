@@ -15,7 +15,7 @@ test_that("quickstartdata has the agreed survey design", {
   expect_true(ncol(d$OTU) >= 18L && ncol(d$OTU) <= 22L)
   expect_true(all(grepl("^[A-Z][a-z]+_[A-Z][a-z]+_[0-9]+$", colnames(d$OTU))))
   expect_identical(rownames(d$traits), colnames(d$OTU))
-  expect_identical(colnames(d$traits), c("body_mass", "red_listed"))
+  expect_identical(colnames(d$traits), c("log10_body_mass", "red_listed"))
   expect_true(all(d$traits[, "red_listed"] %in% c(0, 1)))
   expect_true(any(d$traits[, "red_listed"] == 1) && any(d$traits[, "red_listed"] == 0))
 })
@@ -57,4 +57,19 @@ test_that("every function the Quickstart calls runs on the slimmed quickstartres
   )
   # ggplot2 4 plots are S7 objects, so expect_s3_class() does not apply.
   for (p in plots) expect_true(inherits(p, "ggplot"))
+})
+
+test_that("new-site predictions keep the factor's levels and show the planted protected effect", {
+  f <- quickstartresults
+  new_sites <- data.frame(
+    elevation = rep(c(1000, 3000), 2),
+    hmi = 0.2,
+    protected = factor(rep(c("not_protected", "protected"), each = 2),
+                       levels = levels(quickstartdata$info$protected))
+  )
+  prediction <- predictNewSites(f, X_psi = new_sites, useBiotic = FALSE, verbose = FALSE)
+  red <- which(quickstartdata$traits[f$infos$speciesNames, "red_listed"] == 1)
+  # Median occupancy: protected (rows 3, 4) above not protected (rows 1, 2) for Red Listed species.
+  med <- prediction[2, , red, drop = FALSE]
+  expect_gt(mean(med[1, 3:4, ] - med[1, 1:2, ]), 0)
 })

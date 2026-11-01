@@ -21,7 +21,7 @@ runOccJSDM(
   threshold = 1,
   occCovariates = c("elevation", "hmi", "protected"),
   collCovariates = c("water_volume"),
-  MCMCparams = list(nchain = 2, nburn = 2000, niter = 2000, nthin = 3,
+  MCMCparams = list(nchain = 2, nburn = 2000, niter = 2000, nthin = 2,
                     ncores = 2),
   summarisedLatentPresences = TRUE
 )
