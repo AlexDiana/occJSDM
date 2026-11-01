@@ -19,3 +19,42 @@ test_that("quickstartdata has the agreed survey design", {
   expect_true(all(d$traits[, "red_listed"] %in% c(0, 1)))
   expect_true(any(d$traits[, "red_listed"] == 1) && any(d$traits[, "red_listed"] == 0))
 })
+
+test_that("quickstartresults is the agreed non-spatial fit with a handful of flags", {
+  f <- quickstartresults
+  expect_identical(f$infos$model, "two_stage")
+  expect_equal(f$infos$n, 100L)
+  expect_equal(f$infos$S, ncol(quickstartdata$OTU))
+  expect_equal(f$infos$n_factors, 2)
+  rda <- test_path("../../data/quickstartresults.rda")  # absent under R CMD check
+  if (file.exists(rda)) expect_lt(file.size(rda), 25e6)
+  diag <- returnConvergenceDiagnostics(f)
+  n_flag <- sum(diag$rhat > 1.01 | diag$ess < 400)
+  expect_gte(n_flag, 2L)
+  expect_lte(n_flag, 10L)
+})
+
+test_that("every function the Quickstart calls runs on the slimmed quickstartresults", {
+  f <- quickstartresults
+  expect_no_error({
+    computePredictiveOccupancyProbs(f); computeConditionalOccupancyProbs(f)
+    returnOccupancyRates(f); returnOccupancyCovariates(f); returnTraitsCoeff(f)
+    returnCollectionCovariates(f); returnResidualCorrelationMatrix(f)
+    returnOrdinationScores(f); returnVariationPartitioning(f)
+    returnCovariateEffect(f, covName = "hmi")
+    returnPosteriorDraws(f, parameter = "theta0")
+  })
+  plots <- list(
+    plotOccupancyRates(f), plotDetectionRates(f), plotCollectionRates(f),
+    plotStage1FPRates(f), plotStage2FPRates(f), plotFPTPStage2Rates(f),
+    plotOccupancyCovariates(f, covName = "hmi"),
+    plotOccupancyGradient(f, covName = "elevation", idx_species = 1:2),
+    plotCovariateEffect(f, covNames = "hmi", idx_species = 1:2)[[1]],  # a list, one plot per covariate
+    plotCollectionCovariates(f, covName = "water_volume"),
+    plotTraitsCoefficients(f, covName = "hmi"),
+    plotResidualCorrelationMatrix(f), plotBiplot(f), plotOrdinationScores(f),
+    plotCumulativeSpeciesDetections(f, M = 6, K = 6, primer = 1)
+  )
+  # ggplot2 4 plots are S7 objects, so expect_s3_class() does not apply.
+  for (p in plots) expect_true(inherits(p, "ggplot"))
+})
