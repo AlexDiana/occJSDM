@@ -25,6 +25,8 @@ Three changes to the simulation followed, each to make a figure tell its story; 
 - Red List effect on protection raised from 1.4 to 2.0 (its trait-by-environment interval had crossed zero). `nthin = 3`: 6 flagged.
 - Hidden-covariate loadings SD raised from 0.7 to 1.5 (no species pair was clearly associated). `nthin = 3`: 1 flagged; `nthin = 1`: 43 flagged; **`nthin = 2`: 1.2 minutes, 4 flagged, no warnings. Shipped**, 16.5 MB.
 
+On the shipped data, 10,000 + 10,000 with `nthin = 1` took 3.4 minutes and flagged nothing, with no warnings; the Quickstart says so.
+
 ## The shipped fit's flags
 
 All four fail on R-hat (1.01 to 1.04); every ESS is above 400.
