@@ -11,154 +11,182 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, collapse = FALSE, comment = "#>")
+knitr::opts_chunk$set(echo = TRUE, collapse = FALSE, comment = "#>",
+                      fig.width = 7, fig.height = 4)
 
 source("lesson-links.R")
 ```
 
 occJSDM uses eDNA surveys to estimate which species occupy which sites. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). It models the species jointly: their responses to the environment, the role of their traits, and associations between species that the covariates do not explain, optionally with a spatial field, although note that the spatial field submodel requires considerable field data. It can also analyse ordinary presence/absence surveys, in which each species is recorded as present or absent at each site and the records are assumed to be free of detection error. In that case occJSDM fits only the joint species distribution model (JSDM).
 
-This quickstart shows how the input data must be structured, makes a fitting call and takes a first look at the output, using the example data shipped with the package.
+This quickstart takes you from raw data to every main result occJSDM produces. It shows how to format the input data, fit a two-stage eDNA model, check that the fit has converged, and then draw each result as a figure and save it as a table. It does not explain the model; the lessons do that, and the README's [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) section says what to bear in mind before relying on the estimates.
 
 ## The example data
-
-`sampledata` is a simulated two-stage eDNA survey of 10 species at 100 sites, stored as an R list. Each site has `M = 3` field samples, and each sample was tested with `P = 3` primers, with `K = 2` PCR replicates per sample-primer combination.
 
 ```{r data}
 library(occJSDM)
 
-sampledata <- sampledata # this loads the package's sampledata into your environment
-str(sampledata, max.level = 1)
-head(sampledata$info)
-head(sampledata$OTU)
-head(sampledata$traits)
+quickstartdata <- quickstartdata # loads the package's example data into your environment
+info <- quickstartdata$info
+OTU <- quickstartdata$OTU
+traits <- quickstartdata$traits
+
+n_sites <- length(unique(info$Site))
+n_species <- ncol(OTU)
+samples_per_site <- nrow(unique(info[c("Site", "Sample")])) / n_sites
+n_primers <- length(unique(info$Primer))
+pcrs_per_primer <- nrow(info) / (n_sites * samples_per_site * n_primers)
 ```
 
-It has three parts:
+`quickstartdata` is a simulated eDNA survey of `r n_species` vertebrate species at `r n_sites` river sites. It is modelled on the aquatic eDNA survey of the Gaoligongshan mountains in China by [Ji et al. (2025)](https://doi.org/10.1111/ele.70302), but the species and their results are made up: each species is named by its class and order with a running number, such as `Mammalia_Carnivora_1`. At each site, `r samples_per_site` water samples were filtered, and the DNA from each sample was amplified with `r n_primers` primers, with `r pcrs_per_primer` PCR replicates per primer. That makes `r nrow(info) / n_sites` PCRs per site.
 
-- `info` has one row per PCR reaction: the `Site`, the field `Sample` the DNA came from, the `Primer`, and the covariates. Columns beginning `X_psi.` are occupancy covariates, columns beginning `X_theta.` are collection covariates, and `Xs.1` and `Xs.2` are the site coordinates.
-- Look at the `info` dataframe in detail. How many rows are there per site? Can you see why the number of PCRs per sample is `K = 2`?
+The data are an R list with three parts, which is the format `runOccJSDM()` expects for your own data too.
 
-```{r, eval=FALSE}
-View(sampledata$info)
+`info` has one row per PCR:
+
+```{r info}
+head(info, 8)
 ```
 
-- `OTU` has one column per species and one row for each row of `info`, holding that species' read count in that reaction. Read counts can be supplied as they are, without converting the OTU table: `runOccJSDM()` converts each count to a binary (detection or non-detection), and a PCR reaction with at least `threshold` reads counts as a detection.
+- `Site`, `Sample` and `Primer` say which site, which water sample and which primer each PCR belongs to. The PCR replicates of a sample and primer are simply repeated rows.
+- `elevation` (metres), `hmi` (the Human Modification Index, from 0 for untouched to 1 for fully modified land) and `protected` describe the site, so they repeat on every row of that site. They will be the occupancy covariates.
+- `protected` says whether the stream rises inside a protected area. It is an R factor, with `not_protected` as its first level, so occJSDM reports the effect of `protected` compared with `not_protected`. To make such a column from your own data, use `factor(x, levels = c("not_protected", "protected"))`, putting the comparison level first.
+- `water_volume` is the litres of water filtered for each sample, so it repeats on every row of that sample. It will be the collection covariate, which affects the chance that a sample captures a species' DNA.
 
-- `traits` has one row per species.
+To browse the whole table:
+
+```{r view info, eval=FALSE}
+View(info)
+```
+
+`OTU` has one column per species and one row for each row of `info`, holding that species' read count in that PCR:
+
+```{r otu}
+OTU[1:8, 1:4]
+```
+
+You can supply your read counts as they are, without converting your OTU table first. `runOccJSDM()` converts each count to a detection or a non-detection: a PCR with at least `threshold` reads counts as a detection. occJSDM never uses the read counts themselves, only these detections.
+
+> IMPORTANT
+>
+> Do not filter low-read cells out of your OTU table (for example, by setting cells with 2 or fewer reads to 0). occJSDM needs to see those weak detections to estimate false positives.
+
+`traits` has one row per species, with the row names matching the column names of `OTU`:
+
+```{r traits}
+head(traits)
+```
+
+- `body_mass` is in kilograms.
+- `red_listed` is 1 if the species is on the IUCN Red List and 0 if not. A yes/no trait is supplied as 0/1 like this.
 
 `runOccJSDM()` uses the structure of `info` to choose which model to fit. Here each sample has several rows, one per primer and PCR replicate, so it fits the two-stage occupancy model. If instead `info` had only one row per site, with no sample or PCR replicates, `runOccJSDM()` would skip the detection stages and fit a JSDM to the observed presence/absence.
 
 ## Fit the model
 
-You can either load the precomputed model results from `sampleresults` or fit the model live. Fitting live will take up to several minutes depending on your machine but has the advantage of testing whether your machine can run occJSDM. How long it takes depends mostly on the BLAS library your R uses: the README's *Speed: use an optimised BLAS* section shows how to check it and, on a Mac, how to switch to Apple's Accelerate, which made this fit about 1.5 times faster and spatial fits far faster; the BLAS is also part of the "same software" in the next sentence. On the other hand, using the same seed number only produces *exactly* the same results as in `sampleresults` if run on the same machine and software (M4 MacBook Air, macOS 27.0.1, R 4.6.1) and with the same model arguments (priors, number of chains). Running on a different platform could result in small numerical differences.
+You can either fit the model live or load the precomputed results, `quickstartresults`. Fitting live takes about a minute and a half on an M4 MacBook Air, and has the advantage of testing whether your machine can run occJSDM. How long it takes depends mostly on the BLAS library your R uses: the README's *Speed: use an optimised BLAS* section shows how to check it and, on a Mac, how to switch to Apple's Accelerate. Using the same seed only reproduces `quickstartresults` *exactly* on the same machine and software (M4 MacBook Air, R 4.6.1, Accelerate BLAS) with the same arguments; elsewhere, expect small numerical differences.
 
-Choose this option
+To fit live:
 
 ```{r fit live, eval=FALSE}
-set.seed(20261007)
+set.seed(20261101)
 
 fit <- runOccJSDM(
-  data = sampledata,
+  data = quickstartdata,
   listParams = list(n_factors = 2),
   threshold = 1,
-  occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
-  collCovariates = c("X_theta.1", "X_theta.2"),
-  spatCovariates = c("Xs.1", "Xs.2"),
-  MCMCparams = list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1),
+  occCovariates = c("elevation", "hmi", "protected"),
+  collCovariates = c("water_volume"),
+  MCMCparams = list(nchain = 2, nburn = 2000, niter = 2000,
+                    nthin = 3, ncores = 2),
   summarisedLatentPresences = TRUE
 )
 ```
 
-- `threshold`: a reaction with at least this many reads counts as a detection. This is the recommended default.
-- `occCovariates`, `collCovariates` and `spatCovariates` name the columns in `info` to use for occupancy, for collection and for the spatial field.
-  - The example includes the `spatCovariates` line to show how the full model is specified. The beta's spatial model is very underpowered, though, so we recommend leaving that line out of your own fits for now.
-- The optional species trait data are taken from `sampledata$traits`.
-- `n_factors` is the number of latent factors that capture associations between species.
-- `MCMCparams` sets the number of chains, the burn-in and kept iterations, and the thinning. Adding `ncores = 2` to the list runs the two chains on two cores at once; `ncores` is the total number of cores the fit may use.
+- `threshold`: a PCR with at least this many reads counts as a detection. We recommend leaving it at 1.
+- `occCovariates` and `collCovariates` name the columns of `info` to use for occupancy and for collection. The traits are taken from `quickstartdata$traits` automatically.
+- `n_factors` is the number of hidden environmental covariates (statistically, latent factors) that capture associations between species that the measured covariates do not explain.
+- `MCMCparams` sets the number of chains (`nchain`), the burn-in iterations discarded at the start of each chain (`nburn`), the number of draws kept per chain (`niter`), and the thinning (`nthin = 3` keeps every third iteration, so each chain runs `nburn + niter * nthin` iterations). `ncores = 2` runs the two chains on two cores at once.
+- `summarisedLatentPresences = TRUE` stores only the posterior mean of each site's occupancy state, which keeps the fit small.
+- The model has a spatial field, which `spatCovariates` would switch on by naming the site coordinates. This example leaves it out, and we recommend you do too for now, because it needs far more sites than most surveys have.
 - The priors have defaults, which `listPriors` changes. `?runOccJSDM` describes every argument.
 
-Or choose this option. The rest of the lesson uses these precomputed results.
+Or load the precomputed results, which the rest of this page uses:
 
 ```{r precomputed results}
-fit <- sampleresults
+fit <- quickstartresults
 ```
 
 ## Check that the chains agree
 
-Before reading any estimate, check that the chains have converged on the same answer.
+Before reading any estimate, check that the chains have converged on the same answer. `returnConvergenceDiagnostics()` gives one row per parameter:
 
 ```{r diagnostics}
 diagnostics <- returnConvergenceDiagnostics(fit)
+head(diagnostics[, c("param", "label1", "label2", "rhat", "ess")])
 summary(diagnostics$rhat)
 summary(diagnostics$ess)
-head(diagnostics[order(-diagnostics$rhat), c("param", "label1", "label2", "rhat", "ess")])
 ```
 
-`summary()` is base R's own function, and for a numeric column it reports the minimum, the quartiles, the mean and the maximum.
+- `param` names the parameter, and `label1` and `label2` say which species, covariate or primer it belongs to.
+- `rhat` compares the chains with each other: values close to 1 mean they agree.
+- `ess` is the effective sample size, the number of independent draws the chains are worth for that parameter. Draws that follow each other closely are worth less than their number.
+- `summary()` is base R's own function, and for a numeric column it reports the minimum, the quartiles, the mean and the maximum.
 
-To browse the whole table, sorted with the worst `rhat` first:
+The table covers the baseline occupancy of each species (`beta0_psi`), the occupancy covariate effects (`beta_psi`), the collection coefficients (`beta_theta`), the PCR detection and false-positive rates of each primer (`p` and `q`) and the field false-positive rates (`theta0`).
 
-```{r view diagnostics, eval=FALSE}
-View(diagnostics[order(-diagnostics$rhat), 
-                 c("param", "label1", "label2", "rhat", "ess")])
-```
-
-`rhat` compares the chains with each other: values close to 1 mean they agree, and larger values call for longer runs or a closer look at the parameters concerned.
-
-`ess` is the effective number of independent draws behind each estimate. The table covers the occupancy and detection coefficients.
-
-A common rule of thumb flags any coefficient with `rhat > 1.01` or `ess < 400`:
+A common rule of thumb flags any parameter with `rhat > 1.01` or `ess < 400`:
 
 ```{r flagged}
-nonconvergedcoefs <- diagnostics[order(-diagnostics$rhat), 
-                          c("param", "label1", "label2", "rhat", "ess")] |>
-          dplyr::filter(rhat > 1.01 | ess < 400)
-nrow(nonconvergedcoefs)
-head(nonconvergedcoefs)
+flagged <- diagnostics[diagnostics$rhat > 1.01 | diagnostics$ess < 400,
+                       c("param", "label1", "label2", "rhat", "ess")]
+flagged
 ```
 
-In this quickstart example, 31 of the 130 reported coefficients are flagged, which means that they are deemed not to have converged (i.e. are not reliable). The largest `rhat` is about 1.10, for the field false-positive rate (`theta0`) of `OTU_3`.
-
-`plotTraceplot()` shows the chains themselves. Here are the `theta0` draws for `OTU_3` and, for comparison, `OTU_1`, whose `rhat` is 1.006:
-
-```{r traceplot, fig.width=7, fig.height=3}
+```{r featured flag, include=FALSE}
+featured_species <- "Mammalia_Rodentia_2"
+theta0_rows <- diagnostics[diagnostics$param == "theta0", ]
+featured_ess <- theta0_rows$ess[theta0_rows$label1 == featured_species]
+healthy_species <- theta0_rows$label1[which.max(theta0_rows$ess)]
+healthy_ess <- max(theta0_rows$ess)
+n_rhat_flags <- sum(flagged$rhat > 1.01)
+n_ess_flags <- sum(flagged$ess < 400)
 theta0_draws <- fit$results_output$theta0_output
-plotTraceplot(theta0_draws[c(3, 1), , , drop = FALSE],
+species_pair <- match(c(featured_species, healthy_species), fit$infos$speciesNames)
+lag1 <- sapply(species_pair, function(s) acf(theta0_draws[s, , 1], plot = FALSE)$acf[2])
+# Species named in the flagged rows, and how many sites detected each at least once.
+flagged_species <- intersect(fit$infos$speciesNames, c(flagged$label1, flagged$label2))
+sites_detected <- colSums(rowsum((OTU > 0) * 1, info$Site) > 0)
+theta0_mean <- apply(theta0_draws, 1, mean)
+names(theta0_mean) <- fit$infos$speciesNames
+occupied_estimate <- colSums(computeConditionalOccupancyProbs(fit))
+```
+
+`r nrow(flagged)` of the `r nrow(diagnostics)` parameters are flagged here: `r n_ess_flags` for a low `ess` and `r n_rhat_flags` for a high `rhat`. Take the field false-positive rate (`theta0`) of `r featured_species`, whose `ess` is only `r round(featured_ess)`. `plotTraceplot()` shows the first 300 draws of its chains beside those of `r healthy_species`, whose `theta0` has the highest `ess` (`r round(healthy_ess)`). Showing all `r dim(theta0_draws)[2]` draws would hide the difference:
+
+```{r traceplot, fig.height=3}
+plotTraceplot(theta0_draws[species_pair, 1:300, , drop = FALSE],
               param_name = "theta0",
-              dimnames1 = fit$infos$speciesNames[c(3, 1)])
+              dimnames1 = fit$infos$speciesNames[species_pair])
 ```
 
-For `OTU_1` the two chains overlap throughout. For `OTU_3`, chain 2 wanders upwards near the end of the run while chain 1 does not, and that disagreement is what `rhat` measures.
+The chains of `r healthy_species` jump freely around their whole range from one draw to the next. Those of `r featured_species` drift in runs: a chain can stay high, or low, for dozens of draws. Each draw is then much like the one before (the correlation between successive draws is `r round(lag1[1], 2)`, against `r round(lag1[2], 2)` for `r healthy_species`), so the run is worth fewer independent draws. The two chains still cover the same range overall, which is why `rhat` is close to 1.
 
-The table does not cover every parameter. When it finishes, `runOccJSDM()` checks each block of parameters and warns about any block whose largest `rhat` exceeds 1.1 or whose smallest `ess` is below 50. For this fit it warned about the field false-positive rates (`theta0`), whose largest `rhat`, for `OTU_3`, is just above 1.1, and about the spatial-field coefficients (`Bs`) and the trait terms attached to them (`Gs`, `As`, `Cs`). You see these warnings only if you fit live. The spatial-field warnings are another reason to leave the spatial field out of your own fits for now.
+What to do about a flagged parameter:
 
-Normally, before going on, you would run longer chains and check them again, but note that more iterations do not guarantee that the chains will agree.
+- **Ask whether it matters for your question.** A flagged field false-positive rate matters less if you are interested in covariate effects, more if you want to know where a species really occurs.
+- **Run longer chains and check again.** For this example, a run of 10,000 burn-in and 10,000 kept iterations cleared every flag. More iterations do not always help, though.
+- **If a parameter will not settle, the data may not pin it down.** Here the flags belong to `r knitr::combine_words(flagged_species)`. `r featured_species` has the highest estimated field false-positive rate of any species (`r round(theta0_mean[featured_species], 3)`): it was detected at `r sites_detected[featured_species]` sites, but the model estimates that it occupies only about `r round(occupied_estimate[featured_species])`, putting the rest down to contamination. Telling which detections are real is hard, and these are the parameters that carry that judgement.
+- **Report it.** Say which parameters missed the rule and by how much.
 
-For the purposes of this quickstart lesson, we move now to the results.
+When it finishes, `runOccJSDM()` also checks each block of parameters, including some that the table does not cover, and warns about any block whose largest `rhat` exceeds 1.1 or whose smallest `ess` is below 50. You see these warnings only if you fit live; this fit produced none.
 
-## Look at the results
-
-Each species' baseline occupancy probability, with its 95% credible interval. This is `beta0_psi` in the diagnostics table, converted from the logit scale to a probability; `returnOccupancyRates()` returns the draws.
-
-```{r occupancy, fig.width=7, fig.height=4}
-plotOccupancyRates(fit, idx_species = 1:10)
-```
-
-Each species' probability, for each primer, that a PCR reaction detects its DNA when that DNA is present in the sample. This is `p` in the diagnostics table:
-
-```{r detection, fig.width=7, fig.height=4}
-plotDetectionRates(fit, idx_species = 1:10)
-```
-
-In this example, no primer is best for every species. Primer 3 has the highest detection rate for `OTU_1`, with an interval that barely overlaps primer 1's, but it is clearly worse than primer 2 at detecting `OTU_10`.
-
-The package's other `plot...()` and `return...()` functions cover covariate effects, collection and false-positive rates, species associations, ordination, variation partitioning and prediction at new sites. Each has its own help page.
+For this quickstart, we now move on to the results.
 
 ## Where to go next
 
 - `?runOccJSDM` for every fitting argument, including the priors.
-- `vignette("simulateOccJSDMData", package = "occJSDM")` to simulate a survey whose truth you know, so that you can compare the model's answers with it. The truth behind `sampledata` is not stored with it.
+- `vignette("simulateOccJSDMData", package = "occJSDM")` to simulate a survey whose truth you know.
 - The [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) section of the README, before relying on the estimates.
 
 The detailed teaching lessons are first drafts only and are awaiting a full line-by-line review.
