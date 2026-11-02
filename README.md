@@ -36,7 +36,7 @@ Results under different BLAS libraries agree to rounding error, not bit for bit,
 
 ## Getting started
 
-The [quickstart](vignettes/occJSDM-00-quickstart.md) shows the input data, a fitting call and a first look at the output. The simulator guide shows how to simulate a survey whose truth you know. After installing with vignettes, open them in R:
+The [quickstart](vignettes/occJSDM-00-quickstart.md) takes you from the input data through fitting and convergence checks to every main result, as figures and tables. The simulator guide shows how to simulate a survey whose truth you know. After installing with vignettes, open them in R:
 
 ``` r
 vignette("occJSDM-00-quickstart", package = "occJSDM")
