@@ -109,6 +109,9 @@ format_percent <- function(probability, digits = 1) {
   paste0(formatC(100 * probability, format = "f", digits = digits), "%")
 }
 
+# Whole percentages keep the 0% and 100% axis labels apart.
+whole_percent <- function(probability) format_percent(probability, digits = 0)
+
 format_points <- function(error) {
   formatC(100 * error, format = "f", digits = 1)
 }
@@ -393,9 +396,6 @@ comparison_results <- occupancy_results |>
                        labels = fit_labels[c("perfect", "default")])
   )
 
-# Whole percentages keep the 0% and 100% axis labels apart.
-whole_percent <- function(probability) format_percent(probability, digits = 0)
-
 ggplot(comparison_results, aes(x = truth, y = estimate, colour = arm)) +
   geom_abline(slope = 1, intercept = 0, colour = "black") +
   geom_point(alpha = 0.4, size = 0.9) +
@@ -518,7 +518,7 @@ More effort per sample, such as filtering more water, and/or spreading samples a
 
 ## How does good practice enter the model?
 
-Good field and laboratory practice lets us reasonably assume that contamination to be uncommon. occJSDM expresses that assumption through **priors**, starting beliefs about plausible rates that are updated using the observations. It does not inspect the protocol or prove that the work was carried out carefully.
+Good field and laboratory practice lets us reasonably assume that contamination is uncommon. occJSDM expresses that assumption through **priors**, starting beliefs about plausible rates that are updated using the observations. It does not inspect the protocol or prove that the work was carried out carefully.
 
 The detection and false-positive priors are Beta distributions. A Beta distribution describes a probability between 0 and 1, and its two numbers act like prior successes and failures. Beta(1, 20) behaves like having seen one contamination in 21 tries, so its mean is 1/21, about 4.8%. The rates of the observation stages and their default priors are:
 
@@ -527,11 +527,11 @@ The detection and false-positive priors are Beta distributions. A Beta distribut
 - `theta0`, DNA entering a sample even though the species is absent from the site, separately for each species. Default Beta(1, 20): favours uncommon field-stage false positives; prior mean 4.8%.
 - `theta`, the collection probability: DNA entering a sample when the species occupies the site. It has no Beta prior of its own, because it is built from each species' collection intercept and its slope on the collection covariate; the priors are on those coefficients.
 
-The means are not fixed error rates or measurements of laboratory quality. High true-detection probability is an additional assumption: careful work does not prevent primer mismatch or inhibition. The priors do not strictly require `p` to exceed `q`, and false positives are not required to be weak. If you want to change the contamination priors `q` and `theta0` for your own survey, one basis you could use is the contamination rate seen in your field blanks and negative controls. The entries are listed under `listPriors` in `?runOccJSDM`, and the stress test below shows how to refit with changed contamination priors.
+The means are not fixed error rates or measurements of laboratory quality. High true-detection probability is an additional assumption: careful work does not prevent primer mismatch or inhibition. The priors do not strictly require `p` to exceed `q`, and false positives are not required to be weak. If you want to change the priors on the contamination rates `q` and `theta0` for your own survey, one basis you could use is the contamination rate seen in your field blanks and negative controls. The entries are listed under `listPriors` in `?runOccJSDM`, and the stress test below shows how to refit with changed contamination priors.
 
 An occasional stray positive is plausible without DNA in the sample. Repeated positives are usually easier to explain with DNA present, provided detection is appreciably more likely than a false positive. Negative PCRs matter too. The model combines the whole pattern with collection conditions and the ecological model, estimating rates and hidden presence states together. There is no universal rule such as "one positive is false; three positives are true".
 
-Here are the rates the model actually estimated, next to their true values. The saved `rates` table already contains the fit's summaries and the true rates; we select the default-prior fit and label each parameter before plotting it. These panels have different horizontal scales so small false-positive rates remain readable; compare the axis labels as well as the points.
+Here are the rates the model actually estimated, next to their true values. The saved `rates` table already contains the fit's summaries and the true rates; we select the default-prior fit and label each parameter before plotting it. These panels have different horizontal scales, which keeps small false-positive rates readable, so read the axis labels as well as the points. Note that the false-positive rates are absolutely low, which is what we hope to see in a real dataset.
 
 ```{r detection-rate-recovery, fig.height=6.5, fig.cap="Black crosses are the true rates for positive read results. Red-orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species."}
 detection_rates <- lesson$rates |>
@@ -539,9 +539,9 @@ detection_rates <- lesson$rates |>
   filter(arm == "default") |>
   mutate(
     rate_label = case_when(
-      param == "theta0" ~ "Field-stage false positive",
-      param == "p" ~ paste("True PCR detection\nPrimer", Primer),
-      param == "q" ~ paste("Laboratory false positive\nPrimer", Primer)
+      param == "theta0" ~ "theta0: field-stage\nfalse positive",
+      param == "p" ~ paste("p: true PCR detection\nPrimer", Primer),
+      param == "q" ~ paste("q: laboratory false positive\nPrimer", Primer)
     ),
     species = factor(species, levels = paste0("OTU_", 10:1))
   )
@@ -554,18 +554,20 @@ ggplot(detection_rates, aes(x = estimate, y = species)) +
   scale_x_continuous(
     limits = function(values) c(0, min(1, max(values) * 1.05)),
     breaks = function(limits) pretty(limits, n = 3),
-    labels = format_percent
+    labels = whole_percent
   ) +
-  labs(x = "Probability", y = NULL)
+  labs(x = "Probability", y = NULL) +
+  # Extra space keeps one panel's 100% label clear of the next panel's 0%.
+  theme(panel.spacing.x = unit(1.5, "lines"))
 ```
 
-The laboratory rates are recovered well: `r with(detection_rates, sum(param != "theta0" & truth >= lower & truth <= upper))` of the `r sum(detection_rates$param != "theta0")` intervals for `p` and `q` contain the true value. The intervals are comparatively narrow, none wider than `r with(detection_rates, format_percent(max((upper - lower)[param != "theta0"] / estimate[param != "theta0"]), 0))` of its estimate, because every sample's twelve PCRs give the model many repeated laboratory results to learn from. The field-stage false-positive rate is harder: `r with(detection_rates, sum(param == "theta0" & truth >= lower & truth <= upper))` of its `r sum(detection_rates$param == "theta0")` intervals contain the true value, but they are wide, from `r with(detection_rates, knitr::combine_words(format_percent(range(((upper - lower) / estimate)[param == "theta0"]), 0), and = " to ", oxford_comma = FALSE))` of the estimate and reaching up to `r format_percent(max(detection_rates$upper[detection_rates$param == "theta0"]))`. They are wide because field-stage contamination happens only at unoccupied sites, and a contaminated sample looks like any other sample with DNA.
+The laboratory rates are recovered well: `r with(detection_rates, sum(param != "theta0" & truth >= lower & truth <= upper))` of the `r sum(detection_rates$param != "theta0")` intervals for `p` and `q` contain the true value. The intervals are comparatively narrow, none wider than `r with(detection_rates, format_percent(max((upper - lower)[param != "theta0"] / estimate[param != "theta0"]), 0))` of its estimate, because every sample's twelve PCRs (six per primer) give the model many repeated laboratory results to learn from. The field-stage false-positive rate is harder: `r with(detection_rates, sum(param == "theta0" & truth >= lower & truth <= upper))` of its `r sum(detection_rates$param == "theta0")` intervals contain the true value, but they are wide, from `r with(detection_rates, knitr::combine_words(format_percent(range(((upper - lower) / estimate)[param == "theta0"]), 0), and = " to ", oxford_comma = FALSE))` of the estimate and reaching up to `r format_percent(max(detection_rates$upper[detection_rates$param == "theta0"]))`. They are wide because field-stage contamination happens only at unoccupied sites, and a contaminated sample looks like any other sample with DNA.
 
 The black crosses for `p` and `q` are lower than the simulator's settings in Lesson 0, because some simulated laboratory events produce zero reads and so never appear as positives. [Lesson 0](occJSDM-lesson-0.md#specify-the-observation-model-decide-how-collection-and-pcr-can-fail) explains how the simulator turns events into read counts.
 
 ### Why keep the current field-stage false-positive prior?
 
-A wide interval for `theta0` means the model is uncertain about how often DNA enters a sample at an unoccupied site. It is tempting to narrow the prior to make that interval look more precise. Doing so also changes the model's expectations about the contamination rate and can move the point estimate.
+A wide interval for `theta0` (field-stage false positive) means the model is uncertain about how often DNA enters a sample at an unoccupied site. It is tempting to narrow the prior to make that interval look more precise. However, doing so also changes the model's expectations about the contamination rate and can move the point estimate.
 
 A separate [targeted sensitivity study](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/theta0-prior-mean/REPORT.md) compared the current Beta(1,20) prior with historical Beta(1,30), keeping the collection-slope prior and other settings fixed. The historical prior has a lower mean, 3.2% rather than 4.8%, and concentrates more strongly near zero. Under three low-contamination, non-spatial designs, with ten simulated communities per design, current-prior intervals were about 10-19% wider and estimates had less downward mean error. Average absolute error changed little, and the uncertainty in that comparison was wide enough that either prior could be the better one; individual validation communities sometimes overshot the truth under the current prior.
 
@@ -573,11 +575,13 @@ The current-prior 95% intervals contained the simulated truth 97-98% of the time
 
 ## Four examples: inspect the observations first
 
-`lesson$observations` has one row per species and PCR reaction. Each row holds the reaction's site, sample, primer and PCR number, its read count and its 0/1 result at threshold one. For the reveal below, it also holds the true site and sample states and the true source of the result.
+<!--# start here -->
 
-Each row of the figure below is one field sample. There are six PCR columns for each of two primers. Numbers are read counts; blue cells are positive. At threshold one, a count of 1 and a count of 1,000 both contribute a single positive result to this model. "Strong evidence" therefore refers to how detections recur across replicates, not how large an above-threshold count is.
+The detection rates above are averages over the whole survey. This section looks at four **single cases, to show how the model weighs a pattern of PCR results**. Each case is one species at one site: a weak true detection, a strong true detection, a laboratory false positive and a field-stage false positive. You first see each case as the survey saw it, as read counts in every PCR of the site's three field samples, and decide for yourself whether the species was there. The next section reveals the truth and compares it with the model's answers to two separate questions: was the species' DNA in this sample, and was the species at this site?
 
 These four cases were selected from known truth and observed patterns **before looking at fitted probabilities**, so that they could not be picked to flatter the model. Each case has a **focal sample**, the sample whose PCR pattern placed it in its category. Weak true cases have one or two positive PCRs in the focal sample. Strong true cases have at least six in the focal sample and at least three true detections in each of at least two samples. For each category, the first case in species-name, numeric-site and numeric-sample order was selected. The headings name the teaching categories; the colours initially show only observed results.
+
+To draw these examples we use `lesson$observations`, which is the `survey_data` dataframe reshaped to one row per species per PCR reaction, so that each PCR can be drawn as its own cell. Each row holds the site, sample, primer and PCR number, the read count and the 0/1 result at threshold one. It also holds three columns the model never sees, for the reveal later in the lesson: the true site state `z`, the true sample state `w`, and the true `source` of each positive.
 
 We now join the observation rows to the selected case IDs. `inner_join()` both keeps the matching sites and adds the case label. The key is **species plus site** so that we keep all three field samples, including the two non-focal samples.
 
@@ -603,7 +607,9 @@ case_observations <- lesson$observations |>
   )
 ```
 
-The colour in the first figure uses **only observed PCR results**. The category names identify examples selected using simulation truth; they are not model classifications. Missing observations have their own colour instead of being treated as negatives. Before reading on, decide for each pattern whether you would believe the species was at the site.
+Each row of the figure below is one field sample. There are six PCR columns for each of two primers. Numbers are read counts; blue cells are positive. At threshold one, a count of 1 and a count of 1,000 both contribute a single positive result to this model. "Strong evidence" therefore refers to how detections recur across replicates, not how large an above-threshold count is.
+
+The colour in the first figure uses **only observed PCR results**. The category names identify examples selected using simulation truth; they are not model classifications. Missing observations have their own colour instead of being treated as negatives. Before reading on, decide for each pattern whether you would have believed the species was at the site.
 
 ```{r observed-detection-cases, fig.height=6.8, fig.width=9, fig.cap="These are actual rows from the simulated dataset. All three field samples at each selected site are shown, including the sample used to select the case. A positive PCR by itself does not reveal its source."}
 ggplot(case_observations, aes(x = PCR, y = sample_label, fill = observed_result)) +
