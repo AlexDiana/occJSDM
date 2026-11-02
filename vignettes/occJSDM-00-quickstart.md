@@ -1,9 +1,24 @@
 occJSDM: quickstart
 ================
 
-occJSDM uses eDNA surveys to estimate which species occupy which sites. It allows for false negatives (from imperfect field collection, imperfect PCR detection or both) and for false positives (from contamination in the field, in the lab or both). It models the species jointly: their responses to the environment, the role of their traits, and associations between species that the covariates do not explain, optionally with a spatial field, although note that the spatial field submodel requires considerable field data. It can also analyse ordinary presence/absence surveys, in which each species is recorded as present or absent at each site and the records are assumed to be free of detection error. In that case occJSDM fits only the joint species distribution model (JSDM).
+occJSDM uses eDNA surveys to estimate which species occupy which sites.
+It allows for false negatives (from imperfect field collection,
+imperfect PCR detection or both) and for false positives (from
+contamination in the field, in the lab or both). It models the species
+jointly: their responses to the environment, the role of their traits,
+and associations between species that the covariates do not explain,
+optionally with a spatial field, although note that the spatial field
+submodel requires considerable field data. It can also analyse ordinary
+presence/absence surveys, in which each species is recorded as present
+or absent at each site and the records are assumed to be free of
+detection error. In that case occJSDM fits only the joint species
+distribution model (JSDM).
 
-This quickstart takes you from raw data to every main result occJSDM produces. It shows how to format the input data, fit a two-stage eDNA model, check that the fit has converged, and then draw each result as a figure and save it as a table. It does not explain the model; the lessons do that.
+This quickstart takes you from raw data to every main result occJSDM
+produces. It shows how to format the input data, fit a two-stage eDNA
+model, check that the fit has converged, and then draw each result as a
+figure and save it as a table. It does not explain the model; the
+lessons do that.
 
 ## The example data
 
@@ -22,9 +37,18 @@ n_primers <- length(unique(info$Primer))
 pcrs_per_primer <- nrow(info) / (n_sites * samples_per_site * n_primers)
 ```
 
-`quickstartdata` is a simulated eDNA survey of 20 vertebrate species at 100 river sites. It is modelled on the aquatic eDNA survey of the Gaoligongshan mountains in China by [Ji et al. (2025)](https://doi.org/10.1111/ele.70302), but the species and their results are made up: each species is named by its class and order with a running number, such as `Mammalia_Carnivora_1`. At each site, 3 water samples were filtered, and the DNA from each sample was amplified with 2 primers, with 3 PCR replicates per primer. That makes 18 PCRs per site.
+`quickstartdata` is a simulated eDNA survey of 20 vertebrate species at
+100 river sites. It is modelled on the aquatic eDNA survey of the
+Gaoligongshan mountains in China by [Ji et
+al. (2025)](https://doi.org/10.1111/ele.70302), but the species and
+their results are made up: each species is named by its class and order
+with a running number, such as `Mammalia_Carnivora_1`. At each site, 3
+water samples were filtered, and the DNA from each sample was amplified
+with 2 primers, with 3 PCR replicates per primer. That makes 18 PCRs per
+site.
 
-The data are an R list with three parts, which is the format `runOccJSDM()` expects for your own data too.
+The data are an R list with three parts, which is the format
+`runOccJSDM()` expects for your own data too.
 
 `info` has one row per PCR:
 
@@ -42,10 +66,23 @@ head(info, 8)
     #> 7    1      2      1      3008 0.225 protected         0.71
     #> 8    1      2      1      3008 0.225 protected         0.71
 
-- `Site`, `Sample` and `Primer` say which site, which water sample and which primer each PCR belongs to. The PCR replicates of a sample and primer are simply repeated rows.
-- `elevation` (metres), `hmi` (the Human Modification Index, from 0 for untouched to 1 for fully modified land) and `protected` describe the site, so they repeat on every row of that site. They will be the occupancy covariates.
-- `protected` says whether the stream rises inside a protected area. It is an R factor, with `not_protected` as its first level, so occJSDM reports the effect of `protected` compared with `not_protected`. To make such a column from your own data, use `factor(x, levels = c("not_protected", "protected"))`, putting the comparison level first.
-- `water_volume` is the litres of water filtered for each sample, so it repeats on every row of that sample. It will be the collection covariate, which affects the chance that a sample captures a species’ DNA.
+- `Site`, `Sample` and `Primer` say which site, which water sample and
+  which primer each PCR belongs to. The PCR replicates of a sample and
+  primer are simply repeated rows.
+- `elevation` (metres), `hmi` (the Human Modification Index, from 0 for
+  untouched to 1 for fully modified land) and `protected` describe the
+  site, so they repeat on every row of that site. They will be the
+  occupancy covariates.
+- `protected` says whether the stream rises inside a protected area. It
+  is an R factor, with `not_protected` as its first level, so occJSDM
+  reports the effect of `protected` compared with `not_protected`. To
+  make such a column from your own data, use
+  `factor(x, levels = c("not_protected", "protected"))`, putting the
+  comparison level first.
+- `water_volume` is the litres of water filtered for each sample, so it
+  repeats on every row of that sample. It will be the collection
+  covariate, which affects the chance that a sample captures a species’
+  DNA.
 
 To browse the whole table:
 
@@ -53,7 +90,8 @@ To browse the whole table:
 View(info)
 ```
 
-`OTU` has one column per species and one row for each row of `info`, holding that species’ read count in that PCR:
+`OTU` has one column per species and one row for each row of `info`,
+holding that species’ read count in that PCR:
 
 ``` r
 OTU[1:8, 1:4]
@@ -78,13 +116,20 @@ OTU[1:8, 1:4]
     #> [7,]                       0
     #> [8,]                       0
 
-You can supply your read counts as they are, without converting your OTU table first. `runOccJSDM()` converts each count to a detection or a non-detection: a PCR with at least `threshold` reads counts as a detection. occJSDM never uses the read counts themselves, only these detections.
+You can supply your read counts as they are, without converting your OTU
+table first. `runOccJSDM()` converts each count to a detection or a
+non-detection: a PCR with at least `threshold` reads counts as a
+detection. occJSDM never uses the read counts themselves, only these
+detections.
 
 > IMPORTANT
 >
-> Do not filter low-read cells out of your OTU table (for example, by setting cells with 2 or fewer reads to 0). occJSDM needs to see those weak detections to estimate false positives.
+> Do not filter low-read cells out of your OTU table (for example, by
+> setting cells with 2 or fewer reads to 0). occJSDM needs to see those
+> weak detections to estimate false positives.
 
-`traits` has one row per species, with the row names matching the column names of `OTU`:
+`traits` has one row per species, with the row names matching the column
+names of `OTU`:
 
 ``` r
 head(traits)
@@ -98,14 +143,31 @@ head(traits)
     #> Mammalia_Artiodactyla_2           1.679          1
     #> Mammalia_Artiodactyla_3           1.968          0
 
-- `log10_body_mass` is the log10 of body mass in kilograms. A trait as skewed as body mass is best supplied on a log scale, because occJSDM standardises each trait and a few very large species would otherwise dominate.
-- `red_listed` is 1 if the species is on the IUCN Red List and 0 if not. A yes/no trait is supplied as 0/1 like this.
+- `log10_body_mass` is the log10 of body mass in kilograms. A trait as
+  skewed as body mass is best supplied on a log scale, because occJSDM
+  standardises each trait and a few very large species would otherwise
+  dominate.
+- `red_listed` is 1 if the species is on the IUCN Red List and 0 if not.
+  A yes/no trait is supplied as 0/1 like this.
 
-`runOccJSDM()` uses the structure of `info` to choose which model to fit. Here each sample has several rows, one per primer and PCR replicate, so it fits the two-stage occupancy model. If instead `info` had only one row per site, with no sample or PCR replicates, `runOccJSDM()` would skip the detection stages and fit a JSDM to the observed presence/absence.
+`runOccJSDM()` uses the structure of `info` to choose which model to
+fit. Here each sample has several rows, one per primer and PCR
+replicate, so it fits the two-stage occupancy model. If instead `info`
+had only one row per site, with no sample or PCR replicates,
+`runOccJSDM()` would skip the detection stages and fit a JSDM to the
+observed presence/absence.
 
 ## Fit the model
 
-You can either fit the model live or load the precomputed results, `quickstartresults`. Fitting live takes just over a minute on an M4 MacBook Air, and has the advantage of testing whether your machine can run occJSDM. How long it takes depends mostly on the BLAS library your R uses: the README’s *Speed: use an optimised BLAS* section shows how to check it and, on a Mac, how to switch to Apple’s Accelerate. Using the same seed only reproduces `quickstartresults` *exactly* on the same machine and software (M4 MacBook Air, R 4.6.1, Accelerate BLAS) with the same arguments; elsewhere, expect small numerical differences.
+You can either fit the model live or load the precomputed results,
+`quickstartresults`. Fitting live takes just over a minute on an M4
+MacBook Air, and has the advantage of testing whether your machine can
+run occJSDM. How long it takes depends mostly on the BLAS library your R
+uses: the README’s *Speed: use an optimised BLAS* section shows how to
+check it and, on a Mac, how to switch to Apple’s Accelerate. Using the
+same seed only reproduces `quickstartresults` *exactly* on the same
+machine and software (M4 MacBook Air, R 4.6.1, Accelerate BLAS) with the
+same arguments; elsewhere, expect small numerical differences.
 
 To fit live:
 
@@ -124,13 +186,27 @@ fit <- runOccJSDM(
 )
 ```
 
-- `threshold`: a PCR with at least this many reads counts as a detection. We recommend leaving it at 1.
-- `occCovariates` and `collCovariates` name the columns of `info` to use for occupancy and for collection. The traits are taken from `quickstartdata$traits` automatically.
-- `n_factors` is the number of hidden environmental covariates (statistically, latent factors) that capture associations between species that the measured covariates do not explain.
-- `MCMCparams` sets the number of chains (`nchain`), the burn-in iterations discarded at the start of each chain (`nburn`), the number of draws kept per chain (`niter`), and the thinning (`nthin = 2` keeps every second iteration, so each chain runs `nburn + niter * nthin` iterations). `ncores = 2` runs the two chains on two cores at once.
-- `summarisedLatentPresences = TRUE` stores only the posterior mean of each site’s occupancy state, which keeps the fit small.
-- The model has a spatial field, which `spatCovariates` would switch on by naming the site coordinates. This example leaves it out, and we recommend you do too for now, because it needs far more sites than most surveys have.
-- The priors have defaults, which `listPriors` changes. `?runOccJSDM` describes every argument.
+- `threshold`: a PCR with at least this many reads counts as a
+  detection. We recommend leaving it at 1.
+- `occCovariates` and `collCovariates` name the columns of `info` to use
+  for occupancy and for collection. The traits are taken from
+  `quickstartdata$traits` automatically.
+- `n_factors` is the number of hidden environmental covariates
+  (statistically, latent factors) that capture associations between
+  species that the measured covariates do not explain.
+- `MCMCparams` sets the number of chains (`nchain`), the burn-in
+  iterations discarded at the start of each chain (`nburn`), the number
+  of draws kept per chain (`niter`), and the thinning (`nthin = 2` keeps
+  every second iteration, so each chain runs `nburn + niter * nthin`
+  iterations). `ncores = 2` runs the two chains on two cores at once.
+- `summarisedLatentPresences = TRUE` stores only the posterior mean of
+  each site’s occupancy state, which keeps the fit small.
+- The model has a spatial field, which `spatCovariates` would switch on
+  by naming the site coordinates. This example leaves it out, and we
+  recommend you do too for now, because it needs far more sites than
+  most surveys have.
+- The priors have defaults, which `listPriors` changes. `?runOccJSDM`
+  describes every argument.
 
 Or load the precomputed results, which the rest of this page uses:
 
@@ -140,7 +216,9 @@ fit <- quickstartresults
 
 ## Check that the chains agree
 
-Before reading any estimate, check that the chains have converged on the same answer. `returnConvergenceDiagnostics()` gives one row per parameter:
+Before reading any estimate, check that the chains have converged on the
+same answer. `returnConvergenceDiagnostics()` gives one row per
+parameter.
 
 ``` r
 diagnostics <- returnConvergenceDiagnostics(fit)
@@ -158,6 +236,12 @@ head(diagnostics[, c("param", "label1", "label2", "rhat", "ess")])
     #> 6 beta0_psi Mammalia_Artiodactyla_3 1       1.00  719.
 
 ``` r
+dim(diagnostics)
+```
+
+    #> [1] 220  11
+
+``` r
 summary(diagnostics$rhat)
 ```
 
@@ -171,14 +255,33 @@ summary(diagnostics$ess)
     #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
     #>   416.5   993.3  1851.8  2137.1  3493.7  4538.1
 
-- `param` names the parameter, and `label1` and `label2` say which species, covariate or primer it belongs to.
-- `rhat` compares the chains with each other: values close to 1 mean they agree.
-- `ess` is the effective sample size, the number of independent draws the chains are worth for that parameter. Draws that follow each other closely are worth less than their number.
-- `summary()` is base R’s own function, and for a numeric column it reports the minimum, the quartiles, the mean and the maximum.
+Look at the `diagnostics` table.
 
-The table covers the baseline occupancy of each species (`beta0_psi`), the occupancy covariate effects (`beta_psi`), the collection coefficients (`beta_theta`), the PCR detection and false-positive rates of each primer (`p` and `q`) and the field false-positive rates (`theta0`).
+- `param` names the parameter, and `label1` and `label2` say which
+  species, covariate or primer it belongs to.
+- `rhat` compares the chains with each other: values close to 1 mean
+  they agree.
+- `ess` is the effective sample size, the number of independent draws
+  the chains are worth for that parameter. Draws that follow each other
+  closely are worth less than their number.
+- `summary()` is base R’s own function, and for a numeric column it
+  reports the minimum, the quartiles, the mean and the maximum.
 
-A common rule of thumb flags any parameter with `rhat > 1.01` or `ess < 400`:
+The table has 11 rows for each of the 20 species:
+
+- `beta0_psi`: the baseline occupancy (1 per species).
+- `beta_psi`: the effects of the occupancy covariates `elevation`, `hmi`
+  and `protected` (3).
+- `beta_theta`: the collection intercept, whose `label1` is
+  `(Intercept)`, and the effect of water volume (2). (Unlike occupancy,
+  collection keeps its intercept under the same name as its covariate
+  effects.)
+- `p` and `q`: the PCR detection and false-positive rates, one of each
+  per primer (2 each), with the primer number in `label1`.
+- `theta0`: the field false-positive rate (1).
+
+A common rule of thumb flags for review any parameter with `rhat > 1.01`
+or `ess < 400`.
 
 ``` r
 flagged <- diagnostics[diagnostics$rhat > 1.01 | diagnostics$ess < 400,
@@ -194,7 +297,11 @@ flagged
     #> 3 beta_psi  hmi                     Mammalia_Artiodactyla_2  1.01 1037.
     #> 4 theta0    Mammalia_Artiodactyla_2 1                        1.04 1228.
 
-4 of the 220 parameters are flagged here: 4 for a high `rhat` and 0 for a low `ess`. Take the field false-positive rate (`theta0`) of Mammalia_Artiodactyla_2, whose `rhat` is 1.039. `plotTraceplot()` shows its two chains beside those of Mammalia_Artiodactyla_1, whose `theta0` has the lowest `rhat` (1.000):
+4 of the 220 parameters are flagged here: 4 for a high `rhat` and 0 for
+a low `ess`. Take the field false-positive rate (`theta0`) of
+Mammalia_Artiodactyla_2, whose `rhat` is 1.039. `plotTraceplot()` shows
+its two chains beside those of Mammalia_Artiodactyla_1, whose `theta0`
+has the lowest `rhat` (1.000):
 
 ``` r
 plotTraceplot(theta0_draws[species_pair, , , drop = FALSE],
@@ -204,26 +311,49 @@ plotTraceplot(theta0_draws[species_pair, , , drop = FALSE],
 
 ![](occJSDM-00-quickstart_files/figure-gfm/traceplot-1.png)<!-- -->
 
-For Mammalia_Artiodactyla_1 the two chains overlap throughout. For Mammalia_Artiodactyla_2, chain 1 makes more frequent and higher excursions than the other, so its mean is 0.044 against 0.036. The chains disagree about how high the rate can go, and that disagreement is what `rhat` measures.
+For Mammalia_Artiodactyla_1 the two chains overlap throughout. For
+Mammalia_Artiodactyla_2, chain 1 makes more frequent and higher
+excursions than the other, so its mean is 0.044 against 0.036. In short,
+the chains disagree about how high the rate can go, and that
+disagreement is what `rhat` measures.
 
 What to do about a flagged parameter:
 
-- **Ask whether it matters for your question.** A flagged field false-positive rate matters less if you are interested in covariate effects, more if you want to know where a species really occurs.
-- **Run longer chains and check again.** For this fit, a run of 10,000 burn-in and 10,000 kept iterations, without thinning, cleared every flag. More iterations do not always help, though.
-- **If a parameter will not settle, the data may not pin it down.** Here the flags belong to Mammalia_Carnivora_1, Mammalia_Artiodactyla_2, and Mammalia_Eulipotyphla_2. Mammalia_Artiodactyla_2 is estimated to occupy about 80 of the 100 sites. Its field false-positive rate can only be learned from the sites it does not occupy, and here there are few of them.
+- **Ask whether it matters for your question.** For instance, a flagged
+  field false-positive rate (`theta0`) matters less if you are
+  interested in covariate effects (`beta_psi` and `beta_theta`), but it
+  matters more if you want to know where a species really occurs.
+- **Run longer chains and check again.** For this dataset and fit, we
+  have found that a run of 10,000 burn-in and 10,000 kept iterations,
+  without thinning, cleared every flag. More iterations do not always
+  help, though.
+- **If a parameter will not settle, the data may not pin it down.** Here
+  the flags belong to Mammalia_Carnivora_1, Mammalia_Artiodactyla_2, and
+  Mammalia_Eulipotyphla_2. Mammalia_Artiodactyla_2 is estimated to
+  occupy about 80 of the 100 sites. Its field false-positive rate can
+  only be learned from the sites it does not occupy, and here there are
+  few of them.
 - **Report it.** Say which parameters missed the rule and by how much.
 
-When it finishes, `runOccJSDM()` also checks each block of parameters, including some that the table does not cover, and warns about any block whose largest `rhat` exceeds 1.1 or whose smallest `ess` is below 50. You see these warnings only if you fit live; this fit produced none.
+When it finishes, `runOccJSDM()` also checks each block of parameters,
+including some that the `diagnostics` table does not cover, and warns
+about any block whose largest `rhat` exceeds 1.1 or whose smallest `ess`
+is below 50. You see these warnings only if you fit live; this fit
+produced none.
 
 For this quickstart, we now move on to the results.
 
-## Look at the results
+## Looking at the results
 
-Each section below draws one kind of result and says what it tells you. The tables that go with them are collected in [Save the results as tables](#save-the-results-as-tables).
+Each section below draws one kind of result and describes what it tells
+you. The tables that go with them are collected in [Save the results as
+tables](#save-the-results-as-tables).
 
 ### How widespread is each species?
 
-Each species’ baseline occupancy probability, with its 95% credible interval: the chance that it occupies a site with average elevation and human modification that is not protected.
+Each species’ baseline occupancy probability, with its 95% credible
+interval: the chance that it occupies a site with average elevation and
+human modification that is not protected.
 
 ``` r
 plotOccupancyRates(fit)
@@ -231,16 +361,32 @@ plotOccupancyRates(fit)
 
 ![](occJSDM-00-quickstart_files/figure-gfm/occupancy-rates-1.png)<!-- -->
 
-This tells you which species are common and which are rare once missed detections and false positives are allowed for. Here the baseline ranges from 0.22 (Mammalia_Carnivora_1) to 0.78 (Mammalia_Artiodactyla_2).
+This tells you which species are common and which are rare once missed
+detections and false positives are allowed for. Here the baseline ranges
+from 0.22 (Mammalia_Carnivora_1) to 0.78 (Mammalia_Artiodactyla_2).
 
-### Which species are at which site?
+### Which species are at which sites?
 
-occJSDM gives two occupancy probabilities for every site and species, and they answer different questions:
+occJSDM gives two occupancy probabilities for every surveyed site and
+species combination (100 × 20 = 2,000 in this dataset), and they answer
+different questions:
 
-- The **predictive** probability (`computePredictiveOccupancyProbs()`) is what the site’s covariates and the hidden environmental covariates predict. Use it for maps and to compare habitats.
-- The **conditional** probability (`computeConditionalOccupancyProbs()`) also takes into account what was detected at that site. Use it to ask whether a species is actually at a surveyed site.
+- The **predictive** probability (`computePredictiveOccupancyProbs()`)
+  comes from the site’s measured environmental covariates and its hidden
+  environmental covariates, which occJSDM estimates from the whole
+  community’s detections at that site. Use it for maps and to compare
+  habitats. For sites that were not surveyed, `predictNewSites()` gives
+  the same kind of probability from the measured covariates alone,
+  because the hidden covariates of a new site are unknown (see [What
+  would occupancy be at new
+  sites?](#what-would-occupancy-be-at-new-sites)).
+- The **conditional** probability (`computeConditionalOccupancyProbs()`)
+  also takes into account what was detected for that species at that
+  site. Use it to ask whether a species is actually at a surveyed site.
+  It exists only for sites in the input data.
 
-Both are posterior means; the package does not yet return their intervals.
+Both are posterior means; the package does not yet return their
+intervals.
 
 ``` r
 predictive <- computePredictiveOccupancyProbs(fit)
@@ -263,7 +409,9 @@ head(occ_site)
     #> 5    5 Mammalia_Carnivora_1 0.72569287     0.99050
     #> 6    6 Mammalia_Carnivora_1 0.01546016     0.00100
 
-To see the difference, here are both probabilities for one species against elevation, with the sites where it was detected at least once shown as filled points:
+To see the difference, here are both probabilities for one species
+against elevation, with the sites where it was detected at least once
+shown as filled points:
 
 ``` r
 library(ggplot2)
@@ -286,11 +434,21 @@ ggplot(one_species, aes(elevation, probability, shape = detected)) +
 
 ![](occJSDM-00-quickstart_files/figure-gfm/site-occupancy-plot-1.png)<!-- -->
 
-Where Mammalia_Carnivora_1 was not detected, its conditional probability falls below the predictive one, because each non-detection is some evidence of absence. Where it was detected, the conditional probability is mostly close to 1; the few detected sites well below 1 are ones where the model puts the detections down to contamination.
+Where Mammalia_Carnivora_1 was not detected, its conditional probability
+falls below the predictive one, because each non-detection is some
+evidence of absence. Where it was detected, the conditional probability
+is mostly close to 1; the few detected sites well below 1 are ones where
+the model puts the detections down to contamination.
 
 ### How do species respond to the environment?
 
-Each species’ occupancy coefficient for each covariate, with its 95% credible interval. The coefficients are on the logit scale; elevation and human modification are per standard deviation, and `protectedprotected` is the effect of `protected` compared with `not_protected` (the name joins the column and the level).
+#### `plotOccupancyCovariates()`
+
+Each species’ occupancy coefficient for each covariate, with its 95%
+credible interval. The coefficients are on the logit scale; elevation
+and human modification are per standard deviation, and
+`protectedprotected` is the effect of `protected` compared with
+`not_protected` (the name joins the column and the level).
 
 ``` r
 plotOccupancyCovariates(fit, covName = "elevation")
@@ -310,9 +468,18 @@ plotOccupancyCovariates(fit, covName = "protectedprotected")
 
 ![](occJSDM-00-quickstart_files/figure-gfm/occupancy-covariates-3.png)<!-- -->
 
-A coefficient whose interval excludes zero is a clear response. Here 3, 7 and 6 of the 20 species respond clearly to elevation, human modification and protection respectively.
+A coefficient whose interval excludes zero is a clear response. Here 3,
+7 and 6 of the 20 species respond clearly to elevation, human
+modification and protection respectively.
 
-The same effects as occupancy probabilities, which are easier to read: response curves for the numeric covariates, in their original units, with the other covariates held at typical values (the subtitle says which):
+#### `plotOccupancyGradient()`
+
+The coefficients above are on the logit scale, which is hard to
+visualise. The same effects are easier to read as occupancy
+probabilities. For the numeric covariates, `plotOccupancyGradient()`
+draws each species’ occupancy against the covariate in its original
+units, holding the other covariates at typical values (the subtitle says
+which):
 
 ``` r
 plotOccupancyGradient(fit, covName = "elevation", idx_species = 1:4)
@@ -334,11 +501,34 @@ plotCovariateEffect(fit, covNames = "protected", idx_species = 1:4)[[1]]
 
 ![](occJSDM-00-quickstart_files/figure-gfm/protected-effect-1.png)<!-- -->
 
-`idx_species` picks which species to draw; leave it out to draw them all.
+`idx_species` picks which species to draw; leave it out to draw all
+species.
 
-### Do species’ traits explain their responses?
+#### Judging whether a species responds
 
-occJSDM lets each species’ response to a covariate depend partly on its traits. The trait-by-environment coefficient says how much: a negative coefficient for `log10_body_mass` on `hmi` would mean that larger species decline more steeply with human modification. Traits are standardised before fitting, so each coefficient is per standard deviation of the trait (for the 0/1 `red_listed`, one standard deviation is 0.47).
+Overlapping intervals for the two levels do not mean the difference
+between them is unclear. To judge whether a species responds to a
+covariate (here, elevation, hmi, protection), use
+`plotOccupancyCovariates()`, not `plotCovariateEffect()`. For
+`protected`, the coefficient shown by `plotOccupancyCovariates()` is the
+difference between the protected and not-protected levels, on the logit
+scale. For `elevation` and `hmi`, it is the change in occupancy, on the
+logit scale, for an increase of one standard deviation: 891 m of
+elevation, or 0.16 of hmi. In both cases, an interval that excludes zero
+means a clear response: positive if occupancy is higher in protected
+areas or rises with the covariate, negative if it is lower or falls.
+
+### Do species’ traits explain their responses? (trait x environment interactions)
+
+occJSDM lets each species’ response to a covariate depend partly on its
+traits. Recall that one of the input tables is `traits`, which measures
+`log10_body_mass` and Red List status (`red_listed`) for each species.
+The trait-by-environment coefficient says how much: a negative
+coefficient for `log10_body_mass` on `hmi` would mean that larger
+species decline more steeply with human modification. Traits are
+standardised before fitting, so each coefficient is per standard
+deviation of the trait (for the 0/1 `red_listed`, one standard deviation
+is 0.47).
 
 ``` r
 plotTraitsCoefficients(fit, covName = "hmi")
@@ -352,16 +542,23 @@ plotTraitsCoefficients(fit, covName = "protectedprotected")
 
 ![](occJSDM-00-quickstart_files/figure-gfm/trait-coefficients-2.png)<!-- -->
 
-The coefficient of `log10_body_mass` on `hmi` is -0.55 (95% interval -0.91 to -0.22), and that of `red_listed` on protection is 0.81 (0.25 to 1.38).
+The coefficient of `log10_body_mass` on `hmi` is -0.55 (95% interval
+-0.91 to -0.22), and that of `red_listed` on protection is 0.81 (0.25 to
+1.38).
 
-A coefficient is easier to grasp next to the species themselves. Here each species’ estimated response to human modification is plotted against its body mass. The dashed line has the slope that the trait coefficient implies, drawn through the average species:
+We can also plot the species responses. Here each species’ estimated
+response to human modification is plotted against its body mass;
+`plotTraitsCoefficients()` has already shown us that heavier species
+respond more negatively to human modification. The plot shows us this
+for each species. The dashed line is drawn through the centre of the
+points (the mean body mass and the mean response).
 
 ``` r
 slopes <- data.frame(
   species = species,
   log10_body_mass = traits[species, "log10_body_mass"],
   red_listed = traits[species, "red_listed"] == 1,
-  slope = apply(B[, "hmi", ], 2, mean)
+  slope = apply(B[, "hmi", ], 2, mean) # the slopes are the responses
 )
 # The coefficient is per SD of the trait; convert it to per unit of log10 body mass.
 scaling <- fit$infos$list_Tr_mat
@@ -376,20 +573,28 @@ ggplot(slopes, aes(log10_body_mass, slope, shape = red_listed)) +
 
 ![](occJSDM-00-quickstart_files/figure-gfm/trait-slope-plot-1.png)<!-- -->
 
-Species far from the line respond to human modification for reasons their body mass does not capture.
-
-### How well were the species detected?
+### How well were the species collected and detected?
 
 Detection happens in two stages, each with its own false positives:
 
-- In the field, a water sample from an occupied site collects a species’ DNA with the collection probability; a sample from an unoccupied site can still pick it up through contamination, with the field false-positive rate (`theta0`).
-- In the lab, a PCR on a sample containing the DNA detects it with the detection probability (`p`, one per primer); a PCR on a sample without it can still give a positive through contamination, with the lab false-positive rate (`q`).
+- In the field, a water sample from an occupied site collects a species’
+  DNA with the collection probability; a sample from an unoccupied site
+  can still pick it up through contamination, with the field
+  false-positive rate (`theta0`).
+- In the lab, a PCR on a sample containing the DNA detects it with the
+  detection probability (`p`, one per primer); a PCR on a sample without
+  it can still give a positive through contamination, with the lab
+  false-positive rate (`q`).
 
-This figure, laid out like Supplementary Figure 3 of Ji et al. (2025), shows the true-positive probabilities with 95% intervals, and marks the false-positive rates as short ticks at the left:
+This figure, laid out like Supplementary Figure 3 of Ji et al. (2025),
+shows the true-positive probabilities with 95% intervals, and marks the
+false-positive rates as short ticks at the left:
 
 ``` r
-summarise_draws <- function(x) c(mean = mean(x), lower = unname(quantile(x, 0.025)),
-                                  upper = unname(quantile(x, 0.975)))
+summarise_draws <- function(x) c(mean = mean(x),
+                                 lower = unname(quantile(x, 0.025)),
+                                 upper = unname(quantile(x, 0.975)))
+
 draws <- list(beta_theta = returnPosteriorDraws(fit, "beta_theta"),
               theta0 = returnPosteriorDraws(fit, "theta0"),
               p = returnPosteriorDraws(fit, "p"),
@@ -428,9 +633,60 @@ ggplot(subset(detection_long, rate == "true positive"),
 
 ![](occJSDM-00-quickstart_files/figure-gfm/detection-profile-plot-1.png)<!-- -->
 
-The field panel shows how often a sample captures each species’ DNA, and the lab panel how often a PCR then detects it. Primer 1 has the higher detection probability for 14 species and primer 2 for 6, so neither primer is best for every species. The ticks show that false positives are rare for most species, and which species are prone to them.
+The field panel shows the probability that a sample collects each
+species’ DNA, given that the species is at the site (for a sample of
+average water volume), and the lab panel how often a PCR successfully
+amplifies the species, given that the species’ DNA is in the sample.
+Primer 1 has the higher detection probability for 14 species and primer
+2 for 6, so neither primer is best for every species. The ticks show
+that false positives are rare: the highest estimated rate is 0.09, the
+field rate of Amphibia_Anura_3.
 
-The package draws each of these separately too: `plotCollectionRates()`, `plotDetectionRates()`, `plotStage1FPRates()`, `plotStage2FPRates()` and, for one primer, `plotFPTPStage2Rates()`. The effect of water volume on collection:
+occJSDM can draw these separately and together.
+
+``` r
+plotCollectionRates(fit)   # collection probability (field)
+```
+
+![](occJSDM-00-quickstart_files/figure-gfm/detection-separate-1.png)<!-- -->
+
+``` r
+plotDetectionRates(fit)    # PCR detection probability (lab), per primer
+```
+
+![](occJSDM-00-quickstart_files/figure-gfm/detection-separate-2.png)<!-- -->
+
+``` r
+plotStage1FPRates(fit)     # field false-positive rate (theta0)
+```
+
+![](occJSDM-00-quickstart_files/figure-gfm/detection-separate-3.png)<!-- -->
+
+``` r
+plotStage2FPRates(fit)     # PCR false-positive rate (q), per primer
+```
+
+![](occJSDM-00-quickstart_files/figure-gfm/detection-separate-4.png)<!-- -->
+
+``` r
+plotFPTPStage2Rates(fit)  # detection and false-positive rates together, for primer 1
+```
+
+![](occJSDM-00-quickstart_files/figure-gfm/detection-separate-5.png)<!-- -->
+
+Each function takes `idx_species` to choose a subset of species, and
+`plotFPTPStage2Rates()` also takes `primerName` to choose the primer (it
+draws primer 1 by default):
+
+``` r
+plotFPTPStage2Rates(fit, idx_species = 1:4, primerName = 2)  # detection and false-positive rates for one primer
+```
+
+![](occJSDM-00-quickstart_files/figure-gfm/detection-one-primer-1.png)<!-- -->
+
+Finally, we can ask whether water volume affected the probability of
+collection. For 16 of the 20 species, a larger water sample clearly
+increases the probability of collecting their DNA:
 
 ``` r
 plotCollectionCovariates(fit, covName = "water_volume")
@@ -438,9 +694,16 @@ plotCollectionCovariates(fit, covName = "water_volume")
 
 ![](occJSDM-00-quickstart_files/figure-gfm/collection-covariates-1.png)<!-- -->
 
-### Which species occur together?
+### What are the values of the hidden environmental covariates?
 
-Species can occur together, or avoid each other, more than the measured covariates explain, because they respond to unmeasured conditions in the same way. The residual correlation matrix shows these associations, with red for positive and blue for negative. Correlations whose 95% interval includes zero are crossed out, so the clear associations are the squares without a cross.
+**Species can occur together, or avoid each other, more than the
+measured environmental covariates explain**, because they respond to the
+same *unmeasured* conditions (or because they interact). These leftover
+co-occurrence patterns are what occJSDM uses to estimate hidden
+environmental covariates, and the residual correlation matrix summarises
+them, with red for positive and blue for negative. Correlations whose
+95% interval includes zero are crossed out, so the clear associations
+are the squares without a cross.
 
 ``` r
 plotResidualCorrelationMatrix(fit)
@@ -448,7 +711,24 @@ plotResidualCorrelationMatrix(fit)
 
 ![](occJSDM-00-quickstart_files/figure-gfm/residual-correlation-1.png)<!-- -->
 
-The ordination places sites and species on the two hidden environmental covariates. Sites close together have similar unexplained conditions, and species pointing the same way respond to them alike:
+Of the 190 species pairs, 38 are clearly positively associated and 38
+clearly negatively associated, beyond what the measured covariates
+explain. Such pairs share, or divide, some unmeasured habitat, which may
+be worth measuring in the next survey.
+
+The values themselves are shown in an ordination, which plots the two
+hidden environmental covariates that the model estimated. Each point is
+a site, placed at its estimated values of the two hidden covariates, on
+a standardised scale, so sites close together have similar unmeasured
+conditions. Each arrow shows how a species responds: the species is more
+likely to occur at sites in the direction it points, and a longer arrow
+means a stronger response. Species whose arrows point the same way tend
+to occur at the same sites, and species pointing in opposite directions
+tend to occur at different sites, *after removing the effects of the
+measured covariates*. Unlike in a PCA, the axes are not ranked by
+importance, and neither is a particular real variable: an unmeasured
+condition can lie in any direction on the plot. (By convention, axis 1
+points along the first species in the data, here Mammalia_Carnivora_1.)
 
 ``` r
 plotBiplot(fit)
@@ -456,11 +736,49 @@ plotBiplot(fit)
 
 ![](occJSDM-00-quickstart_files/figure-gfm/biplot-1.png)<!-- -->
 
-Of the 190 species pairs, 38 are clearly positively associated and 38 clearly negatively associated, beyond what the measured covariates explain. Such pairs share, or divide, some unmeasured habitat, which may be worth measuring in the next survey.
+`returnOrdinationScores()` returns them as numbers: the median and 95%
+interval for each site and hidden covariate. The medians for the first
+few sites:
+
+``` r
+scores <- returnOrdinationScores(fit)  # 2.5%, 50% and 97.5% by site by hidden covariate
+hidden <- data.frame(
+  site = dimnames(scores)[[2]],
+  hidden_1 = scores["50%", , 1],
+  hidden_2 = scores["50%", , 2],
+  row.names = NULL
+)
+head(hidden)
+```
+
+    #>   site   hidden_1     hidden_2
+    #> 1    1  0.8177033  0.297911859
+    #> 2    2 -0.7213984  0.001508125
+    #> 3    3 -1.0995981  0.595010407
+    #> 4    4 -0.9515942 -0.596668780
+    #> 5    5  0.4972757  1.229577646
+    #> 6    6 -1.4137596 -1.276064871
+
+The value at any one site is uncertain: 82% of their 95% intervals
+include zero, and a typical interval is 3.1 units wide on a scale whose
+standard deviation is about 1. So read the ordination and the medians as
+broad patterns across many sites, not as a value to trust at a single
+site.
+
+If you later measure a candidate covariate for the unmeasured condition
+at the same sites, compare it with both hidden covariates together, for
+example by regressing it on `hidden_1` and `hidden_2` with `lm()`.
+Because neither axis is a particular real variable, a real condition
+usually lines up with a combination of the two, and comparing it with
+one axis alone can miss it. Using this method to identify hidden
+environmental covariates is one of the advantages of JSDMs over stacked
+SDMs.
 
 ### How much do the measured covariates explain?
 
-For each species, the share of its occupancy variation explained by the measured covariates and the share left to the hidden environmental covariates:
+For each species, the share of its occupancy variation explained by the
+measured covariates and the share left to the hidden environmental
+covariates:
 
 ``` r
 vp <- returnVariationPartitioning(fit)
@@ -477,11 +795,16 @@ ggplot(vp_long, aes(share, species, fill = source)) +
 
 ![](occJSDM-00-quickstart_files/figure-gfm/variation-partitioning-1.png)<!-- -->
 
-The measured covariates explain between 13% and 60% of each species’ variation. (`plotVariationPartitioning()` draws a ternary plot with a third share for the spatial field, which this fit does not include.)
+The measured covariates explain between 13% and 60% of each species’
+variation. (`plotVariationPartitioning()` draws a ternary plot with a
+third share for the spatial field, which this fit does not include.)
 
 ### How many species are at each site?
 
-The expected number of species at a site is the sum of its conditional occupancy probabilities. Because the species are named by class and order, the same sum over a subset gives the expected number of mammals, carnivores and so on:
+The expected number of species at a site is the sum of its conditional
+occupancy probabilities (e.g. `0.1 + 0.72 + 0.38 + 0.95 + ...`). Because
+the species are named by class and order, the same sum over a subset
+gives the expected number of mammals, carnivores and so on:
 
 ``` r
 classes <- sub("_.*", "", species)
@@ -514,68 +837,81 @@ ggplot(subset(richness, group %in% c("All", unique(classes))),
 
 ![](occJSDM-00-quickstart_files/figure-gfm/richness-1.png)<!-- -->
 
-Expected richness correlates with elevation at 0.47 for mammals and -0.39 for fish, so the two groups are concentrated in different parts of the elevation range. These are posterior means. Their intervals need the occupancy state of every species at every site in each posterior draw, which the package does not yet return.
+Expected richness correlates with elevation at 0.47 for mammals and
+-0.39 for fish, so the two groups are concentrated in different parts of
+the elevation range.
+
+> These are posterior means. To get intervals, we would need the
+> occupancy state of every species at every site in each posterior draw,
+> which occJSDM does not yet return.
 
 ### What would occupancy be at new sites?
 
-`predictNewSites()` predicts occupancy, with intervals, at sites you did not survey, from their covariate values in their original units. Here we predict along an elevation gradient, at low human modification, inside and outside protected areas. The factor must have the same levels as in the fitted data. `useBiotic = FALSE` leaves out the hidden environmental covariates, whose values at unsurveyed sites are unknown.
+`predictNewSites()` predicts occupancy, with intervals, at sites you did
+not survey, from the values of their measured covariates, in their
+original units. (This does assume that you have measured these
+covariates at unsurveyed sites, which might require some fieldwork.)
+
+Here we predict along an elevation gradient, inside and outside
+protected areas, at low and at high human modification (hmi of 0.2 and
+0.5, both within the range of the surveyed sites). The factor must have
+the same levels as in the fitted data. `useBiotic = FALSE` leaves out
+the hidden environmental covariates, whose values at unsurveyed sites
+are unknown.
 
 ``` r
-new_sites <- data.frame(
-  elevation = rep(seq(500, 4000, by = 500), 2),
-  hmi = 0.2,
-  protected = factor(rep(c("not_protected", "protected"), each = 8),
-                     levels = levels(info$protected))
+# results = "hide" keeps the progress lines that predictNewSites() prints out of this page
+new_sites <- expand.grid(
+  elevation = seq(500, 4000, by = 500),
+  hmi = c(0.2, 0.5),
+  protected = factor(c("not_protected", "protected"), levels = levels(info$protected))
 )
 prediction <- predictNewSites(fit, X_psi = new_sites, useBiotic = FALSE)
 ```
-
-    #> Computing species 1 out of 20
-    #> Computing species 2 out of 20
-    #> Computing species 3 out of 20
-    #> Computing species 4 out of 20
-    #> Computing species 5 out of 20
-    #> Computing species 6 out of 20
-    #> Computing species 7 out of 20
-    #> Computing species 8 out of 20
-    #> Computing species 9 out of 20
-    #> Computing species 10 out of 20
-    #> Computing species 11 out of 20
-    #> Computing species 12 out of 20
-    #> Computing species 13 out of 20
-    #> Computing species 14 out of 20
-    #> Computing species 15 out of 20
-    #> Computing species 16 out of 20
-    #> Computing species 17 out of 20
-    #> Computing species 18 out of 20
-    #> Computing species 19 out of 20
-    #> Computing species 20 out of 20
 
 ``` r
 dim(prediction)  # quantile by site by species
 ```
 
-    #> [1]  3 16 20
+    #> [1]  3 32 20
+
+One panel for each level of human modification. The panels share the
+occupancy axis, so they can be compared directly:
 
 ``` r
 red_species <- species[traits[species, "red_listed"] == 1][1]
 predicted <- cbind(new_sites, t(prediction[, , match(red_species, species)]))  # the array has no species names
 names(predicted)[4:6] <- c("lower", "median", "upper")
-ggplot(predicted, aes(elevation, median, colour = protected, fill = protected)) +
+
+ggplot(predicted, aes(elevation, median,
+                      colour = protected, fill = protected)) +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2, colour = NA) +
   geom_line() +
+  facet_wrap(~ hmi, labeller = label_both) +  # facets share the y axis by default
+  guides(colour = guide_legend(reverse = TRUE),
+         fill = guide_legend(reverse = TRUE)) +  # protected on top
   labs(x = "Elevation (m)", y = "Predicted occupancy", title = red_species)
 ```
 
 ![](occJSDM-00-quickstart_files/figure-gfm/new-sites-plot-1.png)<!-- -->
 
-Mammalia_Carnivora_1 is Red Listed. Its predicted occupancy is higher inside protected areas than outside at 8 of the 8 elevations, by 0.18 to 0.43.
+Mammalia_Carnivora_1 is the species that we predict, and it is Red
+Listed. Its predicted occupancy is higher inside protected areas than
+outside at 16 of the 16 combinations of elevation and human
+modification, by 0.14 to 0.43. Higher human modification lowers it at 16
+of the 16 combinations of elevation and protection, by 0.15 to 0.44.
 
 ### Would more field samples or PCRs help?
 
-`plotCumulativeSpeciesDetections()` answers this for a site where every one of the 20 species is present: how many of them would be detected, with a 95% interval, using up to `M` field samples and up to `K` PCR replicates of one primer (here primer 1). The first plot puts PCR replicates on the x axis, with one row per number of field samples; `byK = FALSE` swaps them:
+`plotCumulativeSpeciesDetections()` answers this for a site where every
+one of the 20 species is present: how many of them would be detected,
+with a 95% interval, using up to `M` field samples and up to `K` PCR
+replicates of one primer (here primer 1). The first plot puts PCR
+replicates on the x axis, with one row per number of field samples;
+`byK = FALSE` swaps them:
 
 ``` r
+set.seed(20261101)  # the plot simulates detections, so a seed gives the same result every time
 cumulative <- plotCumulativeSpeciesDetections(fit, M = 6, K = 6, primer = 1)
 cumulative
 ```
@@ -588,21 +924,31 @@ plotCumulativeSpeciesDetections(fit, M = 6, K = 6, primer = 1, byK = FALSE)
 
 ![](occJSDM-00-quickstart_files/figure-gfm/cumulative-detections-2.png)<!-- -->
 
-Where the intervals stop rising, extra effort adds little. From this survey’s design (3 water samples per site, 3 PCRs per primer), going to 6 PCRs per primer raises the midpoint of the interval by 0.5 species, and going to 6 samples by 1.5. For this survey, more water samples would pay off better than more PCRs.
+Where the intervals stop rising, extra effort adds little. From this
+survey’s design (3 water samples per site, 3 PCRs per primer), going to
+6 PCRs per primer raises the midpoint of the interval by 0.5 species,
+and going to 6 samples raises it by 1.5. For this survey, more water
+samples would pay off better than more PCRs.
 
 ## Save the results as tables
 
-Every result above can be saved as a table, one row per estimate, for a paper’s supplement, a report or further analysis. Each is an ordinary data frame, so `write.csv()` saves it, for example:
+Every result above can be saved as a table, one row per estimate, for a
+paper’s supplement, a report or further analysis. Each is an ordinary
+data frame, so `write.csv()` saves it, for example:
 
 ``` r
 write.csv(occ_site, "occupancy_by_site.csv", row.names = FALSE)
 ```
 
-`summarise_draws()`, defined in the detection section, gives the mean and 95% interval of a set of posterior draws, and the tables below use it throughout.
+`summarise_draws()`, defined in the detection section, gives the mean
+and 95% interval of a set of posterior draws, and the tables below use
+it throughout.
 
 ### Occupancy at each site
 
-The two occupancy probabilities for every site and species, with the raw evidence beside them: how many of the site’s water samples had at least one positive PCR, and how many of its PCRs were positive.
+The two occupancy probabilities for every site and species, with the raw
+evidence beside them: how many of the site’s water samples had at least
+one positive PCR, and how many of its PCRs were positive.
 
 ``` r
 positive <- OTU >= fit$infos$threshold  # PCR by species: detection or not
@@ -653,7 +999,9 @@ head(richness)
 
 ### Each species’ occupancy and detection
 
-One row per species: baseline occupancy, then each detection probability and false-positive rate from the detection figure, each with its mean and 95% interval.
+One row per species: baseline occupancy, then each detection probability
+and false-positive rate from the detection figure, each with its mean
+and 95% interval.
 
 ``` r
 baseline_draws <- returnOccupancyRates(fit)
@@ -708,7 +1056,8 @@ head(detection_profile[, 1:7])
 
 ### Environmental effects
 
-One row per species and coefficient, on the logit scale, with whether the 95% interval excludes zero:
+One row per species and coefficient, on the logit scale, with whether
+the 95% interval excludes zero:
 
 ``` r
 cov_effects <- expand.grid(coefficient = dimnames(B)[[2]], species = species,
@@ -766,7 +1115,9 @@ trait_env
 
 ### Residual associations
 
-Only the species pairs whose residual correlation has a 95% interval that excludes zero, which keeps the table short however many species there are:
+Only the species pairs whose residual correlation has a 95% interval
+that excludes zero, which keeps the table short however many species
+there are:
 
 ``` r
 pairs_idx <- which(pair, arr.ind = TRUE)
@@ -803,29 +1154,60 @@ head(assoc_pairs[order(-abs(assoc_pairs$median)), ])
     #> 46  0.9999444
     #> 36 -0.7539910
 
-### Convergence
+### Hidden environmental covariates
 
-The convergence table from the start of this page is itself worth reporting, at least for the flagged parameters:
+Each site’s estimated values of the two hidden environmental covariates,
+with 95% intervals:
 
 ``` r
-head(diagnostics[, c("param", "label1", "label2", "rhat", "ess")])
+n_hidden <- dim(scores)[3]
+hidden_table <- data.frame(
+  site = rep(dimnames(scores)[[2]], times = n_hidden),
+  covariate = rep(paste0("hidden_", seq_len(n_hidden)), each = dim(scores)[2]),
+  median = as.vector(scores["50%", , ]),
+  lower = as.vector(scores["2.5%", , ]),
+  upper = as.vector(scores["97.5%", , ])
+)
+head(hidden_table)
 ```
 
-    #> # A tibble: 6 × 5
-    #>   param     label1                  label2  rhat   ess
-    #>   <chr>     <chr>                   <chr>  <dbl> <dbl>
-    #> 1 beta0_psi Mammalia_Carnivora_1    1       1.01 1045.
-    #> 2 beta0_psi Mammalia_Carnivora_2    1       1.00 1336.
-    #> 3 beta0_psi Mammalia_Carnivora_3    1       1.00 1028.
-    #> 4 beta0_psi Mammalia_Artiodactyla_1 1       1.00  988.
-    #> 5 beta0_psi Mammalia_Artiodactyla_2 1       1.00 1082.
-    #> 6 beta0_psi Mammalia_Artiodactyla_3 1       1.00  719.
+    #>   site covariate     median      lower      upper
+    #> 1    1  hidden_1  0.8177033 -0.3319033 2.28821000
+    #> 2    2  hidden_1 -0.7213984 -2.3692370 0.53021924
+    #> 3    3  hidden_1 -1.0995981 -2.8367728 0.26570537
+    #> 4    4  hidden_1 -0.9515942 -2.4383450 0.16535474
+    #> 5    5  hidden_1  0.4972757 -0.7891679 2.02390115
+    #> 6    6  hidden_1 -1.4137596 -3.2360749 0.02898225
+
+### Convergence
+
+The convergence table from the start of this page is itself worth
+reporting, at least for the flagged parameters:
+
+``` r
+flagged
+```
+
+    #> # A tibble: 4 × 5
+    #>   param     label1                  label2                   rhat   ess
+    #>   <chr>     <chr>                   <chr>                   <dbl> <dbl>
+    #> 1 beta0_psi Mammalia_Carnivora_1    1                        1.01 1045.
+    #> 2 beta0_psi Mammalia_Eulipotyphla_2 1                        1.01  754.
+    #> 3 beta_psi  hmi                     Mammalia_Artiodactyla_2  1.01 1037.
+    #> 4 theta0    Mammalia_Artiodactyla_2 1                        1.04 1228.
 
 ## Where to go next
 
-- `?runOccJSDM` for every fitting argument, including the priors, and the help page of each function used above.
-- [Lesson 3](https://github.com/AlexDiana/occJSDM/blob/main/vignettes/occJSDM-lesson-3.md) reads these same outputs against a simulated survey whose truth is known, to show how far each can be trusted.
-- `vignette("simulateOccJSDMData", package = "occJSDM")` to simulate a survey of your own design.
-- The [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) section of the README, before relying on the estimates.
+- `?runOccJSDM` for every fitting argument, including the priors, and
+  the help page of each function used above.
+- [Lesson
+  3](https://github.com/AlexDiana/occJSDM/blob/main/vignettes/occJSDM-lesson-3.md)
+  reads these same outputs against a simulated survey whose truth is
+  known, to show how far each can be trusted.
+- `vignette("simulateOccJSDMData", package = "occJSDM")` to simulate a
+  survey of your own design.
+- The [Known
+  limitations](https://github.com/AlexDiana/occJSDM#known-limitations)
+  section of the README, before relying on the estimates.
 
-The detailed teaching lessons are first drafts only and are awaiting a full line-by-line review.
+The detailed teaching lessons are being reviewed.
