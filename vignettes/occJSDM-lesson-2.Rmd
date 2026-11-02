@@ -21,13 +21,17 @@ source("lesson-links.R")
 
 ```
 
-## Before you start
+## What this lesson answers
 
-This is **Lesson 2**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we simulated the survey used here . You can skip it. Every reader starts with [Lesson 1](occJSDM-lesson-1.md): it works through occupancy models and joint species distribution models by hand and fits a one-species occupancy model with occJSDM.
+**When occJSDM is fitted to an eDNA survey whose truth we know, how closely does it recover the occupancy probabilities? And when does it believe a positive detection, and can that judgment be wrong?**
+
+The [Quickstart](occJSDM-00-quickstart.md) showed how to fit occJSDM and read its results, on a survey whose truth is not known. Here we fit the full model to a simulated survey and check its answers against the truth. We fit the same survey twice: once given the true presence/absence of every species (perfect observations), and once given the PCR observations. The first fit shows what the occupancy part of the model recovers on its own, and the gap between the two shows what detection error costs. The lesson also asks how much the answers depend on the contamination priors, and fits a survey with unequal numbers of field samples per site.
+
+This is **Lesson 2**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we simulated the survey used here. You can skip it. Every reader starts with [Lesson 1](occJSDM-lesson-1.md): it works through occupancy models and joint species distribution models by hand and fits a one-species occupancy model with occJSDM.
 
 All teaching code is shown. Run the chunks in order with the repository's `vignettes` directory as the working directory; knitting handles this automatically. In RStudio, use **Session \> Set Working Directory \> To Source File Location** with this file open.
 
-We use saved results so that reading or knitting the lesson does not start a long model fit. A fit produces thousands of draws for each quantity it estimates, each draw one plausible value given the data. The saved file keeps only summaries of those draws, namely their average and the range holding the middle 95% of them, not the draws themselves. Six chunks are shown but not run while knitting, including the perfect-observation fit, the PCR fit, the fit with alternative priors and the fit to a survey with unequal replication. The other two, `inspect-fitted-design` and `extract-your-fit`, need your to fit a model. Every other chunk runs and produces the figures and tables you see. The saved file contains the complete simulation. The unequal-replication section loads a second, smaller file.
+We use saved results so that reading or knitting the lesson does not start a long model fit. A fit produces thousands of draws for each quantity it estimates, each draw one plausible value given the data. The saved file keeps only summaries of those draws, namely their average and the range holding the middle 95% of them, not the draws themselves. Six chunks are shown but not run while knitting, including the perfect-observation fit, the PCR fit, the fit with alternative priors and the fit to a survey with unequal replication. The other two, `inspect-fitted-design` and `extract-your-fit`, need you to fit a model. Every other chunk runs and produces the figures and tables you see. The saved file contains the complete simulation. The unequal-replication section loads a second, smaller file.
 
 **What this lesson assumes you know about R.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R for Data Science on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. Operations that are unusual, such as joining two tables on species identity, are explained where they appear.
 
@@ -50,7 +54,7 @@ known_truth <- lesson$input$sim$true_params
 occupancy_results <- as_tibble(lesson$cells)
 ```
 
-`survey_data` contains the covariates, traits and PCR observations supplied to the model. `known_truth` is kept separate so that we can check the model's answers against it. This is not the Quickstart's `sampledata`, which is also simulated but ships without its truth.
+`survey_data` contains the covariates, traits and PCR observations supplied to the model. `known_truth` is kept separate so that we can check the model's answers against it. This is not the Quickstart's `quickstartdata`, which is also simulated but ships without its truth.
 
 ```{r lesson-overview}
 names(lesson)
@@ -119,7 +123,7 @@ format_points <- function(error) {
 theme_set(ggplot2::theme_minimal(base_size = 12))
 ```
 
-## What are we trying to learn?
+## The model and the simulated survey
 
 This lesson teaches you to fit occJSDM's full model to an environmental DNA (eDNA) survey. The full model is a **two-stage occupancy model**, which separates DNA collection in the field from PCR detection in the laboratory, combined with a **joint species distribution model (JSDM)**, which models all the species together. You will prepare the data, run the fits, check that the sampler has done its job and read the estimates. Because the survey is simulated, we can then compare every estimate with the truth.
 
@@ -129,9 +133,7 @@ occJSDM gives each of these stages its own probability. These are site occupancy
 
 Below, we compare occJSDM's estimates of occupancy with the simulator's truth in "How close are the estimates with perfect and with PCR observations?". We also compare the estimated detection and false-positive rates in "How does good practice enter the model?" and collection in "Collection conditions".
 
-The comparison with truth asks two questions: **How closely does occJSDM recover the underlying occupancy probabilities? When does it believe a positive detection, and can that judgment be wrong?**
-
-We use a simulated community so that we can reveal the answers. Because the simulated community lets us know the truth, we can check how well occJSDM performs, since it is not given the truth. Note, however, that this is a single teaching dataset, not an estimate of performance across all ecological surveys.
+We use a simulated community so that we can reveal the answers to the lesson's two questions. Because the simulated community lets us know the truth, we can check how well occJSDM performs, since it is not given the truth. Note, however, that this is a single teaching dataset, not an estimate of performance across all ecological surveys.
 
 The simulated community and dataset has:
 

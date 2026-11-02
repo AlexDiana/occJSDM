@@ -28,9 +28,16 @@ knitr::opts_chunk$set(
 source("lesson-links.R")
 ```
 
-## What this lesson adds
+## What this lesson answers
 
-[Lesson 5](occJSDM-lesson-5.md) gave occJSDM, gllvm, sjSDM and Hmsc the same perfectly observed community and compared their probabilities with truth. This lesson repeats that experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits.
+**Does the Lesson 5 comparison hold up across ten communities, and are the four packages' estimates biased and their intervals trustworthy?** [Lesson 5](occJSDM-lesson-5.md) gave occJSDM, gllvm, sjSDM and Hmsc the same perfectly observed community and compared their probabilities with truth. One community can mislead, so this lesson repeats that experiment across ten independent communities and asks four questions, one per section:
+
+1.  Does more data help when the ecology becomes harder?
+2.  Do traits explain species' responses, and do they improve prediction?
+3.  Across communities, are the estimates biased?
+4.  Do 95% intervals contain the truth as often as they should?
+
+These experiments do not establish a general ranking of the packages. All numbers below come from saved fits.
 
 You will learn to distinguish bias from error size, and to read interval coverage beside interval width, which the appendix tabulates.
 

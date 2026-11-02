@@ -15,15 +15,15 @@ knitr::opts_chunk$set(echo = TRUE, collapse = FALSE, comment = "#>", fig.width =
 source("lesson-links.R")
 ```
 
-## What this lesson is about
+## What this lesson answers
 
-This lesson explains, mostly by hand,
+The [Quickstart](occJSDM-00-quickstart.md) shows what occJSDM produces. This lesson explains, mostly by hand, the two ideas the model is built from, by answering two questions:
 
-1.  what a one-species, single-season occupancy model does with replicate samples, ending with the same model fitted by occJSDM, and
+1.  **If a survey did not detect a species at a site, was the species absent, or was it missed?** A single-season occupancy model answers this from replicate samples. We work through it for one species, ending with the same model fitted by occJSDM.
 
-2.  what a *joint* species distribution model adds to the simpler alternative of modelling each species on its own.
+2.  **What does modelling all the species together add to modelling each species on its own?** That is what a *joint* species distribution model does. We show it on a small community whose numbers we choose by hand.
 
-This is the first required lesson, so every reader starts here. It assumes no familiarity with occJSDM or with occupancy models. Run the code chunks in order; they take a few seconds and read no saved files.
+The later lessons check occJSDM's answers against simulated truth, and these two ideas are what you need to follow those checks. This is the first required lesson, so every reader starts here. It assumes no familiarity with occJSDM or with occupancy models. Run the code chunks in order; they take a few seconds and read no saved files.
 
 **What this lesson assumes you know about R.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr, the verbs listed below. If any is new, the two chapters of *R for Data Science* on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything in an afternoon. Operations that are unusual are explained where they appear.
 

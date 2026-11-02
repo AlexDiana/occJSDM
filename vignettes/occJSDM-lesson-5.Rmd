@@ -28,9 +28,9 @@ knitr::opts_chunk$set(
 source("lesson-links.R")
 ```
 
-## What are we comparing?
+## What this lesson answers
 
-Suppose we know with certainty which species occupy each surveyed site. Can a joint species distribution model recover the underlying probabilities, and can it predict occurrence at sites we have not surveyed?
+**Does occJSDM's joint species distribution model do as well as three established JSDM packages when all four are given the same data?** Suppose we know with certainty which species occupy each surveyed site. Can each model recover the underlying probabilities, and can it predict occurrence at sites we have not surveyed? The earlier lessons checked occJSDM against the truth on its own; this lesson checks it against the alternatives.
 
 We give **occJSDM, gllvm, sjSDM and Hmsc exactly the same simulated observations**. gllvm fits generalised linear latent variable models by approximate likelihood. sjSDM is a fast JSDM fitted by optimisation in PyTorch, a Python machine-learning library. Hmsc is a Bayesian hierarchical JSDM widely used in community ecology.
 

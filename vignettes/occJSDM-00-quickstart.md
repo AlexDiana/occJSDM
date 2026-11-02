@@ -3,8 +3,8 @@ occJSDM: quickstart
 
 occJSDM uses eDNA surveys to estimate which species occupy which sites.
 It allows for false negatives (from imperfect field collection,
-imperfect PCR detection or both) and for false positives (from
-contamination in the field, in the lab or both). It models the species
+imperfect PCR detection, or both) and for false positives (from
+contamination in the field, in the lab, or both). It models the species
 jointly: their responses to the environment, the role of their traits,
 and associations between species that the covariates do not explain,
 optionally with a spatial field, although note that the spatial field
@@ -1200,6 +1200,13 @@ flagged
 
 - `?runOccJSDM` for every fitting argument, including the priors, and
   the help page of each function used above.
+- The [teaching
+  lessons](https://github.com/AlexDiana/occJSDM#teaching-lessons), which
+  go beyond this quickstart: they explain what the model does, then fit
+  it to simulated surveys whose truth is known and check its answers
+  against that truth and against other packages. The README lists them
+  with the question each one answers. Start with Lesson 1. They are
+  still being reviewed.
 - [Lesson
   3](https://github.com/AlexDiana/occJSDM/blob/main/vignettes/occJSDM-lesson-3.md)
   reads these same outputs against a simulated survey whose truth is
@@ -1209,5 +1216,3 @@ flagged
 - The [Known
   limitations](https://github.com/AlexDiana/occJSDM#known-limitations)
   section of the README, before relying on the estimates.
-
-The detailed teaching lessons are being reviewed.
