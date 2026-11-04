@@ -108,6 +108,24 @@ test_that("the per-pair log-likelihoods are those of the site's field samples gi
   }
 })
 
+test_that("the per-pair log-likelihoods are the terms the chain's own first-stage likelihood forms", {
+  # computeModelLoglikFirstStage_cpp() scores the first stage in the chain
+  # (R/chains.R), and ZProbWorker (src/functions.cpp) forms the same per-site
+  # sums for the z draw. The step integrates z out of exactly these terms, so
+  # its l1 and l0 must equal their sums over each site's field samples at
+  # z = 1 and z = 0, to rounding.
+  a <- tiny_first_stage()
+  pair <- b0_shift_pair_loglik(a$w, a$theta, a$theta0, a$idx_z_w, a$n)
+  by_site <- function(zval) {
+    z <- matrix(zval, a$n, a$S)
+    ll <- computeModelLoglikFirstStage_cpp(a$w, z, a$theta, a$theta0, a$idx_z_w)
+    # one value per field sample and species, species fastest
+    rowsum(matrix(ll, nrow(a$w), a$S, byrow = TRUE), a$idx_z_w, reorder = TRUE)
+  }
+  expect_equal(unname(pair$l1), unname(by_site(1)), tolerance = 1e-12)
+  expect_equal(unname(pair$l0), unname(by_site(0)), tolerance = 1e-12)
+})
+
 test_that("the z-integrated log-likelihood equals the sum over every occupancy configuration", {
   a <- tiny_first_stage()
   pair <- b0_shift_pair_loglik(a$w, a$theta, a$theta0, a$idx_z_w, a$n)
@@ -302,14 +320,31 @@ test_that("the settings are rejected where the move cannot apply", {
                "b0_shift_sd requires b0_prior = 'community' in an occupancy or two-stage fit")
 })
 
+test_that("a fit with the move runs on workers and records every chain", {
+  skip_on_cran()
+  mcmc <- list(nchain = 2L, nburn = 8L, niter = 6L, nthin = 1L)
+  parallel <- fit_shift(list(b0_prior = "community"), c(mcmc, list(ncores = 2L)), model = "two_stage")
+  rec <- parallel$infos$b0_shift
+  expect_identical(rec$enabled, TRUE)
+  expect_length(rec$sd, 2L)
+  expect_true(all(is.finite(rec$sd)) && all(rec$sd > 0))
+  expect_length(rec$acceptance, 2L)
+  expect_true(all(rec$acceptance >= 0 & rec$acceptance <= 1))
+})
+
+# Whether a fit is identical in process and on workers depends on the BLAS,
+# not on this step, which does no BLAS work. The other cross-worker identity
+# tests (test-parallel-chains.R) are gated by the declaration set after
+# checking that a single-threaded reference BLAS is in use; the gate is
+# repeated here because that file's helper is local to it.
 test_that("a fit with the move is identical in process and on workers", {
   skip_on_cran()
+  if (!nzchar(Sys.getenv("OCCJSDM_REFERENCE_BLAS")))
+    skip("fit identity across worker counts needs a declared single-threaded reference BLAS")
   mcmc <- list(nchain = 2L, nburn = 8L, niter = 6L, nthin = 1L)
   serial <- fit_shift(list(b0_prior = "community"), mcmc, model = "two_stage")
   parallel <- fit_shift(list(b0_prior = "community"), c(mcmc, list(ncores = 2L)), model = "two_stage")
   expect_identical(occJSDM:::drop_execution(parallel), occJSDM:::drop_execution(serial))
-  expect_identical(serial$infos$b0_shift$enabled, TRUE)
-  expect_length(serial$infos$b0_shift$sd, 2L)
 })
 
 test_that("long chains with and without the move agree on the posterior of mu_b0 and B0", {
