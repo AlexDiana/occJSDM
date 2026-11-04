@@ -1,7 +1,13 @@
 # Validate the current three-sample teaching fits. The September validator is unchanged.
-# Rscript dev/simstudy/vignette-lesson/validate-waic.R ARCHIVE OUTPUT DRAWS_PER_CHAIN
+# Rscript dev/simstudy/vignette-lesson/validate-waic.R ARCHIVE OUTPUT DRAWS_PER_CHAIN [wide]
+# "wide" (added 4 November 2026) appends orders 101 and 161 to the default
+# ladder and 181 and 241 to the stricter one: the community-prior one-factor fit
+# has a draw (residual SD 4.07) at which the default ladder does not converge.
 args <- commandArgs(TRUE)
-stopifnot(length(args) == 3L)
+stopifnot(length(args) %in% 3:4, length(args) == 3L || args[4] == "wide")
+wide <- length(args) == 4L
+default_orders <- c(15L, 25L, 41L, 65L, if (wide) c(101L, 161L))
+strict_orders <- c(31, 51, 81, 121, if (wide) c(181, 241))
 archive <- normalizePath(args[1], mustWork = TRUE)
 outdir <- args[2]
 per_chain <- as.integer(args[3])
@@ -31,11 +37,11 @@ for (name in names(paths)) {
   cat(name, length(draws), "draws; input MD5", tools::md5sum(paths[[name]]), "\n")
   warnings <- character()
   started <- proc.time()[[3]]
-  score <- withCallingHandlers(computeSiteWAIC(fit, draws = draws), warning = function(w) {
+  score <- withCallingHandlers(computeSiteWAIC(fit, draws = draws, quadrature = default_orders), warning = function(w) {
     warnings <<- c(warnings, conditionMessage(w)); invokeRestart("muffleWarning")
   })
   stricter <- suppressWarnings(computeSiteWAIC(fit, draws = draws,
-    quadrature = c(31, 51, 81, 121), tolerance = 1e-6))
+    quadrature = strict_orders, tolerance = 1e-6))
   max_change <- max(abs(score$log_lik - stricter$log_lik))
   stopifnot(max_change < 1e-4)
   reference <- suppressWarnings(loo::waic(score$log_lik))

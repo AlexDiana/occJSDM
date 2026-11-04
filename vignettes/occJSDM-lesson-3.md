@@ -3,15 +3,15 @@ Lesson 3: Understand the model’s outputs by comparing them with truth
 
 ## What this lesson answers
 
-An environmental effect can be real in the simulation and still be estimated imprecisely. A fitted curve can look convincing and still miss the truth. This lesson shows how to distinguish those situations. With real data the truth is never known, so a simulation whose truth we know is the only place to see what each output can and cannot tell you. The [function finder](#find-the-function-for-your-question) near the end maps each question to the functions that answer it.
+**How far can each of occJSDM’s outputs be trusted?** The [Quickstart](occJSDM-00-quickstart.md) draws the main outputs, from convergence diagnostics and environmental and trait effects to species associations, ordination and detection rates, for a survey whose truth is not known. This lesson draws the same outputs for the simulated survey of Lesson 2 and puts the truth beside each one. An environmental effect can be real in the simulation and still be estimated imprecisely. A fitted curve can look convincing and still miss the truth. This lesson shows how to tell those situations apart. With real data the truth is never known, so a simulation whose truth we know is the only place to see what each output can and cannot tell you. The [function finder](#find-the-function-for-your-question) near the end maps each question to the functions that answer it.
 
-Start with [Lesson 2](occJSDM-lesson-2.md) for fitting and false-positive interpretation; [Lesson 0](occJSDM-lesson-0.md) explains the simulation. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
+Read [Lesson 2](occJSDM-lesson-2.md) first: it makes the fits used here and explains how to read false positives. [Lesson 0](occJSDM-lesson-0.md) explains the simulation. Here we use the same **non-spatial** community: 100 sites, 10 species, two measured environmental covariates, two measured traits, three field samples per site, two primers and six PCR replicates per primer.
 
-The [Quickstart’s](occJSDM-00-quickstart.md) `sampledata` also has three field samples per site, but three primers with two PCRs each. The model reads the structure of the survey, repeated samples within sites and repeated PCRs within samples, not fixed counts, as Lesson 2’s [fitting reference](occJSDM-lesson-2.md#fitting-your-own-data-what-the-call-needs) explains.
+The Quickstart’s survey has a different number of primers and PCR replicates. That does not matter: the model reads the structure of the survey, repeated samples within sites and repeated PCRs within samples, not fixed counts, as Lesson 2’s [fitting reference](occJSDM-lesson-2.md#fitting-your-own-data-what-the-call-needs) explains.
 
 We compare two existing fits of that community: one given the actual presence/absence matrix (**perfect observation**) and one given the PCR observations. The perfect-observation fit shows what the occupancy part of the model recovers once detection error is removed, so the gap between the two fits is the cost of imperfect detection.
 
-The diagnostics section also revisits Lesson 2’s longer alternative-prior fit. Most examples reuse these fits. [Lesson 4](occJSDM-lesson-4.md), on prediction at new sites, adds one fit to the same PCR observations, changing only the number of hidden site factors from two to one. Hidden site factors stand for unmeasured conditions at a site that several species respond to, as [Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-does) explains.
+The diagnostics section also revisits Lesson 2’s longer alternative-prior fit. Most examples reuse these fits. [Lesson 4](occJSDM-lesson-4.md), on prediction at new sites, adds one fit to the same PCR observations, changing only the number of hidden environmental covariates from two to one. Hidden environmental covariates stand for unmeasured conditions at a site that several species respond to, as [Lesson 1](occJSDM-lesson-1.md#what-a-joint-species-distribution-model-does) explains.
 
 All teaching code is visible. Run chunks with `vignettes` as the working directory, or knit this file, which means rendering it into this page. Figures and tables use compact saved summaries. Some chunks, marked `eval=FALSE`, are shown but not run while knitting, because they need a full fit, which takes too long to build each time the page is rendered. They show how to obtain the underlying outputs from your own fit.
 
@@ -104,17 +104,17 @@ glimpse(outputs$coefficients)
     #> $ term          <chr> "OTU_1", "OTU_2", "OTU_3", "OTU_4", "OTU_5", "OTU_6", "O…
     #> $ block         <chr> "Environment", "Environment", "Environment", "Environmen…
     #> $ truth         <dbl> 0.8281640, -3.6499301, -0.9103899, 0.2796435, -0.4922653…
-    #> $ estimate      <dbl> 0.376044764, -2.656362833, -1.315172113, -0.081602446, -…
-    #> $ lower         <dbl> -0.25474733, -3.74591606, -2.02156162, -0.52139757, -1.4…
-    #> $ upper         <dbl> 1.02659391, -1.73718373, -0.70997941, 0.36202006, -0.198…
+    #> $ estimate      <dbl> 0.368728331, -2.677501057, -1.320302652, -0.079739935, -…
+    #> $ lower         <dbl> -0.24816454, -3.75825149, -2.04463751, -0.53042457, -1.4…
+    #> $ upper         <dbl> 1.03021500, -1.74928250, -0.70747930, 0.36941340, -0.213…
     #> $ excludes_zero <lgl> FALSE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, …
-    #> $ rhat          <dbl> 1.0005696, 1.0010705, 1.0005770, 1.0001550, 1.0006303, 1…
-    #> $ ess_bulk      <dbl> 4786.8601, 2140.7017, 3473.6461, 9752.8412, 4756.1448, 4…
-    #> $ ess_tail      <dbl> 9234.162, 3419.619, 5714.067, 15702.110, 7970.178, 6755.…
+    #> $ rhat          <dbl> 1.0008209, 1.0019851, 1.0008552, 1.0002090, 1.0004654, 1…
+    #> $ ess_bulk      <dbl> 4817.2308, 2037.3570, 3352.5564, 10536.1114, 4651.3091, …
+    #> $ ess_tail      <dbl> 9388.807, 3621.931, 5251.131, 15276.444, 7665.387, 7450.…
     #> $ arm           <chr> "perfect", "perfect", "perfect", "perfect", "perfect", "…
 
 - `lesson` is Lesson 2’s bundle. `input` holds the simulated survey and its truth. `observations` has one row per PCR observation of each species, with the true site and sample states and where each positive came from. `cases` holds the four detection cases Lesson 2 selected, and `cells` each fit’s estimate for every species at every site. `diagnostics` holds the saved diagnostic tables of the three fits, and `manifests` each fit’s settings. The other elements are Lesson 2’s remaining summaries and records that identify the files the bundle was built from.
-- `outputs` holds this lesson’s summaries of the full fits, one table per output. The lesson uses `coefficients`, `baseline` (baseline occupancy), `correlations` (residual correlations), `residual` (the hidden site contributions), `detection_effort` (expected detections for each survey effort), `trait_components` and `trait_hidden_correlation`.
+- `outputs` holds this lesson’s summaries of the full fits, one table per output. The lesson uses `coefficients`, `baseline` (baseline occupancy), `correlations` (residual correlations), `residual` (the hidden-covariate contributions), `detection_effort` (expected detections for each survey effort), `trait_components` and `trait_hidden_correlation`.
 - `diagnostic_examples$traces` holds the three trace excerpts drawn in the diagnostics section: a collection effect, a primer’s detection rate and a field-contamination rate.
 - `known_truth` is the simulation’s generating parameters, which no fit saw.
 
@@ -128,7 +128,7 @@ These are teaching summaries exported from the full fits, not what `runOccJSDM()
 - A **chain** is one independent run of the sampler that produces the draws. The perfect-observation and PCR fits each ran four chains of 6,000 kept draws, 24,000 in all.
 - A **95% credible interval** is the range holding the middle 95% of the draws. It is the model’s statement of uncertainty given its assumptions, not a measured distance from truth.
 - **Log-odds** are the scale on which the model adds effects: `log(p / (1 - p))` for a probability `p`. Zero is 50%, and `plogis()` converts log-odds back to a probability.
-- **Hidden site factors**, as in the opening, are unmeasured conditions at a site that several species respond to ([Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-does)). A species’ **hidden site-factor contribution** at a site is their combined effect on its log-odds there.
+- **Hidden environmental covariates**, as in the opening, are unmeasured conditions at a site that several species respond to ([Lesson 1](occJSDM-lesson-1.md#what-a-joint-species-distribution-model-does)). A species’ **hidden-covariate contribution** at a site is their combined effect on its log-odds there.
 
 In the figures, **black crosses or lines show truth**. Coloured or black bars show posterior intervals; the legend or caption says which. An interval is not a measurement of how far the estimate actually is from truth; simulation lets us check both separately.
 
@@ -165,10 +165,10 @@ knitr::kable(diagnostic_summary, digits = 3)
 
 | fit                 | parameters | unavailable | maximum_Rhat | minimum_ESS |
 |:--------------------|-----------:|------------:|-------------:|------------:|
-| PCR observations    |        100 |           0 |        1.009 |     835.289 |
-| Perfect observation |         30 |           0 |        1.002 |    2096.978 |
+| PCR observations    |        101 |           0 |        1.006 |     906.616 |
+| Perfect observation |         31 |           0 |        1.002 |    2091.900 |
 
-The perfect-observation fit’s table covers 30 parameters, the occupancy intercepts and environmental slopes, because that fit has no detection stages; its largest Rhat is 1.002 and its smallest ESS 2,097. The PCR fit’s 100 parameters add the collection, field-contamination and laboratory parameters; its largest Rhat is 1.009 and its smallest ESS 835.
+The perfect-observation fit’s table covers 31 parameters, the occupancy intercepts and environmental slopes, because that fit has no detection stages; its largest Rhat is 1.002 and its smallest ESS 2,092. The PCR fit’s 101 parameters add the collection, field-contamination and laboratory parameters; its largest Rhat is 1.006 and its smallest ESS 907.
 
 Diagnostics check the computation, not ecological accuracy: chains can agree closely on an imprecise estimate, and they cannot separate ecological explanations that the data cannot tell apart. The subsections below get the same table for your own fit and find the individual parameters that need attention.
 
@@ -195,7 +195,7 @@ There is one row per parameter, such as the collection effect for one species or
 - `q`: positive PCR probability when DNA is absent from the sample; `label1` primer, `label2` species.
 - `theta0`: field-contamination probability when the species is absent from the site; `label1` species, `label2` placeholder.
 
-The table also contains `mean`, `sd`, `q2.5` and `q97.5`: posterior summaries of the corresponding parameter. They are distinct from the numerical checks `rhat` and `ess`. The package function covers these six parameter blocks, **not every quantity in the model**. In particular, it omits the trait coefficients and the individual latent-factor arrays.
+The table also contains `mean`, `sd`, `q2.5` and `q97.5`: posterior summaries of the corresponding parameter. They are distinct from the numerical checks `rhat` and `ess`. The package function covers these six parameter blocks, **not every quantity in the model**. In particular, it omits the trait coefficients and the arrays holding the hidden environmental covariates and the species’ responses to them.
 
 ### Find the parameters that need attention
 
@@ -241,10 +241,35 @@ flagged_alternative |>
   knitr::kable(digits = c(0, 0, 0, 4, 0, 0, 0, 0))
 ```
 
-| param    | label1         | label2 |   rhat |  ess | unavailable | high_rhat | low_ess |
-|:---------|:---------------|:-------|-------:|-----:|:------------|:----------|:--------|
-| beta_psi | X_psi.EnvCov.1 | OTU_6  | 1.0132 | 1273 | FALSE       | TRUE      | FALSE   |
-| theta0   | OTU_6          | 1      | 1.0074 |  397 | FALSE       | FALSE     | TRUE    |
+| param      | label1         | label2 |   rhat |   ess | unavailable | high_rhat | low_ess |
+|:-----------|:---------------|:-------|-------:|------:|:------------|:----------|:--------|
+| theta0     | OTU_10         | 1      | 9.2394 | 18764 | FALSE       | TRUE      | FALSE   |
+| beta_theta | (Intercept)    | OTU_10 | 6.0761 |  8072 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.1 | OTU_10 | 5.3591 |  3294 | FALSE       | TRUE      | FALSE   |
+| beta0_psi  | OTU_10         | 1      | 4.8138 |  5485 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.2 | OTU_10 | 3.8138 |  3463 | FALSE       | TRUE      | FALSE   |
+| beta_theta | X_theta        | OTU_10 | 1.3890 | 10714 | FALSE       | TRUE      | FALSE   |
+| mu_b0      | 1              | 1      | 1.2776 |  6258 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.2 | OTU_5  | 1.2647 |  3610 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.2 | OTU_1  | 1.1292 |  5859 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.2 | OTU_9  | 1.1228 | 10610 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.2 | OTU_8  | 1.0879 | 12071 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.2 | OTU_7  | 1.0800 | 10194 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.2 | OTU_2  | 1.0704 |  4161 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.2 | OTU_3  | 1.0393 |  6437 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.1 | OTU_7  | 1.0350 |  6874 | FALSE       | TRUE      | FALSE   |
+| beta0_psi  | OTU_6          | 1      | 1.0279 |   668 | FALSE       | TRUE      | FALSE   |
+| beta0_psi  | OTU_7          | 1      | 1.0195 |  5632 | FALSE       | TRUE      | FALSE   |
+| beta0_psi  | OTU_9          | 1      | 1.0194 |  4303 | FALSE       | TRUE      | FALSE   |
+| beta0_psi  | OTU_2          | 1      | 1.0186 |  3361 | FALSE       | TRUE      | FALSE   |
+| beta0_psi  | OTU_3          | 1      | 1.0163 |  3206 | FALSE       | TRUE      | FALSE   |
+| theta0     | OTU_6          | 1      | 1.0152 |   395 | FALSE       | TRUE      | TRUE    |
+| beta_psi   | X_psi.EnvCov.1 | OTU_5  | 1.0133 |  4850 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.1 | OTU_2  | 1.0133 |  1778 | FALSE       | TRUE      | FALSE   |
+| beta0_psi  | OTU_4          | 1      | 1.0126 |  2350 | FALSE       | TRUE      | FALSE   |
+| beta_theta | (Intercept)    | OTU_6  | 1.0117 |   506 | FALSE       | TRUE      | FALSE   |
+| beta_psi   | X_psi.EnvCov.2 | OTU_4  | 1.0108 |  5682 | FALSE       | TRUE      | FALSE   |
+| beta0_psi  | OTU_1          | 1      | 1.0104 |  2458 | FALSE       | TRUE      | FALSE   |
 
 Here the rows identify the actual parameter to investigate. For example, `theta0` for OTU_6 has a low effective sample size even though its Rhat is below 1.01. Looking at Rhat alone would miss that warning. The first environmental slope for OTU_6 is flagged for Rhat instead.
 
@@ -355,7 +380,7 @@ occJSDM::plotTraceplot(
 
 ![](occJSDM-lesson-3_files/figure-gfm/flagged-field-trace-1.png)<!-- -->
 
-There are 48,000 retained draws here, but their dependence means they carry much less independent information. The package’s ESS for this parameter is about 397. That is a numerical limitation on posterior summaries, not a count of field samples. This fit should not be described as having cleared every diagnostic simply because it was run for longer.
+There are 48,000 retained draws here, but their dependence means they carry much less independent information. The package’s ESS for this parameter is about 1.8764^{4}, 395. That is a numerical limitation on posterior summaries, not a count of field samples. This fit should not be described as having cleared every diagnostic simply because it was run for longer.
 
 The traces make this slow movement visible: each chain spends stretches at relatively high or low contamination rates. The true rate is 5.3%, near the bottom of the panels, but the fit also gives substantial weight to much higher rates. The example therefore raises two separate concerns: how precisely the sampler has estimated its posterior summaries, and how well that posterior recovers the ecological truth.
 
@@ -422,10 +447,10 @@ outputs$coefficients |>
 
 | fit | block | maximum_Rhat | minimum_bulk_ESS | minimum_tail_ESS |
 |:---|:---|---:|---:|---:|
-| PCR observations | Environment | 1.010 | 736 | 952 |
-| PCR observations | Trait | 1.002 | 941 | 1845 |
-| Perfect observation | Environment | 1.001 | 2141 | 3420 |
-| Perfect observation | Trait | 1.004 | 1000 | 1931 |
+| PCR observations | Environment | 1.010 | 817 | 1122 |
+| PCR observations | Trait | 1.008 | 968 | 1903 |
+| Perfect observation | Environment | 1.002 | 2037 | 3622 |
+| Perfect observation | Trait | 1.010 | 963 | 2045 |
 
 Direct checks of environmental and trait coefficient sampling.
 
@@ -443,7 +468,7 @@ WAIC, the widely applicable information criterion, is meant to estimate how well
 
 ## How many effects does each fit resolve?
 
-Each environmental coefficient describes how one species responds to one gradient, after accounting for the other gradient and the hidden site factors, which the [ordination section](#ordination-compare-the-combined-effect-before-naming-the-axes) examines. With ten species and two gradients, there are twenty coefficients.
+Each environmental coefficient describes how one species responds to one gradient, after accounting for the other gradient and the hidden environmental covariates, which the [ordination section](#ordination-compare-the-combined-effect-before-naming-the-axes) examines. With ten species and two gradients, there are twenty coefficients.
 
 ``` r
 effect_counts <- outputs$coefficients |>
@@ -638,9 +663,9 @@ Read each species in three steps: where is the black cross, is it inside the bar
 
 ## What does an effect mean for a species’ distribution?
 
-A response curve translates a coefficient into occurrence probabilities. Here we change one measured gradient, hold the other at its median, and set the [hidden site-factor contribution](#what-this-lesson-answers) to zero. Both the true and fitted curves use those same conditions.
+A response curve translates a coefficient into occurrence probabilities. Here we change one measured gradient, hold the other at its median, and set the [hidden-covariate contribution](#what-this-lesson-answers) to zero. Both the true and fitted curves use those same conditions.
 
-These are **environmental response profiles**, not fitted probabilities at surveyed sites ([later in this lesson](#distinguish-fitted-probabilities-occupancy-states-and-new-site-predictions)) or averages over unknown conditions at a new site ([Lesson 4](occJSDM-lesson-4.md#which-true-probability-should-a-new-site-prediction-recover)). The package function used here, `returnOccupancyGradient()`, evaluates the zero-factor profile.
+These are **environmental response profiles**, not fitted probabilities at surveyed sites ([later in this lesson](#distinguish-fitted-probabilities-occupancy-states-and-new-site-predictions)) or averages over unknown conditions at a new site ([Lesson 4](occJSDM-lesson-4.md#which-true-probability-should-a-new-site-prediction-recover)). The package function used here, `returnOccupancyGradient()`, evaluates the profile with the hidden environmental covariates at zero.
 
 ``` r
 response_profile <- occJSDM::returnOccupancyGradient(
@@ -650,7 +675,7 @@ response_profile <- occJSDM::returnOccupancyGradient(
 )
 ```
 
-`plotOccupancyGradient()` shows how occupancy changes along one environmental predictor. The blue line is the posterior median and the ribbon is a pointwise 95% credible interval. The black dashed line is the generating probability for the same target. Other standardized environmental predictors are held at their observed medians, and site factors are set to zero.
+`plotOccupancyGradient()` shows how occupancy changes along one environmental predictor. The blue line is the posterior median and the ribbon is a pointwise 95% credible interval. The black dashed line is the generating probability for the same target. Other standardized environmental predictors are held at their observed medians, and the hidden environmental covariates are set to zero.
 
 The package plot’s horizontal axis uses standardized predictor values. Zero is the observed raw-scale mean and one unit is one observed standard deviation. The grid spans the 2nd to 98th percentiles; the rug shows all observed site values. The table supplies the original scale: `raw_value = mean + sd * standardized_value`.
 
@@ -686,7 +711,7 @@ remaining_gradient_1 <- plotOccupancyGradient(
     inherit.aes = FALSE, colour = "black", linetype = "dashed"
   ) +
   labs(
-    title = "Environmental gradient 1: site factors set to zero",
+    title = "Environmental gradient 1: hidden environmental covariates set to zero",
     x = "Environmental gradient 1 (standard deviations from its mean)",
     caption = "Blue: posterior median and pointwise 95% interval. Black dashed: true probability."
   )
@@ -711,7 +736,7 @@ remaining_gradient_2 <- plotOccupancyGradient(
     inherit.aes = FALSE, colour = "black", linetype = "dashed"
   ) +
   labs(
-    title = "Environmental gradient 2: site factors set to zero",
+    title = "Environmental gradient 2: hidden environmental covariates set to zero",
     x = "Environmental gradient 2 (standard deviations from its mean)",
     caption = "Blue: posterior median and pointwise 95% interval. Black dashed: true probability."
   )
@@ -725,7 +750,7 @@ Notice that the same coefficient can produce very different probability changes 
 
 ### The same curves in original units
 
-`plotOccupancyGradient()` labels its horizontal axis in standard deviations, which makes gradients comparable with each other but is not how a report states them. `plotCovariateEffect()` draws the same curves under the same conditions: other numeric covariates at their medians, and hidden site factors and spatial terms at zero. Its horizontal axis is in the covariate’s original units, the units you recorded it in, and runs over the full observed range rather than the 2nd to 98th percentiles. This is the version to put in a report, or to show a reader outside modelling.
+`plotOccupancyGradient()` labels its horizontal axis in standard deviations, which makes gradients comparable with each other but is not how a report states them. `plotCovariateEffect()` draws the same curves under the same conditions: other numeric covariates at their medians, and the hidden environmental covariates and spatial terms at zero. Its horizontal axis is in the covariate’s original units, the units you recorded it in, and runs over the full observed range rather than the 2nd to 98th percentiles. This is the version to put in a report, or to show a reader outside modelling.
 
 The function accepts several covariate names and returns a named list with one plot per covariate, even when you give one name. Take the plot by its name, as below, before adding layers to it. The black dashed line is the generating curve on the function’s own grid, with the second gradient at its median.
 
@@ -752,7 +777,7 @@ covariate_effect_1 <- plotCovariateEffect(
     inherit.aes = FALSE, colour = "black", linetype = "dashed"
   ) +
   labs(
-    title = "Environmental gradient 1 in its original units: site factors set to zero",
+    title = "Environmental gradient 1 in its original units: hidden environmental covariates set to zero",
     x = "Environmental gradient 1 (original units)",
     caption = "Blue: posterior median and pointwise 95% interval. Black dashed: true probability."
   )
@@ -766,13 +791,13 @@ The axis runs from -19.4 to 30.9, the lowest and highest values observed at the 
 
 This figure and the coefficient plot answer different questions. The coefficient plot says whether an effect is credibly different from zero on the log-odds scale. This curve shows how large the effect is as a change in occupancy probability. As the curves above showed, the same coefficient moves occupancy most near a 50% baseline.
 
-The generating curve lies inside the 95% band at every point of the grid for six of the ten species. The largest gap between the posterior median and the truth is 0.32 on the probability scale, for OTU_5. These departures are the fit’s, not the function’s. Both functions summarise the same draws under the same conditions, and the standardized gradient-1 curves above miss the truth for the same species, OTU_1, OTU_2, OTU_5 and OTU_10. On your own survey there is no dashed line, so read the band’s width as your uncertainty. Trust the curve’s shape least at the ends of the axis, where few sites lie: this plot has no rug, but the rug on `plotOccupancyGradient()` shows where your sites are.
+The generating curve lies inside the 95% band at every point of the grid for five of the ten species. The largest gap between the posterior median and the truth is 0.33 on the probability scale, for OTU_5. These departures are the fit’s, not the function’s. Both functions summarise the same draws under the same conditions, and the standardized gradient-1 curves above miss the truth for the same species, OTU_1, OTU_2, OTU_3, OTU_5 and OTU_10. On your own survey there is no dashed line, so read the band’s width as your uncertainty. Trust the curve’s shape least at the ends of the axis, where few sites lie: this plot has no rug, but the rug on `plotOccupancyGradient()` shows where your sites are.
 
 ### Baseline occupancy
 
-Like the response curves, `returnOccupancyRates()` describes the probability under fixed conditions, here with the standardized measured predictors and the hidden factors all at zero. It transforms each species’ occupancy intercept to the probability scale and returns a **posterior-draw-by-species matrix**, pooling the draws of all chains. In this fit, there are 24,000 rows (four chains of 6,000 kept draws) and ten species columns.
+Like the response curves, `returnOccupancyRates()` describes the probability under fixed conditions, here with the standardized measured predictors and the hidden environmental covariates all at zero. It transforms each species’ occupancy intercept to the probability scale and returns a **posterior-draw-by-species matrix**, pooling the draws of all chains. In this fit, there are 24,000 rows (four chains of 6,000 kept draws) and ten species columns.
 
-Use it to compare species’ baseline occurrence probabilities under the same reference conditions, or to report a baseline estimate with its uncertainty. This is not the average occupancy across the landscape: measured environmental effects and hidden site contributions have been set to zero, not averaged over sites.
+Use it to compare species’ baseline occurrence probabilities under the same reference conditions, or to report a baseline estimate with its uncertainty. This is not the average occupancy across the landscape: measured environmental effects and hidden-covariate contributions have been set to zero, not averaged over sites.
 
 ``` r
 baseline_draws <- occJSDM::returnOccupancyRates(fitmodel)
@@ -784,7 +809,7 @@ colMeans(baseline_draws)
 apply(baseline_draws, 2, quantile, probs = c(0.025, 0.975))
 ```
 
-The package plot below shows the intercepts converted to probabilities. Baseline occupancy sets the standardized environmental predictors and site factors to zero.
+The package plot below shows the intercepts converted to probabilities. Baseline occupancy sets the standardized environmental predictors and the hidden environmental covariates to zero.
 
 ``` r
 native_occupancy_rates <- plotOccupancyRates(fitmodel) +
@@ -794,7 +819,7 @@ native_occupancy_rates <- plotOccupancyRates(fitmodel) +
     inherit.aes = FALSE, shape = 4, size = 3, stroke = 1
   ) +
   labs(
-    title = "Baseline occupancy: zero predictors and zero site factors",
+    title = "Baseline occupancy: measured and hidden environmental covariates at zero",
     y = "Occurrence probability",
     caption = "Black cross: truth. Bar: native 95% interval."
   )
@@ -816,16 +841,16 @@ outputs$baseline |>
 
 | species | truth | estimate | lower | upper |
 |:--------|:------|:---------|:------|:------|
-| OTU_1   | 91.3% | 79.8%    | 58.8% | 93.9% |
-| OTU_2   | 4.7%  | 21.6%    | 7.2%  | 45.3% |
-| OTU_3   | 64.8% | 47.3%    | 23.5% | 74.0% |
-| OTU_4   | 56.2% | 69.5%    | 47.6% | 86.6% |
-| OTU_5   | 15.8% | 34.4%    | 18.2% | 55.0% |
-| OTU_6   | 80.1% | 78.6%    | 57.4% | 91.2% |
-| OTU_7   | 80.2% | 71.9%    | 56.7% | 85.0% |
-| OTU_8   | 26.2% | 28.3%    | 15.8% | 43.2% |
-| OTU_9   | 34.8% | 41.2%    | 24.3% | 59.8% |
-| OTU_10  | 33.7% | 16.7%    | 6.6%  | 31.8% |
+| OTU_1   | 91.3% | 79.5%    | 58.5% | 93.7% |
+| OTU_2   | 4.7%  | 21.2%    | 6.7%  | 44.7% |
+| OTU_3   | 64.8% | 46.8%    | 21.9% | 74.1% |
+| OTU_4   | 56.2% | 69.9%    | 47.6% | 87.5% |
+| OTU_5   | 15.8% | 34.3%    | 18.1% | 55.0% |
+| OTU_6   | 80.1% | 78.1%    | 55.0% | 91.1% |
+| OTU_7   | 80.2% | 71.7%    | 56.1% | 84.8% |
+| OTU_8   | 26.2% | 28.2%    | 15.6% | 43.0% |
+| OTU_9   | 34.8% | 41.0%    | 24.4% | 59.5% |
+| OTU_10  | 33.7% | 16.7%    | 6.5%  | 32.0% |
 
 Baseline probabilities: all predictor contributions set to zero.
 
@@ -1012,9 +1037,9 @@ ggplot(trait_effects, aes(x = term)) +
 
 ## Residual species associations: did we recover what was put in?
 
-A residual correlation measures whether two species occur together, or apart, more often than their measured environmental responses predict. In the model it comes from the shared hidden site factors. It is not the raw correlation of PCR detections, and it does not establish a biological interaction between species.
+A residual correlation measures whether two species occur together, or apart, more often than their measured environmental responses predict. In the model it comes from the shared hidden environmental covariates. It is not the raw correlation of PCR detections, and it does not establish a biological interaction between species.
 
-Even after supplying every measured environmental covariate, this simulation still contains the deliberately generated hidden site factors. With `n_factors` hidden factors, each species is described by that many loadings. The correlations can therefore express at most that many independent patterns, and too few factors force unrelated pairs to share one.
+Even after supplying every measured environmental covariate, this simulation still contains the deliberately generated hidden environmental covariates. `n_factors` sets how many hidden environmental covariates the model fits; the argument is named after the statistical term for them, latent factors. Each species is described by one response to each hidden covariate, so the correlations can express at most `n_factors` independent patterns, and too few hidden environmental covariates force unrelated pairs to share one.
 
 ``` r
 residual_correlations <- occJSDM::returnResidualCorrelationMatrix(fitmodel)
@@ -1027,7 +1052,7 @@ The returned array is quantile by species by species: its first dimension holds 
 
 The package’s heat map colours each pair by its fitted median residual correlation. Its central **X means the model cannot confidently establish whether the association is positive or negative**: the 95% credible interval includes zero. It does not mean the true correlation is zero.
 
-The small number above each X is the true correlation from the generating loading matrix. For example, `1.00` above an X means a truly strong positive correlation was estimated too uncertainly to establish its direction. All 45 pairs have Xs in this fit. Wide uncertainty here coexists with strong true correlations, and a pale tile does not prove absence of an association.
+The small number above each X is the true correlation implied by the species’ generating responses to the hidden environmental covariates. For example, `1.00` above an X means a truly strong positive correlation was estimated too uncertainly to establish its direction. All 45 pairs have Xs in this fit. Wide uncertainty here coexists with strong true correlations, and a pale tile does not prove absence of an association.
 
 ``` r
 native_correlations <- plotResidualCorrelationMatrix(
@@ -1051,19 +1076,19 @@ native_correlations
 
 <img src="teaching-data/native-plot-correlations.png" alt="" width="100%" />
 
-OTU_4 was generated with zero loading on both hidden site factors. Its hidden contribution has no variation, so its correlation with another hidden contribution is mathematically undefined. The package plot labels those cells `NA` and we exclude them from numerical correlation-error summaries.
+OTU_4 was generated with zero response to both hidden environmental covariates. Its hidden contribution has no variation, so its correlation with another hidden contribution is mathematically undefined. The package plot labels those cells `NA` and we exclude them from numerical correlation-error summaries.
 
 Compare the pattern and magnitude, not just whether an interval crosses zero. An apparently strong estimated correlation can still be far from the generating value. With real data there is no truth to compare: read the X markers and the intervals, and report as resolved in direction only the pairs whose interval excludes zero.
 
 ## Ordination: compare the combined effect before naming the axes
 
-An ordination places sites and species on a few axes that summarise the variation the measured covariates leave unexplained. In occJSDM those axes are the hidden site factors. Each site has a score on each factor, standing for its unmeasured conditions, and each species has a loading on each factor, its response to those conditions.
+An ordination places sites and species on a few axes that summarise the variation the measured covariates leave unexplained. In occJSDM those axes are the hidden environmental covariates. Each site is placed by its values of the hidden environmental covariates, which stand for its unmeasured conditions, and each species by its responses to them.
 
-The occupancy part of the model adds three terms to give species $j$’s log-odds of occupying site $i$. The first is the species’ intercept $\beta_{0j}$. The second is the measured environmental effects: site $i$’s covariate values $X_i$ times species $j$’s coefficients $\beta_j$. The third is the hidden-factor term: site $i$’s scores $U_i$ times species $j$’s loadings $L_j$.
+The occupancy part of the model adds three terms to give species $j$’s log-odds of occupying site $i$. The first is the species’ intercept $\beta_{0j}$. The second is the measured environmental effects: site $i$’s covariate values $X_i$ times species $j$’s coefficients $\beta_j$. The third is the hidden-covariate term: site $i$’s values of the hidden environmental covariates $U_i$ times species $j$’s responses to them $L_j$.
 
 Written out, $\text{logit}(\psi_{ij}) = \beta_{0j} + X_i \beta_j + U_i L_j$, where $\psi_{ij}$ is the probability that species $j$ occupies site $i$ and $\text{logit}$ converts it to log-odds.
 
-The product $U_i L_j$ is the species’ hidden site-factor contribution at that site. It is what carries residual co-occurrence. Species that load on the same factor rise and fall together across sites for reasons the measured covariates do not explain, whether an unmeasured gradient or an interaction. `returnOrdinationScores()` returns the hidden site scores $U$; `returnFactorLoadings()` returns the species loadings $L$.
+The product $U_i L_j$ is the species’ hidden-covariate contribution at that site. It is what carries residual co-occurrence. Species that respond alike to the same hidden environmental covariate rise and fall together across sites for reasons the measured covariates do not explain, whether an unmeasured gradient or an interaction. `returnOrdinationScores()` returns the sites’ values $U$ of the hidden environmental covariates; `returnFactorLoadings()` returns the species’ responses $L$ to them.
 
 Rotating both sets of axes, or reversing their signs together, leaves every product unchanged, so the observations cannot tell one orientation from another. Axis signs and order can therefore flip between fits: never interpret an axis by its number or sign alone. For the same reason, comparing unaligned true and fitted axes is a misleading accuracy check.
 
@@ -1081,15 +1106,15 @@ The ordinary biplot uses the package’s stored orientation. It carries no truth
 
 <img src="teaching-data/ordination-ordinary-biplot.png" alt="" width="100%" />
 
-The arrows of OTU_3 and OTU_5 to OTU_10 look short here. The hidden axes’ orientation differs from draw to draw, so their loadings average towards zero across draws. That does not mean those species lack associations (OTU_4 genuinely has none). The aligned biplot in the [appendix](#read-native-ordination-plots-after-aligning-their-axes) is the one to read for associations.
+The arrows of OTU_3 and OTU_5 to OTU_10 look short here. The hidden axes’ orientation differs from draw to draw, so their estimated responses average towards zero across draws. That does not mean those species lack associations (OTU_4 genuinely has none). The aligned biplot in the [appendix](#read-native-ordination-plots-after-aligning-their-axes) is the one to read for associations.
 
-A loading is a species’ response to a unit change in a hidden site score, on the occurrence log-odds scale. Opposite loading directions indicate opposite residual responses.
+A species’ response to a hidden environmental covariate is the change in its occurrence log-odds per unit change in that covariate’s value at a site. Responses of opposite sign indicate opposite residual responses.
 
-A site lying farther in a species-arrow direction tends to receive a larger contribution from these factors to that species’ occurrence log-odds. The complete probability also includes the intercept and measured environmental effects.
+A site lying farther in a species-arrow direction tends to receive a larger contribution from the hidden environmental covariates to that species’ occurrence log-odds. The complete probability also includes the intercept and measured environmental effects.
 
-On your own survey, an ordination is for finding structure the measured covariates missed. Map the site scores to look for an unmeasured gradient. Before naming a cause, check which species load together. A shared loading says only that those species respond alike to something the survey did not measure. An opposite loading says only that they respond in opposite directions. Neither establishes competition, facilitation or another causal interaction.
+On your own survey, an ordination is for finding structure the measured covariates missed. Map the sites’ values of the hidden environmental covariates to look for an unmeasured gradient. Before naming a cause, check which species respond alike to them. A shared response says only that those species respond alike to something the survey did not measure. An opposite response says only that they respond in opposite directions. Neither establishes competition, facilitation or another causal interaction.
 
-The comparison with truth uses the combined contribution, multiplying scores by loadings **within each posterior draw** and then averaging the products. Multiplying the mean scores by the mean loadings would not give the same answer. This figure is custom because no package plot draws the combined contribution, the one comparison with truth that does not depend on how the hidden axes are rotated.
+The comparison with truth uses the combined contribution, multiplying the sites’ values by the species’ responses **within each posterior draw** and then averaging the products. Multiplying the mean values by the mean responses would not give the same answer. This figure is custom because no package plot draws the combined contribution, the one comparison with truth that does not depend on how the hidden axes are rotated.
 
 ``` r
 ggplot(outputs$residual, aes(x = truth, y = estimate)) +
@@ -1098,15 +1123,15 @@ ggplot(outputs$residual, aes(x = truth, y = estimate)) +
   facet_wrap(~ arm, labeller = labeller(arm = fit_labels)) +
   coord_equal() +
   labs(
-    x = "True combined hidden site contribution (log-odds)",
-    y = "Estimated hidden site contribution\n(posterior mean, log-odds)",
-    caption = "Each point is a species at a surveyed site. This comparison is invariant to factor rotation."
+    x = "True combined hidden-covariate contribution (log-odds)",
+    y = "Estimated hidden-covariate contribution\n(posterior mean, log-odds)",
+    caption = "Each point is a species at a surveyed site. This comparison is invariant to rotating the hidden covariates."
   )
 ```
 
 ![](occJSDM-lesson-3_files/figure-gfm/ordination-contribution-1.png)<!-- -->
 
-The diagonal is exact recovery. Points closer to zero than their true values show underestimation of the hidden contribution’s magnitude. These are fitted-site results: the observations at a site helped estimate its hidden scores. Fitted sites therefore look better recovered than new sites would.
+The diagonal is exact recovery. Points closer to zero than their true values show underestimation of the hidden contribution’s magnitude. These are fitted-site results: the observations at a site helped estimate its values of the hidden environmental covariates. Fitted sites therefore look better recovered than new sites would.
 
 ## Collection effects and detection probabilities
 
@@ -1406,7 +1431,7 @@ The take-home: if all ten species occupy a site, the true expected number detect
 
 ## Distinguish fitted probabilities, occupancy states and new-site predictions
 
-`computePredictiveOccupancyProbs()` gives the fitted habitat-based probability of occupancy at each surveyed site, from the measured environment and the fitted hidden site factors. It is the quantity [Ji et al. (2025)](#references-and-further-reading) reported. Despite its name, it is not a prediction from the measured covariates alone: the fitted site factors were learned using the observations.
+`computePredictiveOccupancyProbs()` gives the fitted habitat-based probability of occupancy at each surveyed site, from the measured environment and the fitted hidden environmental covariates. It is the quantity [Ji et al. (2025)](#references-and-further-reading) reported. Despite its name, it is not a prediction from the measured covariates alone: the sites’ values of the hidden environmental covariates were learned using the observations.
 
 `computeConditionalOccupancyProbs()` summarizes the model’s belief that the species actually occupied the surveyed site, accounting for the observation process. It returns a **site-by-species matrix** of posterior probabilities, with site identifiers as row names and species names as column names. Here that is 100 rows by ten columns. Each entry is the posterior mean of the latent occupancy state (1 if present, 0 if absent). An entry of 0.8 therefore means an 80% posterior probability that the species was present at that site, given the survey observations and the fitted model.
 
@@ -1511,78 +1536,78 @@ occJSDM::plotLatentPresences(
 
 | Site | Sample | Primer | PCR | OTU | Source | TrueSite | CondOccProb | TrueSample | CondSampleProb |
 |---:|---:|---:|---:|---:|:---|---:|---:|---:|---:|
-| 1 | 1 | 1 | 1 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 1 | 2 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 1 | 3 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 1 | 4 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 1 | 5 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 1 | 6 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 2 | 1 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 2 | 2 | 1 | Laboratory false positive | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 2 | 3 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 2 | 4 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 2 | 5 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 1 | 2 | 6 | 0 | No detection | 1 | 0.987 | 0 | 0.017 |
-| 1 | 2 | 1 | 1 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 1 | 2 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 1 | 3 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 1 | 4 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 1 | 5 | 115 | True detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 1 | 6 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 2 | 1 | 517 | True detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 2 | 2 | 52 | True detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 2 | 3 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 2 | 4 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 2 | 5 | 0 | No detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 2 | 2 | 6 | 89 | True detection | 1 | 0.987 | 1 | 0.986 |
-| 1 | 3 | 1 | 1 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 1 | 2 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 1 | 3 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 1 | 4 | 37 | True detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 1 | 5 | 81 | True detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 1 | 6 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 2 | 1 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 2 | 2 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 2 | 3 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 2 | 4 | 90 | True detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 2 | 5 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
-| 1 | 3 | 2 | 6 | 0 | No detection | 1 | 0.987 | 1 | 0.980 |
-| 6 | 16 | 1 | 1 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 1 | 2 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 1 | 3 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 1 | 4 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 1 | 5 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 1 | 6 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 2 | 1 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 2 | 2 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 2 | 3 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 2 | 4 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 2 | 5 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 16 | 2 | 6 | 0 | No detection | 1 | 0.549 | 0 | 0.008 |
-| 6 | 17 | 1 | 1 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 1 | 2 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 1 | 3 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 1 | 4 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 1 | 5 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 1 | 6 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 2 | 1 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 2 | 2 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 2 | 3 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 2 | 4 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 2 | 5 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 17 | 2 | 6 | 0 | No detection | 1 | 0.549 | 0 | 0.000 |
-| 6 | 18 | 1 | 1 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 1 | 2 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 1 | 3 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 1 | 4 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 1 | 5 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 1 | 6 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 2 | 1 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 2 | 2 | 105 | True detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 2 | 3 | 596 | True detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 2 | 4 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 2 | 5 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
-| 6 | 18 | 2 | 6 | 0 | No detection | 1 | 0.549 | 1 | 0.177 |
+| 1 | 1 | 1 | 1 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 1 | 2 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 1 | 3 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 1 | 4 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 1 | 5 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 1 | 6 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 2 | 1 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 2 | 2 | 1 | Laboratory false positive | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 2 | 3 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 2 | 4 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 2 | 5 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 1 | 2 | 6 | 0 | No detection | 1 | 0.983 | 0 | 0.018 |
+| 1 | 2 | 1 | 1 | 0 | No detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 1 | 2 | 0 | No detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 1 | 3 | 0 | No detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 1 | 4 | 0 | No detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 1 | 5 | 115 | True detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 1 | 6 | 0 | No detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 2 | 1 | 517 | True detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 2 | 2 | 52 | True detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 2 | 3 | 0 | No detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 2 | 4 | 0 | No detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 2 | 5 | 0 | No detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 2 | 2 | 6 | 89 | True detection | 1 | 0.983 | 1 | 0.986 |
+| 1 | 3 | 1 | 1 | 0 | No detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 1 | 2 | 0 | No detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 1 | 3 | 0 | No detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 1 | 4 | 37 | True detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 1 | 5 | 81 | True detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 1 | 6 | 0 | No detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 2 | 1 | 0 | No detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 2 | 2 | 0 | No detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 2 | 3 | 0 | No detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 2 | 4 | 90 | True detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 2 | 5 | 0 | No detection | 1 | 0.983 | 1 | 0.979 |
+| 1 | 3 | 2 | 6 | 0 | No detection | 1 | 0.983 | 1 | 0.979 |
+| 6 | 16 | 1 | 1 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 1 | 2 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 1 | 3 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 1 | 4 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 1 | 5 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 1 | 6 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 2 | 1 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 2 | 2 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 2 | 3 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 2 | 4 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 2 | 5 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 16 | 2 | 6 | 0 | No detection | 1 | 0.544 | 0 | 0.008 |
+| 6 | 17 | 1 | 1 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 1 | 2 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 1 | 3 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 1 | 4 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 1 | 5 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 1 | 6 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 2 | 1 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 2 | 2 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 2 | 3 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 2 | 4 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 2 | 5 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 17 | 2 | 6 | 0 | No detection | 1 | 0.544 | 0 | 0.000 |
+| 6 | 18 | 1 | 1 | 0 | No detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 1 | 2 | 0 | No detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 1 | 3 | 0 | No detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 1 | 4 | 0 | No detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 1 | 5 | 0 | No detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 1 | 6 | 0 | No detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 2 | 1 | 0 | No detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 2 | 2 | 105 | True detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 2 | 3 | 596 | True detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 2 | 4 | 0 | No detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 2 | 5 | 0 | No detection | 1 | 0.544 | 1 | 0.174 |
+| 6 | 18 | 2 | 6 | 0 | No detection | 1 | 0.544 | 1 | 0.174 |
 
 `plotLatentPresences()` returns a gt table, which displays in HTML; the Markdown version of this page shows the same records as a plain table with decimals. In HTML, colours group the sites and shades group samples and primers; they do not indicate confidence or whether the model is correct.
 
@@ -1592,7 +1617,7 @@ At site 6, sample 18 genuinely contains DNA but gives only 2 positives across it
 
 ### Keep generating probabilities separate from actual states
 
-The table’s other three probabilities answer different questions. `PredOccProb` estimates the generating occupancy probability at a fitted site, including its learned hidden site contribution. `CollectionProb` estimates collection success **if the species is present at the site**. `DetectionProb` estimates the probability that a PCR is positive (has at least `threshold` reads) **if its DNA is in the sample**. Neither collection nor detection probability is an unconditional prediction that an arbitrary PCR will be positive.
+The table’s other three probabilities answer different questions. `PredOccProb` estimates the generating occupancy probability at a fitted site, including its learned hidden-covariate contribution. `CollectionProb` estimates collection success **if the species is present at the site**. `DetectionProb` estimates the probability that a PCR is positive (has at least `threshold` reads) **if its DNA is in the sample**. Neither collection nor detection probability is an unconditional prediction that an arbitrary PCR will be positive.
 
 For these columns, compare probabilities with probabilities. The chunk below attaches three true values:
 
@@ -1652,18 +1677,18 @@ occJSDM::plotLatentPresences(
 
 | Site | Sample | Primer | TrueOccupancy | PredOccProb | TrueCollection | CollectionProb | TrueDetection | DetectionProb |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 1 | 1 | 0.802 | 0.811 | 0.361 | 0.313 | 0.35 | 0.361 |
-| 1 | 1 | 2 | 0.802 | 0.811 | 0.361 | 0.313 | 0.45 | 0.459 |
-| 1 | 2 | 1 | 0.802 | 0.811 | 0.387 | 0.346 | 0.35 | 0.361 |
-| 1 | 2 | 2 | 0.802 | 0.811 | 0.387 | 0.346 | 0.45 | 0.459 |
-| 1 | 3 | 1 | 0.802 | 0.811 | 0.737 | 0.782 | 0.35 | 0.361 |
-| 1 | 3 | 2 | 0.802 | 0.811 | 0.737 | 0.782 | 0.45 | 0.459 |
-| 6 | 16 | 1 | 0.995 | 0.861 | 0.783 | 0.829 | 0.35 | 0.361 |
-| 6 | 16 | 2 | 0.995 | 0.861 | 0.783 | 0.829 | 0.45 | 0.459 |
-| 6 | 17 | 1 | 0.995 | 0.861 | 0.099 | 0.054 | 0.35 | 0.361 |
-| 6 | 17 | 2 | 0.995 | 0.861 | 0.099 | 0.054 | 0.45 | 0.459 |
-| 6 | 18 | 1 | 0.995 | 0.861 | 0.461 | 0.440 | 0.35 | 0.361 |
-| 6 | 18 | 2 | 0.995 | 0.861 | 0.461 | 0.440 | 0.45 | 0.459 |
+| 1 | 1 | 1 | 0.802 | 0.803 | 0.361 | 0.314 | 0.35 | 0.361 |
+| 1 | 1 | 2 | 0.802 | 0.803 | 0.361 | 0.314 | 0.45 | 0.459 |
+| 1 | 2 | 1 | 0.802 | 0.803 | 0.387 | 0.347 | 0.35 | 0.361 |
+| 1 | 2 | 2 | 0.802 | 0.803 | 0.387 | 0.347 | 0.45 | 0.459 |
+| 1 | 3 | 1 | 0.802 | 0.803 | 0.737 | 0.784 | 0.35 | 0.361 |
+| 1 | 3 | 2 | 0.802 | 0.803 | 0.737 | 0.784 | 0.45 | 0.459 |
+| 6 | 16 | 1 | 0.995 | 0.863 | 0.783 | 0.831 | 0.35 | 0.361 |
+| 6 | 16 | 2 | 0.995 | 0.863 | 0.783 | 0.831 | 0.45 | 0.459 |
+| 6 | 17 | 1 | 0.995 | 0.863 | 0.099 | 0.054 | 0.35 | 0.361 |
+| 6 | 17 | 2 | 0.995 | 0.863 | 0.099 | 0.054 | 0.45 | 0.459 |
+| 6 | 18 | 1 | 0.995 | 0.863 | 0.461 | 0.442 | 0.35 | 0.361 |
+| 6 | 18 | 2 | 0.995 | 0.863 | 0.461 | 0.442 | 0.45 | 0.459 |
 
 There are twelve rows because these probabilities do not vary among repeated PCRs with the same site, sample and primer. Collection can vary between samples because `X_theta` varies. Detection varies by primer in this model. Inspecting the actual states in the first table and the generating probabilities in the second avoids treating a single success or failure as a probability estimate.
 
@@ -1676,7 +1701,7 @@ Each question names the functions that answer it and where these lessons check t
 - **What is baseline occupancy?** `returnOccupancyRates()`, `plotOccupancyRates()`. Truth check: the baseline table and package plot above.
 - **Do traits explain species responses?** `returnTraitsCoeff()`, `plotTraitsCoefficients()`. Truth check: the package trait plots and the two-fit comparison above, with standardized truth; the cancellation diagnostic in the appendix.
 - **Which species share unmeasured site responses?** `returnResidualCorrelationMatrix()`, `plotResidualCorrelationMatrix()`. Truth check: the package heat map with true correlations above.
-- **What do ordination axes represent?** `returnOrdinationScores()`, `returnFactorLoadings()`, `plotOrdinationScores()`, `plotFactorLoadings()`, `plotBiplot()`. Truth check: the combined contribution above; truth-aligned scores, loadings and biplot in the appendix.
+- **What do ordination axes represent?** `returnOrdinationScores()`, `returnFactorLoadings()`, `plotOrdinationScores()`, `plotFactorLoadings()`, `plotBiplot()`. Truth check: the combined contribution above; truth-aligned site values, species responses and biplot in the appendix.
 - **What affects collection?** `returnCollectionCovariates()`, `plotCollectionCovariates()`, `plotCollectionRates()`, `computeAverageCollectionProbs()`. Truth check: the collection plots above; observation process in Lesson 2.
 - **What about PCR failures and contamination?** `plotDetectionRates()`, `plotStage1FPRates()`, `plotStage2FPRates()`. Truth check: combined and separate rate plots above; actual cases in Lesson 2.
 - **How does sampling effort affect detection?** `plotCumulativeSpeciesDetections()`. Truth check: package survey-outcome intervals with exact true ranges above.
@@ -1708,7 +1733,7 @@ This appendix is for readers who want the evidence behind the lesson or need to 
 
 ### A real cancellation inside this simulated community
 
-The model allows a species’ environmental response to combine three contributions: its measured traits, unmeasured species traits, and remaining species differences. An unmeasured species trait is a species characteristic the survey did not measure that also shapes environmental responses; `n_lattrait` in `listParams` sets how many the model allows. These are distinct from the **site** factors used to describe unmeasured conditions at sites.
+The model allows a species’ environmental response to combine three contributions: its measured traits, unmeasured species traits, and remaining species differences. An unmeasured species trait is a species characteristic the survey did not measure that also shapes environmental responses; `n_lattrait` in `listParams` sets how many the model allows. These are distinct from the hidden environmental covariates, which describe unmeasured conditions at **sites**.
 
 In these ten species, Trait_1 happens to correlate with the unmeasured species trait (0.52). The generator drew these traits independently; a small realized sample can still contain a substantial correlation. For environmental gradient 1, the resulting contributions oppose one another.
 
@@ -1775,13 +1800,13 @@ This is a diagnosis of **this simulation**, not proof that all weak trait result
 
 ### Read native ordination plots after aligning their axes
 
-The combined contribution above avoids an ambiguity: a rotation or reflection of both the site scores and species loadings leaves every fitted occurrence probability unchanged. Axis 1 in two fits need not represent the same direction. The package already chooses a loading-based orientation at fitting, but that convention alone does not make an axis a biological quantity.
+The combined contribution above avoids an ambiguity: a rotation or reflection of both the sites’ values of the hidden environmental covariates and the species’ responses to them leaves every fitted occurrence probability unchanged. Axis 1 in two fits need not represent the same direction. The package already chooses an orientation based on the species’ responses at fitting, but that convention alone does not make an axis a biological quantity.
 
-For this simulation we can use the **known species loadings** to orient every posterior draw. The orthogonal Procrustes calculation below finds the rotation or reflection that brings the fitted loadings closest to the generating loadings, without changing their lengths. We apply that same transformation to the site scores.
+For this simulation we can use the **known species responses** to orient every posterior draw. The orthogonal Procrustes calculation below finds the rotation or reflection that brings the fitted responses closest to the generating responses, without changing their lengths. We apply that same transformation to the sites’ values of the hidden environmental covariates.
 
-This is a simulation-only aid: the true loadings would be unavailable for real observations. It removes orientation differences, not estimation error, and uses no true site scores to choose the rotation.
+This is a simulation-only aid: the true responses would be unavailable for real observations. It removes orientation differences, not estimation error, and uses no true site values to choose the rotation.
 
-These plots use the PCR-observation fit, including all 6,000 retained iterations from each of four chains. We make a separate plotting copy. For a rotation matrix `rotation`, the transformed scores and loadings are `scores %*% rotation` and `t(rotation) %*% loadings`; their product is still `scores %*% loadings`. The exporter also verifies this for every draw.
+These plots use the PCR-observation fit, including all 6,000 retained iterations from each of four chains. We make a separate plotting copy. For a rotation matrix `rotation`, the transformed site values and species responses are `scores %*% rotation` and `t(rotation) %*% loadings`; their product is still `scores %*% loadings`. The exporter also verifies this for every draw.
 
 ``` r
 ordination_examples <- readRDS("teaching-data/ordination-examples.rds")
@@ -1843,7 +1868,7 @@ score_comparison <- site_truth |>
   select(site, truth = x, estimate, lower, upper)
 ```
 
-The package’s return functions provide arrays, with quantile first, then site and factor for scores, or factor and species for loadings. Here is the first aligned coordinate for the ten displayed sites. They are every tenth site in their original order, chosen before any estimate was inspected, so the choice cannot favour well-recovered sites. These are summaries **after truth-assisted orientation**, not estimates of an intrinsically labelled ecological axis.
+The package’s return functions provide arrays, with quantile first, then site and hidden covariate for the site values, or hidden covariate and species for the species responses. Here is the first aligned coordinate for the ten displayed sites. They are every tenth site in their original order, chosen before any estimate was inspected, so the choice cannot favour well-recovered sites. These are summaries **after truth-assisted orientation**, not estimates of an intrinsically labelled ecological axis.
 
 ``` r
 ordination_examples$score_comparison |>
@@ -1853,21 +1878,21 @@ ordination_examples$score_comparison |>
 | site | truth | estimate | lower | upper |
 |:-----|------:|---------:|------:|------:|
 | 1    |  0.12 |     0.02 | -0.66 |  0.71 |
-| 11   |  1.53 |    -0.02 | -0.68 |  0.65 |
-| 21   |  0.99 |    -0.03 | -0.72 |  0.65 |
-| 31   | -0.50 |    -0.04 | -0.72 |  0.63 |
-| 41   | -0.88 |    -0.12 | -0.84 |  0.54 |
-| 51   | -1.69 |    -0.04 | -0.73 |  0.63 |
-| 61   |  0.16 |     0.03 | -0.66 |  0.76 |
-| 71   |  1.47 |    -0.06 | -0.77 |  0.62 |
-| 81   | -1.05 |     0.01 | -0.67 |  0.69 |
-| 91   |  0.66 |     0.05 | -0.59 |  0.74 |
+| 11   |  1.53 |    -0.02 | -0.70 |  0.63 |
+| 21   |  0.99 |    -0.03 | -0.72 |  0.63 |
+| 31   | -0.50 |    -0.03 | -0.73 |  0.65 |
+| 41   | -0.88 |    -0.12 | -0.85 |  0.53 |
+| 51   | -1.69 |    -0.04 | -0.72 |  0.64 |
+| 61   |  0.16 |     0.03 | -0.67 |  0.74 |
+| 71   |  1.47 |    -0.05 | -0.77 |  0.62 |
+| 81   | -1.05 |     0.00 | -0.67 |  0.70 |
+| 91   |  0.66 |     0.05 | -0.58 |  0.75 |
 
 First aligned site coordinate: truth and posterior quantiles.
 
-#### Site scores: what differs among locations?
+#### Site values: what differs among locations?
 
-The package’s plot places each site label at its posterior median. We show the same ten sites in separate panels with common axes to keep the figure readable. A black cross marks the generating score; a dotted connector identifies the corresponding estimate. Sites close together have similar fitted residual scores, after the measured environmental effects have been accounted for. This is a factor-space comparison, not a geographical map.
+The package’s plot places each site label at its posterior median. We show the same ten sites in separate panels with common axes to keep the figure readable. A black cross marks the generating value; a dotted connector identifies the corresponding estimate. Sites close together have similar fitted values of the hidden environmental covariates, after the measured environmental effects have been accounted for. This is a comparison in the space of the hidden environmental covariates, not a geographical map.
 
 ``` r
 native_sites <- occJSDM::plotOrdinationScores(fit_for_ordination)
@@ -1892,7 +1917,7 @@ native_sites <- native_sites +
   facet_wrap(~ name, ncol = 5) +
   coord_equal() +
   labs(
-    title = "Ten sites in aligned factor space",
+    title = "Ten sites on the aligned hidden environmental covariates",
     caption = "Black crosses: truth. Labels: fitted medians. Circles summarize marginal interval widths."
   )
 
@@ -1901,11 +1926,11 @@ native_sites
 
 <img src="teaching-data/ordination-sites.png" alt="" width="100%" />
 
-Here the site medians cluster near zero despite quite different generating scores. Alignment has not recovered those site differences precisely. Each site gives little information about its hidden scores, so the estimates shrink towards zero. On a real ordination, expect site scores to look less spread out than the conditions they stand for. The circles are rough size guides built from the marginal intervals, **not 95% joint credible regions**. Consult the returned marginal quantiles for interval values; a truth cross inside a circle is not a formal coverage test.
+Here the site medians cluster near zero despite quite different generating values. Alignment has not recovered those site differences precisely. Each site gives little information about its values of the hidden environmental covariates, so the estimates shrink towards zero. On a real ordination, expect the site values to look less spread out than the conditions they stand for. The circles are rough size guides built from the marginal intervals, **not 95% joint credible regions**. Consult the returned marginal quantiles for interval values; a truth cross inside a circle is not a formal coverage test.
 
-#### Species loadings: how does each species respond to the factors?
+#### Species responses: how does each species respond to the hidden environmental covariates?
 
-The loadings are read as in the [ordination section](#ordination-compare-the-combined-effect-before-naming-the-axes); here each is compared with its generating value.
+The responses are read as in the [ordination section](#ordination-compare-the-combined-effect-before-naming-the-axes); here each is compared with its generating value.
 
 ``` r
 native_loadings <- occJSDM::plotFactorLoadings(fit_for_ordination)
@@ -1927,8 +1952,8 @@ native_loadings <- native_loadings +
   facet_wrap(~ name, ncol = 5) +
   coord_equal() +
   labs(
-    title = "Species responses to the aligned factors",
-    caption = "Black crosses: true loadings. Labels: fitted medians. Circles are not joint credible regions."
+    title = "Species responses to the aligned hidden environmental covariates",
+    caption = "Black crosses: true responses. Labels: fitted medians. Circles are not joint credible regions."
   )
 
 native_loadings
@@ -1936,11 +1961,11 @@ native_loadings
 
 <img src="teaching-data/ordination-loadings.png" alt="" width="100%" />
 
-Each species has its own panel with common axes. Several species have identical generating loadings, so their truth crosses coincide. OTU_4 has zero generating loadings and sits at the origin. The fitted loadings need not be exactly zero or identical even after alignment.
+Each species has its own panel with common axes. Several species have identical generating responses, so their truth crosses coincide. OTU_4 has zero generating responses and sits at the origin. The fitted responses need not be exactly zero or identical even after alignment.
 
 #### Biplot: put sites and species together
 
-The biplot uses all 100 sites and the ten species. Grey points are fitted site medians; blue arrows are fitted loading medians. The dashed black arrows are the generating loadings, multiplied by **the same display multiplier** as the blue arrows. Arrow lengths are rescaled for readability, so they are not on the site-score scale and are not direct effect-size readings from this figure.
+The biplot uses all 100 sites and the ten species. Grey points are fitted site medians; blue arrows are the species’ fitted median responses. The dashed black arrows are the generating responses, multiplied by **the same display multiplier** as the blue arrows. Arrow lengths are rescaled for readability, so they are not on the scale of the site values and are not direct effect-size readings from this figure.
 
 ``` r
 site_medians <- site_quantiles["50%", , ]
@@ -2093,7 +2118,7 @@ tibble(
 
 ### The corrected response-curve helper
 
-`returnCovariateEffect()` and `plotCovariateEffect()` vary one predictor in original units. They hold other numeric predictors at their medians and categories at their first fitted levels, and set spatial and latent site effects to zero. Their posterior-median column is named `median` (formerly `mean`), so code that read the old column needs the new name. The two `plotOccupancyGradient()` examples earlier in this lesson were not affected, so their differences from the simulated truth are not caused by this bug.
+`returnCovariateEffect()` and `plotCovariateEffect()` vary one predictor in original units. They hold other numeric predictors at their medians and categories at their first fitted levels, and set spatial effects and the hidden environmental covariates to zero. Their posterior-median column is named `median` (formerly `mean`), so code that read the old column needs the new name. The two `plotOccupancyGradient()` examples earlier in this lesson were not affected, so their differences from the simulated truth are not caused by this bug.
 
 Before the correction in [PR \#13](https://github.com/AlexDiana/occJSDM/pull/13), these helpers added a log-odds intercept after converting to probabilities and standardized predictors twice, which could give probabilities above one. Existing fits with the required covariate metadata need no refit.
 
