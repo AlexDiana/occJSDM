@@ -89,7 +89,10 @@ workers. A single chain never
 leaves this process: with \code{nchain = 1} and \code{ncores > 1} the fit
 runs here with its RcppParallel thread count set to \code{ncores} for the
 duration and restored afterwards, and no progress file is written. Defaults
-to \code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1, ncores = 1)}.
+to \code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1, ncores = 1)}. A list
+that gives only some of these settings takes the rest from that
+default: \code{list(nchain = 1)} runs one chain of 5,000 burn-in and 5,000
+kept iterations.
 With \code{listPriors$b0_prior = "community"} in an occupancy or two-stage
 fit, three further settings control the shift step described under
 \code{listPriors}: \code{b0_shift} (logical, default \code{TRUE};
