@@ -1,15 +1,19 @@
 Lesson 2: Fit the model and compare its answers with truth
 ================
 
-## Before you start
+## What this lesson answers
 
-This is **Lesson 2**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we simulated the survey used here and maps its environmental values, true occurrences and detections. You can skip it and use the supplied data. This lesson is non-spatial. The spatial lesson, [Lesson 7](occJSDM-lesson-7.md), covers how sites are arranged in space. Every reader starts with [Lesson 1](occJSDM-lesson-1.md), the first required lesson: it works through occupancy models and joint species distribution models by hand, without fitting a model.
+**When occJSDM is fitted to an eDNA survey whose truth we know, how closely does it recover the occupancy probabilities? And when does it believe a positive detection, and can that judgment be wrong?**
+
+The [Quickstart](occJSDM-00-quickstart.md) showed how to fit occJSDM and read its results, on a survey whose truth is not known. Here we fit the full model to a simulated survey and check its answers against the truth. We fit the same survey twice: once given the true presence/absence of every species (perfect observations), and once given the PCR observations. The first fit shows what the occupancy part of the model recovers on its own, and the gap between the two shows what detection error costs. The lesson also asks how much the answers depend on the contamination priors, and fits a survey with unequal numbers of field samples per site.
+
+This is **Lesson 2**. [Lesson 0 (optional)](occJSDM-lesson-0.md) explains how we simulated the survey used here. You can skip it. Every reader starts with [Lesson 1](occJSDM-lesson-1.md): it works through occupancy models and joint species distribution models by hand and fits a one-species occupancy model with occJSDM.
 
 All teaching code is shown. Run the chunks in order with the repository’s `vignettes` directory as the working directory; knitting handles this automatically. In RStudio, use **Session \> Set Working Directory \> To Source File Location** with this file open.
 
-We use saved results so that reading or knitting the lesson does not start a long model fit. A fit produces thousands of draws for each quantity it estimates, each draw one plausible value given the data. The saved file keeps only summaries of those draws, namely their average and the range holding the middle 95% of them, not the draws themselves. Six chunks are shown but not run while knitting, and the text says so beside each. Four are model fits: the perfect-observation fit, the PCR fit, the fit with alternative priors and the fit to a survey with unequal replication. The other two, `inspect-fitted-design` and `extract-your-fit`, need a fit of your own. Every other chunk runs and produces the figures and tables you see. The saved file contains the complete simulation. The unequal-replication section loads a second, smaller file.
+We use saved results so that reading or knitting the lesson does not start a long model fit. A fit produces thousands of draws for each quantity it estimates, each draw one plausible value given the data. The saved file keeps only summaries of those draws, namely their average and the range holding the middle 95% of them, not the draws themselves. Six chunks are shown but not run while knitting, including the perfect-observation fit, the PCR fit, the fit with alternative priors and the fit to a survey with unequal replication. The other two, `inspect-fitted-design` and `extract-your-fit`, need you to fit a model. Every other chunk runs and produces the figures and tables you see. The saved file contains the complete simulation. The unequal-replication section loads a second, smaller file.
 
-**What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R for Data Science on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. Operations that are unusual, such as joining two tables on species identity, are explained where they appear.
+**What this lesson assumes you know about R.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R for Data Science on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. Operations that are unusual, such as joining two tables on species identity, are explained where they appear.
 
 - `select()` and `pull()` to choose columns, or to take one column out as a vector.
 - `filter()`, `distinct()`, `arrange()`, `slice_head()`, `slice_min()` and `slice_max()` to keep, deduplicate, order and pick rows, including those with the smallest or largest value.
@@ -30,7 +34,7 @@ known_truth <- lesson$input$sim$true_params
 occupancy_results <- as_tibble(lesson$cells)
 ```
 
-`survey_data` contains the covariates, traits and PCR observations supplied to the model. `known_truth` is kept separate so that we can check the model’s answers against it. This is not the Quickstart’s `sampledata`: this survey was simulated with its truth kept, so that every answer the model gives can be checked against it.
+`survey_data` contains the covariates, traits and PCR observations supplied to the model. `known_truth` is kept separate so that we can check the model’s answers against it. This is not the Quickstart’s `quickstartdata`, which is also simulated but ships without its truth.
 
 ``` r
 names(lesson)
@@ -135,12 +139,12 @@ occupancy_results |>
     #> # A tibble: 6 × 8
     #>   arm     Site  species truth     z estimate lower upper
     #>   <chr>   <chr> <chr>   <dbl> <int>    <dbl> <dbl> <dbl>
-    #> 1 perfect 1     OTU_1   0.802     1    0.858 0.638 0.979
-    #> 2 perfect 2     OTU_1   0.992     1    0.923 0.797 0.987
-    #> 3 perfect 3     OTU_1   0.850     1    0.832 0.620 0.953
-    #> 4 perfect 4     OTU_1   0.720     1    0.832 0.538 0.980
-    #> 5 perfect 5     OTU_1   0.816     0    0.623 0.220 0.881
-    #> 6 perfect 6     OTU_1   0.995     1    0.959 0.858 0.996
+    #> 1 perfect 1     OTU_1   0.802     1    0.859 0.645 0.979
+    #> 2 perfect 2     OTU_1   0.992     1    0.922 0.794 0.986
+    #> 3 perfect 3     OTU_1   0.850     1    0.832 0.617 0.954
+    #> 4 perfect 4     OTU_1   0.720     1    0.830 0.536 0.980
+    #> 5 perfect 5     OTU_1   0.816     0    0.620 0.219 0.881
+    #> 6 perfect 6     OTU_1   0.995     1    0.958 0.852 0.996
 
 The following labels and two small formatting functions will keep our figures and tables consistent. They only control presentation; all calculations retain the unrounded values.
 
@@ -164,6 +168,9 @@ format_percent <- function(probability, digits = 1) {
   paste0(formatC(100 * probability, format = "f", digits = digits), "%")
 }
 
+# Whole percentages keep the 0% and 100% axis labels apart.
+whole_percent <- function(probability) format_percent(probability, digits = 0)
+
 format_points <- function(error) {
   formatC(100 * error, format = "f", digits = 1)
 }
@@ -171,35 +178,58 @@ format_points <- function(error) {
 theme_set(ggplot2::theme_minimal(base_size = 12))
 ```
 
-## What are we trying to learn?
+## The model and the simulated survey
 
-Suppose we survey a community using environmental DNA. A species can be present at a site without appearing in our samples. Its DNA can be in a sample without appearing in every PCR. Both are **false negatives**. Conversely, contamination in the field or in the laboratory can produce a positive result when the species is absent: a **false positive**.
+This lesson teaches you to fit occJSDM’s full model to an environmental DNA (eDNA) survey. The full model is a **two-stage occupancy model**, which separates DNA collection in the field from PCR detection in the laboratory, combined with a **joint species distribution model (JSDM)**, which models all the species together. You will prepare the data, run the fits, check that the sampler has done its job and read the estimates. Because the survey is simulated, we can then compare every estimate with the truth.
 
-occJSDM gives each of these stages its own probability. These are occupancy (`psi`), the collection of DNA into a field sample (`theta`), PCR detection (`p`) and the two false-positive rates, in the laboratory (`q`) and in the field (`theta0`). It estimates them all together. We compare occupancy with truth in “Calculate the errors ourselves”. We compare the detection and false-positive rates in “How does good practice enter the model?” and collection in “Collection conditions”. This lesson asks two questions: **How closely does it recover the underlying occupancy probabilities? When does it believe a positive detection, and can that judgment be wrong?**
+Suppose we survey a community using eDNA. A species can be present at a site, but a sample might fail to collect its DNA. Its DNA might be collected into a sample but fail to be detected by one or more PCRs applied to that sample (polymerase chain reaction). Both are **false negatives**. Conversely, if the species is absent from a site, contamination in the field or in the laboratory can produce a positive detection: a **false positive**.
 
-We use a simulated community so that we can reveal the answers. Truth is used to check the fit; it is withheld from the model except in the explicitly labelled perfect-observation control. Every number below is calculated from this matching simulation and its fitted results. This is one teaching dataset, not an estimate of performance across all ecological surveys.
+occJSDM gives each of these stages its own probability. These are site occupancy (`psi`), the collection of DNA into a field sample (`theta`), PCR detection (`p`), and the two false-positive rates, in the laboratory (`q`) and in the field (`theta0`). occJSDM estimates these probabilities all together.
 
-The example has:
+Below, we compare occJSDM’s estimates of occupancy with the simulator’s truth in “How close are the estimates with perfect and with PCR observations?”. We also compare the estimated detection and false-positive rates in “How does good practice enter the model?” and collection in “Collection conditions”.
 
-- **100 sites and 10 species**, with two measured environmental gradients and two measured species traits;
-- two hidden site factors, which let species occur together more or less often than the measured environment predicts;
+We use a simulated community so that we can reveal the answers to the lesson’s two questions. Because the simulated community lets us know the truth, we can check how well occJSDM performs, since it is not given the truth. Note, however, that this is a single teaching dataset, not an estimate of performance across all ecological surveys.
+
+The simulated community and dataset has:
+
+- **100 sites and 10 species**, with two measured environmental covariates and two measured species traits;
+- two hidden (unmeasured) environmental covariates that also affect species distributions;
 - **three independent field samples per site**;
 - **two primers and six PCR replicates per primer per sample**;
 - no spatial effects.
 
-That is 300 field samples and 3,600 PCR observations for each species. What the model reads is the structure: repeated field samples at each site and repeated PCRs within each sample. Three field samples per site matches the Quickstart’s `sampledata`. That dataset has three primers with two PCRs each, where this survey has two primers with six. The numbers of primers and PCRs are a choice made for this lesson. Environmental values are simulated quantities with arbitrary units. We do not give them a real-world interpretation such as degrees Celsius.
+We can count the survey’s size from `info`, which has one row per PCR observation:
+
+``` r
+n_sites <- n_distinct(survey_data$info$Site)
+n_samples <- n_distinct(survey_data$info$Sample)
+n_primers <- n_distinct(survey_data$info$Primer)
+n_pcr <- nrow(survey_data$info)
+```
+
+That is 100 sites × 3 field samples per site = 300 field samples, and 300 field samples × 2 primers × 6 PCR replicates per primer = 3,600 PCR observations for each species.
+
+The environmental values are simulated quantities with arbitrary units. We do not give them a real-world interpretation such as degrees Celsius.
 
 ## Three questions, three different truths
 
-An eDNA survey is a **two-stage process**. In the field, collection can miss a species that is present (collection failure). It can also pick up a species’ DNA from elsewhere when the species is absent from the site (field-stage contamination, which produces a **field-stage false positive**). In the laboratory, a PCR can miss DNA that is in the sample, or report DNA that is not there. The model therefore keeps three quantities apart:
+An eDNA survey is a **two-stage process**. In the field, eDNA collection can miss a species that is present at the site (a **field-stage false negative**). Conversely, collection can pick up a species’ DNA from elsewhere even though the species is absent at the site (field-stage contamination, which produces a **field-stage false positive**). In the laboratory, a PCR can miss DNA that is in the sample (a **lab-stage false negative**), or report DNA that is not there (a **lab-stage false positive**). The model separates three quantities. For each one, the simulation knows the true value and occJSDM estimates it:
 
-- **How likely is this species to occur at this site?** The model quantity is the underlying occupancy probability, `psi`. The simulation knows it as a probability between 0 and 1.
-- **Did it actually occur there?** The model quantity is the site state, `z`. The simulation knows it as absent (0) or present (1), drawn using that probability.
-- **Was its DNA in this particular field sample?** The model quantity is the sample state, `w`. The simulation knows it as absent (0) or present (1), after collection failure and field-stage contamination have had their chance to act.
+- **How likely is this species to occur at this site?** This is the underlying occupancy *probability*, `psi`, a number between 0 and 1. The simulation sets the true `psi` from the site’s measured and hidden environmental covariates. occJSDM estimates `psi`, with a credible interval.
 
-PCR results are a further observation of the sample state. They are not the site state itself.
+- **Did it actually occur there?** This is the *site state*, `z`: absent (0) or present (1). The simulation draws the true `z` once, using `psi`. occJSDM never observes `z`, so it estimates the probability that `z` = 1. Later sections call this the *conditional site-presence probability*.
 
-A true occupancy probability of 20% does not mean a species is “20% present”. It means presence occurs in 20% of hypothetical repetitions under those conditions. In the one realization we simulate, the species is either present or absent. Even if someone tells us every true presence and absence, we still have to estimate the probabilities that produced them.
+- **Was its DNA in this particular field sample?** This is the *sample state*, `w`: absent (0) or present (1). If the species occupies the site, its DNA enters a sample with the collection probability `theta`. If the species is absent, field-stage contamination puts its DNA into a sample with probability `theta0`. The simulation draws the true `w` for each sample. occJSDM estimates the probability that `w` = 1. Later sections call this the *fitted DNA probability*.
+
+The PCR results are then drawn from `w`: each PCR is positive with probability `p` if DNA is in the sample, and with probability `q` if it is not. So the chain runs `psi` -\> `z` -\> `w` -\> PCR results. The simulation runs it forwards. occJSDM works backwards from the PCR results.
+
+**The probability and the state answer different questions.** `psi` describes the habitat: how likely the species is to occur at a site with these conditions. The probability that `z` = 1 describes this survey: after also reading this species’ PCR results at this site, how likely is it that the species was actually there? The two can differ a lot. Three field samples with no positive PCRs pull the probability that `z` = 1 below the site’s `psi` value (suitable but unoccupied habitat), while repeated positives in several samples push it towards 1. The same logic holds one level down. `theta` says how likely a sample is to collect DNA from a species that is present, and the probability that `w` = 1 says whether DNA was actually collected into this sample, after reading the sample’s PCRs.
+
+**PCR replicates inform `w`, and field samples inform `z`.** Repeated PCRs on one sample show whether DNA was in that tube. Only repeated field samples can provide evidence on whether the species was at the site, since any given sample could be contaminated in the field.
+
+Note that `psi` is not estimated from the site’s measured environmental covariates alone. occJSDM learns each species’ responses to both the measured and the hidden environmental covariates from detections across the whole survey, and the values of the hidden environmental covariates at each site from the detections of all species at that site. So `psi` does use the detection data, though not as direct evidence that this species was at this site. Because the values of the hidden environmental covariates are learned from the surveyed sites, these `psi` estimates apply to those sites and are not predictions for new ones.
+
+A true occupancy probability of 20% does not mean a species is “20% present”. It means that among many sites with exactly these conditions, the species would occupy about one in five. At any one site, the species is either present or absent.
 
 ``` r
 probability_and_state <- occupancy_results |>
@@ -237,9 +267,11 @@ ggplot(probability_and_state, aes(x = Site, y = value)) +
 
 ## First give the JSDM perfect observations
 
-A joint species distribution model (JSDM) models all the species together. It describes their responses to the environment, the role of their traits and the associations between species that the covariates do not explain. We first fit the JSDM to the actual simulated presence/absence matrix. This control removes uncertainty about field collection and PCR, but retains the need to estimate environmental relationships and hidden community structure from presence/absence data. It is a benchmark: it shows how much error comes from the ecological model alone, so that any extra error in the PCR fit can be attributed to detection.
+A JSDM models all the species together. It describes their responses to the environment, the role of their traits and the associations between species that the measured covariates do not explain. We first fit the JSDM to the **true** presence/absence matrix, which the simulator used to generate the sample and PCR observations. Perfect observation is not perfect knowledge. The matrix holds each species’ true state at each site (`z`), a single 0/1 draw from its occupancy probability (`psi`), so occJSDM must still estimate the probabilities, and the species’ responses behind them, from those 0/1 outcomes.
 
-First build the perfect-observation input explicitly. `distinct()` keeps one copy of each site’s environmental covariates. The presence matrix must follow that same site order. The row names in the saved truth matrix are site IDs, so we select by those IDs, not by an assumed row position. Omitting `Sample` and `Primer` makes this a direct presence/absence input.
+This control experiment removes uncertainty about field collection and PCR, and tests only whether occJSDM can estimate the species responses to the measured and hidden environmental covariates from presence/absence data. It is a benchmark: it shows how much error comes from the JSDM alone, so that any extra error in the PCR fit can be attributed to the observation process and occupancy model: field collection and PCR.
+
+To build the perfect-data input dataset, we use a saved copy of the known truth for species presence matrix (`OTU = known_truth$z_true`) and the original traits table (`survey_data$traits`). We also reduce the original study design`survey_data$info` from 3600 rows to just one row per site (100 rows), keeping only three columns: site number and the two measured environmental covariates (`X_psi.EnvCov.1` and `X_psi.EnvCov.2`) and omitting `Sample` and `Primer`. The result is a dataset with perfect observations.
 
 ``` r
 perfect_site_info <- survey_data$info |>
@@ -256,15 +288,30 @@ perfect_data <- list(
   OTU = known_truth$z_true[site_ids, species_ids, drop = FALSE],
   traits = survey_data$traits
 )
+# drop = FALSE preserves the matrix structure even if we later select just one species.
+
+dim(perfect_data$info) # 100 site rows
 ```
 
-`drop = FALSE` preserves the matrix structure even if we later select just one species.
+    #> [1] 100   3
 
-**The following fitting chunk is optional and is not run when knitting.** The simulator settings and seed are shown in Lesson 0, and the code here uses that same saved dataset.
+``` r
+dim(perfect_data$OTU) # 100 site rows
+```
 
-The call has no `collCovariates` and no `threshold`: with one row per site there are no detection stages, so neither applies. `n_factors = 2` asks for the two hidden site factors, which the Quickstart calls latent factors. `n_lattrait = 1` adds one unmeasured trait: a way in which species resemble each other in their responses to the environment that the two measured traits do not capture. Both settings match the simulation.
+    #> [1] 100  10
 
-`MCMCparams` sets how long the sampler runs. The fit is made by MCMC, which produces the draws described above. A **chain** is one independent run of the sampler from its own starting point, and the convergence section checks that the chains agree. `nchain = 4` runs four chains. `nburn = 3000` discards each chain’s first 3,000 iterations while it settles, and `niter = 6000` keeps the next 6,000 iterations of each chain. `nthin = 1` retains every one of those iterations. The Quickstart uses the package default of two chains, each with 5,000 burn-in and 5,000 kept iterations. Four chains give the convergence check more independent runs to compare, and the convergence section shows that these lengths were enough for the perfect-observation and default-prior fits.
+``` r
+dim(perfect_data$traits) # 10 species rows
+```
+
+    #> [1] 10  2
+
+**The following fitting chunk is optional and is not run when knitting.** We will use a saved result. The simulator settings and seed are shown in Lesson 0.
+
+The call has no `collCovariates` and no `threshold`: with one row per site there are no detection stages, so neither applies. `n_factors = 2` asks for the two hidden environmental covariates. The argument is named after the statistical term for them, latent factors, which the Quickstart uses. `n_lattrait = 1` adds one unmeasured trait: a way in which species resemble each other in their responses to the environment that the two measured traits do not capture. Both settings match the simulation in Lesson 0.
+
+`MCMCparams` sets how long the sampler runs. The fit is made by Markov chain Monte Carlo (MCMC). A **chain** is one independent run of the sampler from its own starting point, and the convergence section checks that the chains agree. `nchain = 4` runs four chains. `nburn = 3000` discards each chain’s first 3,000 iterations while it settles, and `niter = 6000` keeps the next 6,000 iterations of each chain. `nthin = 1` retains every one of those iterations. `ncores = 4` runs the four chains at the same time on four processor cores, so it changes how long the fit takes, not what it estimates; set it to the number of cores you can spare. It needs occJSDM 0.2.0 or later: earlier versions ignore it and run the chains one after another. The Quickstart uses the package default of two chains, each with 5,000 burn-in and 5,000 kept iterations. Four chains give the convergence check more independent runs to compare, and the convergence section below will show that these lengths were enough for the perfect-observation and default-prior fits.
 
 ``` r
 library(occJSDM)
@@ -276,17 +323,19 @@ perfect_fit <- runOccJSDM(
   occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
   listParams = list(n_factors = 2, n_lattrait = 1),
   spatCovariates = NULL,
-  MCMCparams = list(nchain = 4, nburn = 3000, niter = 6000, nthin = 1)
-)
+  MCMCparams = list(nchain = 4, nburn = 3000, niter = 6000, 
+                    nthin = 1, ncores = 4),
+  summarisedLatentPresences = TRUE
+  )
 ```
 
-## Now give occJSDM only the PCR observations
+## Now give occJSDM the PCR observations
 
-The second fit receives exactly the same simulated community, but now as the survey would see it: the environmental and collection covariates, the traits and the read counts. This is harder. The model must infer which sites were occupied and which samples contained DNA, while also estimating the underlying probabilities, the collection probabilities and the detection and false-positive rates.
+**The following fitting chunk is optional and is not run when knitting.** We will use a saved result.
 
-`collCovariates = "X_theta"` names the collection covariate in `info`. `threshold = 1` counts one or more reads as a positive result. `spatCovariates = NULL` excludes coordinates from the fit, though the environmental columns still affect occupancy. The chain settings are the same as for the first fit, and this chunk is not run when knitting either.
+The second fit receives exactly the same simulated community, but now as the survey would see it, with all the field and lab replicates. Now, our species presence matrix is a bunch of observations, which only approximate the true presence/absence matrix. occJSDM must which sites were occupied and which samples contained DNA, while also estimating the underlying probabilities, the collection probabilities and the detection and false-positive rates. Because we have observation data, we include a collection covariate `collCovariates = "X_theta"`, and because the species matrix is read counts, we explicitly set `threshold = 1` to count one or more reads as a positive detection. Finally, this is a non-spatial model, so we set `spatCovariates = NULL` to exclude the spatial `Xs.1` and `Xs.2` coordinates from the fit. The chain settings are the same as for the first fit, and this chunk is not run when knitting either.
 
-The two community factors and one unmeasured trait match the simulation, but on your own data the right numbers are unknown. There is no rule yet for choosing `n_factors` and `n_lattrait`: start small, then refit with one more or one fewer and check that your conclusions do not change.
+We do cheat a little by setting the number of hidden environmental covariates (`n_factors = 2`) and unmeasured traits (`n_lattrait = 1`) to match the simulation settings, whereas on your own data, you won’t know the right numbers. There is no rule yet for choosing `n_factors` and `n_lattrait`: start small, then refit with one more or one fewer and check that your conclusions do not change.
 
 ``` r
 library(occJSDM)
@@ -300,19 +349,21 @@ fit <- runOccJSDM(
   listParams = list(n_factors = 2, n_lattrait = 1),
   spatCovariates = NULL,
   threshold = 1,
-  MCMCparams = list(nchain = 4, nburn = 3000, niter = 6000, nthin = 1)
-)
+  MCMCparams = list(nchain = 4, nburn = 3000, niter = 6000, 
+                    nthin = 1, ncores = 4),
+  summarisedLatentPresences = TRUE
+  )
 ```
 
 ## Are the calculations stable enough to interpret?
 
-Before reading any estimate, check that the chains agree, as the Quickstart does; an estimate from chains that disagree is not an estimate.
+Before reading any estimate, check that the chains agree, as the Quickstart does; an estimate from chains that disagree is not reliable.
 
 Two checks do this. Rhat compares the chains: values close to one mean they agree. Effective sample size (ESS) estimates how much independent information the correlated draws of a parameter contain. These are checks on numerical sampling, not checks that the model’s biological conclusions are correct. For your own fit, `returnConvergenceDiagnostics()` gives both for every parameter, as in the Quickstart. Here we read the same checks from the saved file.
 
-We screen at an Rhat of 1.01 and an ESS of 400, following Vehtari, Gelman, Simpson, Carpenter and Bürkner (2021), “Rank-normalization, folding, and localization: An improved R-hat for assessing convergence of MCMC”, *Bayesian Analysis* 16(2), 667-718. Their Rhat threshold of 1.01 is stricter than the older 1.1, which can pass chains that have not yet mixed. An ESS of 400 gives each of four chains about 100 effective draws, the minimum they suggest for reliable Rhat and interval estimates. They defined these thresholds for a rank-normalised Rhat and its matching effective sample size, whereas `returnConvergenceDiagnostics()` reports the classical statistics from the `coda` package. Treat the screens as a guide, not an exact test.
+We screen at an Rhat of 1.01 and an ESS of 400. `returnConvergenceDiagnostics()` reports the classical statistics from the `coda` package. Treat these screens as a guide, not an exact test.
 
-The perfect-observation and default-prior fits each use four chains, 3,000 burn-in iterations and 6,000 retained draws per chain. A third fit, with more permissive contamination priors, is introduced in “What changes if we are less confident about low contamination?” below. It initially used the same schedule. Its field-contamination rate for OTU_6 was slow to agree across chains, so we extended that fit to 6,000 burn-in and 12,000 retained draws per chain. The first remedy for chains that are slow to agree is a longer run, then a second check, not reading the estimate anyway. A longer run does not always clear every parameter, as the paragraphs after the table show. The table summarises all three fits.
+The perfect-observation and default-prior fits each use four chains, 3,000 burn-in iterations and 6,000 retained draws per chain. Below, we will introduce a third fit, with more permissive contamination priors, in “What changes if we are less confident about low contamination?” below. This third fit initially used the same schedule, but its field-contamination rate for OTU_6 was slow to agree across chains, so we extended the fit to 6,000 burn-in and 12,000 retained draws per chain. The first remedy for chains that are slow to agree is a longer run, then a second check, not reading the estimate anyway. A longer run does not always clear every parameter, as the paragraphs after the table show. The table summarises all three fits from our saved runs.
 
 ``` r
 parameter_diagnostics <- bind_rows(lesson$diagnostics, .id = "arm") |>
@@ -328,8 +379,14 @@ occupancy_diagnostics <- occupancy_results |>
   group_by(arm) |>
   summarise(max_occupancy_rhat = max(rhat, na.rm = TRUE), .groups = "drop")
 
+alternative_outside <- lesson$diagnostics$alternative |>
+  filter(is.na(rhat) | is.na(ess) | rhat > 1.01 | ess < 400)
+alternative_max_rhat <- formatC(max(lesson$diagnostics$alternative$rhat, na.rm = TRUE), format = "f", digits = 3)
+alternative_min_ess <- round(min(lesson$diagnostics$alternative$ess, na.rm = TRUE))
+
 parameter_diagnostics |>
   left_join(occupancy_diagnostics, by = "arm") |>
+  arrange(factor(arm, levels = c("perfect", "default", "alternative"))) |>
   transmute(
     Fit = fit_labels[arm],
     `Largest parameter Rhat` = max_parameter_rhat,
@@ -342,15 +399,13 @@ parameter_diagnostics |>
 
 | Fit | Largest parameter Rhat | Smallest parameter ESS | Largest occupancy-probability Rhat | Parameters above Rhat 1.01 |
 |:---|---:|---:|---:|---:|
-| PCR observations: more permissive FP priors | 1.013 | 396.906 | 1.007 | 1 |
-| PCR observations: default priors | 1.009 | 835.289 | 1.009 | 0 |
-| Perfect observation | 1.002 | 2096.978 | 1.002 | 0 |
+| Perfect observation | 1.002 | 2091.900 | 1.002 | 0 |
+| PCR observations: default priors | 1.006 | 906.616 | 1.008 | 0 |
+| PCR observations: more permissive FP priors | 1.016 | 343.432 | 1.004 | 2 |
 
-The perfect-observation and default-prior fits pass both screens.
+The parameter diagnostic checks cover the occupancy intercepts (`beta0_psi`) and slopes (`beta_psi`), the collection coefficients (`beta_theta`) and the detection and false-positive rates (`p`, `q` and `theta0`). The hidden environmental covariates can swap places or flip sign between chains without changing the fit, so they are checked only through the occupancy probabilities. Passing means the chains agree, not that the estimates are right: the recovery errors and field-stage false positives shown below come from fits that pass.
 
-The parameter checks cover the occupancy intercepts (`beta0_psi`) and slopes (`beta_psi`), the collection coefficients (`beta_theta`) and the detection and false-positive rates (`p`, `q` and `theta0`). The occupancy-probability checks also examine the combined contribution of the hidden factors. They do not check each factor on its own: individual factors can swap places or flip sign between chains without changing the fit, so their combined effect is checked instead. Nor do they check every possible derived quantity. Chains that agree do not make the estimates right. The recovery errors and the substantial site probabilities given to field-stage false positives, shown below, remain even though the chains of those two fits agree well.
-
-After the extension, the number of parameters in the alternative-prior fit above the Rhat 1.01 screen is 1, with a maximum Rhat of 1.013. The smallest effective sample size of any parameter in that fit is 397, against the screen of 400. The table lists every parameter of that fit outside either screen, named as in the checks above, with `label1` and `label2` locating it by covariate, species or primer.
+The perfect-observation and default-prior fits pass both screens. However, even after its run was extended, the alternative-prior fit has 2 parameters outside one screen or the other, with a largest Rhat of 1.016 and a smallest ESS of 343. The table lists them; `label1` and `label2` give the covariate, species or primer.
 
 ``` r
 lesson$diagnostics$alternative |>
@@ -359,26 +414,28 @@ lesson$diagnostics$alternative |>
   knitr::kable(digits = 3)
 ```
 
-| param    | label1         | label2 |  rhat |      ess |
-|:---------|:---------------|:-------|------:|---------:|
-| beta_psi | X_psi.EnvCov.1 | OTU_6  | 1.013 | 1273.250 |
-| theta0   | OTU_6          | 1      | 1.007 |  396.906 |
+| param      | label1      | label2 |  rhat |     ess |
+|:-----------|:------------|:-------|------:|--------:|
+| beta_theta | (Intercept) | OTU_6  | 1.016 | 343.432 |
+| theta0     | OTU_6       | 1      | 1.014 | 385.009 |
 
 Treat small differences under those alternative priors cautiously; we do not claim that every parameter has fully converged.
 
 ## Fitting your own data: what the call needs
 
-`runOccJSDM()` uses the rows and identifiers in `data$info` to recognise the observation structure. For binary presence/absence and the read-count detection workflows discussed here:
+Before we review the two model fits, let’s first review how `runOccJSDM()` uses the rows and identifiers in `data$info` to recognise the study design:
 
-- **One row per site with a 0/1 species matrix**: a pure JSDM. The rows are observed species presences and absences, treated as perfectly observed.
-- **Repeated sites, but each field sample contributes only one row**: a one-stage occupancy model. It is for surveys with repeated field visits or samples but a single detection step, with no PCR replicates.
-- **Repeated sites and repeated sample identifiers**: a two-stage occupancy model. The rows are PCR replicates within primers, nested within field samples.
+- **If the dataset has only row per site with a 0/1 species matrix**: occJSDM fits a pure JSDM. The rows are observed species presences and absences, treated as perfectly observed.
+- **If there are repeated sites, but each field sample contributes only one row**: occJSDM fits a one-stage occupancy model. It is for surveys with repeated field visits or samples but a single detection step (i.e. no PCR replicates).
+- **If there are repeated sites *and* repeated samples within site**: occJSDM fits a two-stage occupancy model. The rows are PCR replicates within primers, nested within field samples.
 
-This lesson’s survey has repeated sites and repeated sample identifiers, which is why `runOccJSDM()` inferred the two-stage model. The message it prints when fitting (“occJSDM has inferred two stage (eDNA style) data”) says which model it chose, so check that this matches the survey you intended.
+This lesson’s survey has repeated sites and repeated sample identifiers, which is why `runOccJSDM()` inferred the two-stage model (as described by [Ji et al. (2025)](occJSDM-lesson-3.md#references-and-further-reading)), which separates DNA collection in the field from detection in the laboratory. The message it prints when fitting (“occJSDM has inferred two stage (eDNA style) data”) says which model it chose, so check that this matches the survey you intended.
 
-The two-stage model is the one described by [Ji et al. (2025)](occJSDM-lesson-3.md#references-and-further-reading), which separates DNA collection in the field from detection in the laboratory. These lessons use field-sample IDs that are unique across the survey, and reuse a sample’s ID for its PCR rows. Collapsing PCRs or samples into a single row changes the information supplied to the model, so keep the replicates as rows. The one-stage model is an available alternative, not an additional worked fit in this lesson.
+Sample IDs may restart at each site (1, 2, 3 at site 1, then 1, 2, 3 at site 2), because occJSDM identifies a field sample by its site and sample ID together. Repeat a sample’s ID on each of its PCR rows.
 
-If your survey has one row per site and your OTU table holds read counts rather than 0/1, convert the counts to 0/1 yourself before fitting. The threshold is applied only when there are sample or PCR replicates; with one row per site, counts above one make `runOccJSDM()` stop with “Counts model not supported yet”.
+If your survey is one-stage (i.e. one row per site) and your OTU table holds read counts rather than 0/1, manually convert the counts to 0/1 before fitting. The threshold is applied only when there are sample or PCR replicates.
+
+> In the future, we plan to add count-data functionality, but for now, counts \> 1 in a one-stage design cause`runOccJSDM()` to stop with message “Counts model not supported yet”.
 
 The main settings are:
 
@@ -386,14 +443,17 @@ The main settings are:
 - `data$traits`: optional species traits, with row names matching species names in the observation matrix.
 - `occCovariates`: names of site-level environmental columns in `data$info`.
 - `collCovariates`: names of sample-level collection columns in `data$info`.
-- `spatCovariates`: coordinate-column names, or `NULL` for the non-spatial fit used here.
-- `listParams$n_factors`: number of hidden site factors, which capture species occurring together more or less often than the measured environment predicts.
+- `spatCovariates`: coordinate-column names, or `NULL` for the non-spatial fit used here. This lesson ignores the site coordinates; [Lesson 7](occJSDM-lesson-7.md) shows when spatial structure matters.
+- `listParams$n_factors`: number of hidden environmental covariates, which capture species occurring together more or less often than the measured environment predicts.
 - `listParams$n_lattrait`: number of unmeasured species-trait dimensions; this is the fitting argument, whereas the simulator calls it `gt`.
 - `threshold`: minimum reads counted as a positive result; we use 1 throughout. On your own survey, keep it at 1 unless you have a specific reason to raise it. The model already accounts for false positives through its laboratory and field false-positive rates, and a higher threshold throws away weak true detections. It must be at least 1; `threshold = 0`, which would model read counts directly, is not supported and stops with an error.
 - `listPriors`: prior settings, the model’s starting expectations about rates, explained in “How does good practice enter the model?”; the contamination-prior example below changes named entries explicitly.
-- `MCMCparams`: chains, burn-in, retained draws and thinning, explained with the first fit.
+- `MCMCparams`: chains, burn-in, retained draws, thinning and processor cores, explained with the first fit.
+- `summarisedLatentPresences`: `TRUE` (the default) saves only the posterior means of the site and sample states and probabilities, which keeps the fitted object small; `FALSE` keeps the draws of the site states and occupancy probabilities, explained below.
 
-An environmental or collection intercept does not require a named covariate. Measured traits and the three covariate groups are optional; omit the corresponding information when the study does not supply it. A categorical covariate is split into one column per level, apart from a baseline level. The coefficient functions expect these new names rather than the original column name. For example, a covariate `habitat` with levels `forest`, `grass` and `wetland` becomes the columns `habitatgrass` and `habitatwetland`, with `forest` as the baseline. After fitting (the chunk below needs a fit of your own, so it is not run when knitting), list the names before asking for a coefficient by name:
+The covariates are optional. If you leave `occCovariates` and `collCovariates` empty, occJSDM still fits an occupancy intercept and a collection intercept for each species, so each species has one occupancy probability across all sites and one collection probability across all samples. Spatial covariates and measured traits are optional too; omit them when the study does not supply them.
+
+A categorical covariate is split into one column per level, apart from a baseline level. The coefficient functions expect these new names rather than the original column name. For example, a covariate `habitat` with levels `forest`, `grass` and `wetland` becomes the columns `habitatgrass` and `habitatwetland`, with `forest` as the baseline. After fitting, you can list the newly created categorical covariate names before asking for a particular coefficient:
 
 ``` r
 colnames(fit$X_psi)
@@ -401,15 +461,17 @@ colnames(fit$X_psi)
 colnames(fit$X_theta)
 ```
 
-A failed or unavailable PCR result is **not a negative detection**. Record it as `NA`. In the current implementation, `NA` observations are supported only for the two-stage model. If a one-stage or pure JSDM input contains `NA`, `runOccJSDM()` stops with an error, and this lesson does not test a workaround for those models. The unequal-replication section below shows a distinct case, where an entire field sample is absent. Its observation rows are removed from both input tables, not filled with zeroes.
+A failed or unavailable PCR result is **not a negative detection**. If a whole row is lost, so that no species could be scored, delete the row rather than filling it with zeroes: every model accepts unequal numbers of rows, so a one-stage survey can have different numbers of samples per site, and a pure JSDM simply has fewer sites. Record `NA` only when some species in a row were scored and others were not. Only the two-stage model accepts `NA`; for a one-stage survey or pure JSDM, deleting the row is the current workaround, at the cost of the species that were scored in it. The unequal-replication section below removes whole field samples in this way.
 
-The default `summarisedLatentPresences = TRUE` saves posterior means for the site and sample states and probabilities. You need the draws themselves to get credible intervals for site occupancy probabilities from your own fit; the extraction example in the appendix gives only means. To keep site-state (`z_output`) and site-probability (`psi_output`) draws, set `summarisedLatentPresences = FALSE` before fitting. In the current implementation, sample-state (`w_output`) and collection-probability (`theta_output`) outputs still contain means; the flag does **not** preserve every latent quantity’s draws.
+`summarisedLatentPresences`: This argument affects only the site and sample states and probabilities (parameter draws are always kept, so every parameter has a credible interval). The default, `summarisedLatentPresences = TRUE`, keeps just their posterior means. For a site state `z` that is enough: each draw is 0 or 1, so the mean, the probability that the species is present, is the whole posterior. What you lose is a credible interval for each site’s `psi`. To get one, for example to map habitat suitability with its uncertainty, set `summarisedLatentPresences = FALSE`; this keeps the draws of `z_output` and `psi_output`. `w_output` and `theta_output` stay as means either way.
 
-Keeping draws uses more memory. For example, a fit to 500 sites and 100 species with 4,000 retained iterations in total across chains keeps 500 × 100 × 4,000 = 200 million values in `psi_output`. At 8 bytes each that is about 1.6 GB, and `z_output` is the same size again. Setting `nthin` above one keeps every `nthin`-th iteration and shrinks the object in proportion, at the cost of fewer draws for the summaries. Thinning does not repair chains that disagree; it only reduces storage. Lesson 3 shows how to inspect output dimensions rather than guess what an array contains.
+Those draws take memory: 500 sites × 100 species × 4,000 retained draws is 200 million values, about 1.6 GB, for `psi_output` alone, and as much again for `z_output`. A larger `nthin` keeps every `nthin`-th draw and shrinks the object in proportion, but it does not fix chains that disagree. Lesson 3 shows how to check an output’s dimensions.
 
-## Calculate the errors ourselves
+## How close are the estimates with perfect and with PCR observations?
 
-Start with the whole picture: every estimated occupancy probability against the true probability the simulation used, for both fits.
+Start with the whole picture: compare every model-estimated occupancy probability with the true probability that the simulation used, for both the fit to `perfect_data` and the fit to `survey_data`.
+
+> Recall that `survey_data` holds PCR observations, which include false negatives and false positives. In contrast, `perfect_data` had neither type of error, but it holds only the true 0/1 states drawn from those probabilities, not the probabilities themselves.
 
 ``` r
 comparison_results <- occupancy_results |>
@@ -424,8 +486,8 @@ ggplot(comparison_results, aes(x = truth, y = estimate, colour = arm)) +
   geom_point(alpha = 0.4, size = 0.9) +
   facet_wrap(~ fit_label) +
   scale_colour_manual(values = fit_colours, guide = "none") +
-  scale_x_continuous(limits = c(0, 1), labels = format_percent) +
-  scale_y_continuous(limits = c(0, 1), labels = format_percent) +
+  scale_x_continuous(limits = c(0, 1), labels = whole_percent) +
+  scale_y_continuous(limits = c(0, 1), labels = whole_percent) +
   coord_equal() +
   labs(x = "True occupancy probability", y = "Estimated occupancy probability")
 ```
@@ -435,9 +497,17 @@ ggplot(comparison_results, aes(x = truth, y = estimate, colour = arm)) +
 <figcaption aria-hidden="true">Each point represents one species at one fitted site. The black diagonal is perfect recovery of the true occupancy probability. Points above it are overestimates; points below it are underestimates. The sites are the same in both panels.</figcaption>
 </figure>
 
-The true probabilities were not supplied to either fit. In both panels, estimates are **pulled towards the middle**. At the left, where true probabilities are low, most points sit above the diagonal, so low probabilities are overestimated. At the right, most sit below it, so high probabilities are underestimated. The pull is stronger in the PCR fit. In that fit, the model does this because a site with few detections cannot be told apart from a site with a low probability. With so little to go on, its estimate hedges towards the middle. The perfect-observation fit has no detection problem, so its pull has a different cause, given just before the error table below. The table measures the pull.
+The true probabilities were not supplied to either fit. In both panels, estimates are **pulled towards the middle**. At the left, where true probabilities are low, most points sit above the diagonal, so low probabilities are overestimated. At the right, most sit below it, so high probabilities are underestimated.
 
-To calculate absolute error, subtract truth from the estimate and ignore the sign. An estimate of 35% for a true probability of 20% has an absolute error of 15 percentage points. Signed error retains the sign, so positive and negative mistakes can cancel. We also group the true probabilities as below 20%, 20% to 80% (including exactly 20% and 80%) and above 80%. These cut points separate rare and near-certain occupancy from the rest, which is where a pull towards the middle would show.
+- The pull is stronger in the PCR fit. In that fit, the model does this because a site with few detections cannot be told apart from a site with a low probability. With so little to go on, its estimate hedges towards the middle.
+
+- The perfect-observation fit has no detection problem. Its pull comes from the data themselves: each species contributes a single 0/1 outcome at each site, which says little about the probability behind it, so the priors pull the estimates towards the middle.
+
+The figure visualises the pull towards the middle, but to see how large these errors are, and how much worse it is with PCR observations, we need numbers. A table gives two for each fit.
+
+- The **absolute error** is how far an estimate is from the truth, ignoring direction: subtract the truth from the estimate and drop the sign, so an estimate of 35% for a true probability of 20% is 15 percentage points out. Averaged, it says how far off a typical estimate is.
+
+- The **signed error** keeps the sign, so it says whether estimates lean high or low. Averaged over all pairs, though, the pull’s overestimates and underestimates cancel, so we also average within three groups of true probability: below 20%, 20% to 80% (including exactly 20% and 80%) and above 80%. A pull towards the middle shows as a positive signed error in the lowest group and a negative one in the highest.
 
 ``` r
 occupancy_errors <- occupancy_results |>
@@ -451,8 +521,10 @@ occupancy_errors <- occupancy_results |>
     )
   )
 
-# One summary for each fit and true-probability group.
-errors_by_band <- occupancy_errors |>
+# Summarise each true-probability group, and all pairs together as "All".
+error_summary <- bind_rows(occupancy_errors,
+                           mutate(occupancy_errors, band = "All")) |>
+  mutate(band = factor(band, levels = c("All", "Low", "Middle", "High"))) |>
   group_by(arm, band) |>
   summarise(
     cells = n(),
@@ -463,31 +535,14 @@ errors_by_band <- occupancy_errors |>
     .groups = "drop"
   )
 
-# Also summarise all species-site pairs together.
-overall_errors <- occupancy_errors |>
-  group_by(arm) |>
-  summarise(
-    band = "All",
-    cells = n(),
-    truth = mean(truth),
-    estimate = mean(estimate),
-    signed_error = mean(signed_error),
-    mae = mean(absolute_error),
-    .groups = "drop"
-  )
+# Look up one value, for the text below.
+summary_value <- function(fit, group, column) {
+  error_summary[[column]][error_summary$arm == fit & error_summary$band == group]
+}
 
-error_summary <- bind_rows(overall_errors, errors_by_band) |>
-  mutate(band = factor(band, levels = c("All", "Low", "Middle", "High"))) |>
-  arrange(arm, band)
-```
-
-Each row here is a species-site pair, so every pair receives equal weight. Missing fitted values should be investigated, not silently removed from these error calculations.
-
-With perfect observations, the **mean absolute error is 11.0 percentage points**. With PCR observations and default priors, it is **15.4 points**. Thus observation uncertainty adds error in this example, but does not explain all of it. Even with perfect observations, each species at each site contributes a single present-or-absent outcome, which carries little information about the probability behind it. The prior on each species’ baseline occupancy also pulls estimates towards the middle (see “Why rare and common species are pulled towards the middle” below).
-
-``` r
 error_summary |>
   filter(arm %in% c("perfect", "default")) |>
+  arrange(factor(arm, levels = c("perfect", "default")), band) |>
   transmute(
     Fit = fit_labels[arm],
     `True probability group` = recode(
@@ -505,127 +560,71 @@ error_summary |>
 
 | Fit | True probability group | Species-site pairs | Mean truth | Mean estimate | Signed error (points) | Absolute error (points) |
 |:---|:---|---:|:---|:---|:---|:---|
-| PCR observations: default priors | All | 1000 | 51.2% | 51.7% | 0.5 | 15.4 |
-| PCR observations: default priors | Below 20% | 257 | 6.5% | 18.3% | 11.8 | 13.1 |
-| PCR observations: default priors | 20% to 80% | 469 | 52.4% | 55.6% | 3.1 | 16.9 |
-| PCR observations: default priors | Above 80% | 274 | 91.2% | 76.5% | -14.7 | 15.1 |
-| Perfect observation | All | 1000 | 51.2% | 50.7% | -0.6 | 11.0 |
-| Perfect observation | Below 20% | 257 | 6.5% | 12.8% | 6.2 | 7.4 |
-| Perfect observation | 20% to 80% | 469 | 52.4% | 52.9% | 0.5 | 13.6 |
+| Perfect observation | All | 1000 | 51.2% | 50.6% | -0.6 | 11.0 |
+| Perfect observation | Below 20% | 257 | 6.5% | 12.7% | 6.2 | 7.3 |
+| Perfect observation | 20% to 80% | 469 | 52.4% | 52.8% | 0.4 | 13.6 |
 | Perfect observation | Above 80% | 274 | 91.2% | 82.4% | -8.8 | 9.8 |
+| PCR observations: default priors | All | 1000 | 51.2% | 51.6% | 0.3 | 15.5 |
+| PCR observations: default priors | Below 20% | 257 | 6.5% | 18.2% | 11.7 | 13.0 |
+| PCR observations: default priors | 20% to 80% | 469 | 52.4% | 55.5% | 3.0 | 17.0 |
+| PCR observations: default priors | Above 80% | 274 | 91.2% | 76.2% | -15.0 | 15.3 |
 
-The table shows the pull towards the middle in numbers. Among low-probability cases, the true probabilities average 6.5%, whereas the default two-stage estimates average 18.3%, an overestimate of 11.8 points. The perfect-observation fit averages 12.8%. Among high-probability cases, the true probabilities average 91.2% and the default estimates 76.5%. Averaging the signed error over all pairs hides much of this pattern, because the overestimates at low probabilities and the underestimates at high probabilities cancel. If you are estimating where a rare species occurs, expect its occupancy probabilities to come out higher than they really are, and a common species’ lower.
+Both fits have error. Averaged over all species-site pairs, an estimate is ``` r``format_points(summary_value("perfect", "All", "mae")) ``` percentage points from the truth with perfect observations and 15.5 with PCR observations.
 
-The scatterplot omits intervals to remain readable. Here are intervals for the first 20 sites of OTU_1, selected by site number rather than fit quality:
+Between 20% and 80% occupancy, the error is mostly **noise** (scatter equally on both sides of the truth): the mean signed error is only 0.4 points with perfect observations and 3.0 with PCR observations. Note that these mean values are small because the negative and positive errors are largely cancelling out. Also, as expected, the PCR-observation estimates are somewhat noisier, because PCR observations contain both false negatives and false positives.
+
+However, at low (\<20%) and high (\>80%) occupancy, the error is also **bias**: the **pull towards the middle** seen in the figure.
+
+- Below 20%, estimates are on average 6.2 points too high with perfect observations and 11.7 with PCR observations.
+
+- Above 80%, estimates are on average 8.8 points too low with perfect observations and 15.0 with PCR observations.
+
+In short, where a species’ occupancy probability is low, expect model estimates that are too high, and where occupancy probability is high, estimates that are too low. “Why low and high probabilities are pulled towards the middle”, below, explains why.
+
+The scatterplot above omits intervals to remain readable. Here is the same plot for one species, OTU_10, at all 100 sites, with the 95% credible interval of each estimate. OTU_10’s true probabilities run from near 0 to near 1, so it shows the whole range. An interval that crosses the diagonal contains the true probability.
 
 ``` r
-interval_results <- comparison_results |>
-  filter(species == "OTU_1", as.integer(Site) <= 20) |>
-  mutate(site_number = as.integer(Site))
+one_species_results <- comparison_results |>
+  filter(species == "OTU_10")
 
-ggplot(interval_results, aes(x = site_number, y = estimate, colour = arm)) +
-  geom_linerange(aes(ymin = lower, ymax = upper), alpha = 0.6) +
-  geom_point(size = 1.7) +
-  geom_point(aes(y = truth), colour = "black", shape = 4, size = 2) +
-  facet_wrap(~ fit_label, ncol = 1) +
+ggplot(one_species_results, aes(x = truth, y = estimate, colour = arm)) +
+  geom_abline(slope = 1, intercept = 0, colour = "black") +
+  geom_linerange(aes(ymin = lower, ymax = upper), alpha = 0.4) +
+  geom_point(size = 1.2) +
+  facet_wrap(~ fit_label) +
   scale_colour_manual(values = fit_colours, guide = "none") +
-  scale_y_continuous(limits = c(0, 1), labels = format_percent) +
-  scale_x_continuous(breaks = seq(2, 20, 2)) +
-  labs(x = "Site", y = "Occupancy probability")
-```
-
-<figure>
-<img src="occJSDM-lesson-2_files/figure-gfm/occupancy-intervals-1.png" alt="Black points are true probabilities. Coloured points are posterior means and bars are 95% credible intervals. Intervals describe uncertainty; they do not ensure that the true value is recovered." />
-<figcaption aria-hidden="true">Black points are true probabilities. Coloured points are posterior means and bars are 95% credible intervals. Intervals describe uncertainty; they do not ensure that the true value is recovered.</figcaption>
-</figure>
-
-If the intervals were calibrated, about 95% of them would contain the true probability. Across all 1,000 species-site pairs, they do so 89.2% of the time in the perfect-observation fit and 76.8% in the default PCR fit. The README’s [known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) record that interval coverage has not been established; read these intervals as the model’s uncertainty, not as a guarantee.
-
-These are estimates for the sites the model was fitted to: the hidden site factors were inferred from the observations at these same sites. That is easier than predicting a new site, so this is not a test of prediction at new sites.
-
-## Where do the errors occur on the map?
-
-Are the errors concentrated in one part of the survey area? On your own fit, errors that cluster in space are a sign of spatial structure the model is missing. Here we map the estimates next to their true probabilities for OTU_1 and OTU_10. We chose them because they are the species in the detection examples below, not because their fitted maps look especially good.
-
-First attach coordinates by site ID. Site IDs are stored as text in `occupancy_results`, so we use the same type in `site_coordinates`.
-
-``` r
-site_coordinates <- survey_data$info |>
-  as_tibble() |>
-  transmute(Site = as.character(Site), east = Xs.1, north = Xs.2) |>
-  distinct()
-
-mapped_results <- occupancy_errors |>
-  filter(arm == "default", species %in% c("OTU_1", "OTU_10")) |>
-  left_join(site_coordinates, by = "Site")
-
-probability_maps <- mapped_results |>
-  pivot_longer(
-    cols = c(truth, estimate),
-    names_to = "quantity",
-    values_to = "probability"
-  ) |>
-  mutate(
-    quantity = factor(
-      quantity,
-      levels = c("truth", "estimate"),
-      labels = c("True occupancy probability", "Estimated occupancy probability")
-    )
-  )
-```
-
-So that both map panels use exactly the same colour scale, `pivot_longer()` stacks truth and estimates into one column, with a label saying which each value is.
-
-``` r
-ggplot(probability_maps, aes(x = east, y = north, colour = probability)) +
-  geom_point(size = 2.5) +
-  facet_grid(species ~ quantity) +
-  scale_colour_viridis_c(
-    limits = c(0, 1), labels = format_percent, name = "Occupancy"
-  ) +
-  scale_x_continuous(breaks = c(0, 0.5, 1)) +
-  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  scale_x_continuous(limits = c(0, 1), labels = whole_percent) +
+  scale_y_continuous(limits = c(0, 1), labels = whole_percent) +
   coord_equal() +
-  labs(x = "East coordinate", y = "North coordinate")
+  labs(x = "True occupancy probability", y = "Estimated occupancy probability")
 ```
 
 <figure>
-<img src="occJSDM-lesson-2_files/figure-gfm/occupancy-probability-maps-1.png" alt="The default two-stage fit at the sampled sites, compared with its matching simulated truth. Both species and both quantities share the 0 to 100% colour scale. These are point maps of a non-spatial fit, not predictions for the unsampled space between points." />
-<figcaption aria-hidden="true">The default two-stage fit at the sampled sites, compared with its matching simulated truth. Both species and both quantities share the 0 to 100% colour scale. These are point maps of a non-spatial fit, not predictions for the unsampled space between points.</figcaption>
+<img src="occJSDM-lesson-2_files/figure-gfm/occupancy-recovery-one-species-1.png" alt="One species, OTU_10, at every site. Points are posterior means and bars are 95% credible intervals. The black diagonal is perfect recovery; a bar that crosses it contains the true probability. Intervals describe uncertainty; they do not ensure that the true value is recovered." />
+<figcaption aria-hidden="true">One species, OTU_10, at every site. Points are posterior means and bars are 95% credible intervals. The black diagonal is perfect recovery; a bar that crosses it contains the true probability. Intervals describe uncertainty; they do not ensure that the true value is recovered.</figcaption>
 </figure>
 
-To see the direction and size of individual mistakes, map estimate minus truth, in percentage points, on a scale centred at zero and shared by both species.
+If the intervals were calibrated correctly, about 95% of them would contain the true probability (i.e. cross the 1:1 line). Across all 1,000 species-site pairs, they do so 89.5% of the time in the perfect-observation fit and 77.0% in the PCR fit.
 
-``` r
-map_errors <- mapped_results |>
-  mutate(error_pp = 100 * signed_error)
+Thus the intervals are somewhat too narrow: in the PCR fit, 23.0% of them miss the truth, not 5%. Most misses are near misses, and they are most common at low and high occupancy, where the estimates are biased. Hence, read a 95% interval from occJSDM as an underestimate of uncertainty, and therefore be wary of conclusions that rest at the edge of an interval, especially when the estimate is low or high.
 
-largest_error <- max(abs(map_errors$error_pp))
+The README’s [known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) record that interval coverage has not been established; read these intervals as the model’s uncertainty.
 
-ggplot(map_errors, aes(x = east, y = north, colour = error_pp)) +
-  geom_point(size = 2.5) +
-  facet_wrap(~ species) +
-  scale_colour_gradient2(
-    low = "#0072B2", mid = "#F0F0F0", high = "#D55E00",
-    midpoint = 0, limits = c(-largest_error, largest_error),
-    name = "Error (points)"
-  ) +
-  scale_x_continuous(breaks = c(0, 0.5, 1)) +
-  scale_y_continuous(breaks = c(0, 0.5, 1)) +
-  coord_equal() +
-  labs(x = "East coordinate", y = "North coordinate")
-```
+### Why low and high probabilities are pulled towards the middle
 
-<figure>
-<img src="occJSDM-lesson-2_files/figure-gfm/occupancy-error-maps-1.png" alt="Red-orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state." />
-<figcaption aria-hidden="true">Red-orange points are overestimates and blue points are underestimates. Pale points have small errors. These are errors in the underlying probability, not wrong classifications of the actual 0/1 occupancy state.</figcaption>
-</figure>
+About half of the bias occurs even with perfect observations, so detection is not its only cause. In the perfect-observation fit, each species’ average occupancy across the sites is recovered closely. What is pulled is how much a species’ occupancy probability varies from site to site. That variation comes from the species’ responses to the measured and hidden environmental covariates, and each response is estimated from a single 0/1 outcome per site. Such outcomes carry little information, so the priors shrink the responses towards zero, and the fitted probabilities vary less from site to site than the true ones. The sites where a species’ true probability is lowest or highest are pulled the furthest towards the middle.
 
-OTU_1 is common, and 81% of its sites are blue: the pull towards the middle again, underestimating its high probabilities. Neither map shows errors gathered in one part of the survey area; large overestimates and underestimates sit next to each other. That is what this simulation should produce, because its environmental values and hidden site factors were generated independently of coordinates. Smoothing these points would invent a surface that this simulation never generated. The spatial lesson, [Lesson 7](occJSDM-lesson-7.md), introduces a smooth habitat gradient and spatial structure.
+A second source of pull matters when whole species are very rare or very common. The prior for baseline occupancy, `B0`, sets a species’ occupancy probability at a site with average covariate values. It is on the logit scale, and the default puts about 95% of its weight on baselines between 12% and 88%, so a species whose baseline lies outside that range is pulled towards it. In this lesson every species’ average lies inside that range, so this prior is not what pulls the estimates in the figure above.
+
+> We have created an **experimental** option to widen that range to about 2% to 98%, by setting the prior `sigma_b0 = 2` in `listPriors`. In a [simulation study](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/occupancy-intercept-prior/REPORT.md), wider values reduced the overestimation of low occupancy probabilities in JSDM fits of perfect-observation presence/absence data, which have one record per site and species. The reduction was clear in spatial fits but only slight in non-spatial ones. In two-stage (eDNA) fits such as this lesson’s PCR fit, they gained little and also made the chains slower to agree. One-stage occupancy fits have not been tested. Thus, keep the default for one-stage occupancy and two-stage data; if you try a larger value for a JSDM fit to presence/absence data, check that the chains agree. The `listPriors` entry in `?runOccJSDM` gives the details.
+
+Separately, the extra bias in the PCR fit can be reduced by taking more field samples per site, because the extra bias is an information problem, not a modelling problem. Occupancy is a property of the site, and each field sample is one independent chance to catch the species’ DNA there. With only 3 field samples per site, a species that was never detected at a site could be absent or could simply have been missed, and the data cannot say which. The model then leans on its priors, which pull estimates towards the middle. Each extra field sample adds evidence about the site, and in our simulations of surveys like this one, about 10 field samples per site removed most of the pull.
+
+More effort per sample, such as filtering more water, and/or spreading samples around the site (to catch patchy eDNA) should help in the same way, because these methods raises the chance that each sample catches DNA that is there. We expect that with increased effort and/or spreading samples around, one would need fewer than 10 samples per site to remove most of the pull. However, we have not tested this yet, and separate samples also spread the effort across the site. Extra PCR replicates help very little, because they re-test the same samples: they cannot reveal DNA that was never collected.
 
 ## How does good practice enter the model?
 
-Good field and laboratory practice gives us a reason to expect contamination to be uncommon. occJSDM expresses that expectation through **priors**, starting beliefs about plausible rates that are updated using the observations. It does not inspect the protocol or prove that the work was carried out carefully.
+Good field and laboratory practice lets us reasonably assume that contamination is uncommon. occJSDM expresses that assumption through **priors**, starting beliefs about plausible rates that are updated using the observations. It does not inspect the protocol or prove that the work was carried out carefully.
 
 The detection and false-positive priors are Beta distributions. A Beta distribution describes a probability between 0 and 1, and its two numbers act like prior successes and failures. Beta(1, 20) behaves like having seen one contamination in 21 tries, so its mean is 1/21, about 4.8%. The rates of the observation stages and their default priors are:
 
@@ -634,11 +633,11 @@ The detection and false-positive priors are Beta distributions. A Beta distribut
 - `theta0`, DNA entering a sample even though the species is absent from the site, separately for each species. Default Beta(1, 20): favours uncommon field-stage false positives; prior mean 4.8%.
 - `theta`, the collection probability: DNA entering a sample when the species occupies the site. It has no Beta prior of its own, because it is built from each species’ collection intercept and its slope on the collection covariate; the priors are on those coefficients.
 
-The means are not fixed error rates or measurements of laboratory quality. High true-detection probability is an additional assumption: careful work does not prevent primer mismatch or inhibition. The priors do not strictly require `p` to exceed `q`, and false positives are not required to be weak. If you want to change the contamination priors for your own survey, one basis you could use is the contamination rate seen in your field blanks and negative controls. The entries are listed under `listPriors` in `?runOccJSDM`, and the stress test below shows how to refit with changed contamination priors.
+The means are not fixed error rates or measurements of laboratory quality. High true-detection probability is an additional assumption: careful work does not prevent primer mismatch or inhibition. The priors do not strictly require `p` to exceed `q`, and false positives are not required to be weak. If you want to change the priors on the contamination rates `q` and `theta0` for your own survey, one basis you could use is the contamination rate seen in your field blanks and negative controls. The entries are listed under `listPriors` in `?runOccJSDM`, and the stress test below shows how to refit with changed contamination priors.
 
 An occasional stray positive is plausible without DNA in the sample. Repeated positives are usually easier to explain with DNA present, provided detection is appreciably more likely than a false positive. Negative PCRs matter too. The model combines the whole pattern with collection conditions and the ecological model, estimating rates and hidden presence states together. There is no universal rule such as “one positive is false; three positives are true”.
 
-Here are the rates the model actually estimated, next to their true values. The saved `rates` table already contains the fit’s summaries and the true rates; we select the default-prior fit and label each parameter before plotting it. Unlike the occupancy maps, these panels have different horizontal scales so small false-positive rates remain readable; compare the axis labels as well as the points.
+Here are the rates the model actually estimated, next to their true values. The saved `rates` table already contains the fit’s summaries and the true rates; we select the default-prior fit and label each parameter before plotting it. These panels have different horizontal scales, which keeps small false-positive rates readable, so read the axis labels as well as the points. Note that the false-positive rates are absolutely low, which is what we hope to see in a real dataset.
 
 ``` r
 detection_rates <- lesson$rates |>
@@ -646,9 +645,9 @@ detection_rates <- lesson$rates |>
   filter(arm == "default") |>
   mutate(
     rate_label = case_when(
-      param == "theta0" ~ "Field contamination",
-      param == "p" ~ paste("True PCR detection\nPrimer", Primer),
-      param == "q" ~ paste("Laboratory false positive\nPrimer", Primer)
+      param == "theta0" ~ "theta0: field-stage\nfalse positive",
+      param == "p" ~ paste("p: true PCR detection\nPrimer", Primer),
+      param == "q" ~ paste("q: laboratory false positive\nPrimer", Primer)
     ),
     species = factor(species, levels = paste0("OTU_", 10:1))
   )
@@ -661,9 +660,11 @@ ggplot(detection_rates, aes(x = estimate, y = species)) +
   scale_x_continuous(
     limits = function(values) c(0, min(1, max(values) * 1.05)),
     breaks = function(limits) pretty(limits, n = 3),
-    labels = format_percent
+    labels = whole_percent
   ) +
-  labs(x = "Probability", y = NULL)
+  labs(x = "Probability", y = NULL) +
+  # Extra space keeps one panel's 100% label clear of the next panel's 0%.
+  theme(panel.spacing.x = unit(1.5, "lines"))
 ```
 
 <figure>
@@ -671,29 +672,27 @@ ggplot(detection_rates, aes(x = estimate, y = species)) +
 <figcaption aria-hidden="true">Black crosses are the true rates for positive read results. Red-orange estimates and 95% credible intervals come from the default two-stage fit. Horizontal scales differ so that small false-positive rates are readable. Laboratory rates differ by primer; field-stage contamination has one rate per species.</figcaption>
 </figure>
 
-The laboratory rates are recovered well: 37 of the 40 intervals for `p` and `q` contain the true value. The intervals are comparatively narrow, none wider than 79% of its estimate, because every sample’s twelve PCRs give the model many repeated laboratory results to learn from. The field-contamination rate is harder: 9 of its 10 intervals contain the true value, but they are wide, from 87% to 329% of the estimate and reaching up to 19.4%. They are wide because field-stage contamination happens only at unoccupied sites, and a contaminated sample looks like any other sample with DNA.
+The laboratory rates are recovered well: 37 of the 40 intervals for `p` and `q` contain the true value. The intervals are comparatively narrow, none wider than 79% of its estimate, because every sample’s twelve PCRs (six per primer) give the model many repeated laboratory results to learn from. The field-stage false-positive rate is harder: 9 of its 10 intervals contain the true value, but they are wide, from 88% to 334% of the estimate and reaching up to 20.8%. They are wide because field-stage contamination happens only at unoccupied sites, and a contaminated sample looks like any other sample with DNA.
 
 The black crosses for `p` and `q` are lower than the simulator’s settings in Lesson 0, because some simulated laboratory events produce zero reads and so never appear as positives. [Lesson 0](occJSDM-lesson-0.md#specify-the-observation-model-decide-how-collection-and-pcr-can-fail) explains how the simulator turns events into read counts.
 
-### Why keep the current field-contamination prior?
+### Why keep the current field-stage false-positive prior?
 
-A wide interval for `theta0` means the model is uncertain about how often DNA enters a sample at an unoccupied site. It is tempting to narrow the prior to make that interval look more precise. Doing so also changes the model’s expectations about the contamination rate and can move the point estimate.
+A wide interval for `theta0` (field-stage false positive) means the model is uncertain about how often DNA enters a sample at an unoccupied site. It is tempting to narrow the prior to make that interval look more precise. However, doing so also changes the model’s expectations about the contamination rate and can move the point estimate.
 
-A separate [targeted sensitivity study](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/theta0-prior-mean/REPORT.md) compared the current Beta(1,20) prior with historical Beta(1,30), keeping the collection-slope prior and other settings fixed. The historical prior has a lower mean, 3.2% rather than 4.8%, and concentrates more strongly near zero. Under three low-contamination, non-spatial designs, with ten simulated communities per design, current-prior intervals were about 10-19% wider and estimates had less downward mean error. Average absolute error changed little, with uncertainty spanning either prior doing better; individual validation communities sometimes overshot the truth under the current prior.
+A separate [targeted sensitivity study](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/theta0-prior-mean/REPORT.md) compared the current Beta(1,20) prior with historical Beta(1,30), keeping the collection-slope prior and other settings fixed. The historical prior has a lower mean, 3.2% rather than 4.8%, and concentrates more strongly near zero. Under three low-contamination, non-spatial designs, with ten simulated communities per design, current-prior intervals were about 10-19% wider and estimates had less downward mean error. Average absolute error changed little, and the uncertainty in that comparison was wide enough that either prior could be the better one; individual validation communities sometimes overshot the truth under the current prior.
 
-The current-prior 95% intervals contained the simulated truth 97-98% of the time. That is observed overcoverage in these designs, not proof of general calibration or of excessively wide intervals in your own survey. Some fits retained numerical diagnostic flags. The beta release keeps Beta(1,20), and the broader calibration study remains open. Check chain agreement and how conclusions respond to scientifically justified priors; choosing a tighter prior just to reach 95% coverage in this small simulation grid is not supported. These field-contamination results are separate from the high laboratory-contamination stress test below.
-
-### Why rare and common species are pulled towards the middle
-
-The detection rates are not the only quantities with priors. Each species also has a baseline occupancy, `B0`, which sets its occupancy probability at a site with average covariate values. The probability is the logistic function of `B0`, so `B0` itself is on the logit scale. The default prior puts about 95% of its weight on baselines between 12% and 88%. Very rare or very common species are therefore pulled towards the middle, which is one reason for the pull in the error table above. Setting `sigma_b0 = 2` in `listPriors` widens that range to about 2% to 98%. This option is **experimental**. In a [simulation study](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/occupancy-intercept-prior/REPORT.md), wider values reduced the overestimation of low occupancy probabilities in JSDM fits to presence/absence data, which have one record per site and species, like this lesson’s perfect-observation fit. The reduction was clear in spatial fits and only slight in non-spatial ones. In two-stage (eDNA) fits such as this lesson’s PCR fit, they made the chains slower to agree. One-stage occupancy and continuous fits were not tested. Keep the default for one-stage occupancy and two-stage data; if you try a larger value for a JSDM fit to presence/absence data, check that the chains agree. The `listPriors` entry in `?runOccJSDM` gives the details.
+The current-prior 95% intervals contained the simulated truth 97-98% of the time. That is observed overcoverage in these designs, not proof of general calibration or of excessively wide intervals in your own survey. Some fits retained numerical diagnostic flags. The beta release keeps Beta(1,20), and the broader calibration study remains open. Check chain agreement and how conclusions respond to scientifically justified priors; choosing a tighter prior just to reach 95% coverage in this small simulation grid is not supported. These field-stage false-positive results are separate from the high laboratory-contamination stress test below.
 
 ## Four examples: inspect the observations first
 
-`lesson$observations` has one row per species and PCR reaction. Each row holds the reaction’s site, sample, primer and PCR number, its read count and its 0/1 result at threshold one. For the reveal below, it also holds the true site and sample states and the true source of the result.
+<!--# start here -->
 
-Each row of the figure below is one field sample. There are six PCR columns for each of two primers. Numbers are read counts; blue cells are positive. At threshold one, a count of 1 and a count of 1,000 both contribute a single positive result to this model. “Strong evidence” therefore refers to how detections recur across replicates, not how large an above-threshold count is.
+The detection rates above are averages over the whole survey. This section looks at four **single cases, to show how the model weighs a pattern of PCR results**. Each case is one species at one site: a weak true detection, a strong true detection, a laboratory false positive and a field-stage false positive. You first see each case as the survey saw it, as read counts in every PCR of the site’s three field samples, and decide for yourself whether the species was there. The next section reveals the truth and compares it with the model’s answers to two separate questions: was the species’ DNA in this sample, and was the species at this site?
 
 These four cases were selected from known truth and observed patterns **before looking at fitted probabilities**, so that they could not be picked to flatter the model. Each case has a **focal sample**, the sample whose PCR pattern placed it in its category. Weak true cases have one or two positive PCRs in the focal sample. Strong true cases have at least six in the focal sample and at least three true detections in each of at least two samples. For each category, the first case in species-name, numeric-site and numeric-sample order was selected. The headings name the teaching categories; the colours initially show only observed results.
+
+To draw these examples we use `lesson$observations`, which is the `survey_data` dataframe reshaped to one row per species per PCR reaction, so that each PCR can be drawn as its own cell. Each row holds the site, sample, primer and PCR number, the read count and the 0/1 result at threshold one. It also holds three columns the model never sees, for the reveal later in the lesson: the true site state `z`, the true sample state `w`, and the true `source` of each positive.
 
 We now join the observation rows to the selected case IDs. `inner_join()` both keeps the matching sites and adds the case label. The key is **species plus site** so that we keep all three field samples, including the two non-focal samples.
 
@@ -719,7 +718,9 @@ case_observations <- lesson$observations |>
   )
 ```
 
-The colour in the first figure uses **only observed PCR results**. The category names identify examples selected using simulation truth; they are not model classifications. Missing observations have their own colour instead of being treated as negatives. Before reading on, decide for each pattern whether you would believe the species was at the site.
+Each row of the figure below is one field sample. There are six PCR columns for each of two primers. Numbers are read counts; blue cells are positive. At threshold one, a count of 1 and a count of 1,000 both contribute a single positive result to this model. “Strong evidence” therefore refers to how detections recur across replicates, not how large an above-threshold count is.
+
+The colour in the first figure uses **only observed PCR results**. The category names identify examples selected using simulation truth; they are not model classifications. Missing observations have their own colour instead of being treated as negatives. Before reading on, decide for each pattern whether you would have believed the species was at the site.
 
 ``` r
 ggplot(case_observations, aes(x = PCR, y = sample_label, fill = observed_result)) +
@@ -833,10 +834,10 @@ case_results |>
 
 | Case | True site state | Estimated chance site was occupied | True focal sample state | Estimated chance DNA was in focal sample |
 |:---|:---|:---|:---|:---|
-| Weak true detection | Present | 54.9% | DNA present | 17.7% |
-| Laboratory false positive | Present | 98.7% | DNA absent | 1.7% |
-| Strong true detection | Present | 98.4% | DNA present | 100.0% |
-| Field-stage false positive | Absent | 0.7% | DNA present | 100.0% |
+| Weak true detection | Present | 54.4% | DNA present | 17.4% |
+| Laboratory false positive | Present | 98.3% | DNA absent | 1.8% |
+| Strong true detection | Present | 98.3% | DNA present | 100.0% |
+| Field-stage false positive | Absent | 0.6% | DNA present | 100.0% |
 
 The paragraphs below take each case’s identifiers from `lesson$cases` and count its site’s positive PCRs from `case_observations`, so they describe whichever cases the selection rule picked.
 
@@ -864,17 +865,17 @@ list_samples <- function(samples) {
 }
 ```
 
-**Weak true detection:** OTU_1 really occupied site 6 and its DNA was in sample 18, but only 2 of the 12 PCRs from that sample were positive. Its DNA did not enter the site’s other samples, 16 and 17, which have no positive PCRs. The model gives a 54.9% probability that the site was occupied, but only a 17.7% probability that DNA was in this sample. It therefore leaves the genuine site occurrence uncertain while tending to miss the DNA in this particular sample. This is a useful example of the two questions receiving different answers, not a wholly successful classification.
+**Weak true detection:** OTU_1 really occupied site 6 and its DNA was in sample 18, but only 2 of the 12 PCRs from that sample were positive. Its DNA did not enter the site’s other samples, 16 and 17, which have no positive PCRs. The model gives a 54.4% probability that the site was occupied, but only a 17.4% probability that DNA was in this sample. It therefore leaves the genuine site occurrence uncertain while tending to miss the DNA in this particular sample. This is a useful example of the two questions receiving different answers, not a wholly successful classification.
 
-**Laboratory false positive:** sample 1 at site 1 did not contain OTU_1 DNA, yet 1 of its 12 PCRs was positive. The model gives only a 1.7% probability that DNA was in the sample. However, OTU_1 really was present at the site, and the model gives a 98.7% probability that the site was occupied. A false-positive PCR does not require the species to be absent from the entire site. Collection failure and a laboratory false positive can occur together.
+**Laboratory false positive:** sample 1 at site 1 did not contain OTU_1 DNA, yet 1 of its 12 PCRs was positive. The model gives only a 1.8% probability that DNA was in the sample. However, OTU_1 really was present at the site, and the model gives a 98.3% probability that the site was occupied. A false-positive PCR does not require the species to be absent from the entire site. Collection failure and a laboratory false positive can occur together.
 
-**Strong true detection:** OTU_1 really occupied site 22. Its DNA entered samples 65 and 66, and repeated PCRs detect it in each (5 and 8 positive PCRs). Sample 64 contains no DNA of the species and has no positive PCRs. The fitted probability of site presence is 98.4%, and the probability of DNA in the focal sample is 100.0%. Here the strong evidence leads to the correct interpretation.
+**Strong true detection:** OTU_1 really occupied site 22. Its DNA entered samples 65 and 66, and repeated PCRs detect it in each (5 and 8 positive PCRs). Sample 64 contains no DNA of the species and has no positive PCRs. The fitted probability of site presence is 98.3%, and the probability of DNA in the focal sample is 100.0%. Here the strong evidence leads to the correct interpretation.
 
-**Field-stage false positive:** OTU_10 was absent from site 1, but the simulation contaminated sample 2 with its DNA. That sample has 9 positive PCRs; samples 1 and 3 contain no DNA of the species, and have 2 laboratory false-positive PCRs between them. The model correctly concludes that sample 2 contains DNA (100.0%), and correctly gives only a 0.7% probability that the site was occupied. This case was selected by the stated rule, not because of the model’s answer. The table of all positive samples below shows that field-stage false positives are not always rejected this clearly.
+**Field-stage false positive:** OTU_10 was absent from site 1, but the simulation contaminated sample 2 with its DNA. That sample has 9 positive PCRs; samples 1 and 3 contain no DNA of the species, and have 2 laboratory false-positive PCRs between them. The model correctly concludes that sample 2 contains DNA (100.0%), and correctly gives only a 0.6% probability that the site was occupied. This case was selected by the stated rule, not because of the model’s answer. The table of all positive samples below shows that field-stage false positives are not always rejected this clearly.
 
 Thus, more PCRs can establish DNA presence in a tube, while the other field samples at a site are the evidence about occurrence there. Neither type of replication guarantees a correct answer. The model treats each contamination event as independent, so contamination shared across field samples or laboratory batches is not represented. A shared contamination event would look like extra evidence that the species is present.
 
-Do not confuse these conditional site-presence probabilities with the underlying occupancy probabilities. For OTU_10 at site 1, the true occupancy probability was 1.9%, and the fitted underlying probability is 1.9%. The conditional probability above, 0.7%, answers a different question: after seeing this site’s PCR results, how likely is it that this particular site was occupied?
+Do not confuse these conditional site-presence probabilities with the underlying occupancy probabilities. For OTU_10 at site 1, the true occupancy probability was 1.9%, and the fitted underlying probability is 1.9%. The conditional probability above, 0.6%, answers a different question: after seeing this site’s PCR results, how likely is it that this particular site was occupied?
 
 ### Collection conditions
 
@@ -929,18 +930,18 @@ sample_context |>
 
 | Case | Sample | True DNA state | Fitted DNA probability | Collection covariate | True collection probability | Fitted collection probability |
 |:---|---:|:---|:---|---:|:---|:---|
-| Weak true detection | 16 | Absent | 0.8% | 1.90 | 78.3% | 82.9% |
+| Weak true detection | 16 | Absent | 0.8% | 1.90 | 78.3% | 83.1% |
 | Weak true detection | 17 | Absent | 0.0% | -1.59 | 9.9% | 5.4% |
-| Weak true detection | 18 | Present | 17.7% | 0.46 | 46.1% | 44.0% |
-| Laboratory false positive | 1 | Absent | 1.7% | 0.05 | 36.1% | 31.3% |
-| Laboratory false positive | 2 | Present | 98.6% | 0.16 | 38.7% | 34.6% |
-| Laboratory false positive | 3 | Present | 98.0% | 1.65 | 73.7% | 78.2% |
+| Weak true detection | 18 | Present | 17.4% | 0.46 | 46.1% | 44.2% |
+| Laboratory false positive | 1 | Absent | 1.8% | 0.05 | 36.1% | 31.4% |
+| Laboratory false positive | 2 | Present | 98.6% | 0.16 | 38.7% | 34.7% |
+| Laboratory false positive | 3 | Present | 97.9% | 1.65 | 73.7% | 78.4% |
 | Strong true detection | 64 | Absent | 0.0% | -1.57 | 10.1% | 5.5% |
-| Strong true detection | 65 | Present | 100.0% | 1.51 | 71.0% | 75.2% |
-| Strong true detection | 66 | Present | 100.0% | 0.29 | 41.9% | 38.7% |
+| Strong true detection | 65 | Present | 100.0% | 1.51 | 71.0% | 75.4% |
+| Strong true detection | 66 | Present | 100.0% | 0.29 | 41.9% | 38.8% |
 | Field-stage false positive | 1 | Absent | 0.0% | 0.05 | not applicable | 73.6% |
 | Field-stage false positive | 2 | Present | 100.0% | 0.16 | not applicable | 75.1% |
-| Field-stage false positive | 3 | Absent | 0.0% | 1.65 | not applicable | 88.6% |
+| Field-stage false positive | 3 | Absent | 0.0% | 1.65 | not applicable | 88.7% |
 
 The true collection probability applies only if the species occupies the site. OTU_10 was absent from site 1, so for every sample in the field-stage case it is not applicable: DNA entered sample 2 through contamination instead.
 
@@ -948,7 +949,7 @@ The last two columns answer the collection question. They differ from the “Fit
 
 In the code, `intercept + slope * covariate` is the true collection score for a particular species and sample. `plogis()` converts that score to a probability between zero and one. The same logistic conversion links every covariate score in the model to a probability, occupancy included. The fitted collection probabilities in the final column come from the posterior summaries; they are not calculated using the true coefficients.
 
-For the weak true case, samples 16 and 17 have no positive PCRs, and the model gives each at most 0.8% probability of containing DNA; the simulation confirms that none did. Sample 18 has only 2 positives and fitted DNA-presence probability 17.7%. The site probability, 54.9%, is well below the fitted underlying occupancy probability at this site, 86.1%: three samples with only 2 positive PCRs between them count against presence. This interpretation uses the other samples and the ecological model as well as the focal sample’s PCRs; the simulation reveals that discounting sample 18 was a mistake.
+For the weak true case, samples 16 and 17 have no positive PCRs, and the model gives each at most 0.8% probability of containing DNA; the simulation confirms that none did. Sample 18 has only 2 positives and fitted DNA-presence probability 17.4%. The site probability, 54.4%, is well below the fitted underlying occupancy probability at this site, 86.3%: three samples with only 2 positive PCRs between them count against presence. This interpretation uses the other samples and the ecological model as well as the focal sample’s PCRs; the simulation reveals that discounting sample 18 was a mistake.
 
 ### Every positive sample in the survey
 
@@ -999,9 +1000,9 @@ positive_sample_summary |>
 
 | Category | Samples | Actually contained DNA | Mean fitted DNA probability | Actually occupied sites | Mean fitted site probability |
 |:---|---:|:---|:---|:---|:---|
-| Field-stage false positive | 90 | 100.0% | 97.2% | 0.0% | 47.4% |
-| Laboratory false positive | 781 | 0.0% | 1.4% | 34.1% | 34.7% |
-| True detection | 794 | 100.0% | 98.3% | 100.0% | 93.9% |
+| Field-stage false positive | 90 | 100.0% | 97.2% | 0.0% | 47.3% |
+| Laboratory false positive | 781 | 0.0% | 1.4% | 34.1% | 34.6% |
+| True detection | 794 | 100.0% | 98.3% | 100.0% | 93.7% |
 
 This table counts species-sample pairs, so the same species-site can occur up to three times. It describes these simulated positive samples, not a universal false-positive rate for occJSDM. The simulation’s source labels also do not exhaust every contamination mechanism possible in a real survey.
 
@@ -1063,10 +1064,10 @@ field_stage_summary |>
 
 | Other samples at the site | Samples | Mean fitted DNA probability | Mean fitted occupancy probability | Mean fitted site probability |
 |:---|---:|:---|:---|:---|
-| Other samples have only laboratory false positives | 42 | 98.0% | 35.5% | 38.7% |
-| Every other sample negative | 38 | 95.6% | 37.7% | 44.4% |
-| Another sample also contaminated | 6 | 100.0% | 50.5% | 96.1% |
-| One other sample contaminated, one with a laboratory false positive | 4 | 100.0% | 50.6% | 94.7% |
+| Other samples have only laboratory false positives | 42 | 98.0% | 35.3% | 38.5% |
+| Every other sample negative | 38 | 95.6% | 37.7% | 44.3% |
+| Another sample also contaminated | 6 | 100.0% | 50.1% | 95.9% |
+| One other sample contaminated, one with a laboratory false positive | 4 | 100.0% | 50.4% | 94.4% |
 
 ``` r
 # The negative samples beside a lone contaminated sample.
@@ -1084,15 +1085,15 @@ best_habitat <- slice_max(lone_contaminated, occupancy_estimate, n = 1)
 
 Laboratory false positives are caught by PCR replication within the sample. Across the 781 samples whose positives all came from the laboratory, the mean fitted probability that DNA was in the sample is only 1.4%. Field-stage false positives are different, and the difference is a limit of field replication, not a flaw in how the model treats contamination. Such a sample genuinely contains the species’ DNA, so at the sample level it is indistinguishable from a true positive. The model rightly gives it a high probability of DNA presence (97.2% on average over the 90 such samples).
 
-At the site level, the survey data’s only evidence against site presence is the site’s other field samples. The habitat-based occupancy probability also weighs in, as the paragraphs below show. With three samples per site, the field-stage false-positive samples get a mean site probability of 47.4%. The table above splits them by what the site’s other samples show. There are 38 with every other sample negative (mean 44.4%), 42 where the other samples carry only laboratory false positives (38.7%), 6 with another sample also contaminated (96.1%) and 4 with one of each (94.7%).
+At the site level, the survey data’s only evidence against site presence is the site’s other field samples. The habitat-based occupancy probability also weighs in, as the paragraphs below show. With three samples per site, the field-stage false-positive samples get a mean site probability of 47.3%. The table above splits them by what the site’s other samples show. There are 38 with every other sample negative (mean 44.3%), 42 where the other samples carry only laboratory false positives (38.5%), 6 with another sample also contaminated (95.9%) and 4 with one of each (94.4%).
 
-Extra laboratory false positives beside a contaminated sample do not raise the site probability. The model recognises those samples as containing no DNA (mean fitted DNA probability 0.6%), so they count much as negatives do. That group’s habitat is also slightly poorer (mean fitted occupancy probability 35.5% against 37.7% for the 38 with every other sample negative).
+Extra laboratory false positives beside a contaminated sample do not raise the site probability. The model recognises those samples as containing no DNA (mean fitted DNA probability 0.7%), so they count much as negatives do. That group’s habitat is also slightly poorer (mean fitted occupancy probability 35.3% against 37.7% for the 38 with every other sample negative).
 
-A lone contaminated sample beside negative samples leaves its site at a substantial probability on average: the 38 such samples average 44.4%, but they range from 0.7% to 89.7%. The model sees the contaminated sample’s DNA (mean fitted DNA probability 95.6%). That DNA could have come from a species occupying the site or from field contamination, which the default prior expects to be uncommon (prior mean 4.8%). The negatives beside it count against occupancy, but only partly, because even at an occupied site DNA enters each sample only with the collection probability. For the 76 negative samples beside these contaminated ones, the fitted collection probability averages 59.1%.
+A lone contaminated sample beside negative samples leaves its site at a substantial probability on average: the 38 such samples average 44.3%, but they range from 0.7% to 89.4%. The model sees the contaminated sample’s DNA (mean fitted DNA probability 95.6%). That DNA could have come from a species occupying the site or from field contamination, which the default prior expects to be uncommon (prior mean 4.8%). The negatives beside it count against occupancy, but only partly, because even at an occupied site DNA enters each sample only with the collection probability. For the 76 negative samples beside these contaminated ones, the fitted collection probability averages 59.2%.
 
-The model weighs the DNA and the negatives using three inputs. The first is the fitted occupancy probability, which says how suitable the site’s habitat is from its environment and estimated hidden site conditions. The others are the collection probability and the contamination prior. Here the DNA and the negatives roughly cancel, so the site probability falls back near the fitted occupancy probability. The fitted occupancy probability averages 37.7% for these species and sites, and each site probability is on average 12.4 percentage points from its own.
+The model weighs the DNA and the negatives using three inputs. The first is the fitted occupancy probability, which says how suitable the site’s habitat is from its measured and estimated hidden environmental covariates. The others are the collection probability and the contamination prior. Here the DNA and the negatives roughly cancel, so the site probability falls back near the fitted occupancy probability. The fitted occupancy probability averages 37.7% for these species and sites, and each site probability is on average 12.3 percentage points from its own.
 
-So a contaminated sample in poor habitat is rejected, and one in good habitat is not. For the species and site with the lowest fitted occupancy probability (0.3%) the lone contaminated sample leaves a site probability of 0.7%, and for the one with the highest (82.1%) it leaves 89.7%. The lesson’s own field-stage case is a contaminated sample in poor habitat, though it is not one of these 38. Its other samples carry laboratory false positives (see the case above), so it is in the group of 42. Its fitted occupancy probability is 1.9% and its site probability 0.7%.
+So a contaminated sample in poor habitat is rejected, and one in good habitat is not. For the species and site with the lowest fitted occupancy probability (0.3%) the lone contaminated sample leaves a site probability of 0.7%, and for the one with the highest (81.7%) it leaves 89.4%. The lesson’s own field-stage case is a contaminated sample in poor habitat, though it is not one of these 38. Its other samples carry laboratory false positives (see the case above), so it is in the group of 42. Its fitted occupancy probability is 1.9% and its site probability 0.6%.
 
 The simulated contamination rates, 2% to 8% per sample in the field and 2.5% to 6.5% per PCR in the laboratory (Lesson 0’s settings), sit inside what the default priors assume. This is therefore the default-prior fit on a survey run with good practice. The practical advice follows. More field samples per site, not more PCRs, are what guard site occupancy against contamination at collection, while PCR replication guards against laboratory false positives.
 
@@ -1115,7 +1116,9 @@ alternative_fit <- runOccJSDM(
   spatCovariates = NULL,
   threshold = 1,
   listPriors = list(a_q = 1, b_q = 4, a_theta0 = 1, b_theta0 = 4),
-  MCMCparams = list(nchain = 4, nburn = 6000, niter = 12000, nthin = 1)
+  MCMCparams = list(nchain = 4, nburn = 6000, niter = 12000,
+                    nthin = 1, ncores = 4),
+  summarisedLatentPresences = TRUE
 )
 ```
 
@@ -1162,7 +1165,7 @@ ggplot(case_comparison, aes(x = estimate, y = case, colour = arm, shape = arm)) 
 <figcaption aria-hidden="true">Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The red-orange circle and grey triangle use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability.</figcaption>
 </figure>
 
-Under the alternative priors, the field-stage false-positive case receives 0.6% probability of site presence, close to its 0.7% under the default priors. Although this case is rejected under both priors, loosening the contamination priors does not resolve field-stage false positives across the survey. Their mean site probability is 41.4% under the alternative priors, against 47.4% under the default priors, because the ambiguity is in the data, not the prior. Across all 1,000 species-site pairs, mean absolute occupancy error changes from 15.4 to 16.2 percentage points. The alternative priors therefore worsen overall recovery in this dataset. We did not tune them to get any particular answer. On your own survey, refitting under a more permissive contamination prior is a way to see whether your key conclusions depend on the contamination assumption.
+Under the alternative priors, the field-stage false-positive case receives 0.6% probability of site presence, close to its 0.6% under the default priors. Although this case is rejected under both priors, loosening the contamination priors does not resolve field-stage false positives across the survey. Their mean site probability is 41.5% under the alternative priors, against 47.3% under the default priors, because the ambiguity is in the data, not the prior. Across all 1,000 species-site pairs, mean absolute occupancy error changes from 15.5 to 16.3 percentage points. The alternative priors therefore worsen overall recovery in this dataset. We did not tune them to get any particular answer. On your own survey, refitting under a more permissive contamination prior is a way to see whether your key conclusions depend on the contamination assumption.
 
 When laboratory contamination is in fact far above what the default priors assume, a separate simulation study found one species’ chains settling on two different explanations of the same observations. [Lesson 3](occJSDM-lesson-3.md#when-chains-settle-on-two-different-explanations) shows how to check a fit for this.
 
@@ -1193,7 +1196,7 @@ removed_samples
     #> 2    31     91
     #> 3    52    154
 
-The removed samples are 36, 91 and 154, at sites 12, 31 and 52. We keep all 100 sites and all ten species, with 297 samples and 3,564 PCR rows. A lost sample is absent rows, not all-zero or `NA` PCR results. A sample that was never analysed has no PCR results to record, whereas zeros would claim twelve PCRs that found nothing. The rows are removed from `info` and `OTU` together, so the two tables stay paired. The remaining samples retain both primers and all six PCRs per primer. Original sample IDs and all simulated truths stay unchanged.
+The removed samples are 36, 91 and 154, at sites 12, 31 and 52. We keep all 100 sites and all 10 species, with 297 samples and 3,564 PCR rows. A lost sample is absent rows, not all-zero or `NA` PCR results. A sample that was never analysed has no PCR results to record, whereas zeros would claim twelve PCRs that found nothing. The rows are removed from `info` and `OTU` together, so the two tables stay paired. The remaining samples retain both primers and all six PCRs per primer. Original sample IDs and all simulated truths stay unchanged.
 
 The fit needs nothing else: the optional call uses the same priors, model settings and chain lengths as the original default-prior fit, with only the data changed. It uses its own sampling seed, 20260924. **This chunk is not run when knitting.** The matching saved fit supplies the results.
 
@@ -1206,13 +1209,14 @@ unbalanced_fit <- occJSDM::runOccJSDM(
   occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
   collCovariates = "X_theta",
   spatCovariates = NULL,
-  MCMCparams = list(nchain = 4L, nburn = 3000L, niter = 6000L, nthin = 1L),
+  MCMCparams = list(nchain = 4L, nburn = 3000L, niter = 6000L,
+                    nthin = 1L, ncores = 4L),
   listPriors = list(),
   summarisedLatentPresences = TRUE
 )
 ```
 
-The fit runs. Its mean absolute occupancy error over all 1,000 species-site pairs is 15.4 points, against 15.4 for the complete survey; the appendix compares the two fits with truth in full. Unequal replication at the other levels is accepted too, because the fitter counts the rows in each block. The package’s collection-alignment test fits a survey with unequal numbers of primers per sample and of PCRs per sample and primer. The practical message: drop the rows of a lost sample, keep the IDs of the samples that remain, and change nothing else.
+The fit runs. Its mean absolute occupancy error over all 1,000 species-site pairs is 15.4 points, against 15.5 for the complete survey; the appendix compares the two fits with truth in full. Unequal replication at the other levels is accepted too: samples can have different numbers of primers, and primers different numbers of PCRs, because the model takes these numbers from the rows of `info` rather than assuming a fixed design. One of the package’s tests fits exactly such a survey. The practical message: drop the rows of a lost sample, keep the IDs of the samples that remain, and change nothing else.
 
 ## What this lesson showed
 
@@ -1221,7 +1225,7 @@ The fit runs. Its mean absolute occupancy error over all 1,000 species-site pair
 - Field-stage false positives are a limit of field replication: a contaminated sample really contains DNA, so only the site’s other samples, weighed against how suitable its habitat is, can argue against it.
 - Field replicates matter for site occupancy: more field samples per site, not more PCRs, guard it against contamination at collection.
 
-Real surveys often pre-filter detections before modelling; a later addition contrasts that with modelling detection. Continue to [Lesson 3](occJSDM-lesson-3.md) for environmental and trait effects, species associations, ordination and detection effort, each with matching truth comparisons. The appendix below holds the full comparison of the unequal-replication fit with truth, its convergence checks and the reason the survey has three field samples per site. It also shows how to extract estimates from your own fit and how to reproduce the lesson.
+Many surveys discard weak detections before modelling; this lesson keeps every PCR and lets the model judge them. Continue to [Lesson 3](occJSDM-lesson-3.md) for environmental and trait effects, species associations, ordination and detection effort, each with matching truth comparisons. The appendix below holds the full comparison of the unequal-replication fit with truth, its convergence checks and the reason the survey has three field samples per site. It also shows how to extract estimates from your own fit and how to reproduce the lesson.
 
 ## Appendix: evidence and reproduction
 
@@ -1238,10 +1242,16 @@ replication_results <- bind_rows(
 ) |>
   mutate(
     survey = factor(arm, levels = c("default", "unbalanced"),
-                    labels = c("Original: 300 samples", "Reduced: 297 samples")),
+                    labels = c(
+                      paste("Original:", n_distinct(survey_data$info$Sample), "samples"),
+                      paste("Reduced:", n_distinct(unbalanced_data$info$Sample), "samples")
+                    )),
     reduced_site = Site %in% as.character(removed_samples$Site),
-    site_group = if_else(reduced_site, "Three selected sites", "Other 97 sites")
+    site_group = if_else(reduced_site, "Three selected sites", "Other sites")
   )
+
+n_lesson_sites <- n_distinct(replication_results$Site)
+all_sites_label <- paste("All", n_lesson_sites, "sites")
 ```
 
 ``` r
@@ -1251,7 +1261,7 @@ replication_results |>
   geom_abline(slope = 1, intercept = 0, colour = "grey55") +
   geom_point(alpha = 0.55, size = 1.3) +
   facet_wrap(~ survey) +
-  scale_colour_manual(values = c("Other 97 sites" = "#777777",
+  scale_colour_manual(values = c("Other sites" = "#777777",
                                 "Three selected sites" = "#D55E00")) +
   coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
   labs(x = "True occupancy probability", y = "Estimated occupancy probability",
@@ -1285,11 +1295,11 @@ selected_probabilities |>
 
 ![](occJSDM-lesson-2_files/figure-gfm/unbalanced-selected-sites-1.png)<!-- -->
 
-Calculate errors for both the complete community and the selected sites, using the signed and absolute errors defined in “Calculate the errors ourselves”. The `truth` and `estimate` columns remain probabilities, and the two error columns are percentage points. The errors are calculated before the probabilities are averaged.
+Calculate errors for both the complete community and the selected sites, using the signed and absolute errors defined in “How close are the estimates with perfect and with PCR observations?”. The `truth` and `estimate` columns remain probabilities, and the two error columns are percentage points. The errors are calculated before the probabilities are averaged.
 
 ``` r
 replication_errors <- bind_rows(
-  replication_results |> mutate(scope = "All 100 sites"),
+  replication_results |> mutate(scope = all_sites_label),
   replication_results |> filter(reduced_site) |>
     mutate(scope = "Three sites with one sample removed")
 ) |>
@@ -1303,19 +1313,29 @@ replication_errors <- bind_rows(
     .groups = "drop"
   )
 
-knitr::kable(replication_errors, digits = 3)
+replication_errors |>
+  transmute(
+    Fit = survey,
+    `Sites` = scope,
+    `Species-site pairs` = cells,
+    `Mean truth` = format_percent(truth),
+    `Mean estimate` = format_percent(estimate),
+    `Signed error (points)` = format_points(signed_error_pp / 100),
+    `Absolute error (points)` = format_points(mean_absolute_error_pp / 100)
+  ) |>
+  knitr::kable()
 ```
 
-| scope | survey | cells | signed_error_pp | mean_absolute_error_pp | truth | estimate |
-|:---|:---|---:|---:|---:|---:|---:|
-| All 100 sites | Original: 300 samples | 1000 | 0.470 | 15.435 | 0.512 | 0.517 |
-| All 100 sites | Reduced: 297 samples | 1000 | 0.509 | 15.404 | 0.512 | 0.518 |
-| Three sites with one sample removed | Original: 300 samples | 30 | -0.619 | 13.531 | 0.525 | 0.519 |
-| Three sites with one sample removed | Reduced: 297 samples | 30 | -0.622 | 13.338 | 0.525 | 0.519 |
+| Fit | Sites | Species-site pairs | Mean truth | Mean estimate | Signed error (points) | Absolute error (points) |
+|:---|:---|---:|:---|:---|:---|:---|
+| Original: 300 samples | All 100 sites | 1000 | 51.2% | 51.6% | 0.3 | 15.5 |
+| Reduced: 297 samples | All 100 sites | 1000 | 51.2% | 51.6% | 0.3 | 15.4 |
+| Original: 300 samples | Three sites with one sample removed | 30 | 52.5% | 51.7% | -0.8 | 13.6 |
+| Reduced: 297 samples | Three sites with one sample removed | 30 | 52.5% | 51.7% | -0.8 | 13.4 |
 
-The full-community mean absolute error is 15.4 percentage points in the original fit and 15.4 in the reduced one. **This single deletion and fit do not estimate the general effect of losing samples.** The two fits also use different MCMC seeds. Comparing their answers demonstrates a working input with unequal replication; a study of sample loss would repeat survey generation, deletion and fitting. It would also measure how much the answers vary from one run of the sampler to the next.
+The full-community mean absolute error is 15.5 percentage points in the original fit and 15.4 in the reduced one. **This single deletion and fit do not estimate the general effect of losing samples.** The two fits also use different MCMC seeds. Comparing their answers demonstrates a working input with unequal replication; a study of sample loss would repeat survey generation, deletion and fitting. It would also measure how much the answers vary from one run of the sampler to the next.
 
-Check the convergence diagnostics before drawing further conclusions. The first table below lists every parameter from `returnConvergenceDiagnostics()` that has a missing Rhat or ESS, an Rhat above 1.01 or an ESS below 400. It has 0 rows for this fit, and the largest parameter Rhat is 1.004. Had a parameter been flagged, we would report it rather than choose another seed or silently extend the fit.
+Check the convergence diagnostics before drawing further conclusions. The first table below lists every parameter from `returnConvergenceDiagnostics()` that has a missing Rhat or ESS, an Rhat above 1.01 or an ESS below 400. It has 0 rows for this fit, and the largest parameter Rhat is 1.009. Had a parameter been flagged, we would report it rather than choose another seed or silently extend the fit.
 
 ``` r
 unbalanced_lesson$diagnostics |>
@@ -1340,9 +1360,9 @@ unbalanced_lesson$cells |>
 
 | probabilities | max_Rhat |  min_ESS | flagged |
 |--------------:|---------:|---------:|--------:|
-|          1000 |    1.008 | 1220.854 |       0 |
+|          1000 |    1.007 | 1279.074 |       0 |
 
-The first table comes from the package’s `returnConvergenceDiagnostics()`, which is the check to use on your own fit. The second is this lesson’s extra check, on the occupancy probabilities reconstructed for every draw: 1,000 of the 1,000 pass these thresholds, with maximum Rhat 1.008 and minimum ESS 1221. These measures ask how well chains explored their distributions. They do not establish accuracy against ecological truth, which is why the paired truth figures and error table remain necessary.
+The first table comes from the package’s `returnConvergenceDiagnostics()`, which is the check to use on your own fit. The second is this lesson’s extra check, on the occupancy probabilities reconstructed for every draw: 1,000 of the 1,000 pass these thresholds, with maximum Rhat 1.007 and minimum ESS 1279. These measures ask how well chains explored their distributions. They do not establish accuracy against ecological truth, which is why the paired truth figures and error table remain necessary.
 
 ### Why the survey has three field samples per site
 
@@ -1350,7 +1370,7 @@ The lesson plan’s decisions log ([`vignettes/LESSON-PLAN.md`](https://github.c
 
 ### Reproduce the lesson and inspect its evidence
 
-If you run the optional two-stage fit, the chunk below shows how to turn its saved occupancy means into a tidy table. It is not run when knitting. `computePredictiveOccupancyProbs()` returns a matrix with the **fit’s own species and site IDs** attached. Despite “predictive” in its name, these are probabilities at the fitted sites, not a held-out prediction test. Make the row names into a site column before joining to any truth table.
+If you run the optional two-stage fit, the chunk below shows how to turn its occupancy means into a tidy table. It is not run when knitting. `computePredictiveOccupancyProbs()` returns a matrix with the **fit’s own species and site IDs** attached. Despite “predictive” in its name, these are probabilities at the fitted sites, not a held-out prediction test. Make the row names into a site column before joining to any truth table.
 
 ``` r
 your_occupancy_estimates <- computePredictiveOccupancyProbs(fit) |>
@@ -1375,4 +1395,4 @@ This truth join is valid for the unchanged teaching dataset. If you simulate new
 
 The figures are rendered from a compact saved bundle, not refitted while knitting the vignette. The bundle retains the complete simulation, generating inputs, case-selection rules, posterior summaries, source hashes, seeds, diagnostics and the hashes of the full fits. The original package examples `sampledata` and `sampleresults` are separate and are not used here.
 
-The fits were run at occJSDM revision **a56f554**. The simulation seed is **20260919**. The recorded R version is **R version 4.5.0 (2025-04-11)**. The complete package versions for each fit are retained in `lesson$manifests[["default"]]$session`, and likewise for the other fits. Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above.
+The fits were run at occJSDM revision **5290373**. The simulation seed is **20260919**. The recorded R version is **R version 4.6.1 (2026-06-24)**. The complete package versions for each fit are retained in `lesson$manifests[["default"]]$session`, and likewise for the other fits. Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above.

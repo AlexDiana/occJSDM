@@ -159,7 +159,10 @@ for(arm in names(fits)) {
       max_interval_diff <- max(max_interval_diff,abs(c(row$lower,row$upper)-q))
       for(tt in unique(c(1L,6000L,6001L,12000L,18001L,24000L,which.max(p$s)))) {
         adaptive <- integrated_mean(a[tt],p$s[tt])
-        near(adaptive,draws[tt],1e-8,"individual high-SD draw")
+        # 1e-8 until the community-prior refit (4 November 2026), whose one-factor
+        # fit has a draw with residual SD 4.07; there the 121-node rule itself
+        # is accurate to about 4e-8 against adaptive integration.
+        near(adaptive,draws[tt],1e-7,"individual high-SD draw")
         max_draw_diff <- max(max_draw_diff,abs(adaptive-draws[tt]))
       }
     }

@@ -62,5 +62,8 @@ for (arm in names(x$fit_manifests)) {
 flags <- lesson$diagnostics$alternative
 field <- flags[flags$param == "theta0", ]
 stopifnot(x$traces$field_contamination$label1 == field$label1[which.min(field$ess)])
+# 2 flags in the fixed-prior fits (a56f554), and 2 again since 4 November 2026,
+# when this arm keeps b0_prior = "fixed" while the others use the community
+# mean (with the community mean it had 27; see REFIT-NOTES.md).
 stopifnot(sum(flags$rhat > 1.01 | flags$ess < 400) == 2L)
 cat("Diagnostic selection, fit hashes, source hashes and plotting identities verified.\n")

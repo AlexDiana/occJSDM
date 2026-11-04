@@ -1,11 +1,13 @@
 Lesson 0 (optional): Create and explore a simulated survey
 ================
 
-## Where this lesson fits
+## What this lesson answers
 
-occJSDM uses the results from an eDNA survey to estimate which species occupy which sites. It accounts for *false negatives* (from imperfect field collection, imperfect PCR detection, or both) and for *false positives* (from contamination in the field, in the lab or both). The [Quickstart](occJSDM-00-quickstart.md) lesson shows an example fit on the package’s simulated, example dataset.
+**Where does the simulated eDNA survey that Lessons 2 to 4 analyse come from, and what is in it?** This lesson shows how that survey was made with `simulateOccJSDMData()`. It sets the survey design, the ecological model, and the ways an eDNA survey can go wrong: *false negatives* (from imperfect field collection, imperfect PCR detection, or both) and *false positives* (from contamination in the field, in the lab or both). It then follows the simulated observations back to the true occupancy states that produced them, and maps both.
 
-**This is Lesson 0, and it is optional because it is somewhat technical**. Read this lesson if you want to understand where that simulated dataset came from, change the simulation settings to create a new simulated dataset, or learn how to prepare the tables and figures yourself. The reason that we simulate a dataset is because with a simulated dataset, we know which species are in which sites, so when we fit a model to the dataset, we can measure how close the model’s answers are to the right answers. We cannot do this with a real survey, because we do not know the truth.
+We simulate a survey because then we know which species are at which sites, so when the later lessons fit a model to it, they can measure how close the model’s answers are to the right answers. We cannot do this with a real survey, because we do not know the truth. This is not the [Quickstart’s](occJSDM-00-quickstart.md) survey: `quickstartdata` is also simulated, but it ships without its truth, because the Quickstart’s job is to show what occJSDM’s functions produce, not to check their answers.
+
+**This is Lesson 0, and it is optional because it is somewhat technical**. The later lessons load the saved survey, so you can skip this one. Read it if you want to understand where the survey came from, change the simulation settings to create a new simulated dataset, or learn how to prepare the tables and figures yourself.
 
 This simulated survey has no spatial structure. Its sites do have coordinates, which let us draw maps, but location does not generate its environmental values or enter its fitted model. That makes it a good place to start: the model’s answers can be checked without also asking whether it has captured a spatial pattern.
 
@@ -17,7 +19,7 @@ The teaching data are in the occJSDM repository, not in the installed package, s
 
 The teaching data are kept out of the installed package on purpose, not just until the lessons are approved. The saved simulations and model fits take about 11 MB, far more than an R package should carry, and the lessons are web pages built from the repository rather than vignettes installed with the package.
 
-**What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr, the verbs listed below. If any are new to you, the two chapters of *R for Data Science* on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here. Operations that are unusual, such as joining two tables on species identity, are explained when they appear.
+**What this lesson assumes you know about R.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr, the verbs listed below. If any are new to you, the two chapters of *R for Data Science* on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here. Operations that are unusual, such as joining two tables on species identity, are explained when they appear.
 
 - `select()` and `pull()` to choose columns, or to take one column out as a vector.
 - `filter()`, `distinct()`, `arrange()`, `slice_head()` and `slice_sample()` to keep, deduplicate, order and pick rows, including a random pick.
@@ -122,7 +124,7 @@ tibble(
 
 There are 300 field samples and 3,600 PCR reactions. In metabarcoding, each PCR reaction yields multiple read counts, one for every detected species, so there are not separate PCRs per species. Here, six PCR replicates means **six per primer per field sample**.
 
-These numbers are chosen for teaching. 100 sites and 10 species make a community small enough for the lessons to display every site and species. 3 replicate field samples per site is realistic, matches the Quickstart’s `sampledata`, and lets occJSDM weigh a sample’s positive detection against that site’s other samples to infer false positives. (3 replicate field samples is the minimum needed to make this inference. [Lesson 2’s appendix](occJSDM-lesson-2.md#why-the-survey-has-three-field-samples-per-site) explains why 2 samples per site are not enough.) Finally, 2 primers with 6 PCRs each give every sample 12 PCRs. The lab replicates let occJSDM estimate the laboratory detection and false-positive rates. We recommend a minimum of 3 lab replicates per primer. Of course, your own surveys will differ from these numbers.
+These numbers are chosen for teaching. 100 sites and 10 species make a community small enough for the lessons to display every site and species. 3 replicate field samples per site is realistic, matches the Quickstart’s `quickstartdata`, and lets occJSDM weigh a sample’s positive detection against that site’s other samples to infer false positives. (3 replicate field samples is the minimum needed to make this inference. [Lesson 2’s appendix](occJSDM-lesson-2.md#why-the-survey-has-three-field-samples-per-site) explains why 2 samples per site are not enough.) Finally, 2 primers with 6 PCRs each give every sample 12 PCRs. The lab replicates let occJSDM estimate the laboratory detection and false-positive rates. We recommend a minimum of 3 lab replicates per primer. Of course, your own surveys will differ from these numbers.
 
 The simulator software uses these variable names: `M` is the vector that holds the number of field samples at each site, and `K` is the vector that holds the number of PCRs for each combination of field sample and primer. `K` runs through the samples in order, with each sample’s primers together. By using vectors, we allow the possibility of unequal replication (e.g. most sites got 3 field replicates but some only got 2). In this dataset, every sample got `K=6` PCR replicates, so their order does not matter. A **trait** is a measured property of each species, such as body size. An **occupancy covariate** describes the habitat at a site, such as canopy cover, that could plausibly affect whether a species is present or absent at that site. A **collection covariate** describes how each field sample was taken, such as the volume of water filtered, which changes how likely a sample is to capture DNA, not whether the species is present or absent.
 
@@ -233,18 +235,18 @@ Now we specify the ecological model, which sets the probability that each specie
 
 Optionally, we can let each species’ responses to the environment be determined in part by its traits, some of which we measure and some of which we don’t. Whatever part of a species’ response its traits do not explain is its own **remainder**, a species-specific amount added on top, so two species with identical traits can still respond differently. **How traits drive each species’ responses** (below) gives the formula.
 
-Because several species are likely to respond to any given hidden factor, groups of responding species will occur together more or less often than the measured environment predicts. These manifest as the associations between species that a joint species distribution model estimates, and the number of factors is what the Quickstart’s `n_factors` sets. [Lesson 1](occJSDM-lesson-1.md#what-a-joint-model-does) explains them in more detail.
+Because several species are likely to respond to any given hidden environmental covariate, groups of responding species will occur together more or less often than the measured environment predicts. These manifest as the associations between species that a joint species distribution model estimates, and the number of hidden environmental covariates is what the Quickstart’s `n_factors` sets. The argument is named after the statistical term for them, latent factors. [Lesson 1](occJSDM-lesson-1.md#what-a-joint-species-distribution-model-does) explains them in more detail.
 
 ``` r
 # Note that we do not use all the ecological settings, although we do set their values for completeness.
 ecological_settings <- list(
   gt = 1,                        # One unmeasured trait per species.
-  d = 2,                         # Two hidden site factors.
+  d = 2,                         # Two hidden environmental covariates.
   ds = 0,                        # Spatial setting, off here; see the appendix.
   sigma_b = 0.5,                  # Spread of environmental responses beyond traits.
   sigma_bs = 0.5,                 # No effect: the simulator never draws with it.
   sigma_ts = 0.5,                 # No effect: the simulator never uses it.
-  sigma_h = 1,                    # Spread of the hidden site factors.
+  sigma_h = 1,                    # Spread of the hidden environmental covariates.
   sigma_s = 0.5,                  # Spatial setting, off here; see the appendix.
   l_s = 0.3,                      # Spatial setting, off here; see the appendix.
   tau = rep(1, n_species),         # Required, but used only by model = "continuous".
@@ -269,9 +271,9 @@ str(ecological_settings)
 
 `tau` must be supplied, but it has no effect on this survey. It is used only when the simulator is asked for `model = "continuous"` data, where it is the standard deviation of the random noise added to each species’ continuous response. It is the only setting with one value per species; every other setting is a single number or a switch.
 
-`gt = 1` gives each species one unmeasured trait, which although not in the trait table, also shapes how the species responds to the environment. We also choose to simulate 2 hidden environmental covariates. In Lesson 2, occJSDM will try to estimate 1 hidden trait with `n_lattrait = 1` and two hidden environmental covariates with `n_factors = 2`, although of course, normally, we would not know *a priori* how many of these hidden factors to try to estimate.
+`gt = 1` gives each species one unmeasured trait, which although not in the trait table, also shapes how the species responds to the environment. We also choose to simulate 2 hidden environmental covariates. In Lesson 2, occJSDM will try to estimate 1 hidden trait with `n_lattrait = 1` and two hidden environmental covariates with `n_factors = 2`, although of course, normally, we would not know *a priori* how many hidden environmental covariates to try to estimate.
 
-`sigma_b` sets how differently species respond to the same environment beyond what their traits predict: a larger value makes their responses more varied. `sigma_h` sets how much the hidden factors vary between sites: a larger value makes them matter more for occupancy, and so strengthens the associations between species.
+`sigma_b` sets how differently species respond to the same environment beyond what their traits predict: a larger value makes their responses more varied. `sigma_h` sets how much the hidden environmental covariates vary between sites: a larger value makes them matter more for occupancy, and so strengthens the associations between species.
 
 An important choice for this lesson is `useSpatField = FALSE`: in this simulation, we do not create any spatial fields (= patchy, unmeasured environmental covariates) or simulate any dispersal processes. The simulator still draws site coordinates, whether or not the field is on, which let us visualise the data in a map. `ds`, `sigma_s` and `l_s` set the spatial field, so they have no effect while `useSpatField = FALSE`; [the appendix](#simulate-a-survey-with-a-spatial-field) shows how to switch it on.
 
@@ -380,7 +382,7 @@ occJSDM estimates this same formula. When you give `runOccJSDM()` a trait table 
 
 ## Recreate the dataset if you want to
 
-The simulator draws the environmental values, traits, coefficients and hidden factors from the settings above. It then calculates occupancy probabilities and draws actual presence or absence from those probabilities.
+The simulator draws the environmental values, traits, coefficients and hidden environmental covariates from the settings above. It then calculates occupancy probabilities and draws actual presence or absence from those probabilities.
 
 The following optional chunk shows the simulator call itself. It is displayed but not run when knitting, because the figures use the saved simulation. To recreate the data yourself, run the chunk with occJSDM installed. `model = "two_stage"` produces PCR read counts. The simulator can also produce `"occupancy"` data, with one record per field sample and no PCR stage, and `"binary"` presence/absence data, like the presence/absence case described in the Quickstart. `"occupancy"` data have one record per field sample: whether the sample captured the species’ DNA. That is a classic single-stage occupancy dataset in which the field samples are the replicates. It is not the same as two-stage data with one PCR per sample (`K = 1`), which would still include PCR failures and laboratory false positives.
 
@@ -776,7 +778,7 @@ truth_map_data <- species_truth |>
   )
 ```
 
-Two details of this chunk. First, `any_positive` is set to `NA`, not 0, for a site with no PCR results at all, so that a site that was never observed is not counted as a negative. Every site in this survey has results, so this does not arise here, but it can in your own data. Second, `eta` is the true occupancy score that the simulator saved in `known_truth$jsdmParams_true$eta`, one value for each site and species. It is the sum of the three parts described in “Specify the ecological model”: the baseline, the responses to the measured environment and the responses to the hidden factors, on the logit scale. `plogis()`, the inverse logit, converts it to an occupancy probability.
+Two details of this chunk. First, `any_positive` is set to `NA`, not 0, for a site with no PCR results at all, so that a site that was never observed is not counted as a negative. Every site in this survey has results, so this does not arise here, but it can in your own data. Second, `eta` is the true occupancy score that the simulator saved in `known_truth$jsdmParams_true$eta`, one value for each site and species. It is the sum of the three parts described in “Specify the ecological model”: the baseline, the responses to the measured environment and the responses to the hidden environmental covariates, on the logit scale. `plogis()`, the inverse logit, converts it to an occupancy probability.
 
 ``` r
 # Probabilities are shown by colour; the 0/1 states by filled (1) or hollow (0) circles.
@@ -962,7 +964,7 @@ Continue to [Lesson 1: What occupancy models and joint species distribution mode
 
 This appendix records the package revision, seed and software environment of the saved simulation, and how the lesson’s code for the unequal survey is checked. It also shows how to simulate a survey with a spatial field.
 
-The simulation was made at occJSDM revision **a56f554** with seed **20260919**. The recorded R version of the matching fits is **R version 4.5.0 (2025-04-11)**. Exact reproduction requires the recorded code and software environment as well as the seed, because a different package or R version can turn the same seed into different random draws. To install that revision, pass it as the `ref` argument of `remotes::install_github("AlexDiana/occJSDM")`. The package versions are recorded in `lesson$manifests[["default"]]$session`. Instructions for regenerating the saved bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md).
+The simulation was made at occJSDM revision **5290373** with seed **20260919**. The recorded R version of the matching fits is **R version 4.6.1 (2026-06-24)**. Exact reproduction requires the recorded code and software environment as well as the seed, because a different package or R version can turn the same seed into different random draws. To install that revision, pass it as the `ref` argument of `remotes::install_github("AlexDiana/occJSDM")`. The package versions are recorded in `lesson$manifests[["default"]]$session`. Instructions for regenerating the saved bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md).
 
 The two chunks that prepare the unequal survey, `unbalanced-select-samples` and `unbalanced-paired-rows`, are checked by `dev/simstudy/vignette-lesson/unbalanced-verify.R`. It runs them exactly as displayed here and confirms that they produce the reduced survey of Lesson 2’s saved fit, with every truth unchanged.
 
@@ -999,7 +1001,7 @@ field_on <- occJSDM::simulateOccJSDMData(
 identical(field_off$data_list, survey_data)
 ```
 
-    #> [1] FALSE
+    #> [1] TRUE
 
 ``` r
 identical(field_on$data_list$info[c("Xs.1", "Xs.2")], survey_data$info[c("Xs.1", "Xs.2")])
@@ -1051,9 +1053,9 @@ shares_on
     #>  9 OTU_9           0.394  0.0892  0.517 0.299
     #> 10 OTU_10          0.507  0.0802  0.412 0.338
 
-The first `TRUE` confirms that the rerun without the field reproduces this lesson’s survey exactly, so the second run differs only in the switch. The second confirms that the site coordinates are the same in both runs: the simulator draws them before it reads the switch. The environment, traits, coefficients and hidden factors are drawn before the switch too, so they are also the same. Only the field, and the presence and detections drawn after it, differ.
+The first `TRUE` confirms that the rerun without the field reproduces this lesson’s survey exactly, so the second run differs only in the switch. The second confirms that the site coordinates are the same in both runs: the simulator draws them before it reads the switch. The environment, traits, coefficients and hidden environmental covariates are drawn before the switch too, so they are also the same. Only the field, and the presence and detections drawn after it, differ.
 
-`varPart` describes, for each species, how much its true occupancy probability varies across the 100 sites and which source drives that variation. `Total` is the standard deviation of the occupancy probability across sites. `Environmental`, `Spatial` and `Biotic` are the relative contributions of the environmental covariates, the spatial field and the hidden site factors, and they add up to one for each species. The simulator finds each contribution by comparing the standard deviation with that source included and left out, over every combination of the other two. They say which source matters most for a species, but they are not pieces of `Total`: multiplying one by `Total` does not give that source’s standard deviation. Without the field, the spatial contribution is 0 for every species. With it, the spatial contribution ranges from 8.0% for OTU_10 to 49.3% for OTU_4. The environmental contribution is lower with the field for all 10 species, and the hidden-factor contribution for all 9 species that have one (OTU_4 has none in either run). With `ds = 0` the field is the same surface for every species, so on its own it varies every species’ occupancy probability by the same amount. Its relative contribution therefore tends to be largest for species whose other sources vary them least. Without the field, OTU_4 has a `Total` of 0.085, the lowest of the ten species.
+`varPart` describes, for each species, how much its true occupancy probability varies across the 100 sites and which source drives that variation. `Total` is the standard deviation of the occupancy probability across sites. `Environmental`, `Spatial` and `Biotic` are the relative contributions of the environmental covariates, the spatial field and the hidden environmental covariates, and they add up to one for each species. The simulator finds each contribution by comparing the standard deviation with that source included and left out, over every combination of the other two. They say which source matters most for a species, but they are not pieces of `Total`: multiplying one by `Total` does not give that source’s standard deviation. Without the field, the spatial contribution is 0 for every species. With it, the spatial contribution ranges from 8.0% for OTU_10 to 49.3% for OTU_4. The environmental contribution is lower with the field for all 10 species, and the contribution of the hidden environmental covariates for all 9 species that have one (OTU_4 has none in either run). With `ds = 0` the field is the same surface for every species, so on its own it varies every species’ occupancy probability by the same amount. Its relative contribution therefore tends to be largest for species whose other sources vary them least. Without the field, OTU_4 has a `Total` of 0.085, the lowest of the ten species.
 
 The map below shows the continuous occupancy score, `eta`, of that species with the field on, at each site’s coordinates.
 
@@ -1080,4 +1082,4 @@ ggplot(field_map, aes(x = east, y = north, colour = score)) +
 <figcaption aria-hidden="true">True occupancy score (logit scale) of the species with the largest spatial share, simulated with the spatial field switched on. Nearby sites tend to have similar scores, but the environment and hidden factors also vary the score from site to site, so the pattern is only partly spatial.</figcaption>
 </figure>
 
-A map of the 0/1 occupancy states, `z_true`, shows the pattern less clearly. Each state is a single random draw from the probability, and the environment and hidden factors add variation that is not spatial. To make the spatial signal stronger in your own test data, raise `sigma_s`, the direct lever, or lower `sigma_h` to weaken the hidden factors. `l_s` sets the size of the patches. On the unit square, values near 1 or more spread each patch over most of the survey area, which flattens the field across sites and lowers its contribution.
+A map of the 0/1 occupancy states, `z_true`, shows the pattern less clearly. Each state is a single random draw from the probability, and the measured and hidden environmental covariates add variation that is not spatial. To make the spatial signal stronger in your own test data, raise `sigma_s`, the direct lever, or lower `sigma_h` to weaken the hidden environmental covariates. `l_s` sets the size of the patches. On the unit square, values near 1 or more spread each patch over most of the survey area, which flattens the field across sites and lowers its contribution.

@@ -158,21 +158,32 @@ flagged
 
 ```{r featured-flag, include=FALSE}
 # Not part of a normal analysis, so you would not run this chunk on your own data.
-# It is here only to pick two contrasting species for the traceplot below: the field
-# false-positive rate (theta0) with the highest rhat, and the one with the lowest.
+# It is here only to pick two contrasting species for the traceplot below: the
+# flagged parameter with the highest rhat, and the same parameter (same covariate
+# or primer) for the species where its rhat is lowest.
 # It also works out the numbers that the text around the traceplot quotes.
-theta0_rows <- diagnostics[diagnostics$param == "theta0", ]
-featured_species <- theta0_rows$label1[which.max(theta0_rows$rhat)]
-featured_rhat <- max(theta0_rows$rhat)
-# The text below assumes the featured rate is flagged for R-hat; fail loudly after a refit if not.
+featured <- flagged[which.max(flagged$rhat), ]
+featured_param <- featured$param
+featured_rhat <- featured$rhat
+# The text below assumes the featured parameter is flagged for R-hat; fail loudly after a refit if not.
 stopifnot(featured_rhat > 1.01)
-healthy_species <- theta0_rows$label1[which.min(theta0_rows$rhat)]
-healthy_rhat <- min(theta0_rows$rhat)
+# beta0_psi and theta0 name the species in label1; the others in label2, with the
+# covariate or primer in label1.
+species_only <- featured_param %in% c("beta0_psi", "theta0")
+species_of <- function(rows) if (species_only) rows$label1 else rows$label2
+same_rows <- diagnostics[diagnostics$param == featured_param &
+                           (species_only | diagnostics$label1 == featured$label1), ]
+featured_species <- species_of(featured)
+healthy_species <- species_of(same_rows)[which.min(same_rows$rhat)]
+healthy_rhat <- min(same_rows$rhat)
 n_rhat_flags <- sum(flagged$rhat > 1.01)
 n_ess_flags <- sum(flagged$ess < 400)
-theta0_draws <- fit$results_output$theta0_output  # species by draw by chain
+draw_args <- list(fit, featured_param, species = c(featured_species, healthy_species))
+if (featured_param %in% c("beta_psi", "beta_theta")) draw_args$covariate <- featured$label1
+if (featured_param %in% c("p", "q")) draw_args$primer <- featured$label1
+featured_draws <- do.call(returnPosteriorDraws, draw_args)[1, , , , drop = TRUE]  # species by draw by chain
 species_pair <- match(c(featured_species, healthy_species), fit$infos$speciesNames)
-chain_means <- apply(theta0_draws[species_pair[1], , ], 2, mean)
+chain_means <- apply(featured_draws[1, , ], 2, mean)
 high_chain <- which.max(chain_means)
 # Species named in the flagged rows, and how many sites each is estimated to occupy.
 flagged_species <- intersect(fit$infos$speciesNames, c(flagged$label1, flagged$label2))
@@ -183,8 +194,8 @@ featured_occupied <- round(occupied_estimate[[featured_species]])
 `r nrow(flagged)` of the `r nrow(diagnostics)` parameters are flagged here: `r n_rhat_flags` for a high `rhat` and `r n_ess_flags` for a low `ess`. Take the field false-positive rate (`theta0`) of `r featured_species`, whose `rhat` is `r sprintf("%.3f", featured_rhat)`. `plotTraceplot()` shows its two chains beside those of `r healthy_species`, whose `theta0` has the lowest `rhat` (`r sprintf("%.3f", healthy_rhat)`):
 
 ```{r traceplot, fig.height=3}
-plotTraceplot(theta0_draws[species_pair, , , drop = FALSE],
-              param_name = "theta0",
+plotTraceplot(featured_draws,
+              param_name = featured_param,
               dimnames1 = fit$infos$speciesNames[species_pair])
 ```
 
