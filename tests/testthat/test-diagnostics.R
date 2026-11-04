@@ -227,10 +227,11 @@ test_that("returnConvergenceDiagnostics() returns the documented table", {
 test_that("returnConvergenceDiagnostics() covers the two-stage parameter blocks", {
   # A two-stage eDNA fit has the detection blocks as well as the occupancy
   # ones. If a block silently stopped being assembled, the table would still
-  # be well formed, so the contents have to be asserted separately.
+  # be well formed, so the contents have to be asserted separately. The fit
+  # uses the default community prior, so mu_b0 is reported too.
   out <- cached_convergence()
   expect_setequal(unique(out$param),
-                  c("beta0_psi", "beta_psi", "beta_theta", "p", "q", "theta0"))
+                  c("beta0_psi", "mu_b0", "beta_psi", "beta_theta", "p", "q", "theta0"))
 })
 
 test_that("returnConvergenceDiagnostics() labels rows with species names", {

@@ -248,7 +248,8 @@ test_that("new thresholded fits score the same observations as pre-binarized fit
     expect_equal(raw_fit$infos$OTU, raw$OTU)
     expect_equal(raw_fit$infos$threshold, 2)
     expect_equal(binary_fit$infos$threshold, 1)
-    expect_equal(raw_fit$infos$intercept_prior, list(mean = 0, sd = 2))
+    expect_equal(raw_fit$infos$intercept_prior,
+                 list(type = "community", sd = 2, mu_b0_mean = 0, mu_b0_sd = 2))
     score <- function(fit) suppressWarnings(computeSiteWAIC(fit, draws = c(1L, 21L)))
     expect_equal(score(raw_fit)$log_lik, score(binary_fit)$log_lik)
     expect_identical(extractWAIC(raw_fit, type = "legacy"), raw_fit$results_output$WAIC)

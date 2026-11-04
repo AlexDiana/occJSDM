@@ -1,5 +1,5 @@
 # The collapsed shift of the community mean mu_b0 and every species' occupancy
-# intercept B0, for the experimental b0_prior = "community" in occupancy and
+# intercept B0, for b0_prior = "community" (the default) in occupancy and
 # two-stage fits (dev/simstudy/mu-b0-drift-20261018/REPORT.md).
 #
 # Each species' B0 is sharp given the latent occupancy states z but broad

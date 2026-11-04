@@ -1,37 +1,52 @@
-# Experimental community mean for the occupancy intercepts (listPriors$b0_prior
-# = "community"). Each species' B0 gets a Normal(mu_b0, sigma_b0^2) prior and
+# Community mean for the occupancy intercepts (listPriors$b0_prior
+# = "community"), the default for binary, occupancy and two-stage data with
+# more than one species. Each species' B0 gets a Normal(mu_b0, sigma_b0^2) prior and
 # mu_b0 ~ Normal(0, mu_b0_sd^2) is drawn from its conjugate conditional every
 # iteration. Like sigma_b0 (test-intercept-prior.R), the prior mean is encoded
 # in five places: both C++ samplers, the R reference sampler and both range
 # log-weight functions. If the range update integrated B0 under a different
 # mean from the one used to draw it, the range moves would target the wrong
-# posterior, so each site is tested against an independent reference here. The
-# default, b0_prior = "fixed", must leave fits bit for bit as they were.
+# posterior, so each site is tested against an independent reference here.
+# b0_prior = "fixed" must leave fits bit for bit as they were before the option.
 
-test_that("read_intercept_prior keeps the default and validates the community option", {
-  expect_identical(occJSDM:::read_intercept_prior(list()), list(mean = 0, sd = 1))
-  expect_identical(occJSDM:::read_intercept_prior(list(b0_prior = "fixed")),
-                   list(mean = 0, sd = 1))
-  expect_identical(occJSDM:::read_intercept_prior(list(b0_prior = "fixed", sigma_b0 = 2)),
-                   list(mean = 0, sd = 2))
-  expect_identical(occJSDM:::read_intercept_prior(list(b0_prior = "community")),
-                   list(type = "community", sd = 1, mu_b0_mean = 0, mu_b0_sd = 2))
+test_that("read_intercept_prior chooses the default and validates the community option", {
+  rip <- function(priors, model = "occupancy", S = 10L)
+    occJSDM:::read_intercept_prior(priors, model, S)
+  community <- list(type = "community", sd = 1, mu_b0_mean = 0, mu_b0_sd = 2)
+  fixed <- list(mean = 0, sd = 1)
+  # The default: community for binary, occupancy and two-stage data with more
+  # than one species; fixed for continuous data and for a single species.
+  for (model in c("binary", "occupancy", "two_stage")) {
+    expect_identical(rip(list(), model), community)
+    expect_identical(rip(NULL, model), community)
+    expect_identical(rip(list(), model, S = 2L), community)
+    expect_identical(rip(list(), model, S = 1L), fixed)
+  }
+  expect_identical(rip(list(), "continuous"), fixed)
+  # Asked for explicitly.
+  expect_identical(rip(list(b0_prior = "fixed")), fixed)
+  expect_identical(rip(list(b0_prior = "fixed", sigma_b0 = 2)), list(mean = 0, sd = 2))
+  expect_identical(rip(list(b0_prior = "community")), community)
+  expect_identical(rip(list(b0_prior = "community"), "continuous"), community)
   expect_identical(
-    occJSDM:::read_intercept_prior(list(b0_prior = "community", sigma_b0 = 1.5,
-                                        mu_b0_sd = c(named = 3))),
+    rip(list(b0_prior = "community", sigma_b0 = 1.5, mu_b0_sd = c(named = 3))),
     list(type = "community", sd = 1.5, mu_b0_mean = 0, mu_b0_sd = 3))
+  expect_identical(rip(list(mu_b0_sd = 3))$mu_b0_sd, 3)
+  expect_error(rip(list(b0_prior = "community"), S = 1L),
+               "b0_prior = 'community' needs more than one species")
   for (bad in list("Community", "estimated", NA_character_, c("fixed", "community"),
                    1, TRUE, character(0))) {
-    expect_error(occJSDM:::read_intercept_prior(list(b0_prior = bad)),
-                 "b0_prior must be 'fixed' or 'community'")
+    expect_error(rip(list(b0_prior = bad)), "b0_prior must be 'fixed' or 'community'")
   }
   for (bad in list(0, -1, NA_real_, Inf, NaN, c(1, 2), numeric(0), "a", TRUE)) {
-    expect_error(occJSDM:::read_intercept_prior(list(b0_prior = "community", mu_b0_sd = bad)),
+    expect_error(rip(list(b0_prior = "community", mu_b0_sd = bad)),
                  "mu_b0_sd must be a finite positive number")
   }
-  expect_error(occJSDM:::read_intercept_prior(list(mu_b0_sd = 2)),
+  expect_error(rip(list(mu_b0_sd = 2), "continuous"),
                "mu_b0_sd requires b0_prior = 'community'")
-  expect_error(occJSDM:::read_intercept_prior(list(b0_prior = "fixed", mu_b0_sd = 2)),
+  expect_error(rip(list(mu_b0_sd = 2), S = 1L),
+               "mu_b0_sd requires b0_prior = 'community'")
+  expect_error(rip(list(b0_prior = "fixed", mu_b0_sd = 2)),
                "mu_b0_sd requires b0_prior = 'community'")
 })
 
@@ -289,14 +304,14 @@ test_that("each iteration's draws use the community mean drawn in the iteration 
   expect_length(plain$range, 0)
   expect_identical(plain$coefficients[4:6],
                    plain$fit$results_output$jsdm_output$mu_b0_output[1:3, 1])
-  # By default both sites receive a zero mean throughout and nothing is saved.
-  default <- fit_with(list(), TRUE)
-  expect_identical(default$coefficients, rep(0, 6))
-  expect_identical(default$range, rep(0, 6))
-  expect_null(default$fit$results_output$jsdm_output$mu_b0_output)
+  # With the fixed prior both sites receive a zero mean throughout and nothing is saved.
+  fixed <- fit_with(list(b0_prior = "fixed"), TRUE)
+  expect_identical(fixed$coefficients, rep(0, 6))
+  expect_identical(fixed$range, rep(0, 6))
+  expect_null(fixed$fit$results_output$jsdm_output$mu_b0_output)
 })
 
-test_that("default fits are identical with and without b0_prior = 'fixed'", {
+test_that("default binary fits use the community prior, and fixed is the old prior", {
   sim <- simulate_fixture(model = "binary")
   run <- function(priors, spatial = FALSE) {
     set.seed(41)
@@ -309,12 +324,11 @@ test_that("default fits are identical with and without b0_prior = 'fixed'", {
       MCMCparams = list(nchain = 2L, nburn = 12L, niter = 15L, nthin = 1L))))
   }
   for (spatial in c(FALSE, TRUE)) {
-    base <- run(list(), spatial)
-    fixed <- run(list(b0_prior = "fixed"), spatial)
-    expect_identical(fixed$results_output, base$results_output)
+    base <- run(list(b0_prior = "fixed"), spatial)
     expect_identical(base$infos$intercept_prior, list(mean = 0, sd = 1))
     expect_false("mu_b0_output" %in% names(base$results_output$jsdm_output))
     community <- run(list(b0_prior = "community"), spatial)
+    expect_identical(run(list(), spatial)$results_output, community$results_output)
     expect_false(identical(community$results_output$jsdm_output$B0_output,
                            base$results_output$jsdm_output$B0_output))
     expect_identical(community$infos$intercept_prior,
@@ -327,7 +341,8 @@ test_that("default fits are identical with and without b0_prior = 'fixed'", {
                      lapply(base$results_output$jsdm_output, dim))
   }
   expect_error(run(list(b0_prior = "hierarchical")), "b0_prior must be 'fixed' or 'community'")
-  expect_error(run(list(mu_b0_sd = 1)), "mu_b0_sd requires b0_prior = 'community'")
+  expect_error(run(list(b0_prior = "fixed", mu_b0_sd = 1)),
+               "mu_b0_sd requires b0_prior = 'community'")
 })
 
 test_that("mu_b0 draws are thinned and reported with the other diagnostics", {
@@ -413,7 +428,7 @@ test_that("the community mean recovers a rare community's average intercept", {
       MCMCparams = list(nchain = 2L, nburn = 500L, niter = 500L, nthin = 1L))))
   }
   community <- run(list(b0_prior = "community"))
-  fixed <- run(list())
+  fixed <- run(list(b0_prior = "fixed"))
   mu <- as.vector(community$results_output$jsdm_output$mu_b0_output)
   expect_lt(abs(mean(mu) - mean(B0_true)), .5)
   expect_true(quantile(mu, .025) < mean(B0_true) && mean(B0_true) < quantile(mu, .975))
@@ -425,4 +440,25 @@ test_that("the community mean recovers a rare community's average intercept", {
   expect_lt(abs(b0_error(community)), .12)
   expect_gt(b0_error(fixed), .15)
   expect_lt(abs(b0_error(community)), abs(b0_error(fixed)))
+})
+
+test_that("a single species defaults to the fixed prior and refuses the community mean", {
+  # simulateOccJSDMData() cannot make one species, so keep the first of four;
+  # traits need more than one species, so drop them.
+  data <- simulate_fixture(model = "binary")$data_list
+  data$OTU <- data$OTU[, 1, drop = FALSE]
+  data$traits <- NULL
+  run <- function(priors) {
+    set.seed(43)
+    suppressMessages(suppressWarnings(runOccJSDM(data,
+      occCovariates = fixture_occ_covariates(),
+      listParams = list(n_factors = 0L, n_lattrait = 0L),
+      listPriors = priors,
+      MCMCparams = list(nchain = 1L, nburn = 5L, niter = 5L, nthin = 1L))))
+  }
+  default <- run(list())
+  expect_identical(default$infos$intercept_prior, list(mean = 0, sd = 1))
+  expect_null(default$results_output$jsdm_output$mu_b0_output)
+  expect_error(run(list(b0_prior = "community")),
+               "b0_prior = 'community' needs more than one species")
 })

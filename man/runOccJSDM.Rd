@@ -89,8 +89,8 @@ workers. A single chain never
 leaves this process: with \code{nchain = 1} and \code{ncores > 1} the fit
 runs here with its RcppParallel thread count set to \code{ncores} for the
 duration and restored afterwards, and no progress file is written. Defaults
-to \code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1, ncores = 1)}. A list
-that gives only some of these settings takes the rest from that
+to \code{list(nchain = 2, nburn = 5000, niter = 5000, nthin = 1, ncores = 1)}.
+A list that gives only some of these settings takes the rest from that
 default: \code{list(nchain = 1)} runs one chain of 5,000 burn-in and 5,000
 kept iterations.
 With \code{listPriors$b0_prior = "community"} in an occupancy or two-stage
@@ -163,8 +163,9 @@ not establish improved spatial recovery.
 \code{sigma_b0} (experimental) sets how far each species' baseline
 occupancy \code{B0} may range. \code{B0} is the species' occupancy at a
 site with average covariate values, on the logit scale, and has a Normal(0,
-\code{sigma_b0}^2) prior. The default \code{1} is the previous fixed prior
-and leaves default fits unchanged. It puts about 95\% of the prior on
+\code{sigma_b0}^2) prior, or a Normal(\code{mu_b0}, \code{sigma_b0}^2)
+prior under the community mean described below. The default is \code{1}.
+Centred on 0, it puts about 95\% of the prior on
 baseline occupancies between 12\% and 88\%, so very rare or very common
 species can be pulled towards the middle; \code{sigma_b0 = 2} widens that
 range to about 2\% to 98\%. The value must be a finite positive number. It
@@ -187,8 +188,8 @@ were continuous fits. The default therefore stays at \code{1}. Keep it for
 occupancy and two-stage data; if you try a larger value for binary data,
 check chain convergence.
 
-\code{b0_prior = "community"} (experimental, off by default) estimates the
-centre of that prior instead of fixing it at 0: each species' \code{B0} has
+\code{b0_prior} chooses the centre of that prior. \code{"community"}
+estimates it instead of fixing it at 0: each species' \code{B0} has
 a Normal(\code{mu_b0}, \code{sigma_b0}^2) prior, and the community mean
 \code{mu_b0} has a Normal(0, \code{mu_b0_sd}^2) prior with \code{mu_b0_sd}
 defaulting to \code{2}, which puts about 95\% of the prior on community
@@ -208,12 +209,20 @@ proposal scale and acceptance rates of each chain are recorded in
 \code{infos$b0_shift}. Its draws are returned in
 \code{results_output$jsdm_output$mu_b0_output}, a \code{niter} by
 \code{nchain} array, and the applied prior is saved in
-\code{infos$intercept_prior}. The default, \code{b0_prior = "fixed"},
-leaves fits unchanged; \code{mu_b0_sd} requires \code{"community"} and must
-be a finite positive number. With few species the community mean is weakly
-determined, and in occupancy and two-stage fits it can trade off against
-the collection intercepts, so check the convergence of \code{mu_b0} and
-\code{B0}. This option is under review and is not a recommended setting.}
+\code{infos$intercept_prior}. \code{"fixed"} centres every \code{B0} on 0,
+the prior of earlier versions. The default is \code{"community"} for
+binary, occupancy and two-stage data with more than one species, where
+simulation studies showed that it removes most of the overestimation of
+rare species' occupancy at little cost in ordinary communities, and
+\code{"fixed"} for continuous data, which were not tested, and for a single
+species, which has no community to average; asking for \code{"community"}
+with one species is an error. \code{mu_b0_sd} requires \code{"community"}
+and must be a finite positive number. With few species the community mean
+is weakly determined, and in occupancy and two-stage fits it can trade off
+against the collection intercepts, so check the convergence of
+\code{mu_b0} and \code{B0}; in the simulation studies \code{mu_b0} needed
+the default 5,000 burn-in and 5,000 kept iterations. Set
+\code{b0_prior = "fixed"} to reproduce fits made before this default.}
 }
 \value{
 A list with:

@@ -231,7 +231,7 @@ fit_shift <- function(priors, mcmc, seed = 41, model = NULL, spatial = FALSE) {
 test_that("the step never runs with the fixed prior, with the move off, or without latent states", {
   local_mocked_bindings(b0_shift_step = function(...) stop("the shift step ran"), .package = "occJSDM")
   mcmc <- list(nchain = 2L, nburn = 5L, niter = 6L, nthin = 1L)
-  fixed <- fit_shift(list(), mcmc)
+  fixed <- fit_shift(list(b0_prior = "fixed"), mcmc)
   expect_null(fixed$infos$b0_shift)
   expect_false("b0_shift" %in% names(fixed$infos))
   off <- fit_shift(list(b0_prior = "community"), c(mcmc, list(b0_shift = FALSE)))
@@ -314,7 +314,7 @@ test_that("a user-set proposal sd is used as it is, with the given number of pro
 
 test_that("the settings are rejected where the move cannot apply", {
   mcmc <- list(nchain = 1L, nburn = 2L, niter = 2L, nthin = 1L)
-  expect_error(fit_shift(list(), c(mcmc, list(b0_shift = TRUE))),
+  expect_error(fit_shift(list(b0_prior = "fixed"), c(mcmc, list(b0_shift = TRUE))),
                "b0_shift requires b0_prior = 'community' in an occupancy or two-stage fit")
   expect_error(fit_shift(list(b0_prior = "community"), c(mcmc, list(b0_shift_sd = .2)), model = "binary"),
                "b0_shift_sd requires b0_prior = 'community' in an occupancy or two-stage fit")

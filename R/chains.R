@@ -489,7 +489,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
         idx_ls_output_chain <- rep(NA, niter)
         tau_output_chain <- matrix(NA, S, niter)
         varPart_output_chain <-  array(NA, dim = c(S, 4, niter))
-        # Only the experimental b0_prior = "community" estimates mu_b0.
+        # Only b0_prior = "community" estimates mu_b0.
         community_b0 <- identical(list_priors$intercept_prior$type, "community")
         mu_b0_output_chain <- if (community_b0) rep(NA, niter) else NULL
       }

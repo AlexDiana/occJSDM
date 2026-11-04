@@ -1,18 +1,20 @@
-# The species occupancy intercept B0 has a Normal(0, sigma_b0^2) prior. The
-# default sigma_b0 = 1 is the previous hard-coded prior, so default fits must
-# not change. The prior is encoded in five places (both C++ samplers, the R
+# The species occupancy intercept B0 has a Normal(0, sigma_b0^2) prior under
+# b0_prior = "fixed". sigma_b0 = 1 is the previous hard-coded prior, so
+# fixed-prior fits must not change. The prior is encoded in five places (both C++ samplers, the R
 # reference sampler, and both range log-weight functions); a single missed site
 # would make the range update integrate B0 under a different prior from the one
 # used to draw it, so each site is tested against an independent reference here.
 
 test_that("read_intercept_prior validates and defaults", {
-  expect_equal(occJSDM:::read_intercept_prior(list()), list(mean = 0, sd = 1))
-  expect_equal(occJSDM:::read_intercept_prior(NULL), list(mean = 0, sd = 1))
-  expect_equal(occJSDM:::read_intercept_prior(list(sigma_b0 = 3))$sd, 3)
-  expect_identical(occJSDM:::read_intercept_prior(list(sigma_b0 = c(named = 2)))$sd, 2)
+  # Continuous data default to the fixed prior.
+  rip <- function(priors) occJSDM:::read_intercept_prior(priors, "continuous", 10L)
+  expect_equal(rip(list()), list(mean = 0, sd = 1))
+  expect_equal(rip(NULL), list(mean = 0, sd = 1))
+  expect_equal(rip(list(sigma_b0 = 3))$sd, 3)
+  expect_identical(rip(list(sigma_b0 = c(named = 2)))$sd, 2)
   for (bad in list(0, -1, NA_real_, NA_integer_, Inf, -Inf, NaN, c(1, 2), numeric(0),
                    "a", TRUE, list(1))) {
-    expect_error(occJSDM:::read_intercept_prior(list(sigma_b0 = bad)),
+    expect_error(rip(list(sigma_b0 = bad)),
                  "sigma_b0 must be a finite positive number")
   }
 })
@@ -205,7 +207,7 @@ test_that("dense and grouped range log-weights integrate B0 under sigma_b0", {
   expect_gt(max(abs((moved - moved[1]) - (unit - unit[1]))), 1e-4)
 })
 
-test_that("default fits are identical with and without an explicit sigma_b0 = 1", {
+test_that("fixed-prior fits are identical with and without an explicit sigma_b0 = 1", {
   sim <- simulate_fixture(model = "binary")
   run <- function(priors, spatial = FALSE) {
     set.seed(41)
@@ -214,7 +216,7 @@ test_that("default fits are identical with and without an explicit sigma_b0 = 1"
       spatCovariates = if (spatial) fixture_spat_covariates() else NULL,
       listParams = c(list(n_factors = 0L, n_lattrait = 0L),
                      if (spatial) list(n_supportpoints = FIXTURE_KNOTS)),
-      listPriors = priors,
+      listPriors = c(list(b0_prior = "fixed"), priors),
       MCMCparams = list(nchain = 2L, nburn = 12L, niter = 15L, nthin = 1L))))
   }
   for (spatial in c(FALSE, TRUE)) {

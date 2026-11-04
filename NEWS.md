@@ -2,6 +2,7 @@
 
 ## Behaviour changes
 
+-   `runOccJSDM()` now centres the prior on each species' occupancy intercept on an estimated community mean by default (`listPriors$b0_prior = "community"`, added in 0.2.0) for binary, occupancy and two-stage data with more than one species. Simulation studies showed that it removes most of the overestimation of rare species' occupancy at little cost in ordinary communities. Continuous data and single-species fits keep the old prior, `b0_prior = "fixed"`, and asking for `"community"` with one species is now an error. Fits that leave `b0_prior` unset therefore give different numbers from 0.2.0, and their output gains `mu_b0_output`; set `listPriors = list(b0_prior = "fixed")` to reproduce them. The shipped `sampleresults` and `quickstartresults` were fitted with the old prior.
 -   `runOccJSDM()` now rejects a read `threshold` below 1. Values between 0 and 1 used to be accepted; for integer read counts they gave the same detections as the default of 1.
 -   `simulateOccJSDMData()` now names the rows of `jsdmParams_true$eta` and `z_true` by site and of `w_true` by sample, matching the `Site` and `Sample` columns of `info`, and names their columns by species, matching `OTU`. Truth can be joined to observations by identifier without labelling the matrices first. Only names are added; the simulated values are unchanged.
 

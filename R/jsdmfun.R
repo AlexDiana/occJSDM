@@ -1227,7 +1227,7 @@ spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
 }
 
 # Conjugate draw of the community mean of the occupancy intercepts, for the
-# experimental b0_prior = "community": B0[s] ~ Normal(mu_b0, sigma_b0^2) for
+# b0_prior = "community": B0[s] ~ Normal(mu_b0, sigma_b0^2) for
 # every species and mu_b0 ~ Normal(mu_b0_mean, mu_b0_sd^2). The centre is the
 # one read_intercept_prior() records, 0 at present.
 sample_mu_b0 <- function(B0, sigma_b0, mu_b0_sd, mu_b0_mean = 0) {
@@ -1296,7 +1296,7 @@ update_jSDMcoef <- function(list_data,
     # Prior SD of the species occupancy intercept (read by runOccJSDM()).
     sigma_b0 <- list_priors$intercept_prior$sd
     if (is.null(sigma_b0)) stop("list_priors$intercept_prior$sd is missing")
-    # Experimental: estimate the intercepts' prior mean instead of fixing it at 0.
+    # Community prior: estimate the intercepts' prior mean instead of fixing it at 0.
     community_b0 <- identical(list_priors$intercept_prior$type, "community")
     if (!community_b0) mu_b0 <- 0
     if (is.null(mu_b0)) stop("list_params$mu_b0 is missing")
