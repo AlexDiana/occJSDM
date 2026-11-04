@@ -246,8 +246,10 @@ plotTraceplot <- function(param_output, param_name = "parameter",
 #' Convenience wrapper around [summarisePosterior()] that assembles one
 #' tidy table across the main occupancy/detection coefficients of a fitted
 #' [runOccJSDM()] model: `beta0_psi`, `beta_psi`, `beta_theta`, `p`, `q`, and
-#' `theta0`. Components not present in `fitmodel$results_output` (e.g.
-#' `beta_theta`/`p`/`q` for a JSDM-only fit) are silently skipped.
+#' `theta0`, and `mu_b0`, the community mean of `beta0_psi`, when the fit
+#' estimated it (`listPriors$b0_prior = "community"`). Components not present
+#' in `fitmodel$results_output` (e.g. `beta_theta`/`p`/`q` for a JSDM-only
+#' fit) are silently skipped.
 #'
 #' @param fitmodel A model object returned by [runOccJSDM()].
 #'
@@ -274,6 +276,13 @@ returnConvergenceDiagnostics <- function(fitmodel) {
       results_output$jsdm_output$B0_output,
       param_name = "beta0_psi",
       dimnames1 = speciesNames
+    )
+  }
+
+  if (!is.null(results_output$jsdm_output$mu_b0_output)) {
+    pieces$mu_b0 <- summarisePosterior(
+      results_output$jsdm_output$mu_b0_output,
+      param_name = "mu_b0"
     )
   }
 
