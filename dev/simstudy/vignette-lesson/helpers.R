@@ -103,7 +103,10 @@ lesson_fit <- function(bundle,arm,mcmc=list(nchain=4L,nburn=3000L,niter=6000L,nt
   stopifnot(arm %in% c("perfect","default","alternative"))
   dat <- if(arm=="perfect") lesson_binary_data(bundle) else bundle$sim$data_list
   seed <- c(perfect=20260920L,default=20260921L,alternative=20260922L)[[arm]]
-  priors <- if(arm=="alternative") list(a_q=1,b_q=4,a_theta0=1,b_theta0=4) else list()
+  # The alternative arm keeps the fixed intercept prior (Doug, 4 November 2026):
+  # with the community mean, chain 4 of this fit settled in a mirror explanation
+  # for OTU_10. See REFIT-NOTES.md. The other arms use the package default.
+  priors <- if(arm=="alternative") list(a_q=1,b_q=4,a_theta0=1,b_theta0=4,b0_prior="fixed") else list()
   args <- list(data=dat,listParams=list(n_factors=2L,n_lattrait=1L),
                threshold=1,occCovariates=grep("^X_psi",names(dat$info),value=TRUE),
                collCovariates=if(arm=="perfect") NULL else "X_theta",
