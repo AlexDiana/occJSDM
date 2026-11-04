@@ -1,7 +1,12 @@
-# Rscript dev/simstudy/vignette-lesson/export-waic.R ARCHIVE
+# Rscript dev/simstudy/vignette-lesson/export-waic.R ARCHIVE [RECORD_DIR]
+# RECORD_DIR (default post-pr14-validation, the 7 October 2026 build) receives
+# the machine-readable tables. The bundle's date and source commit are the
+# export date and the archive's recorded input commit.
 args <- commandArgs(TRUE)
-stopifnot(length(args) == 1L)
+stopifnot(length(args) %in% 1:2)
 a <- normalizePath(args[1], mustWork = TRUE)
+p <- if (length(args) == 2L) args[2] else 'dev/simstudy/vignette-lesson/post-pr14-validation'
+dir.create(p, showWarnings = FALSE)
 small <- readRDS(file.path(a,'waic-1000/validation.rds'))
 large <- readRDS(file.path(a,'waic-4000/validation.rds'))
 summaries <- do.call(rbind,lapply(c('1000','4000'),function(n) read.csv(file.path(a,paste0('waic-',n),'summary.csv'))))
@@ -13,7 +18,7 @@ stopifnot(nrow(summaries)==4,
  identical(small$results$one_factor$score$observations,large$results$one_factor$score$observations))
 source_paths<-c('R/site-waic.R','src/site_waic.cpp','dev/simstudy/vignette-lesson/validate-waic.R')
 stopifnot(identical(large$source_md5,tools::md5sum(source_paths)),identical(small$source_md5,large$source_md5))
-bundle <- list(date='2026-10-07',source_commit='a56f5548e68e09d244513d09fcc04ad52f0caa19',
+bundle <- list(date=format(Sys.Date()),source_commit=readRDS(file.path(a,'input.rds'))$source_commit,
  summaries=summaries,comparisons=comparisons,
  pointwise=lapply(large$results,function(x)x$score$pointwise),
  source_md5=large$source_md5,
@@ -23,7 +28,6 @@ bundle <- list(date='2026-10-07',source_commit='a56f5548e68e09d244513d09fcc04ad5
  retained_draws_per_fit=24000L,
  conclusion='Numerical checks pass; WAIC reliability remains unvalidated. Do not select a factor count from this example.')
 saveRDS(bundle,'vignettes/teaching-data/site-waic-lesson.rds',compress='xz')
-p <- 'dev/simstudy/vignette-lesson/post-pr14-validation'
 write.csv(summaries,file.path(p,'waic-summary.csv'),row.names=FALSE)
 write.csv(comparisons,file.path(p,'waic-comparisons.csv'),row.names=FALSE)
 write.csv(data.frame(path=names(large$source_md5),md5=unname(large$source_md5)),file.path(p,'source-hashes.csv'),row.names=FALSE)
