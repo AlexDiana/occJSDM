@@ -18,10 +18,13 @@ for (name in names(fits)) {
   fit <- if (!is.null(saved$fit)) saved$fit else saved
   d <- returnConvergenceDiagnostics(fit)
   m <- d[d$param == "mu_b0", ]
-  stopifnot(nrow(m) == 1L)
+  stopifnot(nrow(m) <= 1L)
+  # Fixed-prior fits (the alternative arm since 4 November 2026) have no mu_b0.
+  if (!nrow(m)) m <- data.frame(mean = NA, q2.5 = NA, q97.5 = NA, rhat = NA, ess = NA)
   mc <- fit$infos$MCMCparams
   rows[[name]] <- data.frame(
     fit = name, file = fits[[name]], model = fit$infos$model,
+    b0_prior = if (is.null(fit$results_output$jsdm_output$mu_b0_output)) "fixed" else "community",
     nchain = mc$nchain, nburn = mc$nburn, niter = mc$niter,
     mu_b0_mean = m$mean, mu_b0_q2.5 = m$q2.5, mu_b0_q97.5 = m$q97.5,
     mu_b0_rhat = m$rhat, mu_b0_ess = m$ess,
