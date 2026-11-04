@@ -256,3 +256,11 @@ test_that("new thresholded fits score the same observations as pre-binarized fit
     expect_identical(extractWAIC(binary_fit, type = "legacy"), binary_fit$results_output$WAIC)
   }
 })
+
+test_that("the default quadrature ladder reaches orders 101 and 161", {
+  # The community-prior one-factor fit of Lesson 4 (4 November 2026) had a draw
+  # with residual SD 4.07 that did not converge by order 65 and did at 101.
+  # Finer orders are built only for draws that need them.
+  expect_identical(eval(formals(computeSiteWAIC)$quadrature),
+                   c(15L, 25L, 41L, 65L, 101L, 161L))
+})

@@ -62,9 +62,12 @@ site_waic_index <- function(x, size, upper, name) {
 #' @param quadrature Increasing vector of Gaussian quadrature orders per factor.
 #'   Each draw is checked against the next order until the largest absolute
 #'   change in any site's log likelihood is below `tolerance`. At least two
-#'   orders are required. Increase this sequence to check numerical stability.
-#'   The default node budget permits checking up to three factors; difficult
-#'   three-factor fits may exhaust it when a finer grid is needed.
+#'   orders are required. Finer orders are built only for draws that need them,
+#'   so the higher defaults (101 and 161, added for draws with a large residual
+#'   standard deviation) cost nothing when coarser grids already agree. Increase
+#'   this sequence to check numerical stability. With the default node budget,
+#'   one- and two-factor fits can use every default order; three-factor fits
+#'   exhaust it from order 65, and the function then stops.
 #' @param tolerance Positive tolerance for successive site log likelihoods.
 #'   Agreement of grids is a numerical diagnostic, not a rigorous error bound.
 #' @param max_nodes Maximum tensor-grid nodes allowed per integration rule.
@@ -109,7 +112,7 @@ site_waic_index <- function(x, size, upper, name) {
 #' @md
 #' @export
 computeSiteWAIC <- function(fitModel, threshold = NULL, draws = NULL,
-                            quadrature = c(15L, 25L, 41L, 65L),
+                            quadrature = c(15L, 25L, 41L, 65L, 101L, 161L),
                             tolerance = 1e-4, max_nodes = 200000L) {
   info <- fitModel$infos
   if (length(info$ps) != 1L || is.na(info$ps) || info$ps != 0) {
