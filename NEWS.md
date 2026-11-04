@@ -1,13 +1,34 @@
 # occJSDM (development version)
 
+## Behaviour changes
+
+-   `runOccJSDM()` now rejects a read `threshold` below 1. Values between 0 and 1 used to be accepted; for integer read counts they gave the same detections as the default of 1.
+-   `simulateOccJSDMData()` now names the rows of `jsdmParams_true$eta` and `z_true` by site and of `w_true` by sample, matching the `Site` and `Sample` columns of `info`, and names their columns by species, matching `OTU`. Truth can be joined to observations by identifier without labelling the matrices first. Only names are added; the simulated values are unchanged.
+
+## Bug fixes
+
+-   `runOccJSDM()` now decides between the one- and two-stage models by looking for repeated (`Site`, `Sample`) pairs, not repeated `Sample` values. A one-stage survey whose sample IDs restart at each site (1, 2, 3 at every site) used to be fitted as two-stage. Sample IDs may restart at each site in either design.
+-   The error for `NA` observations outside the two-stage model no longer ends in a stray "FALSE", and now suggests deleting a row that is wholly missing.
+
+## Documentation
+
+-   The quickstart vignette now tours every main result: occupancy at each site, environmental and trait-by-environment effects, collection, detection and false-positive rates, residual associations and ordination, variation partitioning, expected species richness, prediction at new sites and the value of extra samples or PCRs, each also saved as a table. It no longer explains the model; the lessons do.
+-   New example data for it: `quickstartdata`, a simulated river eDNA survey modelled on Ji et al. (2025), with a categorical occupancy covariate, and `quickstartresults`, its fit without a spatial field. `sampledata` and `sampleresults` are unchanged.
+
+# occJSDM 0.2.0
+
+Third beta, released on GitHub as `v0.2.0-beta`. It adds parallel chains and a faster spatial sampler. Seeded fits give different numbers from 0.1.1.
+
 ## New features
 
 -   `runOccJSDM()` can run its chains on separate cores: set `ncores` in `MCMCparams`. `ncores` is the total core budget, so `ncores = 4` runs four chains on four single-threaded workers and `ncores = 8` on four workers of two RcppParallel threads each. A parallel fit prints the `tail -f` command for its progress file. The returned `infos` records the sampling settings, the seeds of every chain and how the fit was run.
 
+-   Experimental, off by default: `listPriors = list(b0_prior = "community")` centres the prior on each species' occupancy intercept on an estimated community mean, `mu_b0`, instead of on 0, with a normal prior on that mean whose standard deviation, `mu_b0_sd`, defaults to 2. Its draws are returned in `jsdm_output$mu_b0_output` and reported by `returnConvergenceDiagnostics()`, and the prior is recorded in `infos$intercept_prior`. In occupancy and two-stage fits the sampler also proposes, each iteration, a common shift of every species' occupancy intercept and `mu_b0`, accepted with the latent occupancy states integrated out, so that the community mean mixes at a realistic number of species; `b0_shift`, `b0_shift_sd` and `b0_shift_proposals` in `MCMCparams` control it and `infos$b0_shift` records its acceptance rates. Default fits are unchanged. The option is under review and is not yet a recommended setting; see `?runOccJSDM`.
+
 ## Behaviour changes
 
 -   Every chain is now seeded on its own, so a fit is identical whatever `ncores` says and no chain continues another's random stream. Because of this, a fit under a given `set.seed()` value gives different numbers from version 0.1.1; the shipped `sampleresults` was refitted under the new seeding with the same seed and settings. Identity across `ncores` is stated for a single-threaded BLAS; see `?runOccJSDM`.
--   The spatial range step and the spatial coefficient draw now form their weighted Gram matrices with the symmetric BLAS routine (the rows of the design scaled by the square root of the weights, then multiplied by their own transpose), which halves that arithmetic. The result is the same quantity to rounding error, not bit for bit, so a seeded spatial fit no longer reproduces the draws of the previous build exactly; measured on a 900-site binary spatial fit, an iteration is 1.25 to 1.45 times faster depending on the BLAS.
+-   The spatial range step and the spatial coefficient draw now form their weighted Gram matrices with the symmetric BLAS routine (the rows of the design scaled by the square root of the weights, then multiplied by their own transpose), which halves that arithmetic. The result is the same quantity to rounding error, not bit for bit, so a seeded spatial fit no longer reproduces the draws of the previous build exactly; the shipped `sampleresults` is a spatial fit made before this change, so refitting it with the same seed now gives draws that differ at rounding level; measured on a 900-site binary spatial fit, an iteration is 1.25 to 1.45 times faster depending on the BLAS.
 -   A partial `MCMCparams` list in `runOccJSDM()` now fills a missing `nburn` or `niter` with 5,000, as the help page documents, instead of 1,000. For example, `list(nchain = 1)` used to run 1,000 burn-in and 1,000 kept iterations and now runs 5,000 of each, so it takes about five times as long. Fits that give both `nburn` and `niter`, or leave `MCMCparams` out, are unchanged. To keep the old length, give `nburn = 1000` and `niter = 1000`.
 
 ## Deprecations

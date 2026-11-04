@@ -15,28 +15,28 @@ knitr::opts_chunk$set(echo = TRUE, collapse = FALSE, comment = "#>", fig.width =
 source("lesson-links.R")
 ```
 
-## Where this lesson fits
+## What this lesson answers
 
-This lesson explains, by hand and without fitting a model, the two ideas that the other lessons use. The first half shows what a single-season occupancy model does with replicate samples, using one species from the survey of [Lesson 0 (optional)](occJSDM-lesson-0.md) and [Lesson 2](occJSDM-lesson-2.md). The second half shows what a joint species distribution model adds to modelling each species on its own, using a small table typed into the code. This is the first required lesson, so every reader starts here, before Lesson 2. Lesson 0 explains where the survey comes from, but you do not need it here. Every chunk runs when the lesson is knitted, in a few seconds: nothing is fitted by MCMC and no saved fit is read. Run the chunks in order with the repository's `vignettes` directory as the working directory; knitting handles this automatically.
+The [Quickstart](occJSDM-00-quickstart.md) shows what occJSDM produces. This lesson explains, mostly by hand, the two ideas the model is built from, by answering two questions:
 
-**What this lesson assumes you know.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr the verbs listed below. If any are new, the two chapters of R for Data Science on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything used here in an afternoon. Operations that are unusual, such as joining two tables on species identity, are explained where they appear.
+1.  **If a survey did not detect a species at a site, was the species absent, or was it missed?** A single-season occupancy model answers this from replicate samples. We work through it for one species, ending with the same model fitted by occJSDM.
 
-- `select()` and `filter()` to choose columns and keep rows.
-- `distinct()`, `arrange()` and `count()` to deduplicate, order and count rows.
-- `mutate()` and `if_else()` to add or recode columns, and `group_by()` and `summarise()` to summarise by group.
-- `left_join()` to combine tables on shared identifiers.
-- `pivot_wider()` to move from one row per measurement to one column per measurement.
+2.  **What does modelling all the species together add to modelling each species on its own?** That is what a *joint* species distribution model does. We show it on a small community whose numbers we choose by hand.
+
+The later lessons check occJSDM's answers against simulated truth, and these two ideas are what you need to follow those checks. This is the first required lesson, so every reader starts here. It assumes no familiarity with occJSDM or with occupancy models. Run the code chunks in order; they take a few seconds and read no saved files.
+
+**What this lesson assumes you know about R.** The code uses base R and the tidyverse: the pipe `|>`, and from dplyr and tidyr, the verbs listed below. If any is new, the two chapters of *R for Data Science* on [data transformation](https://r4ds.hadley.nz/data-transform) and [data tidying](https://r4ds.hadley.nz/data-tidy) teach everything in an afternoon. Operations that are unusual are explained where they appear.
+
+- `select()`, `filter()` and `slice()` to choose columns and keep rows.
+- `arrange()` and `count()` to order and count rows.
+- `mutate()` and `if_else()` to add or recode columns, `across()` to apply one change to several columns, and `group_by()` and `summarise()` to summarise by group.
+- `uncount()` to repeat each row a given number of times, and `expand_grid()` to make every combination of two sets of values.
 
 ```{r load, message=FALSE}
 library(dplyr)
 library(tidyr)
 library(tibble)
 library(ggplot2)
-
-lesson <- readRDS("teaching-data/nonspatial-lesson.rds")
-truth_samples <- as_tibble(lesson$samples) |> filter(arm == "default")
-survey_info <- lesson$input$sim$data_list$info
-known_truth <- lesson$input$sim$true_params
 
 format_percent <- function(probability, digits = 1) {
   paste0(formatC(100 * probability, format = "f", digits = digits), "%")
@@ -45,36 +45,62 @@ format_percent <- function(probability, digits = 1) {
 theme_set(ggplot2::theme_minimal(base_size = 12))
 ```
 
-`lesson` is the saved file that Lesson 2 reads. We use three parts of it. `truth_samples` has one row per species and field sample, with the simulation's true states. `survey_info` is the survey's `info` table, with one row per PCR and the site, sample and covariate columns that Lesson 2 describes. `known_truth` holds the coefficients the simulation used, which we use only to check answers. `format_percent()` prints probabilities as percentages in the text.
+`format_percent()` prints probabilities as percentages in the text.
 
 ## What an occupancy model does
 
-Every presence/absence survey raises the same question: if we did not find a species at a site, was it absent, or did we miss it? A single-season occupancy model answers it from replicate samples, taken at each site within one season. It assumes three things:
+**Every presence/absence survey raises the same question: if we did not find a species at a site, was it truly absent, or did we miss it?** A single-season occupancy model answers the question by using replicate samples, taken at each site within one season. The model assumes three things:
 
-- Each site is either occupied by the species or not, for the whole season. The probability that a site is occupied is `psi`.
-- Each replicate sample at an occupied site detects the species with probability `p`, independently of the other samples.
-- An unoccupied site never produces a detection. This is the no-false-positive assumption. This half of the lesson keeps it, and Lesson 2 drops it.
+- Each site is either occupied by the species or not, for the whole season. The probability that a site is occupied by the species is `psi`.
+- Each replicate sample at an occupied site detects the species with probability `p`, independently of the other samples. Since we realistically let `p` be less than 1, it is possible for all replicates to fail to detect a species despite it being present, which is a false-negative error.
+- An unoccupied site never produces a detection. This is the no-false-positive assumption. In Lesson 2, we relax this assumption and allow false positives.
 
-Lesson 2 names the two ways a survey can be wrong. A **false negative** is a species that is present but not detected, and a **false positive** is a detection of a species that is absent. This model allows only false negatives.
+To see what the model does, we **simulate** a survey of one species in which these three assumptions hold exactly. Simulating means that we choose the values of `psi` and `p` ourselves and generate the dataset with them. This lets us check the model's answers against the truth. A real survey never sees the truth, and it can miss species that are present. (Lesson 2 moves to a realistic eDNA survey, with many species, a field stage and a laboratory stage, and both false positives and false negatives.)
 
-We use the survey from Lessons 0 and 2: `r n_distinct(survey_info$Site)` sites with `r n_distinct(survey_info$Sample) / n_distinct(survey_info$Site)` field samples each. That survey is a **two-stage process**: DNA is collected in the field, then detected by PCR in the laboratory. To keep to one stage, we take one species and give each field sample a single record. In this lesson a sample counts as a detection when the species occupies the site and its DNA entered the sample. We build that record from the simulation's true states, not from the PCRs, so the no-false-positive assumption holds by construction. A sample contaminated at a site the species does not occupy, a **field-stage false positive**, counts here as a non-detection. The laboratory stage, with its own errors, is left out entirely. Building the record this way also means that the per-sample detection probability `p` is, by construction, Lesson 2's collection probability: the probability that DNA enters a field sample when the species occupies the site.
+The survey has 100 sites with 3 samples each, set in the chunk below. Each site has a habitat covariate, which we will call `environment`, and the probability that the site is occupied by the species rises with the value of the `environment` covariate. Each sample has an `effort` covariate, such as the volume of water filtered, and the probability that the sample detects the species (when it is present) rises with the value of the `effort` covariate.
 
-We use OTU_3. It occupies `r format_percent(mean(truth_samples$z[truth_samples$species == "OTU_3"]), 0)` of the sites, so there are occupied and empty sites to tell apart. Its collection probability rises with the collection covariate, which the covariate section uses. And enough of its occupied sites were missed by every sample to make finding them worthwhile.
+To start, we ignore both these covariates and treat `psi` and `p` as single numbers, as the simplest occupancy model does.
 
-```{r one-stage-table}
-focal_species <- "OTU_3"
+```{r simulate-survey}
+set.seed(4)
+n_sites <- 100
+samples_per_site <- 3
 
-one_stage <- truth_samples |>
-  filter(species == focal_species) |>
-  mutate(detected = as.integer(z == 1 & w == 1)) |>
-  select(Site, Sample, z, w, detected)
+# The true coefficients, on the logit scale
+true_coefficients <- c(psi_intercept = 0.5, psi_environment = 1,
+                       p_intercept = -1, p_effort = 1)
+
+sites <- tibble(Site = 1:n_sites, 
+                environment = rnorm(n_sites)) |>
+  mutate(psi = plogis(true_coefficients[["psi_intercept"]] +
+                        true_coefficients[["psi_environment"]] * environment),
+         z = rbinom(n_sites, size = 1, prob = psi))
+
+one_stage <- sites |>
+  uncount(samples_per_site) |>
+  group_by(Site) |>
+  mutate(Sample = row_number()) |>
+  ungroup() |>
+  mutate(effort = rnorm(n()),
+         p = plogis(true_coefficients[["p_intercept"]] +
+                      true_coefficients[["p_effort"]] * effort),
+         detected = rbinom(n(), size = 1, prob = z * p)) |>
+  select(Site, Sample, environment, effort, z, detected)
 
 head(one_stage, 9)
 ```
 
-There is one row per field sample. `z` is the true site state (1 if OTU_3 occupies the site), `w` is the true sample state (1 if its DNA entered the sample), and `detected` is our one-stage record. Sample identifiers run across the whole survey, so the first nine rows are the first three sites. Among them, OTU_3 occupies `r knitr::combine_words(paste("site", unique(one_stage$Site[1:9][one_stage$z[1:9] == 1])))`, and its DNA reached `r sum(one_stage$detected[1:9])` of those sites' samples. At an empty site, no sample can count as a detection. Across the survey, `r sum(one_stage$w == 1 & one_stage$z == 0)` samples received OTU_3 DNA at sites it did not occupy; in this table they count as non-detections.
+The code chunk works in two steps: first it simulates the sites, then the samples.
 
-An occupancy model works with each site's detection history, so we count the detections at each site. `occupied` is the true site state, which a real survey would not know; we keep it to check the answers.
+- `rnorm()` draws each covariate value at random, with mean 0 and standard deviation 1.
+- `plogis()` turns `intercept + slope * covariate` into a probability between 0 and 1. The intercepts and slopes in `true_coefficients` are on this logit scale. With a slope of `r true_coefficients[["psi_environment"]]`, a site one standard deviation above the average habitat has a probability of occupancy of `r format_percent(plogis(true_coefficients[["psi_intercept"]] + true_coefficients[["psi_environment"]]))`, against `r format_percent(plogis(true_coefficients[["psi_intercept"]]))` at an average site.
+- `rbinom(size = 1, prob = psi)` flips a coin for each site that comes up 1 with probability `psi`. The result, `z`, is the true site state: 1 if the species occupies the site.
+- `uncount()` repeats each site's row `r samples_per_site` times, representing one row per sample, and `Sample` numbers the samples 1 to `r samples_per_site` within each site. Some surveys instead number samples across the whole survey, as Lesson 2's data do; occJSDM accepts either, because it identifies a sample by its `Site` and `Sample` together.
+- A sample detects the species with probability `z * p`. At an occupied site this is `p`. At an empty site it is 0, so an empty site can never produce a detection. That one multiplication is the no-false-positive assumption.
+
+`one_stage` has one row per sample and so `r samples_per_site` rows per site. `z` is the truth, which a real survey would not know, and `detected` is what the survey records. In the first three sites, the species is absent from site 1, so none of its samples detects it. It is present at site 2, and `r sum(one_stage$detected[one_stage$Site == 2])` of its 3 samples detected it. It is also present at site 3, but `r sum(one_stage$detected[one_stage$Site == 3])` of its 3 samples detected it: a false negative at the site level, which looks exactly like site 1 in the survey's records.
+
+An occupancy model works with each site's **detection history**, so we count the detections at each site. We keep the true state, in the column `occupied`, to check the answers, and we summarise the result in a table.
 
 ```{r site-history}
 site_history <- one_stage |>
@@ -89,13 +115,51 @@ site_history <- one_stage |>
 count(site_history, detections, occupied)
 ```
 
-Each row is a combination of detections and true state, and `n` is the number of sites with it. Every sample detected the species at `r sum(site_history$detections == site_history$samples)` sites, two samples did at `r sum(site_history$detections == 2)` and one at `r sum(site_history$detections == 1)`. Every site with a detection is occupied, because this table has no false positives. The rows that matter are the `r sum(site_history$detections == 0)` sites with no detections. Because the simulation lets us peek, we can see that `r sum(site_history$detections == 0 & site_history$occupied == 1)` of them were occupied and missed by every sample, and the other `r sum(site_history$detections == 0 & site_history$occupied == 0)` were truly empty. A real survey sees only the `detections` column. The job of the occupancy model is to estimate how many of the all-negative sites are occupied, without peeking.
+Each row of the summary table is a combination of detections and the true state (0/1), and the number `n` of sites with that combination. The number of sites where all `r samples_per_site` samples detected the species is `r sum(site_history$detections == site_history$samples)`, where 2 of `r samples_per_site` samples detected it is `r sum(site_history$detections == 2)`, and where only 1 did is `r sum(site_history$detections == 1)`. Because there are no false positives in this survey, every site with a detection is truly occupied.
 
-The simplest estimate of occupancy ignores that job. **Naive occupancy** is the fraction of sites with at least one detection, and it counts every all-negative site as empty.
+Now we consider the sites with no detections. We have seen that 1 or 2 of the `r samples_per_site` samples at an occupied site can miss the species, so all `r samples_per_site` can miss it too. In this survey that happened at `r sum(site_history$detections == 0 & site_history$occupied == 1)` sites: the species was present, but no sample detected it. These sites are the **false negatives**. At the other `r sum(site_history$detections == 0 & site_history$occupied == 0)` sites with no detections, the species was truly absent: these are the **true negatives**. In total, `r sum(site_history$detections == 0)` sites have no detections. A real survey sees only the `detections` column, so these two groups look identical.
 
-The occupancy model needs one line of arithmetic for each kind of site. A site where the species was detected in `d` of its `M` samples must be occupied, so its probability is `psi * p^d * (1 - p)^(M - d)`: occupied, then detected `d` times and missed `M - d` times. A site with no detections could be in either state, so its probability is the sum of two routes: `psi * (1 - p)^M`, occupied but missed by every sample, plus `1 - psi`, empty. Multiplying these probabilities over all sites gives the **likelihood**, the probability of the survey's whole pattern for a given `psi` and `p`. Maximum likelihood chooses the pair that makes the observed pattern most probable.
+The job of an occupancy model is to estimate how many of the `r sum(site_history$detections == 0)` all-negative sites are in fact occupied, without peeking at the truth.
 
-The function below writes the two lines on the log scale, so that the product over sites becomes a sum. `optim()` searches for the best pair. It searches on the logit scale, and `plogis()` turns each number it tries into a probability between 0 and 1. `fnscale = -1` tells it to maximise rather than minimise.
+We start with the simplest method: just ignore the possibility of false negatives. This is known as **naive occupancy**, and it is the fraction of sites with at least one detection. Every all-negative site is counted as empty.
+
+To do better than naive occupancy, we apply an occupancy model. It needs one calculation for each kind of site.
+
+A site where the species was detected in `d` of its `M` samples must be occupied, so its probability is `psi * p^d * (1 - p)^(M - d)`: occupied, then detected `d` times and missed `M - d` times. A site with no detections could be in either state, so its probability is the sum of two routes: `psi * (1 - p)^M`, occupied but missed by every sample, plus `1 - psi`, empty. Multiplying these probabilities over all sites gives the **likelihood**, the probability of the survey's whole pattern for a given `psi` and `p`. Maximum likelihood chooses the pair that makes the observed pattern most probable.
+
+A small example shows what "multiplying over all sites" means. Take just **two** sites with 3 samples each: site A, where the species was detected in 2 samples, and site B, where it was never detected. Start with a guess that `psi` is 0.5 and `p` is 0.4, and ask how probable each site's record would be if the guess were right. Then try a second guess, with `p` raised to 0.6.
+
+In the `two_site_likelihood` function, the probabilities for site A and site B are multiplied together to produce the likelihood for this particular history of detections (2 detections in site A, 0 in site B). We then use `two_site_likelihood` to score two guesses of `psi` and `p`. The guess with the higher likelihood explains the data better, and the guess with the highest likelihood of all is the dataset's best estimate of `psi` and `p`.
+
+```{r two-site-likelihood}
+two_site_likelihood <- function(psi, p) {
+  site_A <- psi * p^2 * (1 - p)          # occupied, detected twice, missed once
+  site_B <- psi * (1 - p)^3 + (1 - psi)  # occupied and missed three times, or empty
+  c(site_A = site_A, site_B = site_B, likelihood = site_A * site_B)
+}
+
+guesses <- rbind(first_guess = two_site_likelihood(psi = 0.5, p = 0.4),
+                 second_guess = two_site_likelihood(psi = 0.5, p = 0.6))
+round(guesses, 3)
+```
+
+With the first guess (`psi` = 0.5 and `p` = 0.4), site A's record has probability `r round(guesses["first_guess", "site_A"], 3)`. Site B's record has probability `r round(guesses["first_guess", "site_B"], 3)`, which is the sum of the two routes to no detections: `r round(0.5 * 0.6^3, 3)` for occupied but missed + `r 1 - 0.5` for empty. Sites A and B are independent, so the probability of seeing both records is the product of the two probabilities, `r round(guesses["first_guess", "likelihood"], 3)`. That product is the likelihood of the first guess.
+
+The second guess scores `r round(guesses["second_guess", "likelihood"], 3)`, which is `r if (guesses["second_guess", "likelihood"] > guesses["first_guess", "likelihood"]) "higher" else "lower"`, so it explains these two sites `r if (guesses["second_guess", "likelihood"] > guesses["first_guess", "likelihood"]) "better" else "worse"`.
+
+> Hand-calculate the numbers in the previous two paragraphs.
+>
+> Why are the probabilities of the two possible routes to no detections in Site B summed together?
+>
+> Why are the probabilities of the two outcomes in Sites A and B multiplied together?
+
+To find the maximum likelihood for all `r n_sites` sites, we let the computer try many pairs of `psi` and `p`, moving towards pairs with higher likelihoods, as described below.
+
+The likelihood is not the probability that a guess is correct. **The likelihood scores how well each guess explains the data**.
+
+> A computational issue: when computers multiply many extremely small numbers, the product can become too small to store and is rounded to zero, and many likelihood probabilities are extremely small numbers. But there is a clever fix. Instead of multiplying two extremely small numbers, *it is mathematically equivalent to sum the logarithms* of two extremely small numbers, so this is what the computer code does when it calculates likelihoods.
+
+The function `one_stage_loglik` does the same thing as `two_site_likelihood`, but it (1) does it for any number of sites, and (2) uses the method of adding logarithms to calculate the likelihood. The R function `optim()` then searches systematically for the `psi` and `p` pair (the guess) that maximises the likelihood. It searches on the logit scale, and `plogis()` turns each number it tries into a probability between 0 and 1. `fnscale = -1` tells it to maximise rather than minimise the likelihood. We give `optim()` only the columns a real survey would have, so the `occupied` column, the truth, is dropped first.
 
 ```{r one-stage-mle}
 naive_occupancy <- mean(site_history$detections > 0)
@@ -111,41 +175,44 @@ one_stage_loglik <- function(par, history) {
   })
 }
 
-fit <- optim(c(0, 0), one_stage_loglik, history = site_history,
-             control = list(fnscale = -1))
+observed_history <- select(site_history, Site, samples, detections)  # only give the optim() function the data, omitting the column `occupied`, which contains the truth
+
+fit <- optim(c(0, 0), one_stage_loglik, history = observed_history,
+             control = list(fnscale = -1)) # it runs super fast
+
 estimates <- c(psi = plogis(fit$par[1]), p = plogis(fit$par[2]))
+
 round(estimates, 3)
 ```
 
-The model estimates that a site is occupied with probability `r format_percent(estimates[["psi"]])` and that each sample at an occupied site detects the species with probability `r format_percent(estimates[["p"]])`. The information about `p` comes from the sites with detections, where we know the species was present. At those sites, `r format_percent(with(site_history, sum(detections[detections > 0]) / sum(samples[detections > 0])))` of samples detected it, which is higher than the model's `p`. The difference is not a mistake. A site joins that group only if at least one of its samples succeeded, so the raw share overstates how often a sample succeeds. The likelihood corrects for this.
+The model estimates (by maximising the likelihood) that any given site is occupied with probability `psi` = `r format_percent(estimates[["psi"]])` and that each sample at an occupied site detects the species with probability `p` = `r format_percent(estimates[["p"]])`.
 
-Now we compare these with the truth. The true collection probability of each sample is calculated from that sample's collection covariate and the species' true coefficients, as in Lesson 2.
+To get some intuition about how we estimated `p` (the probability of detection when the species is present), we can look at the number of successful detections in `site_history`. There were `r sum(site_history$detections > 0)` sites where the species was detected at least once. If detection were perfect, we would expect `r with(site_history, sum(samples[detections > 0]))` total detections, but in fact, we only got `r with(site_history, sum(detections[detections > 0]))` detections. So a simple estimate of detection probability is `r with(site_history, sum(detections[detections > 0]))` `/` `r with(site_history, sum(samples[detections > 0]))` = `r round(with(site_history, sum(detections[detections > 0]) / sum(samples[detections > 0])), 3)`.
+
+Now, this hand-calculated estimate of p is higher than the model's estimate, `r round(plogis(fit$par[2]), 3)`, because the correct denominator is bigger than `r with(site_history, sum(samples[detections > 0]))` since some sites contain the species, but all the samples failed to detect. The likelihood also estimated the true number of occupied sites, out of `r n_sites`: `r round(plogis(fit$par[1]) * n_sites, 1)`.
+
+Now we compare the model-estimated values with the truth, which we can do because we simulated the dataset in the first place. The true detection probability of each sample is calculated from that sample's effort and the true coefficients. We average it over the samples at occupied sites, because `p` applies only to occupied sites.
 
 ```{r one-stage-truth}
-species_column <- match(focal_species, colnames(lesson$input$sim$data_list$OTU))
-collection_truth <- survey_info |>
-  distinct(Sample, X_theta) |>
-  mutate(true_collection = plogis(known_truth$beta_theta_true[1, species_column] +
-                                    known_truth$beta_theta_true[2, species_column] * X_theta))
-
-occupied_samples <- one_stage |>
-  filter(z == 1) |>
-  left_join(collection_truth, by = "Sample")
+true_p <- plogis(true_coefficients[["p_intercept"]] +
+                   true_coefficients[["p_effort"]] * one_stage$effort)
 
 round(c(
   naive_occupancy = naive_occupancy,
   estimated_psi = estimates[["psi"]],
   true_fraction_occupied = mean(site_history$occupied),
   estimated_p = estimates[["p"]],
-  true_mean_collection = mean(occupied_samples$true_collection)
+  true_mean_p = mean(true_p[one_stage$z == 1])
 ), 3)
 ```
 
-Naive occupancy, `r format_percent(naive_occupancy)`, is too low, because it counts the missed sites as absent. The model's `psi`, `r format_percent(estimates[["psi"]])`, is close to the true fraction of sites occupied, `r format_percent(mean(site_history$occupied))`. Its `p`, `r format_percent(estimates[["p"]])`, is close to the true mean collection probability of the samples at occupied sites, `r format_percent(mean(occupied_samples$true_collection))`. That match is a feature of how we built the table: a detection here means that DNA was collected at an occupied site, so the detection probability is the collection probability. Neither estimate is exact: both come from one survey of `r nrow(site_history)` sites, of which only `r sum(site_history$occupied)` were occupied.
+Naive occupancy, `r format_percent(naive_occupancy)`, is too low, because it counts the missed sites as absent. The model's estimated `psi`, `r format_percent(estimates[["psi"]])`, is closer to the true fraction of sites occupied, `r format_percent(mean(site_history$occupied))`, albeit still too low, and its estimated `p`, `r format_percent(estimates[["p"]])`, is higher than the true mean detection probability of the samples at occupied sites, `r format_percent(mean(true_p[one_stage$z == 1]))`.
 
-## The sites where the species was missed
+Part of the gap is chance: the estimates come from just one survey of `r nrow(site_history)` sites, of which only `r sum(site_history$occupied)` were occupied. Part of it is that this model assumes every sample has the same `p`, while in our simulation `p` rises with effort, which we have not incorporated into the model. The sites with detections are mostly sites whose samples happened to be good, so `p` estimated from them is too high. A `p` that is too high makes a complete miss look rarer than it is, so the model adds back too few missed sites, and `psi` comes out too low. Below, we make the model more complex by adding in sampling effort, and we find that doing so removes most of this gap.
 
-The estimates tell us more than the overall occupancy. They also say how likely it is that a particular all-negative site is occupied. The calculation uses `M`, the number of samples per site, read from the data; every site here has `r unique(site_history$samples)`.
+## How many all-negative sites are occupied?
+
+We can calculate how many of the all-negative sites the model expects to be occupied. The calculation uses the two estimates, `psi` and `p`, plus `M`, the number of samples per site, which is `r unique(site_history$samples)` at every site in this dataset.
 
 ```{r missed-sites}
 M <- unique(site_history$samples)
@@ -167,35 +234,162 @@ c(no_detection_sites = nrow(missed),
   actually_occupied = sum(missed$occupied))
 ```
 
-Readers often find this step the hardest, so take it slowly, counting whole sites rather than probabilities. Of `r nrow(site_history)` sites like these, the model expects `r round(nrow(site_history) * psi_hat, 1)` to be occupied. At each occupied site, the chance that all `r M` samples miss the species is `(1 - p)^M`, `r format_percent((1 - p_hat)^M)`, so it expects `r round(nrow(site_history) * occupied_and_missed, 1)` occupied sites to produce no detections. It also expects `r round(nrow(site_history) * empty, 1)` sites to be truly empty. Both groups end up in the same place in the survey, among the sites with no detections, and nothing in the detections tells them apart. The **conditional probability of occupancy** is the occupied group's share of the all-negative sites: `psi * (1 - p)^M / (psi * (1 - p)^M + 1 - psi)`, which is `r format_percent(conditional_occupancy)` here. In words, given that a site produced no detections, it is the probability that the species is nonetheless there.
+Readers often find this step the hardest, so take it slowly. Over all `r nrow(site_history)` sites, the model had estimated from the survey data that `psi =` `r format_percent(psi_hat)` were truly occupied. Of course, we did not actually detect the species in that many sites because at the occupied sites, there is a chance that all `r M` samples miss the species: `(1 - p)^M`, `r format_percent((1 - p_hat)^M)`.
 
-Multiplying by the number of all-negative sites gives how many of them the model expects to be occupied: `r nrow(missed)` sites times `r format_percent(conditional_occupancy)` is `r round(nrow(missed) * conditional_occupancy, 1)`. The simulation shows that `r sum(missed$occupied)` actually were. This is also where `psi` comes from. The `r sum(site_history$detections > 0)` sites with detections, plus the `r round(nrow(missed) * conditional_occupancy, 1)` expected among the all-negative sites, make `r format_percent((sum(site_history$detections > 0) + nrow(missed) * conditional_occupancy) / nrow(site_history))` of the `r nrow(site_history)` sites, which is the model's estimate of `psi`. An occupancy model does not simply scale up naive occupancy. It adds back the sites that its detection probability says were missed.
+Accordingly, we detected the species at `r sum(site_history$detections > 0)` sites, which is clearly less than what the model estimates as the true number of occupied sites: `r round(nrow(site_history)*psi_hat, 1)`. Thus, the number of apparently empty sites that the model thinks are truly occupied is the difference between those two numbers: `r round(nrow(site_history) * psi_hat - sum(site_history$detections > 0), 1)` sites.
 
-This model gives every all-negative site the same conditional probability, because it knows nothing that distinguishes one site from another. The next section gives it something.
+We can calculate this number a second way. An all-negative site is either occupied but missed by every sample, with probability `psi * (1 - p)^M`, or empty, with probability `1 - psi`. The **conditional probability of occupancy** is the occupied group's share of the all-negative sites: `psi * (1 - p)^M / (psi * (1 - p)^M + 1 - psi)`, which is `r format_percent(conditional_occupancy)` here. In words, given that a site produced no detections, it is the probability that the species is nonetheless there. Multiplying by the number of all-negative sites gives how many of them the model expects to be occupied: `r nrow(missed)` sites times `r format_percent(conditional_occupancy)` is `r round(nrow(missed) * conditional_occupancy, 1)`. The two ways agree because they must: at the maximum-likelihood estimate, `psi` is exactly the share of sites made up of those with detections plus those the model expects were missed.
 
-## Covariates say which sites those are
+Now, the model's estimate is not perfect. It expects `r round(nrow(missed) * conditional_occupancy, 1)` occupied sites among the all-negative ones, but we know the truth, which is that `r sum(missed$occupied)` all-negative sites actually contained the species. In the next section, we add a **collection** covariate and an **occupancy** covariate to the model. Together they improve the estimate of how many all-negative sites are occupied, and in the section after that, we use them to rank the all-negative sites by how likely each is to hold the species.
 
-Two kinds of measured covariate can tell the all-negative sites apart. An **occupancy covariate** describes the habitat: where the habitat suits the species, a site is more likely to be occupied before we look at any samples. A **collection covariate** describes how each sample was taken: where collection was poor, a miss is less surprising. In this survey the occupancy covariates are `X_psi.EnvCov.1` and `X_psi.EnvCov.2`, and the collection covariate is `X_theta`, measured for each field sample. Think of `X_theta` as sampling effort, such as the volume of water filtered; in the simulation it is a measurement in arbitrary units.
+## Adding covariates to the likelihood
 
-Each covariate enters through the same logistic link as in Lesson 2. A site's occupancy probability is `plogis(a + b * environment)` and a sample's detection probability is `plogis(c + d * effort)`. We scale both covariates to mean 0 and standard deviation 1, so that `a` and `c` describe an average site and an average sample, and the slopes are changes per standard deviation. We use only `X_psi.EnvCov.1`, which keeps the hand calculation to four numbers, two for each part of the model. OTU_3 responds to both habitat covariates in the simulation. On your own survey, include every habitat covariate you measured, as Lesson 2's fits do.
+Two kinds of measured covariate can separate the all-negative sites into truly empty and occupied but species not detected.
 
-The likelihood has the same two lines as before. The only change is that each site now has its own `psi`, and each sample its own `p`. Here `distinct()` keeps one copy of each site's habitat value and each sample's effort value, because `survey_info` repeats them on every PCR row.
+- During a survey, the ecologist typically measures features of the ***site*** that are likely to affect its suitability for the species. For example, this might be river width or vegetation type. These are coded as **occupancy covariates**.
+
+- The ecologist also records variables that might affect how likely each ***sample*** is to detect the species. For example, if the sample type is water, a **collection covariate** might be the volume of water per sample, and if, say, all three sample volumes are low, we would be less surprised if the samples fail to detect the species. In turn, this means that **we would be slightly more likely to believe that the species could truly be at that site**.
+
+In our survey, the occupancy covariate is called `environment`, measured once per site, and the collection covariate is called `effort`, measured once per sample.
+
+Each covariate enters the likelihood equation through the same logistic link that we used in the simulation. A site's occupancy probability is `plogis(a + b * environment)` and a sample's detection probability is `plogis(c + d * effort)`, giving us four parameters (numbers) to estimate. For example, if `b` is a positive number, then a higher value of the occupancy covariate for a site predicts that the site has a higher probability of occupancy by the species.
+
+Both covariates were simulated with mean 0 and standard deviation 1, so the intercepts `a` and `c` describe an average site and an average sample, and the slopes `b` and `d` describe changes per standard deviation. `scale()` puts the measured covariates on the same footing.
+
+The likelihood has the same two routes as before: a site with a detection must be occupied, and a site with no detections is either empty or occupied-but-missed-by-every-sample. What changes is that each **site** now has its own `psi`, from its own value of `environment`, and each **sample** has its own `p`, from its own value of `effort`. So we can no longer work from the `site_history` table, which has one row per site and only reports the sum of the detections. We return to the per-sample table, `one_stage`, which has one row per sample, because each sample has its own `effort` and its own result.
+
+To understand how the new likelihood function uses `one_stage`, we first calculate a likelihood by hand for two sites, sites 2 and 3. Site 2 is like site A from the previous section: the species was detected, in `r sum(one_stage$detected[one_stage$Site == 2])` of its 3 samples. Site 3 is like site B: no sample detected the species, even though it is present (which we know only because we simulated its presence). We also need a guess for the four numbers, just as we needed a guess for `psi` and `p` before. We try `a` = 0, `b` = 1, `c` = 0 and `d` = 1.
+
+**Step 1: a `psi` for each site and a `p` for each sample.**
+
+```{r covariate-step-1}
+guess_cov <- c(a = 0, b = 1, c = 0, d = 1)
+
+two_sites <- one_stage |>
+  filter(Site %in% c(2, 3)) |>
+  select(Site, Sample, environment, effort, detected) |>
+  mutate(psi = plogis(guess_cov[["a"]] + guess_cov[["b"]] * environment),
+         p = plogis(guess_cov[["c"]] + guess_cov[["d"]] * effort))
+
+two_sites
+```
+
+Each row is one sample. The `environment` value is the same in all three rows of a site because it is measured once per site. As a result, `psi` is also the same in all three rows of a site. Site 3's habitat value is higher than site 2's, so under this guess, site 3 is more likely to be occupied: `psi` for site 3 = `r format_percent(two_sites$psi[two_sites$Site == 3][1])` against `psi` for site 2 = `r format_percent(two_sites$psi[two_sites$Site == 2][1])`.
+
+`p` changes from row to row, because each sample has its own `effort`. Site 3's samples were all taken with low effort (more negative numbers), so each sample at site 3 had only a small chance of detecting the species, between `r format_percent(min(two_sites$p[two_sites$Site == 3]))` and `r format_percent(max(two_sites$p[two_sites$Site == 3]))`.
+
+Thus, given the measured `environment` of each site and `effort` of each sample, and a guess at `a`, `b`, `c` and `d` (which set the species' occupancy and detection at an average site and sample, and how each changes with `environment` and `effort`), we can calculate two probabilities for each of the six samples: `psi`, the chance that its site is occupied, and `p`, the chance that it detects the species if the site is occupied. You can see these probabilities in `two_sites`, and it is easy to imagine doing this for any number of sites.
+
+**Step 2: the probability of each sample's result, if the site is occupied.**
+
+We now have an estimated probability `p` for every sample (calculated from the sample's `effort` and our guess parameters). Suppose for now that the species is truly at the site. Then a sample that detected it must have done so with that sample's probability `p`, and a sample that missed it must have done so with that sample's probability `1 - p`. Let's make a new table, `sample_probs`, showing these `p` and `1 - p` values, which we convert to logs.
+
+```{r covariate-step-2}
+sample_probs <- two_sites |>
+  mutate(if_occupied = ifelse(detected == 1, p, 1 - p),
+         per_sample = log(if_occupied))
+
+select(sample_probs, Site, Sample, detected, effort, p, if_occupied, per_sample)
+
+# pull out site 2 to check by hand below
+site2 <- filter(sample_probs, Site == 2)
+```
+
+Read the `if_occupied` column. In site 2, sample 1 has an `if_occupied` value of `r format_percent(site2$if_occupied[1])`: if the species is at the site, that sample had a `r format_percent(site2$if_occupied[1])` probability of detecting it, and in fact the sample did detect the species.
+
+Now, interestingly, site 2, sample 2 has a `r format_percent(site2$if_occupied[2])` probability of *not* detecting (`1 - p`) the species, which traces back to the calculated probability `p` = `r format_percent(site2$p[2])` of detecting, which itself traces back to that sample's `effort` value, which was `r round(site2$effort[2], 3)`, meaning that effort in that sample was `r round(abs(site2$effort[2]), 1)` standard deviations below the mean. And *that* traces back to our guesses `c` = 0 and `d` = 1 for how to translate effort to a probability of detection: `plogis(0 + 1 * effort)`. A `r format_percent(site2$if_occupied[2])` chance of missing the species is not small, and indeed, the sample did not detect the species. So we can say that our current guesses of `c` = 0 and `d` = 1 fit reasonably well with this data point. The big question is how well the same `c` and `d` values fit with *all* of the data points, relative to all the other guesses. The likelihood scores that for each guess, and `optim()` searches for the guess with the best score.
+
+> N.B. The `if_occupied` column is here only to make the step visible. The function below skips straight to calculating the `per_sample` column, which is `log(if_occupied)`.
+
+**Step 3: combine each site's samples into one row.**
+
+We also want to assess our guesses of `a` = 0 and `b` = 1, which determine `psi`, the probability that the species is at the site, given that site's `environment` value: `psi = plogis(a + b * environment)`. To do this, we first need to combine the sample probabilities that we calculated above into a single probability, per site, of that site's whole record of detections and misses, if the species is there.
+
+Because the samples at an occupied site are independent (the model assumes this, and we design sampling to try to fulfil the assumption), the probability of the site's whole detection record (across all its samples) is the product of its samples' probabilities. With logs, the product is a sum. `group_by(Site)` and `summarise()` do this for each site and keep two other things the next step needs: the site's `psi` value, which is calculated from the guesses and the site's environment value (see previous paragraph), and whether any of its samples detected the species.
+
+```{r covariate-step-3}
+by_site <- sample_probs |>
+  group_by(Site) |>
+  summarise(
+    psi = first(psi), 
+    detected_any = any(detected == 1), 
+    ll_if_occupied = sum(per_sample), # per_sample holds log(if_occupied)
+    .groups = "drop"
+  )
+
+by_site
+```
+
+`first(psi)` takes the site's `psi` from its first row; any row would do, since they are all the same.
+
+`ll_if_occupied` is the log probability of the site's record, if the site is occupied by the species. In other words, for a given relationship between sample effort and detection probability `p` that we get from our guessed `c` and `d` values, it is the combined probability of achieving that site's total record of detections and misses, assuming that the species is present, presented in log form.
+
+We can hand calculate this. The three `if_occupied` values from site 2 were `r round(site2$if_occupied[1], 3)`, `r round(site2$if_occupied[2], 3)` and `r round(site2$if_occupied[3], 3)`. Their product is `r round(prod(round(site2$if_occupied, 3)), 4)`, and its log is `r round(log(prod(round(site2$if_occupied, 3))), 2)`, which is `ll_if_occupied` for site 2 in the table.
+
+> Why only "if occupied"? If the species is *absent* from a site, the probability of a given detection record is easy to calculate.
+>
+> If every sample produced no detection, the probability of this outcome is 1, because an empty site can only produce misses.
+>
+> The probability of one or more samples being positive is 0. That is, it's impossible for a positive detection when the species is absent, since we assume no false positives in this model. We incorporate this logic into Step 4 below.
+
+For site 3, `exp(ll_if_occupied)` turns `ll_if_occupied` back into a probability, `r format_percent(exp(by_site$ll_if_occupied[by_site$Site == 3]))`: the chance that all three samples missed a species that was truly present. This number plays the part of `(1 - p)^3` in the first model, which had no covariates, but here, it is built from three different values of `p`. The value is large here because site 3's samples all had low effort. So even if the species were there, there was a `r format_percent(exp(by_site$ll_if_occupied[by_site$Site == 3]))` chance that all three would miss it. Three misses at site 3 are therefore weak evidence that the species is absent. Combining this miss probability with site 3's `psi` gives the probability that the species is there despite no detections, which we calculate for every all-negative site later in this section.
+
+**Step 4: the two routes, site by site.**
+
+We have combined the separate sample probabilities for a site into a single value `ll_if_occupied`, creating the new table `by_site` with one row per site. Now we can calculate the probability of the detection record for a given full set of guesses (`a`, `b`, `c`, and `d`), which combine with each site's `environment` and each sample's `effort` to give `psi`, the probability that the species is at the site, and `p`, the probability that each sample detects it if it is there.
+
+To bring it back to the beginning, `a`, `b`, `c` and `d` are what we want to estimate from the data, and with them we can use the `environment` value to calculate `psi` for any site and the `effort` value to calculate `p` for any sample.
+
+```{r covariate-step-4}
+site_routes <- by_site |>
+  mutate(ll_site = ifelse(detected_any,
+                          log(psi) + ll_if_occupied, 
+                          log(psi * exp(ll_if_occupied) + (1 - psi))))
+
+site_routes
+
+# pull out site 3 to check by hand below
+site3 <- filter(site_routes, Site == 3)
+site3_missed <- site3$psi * exp(site3$ll_if_occupied)  # occupied but missed by all three samples
+```
+
+Looking at `site_routes`, site 2 had a detection (`detected_any = TRUE`), so it must be occupied. Its log probability is therefore `log(psi)`, for occupied, plus `ll_if_occupied`, for this record of samples.
+
+> Don't forget that by adding these two logged values, we are really multiplying their probabilities: the species is present AND its samples gave this record of detections and misses. When we have an AND relationship between two probabilities, we multiply, because `ll_if_occupied` is already the probability of the record *given* that the species is present. This is the calculation we did for site A, just in logs and with a separate `p` for each sample.
+>
+> `ll_if_occupied` is calculated with `c` and `d`, and `psi` is calculated with `a` and `b`, so `log(psi) + ll_if_occupied` calculates the log probability of the detection record given all four guessed values: `a`, `b`, `c`, and `d`.
+
+Site 3 had no detections (`detected_any = FALSE`), so we add the two routes: `psi * exp(ll_if_occupied)` for occupied but missed by all three samples, plus `1 - psi` for empty. The empty route is really `(1 - psi) * 1`: the chance that the site is empty, times the probability that an empty site gives all misses, which is 1 (see the callout in Step 3).
+
+> The complication here is that we don't want to multiply probabilities for this case. We want to add the two probabilities: (1) the species is present AND not detected by any sample OR (2) the species is absent. When two routes are mutually exclusive (a site can't be both occupied and empty), the probability of one OR the other is their sum. Because `ll_if_occupied` is logged, we turn it back into a probability with `exp()` (= un-log), add the two routes, and take the log of the total.
+
+We can hand calculate this too. For site 3, occupied but missed is `r round(site3$psi, 3)` × `r round(exp(site3$ll_if_occupied), 3)` = `r round(site3_missed, 3)`, and empty is `r round(1 - site3$psi, 3)`. The total is `r round(site3_missed + 1 - site3$psi, 3)`, and its log is `r round(site3$ll_site, 3)`, which is `ll_site` for site 3 in the table.
+
+**Step 5: add up the sites.**
+
+The log likelihood of the guess for these two sites is the sum of the sites' values: `r round(site_routes$ll_site[site_routes$Site == 2], 2)` + `r round(site_routes$ll_site[site_routes$Site == 3], 2)` = `r round(sum(site_routes$ll_site), 2)`. Adding logs multiplies probabilities, so this is the log of the probability of site 2's record AND site 3's record, which we can multiply because the sites are independent.
+
+`covariate_loglik()` in the next chunk does the five steps above in one go for all of the sites at once. Its four numbers, `par[1]` to `par[4]`, are `a`, `b`, `c` and `d`. Run on sites 2 and 3 with our guess, it gives the same answer as the hand calculation.
+
+`optim()` uses `covariate_loglik()` to try many guesses of the four numbers, starting from four zeros, and keeps the guess with the highest log likelihood. `method = "BFGS"` uses the slope of the log likelihood to decide which way to step, which is usually faster and more reliable than the default when there are several numbers to find. We look at what it did below.
 
 ```{r covariate-mle}
-site_covariates <- survey_info |>
-  distinct(Site, environment = X_psi.EnvCov.1)
-sample_covariates <- survey_info |>
-  distinct(Site, Sample, effort = X_theta)
+# from the one-stage-mle code chunk above:  calculating likelihood *without* covariates
+# one_stage_loglik <- function(par, history) {
+#   psi <- plogis(par[1]) # only one parameter
+#   p <- plogis(par[2]) # only one parameter
+#   with(history, {
+#     detected_sites <- detections > 0
+#     ll_detected <- log(psi) + detections * log(p) + (samples - detections) * log(1 - p)
+#     ll_missed <- log(psi * (1 - p)^samples + (1 - psi))
+#     sum(ifelse(detected_sites, ll_detected, ll_missed))
+#   })
+# }
 
-history_cov <- one_stage |>
-  left_join(site_covariates, by = "Site") |>
-  left_join(sample_covariates, by = c("Site", "Sample")) |>
-  mutate(environment = as.numeric(scale(environment)),
-         effort = as.numeric(scale(effort)))
-
+# calculating likelihood *with* covariates
 covariate_loglik <- function(par, d) {
-  psi <- plogis(par[1] + par[2] * d$environment)
-  p <- plogis(par[3] + par[4] * d$effort)
+  psi <- plogis(par[1] + par[2] * d$environment) # 2 parameters, and psi depends on the environment
+  p <- plogis(par[3] + par[4] * d$effort) # 2 parameters, and p depends on the effort
   per_sample <- ifelse(d$detected == 1, log(p), log(1 - p))
   by_site <- d |>
     mutate(per_sample = per_sample, psi = psi) |>
@@ -211,18 +405,67 @@ covariate_loglik <- function(par, d) {
     log(psi * exp(ll_if_occupied) + (1 - psi)))))
 }
 
-fit_cov <- optim(c(0, 0, 0, 0), covariate_loglik, d = history_cov,
+covariate_loglik(guess_cov, two_sites)  # the hand calculation for sites 2 and 3, again, using the guesses: a = 0, b = 1, c = 0, d = 1
+
+observed_samples <- select(one_stage, Site, environment, effort, detected)  # This is the survey data only
+
+fit_cov <- optim(c(0, 0, 0, 0), covariate_loglik, d = observed_samples,
                  control = list(fnscale = -1), method = "BFGS")
-coefficients <- setNames(fit_cov$par, c("psi_intercept", "psi_environment", "p_intercept", "p_effort"))
-round(coefficients, 3)
+# optim(initial_values_of_parameters_to_estimate, likelihood_function, data, method). It is extremely fast, but in fact, it has tried many different guesses. 
+
+coefficients <- setNames(fit_cov$par, c("psi_intercept", "psi_environment", "p_intercept", "p_effort")) # extract the guesses that produce the maximum likelihood value
+
+tibble(letter = c("a", "b", "c", "d"),
+       coefficient = names(coefficients),
+       estimate = round(coefficients, 3))
 ```
 
-The four numbers are on the logit scale. The habitat slope, `psi_environment`, is `r if (coefficients[["psi_environment"]] < 0) "negative" else "positive"`, so OTU_3 is more likely to occupy sites with `r if (coefficients[["psi_environment"]] < 0) "low" else "high"` values of `X_psi.EnvCov.1`. The effort slope, `p_effort`, is `r if (coefficients[["p_effort"]] > 0) "positive" else "negative"`: a sample's chance of detecting the species is `r format_percent(plogis(coefficients[["p_intercept"]]))` at average effort, `r format_percent(plogis(coefficients[["p_intercept"]] + coefficients[["p_effort"]] * min(history_cov$effort)))` at the lowest effort in the survey and `r format_percent(plogis(coefficients[["p_intercept"]] + coefficients[["p_effort"]] * max(history_cov$effort)))` at the highest.
+The four numbers are on the logit scale.
 
-Now we repeat the conditional calculation for each all-negative site, with that site's own numbers. The chance that every sample misses a species that is present is the product of `1 - p` over the site's samples. A site whose samples were all taken with little effort therefore has a high chance of missing it. The conditional probability then has the same form as before: `psi * miss / (psi * miss + 1 - psi)`.
+The habitat slope, `psi_environment` or `b`, is `r if (coefficients[["psi_environment"]] < 0) "negative" else "positive"`, so the species is more likely to occupy sites with `r if (coefficients[["psi_environment"]] < 0) "low" else "high"` values of `environment`.
+
+The effort slope, `p_effort` or `d`, is `r if (coefficients[["p_effort"]] > 0) "positive" else "negative"`: a sample's chance of detecting the species is `r format_percent(plogis(coefficients[["p_intercept"]]))` at average effort, `r format_percent(plogis(coefficients[["p_intercept"]] + coefficients[["p_effort"]] * min(one_stage$effort)))` at the lowest effort in the survey and `r format_percent(plogis(coefficients[["p_intercept"]] + coefficients[["p_effort"]] * max(one_stage$effort)))` at the highest.
+
+**How much work did `optim()` do?** To see, we wrap `covariate_loglik()` in a function that also writes down every guess it is asked to score, and run the same search again.
+
+```{r optim-trail, fig.height=4}
+trail <- list()
+tracked_loglik <- function(par, d) {
+  ll <- covariate_loglik(par, d)
+  trail[[length(trail) + 1]] <<- c(a = par[1], b = par[2], c = par[3], d = par[4], loglik = ll)  # <<- adds to `trail` outside the function
+  ll
+}
+
+fit_tracked <- optim(c(0, 0, 0, 0), tracked_loglik, d = observed_samples,
+                     control = list(fnscale = -1), method = "BFGS")
+
+guesses_tried <- as_tibble(do.call(rbind, trail)) |>
+  mutate(guess = row_number(), .before = 1) |>
+  mutate(best_so_far = cummax(loglik))
+
+fit_cov$counts       # what optim() reports
+fit_cov$convergence  # 0 means it stopped because it had converged
+nrow(guesses_tried)  # how many times the likelihood was actually calculated
+
+slice(guesses_tried, c(1:10, n())) # showing the first ten and the last
+
+ggplot(guesses_tried, aes(guess, loglik)) +
+  geom_line(colour = "grey70") +
+  geom_point(size = 1) +
+  geom_step(aes(y = best_so_far), colour = "firebrick") +
+  labs(x = "Guess number", y = "Log likelihood")
+```
+
+`optim()` reports that it scored `r fit_cov$counts[["function"]]` guesses and calculated `r fit_cov$counts[["gradient"]]` gradients. A gradient tells it which direction is uphill. Because we did not give `optim()` a formula for the gradient, it estimates each one by nudging each of the four numbers a tiny amount up and down and scoring the result, which costs 8 more likelihood calculations per gradient. In total, the likelihood was calculated `r nrow(guesses_tried)` times. The first 10 rows of the table `guesses_tried` show this: the starting guess of four zeros, then `a` nudged up and down by 0.001, then `b`, then `c`, then `d`. Then `optim()` tries a new guess starting in row 10.
+
+The plot shows the search, one point per guess. The flat runs of points are those nudges: each run is one gradient being estimated, and the nudges are too small to change the log likelihood visibly. After each gradient, `optim()` takes a step uphill. The deep dips are steps that went too far: the new guess scored worse, so `optim()` threw it away and tried a shorter step in the same direction. Guess `r which(is.infinite(guesses_tried$loglik))[1]` went so far that one of its probabilities rounded to zero, giving a log likelihood of `-Inf`; the plot draws it at the bottom edge. The red line is the best log likelihood found so far, which is the guess `optim()` keeps. It starts at `r round(guesses_tried$loglik[1], 1)` for four zeros, jumps up within the first few steps, and then creeps up to `r round(max(guesses_tried$loglik), 3)`, where no small change to `a`, `b`, `c` or `d` makes it any higher. The last row of the table is that best guess, which are the four numbers reported in `coefficients`. Each point is one full run of the five steps above, over all `r nrow(site_history)` sites. (Our hand calculation scored `r round(sum(site_routes$ll_site), 3)` for just two sites, so it is not on this scale.)
+
+## Which all-negative sites are most likely occupied?
+
+With the fitted coefficients, we can repeat the conditional calculation for each all-negative site, with that site's own numbers. The chance that every sample misses a species that is present is the product of `1 - p` over the site's samples. A site whose samples were all taken with little effort therefore has a high chance of missing it. The conditional probability then has the same form as before: `psi * miss / (psi * miss + 1 - psi)`.
 
 ```{r missed-by-site}
-missed_by_site <- history_cov |>
+missed_by_site <- one_stage |>
   mutate(
     psi = plogis(coefficients[["psi_intercept"]] + coefficients[["psi_environment"]] * environment),
     p = plogis(coefficients[["p_intercept"]] + coefficients[["p_effort"]] * effort)
@@ -246,7 +489,31 @@ n_shown <- 10
 head(missed_by_site, n_shown)
 ```
 
-Each row is one all-negative site, ranked by its conditional probability of occupancy. `environment` is the site's scaled habitat value and `mean_effort` the mean scaled effort of its samples. `psi` is the site's probability of occupancy from its habitat, `miss` is the chance that all its samples miss a species that is present, and `occupied` is the simulation's answer. Read the top rows from left to right. Suitable habitat raises `psi`, low collection effort raises `miss`, and the sites where both are high are where the species most probably hides. At the top site, site `r missed_by_site$Site[1]`, the habitat gives a probability of occupancy of `r format_percent(missed_by_site$psi[1])`, and the chance that its samples would all miss the species is `r format_percent(missed_by_site$miss[1])`. Together they give `r format_percent(missed_by_site$conditional[1])`.
+Each row is one all-negative site, ranked by its conditional probability of occupancy.
+
+`environment` is the site's scaled habitat value and `mean_effort` the mean scaled effort of its samples. `psi` is the site's probability of occupancy from its habitat, `miss` is the chance that all its samples miss a species that is present, and `occupied` is the true presence (1) or absence (0) from the simulation, which the model never sees. Read the top rows from left to right. Suitable habitat raises `psi`, low collection effort raises `miss`, and the sites where both are high are where the species most probably hides.
+
+The conditional probability of occupancy answers a different question from `psi`. `psi` is the chance that the species is at the site *before* we look at the samples, from the site's habitat alone. The conditional probability is the chance *after* we have looked and learned that every sample missed. Those misses are evidence against presence, so the conditional probability is always lower than `psi`. How much lower depends on `miss`: if the samples would probably have missed the species anyway (because `effort` was low), the misses tell us little.
+
+To see the calculation, take the top site, site `r missed_by_site$Site[1]`, and imagine 1,000 sites exactly like it, with the same habitat and the same sampling effort.
+
+```{r conditional-by-hand}
+top_site <- missed_by_site[1, ]
+copies <- 1000
+
+occupied_copies <- copies * top_site$psi
+missed_copies <- occupied_copies * top_site$miss  # occupied, but every sample missed
+empty_copies <- copies * (1 - top_site$psi)       # empty, so every sample missed
+
+round(c(occupied = occupied_copies,
+        occupied_and_missed = missed_copies,
+        empty = empty_copies,
+        share_occupied = missed_copies / (missed_copies + empty_copies)), 3)
+```
+
+Of the 1,000 copies, `psi` = `r format_percent(top_site$psi)` are occupied: `r round(occupied_copies)` sites. At each of them, every sample misses with probability `miss` = `r format_percent(top_site$miss)`, so `r round(missed_copies)` occupied sites produce no detections. The other `r round(empty_copies)` sites are empty, and they produce no detections too. So `r round(missed_copies + empty_copies)` of the copies look exactly like site `r top_site$Site` in the survey, and `r round(missed_copies)` of those are occupied: `r format_percent(top_site$conditional)`. That share is the conditional probability of occupancy, and it is what `psi * miss / (psi * miss + 1 - psi)` calculates.
+
+Had site `r top_site$Site`'s samples been good, with `miss` = 5%, only `r round(occupied_copies * 0.05)` of the `r round(occupied_copies)` occupied copies would have produced no detections, and the conditional probability would fall to `r format_percent(occupied_copies * 0.05 / (occupied_copies * 0.05 + empty_copies))`. The same three misses mean much more when the samples were good.
 
 ```{r missed-by-site-summary}
 missed_by_site |>
@@ -260,86 +527,224 @@ missed_by_site |>
   )
 ```
 
-The simulation's `occupied` column confirms the ranking. Of the `r n_shown` all-negative sites the model ranks as most likely to be occupied, `r sum(head(missed_by_site$occupied, n_shown))` were occupied. Of the other `r nrow(missed_by_site) - n_shown`, only `r sum(missed_by_site$occupied) - sum(head(missed_by_site$occupied, n_shown))` were. The `expected_occupied` column adds up the conditional probabilities in each group. Across all the all-negative sites the model expected `r round(sum(missed_by_site$conditional), 1)` to be occupied, against `r sum(missed_by_site$occupied)` that were. The model without covariates gave every one of these sites the same `r format_percent(conditional_occupancy)`. Habitat and effort cannot say for certain which sites are occupied, because the habitat covariate explains only part of where OTU_3 occurs. They do say where to look. On your own survey, this is the reason to record collection conditions for every sample: without them, a miss in a poor sample looks the same as a miss in a good one.
+The simulation's `occupied` column confirms the ranking. Of the `r n_shown` all-negative sites the model ranks as most likely to be occupied, `r sum(head(missed_by_site$occupied, n_shown))` were occupied. Of the other `r nrow(missed_by_site) - n_shown`, only `r sum(missed_by_site$occupied) - sum(head(missed_by_site$occupied, n_shown))` were occupied. The `expected_occupied` column adds up the conditional probabilities in each group. Across all the all-negative sites the model expected `r round(sum(missed_by_site$conditional), 1)` to be occupied, against `r sum(missed_by_site$occupied)` that were. The model without covariates gave every one of these sites the same `r format_percent(conditional_occupancy)`.
+
+Habitat and effort cannot say for certain which sites are occupied, because even where the habitat suits the species, species presence is still subject to chance. The simulation drew `z` (true presence) with `rbinom()`. Habitat and effort do say where to look. On your own surveys, this is the reason to record collection conditions for every sample: without them, a miss in a poor sample looks the same as a miss in a good one.
 
 These are the two covariate groups that `runOccJSDM()` takes: `occCovariates` for occupancy, which the package calls `psi`, and `collCovariates` for collection, which it calls `theta`.
 
-## How many replicates are enough
+## How many replicates are enough?
 
-The question every survey designer asks is how many samples a site needs. If each sample detects a species that is present with probability `p`, the chance that all `M` samples miss it is `(1 - p)^M`, and the chance of at least one detection is `1 - (1 - p)^M`. The figure uses the detection probability estimated above.
+The question every survey designer asks is how many samples a site needs. If each sample detects a species that is present with probability `p`, the chance that all `M` samples miss it is `(1 - p)^M`, and the chance of at least one detection is `1 - (1 - p)^M`. This assumes that every sample has the same `p`, which in our survey means the same effort. So we use the covariate fit and draw one line for each of three efforts: low (one standard deviation below average), average, and high (one standard deviation above).
 
 ```{r replicate-design, fig.height=4}
-replicate_design <- tibble(samples = 1:8) |>
-  mutate(chance_of_missing = (1 - p_hat)^samples)
+effort_levels <- c(low = -1, average = 0, high = 1)  # in standard deviations of effort
+effort_p <- plogis(coefficients[["p_intercept"]] + coefficients[["p_effort"]] * effort_levels)
 
-ggplot(replicate_design, aes(samples, chance_of_missing)) +
+replicate_design <- expand_grid(effort = names(effort_levels), samples = 1:15) |>
+  mutate(p = effort_p[effort],
+         chance_of_missing = (1 - p)^samples,
+         effort = factor(effort, levels = names(effort_levels)))
+
+ggplot(replicate_design, aes(samples, chance_of_missing, colour = effort)) +
   geom_hline(yintercept = 0.05, linetype = "dashed", colour = "grey50") +
+  geom_vline(xintercept = M, linetype = "dotted", colour = "grey50") +
   geom_line() +
   geom_point() +
-  geom_point(data = filter(replicate_design, samples == M), colour = "#D55E00", size = 3) +
-  scale_x_continuous(breaks = 1:8) +
-  scale_y_continuous(labels = scales::percent, limits = c(0, NA)) +
+  scale_x_continuous(breaks = 1:15) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  scale_colour_manual(values = c(low = "#0072B2", average = "grey20", high = "#D55E00")) +
   labs(x = "Field samples per site", y = "Chance of missing a present species",
-       title = "With this detection probability, how many samples does a site need?",
-       caption = "Red-orange: this survey's samples per site. Dashed line: a 5% chance of missing.")
+       colour = "Effort per sample",
+       title = "How many samples does a site need?",
+       caption = "Dotted line: this survey's samples per site. Dashed line: a 5% chance of missing.")
+
+samples_needed <- ceiling(log(0.05) / log(1 - effort_p))  # samples for a 5% chance of missing
+tibble(effort = names(effort_levels), p = round(effort_p, 3), samples_for_5_percent = samples_needed)
 ```
 
-Each point is the chance that a site occupied by OTU_3 produces no detections, for a given number of samples. One sample misses the species `r format_percent(1 - p_hat)` of the time. This survey's `r M` samples miss it `r format_percent((1 - p_hat)^M)` of the time, which is why the previous sections found occupied sites among the all-negative ones. Reaching a 5% chance of missing would take `r ceiling(log(0.05) / log(1 - p_hat))` samples per site.
+Each point is the chance that an occupied site produces no detections, for a given number of samples, all taken at the same effort. At average effort, one sample detects the species `r format_percent(effort_p[["average"]])` of the time, so it misses `r format_percent(1 - effort_p[["average"]])` of the time. This survey's `r M` samples at average effort miss it `r format_percent((1 - effort_p[["average"]])^M)` of the time, which is why the previous sections found occupied sites among the all-negative ones, and reaching a 5% chance of missing would take `r samples_needed[["average"]]` samples per site. At high effort, `r samples_needed[["high"]]` samples are enough. At low effort, each sample detects the species only `r format_percent(effort_p[["low"]])` of the time, and reaching 5% would take `r samples_needed[["low"]]` samples, far off the plot.
 
-The number of replicates is a design decision, and the detection probability sets it. A pilot survey that estimates `p` for the species you care most about tells you how many samples you need; a species that is harder to detect needs more. The covariate section suggests a second lever: raising the effort per sample raises `p`, and a higher `p` needs fewer samples.
+The number of replicates is a design decision, and the detection probability sets it. A pilot survey that estimates `p` for the species you care most about tells you how many samples you need; a species that is harder to detect needs more. The figure also shows a second lever, which the covariate sections found: raising the effort per sample raises `p`, and a higher `p` needs far fewer samples.
 
-The package fits this one-stage occupancy model too. It does so when `info` has repeated rows for each site but no `Sample` column, so that each row is one sample with one detection record. The chunk below builds that input from the same true states for all `r xfun::n2w(ncol(lesson$input$sim$data_list$OTU))` species, and it is not run when knitting. `pivot_wider()` turns the one-row-per-species table into one column per species, and the covariates are joined onto the same rows, so `info` and `OTU` line up row for row. The records are already 0 or 1, so the default `threshold` of one read leaves them unchanged. `n_factors = 2` asks for two hidden site factors, which the second half of this lesson explains; the package's default is none.
+## How the occupancy model uses covariates, in brief
 
-```{r package-one-stage, eval=FALSE}
+For every site, the model asks two questions: how likely was the species to be here, given the habitat (`psi`), and how likely were we to see it if it was here, given how each sample was taken (`p`)? It then chooses the `a`, `b`, `c` and `d` that make the survey we actually got as probable as possible.
+
+Different sites teach the model different things.
+
+```{r covariate-intuition, echo=FALSE}
+tibble(
+  site = c("Detected in at least one sample",
+           "No detections, after good samples",
+           "No detections, after poor samples"),
+  what_it_tells_the_model = c(
+    "The species is certainly there. The site's habitat shows where the species lives, and its hits and misses, set against each sample's effort, show how detection depends on effort.",
+    "A blank after good samples is strong evidence of absence, so the site counts as probably empty.",
+    "A blank after poor samples is weak evidence, so the site stays close to its habitat-based `psi`."),
+  informs = c("`a` and `b`, and most of what is learned about `c` and `d`",
+              "`a` and `b`, where the species is not; `c` and `d`, how many blanks to expect",
+              "Little")
+) |>
+  knitr::kable(col.names = c("Site", "What it tells the model", "Informs"))
+```
+
+The all-negative sites matter for detection too: the model has to expect about as many blanks as the survey produced. And the two halves of the model keep each other honest. Habitat says where the species should be, and effort says how hard we looked. Without effort, a miss in a poor sample looks the same as a miss in a good one, which is why the first model, without covariates, underestimated `psi` and overestimated `p`.
+
+occJSDM fits exactly this model, as the next section shows.
+
+## Fitting the same model with occJSDM
+
+The occJSDM package can fit a one-stage occupancy model with covariates. It does so when `info` has repeated rows for each `Site` but no `Sample` column, so that each row is one sample with one detection record. The chunk below builds that input from our simulated survey and fits the model, which takes a few seconds. `info` holds the sites and the covariates, and `OTU` holds the detection records as a matrix with one column per species, here just one, so the two line up row for row. The records are already 0 or 1, so the default `threshold` of one read leaves them unchanged.
+
+```{r package-one-stage, message=FALSE}
 library(occJSDM)
 
-one_stage_survey <- truth_samples |>
-  mutate(detected = as.integer(z == 1 & w == 1)) |>
-  select(species, Site, Sample, detected) |>
-  pivot_wider(names_from = species, values_from = detected) |>
-  left_join(distinct(survey_info, Site, Sample, X_psi.EnvCov.1, X_psi.EnvCov.2, X_theta),
-            by = c("Site", "Sample")) |>
-  arrange(Site, Sample)
-
 one_stage_data <- list(
-  info = one_stage_survey |>
-    select(Site, X_psi.EnvCov.1, X_psi.EnvCov.2, X_theta) |>
+  info = one_stage |>
+    select(Site, environment, effort) |>
     as.data.frame(),
-  OTU = one_stage_survey |>
-    select(starts_with("OTU_")) |>
+  OTU = one_stage |>
+    select(species = detected) |>
     as.matrix()
 )
 
+head(one_stage_data$info)
+
+head(one_stage_data$OTU)
+
 fit_one_stage <- runOccJSDM(
   data = one_stage_data,
-  occCovariates = c("X_psi.EnvCov.1", "X_psi.EnvCov.2"),
-  collCovariates = "X_theta",
-  listParams = list(n_factors = 2),
+  occCovariates = "environment",
+  collCovariates = "effort",
   spatCovariates = NULL,
   MCMCparams = list(nchain = 2, nburn = 2000, niter = 2000, nthin = 1)
 )
-# occJSDM prints "occJSDM has inferred occupancy data" for this shape.
 ```
 
-The message confirms that `runOccJSDM()` inferred the one-stage model. It is the hand calculation's model extended by the second habitat covariate: its occupancy part uses both `X_psi.EnvCov.1` and `X_psi.EnvCov.2`, as the advice above recommends, where the hand calculation used only the first. Its collection probability, `theta`, is the per-sample detection probability that the hand calculation called `p`, and it depends on `X_theta` as our `p` depended on effort. The package fits all `r xfun::n2w(ncol(lesson$input$sim$data_list$OTU))` species together, with the hidden site factors that the second half of this lesson describes. It also estimates a rate of field-stage false positives, with a prior that expects the rate to be small, as Lesson 2 explains. This table has none, so the hand calculation leaves that rate out. The chain settings are short, for a quick look; check that the chains agree before reading the results, as Lesson 2 shows.
+When you run the chunk, these messages at the start confirm that `runOccJSDM()` inferred the one-stage model. (They are hidden on this page, along with the convergence report that follows them.)
 
-False positives are excluded from this half of the lesson by construction. They arrive in Lesson 2 with the second stage, PCR detection in the laboratory, which brings laboratory false positives as well as field-stage ones. There, the same replication logic protects site occupancy against contamination at collection.
+> Sample column missing, but detected repeated observations for some sites
+>
+> Only 0 and 1 detected
+>
+> occJSDM has inferred occupancy data
 
-## What a joint model does
+The package estimates the same four coefficients. Its occupancy probability, `psi`, depends on `environment` through `a` and `b`, and its collection probability, `theta`, is the per-sample detection probability that the hand calculation called `p`, depending on `effort` through `c` and `d`. We pull out the posterior draws of all four with `returnPosteriorDraws()` and set them beside the hand calculation's values and the true values from the simulation. Then we compare each sample's `theta`, from `computeAverageCollectionProbs()`, with the hand calculation's `p` for the same sample.
 
-A species distribution model relates the occurrence of one species to the environment. Fit one for each species and you have a stacked model: a set of independent models. Stacking is easy, and it is often fine for predicting one species at a time. What it cannot do is say anything about how species occur together beyond what the measured environment explains, because it assumes that species are independent once the covariates are known. A **joint species distribution model** (JSDM) fits all the species together and adds one thing: the **residual correlation** among species. After the measured environment has been accounted for, do two species still tend to occur together, or apart? Two practical consequences follow. A rare species borrows strength from the better-recorded species it tends to occur with. And predictions can be conditional: given that species A was recorded at a site, how likely is species B?
+One step comes first. Before fitting, occJSDM **standardises** each covariate: it subtracts the covariate's mean and divides by its standard deviation (across sites for `environment`, across samples for `effort`), so that all covariates are on the same scale. Its coefficients therefore describe a change of one standard deviation, not one unit, and the chunk converts them back to the raw scale that the hand calculation used. (Lesson 3 does the reverse, putting the truth on the standardised scale.)
 
-Hidden factors are a familiar idea outside ecology. A recommender system takes a table of viewers by films and finds two small tables whose product reproduces it: a score for each viewer on a few hidden dimensions, and a position for each film on the same dimensions. The dimensions turn out to be genres that nobody labelled. Replace viewers by sites and films by species, and the same arithmetic recovers unmeasured habitat axes from which species occur together. Here is that arithmetic on a toy community of six sites and five species, with two hidden gradients that we call wetness and shade.
+```{r package-theta}
+# occJSDM fits standardised covariates; convert an intercept and slope back to the raw scale of x
+unstandardise <- function(intercept, slope, x) {
+  list(intercept = intercept - slope * mean(x) / sd(x),
+       slope = slope / sd(x))
+}
 
-```{r toy-factorisation}
-species_scores <- rbind(                 # species x hidden gradients
-  species_A = c(wet = 1.0, shade = 0.0),
-  species_B = c(0.9, 0.1),
-  species_C = c(0.6, 0.6),
-  species_D = c(0.1, 0.9),
-  species_E = c(0.0, 1.0)
-)
-site_scores <- rbind(                    # sites x hidden gradients
+theta_draws <- returnPosteriorDraws(fit_one_stage, "beta_theta")[, "species", , ]  # coefficient x iteration x chain
+psi_raw <- unstandardise(intercept = as.vector(returnPosteriorDraws(fit_one_stage, "beta0_psi")),
+                         slope = as.vector(returnPosteriorDraws(fit_one_stage, "beta_psi")),
+                         x = sites$environment)
+theta_raw <- unstandardise(intercept = as.vector(theta_draws["(Intercept)", , ]),
+                           slope = as.vector(theta_draws["effort", , ]),
+                           x = one_stage$effort)
+
+package_draws <- list(psi_intercept = psi_raw$intercept, psi_environment = psi_raw$slope,
+                      p_intercept = theta_raw$intercept, p_effort = theta_raw$slope)
+
+coefficient_table <- tibble(
+  coefficient = c("a (psi_intercept)", "b (psi_environment)", "c (p_intercept)", "d (p_effort)"),
+  truth = true_coefficients[names(package_draws)],
+  hand = coefficients[names(package_draws)],
+  median = sapply(package_draws, median),        # the package's posterior median
+  lower = sapply(package_draws, quantile, 0.025), # and its 95% credible interval
+  upper = sapply(package_draws, quantile, 0.975)
+) |>
+  mutate(truth_inside = truth >= lower & truth <= upper)
+
+coefficient_table |>
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+
+sample_theta <- one_stage |>
+  select(Site, Sample, effort) |>
+  mutate(hand_p = plogis(coefficients[["p_intercept"]] + coefficients[["p_effort"]] * effort),
+         package_theta = computeAverageCollectionProbs(fit_one_stage)[, "species"])
+
+head(sample_theta)
+```
+
+For every coefficient, the package's median is close to the hand calculation's value, and the package adds a 95% credible interval, which the hand calculation did not. The `truth_inside` column checks each interval against the true value. The intervals for `r knitr::combine_words(c("a", "b", "c")[coefficient_table$truth_inside[1:3]], oxford_comma = FALSE)` contain their true values, and the interval for d, `r round(coefficient_table$lower[4], 2)` to `r round(coefficient_table$upper[4], 2)`, `r if (coefficient_table$truth_inside[4]) "also contains" else "just misses"` its true value, `r true_coefficients[["p_effort"]]`.
+
+The occupancy coefficients `a` and `b` are much less certain than the detection coefficients `c` and `d`: the interval for `b` runs from `r round(coefficient_table$lower[2], 2)` to `r round(coefficient_table$upper[2], 2)`. The reason for lower certainty in `a` and `b` is that occupancy is never fully observed. A site with a detection is certainly occupied, but an all-negative site may be empty or occupied and missed, so the model learns `a` and `b` from `r n_sites` site-level outcomes, some of them uncertain. The package's `b` is a little smaller than the hand calculation's, partly because its priors pull coefficients towards zero, which matters most when the data are weak, and partly because a posterior median is not the same as a single best value.
+
+In contrast, the model learns `c` and `d` directly from the many samples at those sites.
+
+Why are both the hand and occJSDM estimates of `d` too steep? It is because everything the survey knows about `d` comes from the samples at the occupied sites, and this survey has only `r sum(one_stage$detected)` detections among its `r sum(one_stage$z)` samples at occupied sites. By chance, its low-effort samples detected the species less often than their true `p`, and its high-effort samples more often, so the data themselves rise more steeply with effort than the truth does.
+
+A simulation lets us check this, because we know which sites are occupied:
+
+```{r effort-check}
+one_stage |>
+  filter(z == 1) |>                                   # truly occupied: known only in a simulation
+  mutate(effort_band = cut(effort, breaks = c(-Inf, -1, 0, 1, Inf)),
+         true_p = plogis(true_coefficients[["p_intercept"]] + true_coefficients[["p_effort"]] * effort)) |>
+  group_by(effort_band) |>
+  summarise(samples = n(),
+            observed_rate = mean(detected),
+            true_p = mean(true_p)) |>
+  mutate(across(c(observed_rate, true_p), \(x) round(x, 3)))
+```
+
+In the lowest band, the observed detection rate is below the true `p`, and in the highest band it is above. Even an analyst who knew which sites were occupied, and fitted the effort slope to those samples alone with an ordinary logistic regression (`glm()`), would get `r round(coef(glm(detected ~ effort, family = binomial, data = filter(one_stage, z == 1)))[["effort"]], 2)`. The estimates are faithful to the data; the data are a slightly unlucky draw. That is what a 95% interval allows for: across many surveys, about one interval in twenty misses the truth, and a different `set.seed()` would usually give an interval that contains 1.
+
+In short, the inaccurate estimate of `d` is just a bit of bad luck. With more data, especially more samples per site and a greater range of sampling effort (e.g. water volume), the model would more likely have returned a more accurate estimate of `d`, the effect of effort on probability of detection `p`. The lesson here is that one might want to deliberately add extra samples with low and high effort levels if one wants to estimate this parameter `d` better.
+
+Sample by sample, `theta` and the hand calculation's `p` are almost the same: their correlation across all `r nrow(sample_theta)` samples is `r round(cor(sample_theta$hand_p, sample_theta$package_theta), 4)`. They differ a little because the package reports the average of `theta` over its posterior draws, not `theta` at a single best guess, and because its priors pull the estimates slightly.
+
+## From occupancy models to species distribution models
+
+So far we have modelled one species and dealt with observation error. occJSDM does that, but it is also a particular kind of species distribution model (SDM): a *joint* SDM.
+
+In fact, you have already fitted one SDM. The occupancy part of our model, `psi = plogis(a + b * environment)`, relates a species' presence or absence to the environment. An SDM is used in two ways.
+
+- First, to **understand** what drives a species' distribution: here, `b` is `r if (coefficients[["psi_environment"]] > 0) "positive" else "negative"`, so the species is more likely to occupy sites with `r if (coefficients[["psi_environment"]] > 0) "high" else "low"` values of `environment`.
+
+- Second, to **predict** presence or absence at sites where we have measured the environment but have not surveyed the species. For example, here is the fitted model's probability of occupancy at five such sites.
+
+```{r sdm-predict}
+new_sites <- tibble(environment = c(-2, -1, 0, 1, 2))  # environment measured, species not surveyed
+
+new_sites |>
+  mutate(psi = plogis(coefficients[["psi_intercept"]] + coefficients[["psi_environment"]] * environment)) |>
+  mutate(psi = round(psi, 3))
+```
+
+A new site two standard deviations *below* the average `environment` has a `r format_percent(plogis(coefficients[["psi_intercept"]] - 2 * coefficients[["psi_environment"]]))` probability of being occupied, and one two standard deviations *above* has `r format_percent(plogis(coefficients[["psi_intercept"]] + 2 * coefficients[["psi_environment"]]))`.
+
+An eDNA survey usually records many species. The simplest approach fits a separate SDM to each of those species, a **stacked SDM**. Stacking is easy, and it is often fine for predicting one species at a time, but it treats the species as independent once the covariates are known. A **joint SDM** (JSDM) fits all the species in one model, which has several advantages:
+
+- **Residual co-occurrence.** It estimates which species occur together, or apart, **more often than predicted by their responses to the measured environmental covariates**. Such associations can point to unmeasured environmental gradients or, more cautiously, to interactions between species.
+- **Conditional prediction.** Recording one or more species at a site (e.g. with an in-person survey) can improve predictions for other species at that site. A stacked SDM cannot do this.
+- **Model-based ordination.** A classical ordination, such as NMDS, of a raw community table often just rediscovers the environmental gradients you have already measured. A JSDM's estimated values of the hidden environmental covariates at each site, in contrast, are an ordination of what the measured environment has not explained, so they can reveal *unmeasured* environmental gradients. The sites at the two ends of an axis are then the places to look for what drives it, for example by measuring candidate variables there.
+
+Residual co-occurrence and conditional prediction both rest on one technique, **factorisation**. With 100 species there are $4{,}950 \left(= \frac{100 \times 99}{2}\right)$ pairs of species, far too many correlations to reliably estimate directly from the raw data table: most correlations would be little more than noise. A JSDM instead assumes that a few hidden environmental covariates explain species co-occurrences, and the JSDM estimates these from the whole survey at once. Each site gets a *value* of each hidden environmental covariate, and each species a *response* (a coefficient) to each one. With 100 species and two hidden covariates, there are 200 species responses (100 species × 2 covariates). The 4,950 species correlations can then be calculated from the responses: for each pair of species, multiply their responses covariate by covariate and add up the products. Species that respond alike to the hidden covariates are positively correlated, species that respond in opposite directions are negatively correlated, and species that respond to different gradients are not correlated.
+
+The next two sections show how JSDMs work, **with observation error set aside** (we assume that we see true presence and absence). In [Lesson 2](occJSDM-lesson-2.md), we will put an occupancy model and a joint species distribution model together.
+
+## What a joint species distribution model does
+
+We start by **simulating** a small community in which we decide (1) the environmental conditions of each site and (2) how each species responds to those environmental conditions (the species' niches). From those choices we generate the presence/absence table that a survey would record, and we see how much of the community's structure can be recovered from the survey data alone.
+
+This is the strategy of all these lessons: give a model only the survey data, then check its answers against the simulation's starting conditions that produced the data.
+
+Our toy community has six sites, five species, and two environmental gradients, which we will call 'wetness' and 'shade'. To keep the idea clear, we leave out observation error and choose simple numbers by hand instead of drawing them at random.
+
+**Step 1: many species on measured gradients.**
+
+Start with the easy case, in which we have measured both gradients at every site. Two tables describe the community. `X` holds each site's value on each gradient, and `B` holds each species' response to each gradient.
+
+```{r toy-measured}
+X <- rbind(                           # sites x measured gradients
   site_1 = c(wet = 1.5, shade = 0.0),
   site_2 = c(1.2, 0.2),
   site_3 = c(1.0, 1.0),
@@ -347,78 +752,253 @@ site_scores <- rbind(                    # sites x hidden gradients
   site_5 = c(0.0, 1.5),
   site_6 = c(0.3, 0.3)
 )
-suitability <- site_scores %*% t(species_scores)
-round(suitability, 2)
-round(svd(suitability)$d, 3)
+B <- rbind(                           # species x responses to the gradients
+  species_A = c(wet = 1.0, shade = 0.0),
+  species_B = c(0.9, 0.1),
+  species_C = c(0.6, 0.6),
+  species_D = c(0.1, 0.9),
+  species_E = c(-0.4, 1.0)
+)
+X
+B
 ```
 
-Each species has a score on each hidden gradient: species_A is a wet-ground specialist, species_E a shade specialist and species_C sits between them. Each site has a score on the same gradients. A cell of `suitability` is the site's scores multiplied by the species' scores and added up, so it is high where the two line up. Take site_3, at `r site_scores["site_3", "wet"]` on both gradients, and species_C, at `r species_scores["species_C", "wet"]` on both: their cell is `r site_scores["site_3", "wet"]` times `r species_scores["species_C", "wet"]` plus `r site_scores["site_3", "shade"]` times `r species_scores["species_C", "shade"]`, which is `r suitability["site_3", "species_C"]`. The wet site with no shade, site_1, scores `r suitability["site_1", "species_A"]` for species_A and `r suitability["site_1", "species_E"]` for species_E.
+In `X`, each row is a site: site_1 is wet and unshaded, site_2 mostly wet and a bit shaded, site_3 both wet and shady, site_4 and site_5 dry and shady, and site_6 mostly dry and mostly unshaded.
 
-The table has `r length(suitability)` numbers, but the second printout shows that only `r sum(svd(suitability)$d > 1e-8)` of its singular values are not zero. The number of singular values that are not zero is the number of independent patterns in a table, so every column here is a mixture of the same `r sum(svd(suitability)$d > 1e-8)` patterns. The two small tables hold `r length(site_scores) + length(species_scores)` numbers and reproduce all `r length(suitability)`. In this lesson's survey, `r n_distinct(survey_info$Site)` sites by `r ncol(lesson$input$sim$data_list$OTU)` species is `r n_distinct(survey_info$Site) * ncol(lesson$input$sim$data_list$OTU)` cells, while two hidden factors need `r 2 * (n_distinct(survey_info$Site) + ncol(lesson$input$sim$data_list$OTU))` scores.
+In `B`, each row is a species. A positive number means the species does better where that gradient is high, a negative number means it does worse, and zero means it does not respond. species_A is a wet-ground specialist that is indifferent to shade; species_B is almost the same; species_C responds moderately positively to wetness and shade; species_D is mostly indifferent to wetness and likes shade; and species_E is a shade lover that likes dry ground (its negative response to wetness).
 
-A survey does not record suitability. It records presence or absence, which depends on suitability. Suppose, for the toy, that a species is present wherever its suitability exceeds 0.5.
+**A site suits a species when the site has a lot of what the species likes.** We can see this by multiplying the two tables together using a bit of matrix algebra. We multiply the site's value by the species' response, and then add up the gradients. `%*%`, R's matrix multiplication, does this for every site and species at once. `t()` turns `B` on its side so that the gradients line up.
+
+```{r toy-suitability}
+suitability <- X %*% t(B)
+round(suitability, 2)
+```
+
+`suitability` has one row per site and one column per species. It is not a probability: a higher value means more suitable habitat for that species, and the value can be negative (not suitable).
+
+- Take site_3, which `X` had defined as both wet and shady (both values are `r X["site_3", "wet"]`), and species_C, which moderately prefers both wet and shady conditions (both species values are `r B["species_C", "wet"]`). The site_3/species_C cell in suitability is `r suitability["site_3", "species_C"]`. This number is calculated as follows: `r X["site_3", "wet"]` times `r B["species_C", "wet"]` plus `r X["site_3", "shade"]` times `r B["species_C", "shade"]`.
+
+- The wet and open site_1 scores `r suitability["site_1", "species_A"]` for the wet specialist species_A, and `r suitability["site_1", "species_E"]` for species_E, which is negative because species_E avoids wet ground.
+
+If we could directly measure suitability in the field, we would know most of what we want to know when predicting species distributions. The problem is that we can't measure suitability; we can only measure species presence/absence (or abundance). Presence/absence (or abundance) *depend on* suitability but with noise.
+
+So for our final simulation step, we calculate a presence/absence table. Let's suppose that a species is present wherever its suitability exceeds 0.5. (A real model would also add randomness, so that a suitable site is only likely to be occupied, but we aren't doing that.)
 
 ```{r toy-presence}
 presence <- (suitability > 0.5) * 1
 presence
 ```
 
-This is the kind of table a survey gives you. The hidden gradients show through it: the wet sites, site_1 and site_2, hold species_A, species_B and species_C; the shaded sites, site_4 and site_5, hold species_C, species_D and species_E; site_3 holds everything and site_6 nothing. Nobody labelled the gradients, but the co-occurrence pattern groups the sites and the species along them. A JSDM works backwards from a table like this to the hidden gradients behind it.
+`presence` is our survey dataset. Each species' column was generated from the sites' gradient values in `X` and that species' own row of `B`.
 
-There is a catch in reading those gradients. Rotate both sets of scores by the same angle, and every individual score changes but the table does not.
+So where are we at this point?
 
-```{r toy-rotation}
-theta <- pi / 6
-rotation <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), 2, 2)
+- An ecologist will normally use fieldwork to produce two data tables: `X` and `presence`. `X` measures some environmental conditions at each survey site. `presence` records the presence/absence of some species at each site.
 
-round(rbind(original = species_scores["species_A", ],
-            rotated = (species_scores %*% rotation)["species_A", ]), 3)
-max(abs((site_scores %*% rotation) %*% t(species_scores %*% rotation) - suitability))
-round(species_scores %*% t(species_scores), 2)
+- The SDM's job is to use `X` and `presence` to estimate the `B` table, which you can think of as describing each species' niche, or environmental preferences. Technically, `B` holds the species' coefficients.
+
+- If you have measured every environmental gradient (here, we have assumed that there are only two gradients and that we have measured them both), then it is fairly straightforward to estimate `B` from `X` and `presence`, depending on how much noise there is and how well you have measured `X`.
+
+Let's try. Fitting one model per species' column is a stacked SDM. A real SDM would use a logistic regression, like the `optim()` fit earlier, but for mathy-technical reasons, a logistic SDM would break down on our toy example. So we use an ordinary linear regression, `lm()`.
+
+```{r toy-stacked-sdm}
+stacked_sdm <- lm(presence ~ X)      # one linear model per species' column
+# R is smart and if you give it the presence table, it knows to fit each column of presence separately.
+
+B_estimated <- t(coef(stacked_sdm))  # species x coefficients, like B
+
+round(cbind(estimated_wet = B_estimated[, "Xwet"], true_wet = B[, "wet"],
+            estimated_shade = B_estimated[, "Xshade"], true_shade = B[, "shade"]), 2)
 ```
 
-After the rotation, species_A moves from (`r paste(species_scores["species_A", ], collapse = ", ")`) to (`r paste(round((species_scores %*% rotation)["species_A", ], 3), collapse = ", ")`), so the axis we called wetness is no longer the wetness axis. Yet the rebuilt table differs from the original by at most `r sprintf("%.0e", max(abs((site_scores %*% rotation) %*% t(species_scores %*% rotation) - suitability)))` in R's scientific notation, which is rounding error. The names "wet" and "shade" were never in the data; we imposed them. The individual scores are therefore not identified: many sets of scores fit the data equally well.
+The B estimates are directionally correct (but with lots of error): species_A and species_B respond mostly to wetness, species_D and species_E mostly to shade, and species_C responds to both.
 
-What survives rotation is the last printout, the species-by-species table of cross-products. Read it as a table of which species go together. The pair species_A and species_B scores `r round((species_scores %*% t(species_scores))["species_A", "species_B"], 2)`, and so does the pair species_D and species_E. The pair species_A and species_E scores `r round((species_scores %*% t(species_scores))["species_A", "species_E"], 2)`, because they share no gradient. The middle species, species_C, is moderately similar to everything, because it straddles both gradients. **This species-by-species matrix is the interpretable output, and the individual scores are not.** Scaled to correlations, it is what the package reports as the residual correlations between species.
+These estimates are not exactly the same as the true values in `B` though, and two failures show what presence/absence throws away.
 
-Real data also contain measured covariates. Part of a species' suitability is explained by environment we measured, and only the rest by hidden gradients. The model then has two parts, `suitability = X %*% B + site_scores %*% t(species_scores)`: a measured part, where `X` holds each site's environmental covariates and `B` each species' response to them, plus a hidden part for the structure we did not measure.
+- First, species_A and species_B get identical estimates, as do species_D and species_E, because their columns of `presence` are identical: a 0/1 table cannot tell them apart.
 
-Swap the recommender's nouns for ecology and nothing else changes:
+- Second, species_E's dislike of wet ground (`r B["species_E", "wet"]`) comes out as a weak liking (`r round(B_estimated["species_E", "Xwet"], 2)`), because a 0/1 table records only whether a site is above the threshold, not how unsuitable it is.
 
-- Viewers become **sites**, and films become **species**.
-- The table of ratings becomes the site-by-species table of **occurrences**.
-- Viewer attributes, such as age, become the **environmental covariates**, and each species has its own response to them.
-- Film positions on the hidden dimensions become the **species loadings**, the species scores above.
-- Viewer tastes become **site scores** on the same hidden gradients.
-- The film-by-film similarity becomes the **species association matrix**, the residual correlations.
+More sites, or abundances instead of presence/absence, would bring the estimates closer to `B`. But more data alone cannot finish the job, because of a second obstacle: we can never measure all relevant environmental gradients, so our `X` table will always be incomplete. Given incomplete `X` tables, can we still learn species niches `B`? It turns out that if we survey many species at once and analyse them with a joint species distribution model, we can partially solve the unmeasured environmental covariate problem.
 
-An unmeasured environmental gradient, such as soil pH, plays the role of a genre. Sites differ along it and species respond to it, but nobody measured it, and its fingerprint is a group of species that occur together more often than the measured environment predicts.
+**Step 2: suppose shade had never been measured.**
+
+Suppose that shade was not measured and we only have measures of wetness. The most that wetness alone can explain is each species' response to wetness (for the toy, we use the true responses instead of the rough estimates above, to keep the numbers clean). Subtract that part from `suitability`, and see what is left over.
+
+```{r heat-table, echo=FALSE}
+# Print a matrix as a table, with larger values in deeper red and negative values in blue
+heat_table <- function(m, digits = 2) {
+  limit <- max(abs(m))
+  data.frame(row = rownames(m), round(m, digits), check.names = FALSE) |>
+    gt::gt(rowname_col = "row") |>
+    gt::fmt_number(columns = colnames(m), decimals = digits) |>
+    gt::data_color(columns = colnames(m), method = "numeric",
+                   palette = c("#2166ac", "white", "#b2182b"), domain = c(-limit, limit))
+}
+```
+
+```{r toy-leftover}
+wet_only_suitability <- X[, "wet", drop = FALSE] %*% t(B[, "wet", drop = FALSE])
+leftover <- suitability - wet_only_suitability
+
+round(suitability, 2)
+round(wet_only_suitability, 2)
+heat_table(leftover)
+heat_table(B, digits = 1)
+heat_table(X, digits = 1)
+```
+
+In the coloured tables, deeper red marks larger values and blue marks negative ones.
+
+To recap, `suitability` is the suitability of each site for each species, taking into account both wetness and shade. `wet_only_suitability` is the suitability taking into account only wetness. `leftover` is the difference between the two. Logically, the values in `leftover` are the part of `suitability` predicted by shade (although you as an ecologist would not know this, because you didn't measure shade).
+
+Looking at `B`, we see that species_A likes wet sites (1.0) and is indifferent to shade (0.0). Looking at `leftover`, the species_A column is all 0s, because wetness explains all of species_A's distribution and there is nothing left over to explain.
+
+`B` also shows that the other species respond to shade, and `leftover` contains this information. species_C, species_D, and species_E have the largest values in `leftover`, and these are the species with the strongest positive responses to shade in `B`.
+
+**Most importantly, these three species all have their largest values in the same sites: site_3, site_4, and site_5, which are the shadiest sites in `X`** (species_B also follows this pattern, but faintly). In other words, these three species' leftover values rise and fall together over sites, and this shared pattern is the fingerprint of the missing environmental gradient. A stacked SDM fits each species on its own, so it can never see any shared patterns, but a joint model, which fits all the species together, can.
+
+Intuitively, this is just saying what ecologists have always known: groups of species occur together because the species have similar environmental preferences. We can turn this around and say that **when** we see a group of species occur in one place and not in another place, we infer that the environment differs between those two places.
+
+**Step 3: shared species distribution patterns can be used to partly recover a hidden environmental gradient.**
+
+We can use the shared species distributions, as seen in the previous step, to estimate a hidden environmental gradient. Each **site** gets an estimated **value** on that hidden gradient, which stands in for the unmeasured environmental value, and each **species** gets an estimated **response** to the gradient, which plays the part of its coefficient.
+
+Imagine that we have the survey data, `presence`, and only one measured environmental covariate, wetness. Now we pull out information on any unmeasured gradients that also drive species presence/absence, which in this case will be shade.
+
+First, fit the stacked SDM from Step 1 with wetness alone. Second, calculate a table of species **residuals**: the observed 0 or 1 in `presence` minus the value the SDM fitted.
+
+Third, to see whether the residuals contain a gradient, we ordinate them. An ordination (we use a principal component analysis with `prcomp()`) places the sites along the axis that captures the most variation in the residuals table.
+
+```{r toy-ordination}
+wet_only_sdm <- lm(presence ~ X[, "wet"]) # the stacked SDM, with wetness only
+
+wet_only_sdm # one intercept and one wetness slope per species
+
+predictions <- predict(wet_only_sdm) 
+round(predictions, 2) # Each species' intercept + slope predicts its presence at each site (roughly, a probability of presence) from the site's wetness
+
+presence_residuals <- presence - predictions # we calculate how different the predictions are from the observed presence/absence data, which are known as the residuals
+round(presence_residuals, 2)
+
+## alternative method
+# presence_residuals <- residuals(wet_only_sdm)  # gives the same residuals
+# round(presence_residuals, 2)
+
+ordination <- prcomp(presence_residuals)
+
+round(ordination$sdev^2 / sum(ordination$sdev^2), 2) # the proportion of the table's variation that is captured by each principal component
+
+ordination$x[, "PC1"]
+```
+
+PC1 captures `r round(100 * ordination$sdev[1]^2 / sum(ordination$sdev^2))`% of the variation in `presence_residuals`, and we can extract a value on it for each site. Do these site values line up with each site's shadiness from the original `X` table?
+
+```{r score-to-shade}
+ordination_sites <- tibble(
+  site = rownames(X),
+  true_shade = X[, "shade"],          # known only because we simulated it
+  axis_1 = ordination$x[, "PC1"]
+)
+
+ggplot(ordination_sites, aes(true_shade, axis_1, label = site)) +
+  geom_point() +
+  geom_text(vjust = -0.8, size = 3) +
+  labs(x = "True shade (never given to the ordination)", y = "Site value on ordination axis 1")
+```
+
+Partly yes. High PC1 site values do indeed predict shade, with a correlation coefficient between the site values and true shade of `r sprintf("%.2f", abs(cor(ordination$x[, "PC1"], X[, "shade"])))`. The recovery is not perfect, for two reasons.
+
+First, presence/absence is a coarse signal of suitability, as we saw in Step 1.
+
+Second, wetness and shade are correlated across our six sites (`r round(cor(X[, "wet"], X[, "shade"]), 2)`): dry sites are also shady ones. So when the wetness-only SDM was fitted, the wetness slopes absorbed part of shade's effect, and that part is no longer in the residuals. What PC1 recovers is the rest, the part of shade that wetness cannot predict, and with that it agrees almost perfectly (correlation `r sprintf("%.3f", abs(cor(ordination$x[, "PC1"], residuals(lm(X[, "shade"] ~ X[, "wet"])))))`). This is a real limit of JSDMs, not just of the toy: a hidden gradient can only pick up the part of an unmeasured variable that the measured covariates cannot explain.
+
+The species' responses to PC1 tell the same story:
+
+```{r toy-loadings}
+heat_table(B, digits = 1)
+heat_table(ordination$rotation[, "PC1", drop = FALSE], digits = 2)
+```
+
+The shade-loving species_D and species_E respond most strongly to PC1, species_C comes next, and species_A, which ignores shade, has a weak response (`r round(abs(ordination$rotation["species_A", "PC1"]), 2)`). `r if (cor(ordination$x[, "PC1"], X[, "shade"]) < 0) "Here the axis runs the other way, with shady sites at the negative end, because the sign of an ordination axis is arbitrary." else "The sign of an ordination axis is arbitrary, so another run, or other software, might have put the shady sites at the negative end."` We can interpret PC1 only because we correlated it against our site measurements of shade. With real data, you would correlate PC1 against multiple candidate variables to find a plausible interpretation.
+
+Note that we never gave the ordination shade, or the true suitability. We gave it only `presence` and wetness. A real JSDM does the same thing more carefully: it fits the measured covariates and the hidden gradients together, on the logistic scale rather than with `lm()`, and it reports its uncertainty. It still faces both limits above.
+
+In short, the residuals from a stacked SDM carry the fingerprint of an unmeasured gradient, and ordinating them recovers that gradient, partly, as a value for each site and a response for each species.
+
+Finally, what if neither gradient had been measured? There would be **two** hidden gradients in the data. Could we find them from `presence` alone, without an `X` table? Look back at `presence`.
+
+The wet sites, site_1 and site_2, hold species_A, species_B and species_C; the shaded sites, site_4 and site_5, hold species_C, species_D and species_E; site_3 holds everything and site_6 nothing. This co-occurrence pattern groups the sites and the species. To see this, we ordinate `presence` itself, with no `X` at all.
+
+```{r toy-hidden-ordination}
+presence_ordination <- prcomp(presence)    # no X: as if neither gradient had been measured
+
+round(presence_ordination$sdev^2 / sum(presence_ordination$sdev^2), 2)  # proportion of the variation on each axis
+round(presence_ordination$rotation[, 1:2], 2)                           # species' responses to axes 1 and 2
+```
+
+The first two axes carry `r 100 * sum(round(presence_ordination$sdev[1:2]^2 / sum(presence_ordination$sdev^2), 2))`% of the variation in `presence`, and the third only `r round(100 * presence_ordination$sdev[3]^2 / sum(presence_ordination$sdev^2))`%: two hidden gradients. Now plot the sites on both axes, coloured by their true wetness (left) and their true shade (right), which the ordination never saw.
+
+```{r toy-hidden-plot, fig.height=4.5}
+ordination_2d <- tibble(
+  site = rownames(X),
+  axis_1 = round(presence_ordination$x[, "PC1"], 6),
+  axis_2 = round(presence_ordination$x[, "PC2"], 6),
+  wetness = X[, "wet"],                # known only because we simulated it
+  shade = X[, "shade"]
+) |>
+  pivot_longer(c(wetness, shade), names_to = "gradient", values_to = "true_value") |>
+  mutate(gradient = factor(gradient, levels = c("wetness", "shade")))
+
+# sites with identical rows of presence land on the same point, so label them together
+site_labels <- ordination_2d |>
+  group_by(gradient, axis_1, axis_2) |>
+  summarise(site = paste(site, collapse = ", "), .groups = "drop")
+
+ggplot(ordination_2d, aes(axis_1, axis_2)) +
+  geom_point(aes(colour = true_value), size = 5) +
+  geom_text(data = site_labels, aes(label = site), vjust = -1.4, size = 3) +
+  facet_wrap(~ gradient) +
+  scale_colour_viridis_c(name = "True value\n(never given to\nthe ordination)") +
+  scale_x_continuous(expand = expansion(mult = 0.2)) +
+  scale_y_continuous(expand = expansion(mult = 0.2)) +
+  coord_equal() +
+  labs(x = "Ordination axis 1", y = "Ordination axis 2")
+```
+
+The information is there. Wetness increases towards the upper left and shade towards the upper right. site_3, which is both wet and shady, sits at the top, and site_6, which is neither, sits at the bottom. (site_1 and site_2 share a point, as do site_4 and site_5, because their rows of `presence` are identical.) Together, the two axes predict `r round(100 * summary(lm(X[, "wet"] ~ presence_ordination$x[, 1:2]))$r.squared)`% of the variation in wetness and `r round(100 * summary(lm(X[, "shade"] ~ presence_ordination$x[, 1:2]))$r.squared)`% of the variation in shade.
+
+**But neither axis 1 nor axis 2 is directly correlated with wetness or shade.** Axis 1 runs from the wet sites to the shady ones, so it correlates strongly with both, in opposite directions (`r sprintf("%.2f", cor(presence_ordination$x[, "PC1"], X[, "wet"]))` with wetness and `r sprintf("%.2f", cor(presence_ordination$x[, "PC1"], X[, "shade"]))` with shade). Axis 2 runs from the site with low wetness and low shade to the site with high wetness and high shade. (To be fair, these are reasonable alternative ways to describe the site environmental conditions.)
+
+To line one of the axes up with one of our preferred gradients (wetness or shade), we would have to **rotate** the cloud of points, but can only rotate to line up with either wetness **or** shade. That's because wetness and shade are themselves correlated across these sites, so no single rotation of two perpendicular axes matches both.
+
+Everything so far, the stacked SDM, the ordinations and their site values and species responses, has described the one `presence` table we simulated. A JSDM does more than that.
 
 ## What a joint model adds to a factorisation
 
-A JSDM uses that low-rank idea, but it is not a factorisation of your data matrix, and the difference is worth stating plainly. **A factorisation describes the table you have. A JSDM estimates how species covary, so that it can reason about tables you do not have.** Three additions make the difference.
+Our toy suitability table, `X %*% t(B)`, is a **factorisation**: a large table written as the product of two small ones, **site values** `X` times **species responses** `B`. An ordination finds such a factorisation for a table you already have. A JSDM uses the same idea to estimate how the species covary, so that it can also answer questions about data you do not have:
 
-- **It factors the residual, not the data.** The measured environment enters first as an ordinary regression, one coefficient vector per species. The hidden factors are then asked to explain only what the environment left over. That is why the output is called a *residual* correlation. If you measure a gradient that the factors had been standing in for and add it as a covariate, the association it produced shrinks. That is the model working as intended, not a contradiction.
-- **It is a probability model of a presence or absence.** A recommender regresses 1s and 0s as if they were continuous scores and reports a fitted number per cell. A JSDM treats each cell as a Bernoulli outcome whose probability is a logit or probit transform of the linear predictor. That gives a likelihood, and with it uncertainty for every parameter, sensible behaviour for rare species, and a basis for comparing models.
-- **It treats the site scores as random and averages over them.** In a recommender, each viewer's score vector is a parameter, because recommending to that viewer needs it. In a JSDM, a site's hidden scores are assumed to be drawn from a standard normal distribution. Packages that fit by optimisation, such as gllvm and sjSDM in Lesson 5, average over every value the scores could take and keep only the species loadings; Bayesian packages, such as occJSDM and Hmsc, sample the scores for the fitted sites but likewise average over them at new sites. Because the scores are independent standard normals, the covariance between two species' residuals at a site is the dot product of their two loading rows. That holds at any site, sampled or not. The loading matrix therefore describes the community rather than the particular sites surveyed, and the species-by-species matrix built from it is what the packages report as the residual covariance or association matrix.
+- **A new row: a site you have not surveyed.** Given its measured covariates, which species are likely there?
+- **A partly filled row: a site where you have recorded only some species**, for example from an in-person survey. Which of the others are likely there too?
+- **A repeat of the same table.** Survey the same sites again, and the 1s and 0s would come out somewhat differently by chance. A JSDM models the probabilities behind them, so it can say how much the table could vary. That is where its uncertainty comes from.
 
-Put together, these define the **joint probability distribution of the whole species vector at a site**. That is the sense in which the model is joint. Two things follow that no factorisation offers. First, recording one species at a site tells you something about the others, because it is evidence about that site's hidden scores. Second, the same model answers two different prediction questions, depending on whether such evidence is available. [Lesson 5](occJSDM-lesson-5.md) makes that distinction precise in its section "Two probability questions that must not be mixed", and its [exercise](occJSDM-lesson-5.md#exercise-predict-one-species-given-another) shows the first consequence in numbers.
+Three additions to a plain factorisation make this possible:
 
-In occJSDM's terms, the number of hidden site factors is `n_factors` in `listParams`, and Lesson 2's fits use 2, matching the simulation. The site scores are returned by `returnOrdinationScores()` and the species loadings by `returnFactorLoadings()`; Lesson 3 writes their product for species `j` at site `i` as `U_i L_j`. `returnResidualCorrelationMatrix()` multiplies each posterior draw of the loadings by its own transpose, scales the result to correlations, and returns the lower limit, median and upper limit of each correlation. For the toy community, the same scaling gives:
+- **It factorises the residual, not the data.** The measured environment enters first, as an ordinary regression for each species, and the hidden environmental covariates explain only what is left over. That is why the output is called a *residual* correlation, and why adding a measured gradient as a covariate shrinks the associations it had been producing.
+- **It is a probability model.** A plain factorisation treats the 1s and 0s as continuous scores. A JSDM treats each cell as a Bernoulli outcome (a coin flip) with a probability of presence, which gives a likelihood, and with it uncertainty for every parameter and sensible behaviour for rare species.
+- **It treats the values of the hidden environmental covariates as random.** Instead of fitting each site's values to reproduce its row, a JSDM assumes they are drawn from a standard normal distribution and averages over them. The covariance between two species is then the dot product of their rows of responses to the hidden covariates, at any site, surveyed or not, so the responses describe the community rather than the surveyed sites. The species-by-species matrix built from them is what the packages report as the residual correlation or association matrix.
 
-```{r toy-correlation}
-round(cov2cor(species_scores %*% t(species_scores)), 2)
-```
+Put together, these define the **joint probability distribution of the whole species vector at a site**. That is the sense in which the model is joint. As a result, if you happen to have information about one species at a site, the model can predict the other species slightly better, because the known species is evidence about that site's values of the hidden environmental covariates.
 
-The pair species_A and species_B, which load on the same gradient, has a correlation of `r round(cov2cor(species_scores %*% t(species_scores))["species_A", "species_B"], 2)`; species_A and species_E, which share none, have `r round(cov2cor(species_scores %*% t(species_scores))["species_A", "species_E"], 2)`; species_C is correlated with both ends at `r round(cov2cor(species_scores %*% t(species_scores))["species_C", "species_A"], 2)`. In a fitted model, each of these numbers comes with a credible interval, the range holding the middle 95% of the posterior draws.
+## Where the above ideas come back
 
-## What you can now recognise in the other lessons
+Each idea from this lesson returns later, now as part of the fitted model:
 
 - **The two stages of an eDNA survey.** [Lesson 2](occJSDM-lesson-2.md#three-questions-three-different-truths) adds the second stage, PCR detection in the laboratory, to the collection stage used here, and allows false positives at both stages.
-- **Replicates as protection.** The replication logic of "How many replicates are enough" returns in [Lesson 2's conclusions](occJSDM-lesson-2.md#what-this-lesson-showed): more field samples per site guard site occupancy against contamination at collection.
-- **Assumptions written as priors.** The no-false-positive assumption made here becomes, in [Lesson 2](occJSDM-lesson-2.md#how-does-good-practice-enter-the-model), a prior that expects contamination to be uncommon without ruling it out.
+- **Replicates to reveal contamination.** The replication logic of "How many replicates are enough" returns in [Lesson 2's conclusions](occJSDM-lesson-2.md#what-this-lesson-showed): more field samples per site do a better job of revealing contamination at collection.
+- **Assumptions are written as priors.** The no-false-positive assumption that we made here becomes, in [Lesson 2](occJSDM-lesson-2.md#how-does-good-practice-enter-the-model), a prior that expects contamination to be uncommon without ruling it out.
 - **Estimates with uncertainty.** The hand calculation gave single best values; [Lesson 3](occJSDM-lesson-3.md#put-the-true-coefficient-beside-its-estimate) reads the fitted model's estimates with their credible intervals.
-- **Hidden factors and residual correlations.** The species-by-species matrix of the toy community is what [Lesson 3's association section](occJSDM-lesson-3.md#residual-species-associations-did-we-recover-what-was-put-in) compares with truth, and the rotation problem is why its [ordination section](occJSDM-lesson-3.md#ordination-compare-the-combined-effect-before-naming-the-axes) compares combined effects before naming axes.
+- **Hidden environmental covariates and residual correlations.** The species-by-species residual correlation matrix built from the species' responses to them is what [Lesson 3's association section](occJSDM-lesson-3.md#residual-species-associations-did-we-recover-what-was-put-in) compares with truth, and the rotation problem is why its [ordination section](occJSDM-lesson-3.md#ordination-compare-the-combined-effect-before-naming-the-axes) compares combined effects before naming axes.
 - **Conditional prediction.** [Lesson 5's exercise](occJSDM-lesson-5.md#exercise-predict-one-species-given-another) predicts one species from the presence of another, which only a joint model can do.
 
 Continue to [Lesson 2: Fit the model and compare its answers with truth](occJSDM-lesson-2.md).

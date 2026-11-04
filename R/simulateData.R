@@ -191,7 +191,10 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'   and \code{z_true} (the \code{n} by \code{S} true occupancy states). For
 #'   \code{"two_stage"} there are also \code{w_true} (one row per sample:
 #'   whether the sample collected the species' DNA), \code{p_true} and
-#'   \code{q_true}.}
+#'   \code{q_true}. \code{eta} and \code{z_true} have rows named by site
+#'   id and \code{w_true} rows named by sample id, matching the \code{Site}
+#'   and \code{Sample} columns of \code{info}; all three have columns named
+#'   by species, matching the columns of \code{OTU}.}
 #'   \item{data_list}{The simulated survey, in the form
 #'   \code{runOccJSDM()} takes as its \code{data} argument: \code{info}, a
 #'   data frame with one row per observation (the \code{Site},
@@ -413,6 +416,17 @@ simulateOccJSDMData <- function(list_datasettings,
     true_params$w_true <- w
     true_params$p_true <- p_true
     true_params$q_true <- q_true
+  }
+
+  # Label the site and sample truths with the ids used in info, so that truth
+  # can be joined to observations by identifier rather than by row position.
+  siteNames <- as.character(seq_len(n))
+  dimnames(true_params$jsdmParams_true$eta) <- list(siteNames, speciesNames)
+  if(!is.null(true_params$z_true)){
+    dimnames(true_params$z_true) <- list(siteNames, speciesNames)
+  }
+  if(!is.null(true_params$w_true)){
+    dimnames(true_params$w_true) <- list(as.character(seq_len(N)), speciesNames)
   }
 
   list(true_params = true_params,

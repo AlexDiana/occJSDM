@@ -28,9 +28,16 @@ knitr::opts_chunk$set(
 source("lesson-links.R")
 ```
 
-## What this lesson adds
+## What this lesson answers
 
-[Lesson 5](occJSDM-lesson-5.md) gave occJSDM, gllvm, sjSDM and Hmsc the same perfectly observed community and compared their probabilities with truth. This lesson repeats that experiment across ten independent communities, compares ecological and trait scenarios, and examines bias and interval coverage. These experiments do not establish a general ranking of the packages. All numbers below come from saved fits.
+**Does the Lesson 5 comparison hold up across ten communities, and are the four packages' estimates biased and their intervals trustworthy?** [Lesson 5](occJSDM-lesson-5.md) gave occJSDM, gllvm, sjSDM and Hmsc the same perfectly observed community and compared their probabilities with truth. One community can mislead, so this lesson repeats that experiment across ten independent communities and asks four questions, one per section:
+
+1.  Does more data help when the ecology becomes harder?
+2.  Do traits explain species' responses, and do they improve prediction?
+3.  Across communities, are the estimates biased?
+4.  Do 95% intervals contain the truth as often as they should?
+
+These experiments do not establish a general ranking of the packages. All numbers below come from saved fits.
 
 You will learn to distinguish bias from error size, and to read interval coverage beside interval width, which the appendix tabulates.
 
@@ -103,7 +110,7 @@ rare_species <- rare_rows$species
 
 In the baseline, the ten species' average true probabilities run from `r round(min(species_prevalence$probability_baseline))`% to `r round(max(species_prevalence$probability_baseline))`%. The rare-species scenario lowers only `r knitr::combine_words(rare_species, oxford_comma = FALSE)`, the three least common, from between `r round(min(rare_rows$probability_baseline))`% and `r round(max(rare_rows$probability_baseline))`% to between `r round(min(rare_rows$probability_rare))`% and `r round(max(rare_rows$probability_rare))`%. That leaves each with about `r round(min(rare_rows$presences_rare))` to `r round(max(rare_rows$presences_rare))` presences among 100 training sites. The other `r xfun::n2w(nrow(species_prevalence) - nrow(rare_rows))` are unchanged.
 
-- **Baseline:** Lesson 5's design repeated: ten species, two measured gradients and two hidden site conditions, with the ecological coefficients varying slightly from community to community (`dev/simstudy/jsdm-package-comparison/extension/PLAN.md`, line 9). What we want to learn: does collecting more sites improve estimates?
+- **Baseline:** Lesson 5's design repeated: ten species, two measured gradients and two hidden environmental covariates, with the ecological coefficients varying slightly from community to community (`dev/simstudy/jsdm-package-comparison/extension/PLAN.md`, line 9). What we want to learn: does collecting more sites improve estimates?
 - **Rare species:** the three least common species become rare, as the table shows. What we want to learn: are their distributions especially difficult to estimate?
 - **Correlated environment:** the two predictors are strongly correlated. What we want to learn: can we distinguish their effects when they usually change together?
 - **Curved responses:** five species prefer an intermediate value of gradient 1. What we want to learn: does the fitted model need a curve to describe the relationship?
@@ -402,7 +409,7 @@ fit_with_traits <- occJSDM::runOccJSDM(
 )
 ```
 
-As in [Lesson 5](occJSDM-lesson-5.md), `info` has one row per site, so `runOccJSDM()` fits a JSDM to the observed presence/absence with no detection stages. `traits` has one row per species, as in the [quickstart](occJSDM-00-quickstart.md). `n_lattrait = 0` turns off occJSDM's optional latent species-trait factors in both arms, so only the measured traits differ between them (`extension/PLAN.md`, line 11). The MCMC settings are the first attempt's; a fit that failed its checks was rerun with `nburn = 8000` and `niter = 16000`.
+As in [Lesson 5](occJSDM-lesson-5.md), `info` has one row per site, so `runOccJSDM()` fits a JSDM to the observed presence/absence with no detection stages. `traits` has one row per species, as in the [Quickstart](occJSDM-00-quickstart.md). `n_lattrait = 0` turns off occJSDM's optional unmeasured species traits in both arms, so only the measured traits differ between them (`extension/PLAN.md`, line 11). The MCMC settings are the first attempt's; a fit that failed its checks was rerun with `nburn = 8000` and `niter = 16000`.
 
 ```{r extension-trait-prediction-errors, fig.height=7}
 if (nrow(extension$overall) > 0) {
@@ -694,7 +701,7 @@ The appendix below holds six things. They are the acceptance rules for each fit,
 
 Continue to [Lesson 7](occJSDM-lesson-7.md), on spatial landscapes and survey design, or return to [Lesson 5](occJSDM-lesson-5.md) or the [Quickstart](occJSDM-00-quickstart.md).
 
-## Appendix: evidence and reproduction
+## Appendix: evidence and reproduction {#appendix-evidence-and-reproduction}
 
 This appendix is for readers who want the full tables, interval widths and methods behind sections 3 and 4; the lesson's conclusions do not depend on reading it.
 
@@ -757,7 +764,7 @@ Hmsc fitted a probit model to logit-generated data. Its probabilities can be com
 
 #### Probability intervals at five shared environments {.unlisted .unnumbered}
 
-The five settings are in original simulation units, before training-data standardisation. Every package and community uses the same settings. Hidden site conditions are integrated out **within each posterior draw**, and the interval is then calculated across those marginal-probability draws. These are intervals for the average probability given the measured environment, not intervals for a particular site's hidden conditions or for a future binary observation.
+The five settings are in original simulation units, before training-data standardisation. Every package and community uses the same settings. The hidden environmental covariates are integrated out **within each posterior draw**, and the interval is then calculated across those marginal-probability draws. These are intervals for the average probability given the measured environment, not intervals for a particular site's values of the hidden environmental covariates or for a future binary observation.
 
 ```{r calibration-grid}
 knitr::kable(calibration$grid, row.names = TRUE)
@@ -839,7 +846,7 @@ More data can narrow intervals around an unsuitable response shape; it does not 
 
 For compatible coefficient targets we undo predictor scaling and centring. occJSDM's intercept adjustment is made jointly with each draw's slopes before taking quantiles. For gllvm and sjSDM, we transform the coefficient covariance matrix before constructing each estimate plus or minus 1.96 standard errors. Rescaling a marginal intercept interval alone would discard its dependence on the slopes.
 
-**The native procedures account for different amounts of uncertainty.** gllvm uses its variational model's coefficient covariance. Its selected start was replayed using the original frozen package, seed and inputs because the required fitting object had not been saved. The reconstruction must match the archived coefficients, loadings and log likelihood before its intervals are accepted. sjSDM's saved weights can be restored directly, without optimisation. Its native standard errors hold species associations and other species' coefficients fixed. Measuring their coverage tests that conditional approximation; these are not intervals that propagate all fitted-parameter uncertainty.
+**The native procedures account for different amounts of uncertainty.** gllvm uses its variational model's coefficient covariance. Its selected start was replayed using the original frozen package, seed and inputs because the required fitting object had not been saved. The reconstruction must match the archived coefficients, species' responses to the hidden environmental covariates and log likelihood before its intervals are accepted. sjSDM's saved weights can be restored directly, without optimisation. Its native standard errors hold species associations and other species' coefficients fixed. Measuring their coverage tests that conditional approximation; these are not intervals that propagate all fitted-parameter uncertainty.
 
 sjSDM's standard errors also use Monte Carlo integration. Two independent random streams are checked at 2,000 integration draws, increasing to 8,000 and then 32,000 if any standard error on the original predictor scale differs by more than 5%. This checks numerical stability, not whether coverage is good. Covariance problems and remaining integration instability are recorded separately from the original fit diagnostics.
 

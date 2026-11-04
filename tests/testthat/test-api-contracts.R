@@ -49,6 +49,18 @@ test_that("an unrecognised covariate name is rejected", {
   )
 })
 
+test_that("a read threshold below one is rejected", {
+  # Alex chose threshold >= 1 on 21 October 2026; the help page says the same.
+  sim <- simulate_fixture(model = "two_stage")
+  expect_error(
+    suppressMessages(suppressWarnings(
+      runOccJSDM(sim$data_list, threshold = 0.5,
+                 MCMCparams = FIXTURE_MCMC)
+    )),
+    "must not be less than 1"
+  )
+})
+
 test_that("n_supportpoints overrides the GP knot default", {
   # The default used to be max(30, floor(n * 0.2)), which crashed below 31
   # sites and was a flat 30 below 150. Fixed in 42198d9 -- it is now
