@@ -401,11 +401,11 @@ parameter_diagnostics |>
 |:---|---:|---:|---:|---:|
 | Perfect observation | 1.002 | 2091.900 | 1.002 | 0 |
 | PCR observations: default priors | 1.006 | 906.616 | 1.008 | 0 |
-| PCR observations: more permissive FP priors | 9.239 | 394.915 | 1.531 | 27 |
+| PCR observations: more permissive FP priors | 1.016 | 343.432 | 1.004 | 2 |
 
 The parameter diagnostic checks cover the occupancy intercepts (`beta0_psi`) and slopes (`beta_psi`), the collection coefficients (`beta_theta`) and the detection and false-positive rates (`p`, `q` and `theta0`). The hidden environmental covariates can swap places or flip sign between chains without changing the fit, so they are checked only through the occupancy probabilities. Passing means the chains agree, not that the estimates are right: the recovery errors and field-stage false positives shown below come from fits that pass.
 
-The perfect-observation and default-prior fits pass both screens. However, even after its run was extended, the alternative-prior fit has 27 parameters outside one screen or the other, with a largest Rhat of 9.239 and a smallest ESS of 395. The table lists them; `label1` and `label2` give the covariate, species or primer.
+The perfect-observation and default-prior fits pass both screens. However, even after its run was extended, the alternative-prior fit has 2 parameters outside one screen or the other, with a largest Rhat of 1.016 and a smallest ESS of 343. The table lists them; `label1` and `label2` give the covariate, species or primer.
 
 ``` r
 lesson$diagnostics$alternative |>
@@ -414,35 +414,10 @@ lesson$diagnostics$alternative |>
   knitr::kable(digits = 3)
 ```
 
-| param      | label1         | label2 |  rhat |       ess |
-|:-----------|:---------------|:-------|------:|----------:|
-| beta0_psi  | OTU_1          | 1      | 1.010 |  2457.820 |
-| beta0_psi  | OTU_2          | 1      | 1.019 |  3360.926 |
-| beta0_psi  | OTU_3          | 1      | 1.016 |  3206.198 |
-| beta0_psi  | OTU_4          | 1      | 1.013 |  2349.785 |
-| beta0_psi  | OTU_6          | 1      | 1.028 |   667.561 |
-| beta0_psi  | OTU_7          | 1      | 1.019 |  5631.799 |
-| beta0_psi  | OTU_9          | 1      | 1.019 |  4303.314 |
-| beta0_psi  | OTU_10         | 1      | 4.814 |  5485.444 |
-| mu_b0      | 1              | 1      | 1.278 |  6258.488 |
-| beta_psi   | X_psi.EnvCov.1 | OTU_2  | 1.013 |  1778.037 |
-| beta_psi   | X_psi.EnvCov.1 | OTU_5  | 1.013 |  4849.821 |
-| beta_psi   | X_psi.EnvCov.1 | OTU_7  | 1.035 |  6873.880 |
-| beta_psi   | X_psi.EnvCov.1 | OTU_10 | 5.359 |  3294.223 |
-| beta_psi   | X_psi.EnvCov.2 | OTU_1  | 1.129 |  5858.723 |
-| beta_psi   | X_psi.EnvCov.2 | OTU_2  | 1.070 |  4161.239 |
-| beta_psi   | X_psi.EnvCov.2 | OTU_3  | 1.039 |  6437.336 |
-| beta_psi   | X_psi.EnvCov.2 | OTU_4  | 1.011 |  5681.661 |
-| beta_psi   | X_psi.EnvCov.2 | OTU_5  | 1.265 |  3609.676 |
-| beta_psi   | X_psi.EnvCov.2 | OTU_7  | 1.080 | 10193.640 |
-| beta_psi   | X_psi.EnvCov.2 | OTU_8  | 1.088 | 12070.593 |
-| beta_psi   | X_psi.EnvCov.2 | OTU_9  | 1.123 | 10610.031 |
-| beta_psi   | X_psi.EnvCov.2 | OTU_10 | 3.814 |  3463.205 |
-| beta_theta | (Intercept)    | OTU_6  | 1.012 |   505.737 |
-| beta_theta | (Intercept)    | OTU_10 | 6.076 |  8072.443 |
-| beta_theta | X_theta        | OTU_10 | 1.389 | 10713.774 |
-| theta0     | OTU_6          | 1      | 1.015 |   394.915 |
-| theta0     | OTU_10         | 1      | 9.239 | 18764.028 |
+| param      | label1      | label2 |  rhat |     ess |
+|:-----------|:------------|:-------|------:|--------:|
+| beta_theta | (Intercept) | OTU_6  | 1.016 | 343.432 |
+| theta0     | OTU_6       | 1      | 1.014 | 385.009 |
 
 Treat small differences under those alternative priors cautiously; we do not claim that every parameter has fully converged.
 
@@ -1190,7 +1165,7 @@ ggplot(case_comparison, aes(x = estimate, y = case, colour = arm, shape = arm)) 
 <figcaption aria-hidden="true">Each estimate is a posterior probability about an actual 0/1 state. Black crosses reveal those states. The red-orange circle and grey triangle use exactly the same PCR observations but different contamination priors. These probabilities are not estimates of the true occupancy probability.</figcaption>
 </figure>
 
-Under the alternative priors, the field-stage false-positive case receives 24.9% probability of site presence, close to its 0.6% under the default priors. Although this case is rejected under both priors, loosening the contamination priors does not resolve field-stage false positives across the survey. Their mean site probability is 43.8% under the alternative priors, against 47.3% under the default priors, because the ambiguity is in the data, not the prior. Across all 1,000 species-site pairs, mean absolute occupancy error changes from 15.5 to 16.9 percentage points. The alternative priors therefore worsen overall recovery in this dataset. We did not tune them to get any particular answer. On your own survey, refitting under a more permissive contamination prior is a way to see whether your key conclusions depend on the contamination assumption.
+Under the alternative priors, the field-stage false-positive case receives 0.6% probability of site presence, close to its 0.6% under the default priors. Although this case is rejected under both priors, loosening the contamination priors does not resolve field-stage false positives across the survey. Their mean site probability is 41.5% under the alternative priors, against 47.3% under the default priors, because the ambiguity is in the data, not the prior. Across all 1,000 species-site pairs, mean absolute occupancy error changes from 15.5 to 16.3 percentage points. The alternative priors therefore worsen overall recovery in this dataset. We did not tune them to get any particular answer. On your own survey, refitting under a more permissive contamination prior is a way to see whether your key conclusions depend on the contamination assumption.
 
 When laboratory contamination is in fact far above what the default priors assume, a separate simulation study found one species’ chains settling on two different explanations of the same observations. [Lesson 3](occJSDM-lesson-3.md#when-chains-settle-on-two-different-explanations) shows how to check a fit for this.
 
@@ -1420,4 +1395,4 @@ This truth join is valid for the unchanged teaching dataset. If you simulate new
 
 The figures are rendered from a compact saved bundle, not refitted while knitting the vignette. The bundle retains the complete simulation, generating inputs, case-selection rules, posterior summaries, source hashes, seeds, diagnostics and the hashes of the full fits. The original package examples `sampledata` and `sampleresults` are separate and are not used here.
 
-The fits were run at occJSDM revision **739a1f2**. The simulation seed is **20260919**. The recorded R version is **R version 4.6.1 (2026-06-24)**. The complete package versions for each fit are retained in `lesson$manifests[["default"]]$session`, and likewise for the other fits. Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above.
+The fits were run at occJSDM revision **5290373**. The simulation seed is **20260919**. The recorded R version is **R version 4.6.1 (2026-06-24)**. The complete package versions for each fit are retained in `lesson$manifests[["default"]]$session`, and likewise for the other fits. Instructions for regenerating the full fits and this compact bundle are in [the lesson build README](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/vignette-lesson/README.md). The compact bundle is [teaching-data/nonspatial-lesson.rds](teaching-data/nonspatial-lesson.rds). All figure code is displayed above.

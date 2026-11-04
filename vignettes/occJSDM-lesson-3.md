@@ -241,35 +241,10 @@ flagged_alternative |>
   knitr::kable(digits = c(0, 0, 0, 4, 0, 0, 0, 0))
 ```
 
-| param      | label1         | label2 |   rhat |   ess | unavailable | high_rhat | low_ess |
-|:-----------|:---------------|:-------|-------:|------:|:------------|:----------|:--------|
-| theta0     | OTU_10         | 1      | 9.2394 | 18764 | FALSE       | TRUE      | FALSE   |
-| beta_theta | (Intercept)    | OTU_10 | 6.0761 |  8072 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.1 | OTU_10 | 5.3591 |  3294 | FALSE       | TRUE      | FALSE   |
-| beta0_psi  | OTU_10         | 1      | 4.8138 |  5485 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.2 | OTU_10 | 3.8138 |  3463 | FALSE       | TRUE      | FALSE   |
-| beta_theta | X_theta        | OTU_10 | 1.3890 | 10714 | FALSE       | TRUE      | FALSE   |
-| mu_b0      | 1              | 1      | 1.2776 |  6258 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.2 | OTU_5  | 1.2647 |  3610 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.2 | OTU_1  | 1.1292 |  5859 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.2 | OTU_9  | 1.1228 | 10610 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.2 | OTU_8  | 1.0879 | 12071 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.2 | OTU_7  | 1.0800 | 10194 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.2 | OTU_2  | 1.0704 |  4161 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.2 | OTU_3  | 1.0393 |  6437 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.1 | OTU_7  | 1.0350 |  6874 | FALSE       | TRUE      | FALSE   |
-| beta0_psi  | OTU_6          | 1      | 1.0279 |   668 | FALSE       | TRUE      | FALSE   |
-| beta0_psi  | OTU_7          | 1      | 1.0195 |  5632 | FALSE       | TRUE      | FALSE   |
-| beta0_psi  | OTU_9          | 1      | 1.0194 |  4303 | FALSE       | TRUE      | FALSE   |
-| beta0_psi  | OTU_2          | 1      | 1.0186 |  3361 | FALSE       | TRUE      | FALSE   |
-| beta0_psi  | OTU_3          | 1      | 1.0163 |  3206 | FALSE       | TRUE      | FALSE   |
-| theta0     | OTU_6          | 1      | 1.0152 |   395 | FALSE       | TRUE      | TRUE    |
-| beta_psi   | X_psi.EnvCov.1 | OTU_5  | 1.0133 |  4850 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.1 | OTU_2  | 1.0133 |  1778 | FALSE       | TRUE      | FALSE   |
-| beta0_psi  | OTU_4          | 1      | 1.0126 |  2350 | FALSE       | TRUE      | FALSE   |
-| beta_theta | (Intercept)    | OTU_6  | 1.0117 |   506 | FALSE       | TRUE      | FALSE   |
-| beta_psi   | X_psi.EnvCov.2 | OTU_4  | 1.0108 |  5682 | FALSE       | TRUE      | FALSE   |
-| beta0_psi  | OTU_1          | 1      | 1.0104 |  2458 | FALSE       | TRUE      | FALSE   |
+| param      | label1      | label2 |   rhat | ess | unavailable | high_rhat | low_ess |
+|:-----------|:------------|:-------|-------:|----:|:------------|:----------|:--------|
+| beta_theta | (Intercept) | OTU_6  | 1.0161 | 343 | FALSE       | TRUE      | TRUE    |
+| theta0     | OTU_6       | 1      | 1.0141 | 385 | FALSE       | TRUE      | TRUE    |
 
 Here the rows identify the actual parameter to investigate. For example, `theta0` for OTU_6 has a low effective sample size even though its Rhat is below 1.01. Looking at Rhat alone would miss that warning. The first environmental slope for OTU_6 is flagged for Rhat instead.
 
@@ -380,7 +355,7 @@ occJSDM::plotTraceplot(
 
 ![](occJSDM-lesson-3_files/figure-gfm/flagged-field-trace-1.png)<!-- -->
 
-There are 48,000 retained draws here, but their dependence means they carry much less independent information. The package’s ESS for this parameter is about 1.8764^{4}, 395. That is a numerical limitation on posterior summaries, not a count of field samples. This fit should not be described as having cleared every diagnostic simply because it was run for longer.
+There are 48,000 retained draws here, but their dependence means they carry much less independent information. The package’s ESS for this parameter is about 385. That is a numerical limitation on posterior summaries, not a count of field samples. This fit should not be described as having cleared every diagnostic simply because it was run for longer.
 
 The traces make this slow movement visible: each chain spends stretches at relatively high or low contamination rates. The true rate is 5.3%, near the bottom of the panels, but the fit also gives substantial weight to much higher rates. The example therefore raises two separate concerns: how precisely the sampler has estimated its posterior summaries, and how well that posterior recovers the ecological truth.
 
