@@ -10,6 +10,8 @@ saved$args$MCMCparams <- request$options$MCMCparams
 set.seed(request$seed)
 expected <- do.call(runOccJSDM,saved$args)
 actual <- readRDS(a[2])
+# infos$execution records wall time, worker pids and BLAS, which differ between runs of the same seed (see ?runOccJSDM); everything else must match exactly.
+actual$infos$execution <- NULL; expected$infos$execution <- NULL
 for(k in c('results_output','X_psi','X_theta','Tr','infos')) {
  cmp <- all.equal(actual[[k]],expected[[k]],tolerance=0,check.attributes=TRUE)
  if(!isTRUE(cmp)) stop(paste(k,paste(cmp,collapse='; ')))

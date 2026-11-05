@@ -64,7 +64,7 @@ Each lesson studies one simulated survey or one small set of them, so treat its 
 
 ### Optional assistant (MCP) pilot
 
-An optional pilot exposes four tools (`validate_data`, `fit_model`, `diagnostics` and `summarise_fit`) to AI assistants through an MCP server. It is not needed to use the package, it pins a scientific revision that predates the beta, and its short example fits are for testing execution rather than inference. See the [pilot guide](mcp/README.md).
+An optional pilot exposes four tools (`validate_data`, `fit_model`, `diagnostics` and `summarise_fit`) to AI assistants through an MCP server. It is not needed to use the package. Since 5 November 2026 it pins occJSDM 0.3.0 (`v0.3.0-beta`); its short example fits are for testing execution rather than inference. See the [pilot guide](mcp/README.md).
 
 ## Known limitations
 

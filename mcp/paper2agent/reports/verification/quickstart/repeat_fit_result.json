@@ -23,14 +23,14 @@
     "observations": 40
   },
   "runtime": {
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-    "R": "R version 4.5.0 (2025-04-11)",
-    "occJSDM_version": "0.1.0",
-    "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "R": "R version 4.6.1 (2026-06-24)",
+    "occJSDM_version": "0.3.0",
+    "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
     "renv_version": "1.2.3",
     "libPaths": [
-      "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-      "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+      "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+      "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
     ],
     "thread_env": {
       "OMP_NUM_THREADS": "",
@@ -38,50 +38,52 @@
       "MKL_NUM_THREADS": "",
       "RCPP_PARALLEL_NUM_THREADS": ""
     },
-    "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+    "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
   },
   "qualifications": [
     "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
     "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
   ],
   "warnings": [
+    "Low ESS in 'B0'. Min ESS < 50",
     "Low ESS in 'B'. Min ESS < 50",
+    "Convergence issue in 'A_output'. Max R-hat > 1.1",
     "Low ESS in 'A'. Min ESS < 50",
+    "Convergence issue in 'C_output'. Max R-hat > 1.1",
     "Low ESS in 'C'. Min ESS < 50",
-    "Low ESS in 'sigmab'. Min ESS < 50",
-    "Low ESS in 'sigmah'. Min ESS < 50"
+    "Low ESS in 'sigmab'. Min ESS < 50"
   ],
-  "warning_count": 5,
+  "warning_count": 7,
   "schema_version": 1,
   "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
-  "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+  "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
   "artifacts": [
     {
       "kind": "log",
       "description": "Captured native R console output",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-894500d59b9c405f8a603b8d465e5ac2/stdout.log",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-2ed1fad0edb041c48809c67df0bd7b9a/stdout.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "kind": "log",
       "description": "Captured native R startup diagnostics",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-894500d59b9c405f8a603b8d465e5ac2/stderr.log",
-      "sha256": "3ea093d14d227e8982cdf24eb82c50afc3c24f9f55c237165f0842575ea79565"
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-2ed1fad0edb041c48809c67df0bd7b9a/stderr.log",
+      "sha256": "28959c06c715342327d26ffc7a2622e90d09a8846229c16887bd19e3b807cb42"
     },
     {
       "kind": "fit",
       "description": "Native occJSDM fit, reload with readRDS",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-894500d59b9c405f8a603b8d465e5ac2/fit.rds",
-      "sha256": "6343cc7fcf25725f313e8f2d919c4b85675cbb415500bd3eb3712b621e7ec5ff"
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-2ed1fad0edb041c48809c67df0bd7b9a/fit.rds",
+      "sha256": "1ba55e9ce78d6463e0ce8fc0fb0c5e094a625afa41005f2e4a97039acefb3a95"
     },
     {
       "kind": "manifest",
       "description": "Fit provenance and effective settings",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-894500d59b9c405f8a603b8d465e5ac2/manifest.json",
-      "sha256": "21b799e6faa41eb72fcd5faff81d4e831cc12bd85f6dc9a1667b7e0e32adaa39"
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-2ed1fad0edb041c48809c67df0bd7b9a/manifest.json",
+      "sha256": "6339938a17ab4d3061797af946c5903e92aa6acbe3ab142e717250bf846f758e"
     }
   ],
-  "fit_id": "fit_ee06af54becb40ca97413b38f426e964",
+  "fit_id": "fit_f48bd85f6fc3439382135b5c4d32e5a5",
   "settings": {
     "occCovariates": [
       "habitat_changed"
@@ -101,5 +103,5 @@
     "summarisedLatentPresences": true,
     "listPriors": {}
   },
-  "input_sha256": "655ded4dd0a6c66e2b5c260ea1263b32a383ea4b4b271c45b2436024d52f6600"
+  "input_sha256": "92520339e1c88c60ef4a11676acc948bf2df6eb87c2273afc3120d318e614a86"
 }

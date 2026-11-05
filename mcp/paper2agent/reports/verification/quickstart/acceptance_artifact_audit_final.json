@@ -1,61 +1,67 @@
 {
   "success": true,
   "tolerance": 0,
-  "cutoff": "NA",
-  "R_project": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime",
+  "cutoff": 1793871542.4152,
+  "R_project": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime",
   "fits": {
-    "fit_45705046400c4b6c9987c124f49c0069": {
-      "case": "binary_single",
-      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-25ee7130c0854f76b3a751fd3374f306/fit.rds",
-      "full_native_match": true
-    },
-    "fit_f16a902e3eae43a0804604ef56c6180a": {
-      "case": "occupancy_changed",
-      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-3134bf0e3b6c4ead8bb8324b8b3bdbd9/fit.rds",
-      "full_native_match": true
-    },
-    "fit_018d920de3f54a22b5a0e674d43ae791": {
+    "fit_8d7419e8027042cabf052a3babdd1230": {
       "case": "two_stage_changed",
-      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-328cf02a86c2467da328e6f9cef1533e/fit.rds",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-0f18b8067a694220b5b68b47212e4d7d/fit.rds",
       "full_native_match": true
     },
-    "fit_94d56be00ad64912b7688935c3defd3e": {
+    "fit_58ceb1c0d2bc46a49ae2b06d84afb349": {
       "case": "binary_single",
-      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-8e835238b6ad43fda236b72d66250b2d/fit.rds",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-857c63e455de4d75a830a24db34eb3b6/fit.rds",
+      "full_native_match": true
+    },
+    "fit_17aa66d681b94547bedb8829526f8c0e": {
+      "case": "occupancy_changed",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-bbf06beba3634637bc25234d75d6c0d6/fit.rds",
+      "full_native_match": true
+    },
+    "fit_2edff808b28d485181924f61595e2e66": {
+      "case": "binary_single",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-cc9d12bb84bd4926bedf48588fce338c/fit.rds",
+      "full_native_match": true
+    },
+    "fit_f3464631bc66499f86722310d2c018e0": {
+      "case": "two_stage_single",
+      "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-fb0090ff098f4de787bb81bade6ae952/fit.rds",
       "full_native_match": true
     }
   },
   "tables": {
-    "diagnostics-685d0749f2b54952ab9dc9b5bc20a069": {
+    "diagnostics-4684572bac8145449e53f77583c73bfc": {
       "case": "binary_single",
       "operation": "diagnostics",
       "full_native_match": true
     },
-    "diagnostics-db688a826225425a9e163291a2acd52d": {
+    "diagnostics-7b0e4f367b3740c88d7909f237c219e1": {
+      "case": "binary_single",
+      "operation": "diagnostics",
+      "full_native_match": true
+    },
+    "diagnostics-ea1d4f9624974e65acb89c620f3d10bb": {
       "case": "constant_species",
       "operation": "diagnostics",
       "full_native_match": true
     },
-    "diagnostics-e881032aa9a94223a1b2c17fc239b852": {
-      "case": "binary_single",
-      "operation": "diagnostics",
-      "full_native_match": true
-    },
-    "summarise_fit-d2207f3fb80f411a8b75ce9f6ab487f1": {
+    "summarise_fit-3e4595864b584f03b5bb0bbed551ee73": {
       "case": "binary_single",
       "operation": "summarise_fit",
       "full_native_match": true
     },
-    "summarise_fit-e11a2fe9717348e4a63ecf1d5ca19e3e": {
+    "summarise_fit-a7d319eee35e48a69f045a04da6e0937": {
       "case": "binary_single",
       "operation": "summarise_fit",
       "full_native_match": true
     }
   },
   "publication_hash_checks": [
-    "fit_45705046400c4b6c9987c124f49c0069",
-    "fit_f16a902e3eae43a0804604ef56c6180a",
-    "fit_018d920de3f54a22b5a0e674d43ae791",
-    "fit_94d56be00ad64912b7688935c3defd3e"
+    "fit_2edff808b28d485181924f61595e2e66",
+    "fit_8d7419e8027042cabf052a3babdd1230",
+    "fit_58ceb1c0d2bc46a49ae2b06d84afb349",
+    "fit_17aa66d681b94547bedb8829526f8c0e",
+    "fit_f3464631bc66499f86722310d2c018e0"
   ]
 }

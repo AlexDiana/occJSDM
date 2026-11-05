@@ -6,7 +6,7 @@ Sys.setenv(P2A_R_PROJECT=normalizePath(a[3]));source(file.path(a[3],'activate.R'
 suppressPackageStartupMessages(library(occJSDM));suppressPackageStartupMessages(library(jsonlite))
 stopifnot(startsWith(normalizePath(find.package('occJSDM')),paste0(normalizePath(a[3]),'/')))
 sha <- unique(as.character(stats::na.omit(read.dcf(file.path(find.package('occJSDM'),'DESCRIPTION'),fields='RemoteSha')[,'RemoteSha'])))
-stopifnot(identical(sha,'b7b7001e56cea8e3931b09c917ea0e29e6cef3c6'))
+stopifnot(identical(sha,'5cba0db2d78d23f2f7985fcf12d61cd6121ff05e'))
 prior <- if(file.exists(a[2]))basename(unlist(read_json(a[2]),use.names=FALSE)) else character()
 if(!file.exists(a[2]) && !is.finite(cutoff))stop('Second argument must be a prior call-directory JSON array or finite Unix cutoff')
 specs <- read_json(file.path(out,'independent_inputs.json'),simplifyVector=FALSE)
@@ -44,6 +44,8 @@ for(dir in calls) {
    stopifnot(length(found)==1L);nm <- found[[1]]
    check(m$requested_settings,specs[[nm]]$options,paste(nm,'requested settings'))
    actual <- readRDS(m$fit_path);oracle <- readRDS(file.path(out,paste0(nm,'_oracle_fit.rds')))
+   # infos$execution records wall time, worker pids and BLAS, which differ between runs of the same seed (see ?runOccJSDM); everything else must match exactly.
+   actual$infos$execution <- NULL;oracle$infos$execution <- NULL
    for(k in c('results_output','X_psi','X_theta','Xs','Tr','infos'))check(actual[[k]],oracle[[k]],paste(nm,k))
    fit_checks[[m$fit_id]] <- list(case=nm,fit_path=m$fit_path,full_native_match=TRUE)
  } else if(req$operation %in% c('diagnostics','summarise_fit') && file.exists(file.path(dir,'diagnostics.csv'))) {

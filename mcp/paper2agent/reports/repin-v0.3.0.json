@@ -1,0 +1,83 @@
+{
+  "date": "2026-11-05",
+  "from": {
+    "commit": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "package_version": "0.1.0"
+  },
+  "to": {
+    "commit": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "release_tag": "v0.3.0-beta",
+    "package_version": "0.3.0",
+    "git_archive_sha256": "e9a43949242480dce4765d0831d5b081b885ab8b8680e80d07db88f732d99126",
+    "cellar_sha256": "0576cf945ec287d9ca74fa6ae3372a88ce8687c4681ae497d40a0c554793c7f1"
+  },
+  "reason": "b7b7001 cannot fit single-species two-stage data (incorrect number of dimensions, fixed in 0c5b1ff), which is exactly the workshop's Session 2 dhole step.",
+  "runtime": {
+    "host": "macOS 27.2 arm64",
+    "R": "4.6.1",
+    "renv": "1.2.3",
+    "python": "3.12.13",
+    "fastmcp": "4.0.3",
+    "blas": "Accelerate, VECLIB_MAXIMUM_THREADS=1 for all comparisons",
+    "restore": "r-runtime/restore-runtime.R into a new cloud-r-runtime from repository sources and the retained occJSDM source cellar; 60 packages, all at lock versions",
+    "local_toolchain_workarounds": "MACOSX_DEPLOYMENT_TARGET=15.0 (gfortran 14.2 otherwise passes -mmacosx-version-min=18.0 on macOS 27) and a user Makevars adding the Homebrew gettext include path (rpart needs libintl.h). Local only; not needed on Linux."
+  },
+  "lock_changes": [
+    "occJSDM record: 0.1.0 at b7b7001 -> 0.3.0 at the v0.3.0-beta commit (Imports gain base packages utils, parallel, tools; Suggests gains pkgload)",
+    "R version 4.5.0 -> 4.6.1",
+    "Recommended packages boot, cluster, foreign, Matrix, mgcv, nlme, rpart, survival re-pinned to the versions R 4.6.1 ships with. Matrix 1.7-3 does not compile against R 4.6 (Rf_findVarInFrame is no longer in the C API), and mgcv and survival depend on it; the 5 October Cloud restore most likely received prebuilt Linux binaries. All other dependency pins are unchanged."
+  ],
+  "behaviour_changes_seen": [
+    "Single-species two-stage data now fit; the acceptance case changed from an expected native error to a positive fit compared exactly with direct R.",
+    "Occupancy data whose Sample IDs restart at each site are now inferred as one-stage occupancy (occJSDM 34bb928) and fit; the boundary case moved from the rejection tests to the exact-agreement tests.",
+    "infos$execution (wall time per chain, worker pids, BLAS) differs between runs of the same seed, so fit RDS files are no longer byte-identical; every exact comparison now drops infos$execution and compares everything else with tolerance 0."
+  ],
+  "verification": {
+    "native_reference_driver": "36 cases, 23 fits, 13 expected native errors, 108 of 108 checks passed",
+    "pytest": "132 tests passed after the tool bindings were regenerated (the first run failed only test_source_bindings_immutable)",
+    "acceptance": "19 of 19 cases through Client(module); 5 published fits audited exactly against direct native R",
+    "workshop_dhole": {
+      "input": "occJSDM-workshop data-derived/dhole_input.rds (1818 PCR rows, 101 sites, 303 samples, 1 species)",
+      "settings": {
+        "nchain": 2,
+        "nburn": 5000,
+        "niter": 5000,
+        "nthin": 1
+      },
+      "seed": 2026,
+      "validate": {
+        "eligible": true,
+        "model": "two_stage",
+        "issues": [],
+        "notes": [
+          "Traits absent: native no-traits route retained."
+        ],
+        "dimensions": [
+          1818,
+          1
+        ]
+      },
+      "fit_seconds": 10.4,
+      "validate_seconds": 1.1,
+      "diagnostics_seconds": 1.0,
+      "summary_seconds": 1.1,
+      "screening": {
+        "total_rows": 16,
+        "rhat_flagged": 1,
+        "ess_flagged": 2,
+        "flagged_rows": 3
+      },
+      "flagged": "beta_theta PrevDayRain (rhat 1.03, ess 1055), p and q (rhat 1.00, ess 215 and 203)",
+      "agreement": "The MCP fit equals direct runOccJSDM() with set.seed(2026) at ncores 1 and 2 (results_output identical, tolerance 0), and its flags equal those of the workshop's saved data-derived/dhole_fit.rds."
+    },
+    "cloud_transfer_zip": {
+      "archive_sha256": "a179d62db15e8fc42b28b59bd5fe9a895b30b59e1fbb0ec010be6c7a7f356273",
+      "archive_bytes": 70667758,
+      "relocation_check": "Extracted into an empty folder outside the repository and restored with r-runtime/restore-runtime.R from repository sources (under 4 minutes, all lock checks passed); the dhole steps through the extracted server and runtime gave the same validation, 3 of 16 flagged parameters and the same baseline occupancy to all printed digits, with an 11.4-second fit."
+    }
+  },
+  "not_verified": [
+    "Restoration on Posit Cloud Linux with this lock (Doug)",
+    "Assistant registration and a model-driven conversation with the new runtime (Doug)"
+  ]
+}

@@ -7,6 +7,8 @@ check <- function(x,y,label) {
  if(!isTRUE(c)) stop(paste(label,paste(c,collapse='; ')))
 }
 equal_fit <- function(x,y,label) {
+ # infos$execution records wall time, worker pids and BLAS, which differ between runs of the same seed (see ?runOccJSDM); everything else must match exactly.
+ x$infos$execution <- NULL;y$infos$execution <- NULL
  for(k in c('results_output','X_psi','X_theta','Xs','Tr','infos'))check(x[[k]],y[[k]],paste(label,k))
 }
 summary_native <- function(f) {

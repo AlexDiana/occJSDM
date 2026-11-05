@@ -8,7 +8,7 @@ project <- normalizePath(Sys.getenv('P2A_R_PROJECT'),mustWork=TRUE)
 if(!startsWith(normalizePath(find.package('occJSDM')),paste0(project,'/'))) stop('occJSDM resolved outside isolated P2A_R_PROJECT')
 if(!startsWith(normalizePath(find.package('jsonlite')),paste0(project,'/'))) stop('jsonlite resolved outside isolated P2A_R_PROJECT')
 source_revision <- unique(as.character(stats::na.omit(read.dcf(file.path(find.package('occJSDM'),'DESCRIPTION'),fields='RemoteSha')[,'RemoteSha'])))
-if(!identical(source_revision,'b7b7001e56cea8e3931b09c917ea0e29e6cef3c6')) stop('Isolated occJSDM source revision differs from pinned source; restore the recorded runtime')
+if(!identical(source_revision,'5cba0db2d78d23f2f7985fcf12d61cd6121ff05e')) stop('Isolated occJSDM source revision differs from pinned source; restore the recorded runtime')
 req <- read_json(args[2],simplifyVector=FALSE)
 out <- req$output_dir
 warns <- character()

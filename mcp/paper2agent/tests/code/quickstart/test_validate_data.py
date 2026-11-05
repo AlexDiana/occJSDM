@@ -18,7 +18,7 @@ def test_installed_fastmcp_schema_contract():
     for name in ('diagnostics','summarise_fit'):assert tools[name]['properties']['max_rows']['maximum']==20
     (OUT/'independent_input_schemas.json').write_text(json.dumps(tools,indent=2)+'\n')
 
-@pytest.mark.parametrize('name',['binary_single','occupancy_changed','two_stage_changed'])
+@pytest.mark.parametrize('name',['binary_single','occupancy_changed','two_stage_single','two_stage_changed'])
 def test_fresh_validation_native_design(specs,exercised,name):
     c=specs[name];r=exercised[name]['validate_data']
     assert r['model']==c['model'] and r['dimensions']==c['dimensions']

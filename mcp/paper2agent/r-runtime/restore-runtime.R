@@ -34,7 +34,7 @@ Sys.setenv(P2A_R_PROJECT=target,RENV_PROJECT=target,RENV_PATHS_ROOT=file.path(ta
 .libPaths(c(boot,.Library))
 source_lock <- renv::lockfile_read(file.path(target,"renv.lock"))
 pinned_name <- paste0("occJSDM_",source_lock$Packages$occJSDM$RemoteSha,".tar.gz")
-versioned_source <- file.path(target_cellar,"occJSDM","occJSDM_0.1.0.tar.gz")
+versioned_source <- file.path(target,source_lock$Packages$occJSDM$P2ACellarPath)
 if (!file.exists(file.path(target_cellar,"occJSDM",pinned_name))) stopifnot(file.copy(versioned_source,file.path(target_cellar,"occJSDM",pinned_name)))
 Sys.setenv(RENV_PATHS_CELLAR=target_cellar)
 stopifnot(identical(as.character(packageVersion("renv")),"1.2.3"),startsWith(find.package("renv"),target))

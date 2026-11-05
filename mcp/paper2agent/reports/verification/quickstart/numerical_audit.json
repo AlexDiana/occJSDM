@@ -104,6 +104,12 @@
       "diagnostics": true,
       "baseline": true
     },
+    "boundary_occupancy_localSampleIDs": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
     "boundary_two_stage_NA_OTU": {
       "full_arrays": true,
       "dimensions_identifiers_classes": true,
@@ -136,6 +142,19 @@
       "baseline_dimensions": [
         40,
         3
+      ]
+    },
+    "two_stage_single": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "B0_dimensions": [
+        1,
+        20,
+        2
+      ],
+      "baseline_dimensions": [
+        40,
+        1
       ]
     },
     "two_stage_changed": {

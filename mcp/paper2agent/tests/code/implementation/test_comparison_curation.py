@@ -34,7 +34,7 @@ def copied_project(tmp_path):
         path = runtime / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text('preserved runtime: ' + name)
-    archive = runtime / 'renv/cellar/occJSDM/occJSDM_0.1.0.tar.gz'
+    archive = runtime / 'renv/cellar/occJSDM/occJSDM_0.3.0.tar.gz'
     archive.parent.mkdir(parents=True)
     entries = {'occJSDM/DESCRIPTION': b'Package: occJSDM\n',
                'occJSDM/R/diagnostics.R': b'native package source',

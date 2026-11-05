@@ -11,8 +11,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from .runtime import (artifact, confined_path, digest, fresh_output,
                       resolve_fit, run_r, write_json_atomic)
 
-SOURCE_REVISION = 'b7b7001e56cea8e3931b09c917ea0e29e6cef3c6'
-REFERENCE = f'https://github.com/AlexDiana/occJSDM/blob/{SOURCE_REVISION}/vignettes/occJSDM.Rmd'
+SOURCE_REVISION = '5cba0db2d78d23f2f7985fcf12d61cd6121ff05e'
+REFERENCE = f'https://github.com/AlexDiana/occJSDM/blob/{SOURCE_REVISION}/vignettes/occJSDM-00-quickstart.Rmd'
 quickstart_mcp = FastMCP(name='quickstart', strict_input_validation=True)
 
 

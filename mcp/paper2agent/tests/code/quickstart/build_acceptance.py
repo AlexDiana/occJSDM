@@ -25,12 +25,12 @@ c=specs['binary_single'];o=c['options']
 for suffix in ('first','repeat'):
     positive('validate-binary-single-'+suffix,'validate_data',dict(data_path=c['data_path'],occCovariates=o['occCovariates'],collCovariates=o['collCovariates']),
              dict(eligible=True,model='binary',dimensions=[40,1],traits_present=False,issues=[],design={'species_count':1,'n_sites':40,'missing_observations':0}),2)
-for name in ('binary_single','occupancy_changed','two_stage_changed','binary_single'):
+for name in ('binary_single','occupancy_changed','two_stage_single','two_stage_changed','binary_single'):
     c=specs[name]
     positive('fit-'+name+('-repeat' if name=='binary_single' and any(x['name']=='fit-binary_single' for x in cases) else ''),'fit_model',
              dict(data_path=c['data_path'],options=c['options'],seed=c['seed']),
              dict(model=c['model'],readback_valid=True,effective_n_factors=c['options']['listParams']['n_factors'],kept_draws_per_chain=20,
-                  total_iterations_per_chain=20+20*c['options']['MCMCparams']['nthin'],dimensions=c['dimensions'],runtime={'source_revision':'b7b7001e56cea8e3931b09c917ea0e29e6cef3c6'}),4)
+                  total_iterations_per_chain=20+20*c['options']['MCMCparams']['nthin'],dimensions=c['dimensions'],runtime={'source_revision':'5cba0db2d78d23f2f7985fcf12d61cd6121ff05e'}),4)
 fid=actual['binary_single']['fit_model']['fit_id']
 for suffix in ('first','repeat'):
     positive('diagnostics-single-'+suffix,'diagnostics',dict(fit_id=fid,max_rows=2),
@@ -45,8 +45,6 @@ negative('diagnostics-max21','diagnostics',dict(fit_id=fid,max_rows=21),'validat
 negative('summary-max21','summarise_fit',dict(fit_id=fid,max_rows=21),'validation')
 c=specs['binary_single'];o={**c['options'],'spatCovariates':['x','y']}
 negative('unsupported-spatial','fit_model',dict(data_path=c['data_path'],options=o,seed=c['seed']),'validation')
-c=specs['two_stage_single']
-negative('native-single-two-stage-dimension-error','fit_model',dict(data_path=c['data_path'],options=c['options'],seed=c['seed']),c['error'])
 c=specs['occupancy_changed']
 negative('composed-row-identity-failure','fit_model',dict(data_path=str(OUT/'row_mismatch.rds'),options=c['options'],seed=c['seed']),'row identifiers')
 positive('traits-alias-report','validate_data',dict(data_path=str(OUT/'traits_alias.rds'),occCovariates=['habitat_changed'],collCovariates=[]),dict(eligible=False,model=None),2)

@@ -3,7 +3,7 @@ import pytest
 from fastmcp.exceptions import ToolError
 from conftest import ROOT,OUT,invoke,artifact
 
-@pytest.mark.parametrize('name',['binary_single','occupancy_changed','two_stage_changed'])
+@pytest.mark.parametrize('name',['binary_single','occupancy_changed','two_stage_single','two_stage_changed'])
 def test_full_direct_diagnostics(exercised,name,numerical_audit):
     r=exercised[name]['diagnostics']
     assert artifact(r,'diagnostics').read_bytes()==(OUT/(name+'_oracle_diagnostics.csv')).read_bytes()

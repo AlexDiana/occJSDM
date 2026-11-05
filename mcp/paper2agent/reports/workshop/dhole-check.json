@@ -1,0 +1,80 @@
+{
+  "input": "/Users/douglasyu/src/occJSDM-workshop/data-derived/dhole_input.rds",
+  "settings": {
+    "nchain": 2,
+    "nburn": 5000,
+    "niter": 5000,
+    "nthin": 1
+  },
+  "occCovariates": [
+    "annual_precipitation",
+    "mean_temperature",
+    "Human_modification_1km",
+    "Percent_of_forest_cover_1km",
+    "Patch_density_1km",
+    "Edge_density_1km",
+    "streamOrigin",
+    "Regional_Division"
+  ],
+  "collCovariates": [
+    "Filter_vol",
+    "PrevDayRain"
+  ],
+  "validate_seconds": 1.1,
+  "validate": {
+    "eligible": true,
+    "model": "two_stage",
+    "issues": [],
+    "notes": [
+      "Traits absent: native no-traits route retained."
+    ],
+    "dimensions": [
+      1818,
+      1
+    ]
+  },
+  "fit_seconds": 10.4,
+  "fit": {
+    "fit_id": "fit_15d4017f76614307ae831f4c055abe3d",
+    "model": "two_stage",
+    "readback_valid": true,
+    "kept_draws_per_chain": 5000,
+    "warning_count": 0,
+    "warnings": []
+  },
+  "diagnostics_seconds": 1.0,
+  "screening": {
+    "total_rows": 16,
+    "rhat_flagged": 1,
+    "ess_flagged": 2,
+    "flagged_rows": 3,
+    "unavailable_rhat": 0,
+    "unavailable_ess": 0,
+    "unavailable_rows": 0,
+    "thresholds": {
+      "rhat": 1.01,
+      "ess": 400
+    },
+    "blocks": [
+      "beta0_psi",
+      "beta_psi",
+      "beta_theta",
+      "p",
+      "q",
+      "theta0"
+    ],
+    "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
+    "unavailable_reason": "Rhat is unavailable for constant chains or insufficient chains; unavailable or nonfinite statistics are inconclusive."
+  },
+  "summary_seconds": 1.1,
+  "summary_rows": [
+    {
+      "species": "Mammalia_Carnivora_Canidae_Cuon_alpinus_OTU450_1016748",
+      "mean": 0.2062597139495281,
+      "median": 0.1978564113449866,
+      "q2.5": 0.0817544659150424,
+      "q97.5": 0.37643484849543085
+    }
+  ],
+  "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-719dcc641b0542dca7e12169e16d7825/fit.rds"
+}

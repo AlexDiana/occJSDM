@@ -30,7 +30,7 @@ commands=[
  ('Same comparator with exact options/input/publication/producer hashes and isolated-source guards',0,'acceptance-artifact-guarded-command.log')]
 report={
  'schema_version':1,'module':'quickstart','status':'verified','implementation_run_id':'extract-quickstart-attempt-1',
- 'verified_at':datetime.now(timezone.utc).isoformat(),'project_root':str(ROOT),'source_revision':'b7b7001e56cea8e3931b09c917ea0e29e6cef3c6',
+ 'verified_at':datetime.now(timezone.utc).isoformat(),'project_root':str(ROOT),'source_revision':'5cba0db2d78d23f2f7985fcf12d61cd6121ff05e',
  'verifier_identity':'Fresh independent /root/mcp_verifier, distinct from extraction implementer',
  'exposed_tools':['validate_data','fit_model','diagnostics','summarise_fit'],'exclusions':[],
  'tested_files':production,'tested_production_hashes':production,

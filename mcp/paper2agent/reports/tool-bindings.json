@@ -1,32 +1,32 @@
 {
   "schema_version": 1,
-  "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+  "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
   "source_hashes": {
-    "vignettes/occJSDM.Rmd": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
-    "README.md": "a60a56f328270bae8ee9849b8ebce257adc223112d7f644e750605660a426d1c",
-    "NAMESPACE": "c21e8dd853e5e3245e1e833d4040593daed675e680584a7b815d9a8afcf429a7",
-    "DESCRIPTION": "98f1c08189cd12cd84e09d7d736cc4bdf04972d0ce694277591c0e81735c4339",
-    "R/runOccJSDM.R": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
-    "R/jsdmfun.R": "e2d044194621dd2867b176d78438e3e6805b211605a51e019a26aa2298287a84",
-    "R/output.R": "945f96010698c6b6c1c9ca8c517670ea26ec34531640569342c159b094521f3e",
-    "R/diagnostics.R": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
-    "R/simulateData.R": "c61b02c2990cbfb1175fcceec78a367064bfc79e2ee8af12e64d1f4781840b77",
-    "R/data.R": "d698cbeb9faab50c986ab057f0506efe1abe904739f7321cb290795fd357b0b8",
+    "vignettes/occJSDM-00-quickstart.Rmd": "0c72df0ad50efc52f087659a9777116ff039418db647f4ae517998f8a753b30c",
+    "README.md": "1b3013d0b37e7d3b5fbb54846ba4537fa8b6426aac5233fe4832555809930f70",
+    "NAMESPACE": "1d7bad65a3abc69ba10be9222f7edcc33728add6eab1f2e8bdf22041cd2a2e91",
+    "DESCRIPTION": "77d7e1fae2d6846222dd9ee44f4aca265c33f744d1d4eb3d1dbcb101b44f3d93",
+    "R/runOccJSDM.R": "52266026c418dda295c3cdc26fa8b3d27712daccfb87c228ec13d159a9de9acf",
+    "R/jsdmfun.R": "5dbbc2c8433b084e8a8875d935092ee506c2de992838d18adf10e8339eabfca6",
+    "R/output.R": "c999bc862bdba404224241323a2ec5b7a1218f5e07af58dfb8e38d76937d5cb3",
+    "R/diagnostics.R": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
+    "R/simulateData.R": "0fc01b003f34f1aa326c89231b333a267e9498d717488b718affafe842c13c54",
+    "R/data.R": "8ba695cd5ae6f1cbc792420d0a22df4e3907e5b7bcc34d63ad5cab7815450a91",
     "tests/testthat/helper-fixtures.R": "90c2ce4c81a753aeb64992b1fb7522d3825b756e68c088e264b6b8a6c3c6bd6c",
     "tests/testthat/test-smoke-configs.R": "1effa305833d1a70ca8bcdc62cdb8609e982303425703d4659bbfc9ebabea99c",
-    "tests/testthat/test-api-contracts.R": "e43994ee58f2ca17a5266a61fe12dcc6cfbda1dda00086578211cb13633c63ea",
+    "tests/testthat/test-api-contracts.R": "391b786be54eda41555be0c4a9cd05c6a8a0fd7d8f453171b54049c9f48a48f6",
     "tests/testthat/test-collection-alignment.R": "25596911d0d33acfc83fffa26d7a7d8b433cf3123bfbbffffb171bee0cb84fa9",
-    "tests/testthat/test-diagnostics.R": "0a382a0c66a3b3fe4996c8c4e0c6bcce2ff096c56324eaf083ea9a728793b5ce",
+    "tests/testthat/test-diagnostics.R": "ffbe3e743baae212cb3fe41c4942a3f8f550b5ce1c1ca052ceeea72ce42361ee",
     "tests/testthat/test-regression-bugs.R": "290054ecc801535bb480830f47321a806b97222535b575b4b1c66c9da094e62b",
     "tests/testthat/test-rng-safety.R": "ad20a80bab4915cf3f0d8d6d23d07d1b0d52652134dd755ff1ef8cbd1c8eac28",
     "data/sampledata.rda": "d0eac67030208302996001b17d7f1a65bec17b1c267f128dcdc3607bb9ee34e9",
-    "data/sampleresults.rda": "cf77884781efbcf6cd9579a5c72267969dba9f23ea3a2ab81145667628de5d53"
+    "data/sampleresults.rda": "7a962b0413213fa9bc29144392a1cd19b91a40be69f5eb4c4b11911786b1002c"
   },
   "ownership": {
     "tutorial_id": "quickstart",
     "source_module": "quickstart",
-    "source_path": "vignettes/occJSDM.Rmd",
-    "source_sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+    "source_path": "vignettes/occJSDM-00-quickstart.Rmd",
+    "source_sha256": "0c72df0ad50efc52f087659a9777116ff039418db647f4ae517998f8a753b30c",
     "python_module": "src/tools/quickstart.py",
     "r_module": "src/r_scripts/quickstart.R",
     "execution_assignment": "quickstart"
@@ -43,29 +43,29 @@
         {
           "path": "R/runOccJSDM.R",
           "symbol": "inferDataModel",
-          "line_start": 139,
-          "line_end": 234,
-          "sha256": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
+          "line_start": 152,
+          "line_end": 253,
+          "sha256": "52266026c418dda295c3cdc26fa8b3d27712daccfb87c228ec13d159a9de9acf",
           "visibility": "internal",
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
         },
         {
           "path": "R/runOccJSDM.R",
           "symbol": "process_covariates",
-          "line_start": 9,
-          "line_end": 56,
-          "sha256": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
+          "line_start": 22,
+          "line_end": 69,
+          "sha256": "52266026c418dda295c3cdc26fa8b3d27712daccfb87c228ec13d159a9de9acf",
           "visibility": "internal",
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
         },
         {
           "path": "R/jsdmfun.R",
           "symbol": "create_covariates_matrix",
           "line_start": 66,
           "line_end": 187,
-          "sha256": "e2d044194621dd2867b176d78438e3e6805b211605a51e019a26aa2298287a84",
+          "sha256": "5dbbc2c8433b084e8a8875d935092ee506c2de992838d18adf10e8339eabfca6",
           "visibility": "internal",
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
         }
       ],
       "source_section": "The example data; inferDataModel/process_covariates/create_covariates_matrix",
@@ -85,8 +85,8 @@
       "ownership": {
         "tutorial_id": "quickstart",
         "source_module": "quickstart",
-        "source_path": "vignettes/occJSDM.Rmd",
-        "source_sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+        "source_path": "vignettes/occJSDM-00-quickstart.Rmd",
+        "source_sha256": "0c72df0ad50efc52f087659a9777116ff039418db647f4ae517998f8a753b30c",
         "python_module": "src/tools/quickstart.py",
         "r_module": "src/r_scripts/quickstart.R",
         "execution_assignment": "quickstart"
@@ -103,11 +103,11 @@
         {
           "path": "R/runOccJSDM.R",
           "symbol": "runOccJSDM",
-          "line_start": 442,
-          "line_end": 1499,
-          "sha256": "f8cc33e7e617647553e6b1adb8761a0259d56250984185b10542acbe08cc847e",
+          "line_start": 596,
+          "line_end": 1413,
+          "sha256": "52266026c418dda295c3cdc26fa8b3d27712daccfb87c228ec13d159a9de9acf",
           "visibility": "exported",
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
         }
       ],
       "source_section": "Fit the model (adapt spatial example by leaving spatCovariates empty)",
@@ -127,8 +127,8 @@
       "ownership": {
         "tutorial_id": "quickstart",
         "source_module": "quickstart",
-        "source_path": "vignettes/occJSDM.Rmd",
-        "source_sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+        "source_path": "vignettes/occJSDM-00-quickstart.Rmd",
+        "source_sha256": "0c72df0ad50efc52f087659a9777116ff039418db647f4ae517998f8a753b30c",
         "python_module": "src/tools/quickstart.py",
         "r_module": "src/r_scripts/quickstart.R",
         "execution_assignment": "quickstart"
@@ -145,29 +145,29 @@
         {
           "path": "R/diagnostics.R",
           "symbol": "returnConvergenceDiagnostics",
-          "line_start": 310,
-          "line_end": 377,
-          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "line_start": 260,
+          "line_end": 334,
+          "sha256": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
           "visibility": "exported",
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
         },
         {
           "path": "R/diagnostics.R",
           "symbol": "summarisePosterior",
-          "line_start": 227,
-          "line_end": 258,
-          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "line_start": 175,
+          "line_end": 206,
+          "sha256": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
           "visibility": "internal",
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
         },
         {
           "path": "R/diagnostics.R",
           "symbol": "computeRhat",
-          "line_start": 134,
-          "line_end": 164,
-          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "line_start": 80,
+          "line_end": 110,
+          "sha256": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
           "visibility": "internal",
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
         }
       ],
       "source_section": "Check that the chains agree",
@@ -184,8 +184,8 @@
       "ownership": {
         "tutorial_id": "quickstart",
         "source_module": "quickstart",
-        "source_path": "vignettes/occJSDM.Rmd",
-        "source_sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+        "source_path": "vignettes/occJSDM-00-quickstart.Rmd",
+        "source_sha256": "0c72df0ad50efc52f087659a9777116ff039418db647f4ae517998f8a753b30c",
         "python_module": "src/tools/quickstart.py",
         "r_module": "src/r_scripts/quickstart.R",
         "execution_assignment": "quickstart"
@@ -203,19 +203,19 @@
           "path": "R/output.R",
           "symbol": "returnOccupancyRates",
           "line_start": 653,
-          "line_end": 664,
-          "sha256": "945f96010698c6b6c1c9ca8c517670ea26ec34531640569342c159b094521f3e",
+          "line_end": 663,
+          "sha256": "c999bc862bdba404224241323a2ec5b7a1218f5e07af58dfb8e38d76937d5cb3",
           "visibility": "exported",
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
         },
         {
           "path": "R/diagnostics.R",
           "symbol": "returnConvergenceDiagnostics",
-          "line_start": 310,
-          "line_end": 377,
-          "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+          "line_start": 260,
+          "line_end": 334,
+          "sha256": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
           "visibility": "exported",
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
         }
       ],
       "source_section": "Look at the results; plotOccupancyRates delegates to returnOccupancyRates",
@@ -233,8 +233,8 @@
       "ownership": {
         "tutorial_id": "quickstart",
         "source_module": "quickstart",
-        "source_path": "vignettes/occJSDM.Rmd",
-        "source_sha256": "7c4dcdd40b695ba2f570dfd5e8e1350499e95a4f81034697a654bf1cd0b89ba9",
+        "source_path": "vignettes/occJSDM-00-quickstart.Rmd",
+        "source_sha256": "0c72df0ad50efc52f087659a9777116ff039418db647f4ae517998f8a753b30c",
         "python_module": "src/tools/quickstart.py",
         "r_module": "src/r_scripts/quickstart.R",
         "execution_assignment": "quickstart"
@@ -245,9 +245,9 @@
     {
       "id": "bundled_quickstart",
       "sources": [
-        "vignettes/occJSDM.Rmd:27-34",
-        "vignettes/occJSDM.Rmd:68-80",
-        "vignettes/occJSDM.Rmd:87-91",
+        "b7b7001:vignettes/occJSDM.Rmd:27-34",
+        "b7b7001:vignettes/occJSDM.Rmd:68-80",
+        "b7b7001:vignettes/occJSDM.Rmd:87-91",
         "data/sampledata.rda",
         "data/sampleresults.rda"
       ],
@@ -318,11 +318,11 @@
       "implementation": {
         "path": "R/simulateData.R",
         "symbol": "simulateOccJSDMData",
-        "line_start": 212,
-        "line_end": 419,
-        "sha256": "c61b02c2990cbfb1175fcceec78a367064bfc79e2ee8af12e64d1f4781840b77",
+        "line_start": 215,
+        "line_end": 434,
+        "sha256": "0fc01b003f34f1aa326c89231b333a267e9498d717488b718affafe842c13c54",
         "visibility": "exported",
-        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
       },
       "reason": "Native fixture provenance; simulator tool deferred by approved scope."
     },
@@ -335,9 +335,9 @@
         "symbol": "plotOccupancyRates",
         "line_start": 687,
         "line_end": 712,
-        "sha256": "945f96010698c6b6c1c9ca8c517670ea26ec34531640569342c159b094521f3e",
+        "sha256": "c999bc862bdba404224241323a2ec5b7a1218f5e07af58dfb8e38d76937d5cb3",
         "visibility": "exported",
-        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
       },
       "reason": "Numeric baseline operation reused through returnOccupancyRates. No plot output selected."
     },
@@ -347,11 +347,11 @@
       "implementation": {
         "path": "R/diagnostics.R",
         "symbol": "computeDiagnostics",
-        "line_start": 397,
-        "line_end": 504,
-        "sha256": "0113c69585233ff064b300fa60ac8f3ef89b08ee512ac004ce12aea3e52362e2",
+        "line_start": 354,
+        "line_end": 461,
+        "sha256": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
         "visibility": "exported",
-        "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6"
+        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
       },
       "reason": "runOccJSDM already invokes it. Preserve emitted warnings; do not add a fifth diagnostic tool or substitute console thresholds for approved screens."
     },
@@ -371,5 +371,6 @@
       "reason": "Explicit approved scope boundary; no fabricated replacement scientific algorithms."
     }
   ],
-  "execution_verified": false
+  "execution_verified": false,
+  "source_revision_note": "Rebound to v0.3.0-beta on 5 Nov 2026. Line citations prefixed b7b7001: refer to the Quickstart as it was at that commit; the current Quickstart was rewritten and uses quickstartdata."
 }

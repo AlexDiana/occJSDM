@@ -83,7 +83,8 @@ def numerical_audit(exercised):
     manifests=[json.loads(p.read_text()) for p in (ROOT/'artifacts/calls').glob('fit_model-*/manifest.json')]
     manifests=[m for m in manifests if m.get('status')=='complete' and all(k in m for k in ('requested_settings','seed','input_path','input_sha256','fit_path','fit_sha256'))]
     for name,c in saved.items():
-        if name.startswith('boundary_') and name!='boundary_two_stage_NA_OTU':continue
+        # Boundary probes that fit natively are audited too; occupancy_localSampleIDs fits since occJSDM 34bb928.
+        if name.startswith('boundary_') and name not in ('boundary_two_stage_NA_OTU','boundary_occupancy_localSampleIDs'):continue
         if c['fit']['status']!='ok':continue
         oc=c['occCovariates'];cc=c['collCovariates']
         oc=oc if isinstance(oc,list) else [oc];cc=cc if isinstance(cc,list) else [cc]

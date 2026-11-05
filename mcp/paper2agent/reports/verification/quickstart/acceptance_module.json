@@ -1,6 +1,6 @@
 {
   "mode": "installed FastMCP Client(module)",
-  "cutoff": 1791222016.561739,
+  "cutoff": 1793871542.4152079,
   "cases": [
     {
       "name": "validate-binary-single-first",
@@ -35,18 +35,18 @@
         "warning_count": 0,
         "schema_version": 1,
         "message": "Data are eligible for the supported non-spatial workflow.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/validate_data-87916415441347ecb98ff8723acbfcd0/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/validate_data-db20732cc38e43e198b23cce70801251/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/validate_data-87916415441347ecb98ff8723acbfcd0/stderr.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/validate_data-db20732cc38e43e198b23cce70801251/stderr.log",
             "sha256": "5d8e7100ef22cc821cf175528dd2d63ce189075cbb0a23ad5a92abe8a0d1f9c6"
           }
         ]
@@ -85,18 +85,18 @@
         "warning_count": 0,
         "schema_version": 1,
         "message": "Data are eligible for the supported non-spatial workflow.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/validate_data-9e532afedf764119a4e64977ab6446bb/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/validate_data-d0acb704f4db49e9ac4f210ec8922074/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/validate_data-9e532afedf764119a4e64977ab6446bb/stderr.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/validate_data-d0acb704f4db49e9ac4f210ec8922074/stderr.log",
             "sha256": "5d8e7100ef22cc821cf175528dd2d63ce189075cbb0a23ad5a92abe8a0d1f9c6"
           }
         ]
@@ -130,14 +130,14 @@
           "observations": 40
         },
         "runtime": {
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-          "R": "R version 4.5.0 (2025-04-11)",
-          "occJSDM_version": "0.1.0",
-          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+          "R": "R version 4.6.1 (2026-06-24)",
+          "occJSDM_version": "0.3.0",
+          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
           "renv_version": "1.2.3",
           "libPaths": [
-            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+            "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+            "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
           ],
           "thread_env": {
             "OMP_NUM_THREADS": "",
@@ -145,50 +145,52 @@
             "MKL_NUM_THREADS": "",
             "RCPP_PARALLEL_NUM_THREADS": ""
           },
-          "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+          "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
         },
         "qualifications": [
           "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
           "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
         ],
         "warnings": [
+          "Low ESS in 'B0'. Min ESS < 50",
           "Low ESS in 'B'. Min ESS < 50",
+          "Convergence issue in 'A_output'. Max R-hat > 1.1",
           "Low ESS in 'A'. Min ESS < 50",
+          "Convergence issue in 'C_output'. Max R-hat > 1.1",
           "Low ESS in 'C'. Min ESS < 50",
-          "Low ESS in 'sigmab'. Min ESS < 50",
-          "Low ESS in 'sigmah'. Min ESS < 50"
+          "Low ESS in 'sigmab'. Min ESS < 50"
         ],
-        "warning_count": 5,
+        "warning_count": 7,
         "schema_version": 1,
         "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-25ee7130c0854f76b3a751fd3374f306/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-cc9d12bb84bd4926bedf48588fce338c/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-25ee7130c0854f76b3a751fd3374f306/stderr.log",
-            "sha256": "3ea093d14d227e8982cdf24eb82c50afc3c24f9f55c237165f0842575ea79565"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-cc9d12bb84bd4926bedf48588fce338c/stderr.log",
+            "sha256": "28959c06c715342327d26ffc7a2622e90d09a8846229c16887bd19e3b807cb42"
           },
           {
             "kind": "fit",
             "description": "Native occJSDM fit, reload with readRDS",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-25ee7130c0854f76b3a751fd3374f306/fit.rds",
-            "sha256": "6343cc7fcf25725f313e8f2d919c4b85675cbb415500bd3eb3712b621e7ec5ff"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-cc9d12bb84bd4926bedf48588fce338c/fit.rds",
+            "sha256": "e5404e499fc0155c7d73ee129673d18b7e660ced8c1e09f118640cb48bb1e6ae"
           },
           {
             "kind": "manifest",
             "description": "Fit provenance and effective settings",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-25ee7130c0854f76b3a751fd3374f306/manifest.json",
-            "sha256": "eb5862f33731bf795d885ec260e381d6d4dc8350850719db64f42cec5a999b6f"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-cc9d12bb84bd4926bedf48588fce338c/manifest.json",
+            "sha256": "3276068dcfe226c8204b084cc6dde9e05d04bc355401610d17b88283475590ee"
           }
         ],
-        "fit_id": "fit_45705046400c4b6c9987c124f49c0069",
+        "fit_id": "fit_2edff808b28d485181924f61595e2e66",
         "settings": {
           "occCovariates": [
             "habitat_changed"
@@ -208,7 +210,7 @@
           "summarisedLatentPresences": true,
           "listPriors": {}
         },
-        "input_sha256": "655ded4dd0a6c66e2b5c260ea1263b32a383ea4b4b271c45b2436024d52f6600"
+        "input_sha256": "92520339e1c88c60ef4a11676acc948bf2df6eb87c2273afc3120d318e614a86"
       }
     },
     {
@@ -243,14 +245,14 @@
           "observations": 80
         },
         "runtime": {
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-          "R": "R version 4.5.0 (2025-04-11)",
-          "occJSDM_version": "0.1.0",
-          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+          "R": "R version 4.6.1 (2026-06-24)",
+          "occJSDM_version": "0.3.0",
+          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
           "renv_version": "1.2.3",
           "libPaths": [
-            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+            "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+            "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
           ],
           "thread_env": {
             "OMP_NUM_THREADS": "",
@@ -258,7 +260,7 @@
             "MKL_NUM_THREADS": "",
             "RCPP_PARALLEL_NUM_THREADS": ""
           },
-          "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+          "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
         },
         "qualifications": [
           "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -272,46 +274,50 @@
           "Low ESS in 'B0'. Min ESS < 50",
           "Convergence issue in 'B_output'. Max R-hat > 1.1",
           "Low ESS in 'B'. Min ESS < 50",
+          "Convergence issue in 'A_output'. Max R-hat > 1.1",
           "Low ESS in 'A'. Min ESS < 50",
           "Convergence issue in 'C_output'. Max R-hat > 1.1",
           "Low ESS in 'C'. Min ESS < 50",
           "Convergence issue in 'U_output'. Max R-hat > 1.1",
           "Low ESS in 'U'. Min ESS < 50",
+          "Convergence issue in 'L_output'. Max R-hat > 1.1",
           "Low ESS in 'L'. Min ESS < 50",
           "Low ESS in 'sigmab'. Min ESS < 50",
-          "Low ESS in 'sigmah'. Min ESS < 50"
+          "Convergence issue in 'sigmah_output'. Max R-hat > 1.1",
+          "Low ESS in 'sigmah'. Min ESS < 50",
+          "Low ESS in 'mu_b0'. Min ESS < 50"
         ],
-        "warning_count": 15,
+        "warning_count": 19,
         "schema_version": 1,
         "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-3134bf0e3b6c4ead8bb8324b8b3bdbd9/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-bbf06beba3634637bc25234d75d6c0d6/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-3134bf0e3b6c4ead8bb8324b8b3bdbd9/stderr.log",
-            "sha256": "dd8dba5e983dd3893fad54f929aab56ca2aff3fa854a094244307dd588a1679c"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-bbf06beba3634637bc25234d75d6c0d6/stderr.log",
+            "sha256": "12d34517a7e42a9f1fe4a2a42625b6aaaa91572847b3e54c6dc177e3cb0cbc14"
           },
           {
             "kind": "fit",
             "description": "Native occJSDM fit, reload with readRDS",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-3134bf0e3b6c4ead8bb8324b8b3bdbd9/fit.rds",
-            "sha256": "525c0926cb92fbcf6917d85544b325e8d5845de1ff06e4251aeb6a8226a28c93"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-bbf06beba3634637bc25234d75d6c0d6/fit.rds",
+            "sha256": "14e132cb5879b86444df6d80a49f1e57f66c49b7292597ed1c0983d2db4d091d"
           },
           {
             "kind": "manifest",
             "description": "Fit provenance and effective settings",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-3134bf0e3b6c4ead8bb8324b8b3bdbd9/manifest.json",
-            "sha256": "ed5bab8a6ed9b106e71f78b722a62b75b6a01f87ceaea2720459ad984a83d01d"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-bbf06beba3634637bc25234d75d6c0d6/manifest.json",
+            "sha256": "04fe8b76f47891c7f7b0f5b620eecfcd5f8eae78837adab4144c4b68eb1cad74"
           }
         ],
-        "fit_id": "fit_f16a902e3eae43a0804604ef56c6180a",
+        "fit_id": "fit_17aa66d681b94547bedb8829526f8c0e",
         "settings": {
           "occCovariates": [
             "habitat_changed",
@@ -334,7 +340,132 @@
           "summarisedLatentPresences": true,
           "listPriors": {}
         },
-        "input_sha256": "5819438fc66cf81db8d6c6967dfaf87d28c5474932b82abc37fe7494ed070c56"
+        "input_sha256": "1408a68fe258cdd49b8e4613b569cedcdb674dc7c2fa2985e456dc856b857c21"
+      }
+    },
+    {
+      "name": "fit-two_stage_single",
+      "success": true,
+      "result": {
+        "status": "ok",
+        "model": "two_stage",
+        "readback_valid": true,
+        "effective_n_factors": 0,
+        "kept_draws_per_chain": 20,
+        "total_iterations_per_chain": 80,
+        "dimensions": [
+          160,
+          1
+        ],
+        "design": {
+          "occupancy_columns": [
+            "habitat_changed"
+          ],
+          "collection_columns": [
+            "(Intercept)",
+            "collection_changed"
+          ],
+          "trait_columns": [],
+          "n_sites": 40,
+          "n_samples": 80,
+          "n_primers": 1,
+          "missing_observations": 0,
+          "species_count": 1,
+          "observations": 160
+        },
+        "runtime": {
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+          "R": "R version 4.6.1 (2026-06-24)",
+          "occJSDM_version": "0.3.0",
+          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+          "renv_version": "1.2.3",
+          "libPaths": [
+            "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+            "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+          ],
+          "thread_env": {
+            "OMP_NUM_THREADS": "",
+            "OPENBLAS_NUM_THREADS": "",
+            "MKL_NUM_THREADS": "",
+            "RCPP_PARALLEL_NUM_THREADS": ""
+          },
+          "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
+        },
+        "qualifications": [
+          "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+          "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+        ],
+        "warnings": [
+          "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
+          "Low ESS in 'beta_theta'. Min ESS < 50",
+          "Convergence issue in 'p_output'. Max R-hat > 1.1",
+          "Low ESS in 'p'. Min ESS < 50",
+          "Convergence issue in 'q_output'. Max R-hat > 1.1",
+          "Low ESS in 'q'. Min ESS < 50",
+          "Low ESS in 'theta0'. Min ESS < 50",
+          "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+          "Low ESS in 'B0'. Min ESS < 50",
+          "Convergence issue in 'B_output'. Max R-hat > 1.1",
+          "Low ESS in 'B'. Min ESS < 50",
+          "Convergence issue in 'A_output'. Max R-hat > 1.1",
+          "Low ESS in 'A'. Min ESS < 50",
+          "Convergence issue in 'C_output'. Max R-hat > 1.1",
+          "Low ESS in 'C'. Min ESS < 50",
+          "Low ESS in 'sigmab'. Min ESS < 50"
+        ],
+        "warning_count": 16,
+        "schema_version": 1,
+        "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
+        "artifacts": [
+          {
+            "kind": "log",
+            "description": "Captured native R console output",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-fb0090ff098f4de787bb81bade6ae952/stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "kind": "log",
+            "description": "Captured native R startup diagnostics",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-fb0090ff098f4de787bb81bade6ae952/stderr.log",
+            "sha256": "7599f3f3f2c151503a49637e4d97357f73f6b276856536c8e51c8fd04d6c75f5"
+          },
+          {
+            "kind": "fit",
+            "description": "Native occJSDM fit, reload with readRDS",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-fb0090ff098f4de787bb81bade6ae952/fit.rds",
+            "sha256": "afc31fcd8d3dd674198a0cf53411bfc71a3ac2afa442f722f15da771b821d4d7"
+          },
+          {
+            "kind": "manifest",
+            "description": "Fit provenance and effective settings",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-fb0090ff098f4de787bb81bade6ae952/manifest.json",
+            "sha256": "116a50ce09a6b5fbe72b54d63dc12d64b6bd3a11e38b49a1f6678d5a710407e7"
+          }
+        ],
+        "fit_id": "fit_f3464631bc66499f86722310d2c018e0",
+        "settings": {
+          "occCovariates": [
+            "habitat_changed"
+          ],
+          "collCovariates": [
+            "collection_changed"
+          ],
+          "threshold": 3,
+          "listParams": {
+            "n_factors": 0
+          },
+          "MCMCparams": {
+            "nchain": 2,
+            "nburn": 20,
+            "niter": 20,
+            "nthin": 3
+          },
+          "spatCovariates": [],
+          "summarisedLatentPresences": true,
+          "listPriors": {}
+        },
+        "input_sha256": "9daff23e3f116e01dfea3e35e3aec4f9b789336f088762c502a582e6f846f453"
       }
     },
     {
@@ -369,14 +500,14 @@
           "observations": 160
         },
         "runtime": {
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-          "R": "R version 4.5.0 (2025-04-11)",
-          "occJSDM_version": "0.1.0",
-          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+          "R": "R version 4.6.1 (2026-06-24)",
+          "occJSDM_version": "0.3.0",
+          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
           "renv_version": "1.2.3",
           "libPaths": [
-            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+            "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+            "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
           ],
           "thread_env": {
             "OMP_NUM_THREADS": "",
@@ -384,14 +515,13 @@
             "MKL_NUM_THREADS": "",
             "RCPP_PARALLEL_NUM_THREADS": ""
           },
-          "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+          "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
         },
         "qualifications": [
           "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
           "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
         ],
         "warnings": [
-          "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
           "Low ESS in 'beta_theta'. Min ESS < 50",
           "Convergence issue in 'p_output'. Max R-hat > 1.1",
           "Low ESS in 'p'. Min ESS < 50",
@@ -409,40 +539,41 @@
           "Low ESS in 'C'. Min ESS < 50",
           "Convergence issue in 'U_output'. Max R-hat > 1.1",
           "Low ESS in 'U'. Min ESS < 50",
-          "Low ESS in 'L'. Min ESS < 50",
+          "Convergence issue in 'L_output'. Max R-hat > 1.1",
+          "Low ESS in 'sigmab'. Min ESS < 50",
           "Low ESS in 'sigmah'. Min ESS < 50"
         ],
-        "warning_count": 20,
+        "warning_count": 22,
         "schema_version": 1,
         "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-328cf02a86c2467da328e6f9cef1533e/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-0f18b8067a694220b5b68b47212e4d7d/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-328cf02a86c2467da328e6f9cef1533e/stderr.log",
-            "sha256": "e6cca90c0772de18fc934b2b1c78bdfaa62ddaebffa0f0d6af3949ce61f27775"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-0f18b8067a694220b5b68b47212e4d7d/stderr.log",
+            "sha256": "3c6635377646b4b39df29407c8221d521aabf8d5cc848b485ca0e4a715d96cc1"
           },
           {
             "kind": "fit",
             "description": "Native occJSDM fit, reload with readRDS",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-328cf02a86c2467da328e6f9cef1533e/fit.rds",
-            "sha256": "f3c3e78f7f22f1344ba8ae747ec41b6311b6bc18a858c37faa8393d389537816"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-0f18b8067a694220b5b68b47212e4d7d/fit.rds",
+            "sha256": "6205b913838c99be7166e03462c13983e176c2ea17ab852a846fb6917d9d92c0"
           },
           {
             "kind": "manifest",
             "description": "Fit provenance and effective settings",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-328cf02a86c2467da328e6f9cef1533e/manifest.json",
-            "sha256": "9b0e4521e799b85a9655313cc5a1cbea5c4364e7bdebdccc6c8fd60f4e915e69"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-0f18b8067a694220b5b68b47212e4d7d/manifest.json",
+            "sha256": "a922b25acb5e2cf91a1e620034edb246274dbbdbac9de5b7e5d428d8a2aed6f0"
           }
         ],
-        "fit_id": "fit_018d920de3f54a22b5a0e674d43ae791",
+        "fit_id": "fit_8d7419e8027042cabf052a3babdd1230",
         "settings": {
           "occCovariates": [
             "habitat_changed",
@@ -465,7 +596,7 @@
           "summarisedLatentPresences": true,
           "listPriors": {}
         },
-        "input_sha256": "0ddbabe91ad4fb32975670463ab8e6bfa0f08f3ce5d343db4394dac910567ac5"
+        "input_sha256": "8446f9b97716be359d6ec6a241247e6405c86e2b46ed5ee837af5febc744ed0d"
       }
     },
     {
@@ -496,14 +627,14 @@
           "observations": 40
         },
         "runtime": {
-          "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-          "R": "R version 4.5.0 (2025-04-11)",
-          "occJSDM_version": "0.1.0",
-          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+          "R": "R version 4.6.1 (2026-06-24)",
+          "occJSDM_version": "0.3.0",
+          "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
           "renv_version": "1.2.3",
           "libPaths": [
-            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-            "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+            "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+            "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
           ],
           "thread_env": {
             "OMP_NUM_THREADS": "",
@@ -511,50 +642,52 @@
             "MKL_NUM_THREADS": "",
             "RCPP_PARALLEL_NUM_THREADS": ""
           },
-          "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+          "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
         },
         "qualifications": [
           "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
           "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
         ],
         "warnings": [
+          "Low ESS in 'B0'. Min ESS < 50",
           "Low ESS in 'B'. Min ESS < 50",
+          "Convergence issue in 'A_output'. Max R-hat > 1.1",
           "Low ESS in 'A'. Min ESS < 50",
+          "Convergence issue in 'C_output'. Max R-hat > 1.1",
           "Low ESS in 'C'. Min ESS < 50",
-          "Low ESS in 'sigmab'. Min ESS < 50",
-          "Low ESS in 'sigmah'. Min ESS < 50"
+          "Low ESS in 'sigmab'. Min ESS < 50"
         ],
-        "warning_count": 5,
+        "warning_count": 7,
         "schema_version": 1,
         "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-8e835238b6ad43fda236b72d66250b2d/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-857c63e455de4d75a830a24db34eb3b6/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-8e835238b6ad43fda236b72d66250b2d/stderr.log",
-            "sha256": "3ea093d14d227e8982cdf24eb82c50afc3c24f9f55c237165f0842575ea79565"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-857c63e455de4d75a830a24db34eb3b6/stderr.log",
+            "sha256": "28959c06c715342327d26ffc7a2622e90d09a8846229c16887bd19e3b807cb42"
           },
           {
             "kind": "fit",
             "description": "Native occJSDM fit, reload with readRDS",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-8e835238b6ad43fda236b72d66250b2d/fit.rds",
-            "sha256": "6343cc7fcf25725f313e8f2d919c4b85675cbb415500bd3eb3712b621e7ec5ff"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-857c63e455de4d75a830a24db34eb3b6/fit.rds",
+            "sha256": "dd7b57504e7f693cafb7b7ed442b55d795d50dd6a1ab3a42c8358dfd5cf043db"
           },
           {
             "kind": "manifest",
             "description": "Fit provenance and effective settings",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-8e835238b6ad43fda236b72d66250b2d/manifest.json",
-            "sha256": "536ea494891aba7fa93936aeb9afd57dd7e933c1dcc7a6f9b200f087e85deb0b"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-857c63e455de4d75a830a24db34eb3b6/manifest.json",
+            "sha256": "29ab266d939901d66e849efff46e3f4aac8cb7139939bdba69149e855d98546f"
           }
         ],
-        "fit_id": "fit_94d56be00ad64912b7688935c3defd3e",
+        "fit_id": "fit_58ceb1c0d2bc46a49ae2b06d84afb349",
         "settings": {
           "occCovariates": [
             "habitat_changed"
@@ -574,7 +707,7 @@
           "summarisedLatentPresences": true,
           "listPriors": {}
         },
-        "input_sha256": "655ded4dd0a6c66e2b5c260ea1263b32a383ea4b4b271c45b2436024d52f6600"
+        "input_sha256": "92520339e1c88c60ef4a11676acc948bf2df6eb87c2273afc3120d318e614a86"
       }
     },
     {
@@ -584,7 +717,7 @@
         "status": "ok",
         "screening": {
           "total_rows": 2,
-          "rhat_flagged": 2,
+          "rhat_flagged": 1,
           "ess_flagged": 2,
           "flagged_rows": 2,
           "unavailable_rhat": 0,
@@ -608,12 +741,12 @@
             "idx2": 1,
             "label1": "verifier_species_1",
             "label2": "1",
-            "mean": 0.9507457785510375,
-            "sd": 0.42889591471635885,
-            "q2.5": 0.21154657411337388,
-            "q97.5": 1.8093847135057821,
-            "rhat": 1.0420201460968572,
-            "ess": 67.14864549748029
+            "mean": 1.107805049406476,
+            "sd": 0.5354863182292386,
+            "q2.5": 0.1447043954184618,
+            "q97.5": 1.8293409338111095,
+            "rhat": 1.0401577790936098,
+            "ess": 40
           },
           {
             "param": "beta_psi",
@@ -621,12 +754,12 @@
             "idx2": 1,
             "label1": "habitat_changed",
             "label2": "verifier_species_1",
-            "mean": 2.3795990181802136,
-            "sd": 0.5950781403925576,
-            "q2.5": 1.507091586640086,
-            "q97.5": 3.259888129786412,
-            "rhat": 1.0410099509656099,
-            "ess": 9.551490040368229
+            "mean": 3.213113808556079,
+            "sd": 0.7748086398002979,
+            "q2.5": 1.6924501032203085,
+            "q97.5": 4.760807628995319,
+            "rhat": 1.0040471505796962,
+            "ess": 9.080368723036315
           }
         ],
         "total_rows": 2,
@@ -634,28 +767,28 @@
         "warning_count": 0,
         "schema_version": 1,
         "message": "Screening covers selected coefficient blocks; unavailable diagnostics are inconclusive.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-685d0749f2b54952ab9dc9b5bc20a069/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-4684572bac8145449e53f77583c73bfc/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-685d0749f2b54952ab9dc9b5bc20a069/stderr.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-4684572bac8145449e53f77583c73bfc/stderr.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "diagnostics",
             "description": "Complete native convergence diagnostic table",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-685d0749f2b54952ab9dc9b5bc20a069/diagnostics.csv",
-            "sha256": "583cc576d8a4b4a5036e521ae0596cbf701cdb9fe2c544748831027c7e64968f"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-4684572bac8145449e53f77583c73bfc/diagnostics.csv",
+            "sha256": "4edd96b1b7b24b0d32670b435c879aab3b9cbfc3ae90918d590ebc6d67fe475c"
           }
         ],
-        "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+        "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
         "model": "binary",
         "settings": {
           "occCovariates": [
@@ -691,16 +824,16 @@
         "rows": [
           {
             "species": "verifier_species_1",
-            "mean": 0.7137229061587391,
-            "median": 0.7286975961400737,
-            "q2.5": 0.5526874911685935,
-            "q97.5": 0.8592867932960734
+            "mean": 0.7394955535353187,
+            "median": 0.7565339903626443,
+            "q2.5": 0.5361105249104942,
+            "q97.5": 0.8615794955712104
           }
         ],
         "total_rows": 1,
         "screening": {
           "total_rows": 2,
-          "rhat_flagged": 2,
+          "rhat_flagged": 1,
           "ess_flagged": 2,
           "flagged_rows": 2,
           "unavailable_rhat": 0,
@@ -726,34 +859,34 @@
         "warning_count": 0,
         "schema_version": 1,
         "message": "Baseline occupancy summarizes intercept-based draws; inspect diagnostic qualifications.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-d2207f3fb80f411a8b75ce9f6ab487f1/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-3e4595864b584f03b5bb0bbed551ee73/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-d2207f3fb80f411a8b75ce9f6ab487f1/stderr.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-3e4595864b584f03b5bb0bbed551ee73/stderr.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "summary",
             "description": "Full per-species baseline occupancy summary",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-d2207f3fb80f411a8b75ce9f6ab487f1/summary.csv",
-            "sha256": "5586b6fe31e4688cc42c6af21564b3f58ec83e9937921f99a76e80a3f0f246c1"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-3e4595864b584f03b5bb0bbed551ee73/summary.csv",
+            "sha256": "61051b88d0da560e73886d52b772ee6885c08d1d045a0e0e83ca4785cc4aa781"
           },
           {
             "kind": "diagnostics",
             "description": "Full native diagnostic qualifications",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-d2207f3fb80f411a8b75ce9f6ab487f1/diagnostics.csv",
-            "sha256": "583cc576d8a4b4a5036e521ae0596cbf701cdb9fe2c544748831027c7e64968f"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-3e4595864b584f03b5bb0bbed551ee73/diagnostics.csv",
+            "sha256": "4edd96b1b7b24b0d32670b435c879aab3b9cbfc3ae90918d590ebc6d67fe475c"
           }
         ],
-        "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+        "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
         "model": "binary",
         "settings": {
           "occCovariates": [
@@ -787,7 +920,7 @@
         "status": "ok",
         "screening": {
           "total_rows": 2,
-          "rhat_flagged": 2,
+          "rhat_flagged": 1,
           "ess_flagged": 2,
           "flagged_rows": 2,
           "unavailable_rhat": 0,
@@ -811,12 +944,12 @@
             "idx2": 1,
             "label1": "verifier_species_1",
             "label2": "1",
-            "mean": 0.9507457785510375,
-            "sd": 0.42889591471635885,
-            "q2.5": 0.21154657411337388,
-            "q97.5": 1.8093847135057821,
-            "rhat": 1.0420201460968572,
-            "ess": 67.14864549748029
+            "mean": 1.107805049406476,
+            "sd": 0.5354863182292386,
+            "q2.5": 0.1447043954184618,
+            "q97.5": 1.8293409338111095,
+            "rhat": 1.0401577790936098,
+            "ess": 40
           },
           {
             "param": "beta_psi",
@@ -824,12 +957,12 @@
             "idx2": 1,
             "label1": "habitat_changed",
             "label2": "verifier_species_1",
-            "mean": 2.3795990181802136,
-            "sd": 0.5950781403925576,
-            "q2.5": 1.507091586640086,
-            "q97.5": 3.259888129786412,
-            "rhat": 1.0410099509656099,
-            "ess": 9.551490040368229
+            "mean": 3.213113808556079,
+            "sd": 0.7748086398002979,
+            "q2.5": 1.6924501032203085,
+            "q97.5": 4.760807628995319,
+            "rhat": 1.0040471505796962,
+            "ess": 9.080368723036315
           }
         ],
         "total_rows": 2,
@@ -837,28 +970,28 @@
         "warning_count": 0,
         "schema_version": 1,
         "message": "Screening covers selected coefficient blocks; unavailable diagnostics are inconclusive.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-e881032aa9a94223a1b2c17fc239b852/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-7b0e4f367b3740c88d7909f237c219e1/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-e881032aa9a94223a1b2c17fc239b852/stderr.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-7b0e4f367b3740c88d7909f237c219e1/stderr.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "diagnostics",
             "description": "Complete native convergence diagnostic table",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-e881032aa9a94223a1b2c17fc239b852/diagnostics.csv",
-            "sha256": "583cc576d8a4b4a5036e521ae0596cbf701cdb9fe2c544748831027c7e64968f"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-7b0e4f367b3740c88d7909f237c219e1/diagnostics.csv",
+            "sha256": "4edd96b1b7b24b0d32670b435c879aab3b9cbfc3ae90918d590ebc6d67fe475c"
           }
         ],
-        "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+        "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
         "model": "binary",
         "settings": {
           "occCovariates": [
@@ -894,16 +1027,16 @@
         "rows": [
           {
             "species": "verifier_species_1",
-            "mean": 0.7137229061587391,
-            "median": 0.7286975961400737,
-            "q2.5": 0.5526874911685935,
-            "q97.5": 0.8592867932960734
+            "mean": 0.7394955535353187,
+            "median": 0.7565339903626443,
+            "q2.5": 0.5361105249104942,
+            "q97.5": 0.8615794955712104
           }
         ],
         "total_rows": 1,
         "screening": {
           "total_rows": 2,
-          "rhat_flagged": 2,
+          "rhat_flagged": 1,
           "ess_flagged": 2,
           "flagged_rows": 2,
           "unavailable_rhat": 0,
@@ -929,34 +1062,34 @@
         "warning_count": 0,
         "schema_version": 1,
         "message": "Baseline occupancy summarizes intercept-based draws; inspect diagnostic qualifications.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-e11a2fe9717348e4a63ecf1d5ca19e3e/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-a7d319eee35e48a69f045a04da6e0937/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-e11a2fe9717348e4a63ecf1d5ca19e3e/stderr.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-a7d319eee35e48a69f045a04da6e0937/stderr.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "summary",
             "description": "Full per-species baseline occupancy summary",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-e11a2fe9717348e4a63ecf1d5ca19e3e/summary.csv",
-            "sha256": "5586b6fe31e4688cc42c6af21564b3f58ec83e9937921f99a76e80a3f0f246c1"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-a7d319eee35e48a69f045a04da6e0937/summary.csv",
+            "sha256": "61051b88d0da560e73886d52b772ee6885c08d1d045a0e0e83ca4785cc4aa781"
           },
           {
             "kind": "diagnostics",
             "description": "Full native diagnostic qualifications",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/summarise_fit-e11a2fe9717348e4a63ecf1d5ca19e3e/diagnostics.csv",
-            "sha256": "583cc576d8a4b4a5036e521ae0596cbf701cdb9fe2c544748831027c7e64968f"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-a7d319eee35e48a69f045a04da6e0937/diagnostics.csv",
+            "sha256": "4edd96b1b7b24b0d32670b435c879aab3b9cbfc3ae90918d590ebc6d67fe475c"
           }
         ],
-        "fit_id": "fit_5c45762be4664a4191f49f481277f8b3",
+        "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
         "model": "binary",
         "settings": {
           "occCovariates": [
@@ -989,10 +1122,10 @@
       "result": {
         "status": "ok",
         "screening": {
-          "total_rows": 12,
-          "rhat_flagged": 8,
-          "ess_flagged": 12,
-          "flagged_rows": 12,
+          "total_rows": 13,
+          "rhat_flagged": 10,
+          "ess_flagged": 13,
+          "flagged_rows": 13,
           "unavailable_rhat": 1,
           "unavailable_ess": 0,
           "unavailable_rows": 1,
@@ -1002,6 +1135,7 @@
           },
           "blocks": [
             "beta0_psi",
+            "mu_b0",
             "beta_psi"
           ],
           "scope": "Selected occupancy/detection coefficient blocks; excludes latent variables and checks of model assumptions",
@@ -1027,12 +1161,12 @@
             "idx2": 1,
             "label1": "OTU_2",
             "label2": "1",
-            "mean": -0.16541560472821468,
-            "sd": 0.40000913951239625,
-            "q2.5": -0.8337468860646643,
-            "q97.5": 0.47591269510929557,
-            "rhat": 1.1362792899441403,
-            "ess": 138.32645582584422
+            "mean": -0.13638211595611432,
+            "sd": 0.578205389107885,
+            "q2.5": -1.1229480869766204,
+            "q97.5": 0.7923302281727894,
+            "rhat": 1.1470238130195782,
+            "ess": 17.784145107788643
           },
           {
             "param": "beta0_psi",
@@ -1040,12 +1174,12 @@
             "idx2": 1,
             "label1": "OTU_3",
             "label2": "1",
-            "mean": -0.2850040761975393,
-            "sd": 0.3421380925800118,
-            "q2.5": -0.8979584553328868,
-            "q97.5": 0.42312074627162555,
-            "rhat": 0.9939030891835066,
-            "ess": 79.39942335384228
+            "mean": -0.2925449009633531,
+            "sd": 0.3480644085082256,
+            "q2.5": -0.9625814520171555,
+            "q97.5": 0.3600688550037456,
+            "rhat": 1.1626861825411297,
+            "ess": 40
           },
           {
             "param": "beta0_psi",
@@ -1053,12 +1187,25 @@
             "idx2": 1,
             "label1": "OTU_4",
             "label2": "1",
-            "mean": -0.5210996948391653,
-            "sd": 0.42012796695102655,
-            "q2.5": -1.2886130245210938,
-            "q97.5": 0.12418589734520026,
-            "rhat": 1.0082764674915172,
-            "ess": 41.6966553945317
+            "mean": -0.3106703109003142,
+            "sd": 0.33344655152549696,
+            "q2.5": -0.8441915014275911,
+            "q97.5": 0.33846133035268827,
+            "rhat": 1.0064200804237062,
+            "ess": 40.00000000000001
+          },
+          {
+            "param": "mu_b0",
+            "idx1": 1,
+            "idx2": 1,
+            "label1": "1",
+            "label2": "1",
+            "mean": 0.17607682374920017,
+            "sd": 0.612568693658946,
+            "q2.5": -0.6417758213824021,
+            "q97.5": 1.3619444681317157,
+            "rhat": 1.3310897080928574,
+            "ess": 36.868394044356975
           },
           {
             "param": "beta_psi",
@@ -1066,12 +1213,12 @@
             "idx2": 1,
             "label1": "X_psi.EnvCov.1",
             "label2": "OTU_1",
-            "mean": 3.468871720899786,
-            "sd": 1.2525647061954832,
-            "q2.5": 1.6951215442437189,
-            "q97.5": 5.962123920598529,
-            "rhat": 1.799003165827036,
-            "ess": 6.218325109230856
+            "mean": 2.7134434267979293,
+            "sd": 0.4037500369802294,
+            "q2.5": 2.1148750664549287,
+            "q97.5": 3.561788158158958,
+            "rhat": 1.1580488756182539,
+            "ess": 10.487886775392584
           },
           {
             "param": "beta_psi",
@@ -1079,12 +1226,12 @@
             "idx2": 2,
             "label1": "X_psi.EnvCov.1",
             "label2": "OTU_2",
-            "mean": 2.546977277574183,
-            "sd": 0.446234416561118,
-            "q2.5": 1.7631440950215747,
-            "q97.5": 3.305278018981095,
-            "rhat": 1.201161984423724,
-            "ess": 23.92879913923882
+            "mean": 2.1044576295967192,
+            "sd": 0.4914737291575365,
+            "q2.5": 1.283244566268558,
+            "q97.5": 2.9449212358310586,
+            "rhat": 1.0269488106538602,
+            "ess": 9.513898186316126
           },
           {
             "param": "beta_psi",
@@ -1092,12 +1239,12 @@
             "idx2": 3,
             "label1": "X_psi.EnvCov.1",
             "label2": "OTU_3",
-            "mean": 1.057369717593438,
-            "sd": 0.323325560642824,
-            "q2.5": 0.4459173601884171,
-            "q97.5": 1.6355075096647598,
-            "rhat": 0.9934481070214909,
-            "ess": 36.0598177340621
+            "mean": 0.971447140877691,
+            "sd": 0.27851712681473123,
+            "q2.5": 0.40005893318395386,
+            "q97.5": 1.5232161813357687,
+            "rhat": 1.1819140837865687,
+            "ess": 40
           },
           {
             "param": "beta_psi",
@@ -1105,12 +1252,12 @@
             "idx2": 4,
             "label1": "X_psi.EnvCov.1",
             "label2": "OTU_4",
-            "mean": -1.6607311726633152,
-            "sd": 0.45299508724775106,
-            "q2.5": -2.486707063449145,
-            "q97.5": -1.0155215205587667,
-            "rhat": 1.9350768107112517,
-            "ess": 26.97960392998948
+            "mean": -1.3248050502018958,
+            "sd": 0.373117941835442,
+            "q2.5": -2.0037312657905,
+            "q97.5": -0.6476502198803165,
+            "rhat": 0.981142252834472,
+            "ess": 7.733700121362477
           },
           {
             "param": "beta_psi",
@@ -1118,12 +1265,12 @@
             "idx2": 1,
             "label1": "X_psi.EnvCov.2",
             "label2": "OTU_1",
-            "mean": 1.1945080454911234,
-            "sd": 0.5080222747133452,
-            "q2.5": 0.08544837574423107,
-            "q97.5": 1.9465017911948088,
-            "rhat": 1.0638678732043825,
-            "ess": 18.887350551335324
+            "mean": 1.1024209455567555,
+            "sd": 0.7162812658111137,
+            "q2.5": 0.1537809957967263,
+            "q97.5": 2.796265796102812,
+            "rhat": 2.1023604355932246,
+            "ess": 23.318630393190123
           },
           {
             "param": "beta_psi",
@@ -1131,12 +1278,12 @@
             "idx2": 2,
             "label1": "X_psi.EnvCov.2",
             "label2": "OTU_2",
-            "mean": 2.0064900854744003,
-            "sd": 0.6057132689533675,
-            "q2.5": 1.0155332614068544,
-            "q97.5": 3.328597391927816,
-            "rhat": 1.4429231000797071,
-            "ess": 9.07369599849897
+            "mean": 1.9118066110325274,
+            "sd": 0.6492922831830188,
+            "q2.5": 1.1290521899874177,
+            "q97.5": 3.3387589606502757,
+            "rhat": 1.889575610483769,
+            "ess": 7.2030369043737
           },
           {
             "param": "beta_psi",
@@ -1144,12 +1291,12 @@
             "idx2": 3,
             "label1": "X_psi.EnvCov.2",
             "label2": "OTU_3",
-            "mean": 0.08454720585781,
-            "sd": 0.28845343631202197,
-            "q2.5": -0.31990511835428465,
-            "q97.5": 0.7599817908845666,
-            "rhat": 1.319864950498381,
-            "ess": 24.295891356465518
+            "mean": 0.0728191460178432,
+            "sd": 0.24571505130339064,
+            "q2.5": -0.30303628521742315,
+            "q97.5": 0.4992884417105062,
+            "rhat": 1.0226197781088842,
+            "ess": 19.362442084962595
           },
           {
             "param": "beta_psi",
@@ -1157,41 +1304,41 @@
             "idx2": 4,
             "label1": "X_psi.EnvCov.2",
             "label2": "OTU_4",
-            "mean": 2.461163389752093,
-            "sd": 0.8453927817084986,
-            "q2.5": 1.1318125317175867,
-            "q97.5": 3.9203064724036265,
-            "rhat": 2.1027240859722514,
-            "ess": 7.542600505070666
+            "mean": 2.166039898228981,
+            "sd": 0.37434998243307854,
+            "q2.5": 1.5711670581619512,
+            "q97.5": 2.978745688888192,
+            "rhat": 1.072121087582632,
+            "ess": 44.80552429166302
           }
         ],
-        "total_rows": 12,
+        "total_rows": 13,
         "warnings": [],
         "warning_count": 0,
         "schema_version": 1,
         "message": "Screening covers selected coefficient blocks; unavailable diagnostics are inconclusive.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-db688a826225425a9e163291a2acd52d/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-ea1d4f9624974e65acb89c620f3d10bb/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-db688a826225425a9e163291a2acd52d/stderr.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-ea1d4f9624974e65acb89c620f3d10bb/stderr.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "diagnostics",
             "description": "Complete native convergence diagnostic table",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/diagnostics-db688a826225425a9e163291a2acd52d/diagnostics.csv",
-            "sha256": "a7d74210a101a7c775d9b27fa07f3e4ff5ac98897f180a61c8bb03d20abd4d8f"
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-ea1d4f9624974e65acb89c620f3d10bb/diagnostics.csv",
+            "sha256": "7f28d12b5495f7d792d726cead7d49948638c51e2662aa4e8775ec56579c6cbc"
           }
         ],
-        "fit_id": "fit_3dca9f1a9f79403d87c898765945509b",
+        "fit_id": "fit_af55035a1c144090ad4fa448e20a4803",
         "model": "binary",
         "settings": {},
         "fit_qualifications": [
@@ -1220,10 +1367,6 @@
       "success": true
     },
     {
-      "name": "native-single-two-stage-dimension-error",
-      "success": true
-    },
-    {
       "name": "composed-row-identity-failure",
       "success": true
     },
@@ -1248,18 +1391,18 @@
         "warning_count": 0,
         "schema_version": 1,
         "message": "Resolve the reported issues before fitting.",
-        "reference": "https://github.com/AlexDiana/occJSDM/blob/b7b7001e56cea8e3931b09c917ea0e29e6cef3c6/vignettes/occJSDM.Rmd",
+        "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
         "artifacts": [
           {
             "kind": "log",
             "description": "Captured native R console output",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/validate_data-95e328dffea544df844e92d0ab44a8da/stdout.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/validate_data-f3b99224b561427babd72e2a9b50becc/stdout.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
           {
             "kind": "log",
             "description": "Captured native R startup diagnostics",
-            "path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/validate_data-95e328dffea544df844e92d0ab44a8da/stderr.log",
+            "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/validate_data-f3b99224b561427babd72e2a9b50becc/stderr.log",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           }
         ]

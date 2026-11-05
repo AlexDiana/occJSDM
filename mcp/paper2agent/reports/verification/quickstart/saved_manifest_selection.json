@@ -2,11 +2,11 @@
   "binary": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_b1bcd47cf19a4d5bb6dd5dbef15bc89d",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-e1524989d66945f48aaaab37eae5ff6d/fit.rds",
-    "fit_sha256": "7013d51c7cba757ba0beb61abdef724d38466989d1308cb6906d22debba480b2",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/binary_data.rds",
-    "input_sha256": "16723e59be15adc39467259f10f7802e02012b15ec79c239732b78e323e62d67",
+    "fit_id": "fit_1d2b7e72446441779528c89af6b1356c",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-0eab7d81a4c34e12a6d1e50aabf7453c/fit.rds",
+    "fit_sha256": "3c8d6a48247255cacce2f1b99eb8be67b8ef40c8c3eaf0be4b239e12bb54e8b9",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/binary_data.rds",
+    "input_sha256": "c741c38b1df4d1a00656473422ce34976dde0a2450d0da43239d0465f7aa42aa",
     "seed": 1702,
     "model": "binary",
     "effective_settings": {
@@ -46,16 +46,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -63,9 +63,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -87,10 +87,11 @@
       "Low ESS in 'C'. Min ESS < 50",
       "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50",
-      "Convergence issue in 'L_output'. Max R-hat > 1.1",
       "Low ESS in 'L'. Min ESS < 50",
-      "Low ESS in 'sigmab'. Min ESS < 50",
-      "Low ESS in 'sigmah'. Min ESS < 50"
+      "Convergence issue in 'sigmah_output'. Max R-hat > 1.1",
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Convergence issue in 'mu_b0_output'. Max R-hat > 1.1",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
     ],
     "qualifications": [
       "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -100,11 +101,11 @@
   "occupancy": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_937028ed3ac14cb69be017a0a1a8aa3a",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-3913d754d12544e3a6ecc64206bca167/fit.rds",
-    "fit_sha256": "bc8b86d4d63c9175120127cd8f4779a548d360f57e1a1c15b0633ba2530b0e92",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/occupancy_data.rds",
-    "input_sha256": "abb0fc790b0989baa63b83e7efab27335a516a5a9482c74b1ed5fd31ed8ef560",
+    "fit_id": "fit_919eed4f36a7404ba990482f518adf8f",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-176c5fe376454a228a14457f776da93c/fit.rds",
+    "fit_sha256": "174212a55f9b37a38e2cc693b000a6ace12cbdc4b7ffc494c41d689e2662186f",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/occupancy_data.rds",
+    "input_sha256": "75e79af26c401380a99fb2eb64aa8039f34ffdb534b145c0e9a46b772674d30b",
     "seed": 1702,
     "model": "occupancy",
     "effective_settings": {
@@ -148,16 +149,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -165,9 +166,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -179,7 +180,6 @@
     "warnings": [
       "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
       "Low ESS in 'beta_theta'. Min ESS < 50",
-      "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
       "Low ESS in 'theta0'. Min ESS < 50",
       "Convergence issue in 'B0_output'. Max R-hat > 1.1",
       "Low ESS in 'B0'. Min ESS < 50",
@@ -195,8 +195,9 @@
       "Low ESS in 'U'. Min ESS < 50",
       "Convergence issue in 'L_output'. Max R-hat > 1.1",
       "Low ESS in 'L'. Min ESS < 50",
-      "Convergence issue in 'sigmab_output'. Max R-hat > 1.1",
-      "Low ESS in 'sigmab'. Min ESS < 50"
+      "Low ESS in 'sigmab'. Min ESS < 50",
+      "Convergence issue in 'sigmah_output'. Max R-hat > 1.1",
+      "Low ESS in 'sigmah'. Min ESS < 50"
     ],
     "qualifications": [
       "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -206,11 +207,11 @@
   "two_stage": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_cecf19eef9c44c628752cbf94587727c",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-d31f3d2a64c3470d9117026c6ab4a735/fit.rds",
-    "fit_sha256": "72b621a9a896f2bb6ca8f400d3c243398333554ac9fe73ff6e210ea70946c0b6",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/two_stage_data.rds",
-    "input_sha256": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+    "fit_id": "fit_9ad267cf36b34e4a80c6d6c7ae9b04de",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-1bd9b06b54e449238292c5464ddd271f/fit.rds",
+    "fit_sha256": "d7894326c267a9aa911ee00122d1caf68621de94d9413fe085fbeb354ed5c227",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/two_stage_data.rds",
+    "input_sha256": "fec6758a325e8e07b6cf1aff940cfc2b794468c78b98b24ade4902fafd894422",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -254,16 +255,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -271,215 +272,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
-    "fastmcp_version": "4.0.3",
-    "pydantic_version": "2.13.5",
-    "thread_settings": {
-      "OMP_NUM_THREADS": "",
-      "OPENBLAS_NUM_THREADS": "",
-      "MKL_NUM_THREADS": "",
-      "RCPP_PARALLEL_NUM_THREADS": ""
-    },
-    "warnings": [
-      "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
-      "Low ESS in 'beta_theta'. Min ESS < 50",
-      "Convergence issue in 'p_output'. Max R-hat > 1.1",
-      "Low ESS in 'p'. Min ESS < 50",
-      "Convergence issue in 'q_output'. Max R-hat > 1.1",
-      "Low ESS in 'q'. Min ESS < 50",
-      "Low ESS in 'theta0'. Min ESS < 50",
-      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
-      "Low ESS in 'B0'. Min ESS < 50",
-      "Convergence issue in 'B_output'. Max R-hat > 1.1",
-      "Low ESS in 'B'. Min ESS < 50",
-      "Convergence issue in 'G_output'. Max R-hat > 1.1",
-      "Low ESS in 'G'. Min ESS < 50",
-      "Convergence issue in 'A_output'. Max R-hat > 1.1",
-      "Low ESS in 'A'. Min ESS < 50",
-      "Convergence issue in 'C_output'. Max R-hat > 1.1",
-      "Low ESS in 'C'. Min ESS < 50",
-      "Convergence issue in 'U_output'. Max R-hat > 1.1",
-      "Low ESS in 'U'. Min ESS < 50",
-      "Convergence issue in 'L_output'. Max R-hat > 1.1"
-    ],
-    "qualifications": [
-      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
-      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
-    ]
-  },
-  "no_traits": {
-    "schema_version": 1,
-    "status": "complete",
-    "fit_id": "fit_e81d425dfe564eb0bc458260fbc61f96",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-88deeeb6169642bfbee8f281543871ae/fit.rds",
-    "fit_sha256": "b9380fa079a0df9ab192df7f2cb17d6b07783f9d5a2097199138142067b7f6f2",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/no_traits_data.rds",
-    "input_sha256": "d21451438bf0133ce9d8edcd13de9a7a46fd0480317d6da5bfd35ce94eaa2a97",
-    "seed": 1702,
-    "model": "two_stage",
-    "effective_settings": {
-      "occCovariates": [
-        "X_psi.EnvCov.1",
-        "X_psi.EnvCov.2"
-      ],
-      "collCovariates": [
-        "X_theta"
-      ],
-      "threshold": 1,
-      "listParams": {
-        "n_factors": 2
-      },
-      "MCMCparams": {
-        "nchain": 2,
-        "nburn": 20,
-        "niter": 20,
-        "nthin": 1
-      },
-      "spatCovariates": [],
-      "summarisedLatentPresences": true,
-      "listPriors": {}
-    },
-    "requested_settings": {
-      "occCovariates": [
-        "X_psi.EnvCov.1",
-        "X_psi.EnvCov.2"
-      ],
-      "collCovariates": [
-        "X_theta"
-      ],
-      "threshold": 1,
-      "listParams": {
-        "n_factors": 2
-      },
-      "MCMCparams": {
-        "nchain": 2,
-        "nburn": 20,
-        "niter": 20,
-        "nthin": 1
-      }
-    },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-    "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
-      "renv_version": "1.2.3",
-      "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
-      ],
-      "thread_env": {
-        "OMP_NUM_THREADS": "",
-        "OPENBLAS_NUM_THREADS": "",
-        "MKL_NUM_THREADS": "",
-        "RCPP_PARALLEL_NUM_THREADS": ""
-      },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
-    },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
-    "fastmcp_version": "4.0.3",
-    "pydantic_version": "2.13.5",
-    "thread_settings": {
-      "OMP_NUM_THREADS": "",
-      "OPENBLAS_NUM_THREADS": "",
-      "MKL_NUM_THREADS": "",
-      "RCPP_PARALLEL_NUM_THREADS": ""
-    },
-    "warnings": [
-      "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
-      "Low ESS in 'beta_theta'. Min ESS < 50",
-      "Convergence issue in 'p_output'. Max R-hat > 1.1",
-      "Low ESS in 'p'. Min ESS < 50",
-      "Convergence issue in 'q_output'. Max R-hat > 1.1",
-      "Low ESS in 'q'. Min ESS < 50",
-      "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
-      "Low ESS in 'theta0'. Min ESS < 50",
-      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
-      "Low ESS in 'B0'. Min ESS < 50",
-      "Convergence issue in 'B_output'. Max R-hat > 1.1",
-      "Low ESS in 'B'. Min ESS < 50",
-      "Convergence issue in 'A_output'. Max R-hat > 1.1",
-      "Low ESS in 'A'. Min ESS < 50",
-      "Convergence issue in 'C_output'. Max R-hat > 1.1",
-      "Low ESS in 'C'. Min ESS < 50",
-      "Convergence issue in 'U_output'. Max R-hat > 1.1",
-      "Low ESS in 'U'. Min ESS < 50",
-      "Convergence issue in 'L_output'. Max R-hat > 1.1",
-      "Low ESS in 'L'. Min ESS < 50"
-    ]
-  },
-  "renamed_single_covariates": {
-    "schema_version": 1,
-    "status": "complete",
-    "fit_id": "fit_dfdd79625a8541f6996f67bc89caa9ab",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-8453dfeca41e4c4b8c30b91c117a143a/fit.rds",
-    "fit_sha256": "88ba051440a22aa0b02ad6cd70499779ea58b09098ac910a37c2a2ead41a2af7",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/renamed_single_covariates_data.rds",
-    "input_sha256": "2e1524e6dbaed262b1020a537dbd32acedd77d1fe0b1f4adce80b838202fced1",
-    "seed": 1702,
-    "model": "two_stage",
-    "effective_settings": {
-      "occCovariates": [
-        "habitat"
-      ],
-      "collCovariates": [
-        "effort"
-      ],
-      "threshold": 1,
-      "listParams": {
-        "n_factors": 2
-      },
-      "MCMCparams": {
-        "nchain": 2,
-        "nburn": 20,
-        "niter": 20,
-        "nthin": 1
-      },
-      "spatCovariates": [],
-      "summarisedLatentPresences": true,
-      "listPriors": {}
-    },
-    "requested_settings": {
-      "occCovariates": [
-        "habitat"
-      ],
-      "collCovariates": [
-        "effort"
-      ],
-      "threshold": 1,
-      "listParams": {
-        "n_factors": 2
-      },
-      "MCMCparams": {
-        "nchain": 2,
-        "nburn": 20,
-        "niter": 20,
-        "nthin": 1
-      }
-    },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-    "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
-      "renv_version": "1.2.3",
-      "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
-      ],
-      "thread_env": {
-        "OMP_NUM_THREADS": "",
-        "OPENBLAS_NUM_THREADS": "",
-        "MKL_NUM_THREADS": "",
-        "RCPP_PARALLEL_NUM_THREADS": ""
-      },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
-    },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -509,16 +304,20 @@
       "Low ESS in 'C'. Min ESS < 50",
       "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50"
+    ],
+    "qualifications": [
+      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
     ]
   },
-  "permuted_trait_rows": {
+  "no_traits": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_c8a9f7d6c93a48b08910996f3c9614c9",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-8cc2d3af6a38461d9f918fbff90e1120/fit.rds",
-    "fit_sha256": "72b621a9a896f2bb6ca8f400d3c243398333554ac9fe73ff6e210ea70946c0b6",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/permuted_trait_rows_data.rds",
-    "input_sha256": "766e935adef96257f80631f646e4e302226e90543ef57de3249b9f218dbfb99f",
+    "fit_id": "fit_ab9c4f4545d84d77935ffcf33379b1e7",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-75b1553e689540adb887caa9ab988c79/fit.rds",
+    "fit_sha256": "cf05606d755566d5b280da3a576b5ceec29b510222d2229c8c8d70fbd53fe0be",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/no_traits_data.rds",
+    "input_sha256": "f204b6e98c350de51dae9e818b0343d53261f8f55389cee4cbd4f46517b83b20",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -562,16 +361,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -579,9 +378,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -597,6 +396,111 @@
       "Low ESS in 'p'. Min ESS < 50",
       "Convergence issue in 'q_output'. Max R-hat > 1.1",
       "Low ESS in 'q'. Min ESS < 50",
+      "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
+      "Low ESS in 'theta0'. Min ESS < 50",
+      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+      "Low ESS in 'B0'. Min ESS < 50",
+      "Convergence issue in 'B_output'. Max R-hat > 1.1",
+      "Low ESS in 'B'. Min ESS < 50",
+      "Convergence issue in 'A_output'. Max R-hat > 1.1",
+      "Low ESS in 'A'. Min ESS < 50",
+      "Convergence issue in 'C_output'. Max R-hat > 1.1",
+      "Low ESS in 'C'. Min ESS < 50",
+      "Convergence issue in 'U_output'. Max R-hat > 1.1",
+      "Low ESS in 'U'. Min ESS < 50",
+      "Convergence issue in 'L_output'. Max R-hat > 1.1",
+      "Low ESS in 'L'. Min ESS < 50"
+    ],
+    "qualifications": [
+      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+    ]
+  },
+  "renamed_single_covariates": {
+    "schema_version": 1,
+    "status": "complete",
+    "fit_id": "fit_b6437339810a44f289c212054482c682",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-ba82de86efdc4871bbc602680775e47d/fit.rds",
+    "fit_sha256": "c44a5a9b4094cdcef01d319ca8787d4a2e9f27b2f8a096565ec91b300d198b44",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/renamed_single_covariates_data.rds",
+    "input_sha256": "305b676dbc94f1acd3873f5e9221d9cc06d24482b53e91452334ef021d1fc32f",
+    "seed": 1702,
+    "model": "two_stage",
+    "effective_settings": {
+      "occCovariates": [
+        "habitat"
+      ],
+      "collCovariates": [
+        "effort"
+      ],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      },
+      "spatCovariates": [],
+      "summarisedLatentPresences": true,
+      "listPriors": {}
+    },
+    "requested_settings": {
+      "occCovariates": [
+        "habitat"
+      ],
+      "collCovariates": [
+        "effort"
+      ],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      }
+    },
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "runtime": {
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "renv_version": "1.2.3",
+      "libPaths": [
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+      ],
+      "thread_env": {
+        "OMP_NUM_THREADS": "",
+        "OPENBLAS_NUM_THREADS": "",
+        "MKL_NUM_THREADS": "",
+        "RCPP_PARALLEL_NUM_THREADS": ""
+      },
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
+    },
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
+    "fastmcp_version": "4.0.3",
+    "pydantic_version": "2.13.5",
+    "thread_settings": {
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "MKL_NUM_THREADS": "",
+      "RCPP_PARALLEL_NUM_THREADS": ""
+    },
+    "warnings": [
+      "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
+      "Low ESS in 'beta_theta'. Min ESS < 50",
+      "Convergence issue in 'p_output'. Max R-hat > 1.1",
+      "Low ESS in 'p'. Min ESS < 50",
+      "Convergence issue in 'q_output'. Max R-hat > 1.1",
+      "Low ESS in 'q'. Min ESS < 50",
+      "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
       "Low ESS in 'theta0'. Min ESS < 50",
       "Convergence issue in 'B0_output'. Max R-hat > 1.1",
       "Low ESS in 'B0'. Min ESS < 50",
@@ -606,21 +510,24 @@
       "Low ESS in 'G'. Min ESS < 50",
       "Convergence issue in 'A_output'. Max R-hat > 1.1",
       "Low ESS in 'A'. Min ESS < 50",
-      "Convergence issue in 'C_output'. Max R-hat > 1.1",
       "Low ESS in 'C'. Min ESS < 50",
       "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50",
       "Convergence issue in 'L_output'. Max R-hat > 1.1"
+    ],
+    "qualifications": [
+      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
     ]
   },
-  "categorical_traits": {
+  "permuted_trait_rows": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_245598fce053420e931d52492ae3f038",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-67df0d3b9f8d46eab44fa4e2dcf093af/fit.rds",
-    "fit_sha256": "50adae477b071f47c39bbad69e724c17a4d0dbb4a5438426c0b5a816b8bb3a07",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/categorical_traits_data.rds",
-    "input_sha256": "448bd7632a46a22ca05ee63c867a0970d010a7e378a2cffaac723e126939ec1c",
+    "fit_id": "fit_d2072a3518f441abb5e2dd4adfc454f6",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-e3583f01523b44d6b7c2d45f055aa5d0/fit.rds",
+    "fit_sha256": "0bd27dbcfdc4c4d700f8be235d2e42f576b63d0e2a13e51436f42dd0cfa6d052",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/permuted_trait_rows_data.rds",
+    "input_sha256": "cede7d950e446845dbc8c793b0b424dc65fd86fd3adc3bfa1bbe7d068a41ee67",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -664,16 +571,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -681,9 +588,115 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
+    "fastmcp_version": "4.0.3",
+    "pydantic_version": "2.13.5",
+    "thread_settings": {
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "MKL_NUM_THREADS": "",
+      "RCPP_PARALLEL_NUM_THREADS": ""
+    },
+    "warnings": [
+      "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
+      "Low ESS in 'beta_theta'. Min ESS < 50",
+      "Convergence issue in 'p_output'. Max R-hat > 1.1",
+      "Low ESS in 'p'. Min ESS < 50",
+      "Convergence issue in 'q_output'. Max R-hat > 1.1",
+      "Low ESS in 'q'. Min ESS < 50",
+      "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
+      "Low ESS in 'theta0'. Min ESS < 50",
+      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+      "Low ESS in 'B0'. Min ESS < 50",
+      "Convergence issue in 'B_output'. Max R-hat > 1.1",
+      "Low ESS in 'B'. Min ESS < 50",
+      "Convergence issue in 'G_output'. Max R-hat > 1.1",
+      "Low ESS in 'G'. Min ESS < 50",
+      "Convergence issue in 'A_output'. Max R-hat > 1.1",
+      "Low ESS in 'A'. Min ESS < 50",
+      "Convergence issue in 'C_output'. Max R-hat > 1.1",
+      "Low ESS in 'C'. Min ESS < 50",
+      "Convergence issue in 'U_output'. Max R-hat > 1.1",
+      "Low ESS in 'U'. Min ESS < 50"
+    ],
+    "qualifications": [
+      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+    ]
+  },
+  "categorical_traits": {
+    "schema_version": 1,
+    "status": "complete",
+    "fit_id": "fit_6f4f7ce4573e4892ba276b00bbd2c455",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-9106f212e7094e92895787d1f93a32b6/fit.rds",
+    "fit_sha256": "a97563db855a67ba793e0f3cade5468019f8c9c539d0e4de51d5c2de002ec668",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/categorical_traits_data.rds",
+    "input_sha256": "a9ba71afd41a5ce2230b44540982b5a9a4b37463dacb78a407b2824b9c43221b",
+    "seed": 1702,
+    "model": "two_stage",
+    "effective_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta"
+      ],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      },
+      "spatCovariates": [],
+      "summarisedLatentPresences": true,
+      "listPriors": {}
+    },
+    "requested_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta"
+      ],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      }
+    },
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "runtime": {
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "renv_version": "1.2.3",
+      "libPaths": [
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+      ],
+      "thread_env": {
+        "OMP_NUM_THREADS": "",
+        "OPENBLAS_NUM_THREADS": "",
+        "MKL_NUM_THREADS": "",
+        "RCPP_PARALLEL_NUM_THREADS": ""
+      },
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
+    },
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -722,11 +735,11 @@
   "changed_seed_thinning2": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_d75069ec342a4413a74147e7d96e556c",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-cda7c5bbf88040aabbf8d96fb2a976b9/fit.rds",
-    "fit_sha256": "e374f7b32e294866f49caf425159819818a139f9eeb07bc37e11cabd54528d54",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/changed_seed_thinning2_data.rds",
-    "input_sha256": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
+    "fit_id": "fit_984b72e62e444c909195c4bc94f14bb9",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-7fcbbaa6c23c4b69994ad50e8c77eaaa/fit.rds",
+    "fit_sha256": "b4cfaca203b2050484036e276bacb07ce38b9c7db57dcb5c8c01331b9d5574e3",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/changed_seed_thinning2_data.rds",
+    "input_sha256": "fec6758a325e8e07b6cf1aff940cfc2b794468c78b98b24ade4902fafd894422",
     "seed": 1703,
     "model": "two_stage",
     "effective_settings": {
@@ -770,16 +783,16 @@
         "nthin": 2
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -787,115 +800,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
-    "fastmcp_version": "4.0.3",
-    "pydantic_version": "2.13.5",
-    "thread_settings": {
-      "OMP_NUM_THREADS": "",
-      "OPENBLAS_NUM_THREADS": "",
-      "MKL_NUM_THREADS": "",
-      "RCPP_PARALLEL_NUM_THREADS": ""
-    },
-    "warnings": [
-      "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
-      "Low ESS in 'beta_theta'. Min ESS < 50",
-      "Convergence issue in 'p_output'. Max R-hat > 1.1",
-      "Low ESS in 'p'. Min ESS < 50",
-      "Convergence issue in 'q_output'. Max R-hat > 1.1",
-      "Low ESS in 'q'. Min ESS < 50",
-      "Low ESS in 'theta0'. Min ESS < 50",
-      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
-      "Low ESS in 'B0'. Min ESS < 50",
-      "Convergence issue in 'B_output'. Max R-hat > 1.1",
-      "Low ESS in 'B'. Min ESS < 50",
-      "Convergence issue in 'G_output'. Max R-hat > 1.1",
-      "Low ESS in 'G'. Min ESS < 50",
-      "Convergence issue in 'A_output'. Max R-hat > 1.1",
-      "Low ESS in 'A'. Min ESS < 50",
-      "Convergence issue in 'C_output'. Max R-hat > 1.1",
-      "Low ESS in 'C'. Min ESS < 50",
-      "Convergence issue in 'U_output'. Max R-hat > 1.1",
-      "Low ESS in 'U'. Min ESS < 50",
-      "Convergence issue in 'L_output'. Max R-hat > 1.1"
-    ],
-    "qualifications": [
-      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
-      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
-    ]
-  },
-  "changed_seed_same_schedule": {
-    "schema_version": 1,
-    "status": "complete",
-    "fit_id": "fit_ab76969209d04e3fa346f92fb6969a75",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-b928c54e931848129a115aa78bdff7fa/fit.rds",
-    "fit_sha256": "f15187b14254d309d66df5674463bdf5277d1b435a0ed7099158cd234f800425",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/changed_seed_same_schedule_data.rds",
-    "input_sha256": "86a183af12fa6c8e7f2d87abd01decc30f6280bb8d4002c8ccc9dee4fef7b584",
-    "seed": 1703,
-    "model": "two_stage",
-    "effective_settings": {
-      "occCovariates": [
-        "X_psi.EnvCov.1",
-        "X_psi.EnvCov.2"
-      ],
-      "collCovariates": [
-        "X_theta"
-      ],
-      "threshold": 1,
-      "listParams": {
-        "n_factors": 2
-      },
-      "MCMCparams": {
-        "nchain": 2,
-        "nburn": 20,
-        "niter": 20,
-        "nthin": 1
-      },
-      "spatCovariates": [],
-      "summarisedLatentPresences": true,
-      "listPriors": {}
-    },
-    "requested_settings": {
-      "occCovariates": [
-        "X_psi.EnvCov.1",
-        "X_psi.EnvCov.2"
-      ],
-      "collCovariates": [
-        "X_theta"
-      ],
-      "threshold": 1,
-      "listParams": {
-        "n_factors": 2
-      },
-      "MCMCparams": {
-        "nchain": 2,
-        "nburn": 20,
-        "niter": 20,
-        "nthin": 1
-      }
-    },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-    "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
-      "renv_version": "1.2.3",
-      "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
-      ],
-      "thread_env": {
-        "OMP_NUM_THREADS": "",
-        "OPENBLAS_NUM_THREADS": "",
-        "MKL_NUM_THREADS": "",
-        "RCPP_PARALLEL_NUM_THREADS": ""
-      },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
-    },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -925,16 +832,126 @@
       "Low ESS in 'C'. Min ESS < 50",
       "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50"
+    ],
+    "qualifications": [
+      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+    ]
+  },
+  "changed_seed_same_schedule": {
+    "schema_version": 1,
+    "status": "complete",
+    "fit_id": "fit_942473e3fd9e4dcc86f6139398735af0",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-d8d9d8e9a6eb4beea2bb875056318784/fit.rds",
+    "fit_sha256": "ae3f8e674e1742ed1b442a96f2dc8caecf7c4102a0d806b109cbd311217002dd",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/changed_seed_same_schedule_data.rds",
+    "input_sha256": "fec6758a325e8e07b6cf1aff940cfc2b794468c78b98b24ade4902fafd894422",
+    "seed": 1703,
+    "model": "two_stage",
+    "effective_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta"
+      ],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      },
+      "spatCovariates": [],
+      "summarisedLatentPresences": true,
+      "listPriors": {}
+    },
+    "requested_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [
+        "X_theta"
+      ],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      }
+    },
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "runtime": {
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "renv_version": "1.2.3",
+      "libPaths": [
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+      ],
+      "thread_env": {
+        "OMP_NUM_THREADS": "",
+        "OPENBLAS_NUM_THREADS": "",
+        "MKL_NUM_THREADS": "",
+        "RCPP_PARALLEL_NUM_THREADS": ""
+      },
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
+    },
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
+    "fastmcp_version": "4.0.3",
+    "pydantic_version": "2.13.5",
+    "thread_settings": {
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "MKL_NUM_THREADS": "",
+      "RCPP_PARALLEL_NUM_THREADS": ""
+    },
+    "warnings": [
+      "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
+      "Low ESS in 'beta_theta'. Min ESS < 50",
+      "Convergence issue in 'p_output'. Max R-hat > 1.1",
+      "Low ESS in 'p'. Min ESS < 50",
+      "Convergence issue in 'q_output'. Max R-hat > 1.1",
+      "Low ESS in 'q'. Min ESS < 50",
+      "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
+      "Low ESS in 'theta0'. Min ESS < 50",
+      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+      "Low ESS in 'B0'. Min ESS < 50",
+      "Convergence issue in 'B_output'. Max R-hat > 1.1",
+      "Low ESS in 'B'. Min ESS < 50",
+      "Convergence issue in 'G_output'. Max R-hat > 1.1",
+      "Low ESS in 'G'. Min ESS < 50",
+      "Convergence issue in 'A_output'. Max R-hat > 1.1",
+      "Low ESS in 'A'. Min ESS < 50",
+      "Convergence issue in 'C_output'. Max R-hat > 1.1",
+      "Low ESS in 'C'. Min ESS < 50",
+      "Convergence issue in 'U_output'. Max R-hat > 1.1",
+      "Low ESS in 'U'. Min ESS < 50"
+    ],
+    "qualifications": [
+      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
     ]
   },
   "alignment_global_ordered": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_d699489a4ca54bf1ad3d7aa39f3b5250",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-1a842574423843bc9af17ac5c926cb2c/fit.rds",
-    "fit_sha256": "02acee7bdf3358a840277e65ea45517f532680d9e9a7bb3c7ec5b19530ff46b8",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/alignment_global_ordered_data.rds",
-    "input_sha256": "2de3902610360464540a5dcad3085ffcb82d0af33b37984fec21d94ddfbd91cb",
+    "fit_id": "fit_929402d5d16d43218e6c43c7e4e36788",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-a25bf4ae6c6e4322aece82beb07ab3a4/fit.rds",
+    "fit_sha256": "269361dbb09f30fba336a796eb3c3e39be9a96de261ee321d4f2c2ea5e131740",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_global_ordered_data.rds",
+    "input_sha256": "0e78425b45d474aaaa22d0543d5627e754aeb814de3d8736abb6d06ba699fa53",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -974,16 +991,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -991,9 +1008,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -1007,16 +1024,16 @@
       "Low ESS in 'beta_theta'. Min ESS < 50",
       "Convergence issue in 'p_output'. Max R-hat > 1.1",
       "Low ESS in 'p'. Min ESS < 50",
+      "Convergence issue in 'q_output'. Max R-hat > 1.1",
       "Low ESS in 'q'. Min ESS < 50",
       "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
       "Low ESS in 'theta0'. Min ESS < 50",
-      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
-      "Low ESS in 'B0'. Min ESS < 50",
       "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50",
+      "Convergence issue in 'L_output'. Max R-hat > 1.1",
       "Low ESS in 'L'. Min ESS < 50",
-      "Convergence issue in 'sigmab_output'. Max R-hat > 1.1",
-      "Low ESS in 'sigmah'. Min ESS < 50"
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
     ],
     "qualifications": [
       "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -1026,11 +1043,11 @@
   "alignment_global_shuffled": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_0fdfc9ae4a7f4d8496c8243c7d61b248",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-68b7d96c8e6745ff882d8da04223951e/fit.rds",
-    "fit_sha256": "3fdcdb92aa9ae8aee25855ad7453bd0e3ca45dee6bb3e7e9cdf7361ff479f5e4",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/alignment_global_shuffled_data.rds",
-    "input_sha256": "21e63433496d2c560e7dfe380b0ec9c705a1e049e6aefaf194db826c7d97ab97",
+    "fit_id": "fit_0a5cc65b3a654c46972a6589664fa4f7",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-990d784f163740928b8db4f4c5e2b911/fit.rds",
+    "fit_sha256": "841377d628fafaa093f1ba563c0ca4d6d848cb39e4401eefc933510c2b060909",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_global_shuffled_data.rds",
+    "input_sha256": "35b0f0abda35bc7443616979ded5493bf23e65b55350a8b7a1ac55d4428f3c86",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -1070,16 +1087,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1087,9 +1104,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -1103,16 +1120,16 @@
       "Low ESS in 'beta_theta'. Min ESS < 50",
       "Convergence issue in 'p_output'. Max R-hat > 1.1",
       "Low ESS in 'p'. Min ESS < 50",
+      "Convergence issue in 'q_output'. Max R-hat > 1.1",
       "Low ESS in 'q'. Min ESS < 50",
       "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
       "Low ESS in 'theta0'. Min ESS < 50",
-      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
-      "Low ESS in 'B0'. Min ESS < 50",
       "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50",
+      "Convergence issue in 'L_output'. Max R-hat > 1.1",
       "Low ESS in 'L'. Min ESS < 50",
-      "Convergence issue in 'sigmab_output'. Max R-hat > 1.1",
-      "Low ESS in 'sigmah'. Min ESS < 50"
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
     ],
     "qualifications": [
       "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -1122,11 +1139,11 @@
   "alignment_local_ordered": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_439a6da63bea4cd48f7655ff67d64a66",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-fcf5007a39234c459b224541b5e10c94/fit.rds",
-    "fit_sha256": "1e93a425830c363e0c9792da96904ed659d6a441a33c33610d0b6e11a3150e39",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/alignment_local_ordered_data.rds",
-    "input_sha256": "c6d45ac6826039a088007a05a9da67e3d77bf538856e2636a50a64e59545d57d",
+    "fit_id": "fit_c6f70914f5df493b8128822b03086e6b",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-dec66a90ac144d3ebab7085f3d2a5bc8/fit.rds",
+    "fit_sha256": "e0a33cbc9a6cfe51d4c97037c96de2ea94319028d67e7fee0e82e1af04a3aa91",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_local_ordered_data.rds",
+    "input_sha256": "29d3f74b15d038a898923ab42a79cd5c58dba579036a38bae0c3ee32108d6a5f",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -1166,16 +1183,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1183,9 +1200,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -1199,16 +1216,16 @@
       "Low ESS in 'beta_theta'. Min ESS < 50",
       "Convergence issue in 'p_output'. Max R-hat > 1.1",
       "Low ESS in 'p'. Min ESS < 50",
+      "Convergence issue in 'q_output'. Max R-hat > 1.1",
       "Low ESS in 'q'. Min ESS < 50",
       "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
       "Low ESS in 'theta0'. Min ESS < 50",
-      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
-      "Low ESS in 'B0'. Min ESS < 50",
       "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50",
+      "Convergence issue in 'L_output'. Max R-hat > 1.1",
       "Low ESS in 'L'. Min ESS < 50",
-      "Convergence issue in 'sigmab_output'. Max R-hat > 1.1",
-      "Low ESS in 'sigmah'. Min ESS < 50"
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
     ],
     "qualifications": [
       "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -1218,11 +1235,11 @@
   "alignment_local_shuffled": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_534b625fb4d84c9ba82416ce55eef585",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-3ebb75472846450f87f6fc5943da47f6/fit.rds",
-    "fit_sha256": "fb5d24179ae7115da6d33ccd1221d9b23580129caa1a03f35636cf79214e6dc1",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/alignment_local_shuffled_data.rds",
-    "input_sha256": "dfe424c3cff7bf9acc3eef3e2bcee2189577b42effdd1fd40f68fb273ef84ace",
+    "fit_id": "fit_81e82eab83cf4666a7db21a9cd2ac26f",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-4392be29316a4dfc9ac62f44d2931f5c/fit.rds",
+    "fit_sha256": "e454a84681067f2d296850efec12182801c0a1d27e41c2f305a52fec9a8e7a41",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_local_shuffled_data.rds",
+    "input_sha256": "966c512a12d789f346fd7c08ec1e8e34b8a6023ba33e08fb3584aa770a452e54",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -1262,16 +1279,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1279,9 +1296,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -1295,16 +1312,16 @@
       "Low ESS in 'beta_theta'. Min ESS < 50",
       "Convergence issue in 'p_output'. Max R-hat > 1.1",
       "Low ESS in 'p'. Min ESS < 50",
+      "Convergence issue in 'q_output'. Max R-hat > 1.1",
       "Low ESS in 'q'. Min ESS < 50",
       "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
       "Low ESS in 'theta0'. Min ESS < 50",
-      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
-      "Low ESS in 'B0'. Min ESS < 50",
       "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50",
+      "Convergence issue in 'L_output'. Max R-hat > 1.1",
       "Low ESS in 'L'. Min ESS < 50",
-      "Convergence issue in 'sigmab_output'. Max R-hat > 1.1",
-      "Low ESS in 'sigmah'. Min ESS < 50"
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
     ],
     "qualifications": [
       "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -1314,11 +1331,11 @@
   "alignment_character_ordered": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_9e8d27f313504f82ba15123db52ac209",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-7c83ef8f55c04350b98e0d0cf4a5c55b/fit.rds",
-    "fit_sha256": "a76ee11f94f120e01548d4911fe60263147b2784cdc204e238d12df1a4fd0b14",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/alignment_character_ordered_data.rds",
-    "input_sha256": "551848c6609374ce6f9ebd38874d6b38593bbbca95cee4f1f83cda60a8bbe53c",
+    "fit_id": "fit_1dce25e9f9f44cfb8fa7c6873e6a38e2",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-a3b3fab0881d4bd9b0a6ea413bdceece/fit.rds",
+    "fit_sha256": "42354afdb5d247eef8baa4b96ec559c772599cb27a6dbb0849dcea024f467825",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_character_ordered_data.rds",
+    "input_sha256": "774a47e60e33a45f528effac89ced14aa36ebe3963190e11c5e0510a6343727a",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -1358,16 +1375,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1375,9 +1392,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -1391,16 +1408,16 @@
       "Low ESS in 'beta_theta'. Min ESS < 50",
       "Convergence issue in 'p_output'. Max R-hat > 1.1",
       "Low ESS in 'p'. Min ESS < 50",
+      "Convergence issue in 'q_output'. Max R-hat > 1.1",
       "Low ESS in 'q'. Min ESS < 50",
       "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
       "Low ESS in 'theta0'. Min ESS < 50",
-      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
-      "Low ESS in 'B0'. Min ESS < 50",
       "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50",
+      "Convergence issue in 'L_output'. Max R-hat > 1.1",
       "Low ESS in 'L'. Min ESS < 50",
-      "Convergence issue in 'sigmab_output'. Max R-hat > 1.1",
-      "Low ESS in 'sigmah'. Min ESS < 50"
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
     ],
     "qualifications": [
       "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -1410,11 +1427,11 @@
   "alignment_character_shuffled": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_a225dd10ca9c41db94f5e0e99ff043a5",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-d759fae7354647e496abce9018ba57ff/fit.rds",
-    "fit_sha256": "4097f7dac8cc61e2354d511e1e73c9a8c11092b5dfe9fb8dab17384d488f5cd9",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/alignment_character_shuffled_data.rds",
-    "input_sha256": "121fc9d57595a4aa4bb8c18a3dfea6e8f1844135b7f6eb82ecd25d09bb78ec7e",
+    "fit_id": "fit_b0e8b414bafc4f65bb23d25252a1f42e",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-d934c057ce1c4d25890b78070161ce1c/fit.rds",
+    "fit_sha256": "adae53605c35d7da836a3cf19fa047c249af3384153c7e90095a8edbfb5135d6",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_character_shuffled_data.rds",
+    "input_sha256": "2fc555c61f7cf40c13d291e4166e5dee9b0abc2c0ef37120bab80f78817cb91d",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -1454,16 +1471,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1471,9 +1488,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -1487,16 +1504,16 @@
       "Low ESS in 'beta_theta'. Min ESS < 50",
       "Convergence issue in 'p_output'. Max R-hat > 1.1",
       "Low ESS in 'p'. Min ESS < 50",
+      "Convergence issue in 'q_output'. Max R-hat > 1.1",
       "Low ESS in 'q'. Min ESS < 50",
       "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
       "Low ESS in 'theta0'. Min ESS < 50",
-      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
-      "Low ESS in 'B0'. Min ESS < 50",
       "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50",
+      "Convergence issue in 'L_output'. Max R-hat > 1.1",
       "Low ESS in 'L'. Min ESS < 50",
-      "Convergence issue in 'sigmab_output'. Max R-hat > 1.1",
-      "Low ESS in 'sigmah'. Min ESS < 50"
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
     ],
     "qualifications": [
       "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -1506,11 +1523,11 @@
   "alignment_identifier_covariates": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_c9a996a54bb146f2b2bd62d5d685d698",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-a78b5f2e93d94d44bf9d18fe9edd1162/fit.rds",
-    "fit_sha256": "a418217387c28e10fcf3eeb2e879f68388d731081c3542865ae74134571d8125",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/alignment_identifier_covariates_data.rds",
-    "input_sha256": "dfe424c3cff7bf9acc3eef3e2bcee2189577b42effdd1fd40f68fb273ef84ace",
+    "fit_id": "fit_093e13d99d6840eaa0506ebcaa8e462f",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-2731e2432f024601a76842ccbdbffa26/fit.rds",
+    "fit_sha256": "091a3e3e832c3c5d8905d78bf8d7ca93145e2d6943fc6346713e0cf7080604d3",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_identifier_covariates_data.rds",
+    "input_sha256": "966c512a12d789f346fd7c08ec1e8e34b8a6023ba33e08fb3584aa770a452e54",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -1550,16 +1567,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1567,9 +1584,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -1588,12 +1605,10 @@
       "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
       "Low ESS in 'theta0'. Min ESS < 50",
       "Low ESS in 'B0'. Min ESS < 50",
-      "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50",
       "Low ESS in 'L'. Min ESS < 50",
-      "Low ESS in 'sigmab'. Min ESS < 50",
-      "Convergence issue in 'sigmah_output'. Max R-hat > 1.1",
-      "Low ESS in 'sigmah'. Min ESS < 50"
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
     ],
     "qualifications": [
       "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -1603,11 +1618,11 @@
   "alignment_occupancy_shuffled": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_7e308076b64d488cabbb5b99b250ea3c",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-d799d620d1254df3a406e7157d36d393/fit.rds",
-    "fit_sha256": "e80387f08239b195ece053d583729cccd1c5eebf00f1d6afffe60668acc3100c",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/alignment_occupancy_shuffled_data.rds",
-    "input_sha256": "2634ef22e46c99bf30a9584fb053022904b34110344ad48517d717b34bf28123",
+    "fit_id": "fit_5a588be0c05e45079cfee2bce8f8e2da",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-43e63bbe04024e67a74e9841a134ee79/fit.rds",
+    "fit_sha256": "e0824fc8397ec54e83771090315cc4936b9eec4f2794b599dcb38c3442f57d62",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_occupancy_shuffled_data.rds",
+    "input_sha256": "ff2126b20e47256a4c082e5140c6a592405fbe4a1690e106ebefbc2b9d4a34e8",
     "seed": 1702,
     "model": "occupancy",
     "effective_settings": {
@@ -1647,16 +1662,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1664,9 +1679,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
@@ -1681,12 +1696,103 @@
       "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
       "Low ESS in 'theta0'. Min ESS < 50",
       "Low ESS in 'B0'. Min ESS < 50",
-      "Convergence issue in 'U_output'. Max R-hat > 1.1",
       "Low ESS in 'U'. Min ESS < 50",
-      "Convergence issue in 'L_output'. Max R-hat > 1.1",
-      "Low ESS in 'L'. Min ESS < 50",
-      "Convergence issue in 'sigmab_output'. Max R-hat > 1.1",
-      "Low ESS in 'sigmab'. Min ESS < 50"
+      "Low ESS in 'sigmab'. Min ESS < 50",
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Convergence issue in 'mu_b0_output'. Max R-hat > 1.1",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
+    ],
+    "qualifications": [
+      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+    ]
+  },
+  "boundary_occupancy_localSampleIDs": {
+    "schema_version": 1,
+    "status": "complete",
+    "fit_id": "fit_7f494078e1924491ada0e04a3e3a2eb9",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-f61f1b890ab4447d8e1913b679615856/fit.rds",
+    "fit_sha256": "6787572d34471d75ffa35b08b744ff196663c6c349537f7dd97d1a05c2df7960",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/boundary_occupancy_localSampleIDs_data.rds",
+    "input_sha256": "ce6a4a7c0aaebf9141c2f81bdfbf2a5c78baad793b91e96c108bac745b9f1b39",
+    "seed": 1702,
+    "model": "occupancy",
+    "effective_settings": {
+      "occCovariates": [],
+      "collCovariates": [
+        "effort",
+        "collection_type"
+      ],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      },
+      "spatCovariates": [],
+      "summarisedLatentPresences": true,
+      "listPriors": {}
+    },
+    "requested_settings": {
+      "occCovariates": [],
+      "collCovariates": [
+        "effort",
+        "collection_type"
+      ],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      }
+    },
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "runtime": {
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "renv_version": "1.2.3",
+      "libPaths": [
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+      ],
+      "thread_env": {
+        "OMP_NUM_THREADS": "",
+        "OPENBLAS_NUM_THREADS": "",
+        "MKL_NUM_THREADS": "",
+        "RCPP_PARALLEL_NUM_THREADS": ""
+      },
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
+    },
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
+    "fastmcp_version": "4.0.3",
+    "pydantic_version": "2.13.5",
+    "thread_settings": {
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "MKL_NUM_THREADS": "",
+      "RCPP_PARALLEL_NUM_THREADS": ""
+    },
+    "warnings": [
+      "Convergence issue in 'beta_theta_output'. Max R-hat > 1.1",
+      "Low ESS in 'beta_theta'. Min ESS < 50",
+      "Convergence issue in 'theta0_output'. Max R-hat > 1.1",
+      "Low ESS in 'theta0'. Min ESS < 50",
+      "Low ESS in 'B0'. Min ESS < 50",
+      "Low ESS in 'U'. Min ESS < 50",
+      "Low ESS in 'sigmab'. Min ESS < 50",
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Convergence issue in 'mu_b0_output'. Max R-hat > 1.1",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
     ],
     "qualifications": [
       "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
@@ -1696,11 +1802,11 @@
   "boundary_two_stage_NA_OTU": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_5d42db3cb8be4d798a60600f70c6ae05",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/artifacts/calls/fit_model-583bae1fbebe42b39e72e3e512b7ead5/fit.rds",
-    "fit_sha256": "6b01c5f52dc39cfd18b36989ec83e7873d3e3f9f0276c54818874ac4ea548f7e",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/notebooks/quickstart/data/boundary_two_stage_NA_OTU_data.rds",
-    "input_sha256": "7d2f911924ecee8c8b409311551878bcde601cff28b1210db0b58aaae11c10a2",
+    "fit_id": "fit_4ecee9bf23944dcf8f6246cb65c464c7",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-8aff53aa99b145a598007ea536b0c880/fit.rds",
+    "fit_sha256": "6f81956e4fbbfc54e94040a5805578608f4c2d7e011f83908b77ba1aac79f45b",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/boundary_two_stage_NA_OTU_data.rds",
+    "input_sha256": "9e5d4a75a249b2d6fcd478846c36e38d222eb445a2a988a01a916de2bf7deab4",
     "seed": 1702,
     "model": "two_stage",
     "effective_settings": {
@@ -1744,16 +1850,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
+    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
     "runtime": {
-      "source_revision": "b7b7001e56cea8e3931b09c917ea0e29e6cef3c6",
-      "R": "R version 4.5.0 (2025-04-11)",
-      "occJSDM_version": "0.1.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20/occJSDM",
+      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.0",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/library/macos/R-4.5/aarch64-apple-darwin20",
-        "/Users/douglasyu/src/occJSDM/.worktrees/occjsdm-mcp-pilot/mcp/paper2agent/r-runtime/sandbox/macos/R-4.5/aarch64-apple-darwin20/4cd76b74"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1761,9 +1867,9 @@
         "MKL_NUM_THREADS": "",
         "RCPP_PARALLEL_NUM_THREADS": ""
       },
-      "Rscript": "/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript"
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
     },
-    "python_version": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
     "fastmcp_version": "4.0.3",
     "pydantic_version": "2.13.5",
     "thread_settings": {
