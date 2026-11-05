@@ -4,8 +4,8 @@ message: >-
   the primary reference for the statistical model, and cite this software
   repository for the specific implementation/version used.
 title: "occJSDM: Occupancy Joint Species Distribution Models"
-version: 0.1.0
-date-released: 2026-07-18
+version: 0.3.0
+date-released: 2026-11-05
 url: "https://github.com/AlexDiana/occJSDM"
 license: Apache-2.0
 authors:

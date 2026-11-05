@@ -1,4 +1,6 @@
-# occJSDM (development version)
+# occJSDM 0.3.0
+
+Fourth beta, released on GitHub as `v0.3.0-beta`. The community-mean prior on the occupancy intercepts is now the default for multi-species data, so fits that leave `b0_prior` unset give different numbers from 0.2.0.
 
 ## Behaviour changes
 

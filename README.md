@@ -92,6 +92,6 @@ If you use `occJSDM`, please cite the methods paper describing the underlying tw
 
 **Software (secondary citation):**
 
-> Diana, A., & Yu, D. W. (2026). occJSDM: Occupancy Joint Species Distribution Models (Version 0.1.0) [Computer software]. <https://github.com/AlexDiana/occJSDM>
+> Diana, A., & Yu, D. W. (2026). occJSDM: Occupancy Joint Species Distribution Models (Version 0.3.0) [Computer software]. <https://github.com/AlexDiana/occJSDM>
 
 A machine-readable citation is also available in [`CITATION.cff`](CITATION.cff) -- GitHub uses this to populate the "Cite this repository" button in the sidebar of the repo page.
