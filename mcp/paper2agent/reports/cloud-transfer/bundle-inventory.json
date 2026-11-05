@@ -1,12 +1,12 @@
 {
   "status": "assembled_pending_extraction_verification",
-  "purpose": "Cloud transfer of the v0.3.0-beta runtime for the November 2026 workshop; Cloud installation not yet run",
-  "archive_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/dist/occJSDM-cloud-pilot.zip",
-  "archive_sha256": "a179d62db15e8fc42b28b59bd5fe9a895b30b59e1fbb0ec010be6c7a7f356273",
-  "archive_bytes": 70667758,
+  "purpose": "Cloud transfer of the v0.3.0-beta runtime for the November 2026 workshop; installed and used on Posit Cloud on 5 November 2026",
+  "archive_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/dist/occJSDM-cloud-pilot-v0.3.0.zip",
+  "archive_sha256": "4b8b6c36a4432352d3e5d6fdd3b5c0f797ad83220e2d54fdd6e9c28c1f03b66b",
+  "archive_bytes": 70668008,
   "files": {
-    "CLOUD-SETUP.md": "3397ff4e56daa7b7694b54ce54a44189e1236f36334b6d4584a2b70e50013085",
-    "USAGE.md": "561b34f598c9e3bb29a9fdcd2dd6e28d2c8834cb317f07eabad61f5dd5b1dcd6",
+    "CLOUD-SETUP.md": "458e62c3dfc7bf8df15fac2f33960524a7467d08b7aa02c947590293e2662021",
+    "USAGE.md": "228879eb171d172908b906e94a733530b5ea5d132a6e7e25c0913082b51df85b",
     "class/assistant-instructions.md": "08a4e50a465167233d45c94f496a64ab9babd3e7557ea39f05cb3c0b83103d21",
     "class/glossary.md": "8b0cc3063b8ceb319977121c863a74ca50e483fdf567c0fcdd1d60fce34995c0",
     "class/non-ai-workflow.R": "58061f365d793b182834b0d61e61def9a4c6ae0cabeac2811ea6a04e2829e085",
@@ -28,6 +28,6 @@
     "src/tools/runtime.py": "d6786d029370aaee59dcacccfd4106a0e1bdf8bb0cfe6fda725fb0ade1f9be04"
   },
   "cloud_python_user_report": "3.12.11",
-  "cloud_installation": "not_run",
+  "cloud_installation": "completed_2026-11-05_workshop_template",
   "workflow_complete": false
 }
