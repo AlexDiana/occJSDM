@@ -754,4 +754,3 @@ flagged
 - [Lesson 3](https://github.com/AlexDiana/occJSDM/blob/main/vignettes/occJSDM-lesson-3.md) reads these same outputs against a simulated survey whose truth is known, to show how far each can be trusted.
 - `vignette("simulateOccJSDMData", package = "occJSDM")` to simulate a survey of your own design.
 - The [Known limitations](https://github.com/AlexDiana/occJSDM#known-limitations) section of the README, before relying on the estimates.
-
