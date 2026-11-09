@@ -67,7 +67,7 @@ For a controlled model trial, use the prepared student-project export and add on
 
 After the pilot files and retained scientific source payload are present in Cloud, check Python/R versions, create `occJSDM-env`, install `src/requirements.txt`, and restore into a new R runtime with `r-runtime/restore-runtime.R`. Do not copy Mac installed libraries into Linux. Record installation output, compiler flags and resource allocation. Native compilation needs the R/C++ toolchain and package system dependencies; its RAM cost differs from the lightweight MCP transport.
 
-The Cloud setup sequence is below. Doug reported successful dependency installation and runtime restoration of the earlier pin on 5 October 2026; the v0.3.0 runtime has not yet been restored on Cloud. The source payload must already be at `r-runtime/renv/cellar/occJSDM/occJSDM_0.3.0.tar.gz` and match `r-runtime/source-provenance.json`; `cloud-r-runtime` must be new or empty. Do not rerun restoration into an already completed runtime.
+The Cloud setup sequence is below, and [the installation guide](../INSTALL.md) gives the same steps with the Mac route. Doug reported successful dependency installation and runtime restoration of the earlier pin on 5 October 2026. He reported the same for the v0.3.0 runtime on 5 November 2026, with a restore of about 13 minutes and Session 2's three tool calls working; no evidence record for that report is kept here. The source payload must already be at `r-runtime/renv/cellar/occJSDM/occJSDM_0.3.0.tar.gz` and match `r-runtime/source-provenance.json`; `cloud-r-runtime` must be new or empty. Do not rerun restoration into an already completed runtime.
 
 ```sh
 cd /cloud/project/mcp/paper2agent
