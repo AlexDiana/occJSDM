@@ -77,28 +77,55 @@ The limits listed under the first run apply unchanged: one species with no measu
 
 ### Fit tests under the present default
 
-Run on mains power with Low Power Mode off.
+Run on mains power with Low Power Mode off. Final results, at commit `3df7253`:
 
 - `tests/testthat/test-grouped-prior.R`: 124 expectations pass, none fail.
-- `tests/testthat/test-grouped-prior-fits.R`, run with `NOT_CRAN=true`: 133 expectations pass and 1 fails, in 68 seconds.
+- `tests/testthat/test-grouped-prior-fits.R`, run with `NOT_CRAN=true`: 135 expectations pass, none fail.
 
-**The one failure is an expectation that has the old default written into it.** The test "the starting scales leave measured columns at exactly 1" (line 115) builds a prior with two embedding columns and expects their starting axis scales to be 1 divided by the square root of 2, which is 0.71. They now start at 0.7 divided by 2, which is 0.35, as they should. The measured column still starts at exactly 1. The test file was not edited in this task; its expected value needs changing to `0.7 / 2`.
+**One test had the old default written into it and was updated.** The test "the starting scales leave measured columns at exactly 1" builds a prior with two embedding columns and expected their starting axis scales to be 1 divided by the square root of 2, which is 0.71. When the default was changed (commit `95ee99b`) that was the file's one failure, with 133 expectations passing, in 68 seconds: the axis scales now start at 0.7 divided by 2, which is 0.35, as they should, and the measured column still starts at exactly 1. Commit `3df7253` changed the expected value to `c(1, 0.7 / 2, 0.7 / 2)` and added one expectation that the starting axis scales equal the `axis_scale` of the prior the test builds. No fit-based test failed at either commit.
 
-**Unused embedding columns are still shrunk more than used ones, by a thinner margin.** The test "axes with no effect are shrunk more than axes with an effect" passes. With 10 embedding columns its default `axis_scale` fell from 0.316 to 0.07. A fit that repeats the test's simulation and fit (49 seconds) gave these posterior median axis scales:
+**Unused embedding columns are still shrunk more than used ones, by a thinner margin.** The test "axes with no effect are shrunk more than axes with an effect" passes. With 10 embedding columns its default `axis_scale` fell from 0.316 to 0.07. A fit that repeats the test's simulation and fit (49 seconds) gave these posterior median axis scales, pooled over the two chains:
 
 - used columns: 1.45, 0.064 and 0.40;
 - unused columns: between 0.030 and 0.058;
 - smallest used over largest unused: 1.10, where the first run's three fits gave 1.7 to 2.2.
 
-The two chains put the weakest used column's median at 0.090 and 0.032, so in one chain it is below the largest unused median of 0.058. The fit is seeded through `simulate_grouped_fixture(seed = 4L)`, and a second run of it gave the same numbers to four decimal places, so the test's outcome is fixed on this machine. A margin of 10% is small, and a change to the order in which the sampler uses its random numbers could reverse it.
+The same fit by chain, as the median in chain 1 and then in chain 2:
 
-Three further fits used seeds 5, 6 and 7 in place of 4. The seed also sets the simulated data, so these are three other datasets of the same design, not repeats of one. All three put every used column above every unused one:
+- `X_emb.1`, used: 1.4408 and 1.4588;
+- `X_emb.2`: 0.0443 and 0.0269;
+- `X_emb.3`, used: 0.0895 and 0.0317;
+- `X_emb.4`: 0.0667 and 0.0517;
+- `X_emb.5`, used: 0.3875 and 0.4159;
+- `X_emb.6`: 0.0500 and 0.0238;
+- `X_emb.7`: 0.0381 and 0.0572;
+- `X_emb.8`: 0.0320 and 0.0424;
+- `X_emb.9`: 0.0344 and 0.0265;
+- `X_emb.10`: 0.0340 and 0.0503.
+
+The two chains disagree about the weakly used column, `X_emb.3`: chain 1 puts it above every unused column (0.0895 against a largest of 0.0667) and chain 2 puts it below four of the seven (0.0317), so the axis scales had not converged at 1,500 + 1,500 iterations in this small test. The test passes on the pooled medians.
+
+The fit is seeded through `simulate_grouped_fixture(seed = 4L)`, and a second run of it gave the same numbers to four decimal places, so the test's outcome is fixed on this machine. A margin of 10% is small, and a change to the order in which the sampler uses its random numbers could reverse it.
+
+Three further fits used seeds 5, 6 and 7 in place of 4. The seed also sets the simulated data, so these are three other datasets of the same design, not repeats of one. On the medians pooled over both chains, all three put every used column above every unused one:
 
 - seed 5: used 0.26, 1.48 and 0.54; unused between 0.029 and 0.196; ratio 1.31;
 - seed 6: used 0.91, 0.42 and 1.77; unused between 0.023 and 0.090; ratio 4.66;
 - seed 7: used 0.95, 1.03 and 0.41; unused between 0.019 and 0.095; ratio 4.28.
 
-The seed 5 fit printed three warnings from the C++ sampler, `chol(): given matrix is not symmetric`, and finished. Whether the old default gives the same warnings on that dataset was not checked.
+The seed 5 fit was also looked at by chain. In chain 1 one unused column (0.2747) is above the weakest used column (0.2660), and two unused columns differ between the chains by a factor of more than 10 (0.0045 and 0.0513; 0.0576 and 0.0032). Seeds 6 and 7 were not looked at by chain.
+
+### A warning from the sampler in the seed 5 fit
+
+The seed 5 fit printed `chol(): given matrix is not symmetric` three times and finished. The fit was repeated with the calls to the C++ coefficient draws wrapped so that the call that printed each warning could be recorded; the wrappers draw no random numbers and the repeat gave the same axis scales. What was observed:
+
+- All three warnings come from `arma::chol` at line 528 of `src/jsdm.cpp`, in `sampleBuniv()`, called from `sample_GC()` in `R/jsdmfun.R`. That call draws one occupancy column's community response, trait effects and blend weights. The draw of the species' coefficients and the draw of the latent traits printed nothing.
+- All three were in one sweep: chain 2, sweep 1,146 of 3,000, which is in the burn-in.
+- They were for embedding columns 4, 7 and 8, the three with the smallest axis scales in that sweep: 0.032, 0.077 and 0.073. The embedding leftover scale was 0.294, so the leftover standard deviations of those columns, by whose squares the draw divides, were 0.0094, 0.0228 and 0.0215. The other seven embedding columns, with axis scales of 0.12 to 0.96, gave no warning in that sweep.
+- In that sweep the second latent trait summed almost to zero across the 30 species, which made one off-diagonal element of the matrix small (9.8e-05 before the division). Recomputed in R, that element and its mirror image differ by about 2.4 parts in 100 billion of their value for all three columns.
+- Whether the draw is affected was not verified.
+- The warning was not seen in the fits made without the grouped prior. Only four such fits were run in this work, the short reference fits in the first test of `tests/testthat/test-grouped-prior.R`. It was also not seen in the seed 4, 6 and 7 fits or in any run of the fits test file.
+- Whether the old default gives the warning on the seed 5 data was not checked.
 
 ## First run: the old default, `1 / sqrt(K)`
 
