@@ -52,39 +52,45 @@ importFrom(Rcpp,evalCpp)
 importFrom(RcppParallel,RcppParallelLibs)
 importFrom(ggcorrplot,ggcorrplot)
 importFrom(ggrepel,geom_text_repel)
-importFrom(parallel,clusterApplyLB)
-importFrom(parallel,clusterCall)
-importFrom(parallel,detectCores)
-importFrom(parallel,makeCluster)
-importFrom(parallel,stopCluster)
+importFrom(parallel,
+  clusterApplyLB,
+  clusterCall,
+  detectCores,
+  makeCluster,
+  stopCluster
+)
 importFrom(purrr,map_dfr)
-importFrom(stats,binomial)
-importFrom(stats,cov)
-importFrom(stats,cov2cor)
-importFrom(stats,dbinom)
-importFrom(stats,dgamma)
-importFrom(stats,dnorm)
-importFrom(stats,dpois)
-importFrom(stats,glm)
-importFrom(stats,kmeans)
-importFrom(stats,logLik)
-importFrom(stats,median)
-importFrom(stats,predict)
-importFrom(stats,quantile)
-importFrom(stats,rbeta)
-importFrom(stats,rbinom)
-importFrom(stats,reorder)
-importFrom(stats,rgamma)
-importFrom(stats,rnbinom)
-importFrom(stats,rnorm)
-importFrom(stats,rpois)
-importFrom(stats,runif)
-importFrom(stats,sd)
-importFrom(stats,setNames)
-importFrom(stats,var)
+importFrom(stats,
+  binomial,
+  cov,
+  cov2cor,
+  dbinom,
+  dgamma,
+  dnorm,
+  dpois,
+  glm,
+  kmeans,
+  logLik,
+  median,
+  predict,
+  quantile,
+  rbeta,
+  rbinom,
+  reorder,
+  rgamma,
+  rnbinom,
+  rnorm,
+  rpois,
+  runif,
+  sd,
+  setNames,
+  var
+)
 importFrom(tibble,tibble)
 importFrom(tidyr,pivot_longer)
-importFrom(tools,md5sum)
-importFrom(tools,pskill)
+importFrom(tools,
+  md5sum,
+  pskill
+)
 importFrom(utils,globalVariables)
 useDynLib(occJSDM, .registration = TRUE)
