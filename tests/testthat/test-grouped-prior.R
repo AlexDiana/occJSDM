@@ -154,9 +154,14 @@ test_that("each covariate's prior scale is applied to that covariate", {
 test_that("the covariate side can use its own trait matrix", {
   x <- bbsl_inputs()
   Tr_b <- cbind(1, x$Tr); G_b <- rbind(rnorm(4), x$G); x2 <- x; x2$G <- G_b
-  out <- draw_bbsl(occJSDM:::sample_BBsL_cpp, x2, rep(1e-6, 4), Tr_b = Tr_b)
-  expect_equal(out$B, t(Tr_b %*% G_b + x$A %*% x$C), tolerance = 1e-4)
-  expect_equal(out$Bt, t(out$B) - Tr_b %*% G_b - x$A %*% x$C)
+  for (f in list(occJSDM:::sample_BBsL_cpp, occJSDM:::sample_BBsL_parallel)) {
+    out <- draw_bbsl(f, x2, rep(1e-6, 4), Tr_b = Tr_b)
+    expect_equal(out$B, t(Tr_b %*% G_b + x$A %*% x$C), tolerance = 1e-4)
+    expect_equal(out$Bt, t(out$B) - Tr_b %*% G_b - x$A %*% x$C)
+  }
+  # Without Tr_b the centre would be built from Tr, one column short of G_b.
+  expect_identical(draw_bbsl(occJSDM:::sample_BBsL_cpp, x2, c(.2, .5, 1, 2), Tr_b = Tr_b),
+                   draw_bbsl(occJSDM:::sample_BBsL_parallel, x2, c(.2, .5, 1, 2), Tr_b = Tr_b))
 })
 
 test_that("the joint draw rejects a prior scale vector of the wrong length", {
@@ -263,6 +268,71 @@ test_that("an axis scale tracks the size of its column", {
   draws <- replicate(400, with(x, occJSDM:::sample_coef_scales(R, G, C, cp, sigma_b, sigma_emb, lambda))$lambda)
   expect_lt(median(draws[4, ]), 0.2)
   expect_gt(median(draws[5, ]), 5 * median(draws[4, ]))
+})
+
+test_that("the scale updates leave the half-Cauchy priors of the scales unchanged", {
+  # Successive-conditional check. With no data, a draw of B from its prior
+  # given everything else stands in for the joint coefficient draw; the scale
+  # update, sample_GC() and sample_A() follow, wired as update_jSDMcoef() wires
+  # them. Every step is then a draw from a conditional of the prior, so the
+  # prior is the stationary distribution, and each scale divided by its prior
+  # scale must be half-Cauchy(1), whose quartiles are tan(pi / 8) = 0.414, 1
+  # and tan(3 * pi / 8) = 2.414. A wrong shape or rate in
+  # sample_scale_half_cauchy(), or a term of sample_coef_scales() on the wrong
+  # scale, moves the shares below those points or sends the scales to zero or
+  # infinity, where the regression draws fail.
+  S <- 3L; p <- 3L; gt <- 2L; g_b <- 2L; N <- 50000L; burn <- 1000L
+  seed_both(1L)
+  Tr_b <- cbind(1, rnorm(S))
+  cp <- occJSDM:::read_coef_prior(
+    list(sigma_b_scale = 0.8, sigma_emb_scale = 1.3, axis_scale = 0.5),
+    list(embeddingVars = c("e1", "e2")), S, gt,
+    data.frame(column = c("m1", "e1", "e2"), variable = c("m1", "e1", "e2"), kind = "numeric"))
+  expect_equal(cp$c_base, c(1, rep(1 / sqrt(2), 2)))   # not 1, so the C term's divisor matters
+  start <- occJSDM:::coef_scales_start(cp, p)
+  sigma_b <- cp$sigma_b_scale; sigma_emb <- start$sigma_emb; lambda <- start$lambda
+  G <- matrix(rnorm(g_b * p), g_b, p); C <- matrix(rnorm(gt * p), gt, p)
+  A <- matrix(rnorm(S * gt), S, gt)
+  keep <- matrix(NA_real_, N + burn, 5L,
+                 dimnames = list(NULL, c("sigma_b", "sigma_emb", "lambda_e1", "lambda_e2", "lambda_m1")))
+  done <- tryCatch({
+    for (i in seq_len(N + burn)) {
+      sds <- occJSDM:::coef_prior_sds(cp, sigma_b, sigma_emb, lambda, g_b, p)
+      centre <- Tr_b %*% G + A %*% C
+      B <- t(centre + matrix(rnorm(S * p), S, p) * rep(sds$b, each = S))
+      sc <- occJSDM:::sample_coef_scales(t(B) - centre, G, C, cp, sigma_b, sigma_emb, lambda)
+      sigma_b <- sc$sigma_b; sigma_emb <- sc$sigma_emb; lambda <- sc$lambda
+      sds <- occJSDM:::coef_prior_sds(cp, sigma_b, sigma_emb, lambda, g_b, p)
+      gc <- occJSDM:::sample_GC(B, Tr_b, A, sds$b, sds$g, sds$c); G <- gc$G; C <- gc$C
+      A <- occJSDM:::sample_A(B, C, Tr_b, G, sds$b)$A
+      keep[i, ] <- c(sigma_b / cp$sigma_b_scale, sigma_emb / cp$sigma_emb_scale,
+                     lambda[2:3] / cp$axis_scale, lambda[1])
+    }
+    TRUE
+  }, error = function(e) conditionMessage(e))
+  expect_identical(done, TRUE, label = "the chain ran to the end (it does not when the scales run away)")
+  if (!isTRUE(done)) return(invisible(NULL))
+  keep <- keep[-seq_len(burn), ]
+  expect_true(all(keep[, "lambda_m1"] == 1))            # a measured column's scale never moves
+  expect_true(all(is.finite(keep) & keep > 0))
+  quartiles <- tan(pi / 2 * c(.25, .5, .75))
+  share <- vapply(quartiles, function(x) colMeans(keep[, 1:4] < x), numeric(4))
+  # Tolerances. The draws are autocorrelated (about 1,000 to 3,500 effective
+  # draws in 50,000), so the Monte Carlo error was measured: over 24 seeds the
+  # standard deviation of a share was at most 0.009 for sigma_b, 0.012 for
+  # sigma_emb and 0.017 for an axis scale, with no bias, and the largest error
+  # of any of the twelve shares in any seed was 0.054. Each tolerance is five
+  # of those standard deviations or more, which chance passes about once in a
+  # million runs over the twelve shares; the run is also seeded. Breaking the
+  # update fails by far more: dropping the prior scale from the auxiliary
+  # draw moves the axis shares by 0.12 to 0.20 and the others by 0.05 to
+  # 0.08, not dividing the C term by its base variance moves the axis shares
+  # by 0.24 to 0.66, and a shape of n / 2 or a rate of ss sends the scales to
+  # infinity within the run.
+  tolerance <- c(sigma_b = 0.045, sigma_emb = 0.06, lambda_e1 = 0.09, lambda_e2 = 0.09)
+  for (nm in rownames(share)) for (j in 1:3)
+    expect_lt(abs(share[nm, j] - c(.25, .5, .75)[j]), tolerance[[nm]],
+              label = sprintf("error of the share of %s below its prior quartile %d", nm, j))
 })
 
 test_that("sample_GC uses a prior and a noise scale per covariate", {

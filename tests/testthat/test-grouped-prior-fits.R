@@ -206,6 +206,18 @@ test_that("the scale and community accessors return one row per quantity", {
   cr <- returnCommunityResponse(fit)
   expect_identical(cr$covariate, names(fit$infos$covariate_group))
   expect_identical(cr$group, unname(fit$infos$covariate_group))
+  # The community-average response is row 1 of G_output.
+  G1 <- matrix(fit$results_output$jsdm_output$G_output[1, , , ], nrow = nrow(cr))
+  expect_equal(cr$mean, rowMeans(G1))
+  expect_equal(cr$median, apply(G1, 1, stats::median))
+  expect_equal(cr$lower, apply(G1, 1, stats::quantile, probs = .025, names = FALSE))
+  # And not a trait row: the means of row 2 differ.
+  expect_false(isTRUE(all.equal(cr$mean, rowMeans(matrix(
+    fit$results_output$jsdm_output$G_output[2, , , ], nrow = nrow(cr))))))
+  # The scales are summaries of the stored draws.
+  jo <- fit$results_output$jsdm_output
+  expect_equal(sc$median[1:2], c(stats::median(jo$sigmab_output), stats::median(jo$sigmaemb_output)))
+  expect_equal(sc$mean[3:10], unname(apply(jo$lambda_output, 1, mean)))
 })
 
 test_that("blends are sign-fixed and reproduce the low-rank part", {
@@ -222,13 +234,42 @@ test_that("the embedding share lies between 0 and 1", {
   expect_true(all(sh$mean >= 0 & sh$mean <= 1))
 })
 
+test_that("the embedding share is v_e / (v_e + v_m) from the stored coefficients", {
+  # By hand for two species: for every draw, the variance across sites of the
+  # embedding columns times their coefficients, over that plus the same for
+  # the measured columns.
+  fit <- grouped_fit(); sh <- returnEmbeddingShare(fit)
+  B <- fit$results_output$jsdm_output$B_output; X <- fit$X_psi
+  e <- fit$infos$coef_prior$is_emb
+  expect_identical(c(sum(e), sum(!e)), c(8L, 2L))
+  for (s in c(1L, 7L)) {
+    share <- apply(matrix(B[, s, , ], nrow = nrow(B)), 2, function(b) {
+      v_e <- stats::var(as.vector(X[, e, drop = FALSE] %*% b[e]))
+      v_m <- stats::var(as.vector(X[, !e, drop = FALSE] %*% b[!e]))
+      v_e / (v_e + v_m)
+    })
+    expect_identical(length(share), as.integer(prod(dim(B)[3:4])))
+    expect_equal(sh$mean[s], mean(share), info = paste("species", s))
+    expect_equal(sh$median[s], stats::median(share), info = paste("species", s))
+    expect_equal(c(sh$lower[s], sh$upper[s]), stats::quantile(share, c(.025, .975), names = FALSE), info = paste("species", s))
+  }
+  expect_identical(sh$species, fit$infos$speciesNames)
+})
+
 test_that("existing downstream functions work on a grouped fit", {
   fit <- grouped_fit(); sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
-  expect_identical(nrow(returnTraitsCoeff(fit)) > 0, TRUE)
+  # Trait j of the result is row j + 1 of G_output: row 1, the community
+  # average, is left out. Draws run over iterations within chains.
+  tc <- returnTraitsCoeff(fit); G <- fit$results_output$jsdm_output$G_output
+  expect_identical(dim(tc), c(as.integer(prod(dim(G)[3:4])), dim(G)[2], dim(G)[1] - 1L))
+  expect_identical(dim(tc)[3], ncol(sim$data_list$traits))
+  for (j in seq_len(dim(tc)[3]))
+    expect_identical(unname(tc[, , j]), t(matrix(G[j + 1L, , , ], nrow = dim(G)[2])), info = paste("trait", j))
+  expect_false(identical(unname(tc[, , 1]), t(matrix(G[1L, , , ], nrow = dim(G)[2]))))
   thin <- thinOutput(fit, thin = 2)
   expect_identical(dim(thin$results_output$jsdm_output$lambda_output)[2],
                    length(seq(1, fit$infos$MCMCparams$niter, by = 2)))
-  expect_no_error(suppressWarnings(utils::capture.output(computeDiagnostics(fit$results_output))))
+  expect_no_error(suppressWarnings(suppressMessages(computeDiagnostics(fit$results_output))))
   newX <- unique(sim$data_list$info[, grouped_occ_covariates(sim$data_list)])[1:5, ]
   pred <- predictNewSites(fit, X_psi = newX, useSpatial = FALSE, useBiotic = FALSE, verbose = FALSE)
   expect_false(anyNA(unlist(pred)))
