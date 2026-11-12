@@ -312,8 +312,9 @@ returnCommunityResponse <- function(fitModel, confidence = .95){
 #'
 #' @param fitModel Output from the function runOccJSDM, made with
 #' `embeddingVars` and at least one latent trait
-#' @param n_blends Number of blends to keep. Defaults to the number of latent
-#' traits.
+#' @param n_blends Number of blends to keep. Defaults to the smallest of the
+#' number of latent traits, the number of embedding columns and the number of
+#' species, which is also the most that can be kept.
 #'
 #' @return A list with `weights` (embedding columns by blends, the posterior
 #' mean of the sign-fixed vectors), `site_scores` (sites by blends, the
@@ -331,10 +332,19 @@ returnEmbeddingBlends <- function(fitModel, n_blends = NULL){
   A <- jo$A_output
   C <- jo$C_output
   gt <- dim(A)[2]
-  if (is.null(n_blends)) n_blends <- gt
-  if (n_blends > gt) stop("n_blends cannot exceed the number of latent traits")
-
   emb <- which(fitModel$infos$coef_prior$is_emb)
+  max_blends <- min(gt, length(emb), dim(A)[1])
+  if (is.null(n_blends)) n_blends <- max_blends
+  if (!is.numeric(n_blends) || length(n_blends) != 1L || is.na(n_blends) ||
+      n_blends < 1 || n_blends != round(n_blends)) {
+    stop("n_blends must be a single positive whole number")
+  }
+  if (n_blends > gt) stop("n_blends cannot exceed the number of latent traits")
+  if (n_blends > max_blends) {
+    stop("n_blends cannot exceed the number of embedding columns or species")
+  }
+  n_blends <- as.integer(n_blends)
+
   niter <- dim(A)[3]
   nchain <- dim(A)[4]
   n_draws <- niter * nchain

@@ -10,8 +10,9 @@ returnEmbeddingBlends(fitModel, n_blends = NULL)
 \item{fitModel}{Output from the function runOccJSDM, made with
 `embeddingVars` and at least one latent trait}
 
-\item{n_blends}{Number of blends to keep. Defaults to the number of latent
-traits.}
+\item{n_blends}{Number of blends to keep. Defaults to the smallest of the
+number of latent traits, the number of embedding columns and the number of
+species, which is also the most that can be kept.}
 }
 \value{
 A list with `weights` (embedding columns by blends, the posterior

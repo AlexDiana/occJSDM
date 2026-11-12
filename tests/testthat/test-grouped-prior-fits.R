@@ -196,3 +196,21 @@ test_that("a grouped fit with no traits behaves like any fit with no traits", {
   cr <- returnCommunityResponse(fit)
   expect_identical(nrow(cr), 10L)
 })
+
+test_that("the default number of blends is bounded by the embedding columns and species", {
+  sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 1L, S = 12L, gt = 2L)
+  fit <- fit_grouped(sim, params = list(n_lattrait = 2L))
+  expect_identical(dim(fit$results_output$jsdm_output$A_output)[2], 2L)
+  bl <- returnEmbeddingBlends(fit)
+  expect_identical(dim(bl$weights), c(1L, 1L))
+  expect_identical(ncol(bl$site_scores), 1L)
+  expect_error(returnEmbeddingBlends(fit, n_blends = 2L),
+               "n_blends cannot exceed the number of embedding columns or species", fixed = TRUE)
+})
+
+test_that("n_blends must be a single positive whole number", {
+  fit <- grouped_fit()
+  for (bad in list(0L, 1.5, c(1L, 2L)))
+    expect_error(returnEmbeddingBlends(fit, n_blends = bad),
+                 "n_blends must be a single positive whole number", fixed = TRUE)
+})
