@@ -56,6 +56,37 @@ test_that("a supplied embedding matrix enters the truth standardised and is retu
                "embedding$X columns must vary across sites", fixed = TRUE)
 })
 
+test_that("the simulator takes the number of embedding columns from a supplied matrix", {
+  set.seed(9L)
+  X <- matrix(rnorm(60 * 8), 60, 8); B <- matrix(0, 8, 12); B[1, ] <- 1
+  with_n <- simulate_grouped_fixture(n = 60L, S = 12L, embedding = list(n_emb = 8L, X = X, B = B))
+  # modifyList() in the helper drops an n_emb that is NULL, so none is passed.
+  without <- simulate_grouped_fixture(n = 60L, S = 12L, embedding = list(n_emb = NULL, X = X, B = B))
+  expect_identical(without, with_n)
+  expect_identical(without$data_list$embeddingVars, paste0("X_emb.", 1:8))
+  # A stated n_emb that disagrees with the matrix is still an error.
+  expect_error(simulate_grouped_fixture(n = 60L, S = 12L, embedding = list(n_emb = 7L, X = X)),
+               "embedding$X must have one row per site and n_emb columns", fixed = TRUE)
+  expect_error(simulate_grouped_fixture(n = 60L, S = 12L, embedding = list(n_emb = NULL, X = as.data.frame(X))),
+               "embedding$X must have one row per site and n_emb columns", fixed = TRUE)
+})
+
+test_that("the simulator stops when neither n_emb nor a matrix of columns is given", {
+  expect_error(simulate_grouped_fixture(embedding = list(n_emb = NULL)),
+               "embedding needs n_emb, the number of embedding columns, or X, a matrix of embedding columns",
+               fixed = TRUE)
+  expect_error(simulate_grouped_fixture(embedding = list(n_emb = NULL, n_blends = 2L)),
+               "embedding needs n_emb", fixed = TRUE)
+})
+
+test_that("the simulator rejects missing values in a supplied embedding matrix", {
+  set.seed(9L)
+  X <- matrix(rnorm(60 * 8), 60, 8); X[3, 2] <- NA
+  for (emb in list(list(X = X), list(n_emb = NULL, X = X)))
+    expect_error(simulate_grouped_fixture(n = 60L, S = 12L, embedding = emb),
+                 "embedding$X must not contain missing values", fixed = TRUE)
+})
+
 cols <- function(p_meas = 2L, p_emb = 3L, kind = "numeric") data.frame(
   column = c(paste0("m", seq_len(p_meas)), paste0("e", seq_len(p_emb))),
   variable = c(paste0("m", seq_len(p_meas)), paste0("e", seq_len(p_emb))),

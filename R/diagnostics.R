@@ -345,6 +345,12 @@ returnConvergenceDiagnostics <- function(fitmodel) {
 #' max R-hat exceeds 1.1 or minimum ESS falls below 50. Called automatically
 #' at the end of \code{\link{runOccJSDM}}.
 #'
+#' For a fit made with `embeddingVars` (see
+#' \link[=grouped-prior]{grouped-prior}) the latent trait blocks (`A_output`
+#' and `C_output`) are skipped as well, and so is the measured-group scale
+#' (`sigmab_output`) when every occupancy covariate is an embedding column,
+#' because nothing informs that scale then.
+#'
 #' @param results_output The `results_output` element of a fitted model, as
 #'   returned by \code{\link{runOccJSDM}} (`fitModel$results_output`).
 #'
@@ -364,8 +370,15 @@ computeDiagnostics <- function(results_output){
   # by one; the scales and B are what mix and mean something.
   skip_params <- c("z_output","w_output","psi_output",
                    "theta_output","idx_ls_output","varPart_output")
-  if (!is.null(results_output$jsdm_output$lambda_output)) {
+  lambda_output <- results_output$jsdm_output$lambda_output
+  if (!is.null(lambda_output)) {
     skip_params <- c(skip_params, "A_output", "C_output")
+    # When every occupancy covariate is an embedding column nothing informs
+    # the measured-group scale: sigmab_output is then a draw from its prior,
+    # and whether those draws agree across chains says nothing about the fit.
+    if (dim(lambda_output)[1] == dim(results_output$jsdm_output$B_output)[1]) {
+      skip_params <- c(skip_params, "sigmab_output")
+    }
   }
 
   for (param_name in names(results_output_all)) {

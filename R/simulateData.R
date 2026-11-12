@@ -107,18 +107,20 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'   \item{embedding}{Optional; \code{NULL} (no embedding block) by
 #'   default. A list that adds a block of correlated numeric covariates (for
 #'   example satellite embeddings) after the \code{ncov_psi} measured
-#'   columns. The fields are \code{n_emb}, the number of embedding columns;
-#'   \code{X}, an optional \code{n} by \code{n_emb} matrix of columns
-#'   (otherwise they are simulated from a factor model with a decaying
-#'   spectrum, then scaled). A supplied \code{X} is returned in \code{info}
-#'   as supplied, but enters the linear predictor centred and scaled, and a
-#'   constant column is an error. \code{B}, an optional \code{n_emb} by
-#'   \code{S} matrix of true coefficients used as given, is therefore on the
-#'   scale of the standardised columns, as for the measured covariates;
-#'   and, when \code{B}
-#'   is absent, \code{n_blends} (default 3), \code{n_active} (default
+#'   columns. Its fields are as follows. \code{n_emb} is the number of
+#'   embedding columns; it may be left out when \code{X} is given, and is
+#'   then the number of columns of \code{X}. \code{X} is an optional
+#'   \code{n} by \code{n_emb} matrix of columns, with no missing values;
+#'   without it the columns are simulated from a factor model with a
+#'   decaying spectrum, then scaled. A supplied \code{X} is returned in
+#'   \code{info} as supplied, but enters the linear predictor centred and
+#'   scaled, and a constant column is an error. \code{B} is an optional
+#'   \code{n_emb} by \code{S} matrix of true coefficients, used as given;
+#'   it is on the scale of the standardised columns, as for the measured
+#'   covariates. When \code{B} is absent the coefficients are drawn using
+#'   \code{n_blends} (default 3), \code{n_active} (default
 #'   \code{min(10, n_emb)}), \code{blend_sd} (default 0.5) and
-#'   \code{sigma_emb} (default 0.1). The coefficients are then low rank: a
+#'   \code{sigma_emb} (default 0.1), and are low rank: a
 #'   random set of \code{n_active} columns carries \code{n_blends} shared
 #'   blends of species responses (standard deviation \code{blend_sd}) plus a
 #'   leftover with standard deviation \code{sigma_emb}, and all other

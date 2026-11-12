@@ -747,10 +747,18 @@ simulateData <- function(
   B_emb <- NULL
   if(!is.null(embedding)){
     n_emb <- embedding$n_emb
+    if(is.null(n_emb) && is.null(embedding$X)){
+      stop("embedding needs n_emb, the number of embedding columns, or X, a matrix of embedding columns")
+    }
     if(!is.null(embedding$X)){
       X_emb <- embedding$X
+      # n_emb may be left out with a supplied X: it is then its column count
+      if(is.null(n_emb) && is.matrix(X_emb)) n_emb <- ncol(X_emb)
       if(!is.matrix(X_emb) || nrow(X_emb) != n || ncol(X_emb) != n_emb){
         stop("embedding$X must have one row per site and n_emb columns")
+      }
+      if(anyNA(X_emb)){
+        stop("embedding$X must not contain missing values")
       }
       if(any(apply(X_emb, 2, stats::sd) == 0)){
         stop("embedding$X columns must vary across sites")
@@ -1144,6 +1152,11 @@ sample_A <- function(B, C, Tr_b, G, sd_b){
     B_current <- diag(1, nrow = gt)
     b_current <- rep(0, gt)
 
+    # Equal noise scales take the original, unscaled regression. Do not
+    # remove this branch or fold it into the weighted one below: dividing by
+    # sd_b and passing a noise scale of 1 is the same model but not the same
+    # arithmetic, and fits made with the fixed prior (and every spatial-side
+    # call) must stay bit-identical to fits made before the grouped prior.
     if(all(sd_b == sd_b[1])){
 
       for (s in 1:S) {

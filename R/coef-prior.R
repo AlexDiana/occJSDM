@@ -39,21 +39,21 @@ read_coef_prior <- function(priors, params, S, gt, columns) {
   }
   is_emb <- columns$variable %in% emb_vars
   p_emb <- sum(is_emb)
-  scale <- function(name, default) {
+  read_scale <- function(name, default) {
     value <- get_param(priors, name, default)
     if (!is.numeric(value) || length(value) != 1L || !is.finite(value) || value <= 0)
       stop(name, " must be a finite positive number")
     unname(value)
   }
-  sigma_b_scale <- scale("sigma_b_scale", 1)
+  sigma_b_scale <- read_scale("sigma_b_scale", 1)
   sigma_emb_scale <- NA_real_
   axis_scale <- NA_real_
   if (has_emb) {
-    sigma_emb_scale <- scale("sigma_emb_scale", 1)
+    sigma_emb_scale <- read_scale("sigma_emb_scale", 1)
     # 0.7 / K, not 1 / sqrt(K): the half-Cauchy tails of K axis scales make
     # the embedding's prior contribution grow in proportion to K times this
     # scale (dev/simstudy/grouped-prior-checks-20261111).
-    axis_scale <- scale("axis_scale", 0.7 / p_emb)
+    axis_scale <- read_scale("axis_scale", 0.7 / p_emb)
   }
   c_base <- rep(1, length(is_emb))
   if (gt > 0) c_base[is_emb] <- 1 / sqrt(gt)

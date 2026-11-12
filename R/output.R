@@ -231,7 +231,10 @@ quantile_summary <- function(x, confidence){
 #' @return A data frame with columns `scale`, `covariate`, `mean`, `lower`,
 #' `median` and `upper`. `scale` is `"measured group"`, `"embedding leftover"`
 #' or `"axis"`. `covariate` names the embedding column of an axis scale and is
-#' `NA` for the group rows.
+#' `NA` for the group rows. There is no `"measured group"` row when the fit has
+#' no measured covariate, for example when every occupancy covariate is an
+#' embedding column: nothing informs that scale then, and what the fit stores
+#' for it are draws from its prior.
 #'
 #' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
 #'
@@ -249,7 +252,13 @@ returnCovariateScales <- function(fitModel, confidence = .95){
                stringsAsFactors = FALSE, row.names = NULL)
   }
 
-  rows <- list(row_of("measured group", NA_character_, jo$sigmab_output))
+  # The measured-group scale is learned from the measured columns. With none
+  # (every occupancy covariate an embedding column, or no covariate at all)
+  # sigmab_output holds draws from its prior, which are not reported.
+  rows <- list()
+  if (any(!fitModel$infos$coef_prior$is_emb)) {
+    rows <- list(row_of("measured group", NA_character_, jo$sigmab_output))
+  }
   if (!is.null(jo$lambda_output)) {
     rows <- c(rows, list(row_of("embedding leftover", NA_character_, jo$sigmaemb_output)))
     lam <- jo$lambda_output
@@ -257,6 +266,12 @@ returnCovariateScales <- function(fitModel, confidence = .95){
       row_of("axis", dimnames(lam)[[1]][k], lam[k, , ])
     })
     rows <- c(rows, axes)
+  }
+  if (length(rows) == 0L) {
+    return(data.frame(scale = character(0), covariate = character(0),
+                      mean = numeric(0), lower = numeric(0),
+                      median = numeric(0), upper = numeric(0),
+                      stringsAsFactors = FALSE))
   }
   out <- do.call(rbind, rows)
   names(out) <- c("scale", "covariate", "mean", "lower", "median", "upper")
@@ -278,7 +293,8 @@ returnCovariateScales <- function(fitModel, confidence = .95){
 #'
 #' @return A data frame with one row per occupancy design column and columns
 #' `covariate`, `group` (`"measured"` or `"embedding"`), `mean`, `lower`,
-#' `median` and `upper`.
+#' `median` and `upper`. A fit with no occupancy covariates gives a data frame
+#' with the same columns and no rows.
 #'
 #' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
 #'
@@ -290,6 +306,13 @@ returnCommunityResponse <- function(fitModel, confidence = .95){
   }
   G <- fitModel$results_output$jsdm_output$G_output
   p <- dim(G)[2]
+  # A fit with no occupancy covariates has no responses to report.
+  if (p == 0L) {
+    return(data.frame(covariate = character(0), group = character(0),
+                      mean = numeric(0), lower = numeric(0),
+                      median = numeric(0), upper = numeric(0),
+                      stringsAsFactors = FALSE))
+  }
   draws <- matrix(G[1, , , , drop = FALSE], nrow = p)
   summ <- t(apply(draws, 1, quantile_summary, confidence = confidence))
   groups <- fitModel$infos$covariate_group
@@ -320,13 +343,24 @@ returnCommunityResponse <- function(fitModel, confidence = .95){
 #' number of latent traits, the number of embedding columns and the number of
 #' species, which is also the most that can be kept.
 #'
-#' @return A list with `weights` (embedding columns by blends, the posterior
-#' mean of the sign-fixed vectors), `site_scores` (sites by blends, the
-#' embedding columns of the standardised design matrix times `weights`) and
-#' `singular_values` (a data frame of posterior summaries, one row per blend).
+#' @return A list with three elements.
+#' * `weights`: embedding columns by blends, the posterior mean of the
+#'   sign-fixed vectors. Because they are means over draws, the columns are
+#'   not orthonormal: they need not have length 1 or be at right angles to
+#'   each other. A column whose length (the square root of its sum of squares)
+#'   is well below 1 marks a blend that is not stable across draws, because
+#'   its direction changes from draw to draw and the vectors partly cancel.
+#' * `site_scores`: sites by blends, the embedding columns of the
+#'   standardised design matrix times `weights`.
+#' * `singular_values`: a data frame of posterior summaries of the singular
+#'   values, one row per blend, with columns `blend`, `mean`, `lower`,
+#'   `median` and `upper`. `lower` and `upper` are the limits of the 95%
+#'   interval; that level is fixed, as this function has no `confidence`
+#'   argument.
 #'
 #' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
 #'
+#' @md
 #' @export
 returnEmbeddingBlends <- function(fitModel, n_blends = NULL){
 

@@ -256,6 +256,51 @@ test_that("the embedding share is v_e / (v_e + v_m) from the stored coefficients
   expect_identical(sh$species, fit$infos$speciesNames)
 })
 
+test_that("the accessors and the diagnostics handle grouped fits with no measured covariate", {
+  sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
+  dat <- sim$data_list
+  run <- function(occ, params, priors) suppressMessages(suppressWarnings(runOccJSDM(dat,
+    listParams = c(list(n_factors = 1L), params), listPriors = priors, occCovariates = occ,
+    spatCovariates = NULL, MCMCparams = FIXTURE_MCMC)))
+  # The parameter sets computeDiagnostics() reports on.
+  diagnosed <- function(fit) {
+    lines <- character(0)
+    withCallingHandlers(suppressWarnings(computeDiagnostics(fit$results_output)),
+      message = function(m) { lines <<- c(lines, conditionMessage(m)); invokeRestart("muffleMessage") })
+    hit <- regmatches(lines, regexpr("Parameter Set: [A-Za-z0-9_]+", lines))
+    sub("_output$", "", sub("Parameter Set: ", "", hit))
+  }
+
+  # Every occupancy covariate an embedding column: nothing informs the
+  # measured-group scale, so sigmab_output holds draws from its prior. They
+  # stay in the fit but are neither summarised nor diagnosed.
+  all_emb <- run(dat$embeddingVars, list(embeddingVars = dat$embeddingVars), list())
+  expect_identical(all_emb$infos$coef_prior$is_emb, rep(TRUE, 8L))
+  jo <- all_emb$results_output$jsdm_output
+  expect_identical(dim(jo$sigmab_output), dim(jo$sigmaemb_output))
+  expect_true(all(is.finite(jo$sigmab_output)))
+  sc <- returnCovariateScales(all_emb)
+  expect_identical(sc$scale, c("embedding leftover", rep("axis", 8)))
+  expect_identical(names(sc), c("scale", "covariate", "mean", "lower", "median", "upper"))
+  sets <- diagnosed(all_emb)
+  expect_false("sigmab" %in% sets)
+  expect_true(all(c("sigmaemb", "lambda", "B", "G") %in% sets))
+  # A grouped fit with measured covariates still has both.
+  expect_true("sigmab" %in% diagnosed(grouped_fit()))
+  expect_identical(returnCovariateScales(grouped_fit())$scale[1], "measured group")
+
+  # No occupancy covariates at all: nothing to report, in the usual columns.
+  none <- run(NULL, list(), list(b_prior = "grouped"))
+  expect_identical(none$infos$coef_prior$type, "grouped")
+  cr <- returnCommunityResponse(none)
+  expect_identical(nrow(cr), 0L)
+  expect_identical(names(cr), names(returnCommunityResponse(grouped_fit())))
+  expect_identical(vapply(cr, class, ""), vapply(returnCommunityResponse(grouped_fit()), class, ""))
+  sc0 <- returnCovariateScales(none)
+  expect_identical(nrow(sc0), 0L)
+  expect_identical(names(sc0), names(sc))
+})
+
 test_that("existing downstream functions work on a grouped fit", {
   fit <- grouped_fit(); sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
   # Trait j of the result is row j + 1 of G_output: row 1, the community

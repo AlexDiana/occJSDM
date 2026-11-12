@@ -16,7 +16,10 @@ prior}
 A data frame with columns `scale`, `covariate`, `mean`, `lower`,
 `median` and `upper`. `scale` is `"measured group"`, `"embedding leftover"`
 or `"axis"`. `covariate` names the embedding column of an axis scale and is
-`NA` for the group rows.
+`NA` for the group rows. There is no `"measured group"` row when the fit has
+no measured covariate, for example when every occupancy covariate is an
+embedding column: nothing informs that scale then, and what the fit stores
+for it are draws from its prior.
 }
 \description{
 Posterior summaries of the coefficient scales of a grouped fit.

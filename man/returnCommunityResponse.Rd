@@ -15,7 +15,8 @@ prior}
 \value{
 A data frame with one row per occupancy design column and columns
 `covariate`, `group` (`"measured"` or `"embedding"`), `mean`, `lower`,
-`median` and `upper`.
+`median` and `upper`. A fit with no occupancy covariates gives a data frame
+with the same columns and no rows.
 }
 \description{
 Posterior summaries of the community-average response to each covariate.

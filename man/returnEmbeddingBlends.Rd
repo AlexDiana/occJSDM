@@ -8,25 +8,37 @@ returnEmbeddingBlends(fitModel, n_blends = NULL)
 }
 \arguments{
 \item{fitModel}{Output from the function runOccJSDM, made with
-`embeddingVars` and at least one latent trait}
+\code{embeddingVars} and at least one latent trait}
 
 \item{n_blends}{Number of blends to keep. Defaults to the smallest of the
 number of latent traits, the number of embedding columns and the number of
 species, which is also the most that can be kept.}
 }
 \value{
-A list with `weights` (embedding columns by blends, the posterior
-mean of the sign-fixed vectors), `site_scores` (sites by blends, the
-embedding columns of the standardised design matrix times `weights`) and
-`singular_values` (a data frame of posterior summaries, one row per blend).
+A list with three elements.
+\itemize{
+\item \code{weights}: embedding columns by blends, the posterior mean of the
+sign-fixed vectors. Because they are means over draws, the columns are
+not orthonormal: they need not have length 1 or be at right angles to
+each other. A column whose length (the square root of its sum of squares)
+is well below 1 marks a blend that is not stable across draws, because
+its direction changes from draw to draw and the vectors partly cancel.
+\item \code{site_scores}: sites by blends, the embedding columns of the
+standardised design matrix times \code{weights}.
+\item \code{singular_values}: a data frame of posterior summaries of the singular
+values, one row per blend, with columns \code{blend}, \code{mean}, \code{lower},
+\code{median} and \code{upper}. \code{lower} and \code{upper} are the limits of the 95\%
+interval; that level is fixed, as this function has no \code{confidence}
+argument.
+}
 }
 \description{
 Leading directions of the embedding part of the species responses.
 }
 \details{
 For each posterior draw the species by embedding-columns matrix of
-coefficients `A %*% C[, embedding columns]` is decomposed by singular value
-decomposition. The first `n_blends` right singular vectors are kept, each
+coefficients \verb{A \%*\% C[, embedding columns]} is decomposed by singular value
+decomposition. The first \code{n_blends} right singular vectors are kept, each
 flipped so that its entry of largest absolute value is positive, and
 averaged over the draws.
 

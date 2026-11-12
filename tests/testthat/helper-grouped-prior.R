@@ -1,6 +1,12 @@
 # Helpers for the grouped covariate prior tests.
 seed_both <- function(s) { set.seed(s); occJSDM:::setOccJSDMSeed(as.integer(s)) }
 
+# One of the four fits that the first test of test-grouped-prior.R compares
+# with fixtures/fixed-prior-reference.rds. The saved fits were made by this
+# function with the package loaded from a checkout of commit 4f2ee6c, the last
+# one before the grouped prior. They must only ever be regenerated that way,
+# never at the branch head, where the file would record the code under test;
+# fixtures/make-fixed-prior-reference.R gives the steps.
 fixed_prior_reference_fit <- function(model) {
   i <- match(model, c("binary", "continuous", "occupancy", "two_stage"))
   spatial <- model %in% c("binary", "two_stage")   # covers both range functions
