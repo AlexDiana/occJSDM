@@ -85,6 +85,43 @@ Verified on 11 November 2026 against `main` at `4f2ee6c`. Line numbers refer to 
 - Presenting an individual embedding axis or blend as an ecological finding. The blends are identified only up to rotation.
 - Presenting the management coefficient from a fit with the embedding as the total effect of management. It is the direct effect, as set out under *What the management coefficient estimates*.
 
+## The modelling strategy in brief, for Alex
+
+Added on 12 November 2026, from a description Doug asked for. It restates the two model sections below in a statistician's terms and ends with the points on which Alex's view is wanted.
+
+**Aim.** Fit K = 64 to 128 embedding columns as occupancy covariates beside a few measured ones, with about 250 sites and 100 or more species. The prior is opt-in, and fits under the existing prior are reproduced bit for bit.
+
+**Model.** Only the prior on `B` changes. For covariate k and species s:
+
+```
+B[k,s]  = (Tr_b G)[s,k] + (A C)[s,k] + e[k,s]
+Tr_b    = cbind(1, Tr)             row 1 of G is a community-average response
+e[k,s]  ~ N(0, sd_k^2)             sd_k = sigma_b on a measured covariate,
+                                   sigma_emb * lambda_k on an embedding column
+G[,k]   ~ N(0, lambda_k^2)         lambda_k = 1 on measured covariates
+C[,k]   ~ N(0, lambda_k^2 / gt)    on embedding columns; N(0, 1) on measured ones
+A[s,]   ~ N(0, I)
+sigma_b ~ C+(1),  sigma_emb ~ C+(1),  lambda_k ~ C+(0.7 / K)
+```
+
+So `lambda_k` rescales the whole of row k, centre and leftover alike. It is a horseshoe-type scale per column, not per coefficient, and there are no inclusion indicators. `A C` over the embedding columns is a reduced-rank regression of rank `n_lattrait`, and the latent traits are shared with the measured covariates.
+
+**Sampler.** Everything stays conjugate. The three kinds of scale use the inverse-gamma auxiliary form of the half-Cauchy. The joint draw of the coefficient block and the spatial range step take a prior standard deviation per covariate in place of the scalar. `sample_GC()` uses noise `sd_k` per covariate, and `sample_A()` becomes a weighted regression. The scales are drawn after the joint coefficient draw, where `sample_sigmab()` ran.
+
+**Known problems.** The first three are set out under *What the prior check found*.
+
+- *Prior scale.* A scale of 1 over the square root of K on `lambda_k` gave the embedding a prior contribution with a median of 16 logits at K = 64, because the heavy tail makes it grow as K times the scale. At `0.7 / K` the median is about 1.5, but the 95% point is about 28.
+- *Mixing.* In a small test the `lambda_k` of a weakly active column had not converged across chains at 1,500 burn-in and 1,500 kept iterations.
+- *Numerics.* `chol` in `sampleBuniv()` warns about symmetry when `sd_k` is very small.
+- *Replicated data.* In `occupancy` and `two_stage` fits the community-average row and the scales reach the data only through the latent occupancy states, which is the structure that made `mu_b0` fail to converge before the collapsed shift. Short fits run, but convergence there has not been examined.
+
+**Where Alex's view would help.**
+
+- Half-Cauchy, half-t or a regularised horseshoe on `lambda_k`, given binary data with many rare species?
+- Is rescaling the whole row, `G` and `C` included, better than scaling the leftovers only?
+- Is there a blocked or collapsed move for `lambda_k` together with row k?
+- Is a collapsed move like the one for `mu_b0` likely to be needed for the community-average row in replicated fits?
+
 ## The model, part 1: covariate side
 
 Every occupancy covariate column belongs to one of two groups: *measured* (the default) or *embedding* (the columns the user names). Factor and spline columns are always measured.
