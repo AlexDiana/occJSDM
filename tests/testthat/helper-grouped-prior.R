@@ -13,17 +13,32 @@ fixed_prior_reference_fit <- function(model) {
 
 # Small simulated dataset with an embedding block beside the measured covariates.
 # gt is the simulator's number of latent traits, p_meas its ncov_psi, d one factor.
+# The replicated model types get the replicate counts and detection parameters
+# that simulate_fixture() gives them: M samples per site for "occupancy" and
+# "two_stage", K PCR replicates per sample for "two_stage", one primer. The
+# detection parameters are drawn only for those two model types, so a "binary"
+# or "continuous" call keeps the random stream it had before they were added.
 simulate_grouped_fixture <- function(model = "binary", n = 60L, S = 12L, p_meas = 2L,
-                                     p_emb = 8L, gt = 2L, seed = 1L, embedding = list()) {
+                                     p_emb = 8L, gt = 2L, seed = 1L, embedding = list(),
+                                     M = 2L, K = 2L) {
   set.seed(seed)
-  datasettings <- list(n = n, S = S, g = 2L, M = rep(1L, n), P = 1L,
-                       K = rep(1L, n), ncov_psi = p_meas, ncov_theta = 1L)
+  replicated <- model %in% c("occupancy", "two_stage")
+  M_vec <- if (replicated) rep(M, n) else rep(1L, n)
+  K_vec <- if (model == "two_stage") rep(K, sum(M_vec)) else rep(1L, sum(M_vec))
+  datasettings <- list(n = n, S = S, g = 2L, M = M_vec, P = 1L,
+                       K = K_vec, ncov_psi = p_meas, ncov_theta = 1L)
   jsdmParams <- list(gt = gt, d = 1L, ds = 0,
                      sigma_b = 0.5, sigma_bs = 0.5, sigma_ts = 0.5,
                      sigma_h = 1, sigma_s = 0.5, l_s = 0.3,
                      tau = rep(1, S), useSpatField = FALSE,
                      embedding = modifyList(list(n_emb = p_emb), embedding))
-  simulateOccJSDMData(datasettings, list(), jsdmParams, model = model)
+  params <- list()
+  if (replicated)
+    params <- list(p              = matrix(stats::runif(S, 0.3, 0.6), 1L, S),
+                   q              = matrix(stats::runif(S, 0.01, 0.05), 1L, S),
+                   theta0         = stats::runif(S, 0.02, 0.1),
+                   theta_baseline = stats::runif(S, 0.2, 0.5))
+  simulateOccJSDMData(datasettings, params, jsdmParams, model = model)
 }
 
 grouped_occ_covariates <- function(dat) {

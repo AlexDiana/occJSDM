@@ -214,3 +214,42 @@ test_that("n_blends must be a single positive whole number", {
     expect_error(returnEmbeddingBlends(fit, n_blends = bad),
                  "n_blends must be a single positive whole number", fixed = TRUE)
 })
+
+test_that("axes with no effect are shrunk more than axes with an effect", {
+  skip_on_cran()
+  sim <- simulate_grouped_fixture(n = 150L, S = 30L, p_meas = 2L, p_emb = 10L, gt = 2L, seed = 4L,
+    embedding = list(n_blends = 2L, n_active = 3L, blend_sd = 1.2, sigma_emb = 0.1))
+  fit <- fit_grouped(sim, MCMCparams = list(nchain = 2, nburn = 1500, niter = 1500, nthin = 1))
+  lam <- apply(fit$results_output$jsdm_output$lambda_output, 1, median)
+  active <- rowSums(abs(sim$true_params$jsdmParams_true$B[3:12, ])) > 0
+  expect_gt(min(lam[active]), max(lam[!active]))
+})
+
+test_that("grouped fits run for every supported model type and layout", {
+  skip_on_cran()
+  for (model in c("occupancy", "two_stage")) {
+    sim <- simulate_grouped_fixture(model = model, p_emb = 6L, S = 8L)
+    jo <- fit_grouped(sim)$results_output$jsdm_output
+    expect_true(all(is.finite(jo$lambda_output)), info = model)
+  }
+  wide <- simulate_grouped_fixture(n = 30L, p_emb = 40L, S = 8L)         # more columns than sites
+  expect_true(all(is.finite(fit_grouped(wide)$results_output$jsdm_output$B_output)))
+  noblend <- simulate_grouped_fixture(p_emb = 6L, S = 8L, gt = 0L)
+  fit0 <- fit_grouped(noblend, params = list(n_lattrait = 0L))
+  expect_true(all(is.finite(fit0$results_output$jsdm_output$lambda_output)))
+  par <- fit_grouped(simulate_grouped_fixture(p_emb = 6L, S = 8L),
+                     MCMCparams = c(FIXTURE_MCMC, list(ncores = 2)))
+  ser <- fit_grouped(simulate_grouped_fixture(p_emb = 6L, S = 8L))
+  expect_identical(dim(par$results_output$jsdm_output$lambda_output),
+                   dim(ser$results_output$jsdm_output$lambda_output))
+})
+
+test_that("a grouped fit runs with a spatial field", {
+  skip_on_cran()
+  sim <- simulate_fixture(model = "binary", useSpatField = TRUE, seed = 6L)
+  fit <- suppressMessages(suppressWarnings(runOccJSDM(sim$data_list,
+    listParams = list(n_factors = 1L, n_supportpoints = FIXTURE_KNOTS, embeddingVars = fixture_occ_covariates()[2]),
+    listPriors = list(b_prior = "grouped"), occCovariates = fixture_occ_covariates(),
+    spatCovariates = fixture_spat_covariates(), MCMCparams = FIXTURE_MCMC)))
+  expect_true(all(is.finite(fit$results_output$jsdm_output$lambda_output)))
+})
