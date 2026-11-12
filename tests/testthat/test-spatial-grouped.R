@@ -3,7 +3,7 @@
 # coefficient-space block crossproduct formulas used by both helpers.
 grouped_range_reference <- function(a) {
   n <- nrow(a$X);p <- ncol(a$X);d <- ncol(a$U);ps <- nrow(a$M_Bs);S <- ncol(a$Omega)
-  vv <- c(1,rep(a$sigma_b^2,p),rep(1,d),rep(a$sigma_bs^2,ps))
+  vv <- c(1,rep(a$sd_b^2,p),rep(1,d),rep(a$sigma_bs^2,ps))
   mm <- rbind(rep(0,S),a$M_B,matrix(0,d,S),a$M_Bs)
   vapply(seq_along(a$list_SoRSummaries$l_s_grid),function(j) {
     H <- matrix(0,n,ps)
@@ -37,7 +37,7 @@ grouped_range_fixture <- function(p,d,ps=3L,S=3L,permuted=FALSE,constant=FALSE) 
   if(constant) Omega[,] <- rep(seq(.2,1,length.out=S),each=n)
   list(X=matrix(rnorm(n*p),n,p),U=matrix(rnorm(n*d),n,d),
        M_B=matrix(rnorm(p*S,mean=.4),p,S),M_Bs=matrix(rnorm(ps*S,mean=-.3),ps,S),
-       sigma_b=.6,sigma_bs=1.2,kappa=matrix(rnorm(n*S),n,S),Omega=Omega,
+       sd_b=.6,sigma_bs=1.2,kappa=matrix(rnorm(n*S),n,S),Omega=Omega,
        Xs_centers=centers,list_SoRSummaries=list(Ks_all=bases,l_s_grid=grid),
        a_l_s=2.3,b_l_s=3.4,location=ids)
 }

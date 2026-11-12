@@ -896,11 +896,12 @@ computeBtcoef <- function(G, Tr, A, C, Btilde){
 
 }
 
+# Tr_b is the trait matrix of the covariate side (B); the spatial side uses Tr.
 computePsiCoef <- function(
     X, Ks, Xs_centers, Tr,
     B0, G, A, C, Bt,
     Gs, As, Cs, Bst,
-    U, L){
+    U, L, Tr_b = Tr){
 
   ps <- ncol(Bst)
 
@@ -909,7 +910,7 @@ computePsiCoef <- function(
 
   B0_mat <- matrix(B0, n, S, byrow = T)
 
-  B <- t(computeBtcoef(G, Tr, A, C, Bt))
+  B <- t(computeBtcoef(G, Tr_b, A, C, Bt))
 
   XB_prod <- X %*% B
 
@@ -1007,18 +1008,21 @@ sample_tau_half_cauchy <- function(z,eta,tau,scale) {
 # sample the intercepts, fixed effects, spatial fixed effects and the factor loadings
 # The species intercept has a Normal(mu_b0, sigma_b0^2) prior, where mu_b0 is 0
 # unless the community-mean option estimates it; loadings keep unit variance.
+# sd_b is the prior standard deviation of B, one per covariate or a single
+# value recycled to all. Tr_b is the trait matrix of the covariate side (the
+# prior mean of B, and Bt); the spatial side uses Tr.
 sample_BBsL <- function(k, X, Tr, U,
-                        G, A, C, sigma_b,
+                        G, A, C, sd_b,
                         Gs, As, Cs, sigma_bs,
                         Ks, Xs_centers,
-                        Omega, model, sigma_b0 = 1, mu_b0 = 0) {
+                        Omega, model, sigma_b0 = 1, mu_b0 = 0, Tr_b = Tr) {
 
   p <- ncol(X)
   ps <- ncol(Cs)
   d <- ncol(U)
   S <- ncol(Omega)
 
-  M_B <- t(computeBtcoef(G, Tr, A, C, matrix(0, S, p)))
+  M_B <- t(computeBtcoef(G, Tr_b, A, C, matrix(0, S, p)))
   M_Bs <- t(computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps)))
 
   B0 <- rep(0, S)
@@ -1030,7 +1034,7 @@ sample_BBsL <- function(k, X, Tr, U,
 
     B_current <- diag(1, nrow = 1 + p + d + ps)
     diag(B_current)[1] <- sigma_b0^2
-    diag(B_current)[1 + seq_len(p)] <- sigma_b^2
+    diag(B_current)[1 + seq_len(p)] <- rep_len(sd_b, p)^2
     diag(B_current)[1 + p + d + seq_len(ps)] <- sigma_bs^2
 
     invB_current <- diag(1 / diag(B_current), nrow = 1 + p + d + ps)
@@ -1060,7 +1064,7 @@ sample_BBsL <- function(k, X, Tr, U,
 
   }
 
-  Bt <- t(B) - Tr %*% G - A %*% C
+  Bt <- t(B) - Tr_b %*% G - A %*% C
 
   Bts <- t(Bs) - Tr %*% Gs - As %*% Cs
 
@@ -1177,7 +1181,9 @@ weighted_gram <- function(Z, w) {
 # Integrate the jointly Gaussian B0/B/L/Bs block before choosing a range.
 # The prior is range-independent, while the observation design depends on it.
 # Its Gaussian normalizer avoids holding whitened Bs fixed during a range move.
-spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
+# sd_b is the prior standard deviation of B, one per covariate or a single
+# value recycled to all.
+spatial_range_logweights <- function(X, U, M_B, M_Bs, sd_b, sigma_bs,
                                       kappa, Omega, Xs_centers,
                                       list_SoRSummaries, a_l_s, b_l_s,
                                       location = NULL, sigma_b0 = 1, mu_b0 = 0) {
@@ -1188,7 +1194,8 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
   S <- ncol(Omega)
   # B0 must be integrated under the same Normal(mu_b0, sigma_b0^2) prior that
   # sample_BBsL_cpp() then uses to draw it.
-  prior_precision <- c(1/sigma_b0^2, rep(1/sigma_b^2,p), rep(1,d), rep(1/sigma_bs^2,ps))
+  sd_b <- rep_len(sd_b, p)
+  prior_precision <- c(1/sigma_b0^2, 1/sd_b^2, rep(1,d), rep(1/sigma_bs^2,ps))
   prior_means <- rbind(rep(mu_b0,S), M_B, matrix(0,d,S), M_Bs)
   prior_linear <- prior_precision * prior_means
   constant_omega <- vapply(seq_len(S),function(s) all(Omega[,s]==Omega[1,s]),logical(1))
@@ -1199,7 +1206,7 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
     # own covariates, factors and PG precisions. Continuous fits keep their
     # existing constant-precision Gram-matrix shortcut.
     if (anyDuplicated(location) && !all(constant_omega)) {
-      return(spatial_range_logweights_grouped(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+      return(spatial_range_logweights_grouped(X,U,M_B,M_Bs,sd_b,sigma_bs,
         kappa,Omega,Xs_centers,list_SoRSummaries,a_l_s,b_l_s,location,sigma_b0,
         mu_b0))
     }
@@ -1236,7 +1243,7 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
 }
 
 # Exact sufficient crossproducts for observations sharing a spatial row.
-spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sd_b,sigma_bs,
                                            kappa,Omega,Xs_centers,
                                            list_SoRSummaries,a_l_s,b_l_s,
                                            location,sigma_b0=1,mu_b0=0) {
@@ -1249,7 +1256,8 @@ spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
   first <- which(!duplicated(group))
   A <- cbind(1,X,U)
   pa <- ncol(A)
-  precision <- c(1/sigma_b0^2,rep(1/sigma_b^2,p),rep(1,d),rep(1/sigma_bs^2,ps))
+  sd_b <- rep_len(sd_b,p)
+  precision <- c(1/sigma_b0^2,1/sd_b^2,rep(1,d),rep(1/sigma_bs^2,ps))
   prior_mean <- rbind(rep(mu_b0,S),M_B,matrix(0,d,S),M_Bs)
   prior_linear <- precision*prior_mean
   diagonal_precision <- diag(precision,length(precision))

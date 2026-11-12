@@ -314,8 +314,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_BBsL_cpp
-List sample_BBsL_cpp(arma::mat k, arma::mat X, arma::mat Tr, arma::mat U, arma::mat G, arma::mat A, arma::mat C, double sigma_b, arma::mat Gs, arma::mat As, arma::mat Cs, double sigma_bs, arma::mat Ks, arma::mat Xs_centers, arma::mat Omega, std::string model, double sigma_b0, double mu_b0);
-RcppExport SEXP _occJSDM_sample_BBsL_cpp(SEXP kSEXP, SEXP XSEXP, SEXP TrSEXP, SEXP USEXP, SEXP GSEXP, SEXP ASEXP, SEXP CSEXP, SEXP sigma_bSEXP, SEXP GsSEXP, SEXP AsSEXP, SEXP CsSEXP, SEXP sigma_bsSEXP, SEXP KsSEXP, SEXP Xs_centersSEXP, SEXP OmegaSEXP, SEXP modelSEXP, SEXP sigma_b0SEXP, SEXP mu_b0SEXP) {
+List sample_BBsL_cpp(arma::mat k, arma::mat X, arma::mat Tr, arma::mat U, arma::mat G, arma::mat A, arma::mat C, arma::vec sd_b, arma::mat Gs, arma::mat As, arma::mat Cs, double sigma_bs, arma::mat Ks, arma::mat Xs_centers, arma::mat Omega, std::string model, double sigma_b0, double mu_b0, Rcpp::Nullable<Rcpp::NumericMatrix> Tr_b);
+RcppExport SEXP _occJSDM_sample_BBsL_cpp(SEXP kSEXP, SEXP XSEXP, SEXP TrSEXP, SEXP USEXP, SEXP GSEXP, SEXP ASEXP, SEXP CSEXP, SEXP sd_bSEXP, SEXP GsSEXP, SEXP AsSEXP, SEXP CsSEXP, SEXP sigma_bsSEXP, SEXP KsSEXP, SEXP Xs_centersSEXP, SEXP OmegaSEXP, SEXP modelSEXP, SEXP sigma_b0SEXP, SEXP mu_b0SEXP, SEXP Tr_bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -326,7 +326,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type G(GSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
     Rcpp::traits::input_parameter< arma::mat >::type C(CSEXP);
-    Rcpp::traits::input_parameter< double >::type sigma_b(sigma_bSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sd_b(sd_bSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Gs(GsSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type As(AsSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Cs(CsSEXP);
@@ -337,13 +337,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_b0(sigma_b0SEXP);
     Rcpp::traits::input_parameter< double >::type mu_b0(mu_b0SEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_BBsL_cpp(k, X, Tr, U, G, A, C, sigma_b, Gs, As, Cs, sigma_bs, Ks, Xs_centers, Omega, model, sigma_b0, mu_b0));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type Tr_b(Tr_bSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_BBsL_cpp(k, X, Tr, U, G, A, C, sd_b, Gs, As, Cs, sigma_bs, Ks, Xs_centers, Omega, model, sigma_b0, mu_b0, Tr_b));
     return rcpp_result_gen;
 END_RCPP
 }
 // sample_BBsL_parallel
-List sample_BBsL_parallel(arma::mat k, arma::mat X, arma::mat Tr, arma::mat U, arma::mat G, arma::mat A, arma::mat C, double sigma_b, arma::mat Gs, arma::mat As, arma::mat Cs, double sigma_bs, arma::mat Ks, arma::mat Xs_centers, arma::mat Omega, std::string model, double sigma_b0, double mu_b0);
-RcppExport SEXP _occJSDM_sample_BBsL_parallel(SEXP kSEXP, SEXP XSEXP, SEXP TrSEXP, SEXP USEXP, SEXP GSEXP, SEXP ASEXP, SEXP CSEXP, SEXP sigma_bSEXP, SEXP GsSEXP, SEXP AsSEXP, SEXP CsSEXP, SEXP sigma_bsSEXP, SEXP KsSEXP, SEXP Xs_centersSEXP, SEXP OmegaSEXP, SEXP modelSEXP, SEXP sigma_b0SEXP, SEXP mu_b0SEXP) {
+List sample_BBsL_parallel(arma::mat k, arma::mat X, arma::mat Tr, arma::mat U, arma::mat G, arma::mat A, arma::mat C, arma::vec sd_b, arma::mat Gs, arma::mat As, arma::mat Cs, double sigma_bs, arma::mat Ks, arma::mat Xs_centers, arma::mat Omega, std::string model, double sigma_b0, double mu_b0, Rcpp::Nullable<Rcpp::NumericMatrix> Tr_b);
+RcppExport SEXP _occJSDM_sample_BBsL_parallel(SEXP kSEXP, SEXP XSEXP, SEXP TrSEXP, SEXP USEXP, SEXP GSEXP, SEXP ASEXP, SEXP CSEXP, SEXP sd_bSEXP, SEXP GsSEXP, SEXP AsSEXP, SEXP CsSEXP, SEXP sigma_bsSEXP, SEXP KsSEXP, SEXP Xs_centersSEXP, SEXP OmegaSEXP, SEXP modelSEXP, SEXP sigma_b0SEXP, SEXP mu_b0SEXP, SEXP Tr_bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -354,7 +355,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type G(GSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
     Rcpp::traits::input_parameter< arma::mat >::type C(CSEXP);
-    Rcpp::traits::input_parameter< double >::type sigma_b(sigma_bSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sd_b(sd_bSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Gs(GsSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type As(AsSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Cs(CsSEXP);
@@ -365,7 +366,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type model(modelSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_b0(sigma_b0SEXP);
     Rcpp::traits::input_parameter< double >::type mu_b0(mu_b0SEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_BBsL_parallel(k, X, Tr, U, G, A, C, sigma_b, Gs, As, Cs, sigma_bs, Ks, Xs_centers, Omega, model, sigma_b0, mu_b0));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type Tr_b(Tr_bSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_BBsL_parallel(k, X, Tr, U, G, A, C, sd_b, Gs, As, Cs, sigma_bs, Ks, Xs_centers, Omega, model, sigma_b0, mu_b0, Tr_b));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -406,8 +408,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_occJSDM_XtOmegaX_SoR", (DL_FUNC) &_occJSDM_XtOmegaX_SoR, 5},
     {"_occJSDM_sampleB_SoR", (DL_FUNC) &_occJSDM_sampleB_SoR, 8},
     {"_occJSDM_spatEffectMeanCpp", (DL_FUNC) &_occJSDM_spatEffectMeanCpp, 3},
-    {"_occJSDM_sample_BBsL_cpp", (DL_FUNC) &_occJSDM_sample_BBsL_cpp, 18},
-    {"_occJSDM_sample_BBsL_parallel", (DL_FUNC) &_occJSDM_sample_BBsL_parallel, 18},
+    {"_occJSDM_sample_BBsL_cpp", (DL_FUNC) &_occJSDM_sample_BBsL_cpp, 19},
+    {"_occJSDM_sample_BBsL_parallel", (DL_FUNC) &_occJSDM_sample_BBsL_parallel, 19},
     {"_occJSDM_site_loglik_cpp", (DL_FUNC) &_occJSDM_site_loglik_cpp, 6},
     {NULL, NULL, 0}
 };

@@ -112,3 +112,110 @@ test_that("coef_prior_sds builds the per-covariate prior scales", {
   expect_equal(s$g, matrix(lam, 2, 5, byrow = TRUE))
   expect_equal(s$c, cp$c_base * lam)
 })
+
+bbsl_inputs <- function(n = 40L, S = 5L, p = 4L, d = 1L, g = 1L, gt = 1L) {
+  set.seed(11)
+  list(k = matrix(rbinom(n * S, 1, .4) - .5, n, S), X = matrix(rnorm(n * p), n, p),
+       Tr = matrix(rnorm(S * g), S, g), U = matrix(rnorm(n * d), n, d),
+       G = matrix(rnorm(g * p), g, p), A = matrix(rnorm(S * gt), S, gt),
+       C = matrix(rnorm(gt * p), gt, p), Omega = matrix(rexp(n * S) / 4, n, S),
+       empty = list(Gs = matrix(0, g, 0), As = matrix(0, S, gt), Cs = matrix(0, gt, 0),
+                    Ks = matrix(0, n, 0), Xs_centers = matrix(0, n, 0)))
+}
+draw_bbsl <- function(f, x, sd_b, Tr_b = NULL, seed = 5L) {
+  seed_both(seed)
+  f(x$k, x$X, x$Tr, x$U, x$G, x$A, x$C, sd_b, x$empty$Gs, x$empty$As, x$empty$Cs, 1,
+    x$empty$Ks, x$empty$Xs_centers, x$Omega, "binary", 1, 0, Tr_b)
+}
+
+test_that("a recycled scalar and a constant vector give the same joint draw", {
+  x <- bbsl_inputs()
+  for (f in list(occJSDM:::sample_BBsL_cpp, occJSDM:::sample_BBsL_parallel))
+    expect_identical(draw_bbsl(f, x, 0.3), draw_bbsl(f, x, rep(0.3, 4)))
+})
+
+test_that("each covariate's prior scale is applied to that covariate", {
+  x <- bbsl_inputs()
+  M <- t(x$Tr %*% x$G + x$A %*% x$C)
+  for (f in list(occJSDM:::sample_BBsL_cpp, occJSDM:::sample_BBsL_parallel)) {
+    for (tight in 1:4) {
+      sd_b <- rep(1, 4); sd_b[tight] <- 1e-6
+      B <- draw_bbsl(f, x, sd_b)$B
+      expect_equal(B[tight, ], M[tight, ], tolerance = 1e-4)
+      expect_gt(max(abs(B[-tight, ] - M[-tight, ])), 1e-2)
+    }
+  }
+  expect_identical(draw_bbsl(occJSDM:::sample_BBsL_cpp, x, c(.2, .5, 1, 2)),
+                   draw_bbsl(occJSDM:::sample_BBsL_parallel, x, c(.2, .5, 1, 2)))
+})
+
+test_that("the covariate side can use its own trait matrix", {
+  x <- bbsl_inputs()
+  Tr_b <- cbind(1, x$Tr); G_b <- rbind(rnorm(4), x$G); x2 <- x; x2$G <- G_b
+  out <- draw_bbsl(occJSDM:::sample_BBsL_cpp, x2, rep(1e-6, 4), Tr_b = Tr_b)
+  expect_equal(out$B, t(Tr_b %*% G_b + x$A %*% x$C), tolerance = 1e-4)
+  expect_equal(out$Bt, t(out$B) - Tr_b %*% G_b - x$A %*% x$C)
+})
+
+test_that("the joint draw rejects a prior scale vector of the wrong length", {
+  x <- bbsl_inputs()
+  for (f in list(occJSDM:::sample_BBsL_cpp, occJSDM:::sample_BBsL_parallel))
+    for (bad in list(c(.3, .3), rep(.3, 5), numeric(0)))
+      expect_error(draw_bbsl(f, x, bad), "sd_b must have length 1 or one entry per covariate")
+})
+
+test_that("the R reference draw takes the same prior scales and trait matrix", {
+  # sample_BBsL() draws through the same C++ kernel, so with both generators
+  # seeded alike it must agree with sample_BBsL_cpp() up to rounding.
+  x <- bbsl_inputs()
+  Tr_b <- cbind(1, x$Tr); x2 <- x; x2$G <- rbind(rnorm(4), x$G)
+  cases <- list(list(x, 0.3, NULL), list(x, c(.2, .5, 1, 2), NULL),
+                list(x2, c(.2, .5, 1, 2), Tr_b))
+  for (case in cases) {
+    cpp <- draw_bbsl(occJSDM:::sample_BBsL_cpp, case[[1]], case[[2]], Tr_b = case[[3]])
+    ref <- if (is.null(case[[3]])) {
+      # Tr_b left at its default, which is Tr.
+      seed_both(5L)
+      with(case[[1]], occJSDM:::sample_BBsL(k, X, Tr, U, G, A, C, case[[2]], empty$Gs, empty$As,
+        empty$Cs, 1, empty$Ks, empty$Xs_centers, Omega, "binary", 1, 0))
+    } else {
+      draw_bbsl(occJSDM:::sample_BBsL, case[[1]], case[[2]], Tr_b = case[[3]])
+    }
+    cpp$B0 <- drop(cpp$B0)
+    expect_equal(ref, cpp, tolerance = 1e-12)
+  }
+})
+
+test_that("the range log-weights use one prior scale per covariate", {
+  # Dense reference: for each species, 0.5 * h' Q^-1 h - 0.5 * log det Q, with
+  # Q = Z' diag(omega) Z + P and h = Z' kappa + P m, summed over species, plus
+  # the Gamma(a_l_s, b_l_s) log density of the range at that grid point.
+  sim <- simulate_fixture(model = "binary", useSpatField = TRUE, seed = 9L)
+  setup <- range_reference_setup(sim)          # in helper-grouped-prior.R
+  sd_b <- c(0.2, 1.5)
+  got <- with(setup, occJSDM:::spatial_range_logweights(X, U, M_B, M_Bs, sd_b, sigma_bs,
+    kappa, Omega, Xs_centers, list_SoRSummaries, 1, 1))
+  expect_equal(got, range_reference(setup, sd_b), tolerance = 1e-8)
+  expect_identical(
+    with(setup, occJSDM:::spatial_range_logweights(X, U, M_B, M_Bs, 0.3, sigma_bs,
+      kappa, Omega, Xs_centers, list_SoRSummaries, 1, 1)),
+    with(setup, occJSDM:::spatial_range_logweights(X, U, M_B, M_Bs, c(0.3, 0.3), sigma_bs,
+      kappa, Omega, Xs_centers, list_SoRSummaries, 1, 1)))
+})
+
+test_that("the grouped range log-weights use one prior scale per covariate", {
+  # Two visits per site share that site's spatial basis row, the case the
+  # grouped crossproducts exist for. The dense reference does not group.
+  sim <- simulate_fixture(model = "occupancy", useSpatField = TRUE, seed = 9L)
+  setup <- range_reference_setup(sim)
+  expect_gt(anyDuplicated(setup$location), 0L)
+  sd_b <- c(0.2, 1.5)
+  grouped <- function(sd_b) with(setup, occJSDM:::spatial_range_logweights_grouped(X, U, M_B,
+    M_Bs, sd_b, sigma_bs, kappa, Omega, Xs_centers, list_SoRSummaries, 1, 1, location))
+  got <- grouped(sd_b)
+  expect_equal(got, range_reference(setup, sd_b), tolerance = 1e-8)
+  # Repeated labels route the dense entry point to the grouped function.
+  expect_identical(with(setup, occJSDM:::spatial_range_logweights(X, U, M_B, M_Bs, sd_b,
+    sigma_bs, kappa, Omega, Xs_centers, list_SoRSummaries, 1, 1, location = location)), got)
+  expect_identical(grouped(0.3), grouped(c(0.3, 0.3)))
+})

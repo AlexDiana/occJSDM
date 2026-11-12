@@ -30,3 +30,57 @@ grouped_occ_covariates <- function(dat) {
   c(setdiff(grep("^X_psi", names(dat$info), value = TRUE), dat$embeddingVars),
     dat$embeddingVars)
 }
+
+# Inputs of the spatial range step for a simulated fixture. The spatial side
+# is built as test-spatial-range.R builds it for its own references (and as
+# runOccJSDM() does): the location covariates through create_covariates_matrix(),
+# FIXTURE_KNOTS support points and the basis at three candidate ranges. Rows
+# of one site share a location label and a basis row. The prior means, factor
+# scores and Polya-Gamma weights are arbitrary draws, and kappa is the
+# detection matrix minus one half.
+range_reference_setup <- function(sim) {
+  info <- sim$data_list$info
+  n <- nrow(info); S <- ncol(sim$data_list$OTU); d <- 1L
+  X <- unname(apply(as.matrix(info[, fixture_occ_covariates()]), 2,
+                    function(v) (v - mean(v)) / stats::sd(v)))
+  set.seed(31)
+  Xs <- occJSDM:::create_covariates_matrix(info[, fixture_spat_covariates()],
+                                           spline_vars = FALSE, remove_intercept = TRUE)$X
+  list_Xs <- occJSDM:::computeSpatialSummaries(Xs, FIXTURE_KNOTS)
+  ps <- list_Xs$ps
+  list(X = X, U = matrix(rnorm(n * d), n, d),
+       M_B = matrix(rnorm(ncol(X) * S, mean = .4), ncol(X), S),
+       M_Bs = matrix(rnorm(ps * S, mean = -.3), ps, S), sigma_bs = 0.7,
+       kappa = unname((sim$data_list$OTU > 0) - .5),
+       Omega = matrix(rexp(n * S) / 4, n, S), Xs_centers = list_Xs$Xs_centers,
+       list_SoRSummaries = suppressMessages(
+         occJSDM:::precomputeSORmatrices(c(.05, .15, .25), list_Xs)),
+       location = list_Xs$Xs_index)
+}
+
+# Dense reference for the range log-weights with one prior standard deviation
+# per covariate: for each species 0.5 * h' Q^-1 h - 0.5 * log det Q, with
+# Q = Z' diag(omega) Z + P and h = Z' kappa + P m, summed over species, plus
+# the Gamma(a_l_s, b_l_s) log density of the range at that grid point.
+range_reference <- function(setup, sd_b, a_l_s = 1, b_l_s = 1) {
+  with(setup, {
+    n <- nrow(X); d <- ncol(U); ps <- nrow(M_Bs); S <- ncol(Omega)
+    grid <- list_SoRSummaries$l_s_grid
+    P <- diag(c(1, 1 / sd_b^2, rep(1, d), rep(1 / sigma_bs^2, ps)))
+    m <- rbind(0, M_B, matrix(0, d, S), M_Bs)
+    vapply(seq_along(grid), function(j) {
+      Ks <- matrix(list_SoRSummaries$Ks_all[, , j], nrow = n)
+      H <- matrix(0, n, ps)
+      for (i in seq_len(n)) H[i, Xs_centers[i, ]] <- Ks[i, ]
+      Z <- cbind(1, X, U, H)
+      total <- 0
+      for (s in seq_len(S)) {
+        Q <- t(Z) %*% (Omega[, s] * Z) + P
+        h <- t(Z) %*% kappa[, s] + P %*% m[, s]
+        total <- total + 0.5 * sum(h * solve(Q, h)) -
+          0.5 * as.numeric(determinant(Q, logarithm = TRUE)$modulus)
+      }
+      total + stats::dgamma(grid[j], a_l_s, b_l_s, log = TRUE)
+    }, numeric(1))
+  })
+}
