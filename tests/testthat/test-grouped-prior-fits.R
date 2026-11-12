@@ -380,10 +380,13 @@ test_that("axes with a strong effect keep a much larger scale than axes with no 
   for (column in strong)
     expect_gt(lam[[column]], 3 * max(lam[inactive]), label = paste("median axis scale of", column))
   # Nothing is asserted about the weakly active column, X_emb.3. It is not
-  # reliably separated from the inactive columns at this chain length: its
-  # ratio to the largest inactive median was 2.4 here, the two chains differ,
-  # and the axis scales of the inactive columns have not converged (R-hat up
-  # to 1.5). The validation study measures how well weak axes are recovered.
+  # reliably separated from the inactive columns at this chain length. Its
+  # ratio to the largest inactive median was 2.4 here, but 1.1 with the
+  # starting state used before 12 November 2026, and the weakest active
+  # column of another dataset of the same design (seed 5) reached only 1.2.
+  # The axis scales of the inactive columns have not converged either (R-hat
+  # up to 1.5 here and above 2 in the other datasets). The validation study
+  # measures how well weak axes are recovered.
 })
 
 # A grouped fit used the prior and kept updating its scales. Checks the prior

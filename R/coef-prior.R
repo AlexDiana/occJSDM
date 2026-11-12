@@ -268,11 +268,13 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) 
 #' `sigmaemb_output` the embedding leftover scale; both are present only when
 #' the fit has embedding columns. `sigmab_output` holds the measured-group
 #' scale. When every occupancy covariate is an embedding column there is
-#' nothing for that scale to learn from, so `sigmab_output` is then a draw from
-#' its prior and should be ignored. `G_output` gains a leading row, the
-#' community-average response. `infos$coef_prior` records the prior and its
-#' settings, and `infos$covariate_group` labels each occupancy design column
-#' `"measured"` or `"embedding"`.
+#' nothing for that scale to learn from, so `sigmab_output` then holds draws
+#' from its prior. They stay in the fit, but [returnCovariateScales()] leaves
+#' the measured-group scale out and [computeDiagnostics()] does not check it.
+#' `G_output` gains a leading row, the community-average response.
+#' `infos$coef_prior` records the prior and its settings, and
+#' `infos$covariate_group` labels each occupancy design column `"measured"` or
+#' `"embedding"`.
 #'
 #' Four functions summarise these:
 #' * [returnCovariateScales()]: posterior summaries of the measured-group,
@@ -308,6 +310,15 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) 
 #' traits. The upper tail is wide: the 95% point is about 28 at both column
 #' counts, so one prior draw in twenty gives a spread larger than that. The
 #' validation study is to examine that tail.
+#'
+#' The axis scales mix slowly. In a small test with 10 embedding columns they
+#' had not converged after 1,500 burn-in and 1,500 kept iterations: the two
+#' chains still disagreed about columns that no species responds to. Expect
+#' convergence warnings on `lambda` from short fits, and run long chains.
+#'
+#' The prior was built and tested for the `binary`, `occupancy` and
+#' `two_stage` model types. A `continuous` fit runs with it, but that
+#' combination is outside the design and no study has tested it.
 #'
 #' @examples
 #' \dontrun{

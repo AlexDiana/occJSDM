@@ -4,7 +4,9 @@
 # contribution to the linear predictor? The design asks for a prior median
 # between 1 and 2 for the standard deviation across sites of that contribution
 # (dev/superpowers/specs/2026-11-11-grouped-covariate-prior-design.md, section
-# "The model, part 1: covariate side", lines 92 to 105).
+# "The model, part 1: covariate side", the paragraph on what the defaults are
+# meant to do; the outcome is in the same section under "What the prior check
+# found").
 #
 # Run from the package root:
 #   Rscript dev/simstudy/grouped-prior-checks-20261111/prior_check.R
@@ -16,28 +18,28 @@
 # Nothing is fitted. Each draw is one draw from the prior of one species'
 # coefficients on K embedding columns, with no measured traits, so the trait
 # matrix of the covariate side is the single column of ones (the community
-# row of G). Where the definitions come from:
+# row of G). Where the definitions come from, by function and not by line
+# number, which goes stale:
 #
-#   - Default scales and c_base: read_coef_prior(), R/coef-prior.R lines 48 to
-#     62. sigma_emb_scale defaults to 1 (line 52), axis_scale to
-#     0.7 / number of embedding columns (line 56), and c_base is
-#     1 / sqrt(gt) on embedding columns (lines 58 to 59). The function is
-#     called here, not copied, so the check follows the package's defaults.
-#   - How the scales combine: coef_prior_sds(), R/coef-prior.R lines 148 to
-#     154, also called here. For embedding column k the leftover has standard
-#     deviation sigma_emb * lambda[k], the entries of G have lambda[k], and
-#     the entries of C have c_base[k] * lambda[k].
+#   - Default scales and c_base: read_coef_prior() in R/coef-prior.R.
+#     sigma_emb_scale defaults to 1, axis_scale to 0.7 / number of embedding
+#     columns, and c_base is 1 / sqrt(gt) on embedding columns. The function
+#     is called here, not copied, so the check follows the package's defaults.
+#   - How the scales combine: coef_prior_sds() in R/coef-prior.R, also called
+#     here. For embedding column k the leftover has standard deviation
+#     sigma_emb * lambda[k], the entries of G have lambda[k], and the entries
+#     of C have c_base[k] * lambda[k].
 #   - The scales' own priors: half-Cauchy with scale axis_scale for each
 #     lambda[k] and with scale sigma_emb_scale for sigma_emb, as updated by
-#     sample_coef_scales(), R/coef-prior.R lines 173 to 190.
-#   - G and C are Normal with mean 0 and those standard deviations:
-#     sample_GC(), R/jsdmfun.R lines 1106 to 1107.
-#   - A is standard Normal: sample_A(), R/jsdmfun.R lines 1144 to 1145.
+#     sample_coef_scales() in R/coef-prior.R.
+#   - G and C are Normal with mean 0 and those standard deviations: the prior
+#     that sample_GC() in R/jsdmfun.R builds for each covariate.
+#   - A is standard Normal: the prior that sample_A() in R/jsdmfun.R uses.
 #   - A species' coefficients are its trait row times G, plus its row of A
-#     times C, plus its leftover: computeBtcoef(), R/jsdmfun.R lines 893 to
-#     897.
+#     times C, plus its leftover: computeBtcoef() in R/jsdmfun.R.
 #   - The site by column matrix is the simulator's factor model for an
-#     embedding block, R/jsdmfun.R lines 762 to 765: min(8, K) shared factors
+#     embedding block, in simulateData() in R/jsdmfun.R (the branch that runs
+#     when no embedding$X is supplied): min(8, K) shared factors
 #     with weights that decay as 1 / factor number, plus independent noise of
 #     standard deviation 0.3, then each column standardised.
 
@@ -50,7 +52,7 @@ TARGET_MEDIAN <- 1.5
 
 half_cauchy <- function(n, scale) abs(stats::rcauchy(n, 0, scale))
 
-# The simulator's embedding columns (R/jsdmfun.R lines 762 to 765).
+# The simulator's embedding columns (simulateData() in R/jsdmfun.R).
 embedding_columns <- function(n, K) {
   Fx <- min(8L, K)
   W <- matrix(rnorm(K * Fx), K, Fx) %*% diag(1 / seq_len(Fx), Fx)

@@ -313,6 +313,8 @@ create_waic_quantities <- function(n_obs){
 #'   every location as a support point. Short-range spatial patterns may
 #'   require more support points; check that increasing their number does
 #'   not materially change the estimated field or occupancy probabilities.}
+#'   \item{embeddingVars}{An experimental entry, documented in the
+#'   \link[=grouped-prior]{grouped-prior} help page.}
 #' }
 #' @param threshold Threshold used to truncate the reads to binary detections
 #' for occupancy/two-stage models. Reads greater than or equal to the

@@ -1,6 +1,6 @@
 # Checks of the grouped covariate prior's default scales
 
-Two runs of one prior check, both on 12 November 2026, for the [grouped covariate prior](../../superpowers/specs/2026-11-11-grouped-covariate-prior-design.md). The first run, under the default axis scale of the time (`1 / sqrt(K)` for K embedding columns), failed. Doug then changed the default to `0.7 / K`, keeping the half-Cauchy, and the check was run again. The second run is recorded first because it describes the package as it now is. The record of the first run follows it and is kept as written, apart from its headings, which are one level lower, and one marked correction.
+Two runs of one prior check, both on 12 November 2026, for the [grouped covariate prior](../../superpowers/specs/2026-11-11-grouped-covariate-prior-design.md). The first run, under the default axis scale of the time (`1 / sqrt(K)` for K embedding columns), failed. Doug then changed the default to `0.7 / K`, keeping the half-Cauchy, and the check was run again. The second run is recorded first because it describes the package as it now is. The record of the first run follows it and is kept as written, apart from its headings, which are one level lower, and one marked correction. Later the same day the whole-branch review led to two changes to the sampler, to a chain's starting state and to a `chol()` call, and the fit tests were repeated; that record is the section *After the whole-branch review*, placed before the two runs because it supersedes their fit-test numbers. The prior check's own numbers are unaffected, since it fits nothing.
 
 **Under the present default of `0.7 / K` the prior median is inside the target, and the upper tail is still wide.** The design asks for a prior median between 1 and 2 for the standard deviation across sites of the embedding's contribution to the linear predictor. The median is now **1.42 with 64 embedding columns** and **1.49 with 128**, both with 8 latent traits. The 95% points are 28.5 and 27.8.
 
@@ -19,7 +19,85 @@ Nothing is fitted. Each of 2,000 draws is one draw from the prior of one species
 
 The coefficients are the community row, plus the latent traits times `C`, plus the leftover. They multiply a standardised matrix of 250 sites, built with the simulator's factor model for an embedding block, and the standard deviation across sites is recorded.
 
-The script calls the package's own `read_coef_prior()` for the default scales and `coef_prior_sds()` for how the scales combine, so it checks the prior as the package defines it. Its header comment lists the source lines for every other part of the draw.
+The script calls the package's own `read_coef_prior()` for the default scales and `coef_prior_sds()` for how the scales combine, so it checks the prior as the package defines it. Its header comment names the function that defines every other part of the draw.
+
+## After the whole-branch review: starting state, shrinkage test and the `chol()` warning
+
+12 November 2026, after both runs below. R 4.6.1 with the Accelerate BLAS, on mains power with Low Power Mode off. The whole-branch review found that the sampler's starting state distorted the fits recorded under *Fit tests under the present default* below, and it settled what the `chol()` warning was. Both were fixed (commits `d2c19bb` and `885adf9`) and the fits were repeated. The numbers in the two runs below are kept as dated history.
+
+### What was wrong with the starting state
+
+A chain started `C`, the responses of the latent traits, at 1 on every covariate (on and above the diagonal of `C`, and 0 below it). The first update of the axis scales treats that starting `C` as a draw from its prior, whose standard deviation on an embedding column is the axis scale divided by the square root of the number of latent traits. A value of 1 is far too large for that prior, so the first update threw every axis scale to about the number of latent traits divided by the square root of the count of species, trait rows and latent traits together, whatever `axis_scale` was. By the review's measurement the chains had not come back after 2,000 sweeps, and because every chain was thrown the same way, R-hat could not show it.
+
+The embedding columns of `C` now start at their prior scale: the starting axis scale divided by the square root of the number of latent traits. Measured columns, and every fit made without the grouped prior, start exactly as before.
+
+Measured on a small fit of 60 sites and 12 species with 2 measured and 8 embedding columns, 4 latent traits and 2 chains, where the axis scales start at 0.0875 and the value they were thrown to is 0.918:
+
+- before the change, the sixteen axis scales after the first sweep were between 0.80 and 1.11;
+- after it, they are between 0.050 and 0.107.
+
+### The shrinkage fit after the change
+
+This is the fit of the shrinkage test: 150 sites, 30 species, 10 embedding columns of which 3 are used, seed 4, and 2 chains of 1,500 + 1,500 iterations. The posterior median axis scales are given for chain 1, for chain 2 and pooled over both. The same fit before the change is listed by chain under *Fit tests under the present default*.
+
+- `X_emb.1`, used: 1.4331, 1.3566, pooled 1.3966;
+- `X_emb.2`: 0.0387, 0.0283, pooled 0.0348;
+- `X_emb.3`, used: 0.1155, 0.0889, pooled 0.1005;
+- `X_emb.4`: 0.0196, 0.0428, pooled 0.0302;
+- `X_emb.5`, used: 0.3856, 0.3837, pooled 0.3848;
+- `X_emb.6`: 0.0062, 0.0323, pooled 0.0257;
+- `X_emb.7`: 0.0404, 0.0448, pooled 0.0424;
+- `X_emb.8`: 0.0251, 0.0284, pooled 0.0263;
+- `X_emb.9`: 0.0326, 0.0185, pooled 0.0264;
+- `X_emb.10`: 0.0302, 0.0377, pooled 0.0341.
+
+What changed:
+
+- The two strongly used columns are as clear as before. `X_emb.1` is 33 times the largest pooled median of an unused column (25 before) and `X_emb.5` is 9.1 times it (6.9 before). Within either chain alone, `X_emb.5` is at least 8.6 times the largest unused median of that chain.
+- The weakly used column, `X_emb.3`, is now 2.4 times the largest unused pooled median, where it was 1.10. It is above every unused column in both chains: 0.1155 against a largest of 0.0404 in chain 1, and 0.0889 against 0.0448 in chain 2.
+- The pooled medians of the unused columns are between 0.026 and 0.042, where they were between 0.030 and 0.058.
+- The axis scales have still not converged at this chain length. R-hat on the log scale is 1.00, 1.14 and 1.00 for the three used columns and reaches 1.49 among the unused ones. Before the change the largest was 1.60.
+
+Three other datasets of the same design, seeds 5, 6 and 7, were refitted too. Pooled medians after the change:
+
+- seed 5: used 0.26, 1.54 and 0.47; unused between 0.015 and 0.214; weakest used over largest unused 1.22, where it was 1.31;
+- seed 6: used 0.96, 0.44 and 1.82; unused between 0.026 and 0.052; ratio 8.4, where it was 4.66;
+- seed 7: used 0.95, 1.08 and 0.43; unused between 0.010 and 0.091; ratio 4.7, where it was 4.28.
+
+By chain these three fits still disagree about some unused columns: 0.0525 and 0.2792 for `X_emb.1` in seed 5 (R-hat 6.9), 0.1216 and 0.0121 for `X_emb.3` in seed 6, and 0.1760 and 0.0392 for `X_emb.4` in seed 7. In chain 1 of seed 5 the weakest used column (0.2167) is level with an unused one (0.2165). So the new starting state removed a transient that all chains shared. It did not make the axis scales of unused columns converge at 1,500 + 1,500 iterations, and a weakly used column is still not reliably told from an unused one at that length.
+
+### What the fit tests now assert
+
+The shrinkage test had been passing on the ratio of 1.10 for the weakly used column. It now asserts what the sampler delivers reliably, and is renamed "axes with a strong effect keep a much larger scale than axes with no effect": each of the two strongly used columns, `X_emb.1` and `X_emb.5`, must have a pooled median axis scale at least 3 times the largest pooled median of an unused column. The observed factors are 33 and 9.1, so the weaker of the two has a threefold margin. Nothing is asserted about `X_emb.3`. How well a weakly used axis is recovered is for the validation study to measure.
+
+A new test, "a chain starts with C at its prior scale, so the first scale draw agrees with the start", makes the small fit described above and asserts that every axis scale after the first sweep is below 0.283, the geometric mean of the starting value and the value they used to be thrown to, and above the starting value divided by the same factor of 3.2. It failed before the change, with a largest value of 1.11.
+
+Another new test checks the scale updates by simulation. With no data, a draw of the coefficients from their prior is alternated with the scale update and the draws of `G`, `C` and `A`, so that each scale must keep its half-Cauchy prior. Over 50,000 sweeps the share of draws below each prior quartile is within 0.018 of 0.25, 0.50 and 0.75 for all four scales. The tolerances are 0.045 to 0.09, five or more Monte Carlo standard deviations as measured over 24 seeds. Breaking the update on purpose (a wrong shape, a wrong rate, or the prior scale left out) made the test fail each time.
+
+### The `chol()` warning, settled
+
+The warning is described under *A warning from the sampler in the seed 5 fit* below. The review read Armadillo's source and established what it is:
+
+- Before factorising, `chol()` runs a rough symmetry check. It compares two pairs of mirror-image elements, in the corners of the matrix, and warns when a pair differs by more than 10,000 times machine epsilon (about 2.2e-12), both absolutely and relative to the element.
+- The matrix is formed as a general matrix product divided by the square of a leftover standard deviation. The two elements of a pair are the same sum computed in two orders, so they can differ by rounding. The recorded mismatch was 2.4e-11 of the element's value. It passed the relative tolerance because that sum happened to be close to zero, and the absolute tolerance because the division by a very small variance multiplied it by several thousand.
+- The factorisation reads only the upper triangle of the matrix. One element of each pair never enters the draw, so the draw was never affected.
+
+The fix (commit `885adf9`) wraps the argument of `chol()` in `sampleBuniv()` in `arma::symmatu()`, which copies the upper triangle onto the lower. The check then passes by construction for any finite matrix, and the factorisation is given the same upper triangle as before. Nothing else in the function reads the symmetrised matrix. What was checked:
+
+- The seed 5 fit that printed the warning three times was repeated with the fix and with the old starting state put back in memory. It printed no warning and its `results_output` is identical to that of the fit that printed three.
+- The four shrinkage fits (seeds 4 to 7) made with the new starting state printed the warning eight times between them before the fix. After it they print none, and all four `results_output` are identical before and after.
+- 200 direct calls of `sampleBuniv()` on inputs of the kind recorded for seed 5 (30 species, a latent trait summing almost to zero, a leftover standard deviation of 0.0094): 154 printed the warning before the fix, none after, and the 200 draws are identical. Twenty of these are now a test.
+- Fits made without the grouped prior are unchanged: the four reference fits of the first test in `tests/testthat/test-grouped-prior.R`, and eleven further cases compared with a fresh build of commit `4f2ee6c`, the last one before the grouped prior. Ten of the eleven are fits covering no traits, no latent traits, a factor and a spline, no covariates, two-stage and continuous data with a spatial field, parallel chains and a fixed intercept prior, and all ten `results_output` are identical. The eleventh, a one-species fit, stops with the same error in both builds, so it compares nothing.
+
+The other `chol()` calls in the sampler were read. The joint coefficient draw, `sampleB_SoR()`, factorises a matrix that is made exactly symmetric before a diagonal prior precision is added, so it cannot trip the check. The remaining calls are in the draw of the site factor scores and on the detection side. They form their matrices without dividing by a small variance, the grouped prior does not touch them, and none printed the warning in any run made for this record, including the whole test suite, so they were left alone.
+
+### Test results after these changes
+
+With the code at commit `dcf7bf0`; the commit that follows it changes help text, comments and this record only.
+
+- `tests/testthat/test-grouped-prior.R`: 172 expectations pass, none fail and none are skipped. Its first test, which compares four fits made without the grouped prior with the saved reference fits, passes 4 of 4.
+- `tests/testthat/test-grouped-prior-fits.R`, run with `NOT_CRAN=true`: 186 expectations pass, none fail, with no warnings, in 67 seconds.
+- The whole suite: 2,164 expectations pass, none fail, with no warnings, and 6 are skipped. Five of the skips need a declared single-threaded reference BLAS and one needs `OCCJSDM_SIMSTUDY=1`.
 
 ## Second run: the present default, `0.7 / K`
 
@@ -77,6 +155,8 @@ The limits listed under the first run apply unchanged: one species with no measu
 
 ### Fit tests under the present default
 
+Dated history: this subsection and the next record the fits as they were at commit `3df7253`, before the starting state was changed. The fits were repeated afterwards, and the current numbers and assertions are in the section *After the whole-branch review* above.
+
 Run on mains power with Low Power Mode off. Final results, at commit `3df7253`:
 
 - `tests/testthat/test-grouped-prior.R`: 124 expectations pass, none fail.
@@ -119,11 +199,11 @@ The seed 5 fit was also looked at by chain. In chain 1 one unused column (0.2747
 
 The seed 5 fit printed `chol(): given matrix is not symmetric` three times and finished. The fit was repeated with the calls to the C++ coefficient draws wrapped so that the call that printed each warning could be recorded; the wrappers draw no random numbers and the repeat gave the same axis scales. What was observed:
 
-- All three warnings come from `arma::chol` at line 528 of `src/jsdm.cpp`, in `sampleBuniv()`, called from `sample_GC()` in `R/jsdmfun.R`. That call draws one occupancy column's community response, trait effects and blend weights. The draw of the species' coefficients and the draw of the latent traits printed nothing.
+- All three warnings come from `arma::chol` in `sampleBuniv()` in `src/jsdm.cpp` (line 528 at the time), called from `sample_GC()` in `R/jsdmfun.R`. That call draws one occupancy column's community response, trait effects and blend weights. The draw of the species' coefficients and the draw of the latent traits printed nothing.
 - All three were in one sweep: chain 2, sweep 1,146 of 3,000, which is in the burn-in.
 - They were for embedding columns 4, 7 and 8, the three with the smallest axis scales in that sweep: 0.032, 0.077 and 0.073. The embedding leftover scale was 0.294, so the leftover standard deviations of those columns, by whose squares the draw divides, were 0.0094, 0.0228 and 0.0215. The other seven embedding columns, with axis scales of 0.12 to 0.96, gave no warning in that sweep.
 - In that sweep the second latent trait summed almost to zero across the 30 species, which made one off-diagonal element of the matrix small (9.8e-05 before the division). Recomputed in R, that element and its mirror image differ by about 2.4 parts in 100 billion of their value for all three columns.
-- Whether the draw is affected was not verified.
+- The draw was not affected. Armadillo's symmetry check compares pairs of mirror-image elements at a tolerance of 1e4 times machine epsilon, the factorisation reads only the upper triangle of the matrix, and the recorded relative mismatch of 2.4e-11 sits between an element that is read and one that is not. This was established by the whole-branch review, and the warning has since been silenced without changing any draw; the mechanism, the fix and the checks are under *The `chol()` warning, settled* above. This bullet first read that the effect on the draw had not been verified.
 - The warning was not seen in the fits made without the grouped prior. Only four such fits were run in this work, the short reference fits in the first test of `tests/testthat/test-grouped-prior.R`. It was also not seen in the seed 4, 6 and 7 fits or in any run of the fits test file.
 - Whether the old default gives the warning on the seed 5 data was not checked.
 

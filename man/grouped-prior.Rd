@@ -76,11 +76,13 @@ In \code{results_output$jsdm_output}, \code{lambda_output} holds the axis scales
 \code{sigmaemb_output} the embedding leftover scale; both are present only when
 the fit has embedding columns. \code{sigmab_output} holds the measured-group
 scale. When every occupancy covariate is an embedding column there is
-nothing for that scale to learn from, so \code{sigmab_output} is then a draw from
-its prior and should be ignored. \code{G_output} gains a leading row, the
-community-average response. \code{infos$coef_prior} records the prior and its
-settings, and \code{infos$covariate_group} labels each occupancy design column
-\code{"measured"} or \code{"embedding"}.
+nothing for that scale to learn from, so \code{sigmab_output} then holds draws
+from its prior. They stay in the fit, but \code{\link[=returnCovariateScales]{returnCovariateScales()}} leaves
+the measured-group scale out and \code{\link[=computeDiagnostics]{computeDiagnostics()}} does not check it.
+\code{G_output} gains a leading row, the community-average response.
+\code{infos$coef_prior} records the prior and its settings, and
+\code{infos$covariate_group} labels each occupancy design column \code{"measured"} or
+\code{"embedding"}.
 
 Four functions summarise these:
 \itemize{
@@ -122,6 +124,15 @@ that spread is 1 to 2. Under the present default the prior median is about
 traits. The upper tail is wide: the 95\% point is about 28 at both column
 counts, so one prior draw in twenty gives a spread larger than that. The
 validation study is to examine that tail.
+
+The axis scales mix slowly. In a small test with 10 embedding columns they
+had not converged after 1,500 burn-in and 1,500 kept iterations: the two
+chains still disagreed about columns that no species responds to. Expect
+convergence warnings on \code{lambda} from short fits, and run long chains.
+
+The prior was built and tested for the \code{binary}, \code{occupancy} and
+\code{two_stage} model types. A \code{continuous} fit runs with it, but that
+combination is outside the design and no study has tested it.
 }
 
 \examples{
