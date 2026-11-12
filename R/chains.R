@@ -83,14 +83,16 @@ add_latent_sums <- function(total, part) {
 # the binary, continuous and occupancy models (R/runOccJSDM.R:601-604) and
 # which the body only assigns for the other models; plus Tr and N3, read
 # inside calls. A PSOCK worker enforces completeness: a missing field is an error.
+# g_b, Tr_b and coef_prior were added by hand with the occupancy coefficient
+# prior (R/coef-prior.R).
 chain_setup_fields <- function() c(
   "model", "jsdmModel", "threshold",
   "y", "y_NA", "z", "w", "M", "K", "P", "sumM", "sumP", "sumK", "maxP", "primerId_p",
   "idx_w_k", "idx_p_k", "idx_z_w", "list_idx",
-  "n", "N", "N3", "S", "d", "g", "gt", "ps", "ncov_theta", "ncov_psi",
-  "X_theta", "X_psi", "Tr",
+  "n", "N", "N3", "S", "d", "g", "g_b", "gt", "ps", "ncov_theta", "ncov_psi",
+  "X_theta", "X_psi", "Tr", "Tr_b",
   "list_Xs", "list_SoRSummaries",
-  "list_data", "list_priors", "spatial_sd_prior",
+  "list_data", "list_priors", "spatial_sd_prior", "coef_prior",
   "a_theta0", "b_theta0", "a_p", "b_p", "a_q", "b_q", "b_betatheta", "B_betatheta",
   "b0_shift",
   "nburn", "niter", "nthin", "summarisedLatentPresences")
@@ -425,6 +427,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
   S <- setup$S
   d <- setup$d
   g <- setup$g
+  g_b <- setup$g_b
   gt <- setup$gt
   ps <- setup$ps
   ncov_theta <- setup$ncov_theta
@@ -432,11 +435,13 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
   X_theta <- setup$X_theta
   X_psi <- setup$X_psi
   Tr <- setup$Tr
+  Tr_b <- setup$Tr_b
   list_Xs <- setup$list_Xs
   list_SoRSummaries <- setup$list_SoRSummaries
   list_data <- setup$list_data
   list_priors <- setup$list_priors
   spatial_sd_prior <- setup$spatial_sd_prior
+  coef_prior <- setup$coef_prior
   a_theta0 <- setup$a_theta0
   b_theta0 <- setup$b_theta0
   a_p <- setup$a_p
@@ -474,7 +479,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
       {
         B0_output_chain <- array(NA, dim = c(S, niter))
         B_output_chain <- array(NA, dim = c(ncov_psi, S, niter))
-        G_output_chain <- array(NA, dim = c(g, ncov_psi, niter))
+        G_output_chain <- array(NA, dim = c(g_b, ncov_psi, niter))
         A_output_chain <- array(NA, dim = c(S, gt, niter))
         C_output_chain <- array(NA, dim = c(gt, ncov_psi, niter))
         Bs_output_chain <- array(NA, dim = c(ps, S, niter))
@@ -492,6 +497,11 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
         # Only b0_prior = "community" estimates mu_b0.
         community_b0 <- identical(list_priors$intercept_prior$type, "community")
         mu_b0_output_chain <- if (community_b0) rep(NA, niter) else NULL
+        # Only a fit with embedding columns estimates their scales.
+        embedding_b <- identical(coef_prior$type, "grouped") && any(coef_prior$is_emb)
+        sigmaemb_output_chain <- if (embedding_b) rep(NA, niter) else NULL
+        lambda_output_chain <- if (embedding_b)
+          array(NA, dim = c(sum(coef_prior$is_emb), niter)) else NULL
       }
 
     }
@@ -570,7 +580,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
         L <- matrix(1, d, S)
         diag(L) <- 1
         L[lower.tri(L)] <- 0
-        G <- matrix(0, g, ncov_psi)
+        G <- matrix(0, g_b, ncov_psi)
         C <- matrix(1, gt, ncov_psi)
         diag(C) <- 1
         C[lower.tri(C)] <- 0
@@ -582,13 +592,14 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
         As <- matrix(0, S, gt)
         U <- matrix(0, n, d)
         sigma_b <- 1
+        list_scales <- coef_scales_start(coef_prior, ncov_psi)
         sigma_bs <- if (identical(spatial_sd_prior$type,"half_cauchy"))
           spatial_sd_prior$scale else .001
         sigma_h <- 1
         idx_ls <- 3 # dim(list_SoRSummaries$Ks_all)[3][5]
         tau <- rep(1, S)
 
-        Bt <- t(B) - computeBtcoef(G, Tr, A, C, matrix(0, S, ncov_psi))
+        Bt <- t(B) - computeBtcoef(G, Tr_b, A, C, matrix(0, S, ncov_psi))
         Bst <- t(Bs) - computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps))
 
         Ks <- matrix(list_SoRSummaries$Ks_all[,,idx_ls],nrow=n)
@@ -608,6 +619,8 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
           "U" = U,
           "L" = L,
           "sigma_b" = sigma_b,
+          "sigma_emb" = list_scales$sigma_emb,
+          "lambda" = list_scales$lambda,
           "sigma_bs" = sigma_bs,
           "sigma_h" = sigma_h,
           "idx_ls" = idx_ls,
@@ -619,7 +632,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
           X_psi, Ks, list_Xs$Xs_centers, Tr,
           B0, G, A, C, Bt,
           Gs, As, Cs, Bst,
-          U, L)
+          U, L, Tr_b = Tr_b)
 
       }
 
@@ -786,6 +799,10 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
             idx_ls_output_chain[currentIter] <- list_jSDMparams$idx_ls
             if(model == "continuous") tau_output_chain[,currentIter] <- list_jSDMparams$tau
             if(community_b0) mu_b0_output_chain[currentIter] <- list_jSDMparams$mu_b0
+            if(embedding_b){
+              sigmaemb_output_chain[currentIter] <- list_jSDMparams$sigma_emb
+              lambda_output_chain[,currentIter] <- list_jSDMparams$lambda[coef_prior$is_emb]
+            }
 
             varPart_output_chain[,,currentIter] <-
               as.matrix(list_jSDMparams$variancePartitioning)
@@ -850,7 +867,8 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
       Cs = Cs_output_chain, U = U_output_chain, L = L_output_chain,
       sigmab = sigmab_output_chain, sigmabs = sigmabs_output_chain, sigmah = sigmah_output_chain,
       idx_ls = idx_ls_output_chain, varPart = varPart_output_chain, tau = tau_output_chain,
-      mu_b0 = mu_b0_output_chain),
+      mu_b0 = mu_b0_output_chain,
+      sigmaemb = sigmaemb_output_chain, lambda = lambda_output_chain),
     latent_sums = list(z = z_sum, psi = psi_sum, theta = theta_sum, w = w_sum),
     waic = list(jsdm = c(list_waic_jsdm, list(n = n_waic)),
                 w = if (is.null(list_waic_w)) NULL else c(list_waic_w, list(n = n_waic)),

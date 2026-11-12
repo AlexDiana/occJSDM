@@ -1340,6 +1340,11 @@ update_jSDMcoef <- function(list_data,
     z <- list_data$z
     X <- list_data$X
     Tr <- list_data$Tr
+    # The trait matrix of the covariate side (B, G, A, C): Tr itself, or Tr
+    # with a leading column of ones under the grouped coefficient prior. The
+    # spatial side always uses Tr.
+    Tr_b <- list_data$Tr_b
+    if (is.null(Tr_b)) stop("list_data$Tr_b is missing")
   }
 
   # read params
@@ -1358,6 +1363,8 @@ update_jSDMcoef <- function(list_data,
     U <- list_params$U
     L <- list_params$L
     sigma_b <- list_params$sigma_b
+    sigma_emb <- list_params$sigma_emb
+    lambda <- list_params$lambda
     sigma_bs <- list_params$sigma_bs
     sigma_h <- list_params$sigma_h
     idx_ls <- list_params$idx_ls
@@ -1387,12 +1394,22 @@ update_jSDMcoef <- function(list_data,
     community_b0 <- identical(list_priors$intercept_prior$type, "community")
     if (!community_b0) mu_b0 <- 0
     if (is.null(mu_b0)) stop("list_params$mu_b0 is missing")
+    # The occupancy coefficient prior (read by runOccJSDM()).
+    coef_prior <- list_priors$coef_prior
+    if (is.null(coef_prior)) stop("list_priors$coef_prior is missing")
+    grouped_b <- identical(coef_prior$type, "grouped")
   }
 
   # read state variables
   {
     ps <- nrow(Bs)
+    p <- ncol(X)
   }
+
+  # Prior standard deviations of B, G and C, one per covariate. Under the fixed
+  # prior they are sigma_b for B and 1 for G and C, as before the option.
+  sds <- coef_prior_sds(coef_prior, sigma_b, sigma_emb, lambda, ncol(Tr_b), p)
+  check_coef_sds(sds$b, p)
 
   # define transformed target variables
   if(model == "continuous"){
@@ -1408,7 +1425,7 @@ update_jSDMcoef <- function(list_data,
     X, Ks, list_Xs$Xs_centers, Tr,
     B0, G, A, C, Bt,
     Gs, As, Cs, Bst,
-    U, L)
+    U, L, Tr_b = Tr_b)
   psiCoef <- list_psiCoef$eta
   XB <- list_psiCoef$XB
   SE <- list_psiCoef$SE
@@ -1435,10 +1452,10 @@ update_jSDMcoef <- function(list_data,
   # draw that entire block at the selected range. No intervening update may
   # condition on the old coefficients after this collapsed step.
   if (ps > 0) {
-    M_B <- t(computeBtcoef(G,Tr,A,C,matrix(0,ncol(z),ncol(X))))
+    M_B <- t(computeBtcoef(G,Tr_b,A,C,matrix(0,ncol(z),ncol(X))))
     M_Bs <- t(computeBtcoef(Gs,Tr,As,Cs,matrix(0,ncol(z),ps)))
     kappa <- if (model == "continuous") k*Omega else k
-    logweights <- spatial_range_logweights(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+    logweights <- spatial_range_logweights(X,U,M_B,M_Bs,sds$b,sigma_bs,
                                             kappa,Omega,list_Xs$Xs_centers,
                                             list_SoRSummaries,a_l_s,b_l_s,
                                             location=list_Xs$Xs_index,
@@ -1450,17 +1467,17 @@ update_jSDMcoef <- function(list_data,
 
   # sample fixed effects, spatial trait loadings and factor loadings
   list_BBsL <- sample_BBsL_cpp(k, X, Tr, U,
-                           G, A, C, sigma_b,
+                           G, A, C, sds$b,
                            Gs, As, Cs, sigma_bs,
                            Ks, list_Xs$Xs_centers,
                            Omega, model,
-                           sigma_b0 = sigma_b0, mu_b0 = mu_b0)
+                           sigma_b0 = sigma_b0, mu_b0 = mu_b0, Tr_b = Tr_b)
   # list_BBsL <- sample_BBsL_parallel(k, X, Tr, U,
-  #                          G, A, C, sigma_b,
+  #                          G, A, C, sds$b,
   #                          Gs, As, Cs, sigma_bs,
   #                          Ks, list_Xs$Xs_centers,
   #                          Omega, model,
-  #                          sigma_b0 = sigma_b0, mu_b0 = mu_b0)
+  #                          sigma_b0 = sigma_b0, mu_b0 = mu_b0, Tr_b = Tr_b)
   B <- list_BBsL$B
   Bt <- list_BBsL$Bt
   Bs <- list_BBsL$Bs
@@ -1476,7 +1493,22 @@ update_jSDMcoef <- function(list_data,
   }
 
   # update variance of residuals of environmental covariates
-  sigma_b <- sample_sigmab(B, Tr, G, A, C, a_sigmab, b_sigmab)
+  # Grouped prior: the measured scale, the embedding scale and the embedding
+  # columns' covariate scales, from the leftovers of the coefficients just
+  # drawn. Only here, after the joint draw: a chain starts with B, G and A at
+  # zero, and a covariate scale's conditional is improper when its column of
+  # leftovers, of G and of C are all zero. Fixed prior: sigma_b as before.
+  if (grouped_b) {
+    list_scales <- sample_coef_scales(t(B) - Tr_b %*% G - A %*% C, G, C,
+                                      coef_prior, sigma_b, sigma_emb, lambda)
+    sigma_b <- list_scales$sigma_b
+    sigma_emb <- list_scales$sigma_emb
+    lambda <- list_scales$lambda
+  } else {
+    sigma_b <- sample_sigmab(B, Tr_b, G, A, C, a_sigmab, b_sigmab)
+  }
+  sds <- coef_prior_sds(coef_prior, sigma_b, sigma_emb, lambda, ncol(Tr_b), p)
+  check_coef_sds(sds$b, p)
   if(ps > 0){
     if (identical(list_priors$spatial_sd_prior$type,"half_cauchy")) {
       sigma_bs <- sample_spatial_sd_half_cauchy(Bs,Tr,Gs,As,Cs,sigma_bs,
@@ -1487,14 +1519,13 @@ update_jSDMcoef <- function(list_data,
   }
 
   # sample response to traits (observed and unobsered)
-  list_GC <- sample_GC(B, Tr, A, rep(sigma_b, nrow(B)),
-                       matrix(1, ncol(Tr), nrow(B)), rep(1, nrow(B)))
+  list_GC <- sample_GC(B, Tr_b, A, sds$b, sds$g, sds$c)
   G <- list_GC$G
   C <- list_GC$C
   Bt <- list_GC$Bt
 
   # sample unobserved traits
-  list_A <- sample_A(B, C, Tr, G, rep(sigma_b, nrow(B)))
+  list_A <- sample_A(B, C, Tr_b, G, sds$b)
   A <- list_A$A
   Bt <- list_A$Bt
 
@@ -1519,7 +1550,7 @@ update_jSDMcoef <- function(list_data,
     X, Ks, list_Xs$Xs_centers, Tr,
     B0, G, A, C, Bt,
     Gs, As, Cs, Bst,
-    U, L)
+    U, L, Tr_b = Tr_b)
   XB <- list_psiCoef$XB
   SE <- list_psiCoef$SE
   U <- sample_U_cpp(k, L, XB, SE, Omega, sigma_h, model)
@@ -1533,7 +1564,7 @@ update_jSDMcoef <- function(list_data,
       X, Ks, list_Xs$Xs_centers, Tr,
       B0, G, A, C, Bt,
       Gs, As, Cs, Bst,
-      U, L)
+      U, L, Tr_b = Tr_b)
     eta <- list_psiCoef$eta
     XB <- list_psiCoef$XB
     SE <- list_psiCoef$SE
@@ -1569,6 +1600,8 @@ update_jSDMcoef <- function(list_data,
    "U" = U,
    "L" = L,
    "sigma_b" = sigma_b,
+   "sigma_emb" = sigma_emb,
+   "lambda" = lambda,
    "sigma_bs" = sigma_bs,
    "sigma_h" = sigma_h,
    "idx_ls" = idx_ls,

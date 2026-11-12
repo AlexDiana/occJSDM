@@ -59,6 +59,86 @@ read_coef_prior <- function(priors, params, S, gt, columns) {
        c_base = c_base)
 }
 
+# One row per column of the occupancy design matrix X: its name, the covariate
+# it came from and that covariate's kind ("numeric", "spline" or "factor").
+# process_covariates() does not report which columns a covariate produced, so
+# the blocks are rebuilt from the record create_covariates_matrix() keeps
+# (list_matrix) and its standardised data frame X0. The blocks are in names_df
+# order, as covariate_response_grid() also relies on: a numeric covariate is
+# one column, or its spline basis when bs_info holds one, and a factor is one
+# column per contrast. A numeric covariate that splineVars selects is a spline
+# even when too few distinct values made it fall back to a single linear
+# column, so that its kind does not depend on the number of sites.
+occ_design_columns <- function(X, list_matrix, X0) {
+  if (is.null(list_matrix)) {
+    variable <- kind <- character(0)
+  } else {
+    blocks <- lapply(list_matrix$names_df, function(name) {
+      if (!list_matrix$is_numeric[[name]])
+        return(list(n = ncol(stats::contrasts(X0[[name]])), kind = "factor"))
+      spline <- list_matrix$bs_info[[name]]
+      list(n = if (is.null(spline)) 1L else
+             length(spline$knots) + spline$degree + spline$intercept,
+           kind = if (name %in% list_matrix$target_spline_vars) "spline" else "numeric")
+    })
+    n <- vapply(blocks, function(b) as.integer(b$n), integer(1))
+    variable <- rep(list_matrix$names_df, n)
+    kind <- rep(vapply(blocks, function(b) b$kind, character(1)), n)
+  }
+  if (length(variable) != ncol(X))
+    stop("the occupancy design columns could not be matched to their covariates")
+  data.frame(column = as.character(colnames(X)), variable = variable, kind = kind)
+}
+
+# Embedding covariates are standardised with the other numeric occupancy
+# covariates, so one that does not vary across sites cannot be used. Checked
+# before the design matrix is built, on the values it is built from: the first
+# row of each site. Names that are not numeric occupancy covariates are left
+# for read_coef_prior() to reject.
+check_embedding_varies <- function(data_info, occCovariates, params) {
+  emb_vars <- intersect(get_param(params, "embeddingVars", NULL), occCovariates)
+  first <- !duplicated(data_info$Site)
+  constant <- emb_vars[vapply(emb_vars, function(v) {
+    x <- data_info[[v]]
+    is.numeric(x) && length(unique(x[first])) < 2L
+  }, logical(1))]
+  if (length(constant))
+    stop("embeddingVars columns must vary across sites: ",
+         paste(constant, collapse = ", "))
+  invisible(NULL)
+}
+
+# "measured" or "embedding" for every design column, named by column.
+coef_prior_groups <- function(coef_prior, columns) {
+  is_emb <- if (coef_prior$type == "grouped") coef_prior$is_emb else
+    rep(FALSE, nrow(columns))
+  stats::setNames(c("measured", "embedding")[is_emb + 1L], columns$column)
+}
+
+# Starting values of the embedding scale and the covariate scales. A covariate
+# scale is exactly 1 on every measured column, at the start and always:
+# sample_coef_scales() only ever redraws the embedding columns' scales.
+coef_scales_start <- function(coef_prior, p) {
+  sigma_emb <- NA_real_
+  lambda <- rep(1, p)
+  if (coef_prior$type == "grouped") {
+    sigma_emb <- coef_prior$sigma_emb_scale
+    lambda[coef_prior$is_emb] <- coef_prior$axis_scale
+  }
+  list(sigma_emb = sigma_emb, lambda = lambda)
+}
+
+# The prior standard deviations of B must be p finite positive numbers before
+# they reach the joint draw and the range step: a NULL aborts R inside the C++
+# draw, and the R range functions would recycle a wrong length silently.
+check_coef_sds <- function(sd_b, p) {
+  if (!is.numeric(sd_b) || length(sd_b) != p || !all(is.finite(sd_b)) ||
+      any(sd_b <= 0))
+    stop("the prior standard deviations of the occupancy coefficients must be ",
+         p, " finite positive numbers")
+  invisible(NULL)
+}
+
 # Per-covariate prior standard deviations from the current scale values.
 # Fixed: sigma_b on every coefficient, no covariate scales. Grouped: the
 # covariate scales lambda multiply the measured or embedding scale.
