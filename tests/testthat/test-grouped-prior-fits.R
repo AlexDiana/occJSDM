@@ -113,7 +113,8 @@ test_that("the starting scales leave measured columns at exactly 1", {
   cp <- occJSDM:::read_coef_prior(list(), list(embeddingVars = c("e1", "e2")), 10L, 2L,
     data.frame(column = c("m1", "e1", "e2"), variable = c("m1", "e1", "e2"), kind = "numeric"))
   expect_identical(occJSDM:::coef_scales_start(cp, 3L),
-                   list(sigma_emb = 1, lambda = c(1, 1 / sqrt(2), 1 / sqrt(2))))
+                   list(sigma_emb = 1, lambda = c(1, 0.7 / 2, 0.7 / 2)))   # the default, 0.7 / K
+  expect_identical(occJSDM:::coef_scales_start(cp, 3L)$lambda[2:3], rep(cp$axis_scale, 2))
   expect_identical(occJSDM:::coef_scales_start(list(type = "fixed"), 3L),
                    list(sigma_emb = NA_real_, lambda = c(1, 1, 1)))
   expect_identical(occJSDM:::coef_prior_groups(list(type = "fixed"),
