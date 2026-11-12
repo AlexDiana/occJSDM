@@ -69,3 +69,40 @@ coef_prior_sds <- function(coef_prior, sigma_b, sigma_emb, lambda, g_b, p) {
        g = matrix(lambda, g_b, p, byrow = TRUE),
        c = coef_prior$c_base * lambda)
 }
+
+# One draw of a standard deviation with a half-Cauchy(scale) prior, given `n`
+# Normal(0, sd^2) quantities whose squares sum to `ss`. Same auxiliary-variable
+# step as sample_spatial_sd_half_cauchy(): refresh the auxiliary given the
+# current value `sigma`, then draw the new variance.
+sample_scale_half_cauchy <- function(ss, n, sigma, scale) {
+  aux <- rinvgamma_cpp(1, 1 / sigma^2 + 1 / scale^2)
+  sqrt(rinvgamma_cpp((n + 1) / 2, ss / 2 + 1 / aux))
+}
+
+# Update the scales of the grouped prior. R is the species by covariates
+# matrix of leftovers, B minus its trait regression; G and C have one column
+# per covariate. Drawn in this order: sigma_b from the measured columns,
+# sigma_emb from the embedding columns with each divided by its covariate
+# scale, then each embedding column's covariate scale given the new sigma_emb.
+# A covariate scale multiplies the prior standard deviation of its column of
+# leftovers, of G and of C, so all three inform it. With no embedding columns
+# sigma_emb and lambda are returned as given.
+sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) {
+  S <- nrow(R)
+  is_emb <- coef_prior$is_emb
+  sigma_b <- sample_scale_half_cauchy(sum(R[, !is_emb]^2), S * sum(!is_emb),
+                                      sigma_b, coef_prior$sigma_b_scale)
+  if (any(is_emb)) {
+    emb <- which(is_emb)
+    ss_emb <- sum(sweep(R[, emb, drop = FALSE], 2, lambda[emb], "/")^2)
+    sigma_emb <- sample_scale_half_cauchy(ss_emb, S * length(emb), sigma_emb,
+                                          coef_prior$sigma_emb_scale)
+    for (k in emb) {
+      ss_k <- sum(R[, k]^2) / sigma_emb^2 + sum(G[, k]^2) +
+        sum(C[, k]^2) / coef_prior$c_base[k]^2
+      lambda[k] <- sample_scale_half_cauchy(ss_k, S + nrow(G) + nrow(C),
+                                            lambda[k], coef_prior$axis_scale)
+    }
+  }
+  list(sigma_b = sigma_b, sigma_emb = sigma_emb, lambda = lambda)
+}

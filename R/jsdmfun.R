@@ -1077,11 +1077,15 @@ sample_BBsL <- function(k, X, Tr, U,
 }
 
 # sample traits (observed and unobserved) response to covariates
-sample_GC <- function(B, Tr, A, sigma_b){
+# Covariate k's coefficients are regressed on cbind(Tr_b, A) with noise
+# standard deviation sd_b[k]. sd_g (trait rows by covariates) and sd_c (one per
+# covariate) are the prior standard deviations of G and C. All ones, with a
+# constant sd_b, is the original update.
+sample_GC <- function(B, Tr_b, A, sd_b, sd_g, sd_c){
 
   p <- nrow(B)
   S <- ncol(B)
-  g <- ncol(Tr)
+  g <- ncol(Tr_b)
   gt <- ncol(A)
 
   G <- matrix(0, g, p)
@@ -1091,21 +1095,18 @@ sample_GC <- function(B, Tr, A, sigma_b){
 
     tB <- t(B)
 
-    B_prior <- diag(2, nrow = g + gt)
-    b_prior <- rep(0, g + gt)
-
     for (k in 1:p) {
 
       B_current <- tB[,k]
 
       if(g + gt > 0){
 
-        TA <- cbind(Tr, A)
+        TA <- cbind(Tr_b, A)
 
         b_prior <- rep(0, g + gt)
-        B_prior <- diag(1, nrow = g + gt)
+        B_prior <- diag(c(sd_g[,k]^2, rep(sd_c[k]^2, gt)), nrow = g + gt)
 
-        GC <- sampleBuniv(TA, B_prior, b_prior, B_current, sigma_b)
+        GC <- sampleBuniv(TA, B_prior, b_prior, B_current, sd_b[k])
         G[seq_len(g),k] <- GC[seq_len(g)]
         C[seq_len(gt),k] <- GC[g + seq_len(gt)]
 
@@ -1117,7 +1118,7 @@ sample_GC <- function(B, Tr, A, sigma_b){
 
 
 
-  Bt <- t(B) - Tr %*% G - A %*% C
+  Bt <- t(B) - Tr_b %*% G - A %*% C
 
   list("G" = G,
        "C" = C,
@@ -1125,13 +1126,16 @@ sample_GC <- function(B, Tr, A, sigma_b){
 }
 
 # sample unobserved traits
-sample_A <- function(B, C, Tr, G, sigma_b){
+# sd_b is the noise standard deviation of each covariate's coefficients. When
+# they differ, each covariate's row of the regression is divided by its own
+# value, which leaves unit noise.
+sample_A <- function(B, C, Tr_b, G, sd_b){
 
   p <- nrow(B)
   gt <- nrow(C)
   S <- ncol(B)
 
-  Btilde <- B - t(Tr %*% G)
+  Btilde <- B - t(Tr_b %*% G)
 
   A <- matrix(0, S, gt)
 
@@ -1140,15 +1144,30 @@ sample_A <- function(B, C, Tr, G, sigma_b){
     B_current <- diag(1, nrow = gt)
     b_current <- rep(0, gt)
 
-    for (s in 1:S) {
+    if(all(sd_b == sd_b[1])){
 
-      A[s,] <- sampleBuniv(t(C), B_current, b_current, Btilde[,s], sigma_b)
+      for (s in 1:S) {
+
+        A[s,] <- sampleBuniv(t(C), B_current, b_current, Btilde[,s], sd_b[1])
+
+      }
+
+    } else {
+
+      tC_scaled <- t(C) / sd_b
+
+      for (s in 1:S) {
+
+        A[s,] <- sampleBuniv(tC_scaled, B_current, b_current,
+                             Btilde[,s] / sd_b, 1)
+
+      }
 
     }
 
   }
 
-  Bt <- t(B) - Tr %*% G - A %*% C
+  Bt <- t(B) - Tr_b %*% G - A %*% C
 
   list("A" = A,
        "Bt" = Bt)
@@ -1468,19 +1487,21 @@ update_jSDMcoef <- function(list_data,
   }
 
   # sample response to traits (observed and unobsered)
-  list_GC <- sample_GC(B, Tr, A, sigma_b)
+  list_GC <- sample_GC(B, Tr, A, rep(sigma_b, nrow(B)),
+                       matrix(1, ncol(Tr), nrow(B)), rep(1, nrow(B)))
   G <- list_GC$G
   C <- list_GC$C
   Bt <- list_GC$Bt
 
   # sample unobserved traits
-  list_A <- sample_A(B, C, Tr, G, sigma_b)
+  list_A <- sample_A(B, C, Tr, G, rep(sigma_b, nrow(B)))
   A <- list_A$A
   Bt <- list_A$Bt
 
   # sample spatial response to traits (observed and unobsered)
   if(ps > 0){
-    list_GCs <- sample_GC(Bs, Tr, As, sigma_bs)
+    list_GCs <- sample_GC(Bs, Tr, As, rep(sigma_bs, ps),
+                          matrix(1, ncol(Tr), ps), rep(1, ps))
     Gs <- list_GCs$G
     Cs <- list_GCs$C
     Bst <- list_GCs$Bt
@@ -1488,7 +1509,7 @@ update_jSDMcoef <- function(list_data,
 
   # sample unobserved spatial traits
   if(ps > 0){
-    list_As <- sample_A(Bs, Cs, Tr, Gs, sigma_bs)
+    list_As <- sample_A(Bs, Cs, Tr, Gs, rep(sigma_bs, ps))
     As <- list_As$A
     Bst <- list_As$Bt
   }

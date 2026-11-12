@@ -219,3 +219,75 @@ test_that("the grouped range log-weights use one prior scale per covariate", {
     sigma_bs, kappa, Omega, Xs_centers, list_SoRSummaries, 1, 1, location = location)), got)
   expect_identical(grouped(0.3), grouped(c(0.3, 0.3)))
 })
+
+scale_inputs <- function() {
+  set.seed(1); S <- 7L; gb <- 2L; gt <- 2L
+  list(S = S, gb = gb, gt = gt, R = matrix(rnorm(S * 5), S, 5),
+       G = matrix(rnorm(gb * 5), gb, 5), C = matrix(rnorm(gt * 5), gt, 5),
+       cp = list(type = "grouped", is_emb = c(FALSE, FALSE, TRUE, TRUE, TRUE),
+                 sigma_b_scale = 1, sigma_emb_scale = 1, axis_scale = 1 / sqrt(3),
+                 c_base = c(1, 1, rep(1 / sqrt(gt), 3))),
+       sigma_b = 0.7, sigma_emb = 0.4, lambda = c(1, 1, 0.5, 0.2, 0.9))
+}
+hc <- function(ss, n, sigma, scale) {
+  aux <- occJSDM:::rinvgamma_cpp(1, 1 / sigma^2 + 1 / scale^2)
+  sqrt(occJSDM:::rinvgamma_cpp((n + 1) / 2, ss / 2 + 1 / aux))
+}
+
+test_that("coefficient scales are drawn from their half-Cauchy conditionals", {
+  x <- scale_inputs()
+  seed_both(42)
+  want_b <- hc(sum(x$R[, 1:2]^2), x$S * 2, x$sigma_b, 1)
+  want_e <- hc(sum(sweep(x$R[, 3:5], 2, x$lambda[3:5], "/")^2), x$S * 3, x$sigma_emb, 1)
+  want_l <- vapply(3:5, function(k) hc(
+    sum(x$R[, k]^2) / want_e^2 + sum(x$G[, k]^2) + sum(x$C[, k]^2) / x$cp$c_base[k]^2,
+    x$S + x$gb + x$gt, x$lambda[k], x$cp$axis_scale), numeric(1))
+  seed_both(42)
+  got <- with(x, occJSDM:::sample_coef_scales(R, G, C, cp, sigma_b, sigma_emb, lambda))
+  expect_equal(got, list(sigma_b = want_b, sigma_emb = want_e, lambda = c(1, 1, want_l)))
+})
+
+test_that("with no embedding columns only the measured scale moves", {
+  x <- scale_inputs(); x$cp$is_emb[] <- FALSE; x$cp$c_base[] <- 1
+  seed_both(42); want <- hc(sum(x$R^2), x$S * 5, x$sigma_b, 1)
+  seed_both(42)
+  got <- with(x, occJSDM:::sample_coef_scales(R, G, C, cp, sigma_b, NA_real_, rep(1, 5)))
+  expect_equal(got, list(sigma_b = want, sigma_emb = NA_real_, lambda = rep(1, 5)))
+})
+
+test_that("an axis scale tracks the size of its column", {
+  x <- scale_inputs(); x$R[, 4] <- 0; x$G[, 4] <- 0; x$C[, 4] <- 0
+  x$R[, 5] <- 30 * x$R[, 5]
+  draws <- replicate(400, with(x, occJSDM:::sample_coef_scales(R, G, C, cp, sigma_b, sigma_emb, lambda))$lambda)
+  expect_lt(median(draws[4, ]), 0.2)
+  expect_gt(median(draws[5, ]), 5 * median(draws[4, ]))
+})
+
+test_that("sample_GC uses a prior and a noise scale per covariate", {
+  set.seed(2); S <- 9L; p <- 3L; gb <- 2L; gt <- 2L
+  B <- matrix(rnorm(p * S), p, S); Tr_b <- cbind(1, rnorm(S)); A <- matrix(rnorm(S * gt), S, gt)
+  sd_b <- c(.3, 1, 2); sd_g <- matrix(c(.5, 1, 2), gb, p, byrow = TRUE); sd_c <- c(.2, .7, 1.5)
+  seed_both(7); got <- occJSDM:::sample_GC(B, Tr_b, A, sd_b, sd_g, sd_c)
+  seed_both(7)
+  for (k in 1:p) {
+    want <- occJSDM:::sampleBuniv(cbind(Tr_b, A), diag(c(sd_g[, k]^2, rep(sd_c[k]^2, gt))),
+                                  rep(0, gb + gt), B[k, ], sd_b[k])
+    expect_equal(c(got$G[, k], got$C[, k]), as.vector(want))
+  }
+  expect_equal(got$Bt, t(B) - Tr_b %*% got$G - A %*% got$C)
+})
+
+test_that("sample_A weights covariates by their noise scale", {
+  set.seed(3); S <- 4L; p <- 6L; gt <- 2L
+  B <- matrix(rnorm(p * S), p, S); C <- matrix(rnorm(gt * p), gt, p)
+  Tr_b <- matrix(1, S, 1); G <- matrix(rnorm(p), 1, p); sd_b <- c(.2, .2, 1, 1, 3, 3)
+  Btilde <- B - t(Tr_b %*% G)
+  seed_both(8); got <- occJSDM:::sample_A(B, C, Tr_b, G, sd_b)
+  seed_both(8)
+  for (s in 1:S) expect_equal(got$A[s, ], as.vector(occJSDM:::sampleBuniv(
+    t(C) / sd_b, diag(gt), rep(0, gt), Btilde[, s] / sd_b, 1)))
+  seed_both(8); same <- occJSDM:::sample_A(B, C, Tr_b, G, rep(.4, p))
+  seed_both(8)
+  for (s in 1:S) expect_identical(same$A[s, ], as.vector(occJSDM:::sampleBuniv(
+    t(C), diag(gt), rep(0, gt), Btilde[, s], .4)))
+})
