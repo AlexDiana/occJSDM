@@ -106,7 +106,7 @@ The defaults are chosen so the embedding's prior contribution to the linear pred
 
 The "blends" Doug and Claude discussed are the existing latent traits restricted to the embedding columns: a blend's weights are a row of `C` over those columns, and a species' response to the blend is its entry in `A`. No new structure is added. The number of blends is the existing `n_lattrait`, with its existing default. The latent traits stay shared between the two groups, so a species' latent traits predict its responses to measured covariates and embedding axes alike.
 
-**What a blend is, in plain terms.** Added on 12 November 2026 from Doug's questions.
+**What a blend is, in plain terms.** Added on 12 November 2026 from Doug's questions. Two figures go with it: [a PCA axis against a blend on the same sites](2026-11-11-grouped-covariate-prior-figures/blend-versus-pca.svg), and [species' vectors lying in the sheet that two blends span](2026-11-11-grouped-covariate-prior-figures/species-vectors-in-blend-sheet.svg). Both are schematic drawings with made-up points, not results.
 
 - *A blend is a direction in the embedding space.* It is a set of weights, one per embedding column: 64 weights for AlphaEarth.
 - *Each species has its own vector.* Its 64 coefficients point in the direction along which its chance of occurring changes fastest, which for one species is the direction that best separates its presences from its absences. With 100 species there are 100 such vectors.
