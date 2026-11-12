@@ -18,7 +18,7 @@
 - The feature works for `binary`, `occupancy` and `two_stage` fits, spatial or not, serial or parallel chains.
 - No change to the spatial coefficients (`Bs`, `Gs`, `As`, `Cs`, `sigma_bs`), the factor model, the detection stages or the intercept prior.
 - Naming an embedding column in `splineVars` is an error.
-- Default prior scales: `sigma_b_scale = 1`, `sigma_emb_scale = 1`, `axis_scale = 1 / sqrt(number of embedding columns)`. On embedding columns the base prior standard deviation of the entries of `C` is `1 / sqrt(gt)`; on measured columns it stays 1.
+- Default prior scales: `sigma_b_scale = 1`, `sigma_emb_scale = 1`, `axis_scale = 0.7 / (number of embedding columns)`. Tasks 1 to 9 were built with `1 / sqrt(number of embedding columns)`; Task 8's prior check showed that to be far too wide, Doug chose `0.7 / K` on 12 November 2026, and Task 10 makes the change. On embedding columns the base prior standard deviation of the entries of `C` is `1 / sqrt(gt)`; on measured columns it stays 1.
 - Run tests with `Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/<file>")'` from the worktree root. `Rscript` must be R 4.6.1.
 - Markdown follows `CLAUDE.md`: one line per paragraph, no em-dashes. Commit messages use no em-dashes.
 - Do not run `R CMD build` in a checkout that has an untracked `dev/` tree; use `devtools::test()` and `devtools::document()`.
@@ -763,6 +763,42 @@ Expected: no problems found. If it is not installed, say so in the report; do no
 ```bash
 git add R man _pkgdown.yml dev/superpowers/specs/2026-11-11-grouped-covariate-prior-design.md
 git commit -m "Document the grouped coefficient prior on its own help page"
+```
+
+---
+
+### Task 10: Default axis scale of 0.7 / K
+
+Added on 12 November 2026. Task 8's prior check found the default `axis_scale` of `1 / sqrt(K)` far too wide: the standard deviation across sites of the embedding's contribution to a species' linear predictor had a prior median of about 16 logits at 64 columns and 24 at 128, against a target of 1 to 2. The half-Cauchy tail of the axis scales makes that quantity grow in proportion to K times the scale, so the scale must fall as `1 / K`. Doug chose `0.7 / K`, keeping the half-Cauchy.
+
+**Files:**
+- Modify: `R/coef-prior.R` (`read_coef_prior()`, and the roxygen of the `grouped-prior` help page), `man/grouped-prior.Rd`
+- Modify: `tests/testthat/test-grouped-prior.R`
+- Modify: `dev/simstudy/grouped-prior-checks-20261111/prior_check.R` and `README.md`
+
+**Interfaces:**
+- Produces: the default `axis_scale` is `0.7 / K`, where K is the number of embedding design columns. Nothing else about the prior changes: the axis scales stay half-Cauchy, `sigma_b_scale`, `sigma_emb_scale` and the base scale of `C` are untouched, and an `axis_scale` supplied by the user is used as given.
+- The design document is not edited in this task; the controller updates it afterwards from this task's numbers.
+
+- [ ] **Step 1: Write the failing test.** In the test "read_coef_prior resolves defaults", change the expected default with three embedding columns from `1 / sqrt(3)` to `0.7 / 3`, and add: one embedding column gives `0.7`; a supplied `axis_scale = 0.2` is returned as `0.2`. Leave the `axis_scale = 1 / sqrt(3)` inside `scale_inputs()` alone: it is an input to a unit test of the scale draw, not the default.
+
+- [ ] **Step 2: Run it.** Expected: FAIL on the new expected default.
+
+- [ ] **Step 3: Change the default** in `read_coef_prior()`. Search `R/` for any other place that computes the default and confirm there is none.
+
+- [ ] **Step 4: Run both grouped test files**, the fits file with `NOT_CRAN=true`. Expected: PASS. The test "axes with no effect are shrunk more than axes with an effect" passed under the old default by a thin margin. If it fails now, do not loosen it and do not change its seed: rerun it with seeds 5, 6 and 7, record all four outcomes in the README with the active and inactive axis-scale medians, and report to Doug. If it passes, record the same medians and the margin.
+
+- [ ] **Step 5: Rerun the prior check** and bring the README up to date. `prior_check.R` takes the default from the package, so its default lines now report `0.7 / K`. Keep the earlier failure in the README as a dated record; add the new numbers (median, 5% and 95% points at 64 and 128 columns) and say plainly whether the median is inside 1 to 2. State the upper tail as it is. Correct the README's statement that the shrinkage fit is not seeded: it is seeded indirectly, through `simulate_grouped_fixture(seed = 4L)`.
+
+- [ ] **Step 6: Update the help page.** In *Settings*, the default is `0.7 / K`. Rewrite *Status* from the new numbers: experimental; not through its validation study; the default was changed on 12 November 2026 after a prior check; under the present default the standard deviation across sites of the embedding's contribution has a prior median of about the figure Step 5 found, at 64 and 128 columns; the upper tail is wide, with the 95% point Step 5 found, which the validation study is to examine. In the example, remove the explicit `axis_scale`, which was a workaround for the old default, and replace the column selection with a plain one. Run `devtools::document()`; only `man/grouped-prior.Rd` should change.
+
+- [ ] **Step 7: Run `tests/testthat/test-grouped-prior.R` once more** and confirm that its first test passes with 4 expectations and is not skipped.
+
+- [ ] **Step 8: Commit.**
+
+```bash
+git add R/coef-prior.R man/grouped-prior.Rd tests/testthat/test-grouped-prior.R dev/simstudy/grouped-prior-checks-20261111
+git commit -m "Change the default axis scale to 0.7 / K"
 ```
 
 ---
