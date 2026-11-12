@@ -73,7 +73,9 @@ test_that("read_coef_prior resolves defaults", {
   expect_identical(got$is_emb, c(FALSE, FALSE, TRUE, TRUE, TRUE))
   expect_identical(got$sigma_b_scale, 1)
   expect_identical(got$sigma_emb_scale, 1)
-  expect_equal(got$axis_scale, 1 / sqrt(3))
+  expect_equal(got$axis_scale, 0.7 / 3)                         # 0.7 / number of embedding columns
+  expect_equal(rcp(list(), list(embeddingVars = "e1"))$axis_scale, 0.7)
+  expect_identical(rcp(list(axis_scale = 0.2), list(embeddingVars = paste0("e", 1:3)))$axis_scale, 0.2)
   expect_equal(got$c_base, c(1, 1, rep(1 / sqrt(2), 3)))
   expect_equal(rcp(list(b_prior = "grouped"), list(embeddingVars = "e1"), gt = 0L)$c_base,
                rep(1, 5))

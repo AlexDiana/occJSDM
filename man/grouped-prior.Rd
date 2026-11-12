@@ -62,8 +62,8 @@ positive number.
 \itemize{
 \item \code{sigma_b_scale}: scale of the measured-group scale. Default 1.
 \item \code{sigma_emb_scale}: scale of the embedding leftover scale. Default 1.
-\item \code{axis_scale}: scale of each embedding column's axis scale. Default 1 over
-the square root of the number of embedding columns.
+\item \code{axis_scale}: scale of each embedding column's axis scale. Default
+\code{0.7 / K}, where K is the number of embedding columns.
 }
 
 The number of blends is \code{listParams$n_lattrait}, the number of latent
@@ -111,12 +111,17 @@ management can change, and compare the two fits on the probability scale.
 \section{Status}{
 
 This prior is experimental and has not been through its validation study.
-A prior check on 12 November 2026 found that the default \code{axis_scale} is
-too wide: before any data, the embedding's contribution to a species' linear
-predictor has a median of about 16 logits at 64 columns, against a design
-target of 1 to 2. The default is under review and may change. Until it does,
-set \code{axis_scale} yourself; about \code{0.7 / K} for K embedding columns gave a
-median of about 1.5 in that check.
+The default \code{axis_scale} was changed on 12 November 2026, from 1 over the
+square root of the number of embedding columns to \code{0.7 / K}, after a prior
+check found the old default far too wide. The check looks at the prior
+alone, before any data. What it measures is the spread across sites, as a
+standard deviation, of the embedding's contribution to a species' linear
+predictor, on the logit scale. The design target for the prior median of
+that spread is 1 to 2. Under the present default the prior median is about
+1.4 with 64 embedding columns and about 1.5 with 128, both with 8 latent
+traits. The upper tail is wide: the 95\% point is about 28 at both column
+counts, so one prior draw in twenty gives a spread larger than that. The
+validation study is to examine that tail.
 }
 
 \examples{
@@ -134,14 +139,12 @@ sim <- simulateOccJSDMData(
                     embedding = list(n_emb = 8L)),
   model = "binary")
 dat <- sim$data_list
-occ <- c(setdiff(grep("^X_psi", names(dat$info), value = TRUE),
-                 dat$embeddingVars),
-         dat$embeddingVars)
+measured <- c("X_psi.EnvCov.1", "X_psi.EnvCov.2")
+embedding <- dat$embeddingVars          # "X_emb.1" to "X_emb.8"
 fit <- runOccJSDM(dat,
   listParams = list(n_factors = 1L, n_lattrait = 2L,
-                    embeddingVars = dat$embeddingVars),
-  listPriors = list(axis_scale = 0.7 / 8),
-  occCovariates = occ, spatCovariates = NULL,
+                    embeddingVars = embedding),
+  occCovariates = c(measured, embedding), spatCovariates = NULL,
   MCMCparams = list(nchain = 2, nburn = 500, niter = 500, nthin = 1))
 returnCovariateScales(fit)
 returnCommunityResponse(fit)

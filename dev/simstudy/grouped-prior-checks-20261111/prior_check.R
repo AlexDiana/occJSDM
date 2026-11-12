@@ -9,23 +9,27 @@
 # Run from the package root:
 #   Rscript dev/simstudy/grouped-prior-checks-20261111/prior_check.R
 #
+# First run on 12 November 2026 under the default axis_scale of the time,
+# 1 / sqrt(K), which failed the check. The default was changed to 0.7 / K the
+# same day and the script was run again. Both outputs are in the README.
+#
 # Nothing is fitted. Each draw is one draw from the prior of one species'
 # coefficients on K embedding columns, with no measured traits, so the trait
 # matrix of the covariate side is the single column of ones (the community
 # row of G). Where the definitions come from:
 #
 #   - Default scales and c_base: read_coef_prior(), R/coef-prior.R lines 48 to
-#     59. sigma_emb_scale defaults to 1 (line 52), axis_scale to
-#     1 / sqrt(number of embedding columns) (line 53), and c_base is
-#     1 / sqrt(gt) on embedding columns (lines 55 to 56). The function is
+#     62. sigma_emb_scale defaults to 1 (line 52), axis_scale to
+#     0.7 / number of embedding columns (line 56), and c_base is
+#     1 / sqrt(gt) on embedding columns (lines 58 to 59). The function is
 #     called here, not copied, so the check follows the package's defaults.
-#   - How the scales combine: coef_prior_sds(), R/coef-prior.R lines 145 to
-#     151, also called here. For embedding column k the leftover has standard
+#   - How the scales combine: coef_prior_sds(), R/coef-prior.R lines 148 to
+#     154, also called here. For embedding column k the leftover has standard
 #     deviation sigma_emb * lambda[k], the entries of G have lambda[k], and
 #     the entries of C have c_base[k] * lambda[k].
 #   - The scales' own priors: half-Cauchy with scale axis_scale for each
 #     lambda[k] and with scale sigma_emb_scale for sigma_emb, as updated by
-#     sample_coef_scales(), R/coef-prior.R lines 170 to 187.
+#     sample_coef_scales(), R/coef-prior.R lines 173 to 190.
 #   - G and C are Normal with mean 0 and those standard deviations:
 #     sample_GC(), R/jsdmfun.R lines 1106 to 1107.
 #   - A is standard Normal: sample_A(), R/jsdmfun.R lines 1144 to 1145.
@@ -115,8 +119,8 @@ for (s in settings) {
   X <- embedding_columns(N_SITES, s$K)
   cp <- grouped_prior(s$K, s$gt)
   cat(sprintf("\nK = %d embedding columns, gt = %d\n", s$K, s$gt))
-  cat(sprintf("  defaults: axis_scale = %.5f (1 / sqrt(K)), sigma_emb_scale = %g, c_base = %.5f\n",
-              cp$axis_scale, cp$sigma_emb_scale, cp$c_base[1]))
+  cat(sprintf("  defaults: axis_scale = %.5f (%.3g / K), sigma_emb_scale = %g, c_base = %.5f\n",
+              cp$axis_scale, cp$axis_scale * s$K, cp$sigma_emb_scale, cp$c_base[1]))
 
   drawn <- show("default scales, scales drawn (the check)",
                 prior_contribution_sd(X, cp, s$gt))

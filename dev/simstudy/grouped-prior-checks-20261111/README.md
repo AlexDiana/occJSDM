@@ -1,8 +1,8 @@
 # Checks of the grouped covariate prior's default scales
 
-12 November 2026. R 4.6.1, on the `claude/grouped-covariate-prior` branch at `3461213` (this check changes no package code). Task 8 of the part 1 plan for the [grouped covariate prior](../../superpowers/specs/2026-11-11-grouped-covariate-prior-design.md).
+Two runs of one prior check, both on 12 November 2026, for the [grouped covariate prior](../../superpowers/specs/2026-11-11-grouped-covariate-prior-design.md). The first run, under the default axis scale of the time (`1 / sqrt(K)` for K embedding columns), failed. Doug then changed the default to `0.7 / K`, keeping the half-Cauchy, and the check was run again. The second run is recorded first because it describes the package as it now is. The record of the first run follows it and is kept as written, apart from its headings, which are one level lower, and one marked correction.
 
-**The default axis scale fails the prior check.** The design asks for a prior median between 1 and 2 for the standard deviation across sites of the embedding's contribution to the linear predictor. With the default scales the median is **16.3 with 64 embedding columns** and **24.0 with 128**, both with 8 latent traits. No default was changed. The axis scale that brings the median to 1.5 is about 0.72 divided by the number of embedding columns, where the default is 1 divided by its square root.
+**Under the present default of `0.7 / K` the prior median is inside the target, and the upper tail is still wide.** The design asks for a prior median between 1 and 2 for the standard deviation across sites of the embedding's contribution to the linear predictor. The median is now **1.42 with 64 embedding columns** and **1.49 with 128**, both with 8 latent traits. The 95% points are 28.5 and 27.8.
 
 ## What was run
 
@@ -21,7 +21,92 @@ The coefficients are the community row, plus the latent traits times `C`, plus t
 
 The script calls the package's own `read_coef_prior()` for the default scales and `coef_prior_sds()` for how the scales combine, so it checks the prior as the package defines it. Its header comment lists the source lines for every other part of the draw.
 
-## Numbers
+## Second run: the present default, `0.7 / K`
+
+12 November 2026. R 4.6.1, on the `claude/grouped-covariate-prior` branch, at the commit that changes the default (Task 10 of the part 1 plan). The script is the same as in the first run except that the line reporting the defaults now prints the rule the package uses.
+
+### Numbers
+
+``` text
+Prior check of the grouped covariate prior
+R 4.6.1, 2000 prior draws, 250 sites, target median 1 to 2
+
+K = 64 embedding columns, gt = 8
+  defaults: axis_scale = 0.01094 (0.7 / K), sigma_emb_scale = 1, c_base = 0.35355
+  default scales, scales drawn (the check)       median    1.425   5%    0.304   95%     28.489
+  median inside 1 to 2: YES
+  scales held at their prior scales              median    0.136   5%    0.078   95%      0.229
+  independent columns, scales held               median    0.149   5%    0.122   95%      0.186
+  independent columns, scales drawn              median    1.449   5%    0.381   95%     30.999
+  axis_scale for a median of 1.5: 0.01152 = 0.737 / K = 0.092 / sqrt(K)
+  axis_scale = 0.01152, fresh draws              median    1.557   5%    0.337   95%     33.449
+  sigma_emb_scale = 0.01, axis_scale default     median    0.917   5%    0.257   95%     10.325
+
+K = 128 embedding columns, gt = 8
+  defaults: axis_scale = 0.00547 (0.7 / K), sigma_emb_scale = 1, c_base = 0.35355
+  default scales, scales drawn (the check)       median    1.485   5%    0.326   95%     27.775
+  median inside 1 to 2: YES
+  scales held at their prior scales              median    0.095   5%    0.056   95%      0.164
+  independent columns, scales held               median    0.106   5%    0.088   95%      0.127
+  independent columns, scales drawn              median    1.435   5%    0.369   95%     26.181
+  axis_scale for a median of 1.5: 0.00552 = 0.707 / K = 0.062 / sqrt(K)
+  axis_scale = 0.00552, fresh draws              median    1.437   5%    0.305   95%     28.516
+  sigma_emb_scale = 0.01, axis_scale default     median    0.890   5%    0.246   95%     10.327
+```
+
+The check itself, against the target of 1 to 2:
+
+- 64 columns: median 1.42, 5% point 0.30, 95% point 28.5. The median is inside the target.
+- 128 columns: median 1.49, 5% point 0.33, 95% point 27.8. The median is inside the target.
+
+### What the numbers mean
+
+**The median meets the target and no longer grows with the number of columns.** Doubling the columns from 64 to 128 moved the median from 1.42 to 1.49, a factor of 1.04, where under the old default it was a factor of 1.47.
+
+**These are the first run's draws rescaled, not new draws.** The script uses the same seeds, and the contribution is exactly proportional to `axis_scale`, so every line that depends on the default is the first run's line multiplied by 0.7 divided by the square root of the number of columns (0.0875 at 64 columns, 0.0619 at 128). The medians are the 1.42 and 1.49 that the first run predicted by proportion. The run confirms that the package now applies the rule; it adds no information about Monte Carlo error, which the first run put at about 5%.
+
+**The upper tail is as wide as before, relative to the median.** The 95% point is 20 times the median at 64 columns and 19 times at 128. One prior draw in twenty puts the standard deviation of the embedding's contribution above about 28 on the logit scale. This is the tail of the half-Cauchy on the axis scales, which the change of default does not touch. The validation study is to examine it.
+
+**The diagnostic lines read differently now.** They were written to explain the failure of the first run, and each still runs:
+
+- Scales held at their prior scales: 0.14 and 0.10 (0.15 and 0.11 on independent columns). The design's arithmetic, which holds the scales at their prior scales, no longer gives about 1.7. The median reaches the target only once the scales are drawn, which makes it 10 to 16 times larger, as in the first run.
+- The scale that gives a median of 1.5: 0.737 and 0.707 divided by the number of columns, as in the first run. The default of 0.7 is 5% below the first and 1% below the second.
+- A leftover scale of 0.01: medians of 0.92 and 0.89, which is about 60% of the medians under the defaults. The community row and the blends do not depend on the leftover scale, so it remains a weak lever.
+
+The limits listed under the first run apply unchanged: one species with no measured traits, one site matrix per setting, 8 latent traits, and two column counts.
+
+### Fit tests under the present default
+
+Run on mains power with Low Power Mode off.
+
+- `tests/testthat/test-grouped-prior.R`: 124 expectations pass, none fail.
+- `tests/testthat/test-grouped-prior-fits.R`, run with `NOT_CRAN=true`: 133 expectations pass and 1 fails, in 68 seconds.
+
+**The one failure is an expectation that has the old default written into it.** The test "the starting scales leave measured columns at exactly 1" (line 115) builds a prior with two embedding columns and expects their starting axis scales to be 1 divided by the square root of 2, which is 0.71. They now start at 0.7 divided by 2, which is 0.35, as they should. The measured column still starts at exactly 1. The test file was not edited in this task; its expected value needs changing to `0.7 / 2`.
+
+**Unused embedding columns are still shrunk more than used ones, by a thinner margin.** The test "axes with no effect are shrunk more than axes with an effect" passes. With 10 embedding columns its default `axis_scale` fell from 0.316 to 0.07. A fit that repeats the test's simulation and fit (49 seconds) gave these posterior median axis scales:
+
+- used columns: 1.45, 0.064 and 0.40;
+- unused columns: between 0.030 and 0.058;
+- smallest used over largest unused: 1.10, where the first run's three fits gave 1.7 to 2.2.
+
+The two chains put the weakest used column's median at 0.090 and 0.032, so in one chain it is below the largest unused median of 0.058. The fit is seeded through `simulate_grouped_fixture(seed = 4L)`, and a second run of it gave the same numbers to four decimal places, so the test's outcome is fixed on this machine. A margin of 10% is small, and a change to the order in which the sampler uses its random numbers could reverse it.
+
+Three further fits used seeds 5, 6 and 7 in place of 4. The seed also sets the simulated data, so these are three other datasets of the same design, not repeats of one. All three put every used column above every unused one:
+
+- seed 5: used 0.26, 1.48 and 0.54; unused between 0.029 and 0.196; ratio 1.31;
+- seed 6: used 0.91, 0.42 and 1.77; unused between 0.023 and 0.090; ratio 4.66;
+- seed 7: used 0.95, 1.03 and 0.41; unused between 0.019 and 0.095; ratio 4.28.
+
+The seed 5 fit printed three warnings from the C++ sampler, `chol(): given matrix is not symmetric`, and finished. Whether the old default gives the same warnings on that dataset was not checked.
+
+## First run: the old default, `1 / sqrt(K)`
+
+12 November 2026. R 4.6.1, on the `claude/grouped-covariate-prior` branch at `3461213` (this check changes no package code). Task 8 of the part 1 plan for the [grouped covariate prior](../../superpowers/specs/2026-11-11-grouped-covariate-prior-design.md).
+
+**The default axis scale fails the prior check.** The design asks for a prior median between 1 and 2 for the standard deviation across sites of the embedding's contribution to the linear predictor. With the default scales the median is **16.3 with 64 embedding columns** and **24.0 with 128**, both with 8 latent traits. No default was changed. The axis scale that brings the median to 1.5 is about 0.72 divided by the number of embedding columns, where the default is 1 divided by its square root.
+
+### Numbers
 
 ``` text
 Prior check of the grouped covariate prior
@@ -55,7 +140,7 @@ The check itself, against the target of 1 to 2:
 - 64 columns: median 16.3, 5% point 3.5, 95% point 326. Outside the target, about 11 times the middle of it.
 - 128 columns: median 24.0, 5% point 5.3, 95% point 449. Outside the target, about 16 times the middle of it.
 
-## What the numbers mean
+### What the numbers mean
 
 **The design's arithmetic is right for scales held at their prior scales, and wrong once the scales are drawn.** With every axis scale held at `axis_scale` and the leftover scale held at 1, the median is 1.56 and 1.54 on the factor-model columns and 1.71 on independent columns, which is the 1.7 the design expects, and it does not change with the number of columns. With the scales drawn from their half-Cauchy priors it is 10 to 16 times larger.
 
@@ -63,7 +148,7 @@ The check itself, against the target of 1 to 2:
 
 **So the default does not meet the design's aim** that the embedding's prior contribution should not grow with the number of embedding columns.
 
-## The scale that would bring the median to 1.5
+### The scale that would bring the median to 1.5
 
 The contribution is exactly proportional to `axis_scale`, because every coefficient is its axis scale times something that does not depend on it. The value for a median of 1.5 follows by proportion and was confirmed with fresh draws.
 
@@ -75,13 +160,13 @@ The contribution is exactly proportional to `axis_scale`, because every coeffici
 
 **A smaller axis scale fixes the median and not the spread.** At the values above the 5% and 95% points are 0.34 and 33 with 64 columns, and 0.31 and 29 with 128: one prior draw in twenty still puts the embedding's contribution above about 30 on the logit scale. That is the same half-Cauchy tail. The design names the regularised horseshoe, which caps large axis scales, as its fallback if the axis scales run away; whether to rescale `axis_scale`, adopt that fallback, or both is Doug's decision.
 
-## Limits of the check
+### Limits of the check
 
 - It draws one species with no measured traits. A fit with traits has one more row of `G` per trait column, each with the axis scale as its prior standard deviation, so its prior contribution is larger still. That case was not simulated.
 - One site matrix per setting and 2,000 draws. The fresh-draw medians of 1.56 and 1.44 at scales chosen to give 1.5 show a Monte Carlo error of about 5%.
 - Only 8 latent traits were run. By design the base scale of `C` makes the blends' share of the prior variance the same for any number of them, so the result should carry over, but other numbers were not run.
 
-## Fit tests added with this check
+### Fit tests added with this check
 
 The tests are at the end of `tests/testthat/test-grouped-prior-fits.R` and all pass (run with `NOT_CRAN=true`; the whole file takes 67 seconds).
 
@@ -91,6 +176,8 @@ The tests are at the end of `tests/testthat/test-grouped-prior-fits.R` and all p
 - unused columns: between 0.006 and 0.083 in all three fits;
 - smallest used over largest unused: 1.9, 2.2 and 1.7.
 
-The test passed in every run made (the two runs of the test file and these three fits), but the margin on the weakest used column is about a factor of 2, and in one fit the two chains put that column's median at 0.08 and 0.19. The test fit is not seeded.
+The test passed in every run made (the two runs of the test file and these three fits), but the margin on the weakest used column is about a factor of 2, and in one fit the two chains put that column's median at 0.08 and 0.19.
+
+Correction, made with the second run: this record first said that the test fit is not seeded. It is seeded indirectly. `simulate_grouped_fixture(seed = 4L)` sets R's seed, and the fit that follows draws its chain seeds from R's random numbers, so the test's own fit is the same every time. The three further fits above differ from one another, so they were not each made straight after that call.
 
 **Grouped fits run on the remaining model types and layouts.** Short fits return finite scales for the occupancy and two-stage model types, with 40 embedding columns on 30 sites, with no latent traits, on two parallel chains, and with a spatial field. To simulate the first two, `simulate_grouped_fixture()` in `tests/testthat/helper-grouped-prior.R` now fills in the detection parameters and replicate counts as `simulate_fixture()` does; its output for the binary model type is unchanged.
