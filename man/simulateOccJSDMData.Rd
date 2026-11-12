@@ -104,6 +104,26 @@ simulateOccJSDMData(list_datasettings, list_params, list_jsdmParams, model)
   field is added to the occupancy linear predictor only when it is
   \code{TRUE}. When it is \code{FALSE}, \code{ds}, \code{sigma_s} and
   \code{l_s} have no effect.}
+  \item{embedding}{Optional; \code{NULL} (no embedding block) by
+  default. A list that adds a block of correlated numeric covariates (for
+  example satellite embeddings) after the \code{ncov_psi} measured
+  columns. The fields are \code{n_emb}, the number of embedding columns;
+  \code{X}, an optional \code{n} by \code{n_emb} matrix used as the
+  columns as given (otherwise they are simulated from a factor model with
+  a decaying spectrum, then scaled); \code{B}, an optional \code{n_emb} by
+  \code{S} matrix of true coefficients used as given; and, when \code{B}
+  is absent, \code{n_blends} (default 3), \code{n_active} (default
+  \code{min(10, n_emb)}), \code{blend_sd} (default 0.5) and
+  \code{sigma_emb} (default 0.1). The coefficients are then low rank: a
+  random set of \code{n_active} columns carries \code{n_blends} shared
+  blends of species responses (standard deviation \code{blend_sd}) plus a
+  leftover with standard deviation \code{sigma_emb}, and all other
+  columns have coefficient zero. The columns are returned in \code{info}
+  as \code{X_emb.1}, \code{X_emb.2} and so on, their names are in
+  \code{data_list$embeddingVars}, and \code{jsdmParams_true$B} gains
+  their rows below the measured ones, with
+  \code{jsdmParams_true$covariate_group} labelling each row
+  \code{"measured"} or \code{"embedding"}.}
 }}
 
 \item{model}{The kind of data to simulate: \code{"binary"},

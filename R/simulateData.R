@@ -104,6 +104,26 @@ logistic <- function(x) 1 / (1 + exp(-x))
 #'   field is added to the occupancy linear predictor only when it is
 #'   \code{TRUE}. When it is \code{FALSE}, \code{ds}, \code{sigma_s} and
 #'   \code{l_s} have no effect.}
+#'   \item{embedding}{Optional; \code{NULL} (no embedding block) by
+#'   default. A list that adds a block of correlated numeric covariates (for
+#'   example satellite embeddings) after the \code{ncov_psi} measured
+#'   columns. The fields are \code{n_emb}, the number of embedding columns;
+#'   \code{X}, an optional \code{n} by \code{n_emb} matrix used as the
+#'   columns as given (otherwise they are simulated from a factor model with
+#'   a decaying spectrum, then scaled); \code{B}, an optional \code{n_emb} by
+#'   \code{S} matrix of true coefficients used as given; and, when \code{B}
+#'   is absent, \code{n_blends} (default 3), \code{n_active} (default
+#'   \code{min(10, n_emb)}), \code{blend_sd} (default 0.5) and
+#'   \code{sigma_emb} (default 0.1). The coefficients are then low rank: a
+#'   random set of \code{n_active} columns carries \code{n_blends} shared
+#'   blends of species responses (standard deviation \code{blend_sd}) plus a
+#'   leftover with standard deviation \code{sigma_emb}, and all other
+#'   columns have coefficient zero. The columns are returned in \code{info}
+#'   as \code{X_emb.1}, \code{X_emb.2} and so on, their names are in
+#'   \code{data_list$embeddingVars}, and \code{jsdmParams_true$B} gains
+#'   their rows below the measured ones, with
+#'   \code{jsdmParams_true$covariate_group} labelling each row
+#'   \code{"measured"} or \code{"embedding"}.}
 #' }
 #' @param model The kind of data to simulate: \code{"binary"},
 #'   \code{"continuous"}, \code{"occupancy"} or \code{"two_stage"}. See
@@ -267,7 +287,8 @@ simulateOccJSDMData <- function(list_datasettings,
     n, S, ncov_psi,
     g, gt, d, tau, rnb, ds, n,
     sigma_b, sigma_bs, sigma_ts, sigma_h, sigma_s, l_s,
-    useSpatField = useSpatField, usingSplines = F, model = jSDMsimModel)
+    useSpatField = useSpatField, usingSplines = F, model = jSDMsimModel,
+    embedding = list_jsdmParams$embedding)
 
   # data
   {
@@ -276,6 +297,8 @@ simulateOccJSDMData <- function(list_datasettings,
     Tr <- list_simjSDMData$data$Tr
     Xs <- list_simjSDMData$data$Xs
   }
+
+  X_emb <- list_simjSDMData$data$X_emb
 
   # create data structure (for occupancy or two-stage model)
   {
@@ -402,6 +425,15 @@ simulateOccJSDMData <- function(list_datasettings,
   data <- list(info = data_info,
                OTU = y,
                traits = Tr)
+
+  if(!is.null(X_emb)){
+    site_idx <- switch(model,
+                       binary = , continuous = seq_len(n),
+                       occupancy = idx_z_w,
+                       two_stage = idx_z_k)
+    data$info <- cbind(data$info, as.data.frame(X_emb[site_idx, , drop = FALSE]))
+    data$embeddingVars <- colnames(X_emb)
+  }
 
   true_params <- list(
     "jsdmParams_true" = list_simjSDMData$trueParams

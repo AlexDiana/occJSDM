@@ -620,7 +620,7 @@ createCovMatrix <- function(n, p){
 simulateData <- function(
     n, S, p, g, gt, d, tau, rnb, ds, ns,
     sigma_b, sigma_bs, sigma_ts, sigma_h, sigma_s, l_s,
-    useSpatField, usingSplines, model){
+    useSpatField, usingSplines, model, embedding = NULL){
 
   # simulate data
   {
@@ -741,6 +741,46 @@ simulateData <- function(
 
   }
 
+  # Optional embedding block. Every draw for it comes after all the draws
+  # above, so a call without it keeps its random stream.
+  X_emb <- NULL
+  B_emb <- NULL
+  if(!is.null(embedding)){
+    n_emb <- embedding$n_emb
+    if(!is.null(embedding$X)){
+      X_emb <- embedding$X
+      if(!is.matrix(X_emb) || nrow(X_emb) != n || ncol(X_emb) != n_emb){
+        stop("embedding$X must have one row per site and n_emb columns")
+      }
+    } else {
+      Fx <- min(8L, n_emb)
+      W <- matrix(rnorm(n_emb * Fx), n_emb, Fx) %*% diag(1 / seq_len(Fx), Fx)
+      X_emb <- scale(matrix(rnorm(n * Fx), n, Fx) %*% t(W) +
+                       0.3 * matrix(rnorm(n * n_emb), n, n_emb))[, , drop = FALSE]
+    }
+    colnames(X_emb) <- paste0("X_emb.", seq_len(n_emb))
+
+    if(!is.null(embedding$B)){
+      B_emb <- embedding$B
+      if(!is.matrix(B_emb) || nrow(B_emb) != n_emb || ncol(B_emb) != S){
+        stop("embedding$B must have n_emb rows and one column per species")
+      }
+    } else {
+      n_blends <- if(is.null(embedding$n_blends)) 3L else embedding$n_blends
+      n_active <- if(is.null(embedding$n_active)) min(10L, n_emb) else embedding$n_active
+      blend_sd <- if(is.null(embedding$blend_sd)) 0.5 else embedding$blend_sd
+      sigma_emb <- if(is.null(embedding$sigma_emb)) 0.1 else embedding$sigma_emb
+      active <- rep(0, n_emb)
+      active[sample.int(n_emb, n_active)] <- 1
+      A_emb <- matrix(rnorm(S * n_blends), S, n_blends)
+      C_emb <- matrix(rnorm(n_blends * n_emb, sd = blend_sd), n_blends, n_emb) *
+        rep(active, each = n_blends)
+      leftover <- matrix(rnorm(S * n_emb, sd = sigma_emb), S, n_emb) *
+        rep(active, each = S)
+      B_emb <- t(A_emb %*% C_emb + leftover)
+    }
+  }
+
   # simulate observations
   list_eta <- computePsiCoef(
     X, Ks, list_Xs$Xs_centers, Tr,
@@ -752,6 +792,11 @@ simulateData <- function(
   XB <- list_eta$XB
   SE <- list_eta$SE
   UL <- list_eta$UL
+  if(!is.null(X_emb)){
+    XB_emb <- X_emb %*% B_emb
+    eta <- eta + XB_emb
+    XB <- XB + XB_emb
+  }
 
   # outcomes
   if(model == "continuous"){
@@ -822,6 +867,13 @@ simulateData <- function(
       "tau" = tau,
       "varPart" = varPart
     )
+  }
+
+  if(!is.null(X_emb)){
+    data$X_emb <- X_emb
+    trueParams$B <- rbind(trueParams$B, B_emb)
+    trueParams$covariate_group <- rep(c("measured", "embedding"),
+                                      c(nrow(B), nrow(B_emb)))
   }
 
   list("data" = data,
