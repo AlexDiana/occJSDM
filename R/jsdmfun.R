@@ -752,6 +752,12 @@ simulateData <- function(
       if(!is.matrix(X_emb) || nrow(X_emb) != n || ncol(X_emb) != n_emb){
         stop("embedding$X must have one row per site and n_emb columns")
       }
+      if(any(apply(X_emb, 2, stats::sd) == 0)){
+        stop("embedding$X columns must vary across sites")
+      }
+      # returned as supplied; the truth B is on the standardised scale
+      X_emb_raw <- X_emb
+      X_emb <- scale(X_emb)[, , drop = FALSE]
     } else {
       Fx <- min(8L, n_emb)
       W <- matrix(rnorm(n_emb * Fx), n_emb, Fx) %*% diag(1 / seq_len(Fx), Fx)
@@ -759,6 +765,8 @@ simulateData <- function(
                        0.3 * matrix(rnorm(n * n_emb), n, n_emb))[, , drop = FALSE]
     }
     colnames(X_emb) <- paste0("X_emb.", seq_len(n_emb))
+    X_emb_out <- if(is.null(embedding$X)) X_emb else X_emb_raw
+    colnames(X_emb_out) <- colnames(X_emb)
 
     if(!is.null(embedding$B)){
       B_emb <- embedding$B
@@ -870,7 +878,7 @@ simulateData <- function(
   }
 
   if(!is.null(X_emb)){
-    data$X_emb <- X_emb
+    data$X_emb <- X_emb_out
     trueParams$B <- rbind(trueParams$B, B_emb)
     trueParams$covariate_group <- rep(c("measured", "embedding"),
                                       c(nrow(B), nrow(B_emb)))

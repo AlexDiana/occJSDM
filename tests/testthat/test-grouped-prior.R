@@ -39,3 +39,19 @@ test_that("a supplied embedding matrix and coefficient matrix are used as given"
   expect_error(simulate_grouped_fixture(n = 60L, p_emb = 8L, embedding = list(X = X[1:10, ])),
                "embedding\\$X must have one row per site and n_emb columns")
 })
+
+test_that("a supplied embedding matrix enters the truth standardised and is returned as given", {
+  set.seed(9L)
+  X <- matrix(rnorm(60 * 8), 60, 8); B <- matrix(0, 8, 12); B[1:2, ] <- c(1, -1)
+  a <- simulate_grouped_fixture(n = 60L, p_emb = 8L, S = 12L, embedding = list(X = X, B = B))
+  b <- simulate_grouped_fixture(n = 60L, p_emb = 8L, S = 12L, embedding = list(X = 5 * X + 2, B = B))
+  expect_identical(a$data_list$OTU, b$data_list$OTU)
+  expect_equal(a$true_params$jsdmParams_true$B, b$true_params$jsdmParams_true$B)
+  expect_equal(a$true_params$jsdmParams_true$eta, b$true_params$jsdmParams_true$eta)
+  emb <- paste0("X_emb.", 1:8)
+  expect_false(isTRUE(all.equal(a$data_list$info[, emb], b$data_list$info[, emb])))
+
+  X0 <- X; X0[, 3] <- 1
+  expect_error(simulate_grouped_fixture(n = 60L, p_emb = 8L, S = 12L, embedding = list(X = X0, B = B)),
+               "embedding$X columns must vary across sites", fixed = TRUE)
+})

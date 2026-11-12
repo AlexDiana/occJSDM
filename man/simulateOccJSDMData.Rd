@@ -108,10 +108,14 @@ simulateOccJSDMData(list_datasettings, list_params, list_jsdmParams, model)
   default. A list that adds a block of correlated numeric covariates (for
   example satellite embeddings) after the \code{ncov_psi} measured
   columns. The fields are \code{n_emb}, the number of embedding columns;
-  \code{X}, an optional \code{n} by \code{n_emb} matrix used as the
-  columns as given (otherwise they are simulated from a factor model with
-  a decaying spectrum, then scaled); \code{B}, an optional \code{n_emb} by
-  \code{S} matrix of true coefficients used as given; and, when \code{B}
+  \code{X}, an optional \code{n} by \code{n_emb} matrix of columns
+  (otherwise they are simulated from a factor model with a decaying
+  spectrum, then scaled). A supplied \code{X} is returned in \code{info}
+  as supplied, but enters the linear predictor centred and scaled, and a
+  constant column is an error. \code{B}, an optional \code{n_emb} by
+  \code{S} matrix of true coefficients used as given, is therefore on the
+  scale of the standardised columns, as for the measured covariates;
+  and, when \code{B}
   is absent, \code{n_blends} (default 3), \code{n_active} (default
   \code{min(10, n_emb)}), \code{blend_sd} (default 0.5) and
   \code{sigma_emb} (default 0.1). The coefficients are then low rank: a
