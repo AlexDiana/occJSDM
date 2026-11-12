@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Work only in the worktree `.worktrees/grouped-covariate-prior` on branch `claude/grouped-covariate-prior`. Never switch branches in the main checkout.
-- `b_prior` defaults to `"fixed"`. No default changes anywhere.
+- With no `embeddingVars`, `b_prior` defaults to `"fixed"`; naming `embeddingVars` makes it `"grouped"` (rule in Task 3). No default changes for any call that does not name `embeddingVars`.
 - With `b_prior = "fixed"`, fits are bit-identical to commit `4f2ee6c` for `binary`, `continuous`, `occupancy` and `two_stage`. Task 1's test enforces this and must pass at the end of every task.
 - The feature works for `binary`, `occupancy` and `two_stage` fits, spatial or not, serial or parallel chains.
 - No change to the spatial coefficients (`Bs`, `Gs`, `As`, `Cs`, `sigma_bs`), the factor model, the detection stages or the intercept prior.
