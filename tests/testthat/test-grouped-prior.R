@@ -293,3 +293,29 @@ test_that("sample_A weights covariates by their noise scale", {
   for (s in 1:S) expect_identical(same$A[s, ], as.vector(occJSDM:::sampleBuniv(
     t(C), diag(gt), rep(0, gt), Btilde[, s], .4)))
 })
+
+test_that("the G and C draw does not trip the symmetry check at a small noise scale", {
+  # sampleBuniv() factorises t(X) X / sigma^2 + inv(B). The product is a
+  # general matrix product, so its mirror-image elements can differ by
+  # rounding, and division by a very small sigma^2 used to carry that
+  # difference past the tolerance of Armadillo's symmetry check, which printed
+  # "chol(): given matrix is not symmetric" (seen in grouped fits, where an
+  # embedding column's leftover standard deviation can be very small). The
+  # factorisation reads the upper triangle only, so the draw was never wrong.
+  # Here X is cbind(Tr_b, A) for 30 species with a latent trait that sums
+  # almost to zero. Whether the product rounds asymmetrically depends on the
+  # BLAS: under Accelerate 12 of these 20 seeds printed the warning before the
+  # argument of chol() was made exactly symmetric.
+  printed <- character(0)
+  for (seed in 1:20) {
+    set.seed(seed)
+    X <- cbind(1, matrix(rnorm(30 * 5), 30, 5))
+    X[, 6] <- X[, 6] - mean(X[, 6]) + 1e-4 / 30
+    B <- diag(c(rep(0.03^2, 3), rep(0.03^2 / 3, 3)))
+    y <- rnorm(30, sd = 0.01)
+    printed <- c(printed, utils::capture.output(
+      draw <- occJSDM:::sampleBuniv(X, B, rep(0, 6), y, 0.0094), type = "message"))
+    expect_true(all(is.finite(draw)))
+  }
+  expect_identical(grep("chol", printed, value = TRUE), character(0))
+})

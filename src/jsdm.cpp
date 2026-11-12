@@ -525,7 +525,14 @@ arma::vec sampleBuniv(arma::mat& X, arma::mat& B,
   // arma::mat cov_matrix = arma::inv(tXOmega * X + arma::inv(B));
   // arma::vec result = mvrnormArma(cov_matrix * (arma::trans(X) * k + arma::inv(B) * b), cov_matrix);
 
-  arma::mat L = arma::trans(arma::chol(tX * X * (1 / (sigma*sigma)) + invB));
+  // symmatu() copies the upper triangle of the precision onto the lower one.
+  // tX * X is a general matrix product, so its mirror-image elements can
+  // differ by rounding; divided by a very small sigma^2 that difference
+  // passed the tolerance of Armadillo's symmetry check, which then printed
+  // "chol(): given matrix is not symmetric". chol() factorises from the upper
+  // triangle only, which symmatu() leaves as it was, so L is bit for bit the
+  // same as without it. Nothing else may read the symmetrised matrix.
+  arma::mat L = arma::trans(arma::chol(arma::symmatu(tX * X * (1 / (sigma*sigma)) + invB)));
   arma::vec tmp = arma::solve(arma::trimatl(L), tX * y / (sigma*sigma) + invB * b);
   arma::vec alpha = arma::solve(arma::trimatu(arma::trans(L)),tmp);
 
