@@ -360,10 +360,17 @@ computeDiagnostics <- function(results_output){
     results_output[names(results_output) != "jsdm_output"],
     results_output$jsdm_output)
 
+  # Under the grouped prior the latent trait weights are not identified one
+  # by one; the scales and B are what mix and mean something.
+  skip_params <- c("z_output","w_output","psi_output",
+                   "theta_output","idx_ls_output","varPart_output")
+  if (!is.null(results_output$jsdm_output$lambda_output)) {
+    skip_params <- c(skip_params, "A_output", "C_output")
+  }
+
   for (param_name in names(results_output_all)) {
 
-    if(!(param_name %in% c("z_output","w_output","psi_output",
-                           "theta_output","idx_ls_output","varPart_output"))){
+    if(!(param_name %in% skip_params)){
 
       arr <- results_output_all[[param_name]]
       dims <- dim(arr)

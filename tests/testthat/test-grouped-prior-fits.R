@@ -136,3 +136,63 @@ test_that("the prior standard deviations are checked before they reach the draws
   sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
   expect_error(fit_grouped(sim, priors = list(), embedding = FALSE), "must be 10 finite positive numbers")
 })
+
+grouped_fit <- function() cached_fixture("grouped_binary", function()
+  fit_grouped(simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)))
+
+test_that("the scale and community accessors return one row per quantity", {
+  fit <- grouped_fit()
+  sc <- returnCovariateScales(fit)
+  expect_identical(names(sc), c("scale", "covariate", "mean", "lower", "median", "upper"))
+  expect_identical(sc$scale, c("measured group", "embedding leftover", rep("axis", 8)))
+  expect_identical(sc$covariate[3:10], names(fit$infos$covariate_group)[3:10])
+  expect_true(all(sc$lower <= sc$median & sc$median <= sc$upper))
+  cr <- returnCommunityResponse(fit)
+  expect_identical(cr$covariate, names(fit$infos$covariate_group))
+  expect_identical(cr$group, unname(fit$infos$covariate_group))
+})
+
+test_that("blends are sign-fixed and reproduce the low-rank part", {
+  fit <- grouped_fit(); bl <- returnEmbeddingBlends(fit, n_blends = 2L)
+  expect_identical(dim(bl$weights), c(8L, 2L))
+  expect_identical(nrow(bl$site_scores), nrow(fit$X_psi))
+  expect_true(all(apply(bl$weights, 2, function(v) v[which.max(abs(v))]) > 0))
+  expect_error(returnEmbeddingBlends(fit, n_blends = 99L), "n_blends cannot exceed the number of latent traits")
+})
+
+test_that("the embedding share lies between 0 and 1", {
+  sh <- returnEmbeddingShare(grouped_fit())
+  expect_identical(nrow(sh), 12L)
+  expect_true(all(sh$mean >= 0 & sh$mean <= 1))
+})
+
+test_that("existing downstream functions work on a grouped fit", {
+  fit <- grouped_fit(); sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
+  expect_identical(nrow(returnTraitsCoeff(fit)) > 0, TRUE)
+  thin <- thinOutput(fit, thin = 2)
+  expect_identical(dim(thin$results_output$jsdm_output$lambda_output)[2],
+                   length(seq(1, fit$infos$MCMCparams$niter, by = 2)))
+  expect_no_error(suppressWarnings(utils::capture.output(computeDiagnostics(fit$results_output))))
+  newX <- unique(sim$data_list$info[, grouped_occ_covariates(sim$data_list)])[1:5, ]
+  pred <- predictNewSites(fit, X_psi = newX, useSpatial = FALSE, useBiotic = FALSE, verbose = FALSE)
+  expect_false(anyNA(unlist(pred)))
+})
+
+test_that("the accessors refuse fits they do not apply to", {
+  sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
+  fixed <- fit_grouped(sim, priors = list(), embedding = FALSE)
+  expect_error(returnCovariateScales(fixed), "needs a fit made with the grouped prior")
+  expect_error(returnCommunityResponse(fixed), "needs a fit made with the grouped prior")
+  expect_error(returnEmbeddingBlends(fixed), "needs a fit with embeddingVars and at least one latent trait")
+})
+
+test_that("a grouped fit with no traits behaves like any fit with no traits", {
+  sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
+  sim$data_list$traits <- NULL
+  fit <- fit_grouped(sim)
+  expect_identical(fit$infos$coef_prior$type, "grouped")
+  expect_error(returnTraitsCoeff(fit), "No Traits Present")
+  expect_error(plotTraitsCoefficients(fit, covName = "X_psi.1"), "No Traits Present")
+  cr <- returnCommunityResponse(fit)
+  expect_identical(nrow(cr), 10L)
+})
