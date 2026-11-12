@@ -593,6 +593,9 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
         U <- matrix(0, n, d)
         sigma_b <- 1
         list_scales <- coef_scales_start(coef_prior, ncov_psi)
+        # Grouped prior only: embedding columns of C start at their prior
+        # scale. Under the fixed prior C comes back as it went in.
+        C <- coef_C_start(coef_prior, C, list_scales$lambda)
         sigma_bs <- if (identical(spatial_sd_prior$type,"half_cauchy"))
           spatial_sd_prior$scale else .001
         sigma_h <- 1

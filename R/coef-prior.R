@@ -131,6 +131,24 @@ coef_scales_start <- function(coef_prior, p) {
   list(sigma_emb = sigma_emb, lambda = lambda)
 }
 
+# Starting value of C, the responses of the latent traits. `C` is the chain's
+# usual start, ones on and above the diagonal, and `lambda` the starting
+# covariate scales. Under the grouped prior the embedding columns are put at
+# their prior scale, c_base times the starting covariate scale. The first
+# scale draw treats the starting C as a draw from its prior: left at 1, the
+# term sum(C[, k]^2) / c_base[k]^2 is about gt * gt and throws every axis
+# scale to about gt / sqrt(S + g_b + gt) in the first sweep, whatever
+# axis_scale is, and the chains take thousands of sweeps to come back.
+# Measured columns, and every column under the fixed prior, are returned
+# untouched. No random numbers are drawn.
+coef_C_start <- function(coef_prior, C, lambda) {
+  if (!identical(coef_prior$type, "grouped") || !any(coef_prior$is_emb)) return(C)
+  emb <- which(coef_prior$is_emb)
+  C[, emb] <- C[, emb, drop = FALSE] *
+    rep(coef_prior$c_base[emb] * lambda[emb], each = nrow(C))
+  C
+}
+
 # The prior standard deviations of B must be p finite positive numbers before
 # they reach the joint draw and the range step: a NULL aborts R inside the C++
 # draw, and the R range functions would recycle a wrong length silently.

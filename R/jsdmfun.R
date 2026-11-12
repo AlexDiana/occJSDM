@@ -1495,9 +1495,18 @@ update_jSDMcoef <- function(list_data,
   # update variance of residuals of environmental covariates
   # Grouped prior: the measured scale, the embedding scale and the embedding
   # columns' covariate scales, from the leftovers of the coefficients just
-  # drawn. Only here, after the joint draw: a chain starts with B, G and A at
-  # zero, and a covariate scale's conditional is improper when its column of
-  # leftovers, of G and of C are all zero. Fixed prior: sigma_b as before.
+  # drawn. Only here, after the joint draw. A chain starts with B, G and A at
+  # zero and with C at ones on and above the diagonal, times its prior scale
+  # on embedding columns (coef_C_start()). By this point of the first sweep B
+  # has been drawn given the starting scales, so the leftovers are non-zero
+  # and of the size those scales imply, and the starting C contributes
+  # sum(C[, k]^2) / c_base[k]^2 = (number of ones) * lambda[k]^2: every term
+  # of an axis scale's sum of squares agrees with its starting value. The
+  # draw is safe on that state: G is still zero and adds nothing, the sum of
+  # squares is positive, and the auxiliary variable keeps the inverse-gamma
+  # rate positive even when it is not. Were the scales drawn before the joint
+  # draw, an embedding column would bring nothing but its starting C.
+  # Fixed prior: sigma_b as before.
   if (grouped_b) {
     list_scales <- sample_coef_scales(t(B) - Tr_b %*% G - A %*% C, G, C,
                                       coef_prior, sigma_b, sigma_emb, lambda)

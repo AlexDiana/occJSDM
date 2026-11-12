@@ -121,6 +121,61 @@ test_that("the starting scales leave measured columns at exactly 1", {
                      data.frame(column = character(0))), stats::setNames(character(0), character(0)))
 })
 
+test_that("a chain starts with C at its prior scale, so the first scale draw agrees with the start", {
+  # The first scale draw treats the starting C as a draw from its prior. Were
+  # the embedding columns of C to start at 1, the term sum(C[, k]^2) / c_base^2
+  # would be about gt * gt and would throw every axis scale to about
+  # gt / sqrt(S + g_b + gt) in the first sweep, whatever axis_scale is.
+  sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L, gt = 4L)
+  set.seed(71)
+  # Four kept sweeps and no burn-in: only the first sweep is used, and the
+  # convergence diagnostics cannot be computed from a single draw.
+  fit <- fit_grouped(sim, params = list(n_lattrait = 4L),
+                     MCMCparams = list(nchain = 2L, nburn = 0L, niter = 4L, nthin = 1L))
+  jo <- fit$results_output$jsdm_output; cp <- fit$infos$coef_prior
+  S <- dim(jo$A_output)[1]; gt <- dim(jo$A_output)[2]; g_b <- dim(jo$G_output)[1]
+  expect_identical(c(S, gt, g_b), c(12L, 4L, 3L))
+  thrown <- gt / sqrt(S + g_b + gt)             # 0.918: where a start at ones puts them
+  expect_equal(cp$axis_scale, 0.7 / 8)          # 0.0875: where they start
+  # The bound is the geometric mean of the two, 0.283: 3.2 times the start and
+  # 3.2 times below the thrown value. With C started at its prior scale the
+  # sixteen first-sweep values are 0.050 to 0.107; with C started at ones they
+  # were 0.80 to 1.11. A first-sweep axis scale is sqrt(rate / Gamma(10, 1)),
+  # and the rate here is about 8 times the squared starting value. To pass the
+  # bound the Gamma variate would have to fall below 0.77, which has
+  # probability 1e-8, or 5e-6 were the rate twice as large. The fit is also
+  # seeded, so on one machine the outcome is fixed.
+  first <- jo$lambda_output[, 1, ]
+  expect_identical(dim(first), c(8L, 2L))
+  expect_lt(max(first), sqrt(cp$axis_scale * thrown))
+  # Nor thrown the other way, by the same factor of 3.2 below the start (the
+  # Gamma variate would have to exceed 85, or 42 at half the rate: below 1e-9).
+  expect_gt(min(first), cp$axis_scale^2 / sqrt(cp$axis_scale * thrown))
+
+  # The starting C itself. The pattern is the chain's usual start, ones on and
+  # above the diagonal; with 4 latent traits design columns 4 and up are all ones.
+  cols <- data.frame(column = c(paste0("m", 1:4), paste0("e", 1:3)),
+                     variable = c(paste0("m", 1:4), paste0("e", 1:3)), kind = "numeric")
+  cp7 <- occJSDM:::read_coef_prior(list(), list(embeddingVars = paste0("e", 1:3)), 10L, 4L, cols)
+  pattern <- matrix(1, 4L, 7L); pattern[lower.tri(pattern)] <- 0
+  lambda <- occJSDM:::coef_scales_start(cp7, 7L)$lambda
+  C <- occJSDM:::coef_C_start(cp7, pattern, lambda)
+  expect_identical(C[, 1:4], pattern[, 1:4])                    # measured columns: untouched
+  expect_true(all(C[, 4] == 1))
+  expect_equal(C[, 5:7], matrix((1 / sqrt(4)) * (0.7 / 3), 4L, 3L))
+  expect_identical(C[, 5:7], matrix(cp7$c_base[5:7] * cp7$axis_scale, 4L, 3L, byrow = TRUE))
+  # An embedding column that is partly below the diagonal keeps its zeros.
+  cp_first <- cp7; cp_first$is_emb <- rev(cp7$is_emb); cp_first$c_base <- rev(cp7$c_base)
+  expect_identical(occJSDM:::coef_C_start(cp_first, pattern, rev(lambda))[, 1:3],
+                   pattern[, 1:3] * cp7$c_base[5] * cp7$axis_scale)
+  # The fixed prior, and the grouped prior with no embedding, start as before.
+  expect_identical(occJSDM:::coef_C_start(list(type = "fixed"), pattern, rep(1, 7)), pattern)
+  none <- occJSDM:::read_coef_prior(list(b_prior = "grouped"), list(), 10L, 4L, cols)
+  expect_identical(occJSDM:::coef_C_start(none, pattern, rep(1, 7)), pattern)
+  expect_identical(occJSDM:::coef_C_start(cp7, pattern[0, , drop = FALSE], lambda),
+                   pattern[0, , drop = FALSE])                  # no latent traits
+})
+
 test_that("the prior standard deviations are checked before they reach the draws", {
   msg <- "must be 2 finite positive numbers"
   expect_null(occJSDM:::check_coef_sds(c(1, 0.5), 2L))
@@ -216,14 +271,33 @@ test_that("n_blends must be a single positive whole number", {
                  "n_blends must be a single positive whole number", fixed = TRUE)
 })
 
-test_that("axes with no effect are shrunk more than axes with an effect", {
+test_that("axes with a strong effect keep a much larger scale than axes with no effect", {
   skip_on_cran()
   sim <- simulate_grouped_fixture(n = 150L, S = 30L, p_meas = 2L, p_emb = 10L, gt = 2L, seed = 4L,
     embedding = list(n_blends = 2L, n_active = 3L, blend_sd = 1.2, sigma_emb = 0.1))
   fit <- fit_grouped(sim, MCMCparams = list(nchain = 2, nburn = 1500, niter = 1500, nthin = 1))
-  lam <- apply(fit$results_output$jsdm_output$lambda_output, 1, median)
-  active <- rowSums(abs(sim$true_params$jsdmParams_true$B[3:12, ])) > 0
-  expect_gt(min(lam[active]), max(lam[!active]))
+  lam <- apply(fit$results_output$jsdm_output$lambda_output, 1, median)   # pooled over both chains
+  # Three of the ten columns are active in this dataset. Their true
+  # coefficients have mean absolute values 2.35 (X_emb.1), 0.60 (X_emb.5) and
+  # 0.22 (X_emb.3); the other seven are zero.
+  size <- rowMeans(abs(sim$true_params$jsdmParams_true$B[3:12, ]))
+  names(size) <- names(lam)
+  inactive <- size == 0
+  expect_identical(sum(inactive), 7L)
+  strong <- names(sort(size, decreasing = TRUE))[1:2]
+  expect_identical(sort(strong), c("X_emb.1", "X_emb.5"))
+  # Each strongly active column's median axis scale is at least 3 times the
+  # largest median of an inactive column. Observed on 12 November 2026 (R 4.6.1,
+  # Accelerate): 1.397 and 0.385 against 0.042, ratios 33 and 9.1, and 8.6 or
+  # more within either chain alone. The factor of 3 therefore has a threefold
+  # margin on the weaker of the two.
+  for (column in strong)
+    expect_gt(lam[[column]], 3 * max(lam[inactive]), label = paste("median axis scale of", column))
+  # Nothing is asserted about the weakly active column, X_emb.3. It is not
+  # reliably separated from the inactive columns at this chain length: its
+  # ratio to the largest inactive median was 2.4 here, the two chains differ,
+  # and the axis scales of the inactive columns have not converged (R-hat up
+  # to 1.5). The validation study measures how well weak axes are recovered.
 })
 
 # A grouped fit used the prior and kept updating its scales. Checks the prior
