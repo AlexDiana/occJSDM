@@ -21,7 +21,19 @@ test_that("a grouped binary fit returns the new scales with the right shapes", {
   for (nm in c("lambda_output", "sigmaemb_output", "sigmab_output", "B_output"))
     expect_true(all(is.finite(jo[[nm]])), info = nm)
   expect_true(all(jo$lambda_output > 0) && all(jo$sigmaemb_output > 0))
-  expect_gt(length(unique(as.vector(jo$sigmab_output))), 10L)   # no longer pinned
+  # The scales are redrawn every sweep and the draws are stored. If the grouped
+  # update were skipped, or its results dropped, every scale would sit at its
+  # starting value: 1 for sigma_b, sigma_emb_scale for sigma_emb and axis_scale
+  # for each embedding column's covariate scale.
+  cp <- fit$infos$coef_prior
+  distinct <- function(x) length(unique(as.vector(x)))
+  for (k in seq_len(nrow(jo$lambda_output)))
+    expect_gt(distinct(jo$lambda_output[k, , 1]), 10L, label = rownames(jo$lambda_output)[k])
+  expect_gt(distinct(jo$sigmaemb_output[, 1]), 10L)
+  expect_gt(distinct(jo$sigmab_output[, 1]), 10L)
+  expect_false(all(jo$lambda_output == cp$axis_scale))
+  expect_false(all(jo$sigmaemb_output == cp$sigma_emb_scale))
+  expect_false(all(jo$sigmab_output == 1))
 })
 
 test_that("a grouped fit with no embedding columns learns only the measured scale", {
