@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add an opt-in prior, `listPriors$b_prior = "grouped"`, in which measured covariates and embedding columns get separate learned scales, each embedding column gets its own learned scale, and every covariate gets a community-average response.
+**Goal:** Add an opt-in prior, switched on by naming embedding columns in `listParams$embeddingVars` (or by `listPriors$b_prior = "grouped"` when there is no embedding), in which measured covariates and embedding columns get separate learned scales, each embedding column gets its own learned scale, and every covariate gets a community-average response.
 
 **Architecture:** The scalar `sigma_b` that sets the prior standard deviation of every occupancy coefficient becomes a vector with one entry per covariate, threaded through the joint coefficient draw, both spatial range functions and the two trait-regression updates. Three new conjugate updates (two group scales and the axis scales) replace `sample_sigmab()` when the option is on. With the option off the vector is constant and every existing fit is reproduced bit for bit.
 
@@ -30,7 +30,7 @@ Inputs the spec implies but does not spell out, most likely first. Each has a te
 1. More embedding columns than sites (for example 128 columns on 100 sites). The fit must run and return finite draws. Test in Task 8.
 2. `n_lattrait = 0` with embedding columns. There are no blends, so the `1 / sqrt(gt)` base must not divide by zero and the fit must run. Tests in Tasks 3 and 8.
 3. An embedding column that is constant across sites, or `embeddingVars` naming a factor, a spline variable or a name not in `occCovariates`. Each must stop with a message naming the offending columns, not fail later inside the sampler. Tests in Tasks 3 and 6.
-4. A single species with `b_prior = "grouped"`. The scales cannot be learned; it must stop with a clear message, as `b0_prior = "community"` does. Test in Task 3.
+4. A single species with the grouped prior, whether reached through `embeddingVars` or `b_prior = "grouped"`. The scales cannot be learned; it must stop with a clear message, as `b0_prior = "community"` does. Test in Task 3.
 5. Downstream functions on a grouped fit: `predictNewSites()` with new embedding values, `thinOutput()`, `returnTraitsCoeff()` (whose `G_output` now has one more row) and `computeDiagnostics()`. Each must work without an index error. Tests in Task 7.
 
 ---
@@ -190,6 +190,7 @@ git commit -m "Let the simulator add an embedding block of occupancy covariates"
 - Test: `tests/testthat/test-grouped-prior.R`
 
 **Interfaces:**
+- The switch, decided by Doug on 12 November 2026: naming `embeddingVars` is enough to turn the grouped prior on. The type is resolved as follows. With `b_prior` absent: `"grouped"` if `embeddingVars` is non-empty, otherwise `"fixed"`. With `b_prior = "grouped"`: grouped, with or without `embeddingVars`. With `b_prior = "fixed"` and a non-empty `embeddingVars`: an error. Embedding columns listed in `occCovariates` but not in `embeddingVars` are ordinary measured covariates, which is how the study's *raw* arm is fitted.
 - Produces: `read_coef_prior(priors, params, S, gt, columns)`. `columns` is a data frame with one row per column of the occupancy design matrix and the fields `column` (its name), `variable` (the `occCovariates` entry it came from) and `kind` (`"numeric"`, `"factor"` or `"spline"`). Returns `list(type = "fixed")`, or `list(type = "grouped", is_emb, sigma_b_scale, sigma_emb_scale, axis_scale, c_base)`, where `is_emb` is a logical vector over design columns and `c_base` is a numeric vector over design columns: 1 on measured columns, and on embedding columns `1 / sqrt(gt)`, or 1 when `gt` is 0. `sigma_emb_scale` and `axis_scale` are `NA_real_` when there are no embedding columns.
 - Produces: `coef_prior_sds(coef_prior, sigma_b, sigma_emb, lambda, g_b, p)`, returning `list(b, g, c)`: `b` and `c` are length `p`, `g` is `g_b` by `p`. Fixed: `b = rep(sigma_b, p)`, `g` all 1, `c` all 1. Grouped: `b = ifelse(is_emb, sigma_emb, sigma_b) * lambda`, `g = matrix(lambda, g_b, p, byrow = TRUE)`, `c = c_base * lambda`.
 
@@ -206,7 +207,10 @@ rcp <- function(priors = list(), params = list(), S = 10L, gt = 2L, columns = co
 test_that("read_coef_prior resolves defaults", {
   expect_identical(rcp(), list(type = "fixed"))
   expect_identical(rcp(NULL, NULL), list(type = "fixed"))
-  got <- rcp(list(b_prior = "grouped"), list(embeddingVars = paste0("e", 1:3)))
+  got <- rcp(list(), list(embeddingVars = paste0("e", 1:3)))   # embeddingVars alone switches it on
+  expect_identical(got$type, "grouped")
+  expect_identical(rcp(list(b_prior = "grouped"), list(embeddingVars = paste0("e", 1:3))), got)
+  expect_identical(rcp(list(sigma_b_scale = 2), list(embeddingVars = "e1"))$sigma_b_scale, 2)
   expect_identical(got$is_emb, c(FALSE, FALSE, TRUE, TRUE, TRUE))
   expect_identical(got$sigma_b_scale, 1)
   expect_identical(got$sigma_emb_scale, 1)
@@ -222,15 +226,16 @@ test_that("read_coef_prior rejects settings that do not apply", {
   g <- list(b_prior = "grouped"); e <- list(embeddingVars = "e1")
   for (bad in list("Grouped", NA_character_, c("fixed", "grouped"), 1, TRUE))
     expect_error(rcp(list(b_prior = bad)), "b_prior must be 'fixed' or 'grouped'")
-  expect_error(rcp(list(), e), "embeddingVars requires b_prior = 'grouped'")
-  expect_error(rcp(g, e, S = 1L), "b_prior = 'grouped' needs more than one species")
+  expect_error(rcp(list(b_prior = "fixed"), e), "embeddingVars cannot be used with b_prior = 'fixed'")
+  expect_error(rcp(g, e, S = 1L), "the grouped prior needs more than one species")
+  expect_error(rcp(list(), e, S = 1L), "the grouped prior needs more than one species")
   expect_error(rcp(g, list(embeddingVars = c("e1", "zz"))),
                "embeddingVars must name occupancy covariates: zz")
   expect_error(rcp(g, e, columns = cols(kind = c("numeric", "numeric", "spline", "numeric", "numeric"))),
                "embeddingVars must be numeric covariates without splines: e1")
   expect_error(rcp(g, e, columns = cols(kind = c("numeric", "numeric", "factor", "numeric", "numeric"))),
                "embeddingVars must be numeric covariates without splines: e1")
-  expect_error(rcp(list(sigma_b_scale = 2)), "sigma_b_scale requires b_prior = 'grouped'")
+  expect_error(rcp(list(sigma_b_scale = 2)), "sigma_b_scale requires the grouped prior")
   expect_error(rcp(c(g, axis_scale = 1)), "axis_scale requires embeddingVars")
   expect_error(rcp(c(g, sigma_emb_scale = 1)), "sigma_emb_scale requires embeddingVars")
   for (nm in c("sigma_b_scale", "sigma_emb_scale", "axis_scale")) for (bad in list(0, -1, NA_real_, Inf, c(1, 2), "a"))
@@ -252,7 +257,7 @@ test_that("coef_prior_sds builds the per-covariate prior scales", {
 
 - [ ] **Step 2: Run them.** Expected: FAIL, `read_coef_prior` not found.
 
-- [ ] **Step 3: Implement both functions in `R/coef-prior.R`.** Follow `read_intercept_prior()` in `R/runOccJSDM.R` for style: `get_param()` for defaults, `unname()` on returned numbers, the error messages exactly as in the tests. Check `b_prior` first, then species count, then names, then kinds, then the scale settings.
+- [ ] **Step 3: Implement both functions in `R/coef-prior.R`.** Follow `read_intercept_prior()` in `R/runOccJSDM.R` for style: `get_param()` for defaults, `unname()` on returned numbers, the error messages exactly as in the tests. Resolve the type first, by the rule under *Interfaces*: validate an explicit `b_prior`, then apply the `embeddingVars` rule. Then check species count, then names, then kinds, then the scale settings.
 
 - [ ] **Step 4: Run the tests and Task 1's test.** Expected: PASS.
 
@@ -491,7 +496,8 @@ git commit -m "Add the conditional updates for group and axis scales"
 
 ```r
 # tests/testthat/test-grouped-prior-fits.R
-fit_grouped <- function(sim, priors = list(b_prior = "grouped"), embedding = TRUE,
+# With an embedding, no b_prior is passed: naming embeddingVars must be enough.
+fit_grouped <- function(sim, priors = if (embedding) list() else list(b_prior = "grouped"), embedding = TRUE,
                         params = list(), MCMCparams = FIXTURE_MCMC, spatCovariates = NULL) {
   dat <- sim$data_list
   occ <- grouped_occ_covariates(dat)
@@ -570,7 +576,7 @@ git commit -m "Wire the grouped coefficient prior into the sampler and its outpu
 
 **Interfaces:**
 - Consumes: the fit structure from Task 6.
-- Produces: `returnCovariateScales(fitModel, confidence = 0.95)`, exported. A data frame with columns `scale`, `covariate`, `mean`, `lower`, `median`, `upper`: one row with `scale = "measured group"`, and for fits with embedding columns one row with `scale = "embedding leftover"` and one row per embedding column with `scale = "axis"`. `covariate` is `NA` for the group rows. Stops with `"returnCovariateScales() needs a fit made with b_prior = 'grouped'"` on a fixed fit.
+- Produces: `returnCovariateScales(fitModel, confidence = 0.95)`, exported. A data frame with columns `scale`, `covariate`, `mean`, `lower`, `median`, `upper`: one row with `scale = "measured group"`, and for fits with embedding columns one row with `scale = "embedding leftover"` and one row per embedding column with `scale = "axis"`. `covariate` is `NA` for the group rows. Stops with `"returnCovariateScales() needs a fit made with the grouped prior"` on a fixed fit.
 - Produces: `returnCommunityResponse(fitModel, confidence = 0.95)`, exported. One row per design column with `covariate`, `group`, `mean`, `lower`, `median`, `upper`, from the first row of `G_output`. Same error on a fixed fit.
 - Produces: `returnEmbeddingBlends(fitModel, n_blends = NULL)`, exported. For each draw, form the species by embedding-columns matrix `A %*% C[, embedding columns]`, take its singular value decomposition, keep the first `n_blends` right singular vectors (default: `gt`), and flip each so that its entry of largest absolute value is positive. Returns `list(weights, site_scores, singular_values)`: `weights` is embedding columns by blends, the posterior mean of the flipped vectors; `site_scores` is sites by blends, the embedding columns of `fitModel$X_psi` times `weights`; `singular_values` is a data frame of posterior summaries. The documentation states that blends are defined only up to rotation and must not be interpreted one by one. Stops with `"returnEmbeddingBlends() needs a fit with embeddingVars and at least one latent trait"` otherwise.
 - Produces: `returnEmbeddingShare(fitModel, confidence = 0.95)`, exported. Per species, the share of the variance of the covariates' contribution to the linear predictor that comes from the embedding columns: for each draw, `v_e / (v_e + v_m)` with `v_e` the variance across sites of the embedding columns times their coefficients and `v_m` the same for the measured columns. Computed from `B_output` and `fitModel$X_psi`; nothing new is stored.
@@ -624,8 +630,8 @@ test_that("existing downstream functions work on a grouped fit", {
 test_that("the accessors refuse fits they do not apply to", {
   sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
   fixed <- fit_grouped(sim, priors = list(), embedding = FALSE)
-  expect_error(returnCovariateScales(fixed), "needs a fit made with b_prior = 'grouped'")
-  expect_error(returnCommunityResponse(fixed), "needs a fit made with b_prior = 'grouped'")
+  expect_error(returnCovariateScales(fixed), "needs a fit made with the grouped prior")
+  expect_error(returnCommunityResponse(fixed), "needs a fit made with the grouped prior")
   expect_error(returnEmbeddingBlends(fixed), "needs a fit with embeddingVars and at least one latent trait")
 })
 ```
@@ -717,28 +723,46 @@ git commit -m "Check the grouped prior's defaults and its fits across model type
 ### Task 9: Documentation and the full suite
 
 **Files:**
-- Modify: `R/runOccJSDM.R` (roxygen `@details` and `@return`), `man/`
+- Modify: `R/coef-prior.R` (a roxygen block for the new help page), `R/runOccJSDM.R` (two pointer sentences only), `R/output.R` (a `@seealso` on each accessor), `man/`, `_pkgdown.yml`
 - Modify: `dev/superpowers/specs/2026-11-11-grouped-covariate-prior-design.md` (status line only)
 
 **Interfaces:**
 - Consumes: everything above.
+- Produces: the help page `grouped-prior`, with the aliases `groupedPrior`, `embeddingVars` and `b_prior`, so that `?groupedPrior` and `?embeddingVars` both open it. Doug decided on 12 November 2026 that the feature has its own help page, so that `?runOccJSDM` stays as standard users know it.
 
-- [ ] **Step 1: Document `runOccJSDM()`.** In `@details`, beside the `b0_prior` text, describe `b_prior`, `embeddingVars` and the three scale settings with their defaults, say that the option is experimental and has not yet been through its validation study, and point to the four accessors. Under `embeddingVars`, state in two or three sentences that the coefficient of a management covariate fitted alongside the embedding is a direct effect (the effect not passing through habitat the embedding describes), not the total effect, and that the total effect comes from a second fit without the embedding and without other covariates that management can change; the wording follows the spec's section *What the management coefficient estimates*. In `@return`, add `lambda_output`, `sigmaemb_output`, `infos$coef_prior` and `infos$covariate_group`, and note that `G_output` has a leading community-average row under `"grouped"`.
+- [ ] **Step 1: Write the help page.** Add a roxygen block ending in `NULL` to `R/coef-prior.R`, with `@name grouped-prior` and the three aliases, following the block for `variance-partitioning-deprecated` at `R/output.R` line 2198 but without its `@keywords internal`, which would hide the page from the index. Title: "Grouped prior for occupancy coefficients (experimental)". Sections, in this order:
+  - *What it is for:* embedding columns as occupancy covariates beside measured ones.
+  - *How to switch it on:* naming `listParams$embeddingVars` is enough; `listPriors$b_prior = "grouped"` is needed only without an embedding. Include one example call with measured covariates and an embedding.
+  - *What else changes:* the prior on the measured covariates becomes the learned measured-group scale, and every covariate gets a community-average response.
+  - *Settings:* `sigma_b_scale`, `sigma_emb_scale` and `axis_scale`, with their defaults, and `n_lattrait` as the number of blends.
+  - *What the fit holds:* `lambda_output`, `sigmaemb_output`, `infos$coef_prior`, `infos$covariate_group`, and the leading community-average row of `G_output`; then the four accessors.
+  - *Reading a management covariate:* two or three sentences saying that its coefficient, fitted alongside the embedding, is a direct effect (the effect not passing through habitat the embedding describes), not the total effect, and that the total effect comes from a second fit without the embedding and without other covariates that management can change. The wording follows the spec's section *What the management coefficient estimates*.
+  - *Status:* experimental, and not yet through its validation study.
 
-- [ ] **Step 2: Regenerate and run everything.**
+- [ ] **Step 2: Leave `?runOccJSDM` almost untouched.** Add one sentence to `@details`, beside the `b0_prior` text: embeddings as occupancy covariates use an experimental prior that is off unless `embeddingVars` or `b_prior` is set, documented in the `grouped-prior` page. Add one sentence to `@return`: fits made with that prior hold further elements, listed on the same page. Describe none of the settings or outputs here. Add `@seealso` pointing to the page on each of the four accessors.
+
+- [ ] **Step 3: List the new topics on the site.** In `_pkgdown.yml`, add a reference section titled "Grouped prior for embeddings (experimental)" after *Covariate effects*, containing `grouped-prior`, `returnCovariateScales`, `returnCommunityResponse`, `returnEmbeddingBlends` and `returnEmbeddingShare`. The site build (`.github/workflows/pkgdown.yaml`) fails on an exported topic that is missing from the index.
+
+- [ ] **Step 4: Regenerate and run everything.**
 
 Run: `Rscript -e 'devtools::document()'` then `Rscript -e 'devtools::test()' 2>&1 | tail -25`
 Expected: 0 failures. Record the counts of passes, skips and warnings.
 
-- [ ] **Step 3: Check the fixed prior once more, unskipped.** Run Task 1's test file alone and confirm 4 passes and 0 skips.
+Run: `test -f man/grouped-prior.Rd && grep -c 'grouped-prior' man/runOccJSDM.Rd`
+Expected: the file exists and the count is 2.
 
-- [ ] **Step 4: Update the spec's status line** to say part 1's package code is implemented and unit-tested as of the date, and that the extract, the validation study and part 2 are not started.
+Run, if `pkgdown` is installed: `Rscript -e 'pkgdown::check_pkgdown()'`
+Expected: no problems found. If it is not installed, say so in the report; do not install it.
 
-- [ ] **Step 5: Commit.**
+- [ ] **Step 5: Check the fixed prior once more, unskipped.** Run Task 1's test file alone and confirm 4 passes and 0 skips.
+
+- [ ] **Step 6: Update the spec's status line** to say part 1's package code is implemented and unit-tested as of the date, and that the extract, the validation study and part 2 are not started.
+
+- [ ] **Step 7: Commit.**
 
 ```bash
-git add R man dev/superpowers/specs/2026-11-11-grouped-covariate-prior-design.md
-git commit -m "Document the grouped coefficient prior"
+git add R man _pkgdown.yml dev/superpowers/specs/2026-11-11-grouped-covariate-prior-design.md
+git commit -m "Document the grouped coefficient prior on its own help page"
 ```
 
 ---

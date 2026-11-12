@@ -128,11 +128,14 @@ Taxa within a rank do not overlap, so each rank is updated as a block of indepen
 
 ## Interface
 
-- `listPriors$b_prior`: `"fixed"` (today's prior, the default) or `"grouped"`.
-- `listParams$embeddingVars`: character vector of names from `occCovariates`. Requires `b_prior = "grouped"`. Each must be numeric and absent from `splineVars`.
-- `data$taxonomy`: data frame with species as row names and ranks as columns, broadest first. Requires `b_prior = "grouped"`. Missing values are allowed only from some rank downwards. Species absent from the table are an error.
+- There is one fitting function. Doug asked on 12 November 2026 whether the feature should have a second function, so that it cannot complicate standard use. It stays in `runOccJSDM()`, with no new argument: a second function would run the same sampler, would have to be tested against every accessor, and would become redundant if the prior is later made a default. Standard use is protected by the default, by the reproduction tests, and by the new outputs existing only under the grouped prior.
+- `listParams$embeddingVars`: character vector of names from `occCovariates`. Each must be numeric and absent from `splineVars`. Naming it is enough to turn the grouped prior on (Doug's decision, 12 November 2026). This also changes the prior on the measured covariates, to the learned measured-group scale, and adds the community-average response; the help page says so and the fitted object records which prior was used.
+- `listPriors$b_prior`: `"fixed"` (today's prior) or `"grouped"`. When it is absent it is `"grouped"` if `embeddingVars` is named and `"fixed"` otherwise. Setting it to `"grouped"` is needed only to use the prior without an embedding. `"fixed"` together with `embeddingVars` is an error.
+- Embedding columns listed in `occCovariates` but not in `embeddingVars` are ordinary measured covariates under whichever prior applies. This is how the *raw* arm of the validation is fitted.
+- `data$taxonomy`: data frame with species as row names and ranks as columns, broadest first. Requires `b_prior = "grouped"`; whether supplying a taxonomy should switch the prior on by itself, as `embeddingVars` does, is settled in part 2's plan. Missing values are allowed only from some rank downwards. Species absent from the table are an error.
 - `listPriors$sigma_b_scale`, `sigma_emb_scale`, `axis_scale`, `taxon_scale`: positive numbers, with the defaults above. Supplying one that does not apply is an error, following `read_b0_prior()`.
 - `"grouped"` with no `embeddingVars` and no taxonomy is valid: it gives the learned measured-group scale and the community-average response.
+- The feature has its own help page (Doug's decision, 12 November 2026), opened by `?groupedPrior` or `?embeddingVars`. It holds the settings, the outputs, the accessors and the reading of a management covariate. `?runOccJSDM` gains only two sentences that point to it, and the package site lists the page and the accessors in a section of their own, marked experimental.
 - The resolved settings, the group of every covariate column and the taxon of every indicator column are saved in `infos`.
 
 ## Outputs
@@ -236,11 +239,11 @@ Unit tests cover: bit-identical fits with `b_prior = "fixed"` against a fit save
 
 ## Who decided what
 
-Doug decided: the purpose and the three reasons for doing this in occJSDM; that the embedding sits alongside measured and management covariates; that the management conclusion wanted is an effect beyond what the satellite sees, and (12 November 2026) that he reads this as covariate adjustment for causal analysis and wants the total and direct effects, the extra assumption and the with-and-without comparison written into the design; that BioDivAbove is first and is a pure JSDM; that Gaoligongshan, two-stage, follows; that taxonomy is part of this design; that the study uses downloaded AlphaEarth or Tessera embeddings, and that the download belongs in this design and is not done ahead of it; and (12 November 2026) that OlmoEarth is added as a third source in the extract.
+Doug decided: the purpose and the three reasons for doing this in occJSDM; that the embedding sits alongside measured and management covariates; that the management conclusion wanted is an effect beyond what the satellite sees, and (12 November 2026) that he reads this as covariate adjustment for causal analysis and wants the total and direct effects, the extra assumption and the with-and-without comparison written into the design; that BioDivAbove is first and is a pure JSDM; that Gaoligongshan, two-stage, follows; that taxonomy is part of this design; that the study uses downloaded AlphaEarth or Tessera embeddings, and that the download belongs in this design and is not done ahead of it; and (12 November 2026) that OlmoEarth is added as a third source in the extract; and (12 November 2026) that naming `embeddingVars` is enough to turn the grouped prior on, after asking how to keep the feature from complicating standard use, and that it has its own help page.
 
 Claude's calls, for Doug to check:
 
-- one switch, `b_prior`, in place of several;
+- one switch, `b_prior`, in place of several, and one fitting function in place of two;
 - half-Cauchy priors, with the size of the embedding carried by the axis scales and the blend weights scaled by the number of blends;
 - the axis scale multiplying the whole row, including `G` and `C`;
 - latent traits shared between the two groups;
