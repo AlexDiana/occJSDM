@@ -480,6 +480,10 @@ create_waic_quantities <- function(n_obs){
 #' the default 5,000 burn-in and 5,000 kept iterations. Set
 #' \code{b0_prior = "fixed"} to reproduce fits made before this default.
 #'
+#' Embeddings can be used as occupancy covariates with an experimental prior
+#' that is off unless \code{embeddingVars} or \code{b_prior} is set. It is
+#' documented in the \link[=grouped-prior]{grouped-prior} help page.
+#'
 #' @section Field-contamination uncertainty:
 #' \code{theta0} is the probability that DNA enters a field sample when
 #' the species is absent from the site. Its default is Beta(1,20), set by
@@ -542,6 +546,8 @@ create_waic_quantities <- function(n_obs){
 #'   \item{X_psi}{The (standardised) occupancy covariate design matrix used
 #'   to fit the model.}
 #' }
+#' Fits made with the experimental grouped prior hold further elements,
+#' listed in the \link[=grouped-prior]{grouped-prior} help page.
 #'
 #' @details
 #' Every chain is seeded on its own: \code{runOccJSDM()} draws two seeds per

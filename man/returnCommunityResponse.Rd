@@ -25,3 +25,6 @@ Under the grouped coefficient prior the first row of the trait slopes is
 the response each covariate has in the average species. This returns its
 posterior mean and quantiles for every occupancy design column.
 }
+\seealso{
+\link[=grouped-prior]{grouped-prior} for the prior that these fits use.
+}

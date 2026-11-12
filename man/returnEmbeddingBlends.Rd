@@ -35,3 +35,6 @@ blends describes the same fit. They must not be interpreted one by one.
 Read them together, as a summary of the subspace the species responses
 to the embedding occupy.
 }
+\seealso{
+\link[=grouped-prior]{grouped-prior} for the prior that these fits use.
+}

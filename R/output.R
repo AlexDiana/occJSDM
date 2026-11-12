@@ -233,6 +233,8 @@ quantile_summary <- function(x, confidence){
 #' or `"axis"`. `covariate` names the embedding column of an axis scale and is
 #' `NA` for the group rows.
 #'
+#' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
+#'
 #' @export
 returnCovariateScales <- function(fitModel, confidence = .95){
 
@@ -278,6 +280,8 @@ returnCovariateScales <- function(fitModel, confidence = .95){
 #' `covariate`, `group` (`"measured"` or `"embedding"`), `mean`, `lower`,
 #' `median` and `upper`.
 #'
+#' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
+#'
 #' @export
 returnCommunityResponse <- function(fitModel, confidence = .95){
 
@@ -320,6 +324,8 @@ returnCommunityResponse <- function(fitModel, confidence = .95){
 #' mean of the sign-fixed vectors), `site_scores` (sites by blends, the
 #' embedding columns of the standardised design matrix times `weights`) and
 #' `singular_values` (a data frame of posterior summaries, one row per blend).
+#'
+#' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
 #'
 #' @export
 returnEmbeddingBlends <- function(fitModel, n_blends = NULL){
@@ -399,6 +405,8 @@ returnEmbeddingBlends <- function(fitModel, n_blends = NULL){
 #'
 #' @return A data frame with one row per species and columns `species`,
 #' `mean`, `lower`, `median` and `upper`.
+#'
+#' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
 #'
 #' @export
 returnEmbeddingShare <- function(fitModel, confidence = .95){

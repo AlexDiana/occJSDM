@@ -27,3 +27,6 @@ measured covariates as a group and, when `embeddingVars` was given, a
 leftover scale for the embedding columns as a group and one axis scale per
 embedding column. This returns the posterior mean and quantiles of each.
 }
+\seealso{
+\link[=grouped-prior]{grouped-prior} for the prior that these fits use.
+}

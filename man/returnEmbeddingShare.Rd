@@ -27,3 +27,6 @@ from the stored coefficients and the design matrix, so nothing extra is
 kept in the fit. It is a share of the variance of the covariates'
 contribution to the linear predictor, not of the whole predictor.
 }
+\seealso{
+\link[=grouped-prior]{grouped-prior} for the prior that these fits use.
+}

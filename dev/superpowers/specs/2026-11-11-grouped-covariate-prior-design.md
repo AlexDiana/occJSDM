@@ -1,6 +1,6 @@
 # Grouped covariate prior for occupancy coefficients
 
-Date: 11 November 2026. Status: design written from a conversation with Doug on 11 November 2026, for his review before an implementation plan is made. Nothing has been implemented or run. Amended on 12 November 2026 with the section *What the management coefficient estimates*. This is the `TODO.md` item "Regularised covariate selection" under *Other model extensions*. It is project A of five; projects B (running with thousands of species), C (prediction to planning units), D (a baseline analysis of the first real dataset) and E (occupancy from the beetle counts) are described at the end and are not designed here.
+Date: 11 November 2026. Status: design written from a conversation with Doug on 11 November 2026. As of 12 November 2026 part 1's package code is implemented and unit-tested on branch `claude/grouped-covariate-prior`; the real embedding extract, the validation study and part 2 (taxonomy) are not started. A prior check on 12 November 2026 found the default `axis_scale` too wide, and the decision on a new default is pending. Amended on 12 November 2026 with the section *What the management coefficient estimates*. This is the `TODO.md` item "Regularised covariate selection" under *Other model extensions*. It is project A of five; projects B (running with thousands of species), C (prediction to planning units), D (a baseline analysis of the first real dataset) and E (occupancy from the beetle counts) are described at the end and are not designed here.
 
 ## Purpose
 

@@ -186,3 +186,132 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) 
   }
   list(sigma_b = sigma_b, sigma_emb = sigma_emb, lambda = lambda)
 }
+
+#' Grouped prior for occupancy coefficients (experimental)
+#'
+#' An experimental prior that lets [runOccJSDM()] use an embedding, a block of
+#' tens of numeric columns per site from a satellite foundation model, as
+#' occupancy covariates beside a few measured covariates.
+#'
+#' @section What it is for:
+#' Satellite embeddings describe the habitat at a site in many numeric columns
+#' that have no individual meaning. With the usual prior, which gives every
+#' occupancy coefficient the same Normal prior, many columns would swamp the
+#' few covariates you measured. The grouped prior gives the measured covariates
+#' and the embedding columns scales of their own, learned from the data, so the
+#' embedding can act as a predictor for maps, or as a control that makes sites
+#' comparable in habitat, without drowning the measured covariates.
+#'
+#' @section How to switch it on:
+#' Name the embedding columns in `listParams$embeddingVars`, a character
+#' vector of names taken from `occCovariates`. That alone switches the prior
+#' on. Set `listPriors$b_prior = "grouped"` only if you want the prior with no
+#' embedding. Setting `b_prior = "fixed"` together with `embeddingVars` is an
+#' error. Columns that are in `occCovariates` but not in `embeddingVars` are
+#' treated as ordinary measured covariates.
+#'
+#' Each embedding variable must be numeric, must vary across sites and must
+#' not be in `splineVars` (so `splineVars = TRUE` rejects any
+#' `embeddingVars`). The fit needs more than one species.
+#'
+#' @section What else changes:
+#' The prior on the measured covariates becomes a learned measured-group
+#' scale, with a half-Cauchy prior. Every covariate also gets a
+#' community-average response, the response of the average species.
+#'
+#' A species' coefficient on a covariate is a centre plus a leftover. The
+#' centre is the community average, plus the effects of species traits, plus
+#' the effects of latent traits through blends. A latent trait is an unmeasured
+#' species trait that the model estimates, and a blend is a weighted
+#' combination of the embedding columns that the latent traits respond to. The
+#' leftover is what the centre does not explain. Its standard deviation is the
+#' measured-group scale for a measured covariate, and the embedding leftover
+#' scale times that column's axis scale for an embedding column. Each embedding
+#' column's axis scale also multiplies that column's community-average, trait
+#' and blend terms, so an axis that no species responds to shrinks out of the
+#' model.
+#'
+#' @section Settings:
+#' Set these in `listPriors`. Each is a half-Cauchy scale and must be a finite
+#' positive number.
+#' * `sigma_b_scale`: scale of the measured-group scale. Default 1.
+#' * `sigma_emb_scale`: scale of the embedding leftover scale. Default 1.
+#' * `axis_scale`: scale of each embedding column's axis scale. Default 1 over
+#'   the square root of the number of embedding columns.
+#'
+#' The number of blends is `listParams$n_lattrait`, the number of latent
+#' traits.
+#'
+#' @section What the fit holds:
+#' In `results_output$jsdm_output`, `lambda_output` holds the axis scales and
+#' `sigmaemb_output` the embedding leftover scale; both are present only when
+#' the fit has embedding columns. `sigmab_output` holds the measured-group
+#' scale. When every occupancy covariate is an embedding column there is
+#' nothing for that scale to learn from, so `sigmab_output` is then a draw from
+#' its prior and should be ignored. `G_output` gains a leading row, the
+#' community-average response. `infos$coef_prior` records the prior and its
+#' settings, and `infos$covariate_group` labels each occupancy design column
+#' `"measured"` or `"embedding"`.
+#'
+#' Four functions summarise these:
+#' * [returnCovariateScales()]: posterior summaries of the measured-group,
+#'   embedding leftover and axis scales.
+#' * [returnCommunityResponse()]: the community-average response of every
+#'   occupancy design column.
+#' * [returnEmbeddingBlends()]: the blends, as weights on the embedding
+#'   columns and as scores for each site. Blends are defined only up to
+#'   rotation, so do not interpret them one by one.
+#' * [returnEmbeddingShare()]: for each species, the share of the variation
+#'   (across sites) in the covariates' contribution to its linear predictor
+#'   that comes from the embedding columns.
+#'
+#' @section Reading a management covariate:
+#' A management covariate (for example protected-area status or time since
+#' clearcut) fitted alongside the embedding has a coefficient that is a direct
+#' effect: the effect of management that does not pass through habitat the
+#' satellite can see. It is not the total effect, because the embedding is
+#' measured after the management and partly records its results. For the total
+#' effect, fit again without the embedding and without other covariates that
+#' management can change, and compare the two fits on the probability scale.
+#'
+#' @section Status:
+#' This prior is experimental and has not been through its validation study.
+#' A prior check on 12 November 2026 found that the default `axis_scale` is
+#' too wide: before any data, the embedding's contribution to a species' linear
+#' predictor has a median of about 16 logits at 64 columns, against a design
+#' target of 1 to 2. The default is under review and may change. Until it does,
+#' set `axis_scale` yourself; about `0.7 / K` for K embedding columns gave a
+#' median of about 1.5 in that check.
+#'
+#' @examples
+#' \dontrun{
+#' # Simulated data with 2 measured covariates and an 8-column embedding
+#' set.seed(1)
+#' n <- 60; S <- 12
+#' sim <- simulateOccJSDMData(
+#'   list_datasettings = list(n = n, S = S, g = 2L, M = rep(1L, n), P = 1L,
+#'                       K = rep(1L, n), ncov_psi = 2L, ncov_theta = 1L),
+#'   list_params = list(),
+#'   list_jsdmParams = list(gt = 2L, d = 1L, ds = 0, sigma_b = 0.5, sigma_bs = 0.5,
+#'                     sigma_ts = 0.5, sigma_h = 1, sigma_s = 0.5, l_s = 0.3,
+#'                     tau = rep(1, S), useSpatField = FALSE,
+#'                     embedding = list(n_emb = 8L)),
+#'   model = "binary")
+#' dat <- sim$data_list
+#' occ <- c(setdiff(grep("^X_psi", names(dat$info), value = TRUE),
+#'                  dat$embeddingVars),
+#'          dat$embeddingVars)
+#' fit <- runOccJSDM(dat,
+#'   listParams = list(n_factors = 1L, n_lattrait = 2L,
+#'                     embeddingVars = dat$embeddingVars),
+#'   listPriors = list(axis_scale = 0.7 / 8),
+#'   occCovariates = occ, spatCovariates = NULL,
+#'   MCMCparams = list(nchain = 2, nburn = 500, niter = 500, nthin = 1))
+#' returnCovariateScales(fit)
+#' returnCommunityResponse(fit)
+#' }
+#'
+#' @md
+#' @name grouped-prior
+#' @aliases groupedPrior embeddingVars b_prior
+NULL

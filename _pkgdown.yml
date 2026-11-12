@@ -62,6 +62,14 @@ reference:
   - returnTraitsCoeff
   - plotTraitsCoefficients
 
+- title: Grouped prior for embeddings (experimental)
+  contents:
+  - grouped-prior
+  - returnCovariateScales
+  - returnCommunityResponse
+  - returnEmbeddingBlends
+  - returnEmbeddingShare
+
 - title: JSDM structure
   desc: Factor loadings, ordination, residual species correlation.
   contents:
