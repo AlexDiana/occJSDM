@@ -225,23 +225,56 @@ test_that("axes with no effect are shrunk more than axes with an effect", {
   expect_gt(min(lam[active]), max(lam[!active]))
 })
 
+# A grouped fit used the prior and kept updating its scales. Checks the prior
+# type, the group of every design column (measured first, then embedding, the
+# embedding names matching the rows of lambda_output), and more than 10
+# distinct values in the first chain for every embedding column's covariate
+# scale and for the embedding scale. A fit that ignored the prior has no
+# scales to look at; one that skipped their update holds every scale at its
+# starting value.
+expect_grouped_scales_move <- function(fit, p_meas, p_emb, arm) {
+  jo <- fit$results_output$jsdm_output
+  distinct <- function(x) length(unique(as.vector(x)))
+  expect_identical(fit$infos$coef_prior$type, "grouped", info = arm)
+  group <- fit$infos$covariate_group
+  expect_identical(unname(group), rep(c("measured", "embedding"), c(p_meas, p_emb)), info = arm)
+  expect_identical(names(group)[p_meas + seq_len(p_emb)], dimnames(jo$lambda_output)[[1]], info = arm)
+  expect_gt(min(apply(jo$lambda_output[, , 1, drop = FALSE], 1, distinct)), 10L,
+            label = paste0(arm, ": fewest distinct draws of any covariate scale"))
+  expect_gt(distinct(jo$sigmaemb_output[, 1]), 10L,
+            label = paste0(arm, ": distinct draws of the embedding scale"))
+}
+
 test_that("grouped fits run for every supported model type and layout", {
   skip_on_cran()
   for (model in c("occupancy", "two_stage")) {
     sim <- simulate_grouped_fixture(model = model, p_emb = 6L, S = 8L)
-    jo <- fit_grouped(sim)$results_output$jsdm_output
-    expect_true(all(is.finite(jo$lambda_output)), info = model)
+    # Replicate rows of one site must carry that site's embedding values.
+    info <- sim$data_list$info
+    spread <- vapply(info[sim$data_list$embeddingVars], function(v)
+      max(tapply(v, info$Site, function(x) diff(range(x)))), numeric(1))
+    expect_true(nrow(info) > length(unique(info$Site)) && all(spread == 0), info = model)
+    fit <- fit_grouped(sim)
+    expect_true(all(is.finite(fit$results_output$jsdm_output$lambda_output)), info = model)
+    expect_grouped_scales_move(fit, 2L, 6L, model)
   }
-  wide <- simulate_grouped_fixture(n = 30L, p_emb = 40L, S = 8L)         # more columns than sites
-  expect_true(all(is.finite(fit_grouped(wide)$results_output$jsdm_output$B_output)))
+  wide <- fit_grouped(simulate_grouped_fixture(n = 30L, p_emb = 40L, S = 8L))   # more columns than sites
+  expect_true(all(is.finite(wide$results_output$jsdm_output$B_output)))
+  expect_grouped_scales_move(wide, 2L, 40L, "more columns than sites")
   noblend <- simulate_grouped_fixture(p_emb = 6L, S = 8L, gt = 0L)
   fit0 <- fit_grouped(noblend, params = list(n_lattrait = 0L))
   expect_true(all(is.finite(fit0$results_output$jsdm_output$lambda_output)))
+  expect_grouped_scales_move(fit0, 2L, 6L, "no latent traits")
+  # Values are not compared between the two: fits are identical across worker
+  # counts only under a reference BLAS, which test-parallel-chains.R covers.
   par <- fit_grouped(simulate_grouped_fixture(p_emb = 6L, S = 8L),
                      MCMCparams = c(FIXTURE_MCMC, list(ncores = 2)))
   ser <- fit_grouped(simulate_grouped_fixture(p_emb = 6L, S = 8L))
+  expect_identical(par$infos$execution$workers, 2L)
   expect_identical(dim(par$results_output$jsdm_output$lambda_output),
                    dim(ser$results_output$jsdm_output$lambda_output))
+  expect_grouped_scales_move(par, 2L, 6L, "two workers")
+  expect_grouped_scales_move(ser, 2L, 6L, "serial")
 })
 
 test_that("a grouped fit runs with a spatial field", {
@@ -252,4 +285,5 @@ test_that("a grouped fit runs with a spatial field", {
     listPriors = list(b_prior = "grouped"), occCovariates = fixture_occ_covariates(),
     spatCovariates = fixture_spat_covariates(), MCMCparams = FIXTURE_MCMC)))
   expect_true(all(is.finite(fit$results_output$jsdm_output$lambda_output)))
+  expect_grouped_scales_move(fit, 1L, 1L, "spatial field")
 })
