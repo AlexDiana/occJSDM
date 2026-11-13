@@ -39,6 +39,7 @@ Results under different BLAS libraries agree to rounding error, not bit for bit,
 ### Quickstart lesson
 
 The [Quickstart](vignettes/occJSDM-00-quickstart.md) takes you from the input data through fitting and convergence checks to every main result, as figures and tables. 
+
 The [Simulator guide](vignettes/simulateOccJSDMData.Rmd) shows how to simulate a survey whose truth you know. 
 
 After installing occJSDM with vignettes, open them in R:
