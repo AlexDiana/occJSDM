@@ -81,7 +81,7 @@ test_that("the community mean is drawn from its conjugate conditional", {
 community_intercept_only_args <- function(k, Omega, model) {
   n <- nrow(k); S <- ncol(k)
   list(k = k, X = matrix(0, n, 0), Tr = matrix(0, S, 0), U = matrix(0, n, 0),
-       G = matrix(0, 0, 0), A = matrix(0, S, 0), C = matrix(0, 0, 0), sigma_b = 1,
+       G = matrix(0, 0, 0), A = matrix(0, S, 0), C = matrix(0, 0, 0), sd_b = 1,
        Gs = matrix(0, 0, 0), As = matrix(0, S, 0), Cs = matrix(0, 0, 0),
        sigma_bs = 1, Ks = matrix(0, n, 0), Xs_centers = matrix(0, n, 0),
        Omega = Omega, model = model)
@@ -129,7 +129,7 @@ test_that("mu_b0 moves only the intercept's prior mean", {
   n <- 4L; S <- 2L
   args <- list(k = matrix(0, n, S), X = matrix(0, n, 1), Tr = matrix(c(1, 2), S, 1),
                U = matrix(0, n, 1), G = matrix(0, 1, 1), A = matrix(0, S, 0),
-               C = matrix(0, 0, 1), sigma_b = .4, Gs = matrix(0, 1, 2),
+               C = matrix(0, 0, 1), sd_b = .4, Gs = matrix(0, 1, 2),
                As = matrix(0, S, 0), Cs = matrix(0, 0, 2), sigma_bs = .7,
                Ks = matrix(0, n, 2), Xs_centers = matrix(rep(1:2, each = n), n, 2),
                Omega = matrix(0, n, S), model = "continuous")
@@ -203,7 +203,7 @@ community_range_fixture <- function() {
   list(X = matrix(rnorm(n * p), n, p), U = matrix(rnorm(n * d), n, d),
        M_B = matrix(rnorm(p * S, mean = .4), p, S),
        M_Bs = matrix(rnorm(ps * S, mean = -.3), ps, S),
-       sigma_b = .6, sigma_bs = 1.2,
+       sd_b = .6, sigma_bs = 1.2,
        kappa = matrix(rnorm(n * S), n, S), Omega = matrix(exp(rnorm(n * S, sd = .8)), n, S),
        Xs_centers = matrix(rep(seq_len(ps), each = n), n, ps),
        list_SoRSummaries = list(Ks_all = basis, l_s_grid = grid),
@@ -212,7 +212,7 @@ community_range_fixture <- function() {
 
 community_range_reference <- function(a, s0, mu) {
   n <- nrow(a$X); p <- ncol(a$X); d <- ncol(a$U); ps <- nrow(a$M_Bs); S <- ncol(a$Omega)
-  v <- c(s0^2, rep(a$sigma_b^2, p), rep(1, d), rep(a$sigma_bs^2, ps))
+  v <- c(s0^2, rep(a$sd_b^2, p), rep(1, d), rep(a$sigma_bs^2, ps))
   m <- rbind(rep(mu, S), a$M_B, matrix(0, d, S), a$M_Bs)
   vapply(seq_along(a$list_SoRSummaries$l_s_grid), function(j) {
     H <- matrix(0, n, ps)

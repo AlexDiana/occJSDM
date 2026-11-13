@@ -179,6 +179,11 @@ returnTraitsCoeff <- function(fitModel){
 
   if(g > 0){
     traitsCoeffOutput <- fitModel$results_output$jsdm_output$G_output
+    # Under the grouped prior row 1 is the community-average response, which
+    # returnCommunityResponse() reaches. The trait rows are what is left.
+    if (is_grouped_fit(fitModel)) {
+      traitsCoeffOutput <- traitsCoeffOutput[-1, , , , drop = FALSE]
+    }
     traitsCoeffOutput <- apply(traitsCoeffOutput, c(1,2), c)
 
     niter <- dim(traitsCoeffOutput)[1]
@@ -193,6 +198,275 @@ returnTraitsCoeff <- function(fitModel){
     stop("No Traits Present")
   }
 
+}
+
+# GROUPED COEFFICIENT PRIOR --------
+
+# TRUE when the fit used the grouped coefficient prior. A fit made before the
+# prior existed has no coef_prior and counts as the fixed type.
+is_grouped_fit <- function(fitModel){
+  identical(fitModel$infos$coef_prior$type, "grouped")
+}
+
+quantile_summary <- function(x, confidence){
+  q <- stats::quantile(x, probs = c((1 - confidence) / 2, .5, (1 + confidence) / 2),
+                       names = FALSE, na.rm = TRUE)
+  c(mean = mean(x, na.rm = TRUE), lower = q[1], median = q[2], upper = q[3])
+}
+
+#' returnCovariateScales
+#'
+#' Posterior summaries of the coefficient scales of a grouped fit.
+#'
+#' @details
+#' A fit made with the grouped coefficient prior learns a scale for the
+#' measured covariates as a group and, when `embeddingVars` was given, a
+#' leftover scale for the embedding columns as a group and one axis scale per
+#' embedding column. This returns the posterior mean and quantiles of each.
+#'
+#' @param fitModel Output from the function runOccJSDM, made with the grouped
+#' prior
+#' @param confidence Confidence level of the quantiles
+#'
+#' @return A data frame with columns `scale`, `covariate`, `mean`, `lower`,
+#' `median` and `upper`. `scale` is `"measured group"`, `"embedding leftover"`
+#' or `"axis"`. `covariate` names the embedding column of an axis scale and is
+#' `NA` for the group rows. There is no `"measured group"` row when the fit has
+#' no measured covariate, for example when every occupancy covariate is an
+#' embedding column: nothing informs that scale then, and what the fit stores
+#' for it are draws from its prior.
+#'
+#' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
+#'
+#' @export
+returnCovariateScales <- function(fitModel, confidence = .95){
+
+  if (!is_grouped_fit(fitModel)) {
+    stop("returnCovariateScales() needs a fit made with the grouped prior")
+  }
+  jo <- fitModel$results_output$jsdm_output
+
+  row_of <- function(scale, covariate, x){
+    data.frame(scale = scale, covariate = covariate,
+               as.data.frame(t(quantile_summary(x, confidence))),
+               stringsAsFactors = FALSE, row.names = NULL)
+  }
+
+  # The measured-group scale is learned from the measured columns. With none
+  # (every occupancy covariate an embedding column, or no covariate at all)
+  # sigmab_output holds draws from its prior, which are not reported.
+  rows <- list()
+  if (any(!fitModel$infos$coef_prior$is_emb)) {
+    rows <- list(row_of("measured group", NA_character_, jo$sigmab_output))
+  }
+  if (!is.null(jo$lambda_output)) {
+    rows <- c(rows, list(row_of("embedding leftover", NA_character_, jo$sigmaemb_output)))
+    lam <- jo$lambda_output
+    axes <- lapply(seq_len(dim(lam)[1]), function(k){
+      row_of("axis", dimnames(lam)[[1]][k], lam[k, , ])
+    })
+    rows <- c(rows, axes)
+  }
+  if (length(rows) == 0L) {
+    return(data.frame(scale = character(0), covariate = character(0),
+                      mean = numeric(0), lower = numeric(0),
+                      median = numeric(0), upper = numeric(0),
+                      stringsAsFactors = FALSE))
+  }
+  out <- do.call(rbind, rows)
+  names(out) <- c("scale", "covariate", "mean", "lower", "median", "upper")
+  out
+}
+
+#' returnCommunityResponse
+#'
+#' Posterior summaries of the community-average response to each covariate.
+#'
+#' @details
+#' Under the grouped coefficient prior the first row of the trait slopes is
+#' the response each covariate has in the average species. This returns its
+#' posterior mean and quantiles for every occupancy design column.
+#'
+#' @param fitModel Output from the function runOccJSDM, made with the grouped
+#' prior
+#' @param confidence Confidence level of the quantiles
+#'
+#' @return A data frame with one row per occupancy design column and columns
+#' `covariate`, `group` (`"measured"` or `"embedding"`), `mean`, `lower`,
+#' `median` and `upper`. A fit with no occupancy covariates gives a data frame
+#' with the same columns and no rows.
+#'
+#' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
+#'
+#' @export
+returnCommunityResponse <- function(fitModel, confidence = .95){
+
+  if (!is_grouped_fit(fitModel)) {
+    stop("returnCommunityResponse() needs a fit made with the grouped prior")
+  }
+  G <- fitModel$results_output$jsdm_output$G_output
+  p <- dim(G)[2]
+  # A fit with no occupancy covariates has no responses to report.
+  if (p == 0L) {
+    return(data.frame(covariate = character(0), group = character(0),
+                      mean = numeric(0), lower = numeric(0),
+                      median = numeric(0), upper = numeric(0),
+                      stringsAsFactors = FALSE))
+  }
+  draws <- matrix(G[1, , , , drop = FALSE], nrow = p)
+  summ <- t(apply(draws, 1, quantile_summary, confidence = confidence))
+  groups <- fitModel$infos$covariate_group
+
+  data.frame(covariate = names(groups), group = unname(groups),
+             as.data.frame(summ), stringsAsFactors = FALSE, row.names = NULL)
+}
+
+#' returnEmbeddingBlends
+#'
+#' Leading directions of the embedding part of the species responses.
+#'
+#' @details
+#' For each posterior draw the species by embedding-columns matrix of
+#' coefficients `A %*% C[, embedding columns]` is decomposed by singular value
+#' decomposition. The first `n_blends` right singular vectors are kept, each
+#' flipped so that its entry of largest absolute value is positive, and
+#' averaged over the draws.
+#'
+#' Blends are defined only up to rotation: any rotation of the leading
+#' blends describes the same fit. They must not be interpreted one by one.
+#' Read them together, as a summary of the subspace the species responses
+#' to the embedding occupy.
+#'
+#' @param fitModel Output from the function runOccJSDM, made with
+#' `embeddingVars` and at least one latent trait
+#' @param n_blends Number of blends to keep. Defaults to the smallest of the
+#' number of latent traits, the number of embedding columns and the number of
+#' species, which is also the most that can be kept.
+#'
+#' @return A list with three elements.
+#' * `weights`: embedding columns by blends, the posterior mean of the
+#'   sign-fixed vectors. Because they are means over draws, the columns are
+#'   not orthonormal: they need not have length 1 or be at right angles to
+#'   each other. A column whose length (the square root of its sum of squares)
+#'   is well below 1 marks a blend that is not stable across draws, because
+#'   its direction changes from draw to draw and the vectors partly cancel.
+#' * `site_scores`: sites by blends, the embedding columns of the
+#'   standardised design matrix times `weights`.
+#' * `singular_values`: a data frame of posterior summaries of the singular
+#'   values, one row per blend, with columns `blend`, `mean`, `lower`,
+#'   `median` and `upper`. `lower` and `upper` are the limits of the 95%
+#'   interval; that level is fixed, as this function has no `confidence`
+#'   argument.
+#'
+#' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
+#'
+#' @md
+#' @export
+returnEmbeddingBlends <- function(fitModel, n_blends = NULL){
+
+  jo <- fitModel$results_output$jsdm_output
+  if (!is_grouped_fit(fitModel) || is.null(jo$lambda_output) ||
+      is.null(jo$A_output) || dim(jo$A_output)[2] < 1L) {
+    stop("returnEmbeddingBlends() needs a fit with embeddingVars and at least one latent trait")
+  }
+  A <- jo$A_output
+  C <- jo$C_output
+  gt <- dim(A)[2]
+  emb <- which(fitModel$infos$coef_prior$is_emb)
+  max_blends <- min(gt, length(emb), dim(A)[1])
+  if (is.null(n_blends)) n_blends <- max_blends
+  if (!is.numeric(n_blends) || length(n_blends) != 1L || is.na(n_blends) ||
+      n_blends < 1 || n_blends != round(n_blends)) {
+    stop("n_blends must be a single positive whole number")
+  }
+  if (n_blends > gt) stop("n_blends cannot exceed the number of latent traits")
+  if (n_blends > max_blends) {
+    stop("n_blends cannot exceed the number of embedding columns or species")
+  }
+  n_blends <- as.integer(n_blends)
+
+  niter <- dim(A)[3]
+  nchain <- dim(A)[4]
+  n_draws <- niter * nchain
+
+  W <- matrix(0, length(emb), n_blends)
+  sv <- matrix(NA_real_, n_draws, n_blends)
+  d <- 0L
+  for (ch in seq_len(nchain)) {
+    for (it in seq_len(niter)) {
+      d <- d + 1L
+      M <- A[, , it, ch, drop = FALSE]
+      dim(M) <- dim(A)[1:2]
+      Ce <- matrix(C[, emb, it, ch], nrow = gt)
+      dec <- svd(M %*% Ce, nu = 0L, nv = n_blends)
+      V <- dec$v[, seq_len(n_blends), drop = FALSE]
+      for (k in seq_len(n_blends)) {
+        if (V[which.max(abs(V[, k])), k] < 0) V[, k] <- -V[, k]
+      }
+      W <- W + V
+      sv[d, ] <- dec$d[seq_len(n_blends)]
+    }
+  }
+  W <- W / n_draws
+  blend_names <- paste0("blend", seq_len(n_blends))
+  dimnames(W) <- list(colnames(fitModel$X_psi)[emb], blend_names)
+
+  site_scores <- fitModel$X_psi[, emb, drop = FALSE] %*% W
+  rownames(site_scores) <- fitModel$infos$siteNames
+
+  summ <- t(apply(sv, 2, quantile_summary, confidence = .95))
+  singular_values <- data.frame(blend = blend_names, as.data.frame(summ),
+                                stringsAsFactors = FALSE, row.names = NULL)
+
+  list(weights = W, site_scores = site_scores, singular_values = singular_values)
+}
+
+#' returnEmbeddingShare
+#'
+#' Share of the covariate signal that comes from the embedding columns.
+#'
+#' @details
+#' For each species and posterior draw this is `v_e / (v_e + v_m)`, where
+#' `v_e` is the variance across sites of the embedding columns times their
+#' coefficients and `v_m` the same for the measured columns. It is computed
+#' from the stored coefficients and the design matrix, so nothing extra is
+#' kept in the fit. It is a share of the variance of the covariates'
+#' contribution to the linear predictor, not of the whole predictor.
+#'
+#' @param fitModel Output from the function runOccJSDM, made with the grouped
+#' prior and `embeddingVars`
+#' @param confidence Confidence level of the quantiles
+#'
+#' @return A data frame with one row per species and columns `species`,
+#' `mean`, `lower`, `median` and `upper`.
+#'
+#' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits use.
+#'
+#' @export
+returnEmbeddingShare <- function(fitModel, confidence = .95){
+
+  if (!is_grouped_fit(fitModel) || !any(fitModel$infos$coef_prior$is_emb)) {
+    stop("returnEmbeddingShare() needs a fit with embeddingVars")
+  }
+  B <- fitModel$results_output$jsdm_output$B_output
+  is_emb <- fitModel$infos$coef_prior$is_emb
+  X <- fitModel$X_psi
+  Ce <- stats::cov(X[, is_emb, drop = FALSE])
+  Cm <- if (any(!is_emb)) stats::cov(X[, !is_emb, drop = FALSE]) else NULL
+
+  p <- dim(B)[1]; S <- dim(B)[2]
+  B2 <- matrix(B, nrow = p)
+  quad <- function(Sigma, rows){
+    Bs <- B2[rows, , drop = FALSE]
+    matrix(colSums(Bs * (Sigma %*% Bs)), nrow = S)
+  }
+  v_e <- quad(Ce, is_emb)
+  v_m <- if (is.null(Cm)) 0 else quad(Cm, !is_emb)
+  share <- v_e / (v_e + v_m)
+
+  summ <- t(apply(share, 1, quantile_summary, confidence = confidence))
+  data.frame(species = fitModel$infos$speciesNames, as.data.frame(summ),
+             stringsAsFactors = FALSE, row.names = NULL)
 }
 
 #' plotTraitsCoefficients

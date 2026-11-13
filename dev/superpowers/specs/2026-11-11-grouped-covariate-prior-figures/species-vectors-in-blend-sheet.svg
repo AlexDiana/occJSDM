@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="396" viewBox="0 0 680 396" role="img" font-family="Helvetica, Arial, sans-serif">
+<title>Species vectors lying in a sheet spanned by two blends</title>
+<desc>Left: nine arrows, one per species, fan out from a common origin in the embedding space and lie in a tilted sheet whose two axes are blend 1 and blend 2; one arrow rises slightly out of the sheet by its own leftover. Right: one species vector is shown as 0.9 times blend 1 followed by 1.1 times blend 2.</desc>
+<defs>
+<marker id="arrow-coral" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#D85A30" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<style>.th{font-size:14px;font-weight:bold;fill:#1a1a19}.ts{font-size:12px;fill:#52514e}</style>
+</defs>
+<rect x="0" y="0" width="680" height="396" fill="#ffffff"/>
+<text class="th" x="40" y="44">Each arrow is one species' vector</text>
+<text class="th" x="432" y="44">One species, taken apart</text>
+<line x1="200" y1="250" x2="400" y2="250" stroke="#c3c2b7" stroke-width="1"/>
+<line x1="200" y1="250" x2="200" y2="90" stroke="#c3c2b7" stroke-width="1"/>
+<line x1="200" y1="250" x2="120" y2="330" stroke="#c3c2b7" stroke-width="1"/>
+<text class="ts" x="208" y="98">Embedding space: 64 axes, 3 drawn</text>
+<polygon points="352,196.4 256,332.4 48,303.6 144,167.6" fill="#7F77DD" fill-opacity="0.10" stroke="#7F77DD" stroke-opacity="0.5" stroke-width="0.75"/>
+<line x1="200" y1="250" x2="296" y2="235.3" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="275" y2="204.4" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="178" y2="200.3" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="128" y2="230.7" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="111" y2="275" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="151" y2="299.2" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="222" y2="299.7" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="279" y2="279.6" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="234.5" y2="231.5" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<line x1="330.5" y1="216.8" x2="330.5" y2="186" stroke="#898781" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="200" y1="250" x2="330.5" y2="182.8" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="297.5" y2="263.5" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<line x1="200" y1="250" x2="245" y2="186.3" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<text class="th" x="312" y="268">Blend 1</text>
+<text class="th" x="250" y="176">Blend 2</text>
+<text class="ts" x="340" y="176">Its own leftover</text>
+<text class="ts" x="40" y="362">Almost all arrows lie in the sheet the two blends span</text>
+<line x1="432" y1="300" x2="522" y2="312.6" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<line x1="522" y1="312.6" x2="566" y2="235.6" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<line x1="432" y1="300" x2="564" y2="236.6" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<text class="ts" x="432" y="222">This species' vector</text>
+<text class="ts" x="437" y="334">0.9 × blend 1</text>
+<text class="ts" x="549" y="284">1.1 × blend 2</text>
+<line x1="40" y1="380" x2="68" y2="380" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<text class="ts" x="78" y="384">One species' vector</text>
+<line x1="222" y1="380" x2="250" y2="380" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<text class="ts" x="260" y="384">Blend, shared by all species</text>
+<line x1="462" y1="380" x2="490" y2="380" stroke="#898781" stroke-width="1" stroke-dasharray="3 3"/>
+<text class="ts" x="498" y="384">Leftover</text>
+</svg>

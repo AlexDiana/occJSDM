@@ -313,6 +313,8 @@ create_waic_quantities <- function(n_obs){
 #'   every location as a support point. Short-range spatial patterns may
 #'   require more support points; check that increasing their number does
 #'   not materially change the estimated field or occupancy probabilities.}
+#'   \item{embeddingVars}{An experimental entry, documented in the
+#'   \link[=grouped-prior]{grouped-prior} help page.}
 #' }
 #' @param threshold Threshold used to truncate the reads to binary detections
 #' for occupancy/two-stage models. Reads greater than or equal to the
@@ -480,6 +482,10 @@ create_waic_quantities <- function(n_obs){
 #' the default 5,000 burn-in and 5,000 kept iterations. Set
 #' \code{b0_prior = "fixed"} to reproduce fits made before this default.
 #'
+#' Embeddings can be used as occupancy covariates with an experimental prior
+#' that is off unless \code{embeddingVars} or \code{b_prior} is set. It is
+#' documented in the \link[=grouped-prior]{grouped-prior} help page.
+#'
 #' @section Field-contamination uncertainty:
 #' \code{theta0} is the probability that DNA enters a field sample when
 #' the species is absent from the site. Its default is Beta(1,20), set by
@@ -542,6 +548,8 @@ create_waic_quantities <- function(n_obs){
 #'   \item{X_psi}{The (standardised) occupancy covariate design matrix used
 #'   to fit the model.}
 #' }
+#' Fits made with the experimental grouped prior hold further elements,
+#' listed in the \link[=grouped-prior]{grouped-prior} help page.
 #'
 #' @details
 #' Every chain is seeded on its own: \code{runOccJSDM()} draws two seeds per
@@ -902,6 +910,7 @@ runOccJSDM <- function(data,
 
     # For occupancy covariates (group by Site, includes intercept)
     {
+      check_embedding_varies(data_info, occCovariates, listParams)
       list_X_psi <- process_covariates(data_info, occCovariates, "Site", n,
                                   remove_intercept = TRUE,
                                   spline_vars = splineVars)
@@ -1055,9 +1064,19 @@ runOccJSDM <- function(data,
 
   # precompute jsdm params
   {
+    # The occupancy coefficient prior (R/coef-prior.R). Under the grouped
+    # prior the covariate side regresses B on an intercept as well as the
+    # traits, so its trait matrix Tr_b gains a column of ones; otherwise Tr_b
+    # is Tr. The spatial side always uses Tr.
+    occ_columns <- occ_design_columns(X_psi, list_Xpsi_mat, X0_psi)
+    coef_prior <- read_coef_prior(listPriors, listParams, S, gt, occ_columns)
+    Tr_b <- if (coef_prior$type == "grouped") cbind(1, Tr) else Tr
+    g_b <- ncol(Tr_b)
+
     list_data <- list(
       "X" = X_psi,
-      "Tr" = Tr)
+      "Tr" = Tr,
+      "Tr_b" = Tr_b)
 
     a_sigmab <- 10; b_sigmab <- 1
     a_sigmabs <- 10; b_sigmabs <- 1
@@ -1081,6 +1100,7 @@ runOccJSDM <- function(data,
       "b_sigmabs" = b_sigmabs,
       "spatial_sd_prior" = spatial_sd_prior,
       "intercept_prior" = intercept_prior,
+      "coef_prior" = coef_prior,
       "a_sigmah" = a_sigmah,
       "b_sigmah" = b_sigmah,
       "a_tau" = a_tau,
@@ -1129,7 +1149,7 @@ runOccJSDM <- function(data,
     {
       B0_output <- array(NA, dim = c(S, niter, nchain))
       B_output <- array(NA, dim = c(ncov_psi, S, niter, nchain))
-      G_output <- array(NA, dim = c(g, ncov_psi, niter, nchain))
+      G_output <- array(NA, dim = c(g_b, ncov_psi, niter, nchain))
       A_output <- array(NA, dim = c(S, gt, niter, nchain))
       C_output <- array(NA, dim = c(gt, ncov_psi, niter, nchain))
       Bs_output <- array(NA, dim = c(ps, S, niter, nchain))
@@ -1146,6 +1166,13 @@ runOccJSDM <- function(data,
       varPart_output <- array(NA, dim = c(S, 4, niter, nchain))
       mu_b0_output <- if (identical(intercept_prior$type, "community"))
         array(NA, dim = c(niter, nchain)) else NULL
+      # The embedding scale and the embedding columns' covariate scales, only
+      # when the fit has embedding columns.
+      embedding_b <- coef_prior$type == "grouped" && any(coef_prior$is_emb)
+      sigmaemb_output <- if (embedding_b) array(NA, dim = c(niter, nchain)) else NULL
+      lambda_output <- if (embedding_b)
+        array(NA, dim = c(sum(coef_prior$is_emb), niter, nchain),
+              dimnames = list(occ_columns$column[coef_prior$is_emb], NULL, NULL)) else NULL
     }
 
   }
@@ -1232,6 +1259,8 @@ runOccJSDM <- function(data,
         varPart_output[,,,chain] <- dr$varPart
         tau_output[,,chain] <- dr$tau
         if (!is.null(mu_b0_output)) mu_b0_output[,chain] <- dr$mu_b0
+        if (!is.null(sigmaemb_output)) sigmaemb_output[,chain] <- dr$sigmaemb
+        if (!is.null(lambda_output)) lambda_output[,,chain] <- dr$lambda
       }
 
       latent_sums <- add_latent_sums(latent_sums, res$latent_sums)
@@ -1330,6 +1359,9 @@ runOccJSDM <- function(data,
   )
   # Present only when b0_prior = "community", so fixed-prior fits keep their shape.
   jsdm_results_output$mu_b0_output <- mu_b0_output
+  # Present only when the fit has embedding columns, for the same reason.
+  jsdm_results_output$sigmaemb_output <- sigmaemb_output
+  jsdm_results_output$lambda_output <- lambda_output
 
   results_output <- list(
     "jsdm_output" = jsdm_results_output,
@@ -1383,6 +1415,8 @@ runOccJSDM <- function(data,
   infos$noise_prior <- noise_prior
   infos$spatial_sd_prior <- spatial_sd_prior
   infos$intercept_prior <- intercept_prior
+  infos$coef_prior <- coef_prior
+  infos$covariate_group <- coef_prior_groups(coef_prior, occ_columns)
   # Present only when the community prior is on in an occupancy or two-stage
   # fit, so default fits keep their shape.
   infos$b0_shift <- b0_shift_record(b0_shift, shift_parts)

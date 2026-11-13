@@ -620,7 +620,7 @@ createCovMatrix <- function(n, p){
 simulateData <- function(
     n, S, p, g, gt, d, tau, rnb, ds, ns,
     sigma_b, sigma_bs, sigma_ts, sigma_h, sigma_s, l_s,
-    useSpatField, usingSplines, model){
+    useSpatField, usingSplines, model, embedding = NULL){
 
   # simulate data
   {
@@ -741,6 +741,62 @@ simulateData <- function(
 
   }
 
+  # Optional embedding block. Every draw for it comes after all the draws
+  # above, so a call without it keeps its random stream.
+  X_emb <- NULL
+  B_emb <- NULL
+  if(!is.null(embedding)){
+    n_emb <- embedding$n_emb
+    if(is.null(n_emb) && is.null(embedding$X)){
+      stop("embedding needs n_emb, the number of embedding columns, or X, a matrix of embedding columns")
+    }
+    if(!is.null(embedding$X)){
+      X_emb <- embedding$X
+      # n_emb may be left out with a supplied X: it is then its column count
+      if(is.null(n_emb) && is.matrix(X_emb)) n_emb <- ncol(X_emb)
+      if(!is.matrix(X_emb) || nrow(X_emb) != n || ncol(X_emb) != n_emb){
+        stop("embedding$X must have one row per site and n_emb columns")
+      }
+      if(anyNA(X_emb)){
+        stop("embedding$X must not contain missing values")
+      }
+      if(any(apply(X_emb, 2, stats::sd) == 0)){
+        stop("embedding$X columns must vary across sites")
+      }
+      # returned as supplied; the truth B is on the standardised scale
+      X_emb_raw <- X_emb
+      X_emb <- scale(X_emb)[, , drop = FALSE]
+    } else {
+      Fx <- min(8L, n_emb)
+      W <- matrix(rnorm(n_emb * Fx), n_emb, Fx) %*% diag(1 / seq_len(Fx), Fx)
+      X_emb <- scale(matrix(rnorm(n * Fx), n, Fx) %*% t(W) +
+                       0.3 * matrix(rnorm(n * n_emb), n, n_emb))[, , drop = FALSE]
+    }
+    colnames(X_emb) <- paste0("X_emb.", seq_len(n_emb))
+    X_emb_out <- if(is.null(embedding$X)) X_emb else X_emb_raw
+    colnames(X_emb_out) <- colnames(X_emb)
+
+    if(!is.null(embedding$B)){
+      B_emb <- embedding$B
+      if(!is.matrix(B_emb) || nrow(B_emb) != n_emb || ncol(B_emb) != S){
+        stop("embedding$B must have n_emb rows and one column per species")
+      }
+    } else {
+      n_blends <- if(is.null(embedding$n_blends)) 3L else embedding$n_blends
+      n_active <- if(is.null(embedding$n_active)) min(10L, n_emb) else embedding$n_active
+      blend_sd <- if(is.null(embedding$blend_sd)) 0.5 else embedding$blend_sd
+      sigma_emb <- if(is.null(embedding$sigma_emb)) 0.1 else embedding$sigma_emb
+      active <- rep(0, n_emb)
+      active[sample.int(n_emb, n_active)] <- 1
+      A_emb <- matrix(rnorm(S * n_blends), S, n_blends)
+      C_emb <- matrix(rnorm(n_blends * n_emb, sd = blend_sd), n_blends, n_emb) *
+        rep(active, each = n_blends)
+      leftover <- matrix(rnorm(S * n_emb, sd = sigma_emb), S, n_emb) *
+        rep(active, each = S)
+      B_emb <- t(A_emb %*% C_emb + leftover)
+    }
+  }
+
   # simulate observations
   list_eta <- computePsiCoef(
     X, Ks, list_Xs$Xs_centers, Tr,
@@ -752,6 +808,11 @@ simulateData <- function(
   XB <- list_eta$XB
   SE <- list_eta$SE
   UL <- list_eta$UL
+  if(!is.null(X_emb)){
+    XB_emb <- X_emb %*% B_emb
+    eta <- eta + XB_emb
+    XB <- XB + XB_emb
+  }
 
   # outcomes
   if(model == "continuous"){
@@ -824,6 +885,13 @@ simulateData <- function(
     )
   }
 
+  if(!is.null(X_emb)){
+    data$X_emb <- X_emb_out
+    trueParams$B <- rbind(trueParams$B, B_emb)
+    trueParams$covariate_group <- rep(c("measured", "embedding"),
+                                      c(nrow(B), nrow(B_emb)))
+  }
+
   list("data" = data,
        "trueParams" = trueParams)
 }
@@ -836,11 +904,12 @@ computeBtcoef <- function(G, Tr, A, C, Btilde){
 
 }
 
+# Tr_b is the trait matrix of the covariate side (B); the spatial side uses Tr.
 computePsiCoef <- function(
     X, Ks, Xs_centers, Tr,
     B0, G, A, C, Bt,
     Gs, As, Cs, Bst,
-    U, L){
+    U, L, Tr_b = Tr){
 
   ps <- ncol(Bst)
 
@@ -849,7 +918,7 @@ computePsiCoef <- function(
 
   B0_mat <- matrix(B0, n, S, byrow = T)
 
-  B <- t(computeBtcoef(G, Tr, A, C, Bt))
+  B <- t(computeBtcoef(G, Tr_b, A, C, Bt))
 
   XB_prod <- X %*% B
 
@@ -947,18 +1016,21 @@ sample_tau_half_cauchy <- function(z,eta,tau,scale) {
 # sample the intercepts, fixed effects, spatial fixed effects and the factor loadings
 # The species intercept has a Normal(mu_b0, sigma_b0^2) prior, where mu_b0 is 0
 # unless the community-mean option estimates it; loadings keep unit variance.
+# sd_b is the prior standard deviation of B, one per covariate or a single
+# value recycled to all. Tr_b is the trait matrix of the covariate side (the
+# prior mean of B, and Bt); the spatial side uses Tr.
 sample_BBsL <- function(k, X, Tr, U,
-                        G, A, C, sigma_b,
+                        G, A, C, sd_b,
                         Gs, As, Cs, sigma_bs,
                         Ks, Xs_centers,
-                        Omega, model, sigma_b0 = 1, mu_b0 = 0) {
+                        Omega, model, sigma_b0 = 1, mu_b0 = 0, Tr_b = Tr) {
 
   p <- ncol(X)
   ps <- ncol(Cs)
   d <- ncol(U)
   S <- ncol(Omega)
 
-  M_B <- t(computeBtcoef(G, Tr, A, C, matrix(0, S, p)))
+  M_B <- t(computeBtcoef(G, Tr_b, A, C, matrix(0, S, p)))
   M_Bs <- t(computeBtcoef(Gs, Tr, As, Cs, matrix(0, S, ps)))
 
   B0 <- rep(0, S)
@@ -970,7 +1042,7 @@ sample_BBsL <- function(k, X, Tr, U,
 
     B_current <- diag(1, nrow = 1 + p + d + ps)
     diag(B_current)[1] <- sigma_b0^2
-    diag(B_current)[1 + seq_len(p)] <- sigma_b^2
+    diag(B_current)[1 + seq_len(p)] <- rep_len(sd_b, p)^2
     diag(B_current)[1 + p + d + seq_len(ps)] <- sigma_bs^2
 
     invB_current <- diag(1 / diag(B_current), nrow = 1 + p + d + ps)
@@ -1000,7 +1072,7 @@ sample_BBsL <- function(k, X, Tr, U,
 
   }
 
-  Bt <- t(B) - Tr %*% G - A %*% C
+  Bt <- t(B) - Tr_b %*% G - A %*% C
 
   Bts <- t(Bs) - Tr %*% Gs - As %*% Cs
 
@@ -1013,11 +1085,15 @@ sample_BBsL <- function(k, X, Tr, U,
 }
 
 # sample traits (observed and unobserved) response to covariates
-sample_GC <- function(B, Tr, A, sigma_b){
+# Covariate k's coefficients are regressed on cbind(Tr_b, A) with noise
+# standard deviation sd_b[k]. sd_g (trait rows by covariates) and sd_c (one per
+# covariate) are the prior standard deviations of G and C. All ones, with a
+# constant sd_b, is the original update.
+sample_GC <- function(B, Tr_b, A, sd_b, sd_g, sd_c){
 
   p <- nrow(B)
   S <- ncol(B)
-  g <- ncol(Tr)
+  g <- ncol(Tr_b)
   gt <- ncol(A)
 
   G <- matrix(0, g, p)
@@ -1027,21 +1103,18 @@ sample_GC <- function(B, Tr, A, sigma_b){
 
     tB <- t(B)
 
-    B_prior <- diag(2, nrow = g + gt)
-    b_prior <- rep(0, g + gt)
-
     for (k in 1:p) {
 
       B_current <- tB[,k]
 
       if(g + gt > 0){
 
-        TA <- cbind(Tr, A)
+        TA <- cbind(Tr_b, A)
 
         b_prior <- rep(0, g + gt)
-        B_prior <- diag(1, nrow = g + gt)
+        B_prior <- diag(c(sd_g[,k]^2, rep(sd_c[k]^2, gt)), nrow = g + gt)
 
-        GC <- sampleBuniv(TA, B_prior, b_prior, B_current, sigma_b)
+        GC <- sampleBuniv(TA, B_prior, b_prior, B_current, sd_b[k])
         G[seq_len(g),k] <- GC[seq_len(g)]
         C[seq_len(gt),k] <- GC[g + seq_len(gt)]
 
@@ -1053,7 +1126,7 @@ sample_GC <- function(B, Tr, A, sigma_b){
 
 
 
-  Bt <- t(B) - Tr %*% G - A %*% C
+  Bt <- t(B) - Tr_b %*% G - A %*% C
 
   list("G" = G,
        "C" = C,
@@ -1061,13 +1134,16 @@ sample_GC <- function(B, Tr, A, sigma_b){
 }
 
 # sample unobserved traits
-sample_A <- function(B, C, Tr, G, sigma_b){
+# sd_b is the noise standard deviation of each covariate's coefficients. When
+# they differ, each covariate's row of the regression is divided by its own
+# value, which leaves unit noise.
+sample_A <- function(B, C, Tr_b, G, sd_b){
 
   p <- nrow(B)
   gt <- nrow(C)
   S <- ncol(B)
 
-  Btilde <- B - t(Tr %*% G)
+  Btilde <- B - t(Tr_b %*% G)
 
   A <- matrix(0, S, gt)
 
@@ -1076,15 +1152,35 @@ sample_A <- function(B, C, Tr, G, sigma_b){
     B_current <- diag(1, nrow = gt)
     b_current <- rep(0, gt)
 
-    for (s in 1:S) {
+    # Equal noise scales take the original, unscaled regression. Do not
+    # remove this branch or fold it into the weighted one below: dividing by
+    # sd_b and passing a noise scale of 1 is the same model but not the same
+    # arithmetic, and fits made with the fixed prior (and every spatial-side
+    # call) must stay bit-identical to fits made before the grouped prior.
+    if(all(sd_b == sd_b[1])){
 
-      A[s,] <- sampleBuniv(t(C), B_current, b_current, Btilde[,s], sigma_b)
+      for (s in 1:S) {
+
+        A[s,] <- sampleBuniv(t(C), B_current, b_current, Btilde[,s], sd_b[1])
+
+      }
+
+    } else {
+
+      tC_scaled <- t(C) / sd_b
+
+      for (s in 1:S) {
+
+        A[s,] <- sampleBuniv(tC_scaled, B_current, b_current,
+                             Btilde[,s] / sd_b, 1)
+
+      }
 
     }
 
   }
 
-  Bt <- t(B) - Tr %*% G - A %*% C
+  Bt <- t(B) - Tr_b %*% G - A %*% C
 
   list("A" = A,
        "Bt" = Bt)
@@ -1117,7 +1213,9 @@ weighted_gram <- function(Z, w) {
 # Integrate the jointly Gaussian B0/B/L/Bs block before choosing a range.
 # The prior is range-independent, while the observation design depends on it.
 # Its Gaussian normalizer avoids holding whitened Bs fixed during a range move.
-spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
+# sd_b is the prior standard deviation of B, one per covariate or a single
+# value recycled to all.
+spatial_range_logweights <- function(X, U, M_B, M_Bs, sd_b, sigma_bs,
                                       kappa, Omega, Xs_centers,
                                       list_SoRSummaries, a_l_s, b_l_s,
                                       location = NULL, sigma_b0 = 1, mu_b0 = 0) {
@@ -1128,7 +1226,8 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
   S <- ncol(Omega)
   # B0 must be integrated under the same Normal(mu_b0, sigma_b0^2) prior that
   # sample_BBsL_cpp() then uses to draw it.
-  prior_precision <- c(1/sigma_b0^2, rep(1/sigma_b^2,p), rep(1,d), rep(1/sigma_bs^2,ps))
+  sd_b <- rep_len(sd_b, p)
+  prior_precision <- c(1/sigma_b0^2, 1/sd_b^2, rep(1,d), rep(1/sigma_bs^2,ps))
   prior_means <- rbind(rep(mu_b0,S), M_B, matrix(0,d,S), M_Bs)
   prior_linear <- prior_precision * prior_means
   constant_omega <- vapply(seq_len(S),function(s) all(Omega[,s]==Omega[1,s]),logical(1))
@@ -1139,7 +1238,7 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
     # own covariates, factors and PG precisions. Continuous fits keep their
     # existing constant-precision Gram-matrix shortcut.
     if (anyDuplicated(location) && !all(constant_omega)) {
-      return(spatial_range_logweights_grouped(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+      return(spatial_range_logweights_grouped(X,U,M_B,M_Bs,sd_b,sigma_bs,
         kappa,Omega,Xs_centers,list_SoRSummaries,a_l_s,b_l_s,location,sigma_b0,
         mu_b0))
     }
@@ -1176,7 +1275,7 @@ spatial_range_logweights <- function(X, U, M_B, M_Bs, sigma_b, sigma_bs,
 }
 
 # Exact sufficient crossproducts for observations sharing a spatial row.
-spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sd_b,sigma_bs,
                                            kappa,Omega,Xs_centers,
                                            list_SoRSummaries,a_l_s,b_l_s,
                                            location,sigma_b0=1,mu_b0=0) {
@@ -1189,7 +1288,8 @@ spatial_range_logweights_grouped <- function(X,U,M_B,M_Bs,sigma_b,sigma_bs,
   first <- which(!duplicated(group))
   A <- cbind(1,X,U)
   pa <- ncol(A)
-  precision <- c(1/sigma_b0^2,rep(1/sigma_b^2,p),rep(1,d),rep(1/sigma_bs^2,ps))
+  sd_b <- rep_len(sd_b,p)
+  precision <- c(1/sigma_b0^2,1/sd_b^2,rep(1,d),rep(1/sigma_bs^2,ps))
   prior_mean <- rbind(rep(mu_b0,S),M_B,matrix(0,d,S),M_Bs)
   prior_linear <- precision*prior_mean
   diagonal_precision <- diag(precision,length(precision))
@@ -1253,6 +1353,11 @@ update_jSDMcoef <- function(list_data,
     z <- list_data$z
     X <- list_data$X
     Tr <- list_data$Tr
+    # The trait matrix of the covariate side (B, G, A, C): Tr itself, or Tr
+    # with a leading column of ones under the grouped coefficient prior. The
+    # spatial side always uses Tr.
+    Tr_b <- list_data$Tr_b
+    if (is.null(Tr_b)) stop("list_data$Tr_b is missing")
   }
 
   # read params
@@ -1271,6 +1376,8 @@ update_jSDMcoef <- function(list_data,
     U <- list_params$U
     L <- list_params$L
     sigma_b <- list_params$sigma_b
+    sigma_emb <- list_params$sigma_emb
+    lambda <- list_params$lambda
     sigma_bs <- list_params$sigma_bs
     sigma_h <- list_params$sigma_h
     idx_ls <- list_params$idx_ls
@@ -1300,12 +1407,22 @@ update_jSDMcoef <- function(list_data,
     community_b0 <- identical(list_priors$intercept_prior$type, "community")
     if (!community_b0) mu_b0 <- 0
     if (is.null(mu_b0)) stop("list_params$mu_b0 is missing")
+    # The occupancy coefficient prior (read by runOccJSDM()).
+    coef_prior <- list_priors$coef_prior
+    if (is.null(coef_prior)) stop("list_priors$coef_prior is missing")
+    grouped_b <- identical(coef_prior$type, "grouped")
   }
 
   # read state variables
   {
     ps <- nrow(Bs)
+    p <- ncol(X)
   }
+
+  # Prior standard deviations of B, G and C, one per covariate. Under the fixed
+  # prior they are sigma_b for B and 1 for G and C, as before the option.
+  sds <- coef_prior_sds(coef_prior, sigma_b, sigma_emb, lambda, ncol(Tr_b), p)
+  check_coef_sds(sds$b, p)
 
   # define transformed target variables
   if(model == "continuous"){
@@ -1321,7 +1438,7 @@ update_jSDMcoef <- function(list_data,
     X, Ks, list_Xs$Xs_centers, Tr,
     B0, G, A, C, Bt,
     Gs, As, Cs, Bst,
-    U, L)
+    U, L, Tr_b = Tr_b)
   psiCoef <- list_psiCoef$eta
   XB <- list_psiCoef$XB
   SE <- list_psiCoef$SE
@@ -1348,10 +1465,10 @@ update_jSDMcoef <- function(list_data,
   # draw that entire block at the selected range. No intervening update may
   # condition on the old coefficients after this collapsed step.
   if (ps > 0) {
-    M_B <- t(computeBtcoef(G,Tr,A,C,matrix(0,ncol(z),ncol(X))))
+    M_B <- t(computeBtcoef(G,Tr_b,A,C,matrix(0,ncol(z),ncol(X))))
     M_Bs <- t(computeBtcoef(Gs,Tr,As,Cs,matrix(0,ncol(z),ps)))
     kappa <- if (model == "continuous") k*Omega else k
-    logweights <- spatial_range_logweights(X,U,M_B,M_Bs,sigma_b,sigma_bs,
+    logweights <- spatial_range_logweights(X,U,M_B,M_Bs,sds$b,sigma_bs,
                                             kappa,Omega,list_Xs$Xs_centers,
                                             list_SoRSummaries,a_l_s,b_l_s,
                                             location=list_Xs$Xs_index,
@@ -1363,17 +1480,17 @@ update_jSDMcoef <- function(list_data,
 
   # sample fixed effects, spatial trait loadings and factor loadings
   list_BBsL <- sample_BBsL_cpp(k, X, Tr, U,
-                           G, A, C, sigma_b,
+                           G, A, C, sds$b,
                            Gs, As, Cs, sigma_bs,
                            Ks, list_Xs$Xs_centers,
                            Omega, model,
-                           sigma_b0 = sigma_b0, mu_b0 = mu_b0)
+                           sigma_b0 = sigma_b0, mu_b0 = mu_b0, Tr_b = Tr_b)
   # list_BBsL <- sample_BBsL_parallel(k, X, Tr, U,
-  #                          G, A, C, sigma_b,
+  #                          G, A, C, sds$b,
   #                          Gs, As, Cs, sigma_bs,
   #                          Ks, list_Xs$Xs_centers,
   #                          Omega, model,
-  #                          sigma_b0 = sigma_b0, mu_b0 = mu_b0)
+  #                          sigma_b0 = sigma_b0, mu_b0 = mu_b0, Tr_b = Tr_b)
   B <- list_BBsL$B
   Bt <- list_BBsL$Bt
   Bs <- list_BBsL$Bs
@@ -1389,7 +1506,31 @@ update_jSDMcoef <- function(list_data,
   }
 
   # update variance of residuals of environmental covariates
-  sigma_b <- sample_sigmab(B, Tr, G, A, C, a_sigmab, b_sigmab)
+  # Grouped prior: the measured scale, the embedding scale and the embedding
+  # columns' covariate scales, from the leftovers of the coefficients just
+  # drawn. Only here, after the joint draw. A chain starts with B, G and A at
+  # zero and with C at ones on and above the diagonal, times its prior scale
+  # on embedding columns (coef_C_start()). By this point of the first sweep B
+  # has been drawn given the starting scales, so the leftovers are non-zero
+  # and of the size those scales imply, and the starting C contributes
+  # sum(C[, k]^2) / c_base[k]^2 = (number of ones) * lambda[k]^2: every term
+  # of an axis scale's sum of squares agrees with its starting value. The
+  # draw is safe on that state: G is still zero and adds nothing, the sum of
+  # squares is positive, and the auxiliary variable keeps the inverse-gamma
+  # rate positive even when it is not. Were the scales drawn before the joint
+  # draw, an embedding column would bring nothing but its starting C.
+  # Fixed prior: sigma_b as before.
+  if (grouped_b) {
+    list_scales <- sample_coef_scales(t(B) - Tr_b %*% G - A %*% C, G, C,
+                                      coef_prior, sigma_b, sigma_emb, lambda)
+    sigma_b <- list_scales$sigma_b
+    sigma_emb <- list_scales$sigma_emb
+    lambda <- list_scales$lambda
+  } else {
+    sigma_b <- sample_sigmab(B, Tr_b, G, A, C, a_sigmab, b_sigmab)
+  }
+  sds <- coef_prior_sds(coef_prior, sigma_b, sigma_emb, lambda, ncol(Tr_b), p)
+  check_coef_sds(sds$b, p)
   if(ps > 0){
     if (identical(list_priors$spatial_sd_prior$type,"half_cauchy")) {
       sigma_bs <- sample_spatial_sd_half_cauchy(Bs,Tr,Gs,As,Cs,sigma_bs,
@@ -1400,19 +1541,20 @@ update_jSDMcoef <- function(list_data,
   }
 
   # sample response to traits (observed and unobsered)
-  list_GC <- sample_GC(B, Tr, A, sigma_b)
+  list_GC <- sample_GC(B, Tr_b, A, sds$b, sds$g, sds$c)
   G <- list_GC$G
   C <- list_GC$C
   Bt <- list_GC$Bt
 
   # sample unobserved traits
-  list_A <- sample_A(B, C, Tr, G, sigma_b)
+  list_A <- sample_A(B, C, Tr_b, G, sds$b)
   A <- list_A$A
   Bt <- list_A$Bt
 
   # sample spatial response to traits (observed and unobsered)
   if(ps > 0){
-    list_GCs <- sample_GC(Bs, Tr, As, sigma_bs)
+    list_GCs <- sample_GC(Bs, Tr, As, rep(sigma_bs, ps),
+                          matrix(1, ncol(Tr), ps), rep(1, ps))
     Gs <- list_GCs$G
     Cs <- list_GCs$C
     Bst <- list_GCs$Bt
@@ -1420,7 +1562,7 @@ update_jSDMcoef <- function(list_data,
 
   # sample unobserved spatial traits
   if(ps > 0){
-    list_As <- sample_A(Bs, Cs, Tr, Gs, sigma_bs)
+    list_As <- sample_A(Bs, Cs, Tr, Gs, rep(sigma_bs, ps))
     As <- list_As$A
     Bst <- list_As$Bt
   }
@@ -1430,7 +1572,7 @@ update_jSDMcoef <- function(list_data,
     X, Ks, list_Xs$Xs_centers, Tr,
     B0, G, A, C, Bt,
     Gs, As, Cs, Bst,
-    U, L)
+    U, L, Tr_b = Tr_b)
   XB <- list_psiCoef$XB
   SE <- list_psiCoef$SE
   U <- sample_U_cpp(k, L, XB, SE, Omega, sigma_h, model)
@@ -1444,7 +1586,7 @@ update_jSDMcoef <- function(list_data,
       X, Ks, list_Xs$Xs_centers, Tr,
       B0, G, A, C, Bt,
       Gs, As, Cs, Bst,
-      U, L)
+      U, L, Tr_b = Tr_b)
     eta <- list_psiCoef$eta
     XB <- list_psiCoef$XB
     SE <- list_psiCoef$SE
@@ -1480,6 +1622,8 @@ update_jSDMcoef <- function(list_data,
    "U" = U,
    "L" = L,
    "sigma_b" = sigma_b,
+   "sigma_emb" = sigma_emb,
+   "lambda" = lambda,
    "sigma_bs" = sigma_bs,
    "sigma_h" = sigma_h,
    "idx_ls" = idx_ls,

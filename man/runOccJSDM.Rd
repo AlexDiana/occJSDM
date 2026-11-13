@@ -50,6 +50,8 @@ runOccJSDM(
   every location as a support point. Short-range spatial patterns may
   require more support points; check that increasing their number does
   not materially change the estimated field or occupancy probabilities.}
+  \item{embeddingVars}{An experimental entry, documented in the
+  \link[=grouped-prior]{grouped-prior} help page.}
 }}
 
 \item{threshold}{Threshold used to truncate the reads to binary detections
@@ -222,7 +224,11 @@ is weakly determined, and in occupancy and two-stage fits it can trade off
 against the collection intercepts, so check the convergence of
 \code{mu_b0} and \code{B0}; in the simulation studies \code{mu_b0} needed
 the default 5,000 burn-in and 5,000 kept iterations. Set
-\code{b0_prior = "fixed"} to reproduce fits made before this default.}
+\code{b0_prior = "fixed"} to reproduce fits made before this default.
+
+Embeddings can be used as occupancy covariates with an experimental prior
+that is off unless \code{embeddingVars} or \code{b_prior} is set. It is
+documented in the \link[=grouped-prior]{grouped-prior} help page.}
 }
 \value{
 A list with:
@@ -268,6 +274,8 @@ A list with:
   \item{X_psi}{The (standardised) occupancy covariate design matrix used
   to fit the model.}
 }
+Fits made with the experimental grouped prior hold further elements,
+listed in the \link[=grouped-prior]{grouped-prior} help page.
 }
 \description{
 Fit an occupancy joint species distribution model (occJSDM), optionally

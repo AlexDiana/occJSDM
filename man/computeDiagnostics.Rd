@@ -26,4 +26,10 @@ the console for each block of parameters in a fitted model's
 entirely fixed/constant. Emits a warning for any parameter block whose
 max R-hat exceeds 1.1 or minimum ESS falls below 50. Called automatically
 at the end of \code{\link{runOccJSDM}}.
+
+For a fit made with `embeddingVars` (see
+\link[=grouped-prior]{grouped-prior}) the latent trait blocks (`A_output`
+and `C_output`) are skipped as well, and so is the measured-group scale
+(`sigmab_output`) when every occupancy covariate is an embedding column,
+because nothing informs that scale then.
 }
