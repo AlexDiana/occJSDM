@@ -47,18 +47,17 @@ vignette("simulateOccJSDMData", package = "occJSDM")
 
 ### Teaching lessons
 
-The quickstart shows how to use occJSDM's functions on one example survey. The lessons go further. Lesson 1 explains what the model does, and the others test how well it works: they fit it to simulated surveys whose truth is known, then compare its answers with that truth and with other packages. Each lesson answers the question listed with it below. They live in the repository (not in the installed package) and are read in this order: Lesson 1, then 2 and 3, with the rest as needed.
+The Quickstart shows how to use occJSDM's functions on one example survey. 
+The Lessons go into occJSDM's functions and theory in detail. (Lessons 0 and 1 have been reviewed line by line; Lessons 2 to 7 are first drafts awaiting review.)
 
-Each lesson studies one simulated survey or one small set of them, so treat its results as illustrations, not as evidence that the model is unbiased in general. Lessons 0 and 1 have been reviewed line by line; Lessons 2 to 7 are first drafts awaiting that review.
-
-- [Lesson 0 (optional): create and explore a simulated survey](vignettes/occJSDM-lesson-0.md). Where does the simulated survey that Lessons 2 to 4 analyse come from, and how can you simulate your own?
+- [Lesson 0 (optional): create and explore a simulated survey](vignettes/occJSDM-lesson-0.md). Where does the simulated survey that Lessons 2 to 4 analyse come from, and how can you simulate your own dataset?
 - [Lesson 1: what occupancy models and joint species distribution models do](vignettes/occJSDM-lesson-1.md). If a survey did not detect a species, was it absent or missed? And what does modelling all the species together add? Worked mostly by hand.
 - [Lesson 2: fit the model and compare its answers with truth](vignettes/occJSDM-lesson-2.md). How closely does occJSDM recover occupancy, what does detection error cost, and when does it wrongly believe or dismiss a positive detection?
-- [Lesson 3: understand the model's outputs by comparing them with truth](vignettes/occJSDM-lesson-3.md). How far can each of the outputs that the quickstart draws be trusted?
-- [Lesson 4: predict occupancy at new sites and compare models](vignettes/occJSDM-lesson-4.md). How well does occJSDM predict occupancy at sites it has never seen, and can those predictions, or WAIC, tell two models apart?
+- [Lesson 3: understand the model's outputs by comparing them with truth](vignettes/occJSDM-lesson-3.md). How far can each of occJSDM's outputs be trusted?
+- [Lesson 4: predict occupancy at new sites and compare models](vignettes/occJSDM-lesson-4.md). How well does occJSDM predict occupancy at sites it has never seen, and can WAIC tell two models apart?
 - [Lesson 5: compare four JSDMs with a community whose truth we know](vignettes/occJSDM-lesson-5.md). Does occJSDM's joint species distribution model do as well as gllvm, sjSDM and Hmsc when all four are given the same perfectly observed community?
-- [Lesson 6: repeat the four-JSDM comparison across ten communities, with traits](vignettes/occJSDM-lesson-6.md). Does that comparison hold up across ten communities, and are each package's estimates biased and its intervals trustworthy?
-- [Lesson 7: spatial landscapes and survey design](vignettes/occJSDM-lesson-7.md). With 100 sites, how should they be placed if the spatial field is to be learned at all, and why does the beta recommend leaving it out?
+- [Lesson 6: repeat the four-JSDM comparison across ten communities, with traits](vignettes/occJSDM-lesson-6.md). Does that comparison hold up across ten communities?
+- [Lesson 7: spatial landscapes and survey design](vignettes/occJSDM-lesson-7.md). With 100 sites, how should they be placed if a spatial field is to be learned, and why does the beta recommend currently recommend not using the spatial field function?
 
 ### Working with posterior draws
 
