@@ -36,9 +36,10 @@ Results under different BLAS libraries agree to rounding error, not bit for bit,
 
 **Parallel chains.** To run chains on separate cores, set `ncores` in `MCMCparams`, for example `MCMCparams = list(nchain = 4, ncores = 4)`. `ncores` is the total core budget: four chains with `ncores = 4` run on four single-threaded workers, and `ncores = 8` gives each of the four workers two threads. The default, `ncores = 1`, runs the chains one after another. Every chain is seeded on its own, so under a single-threaded BLAS a seeded fit is identical whatever `ncores` says. For the same reason, and because the spatial Gram matrices are now formed with a symmetric BLAS routine, a seeded fit gives different numbers from version 0.1.1. See `?runOccJSDM`.
 
-## Getting started
+### Quickstart lesson
 
-The [quickstart](vignettes/occJSDM-00-quickstart.md) takes you from the input data through fitting and convergence checks to every main result, as figures and tables. The simulator guide shows how to simulate a survey whose truth you know. After installing with vignettes, open them in R:
+The [Quickstart](vignettes/occJSDM-00-quickstart.md) takes you from the input data through fitting and convergence checks to every main result, as figures and tables. 
+The simulator guide shows how to simulate a survey whose truth you know. After installing occJSDM with vignettes, open them in R:
 
 ``` r
 vignette("occJSDM-00-quickstart", package = "occJSDM")
@@ -47,8 +48,7 @@ vignette("simulateOccJSDMData", package = "occJSDM")
 
 ### Teaching lessons
 
-The Quickstart shows how to use occJSDM's functions on one example survey. 
-The Lessons go into occJSDM's functions and theory in detail. (Lessons 0 and 1 have been reviewed line by line; Lessons 2 to 7 are first drafts awaiting review.)
+The seven Lessons go into occJSDM's functions and theory in detail. (Lessons 0 and 1 have been reviewed line by line; Lessons 2 to 7 are first drafts awaiting review.)
 
 - [Lesson 0 (optional): create and explore a simulated survey](vignettes/occJSDM-lesson-0.md). Where does the simulated survey that Lessons 2 to 4 analyse come from, and how can you simulate your own dataset?
 - [Lesson 1: what occupancy models and joint species distribution models do](vignettes/occJSDM-lesson-1.md). If a survey did not detect a species, was it absent or missed? And what does modelling all the species together add? Worked mostly by hand.
