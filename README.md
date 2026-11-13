@@ -1,8 +1,8 @@
 # occJSDM
 
-An R package for fitting a combined occupancy and joint species distribution model (occJSDM), optionally accounting for environmental and detection covariates, species traits, spatial autocorrelation, and for eDNA-style data, a two-stage observation process (false-negative and false-positive detection errors in the field and in the lab).
+An R package for fitting a combined occupancy and joint species distribution model (**occJSDM**), optionally accounting for environmental and detection covariates, species traits, and for eDNA-style data, a two-stage observation process (false-negative and false-positive detection errors in the field and in the lab).
 
-occJSDM is the follow-on to occPlus, the name this repository had before it was renamed.
+**occJSDM** is the follow-on to **occPlus**.
 
 #### **N.B. This is [beta software](https://github.com/AlexDiana/occJSDM/releases), and we are still in bugfixing mode.** 
 
