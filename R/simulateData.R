@@ -217,7 +217,7 @@ simulateOccJSDMData <- function(list_datasettings,
                                 list_jsdmParams,
                                 model){
 
-  if(!(model %in% c("binary","occupancy","continuous","two_stage"))){
+  if(!(model %in% c("binary","occupancy","continuous","counts","two_stage"))){
     stop("The model used is not supported")
   }
 
@@ -261,6 +261,13 @@ simulateOccJSDMData <- function(list_datasettings,
     jSDMsimModel <- "binary"
   } else if(model == "continuous"){
     jSDMsimModel <- "continuous"
+  } else if(model == "counts"){
+    jSDMsimModel <- "counts"
+  } else if(model == "counts"){
+    jSDMsimModel <- "counts"
+  } else if(model == "counts"){
+    jSDMsimModel <- "counts"
+    jSDMsimModel <- "counts"
   }
 
   list_simjSDMData <- simulateData(
@@ -362,7 +369,7 @@ simulateOccJSDMData <- function(list_datasettings,
 
   }
 
-  if(model %in% c("continuous","binary")){
+  if(model %in% c("continuous","binary","counts")){
     y <- z
   } else if(model == "occupancy"){
     y <- w
@@ -376,7 +383,7 @@ simulateOccJSDMData <- function(list_datasettings,
   rownames(Tr) <- speciesNames
   colnames(Tr) <- paste0("Trait_", seq_len(ncol(Tr)))
 
-  if(model %in% c("binary","continuous")){
+  if(model %in% c("binary","continuous","counts")){
     data_info <- data.frame(
       X_psi = X_psi,
       Xs = Xs

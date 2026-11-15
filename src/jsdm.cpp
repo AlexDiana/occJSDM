@@ -350,8 +350,7 @@ struct PG_Worker : public RcppParallel::Worker {
 // ---------------------------------------------------------
 // 2. The Main Exported Function
 // ---------------------------------------------------------
-// [[Rcpp::export]]
-arma::mat samplePGvariables_parallel(const arma::mat& Xbeta) {
+}
 
   // Allocate the output matrix with the exact same dimensions
   arma::mat Omega_mat(Xbeta.n_rows, Xbeta.n_cols);
