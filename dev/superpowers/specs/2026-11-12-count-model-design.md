@@ -6,7 +6,7 @@ Date: 12 November 2026. Status: a proposal written for Alex's review, at Doug's 
 
 - **The data are counts of individuals (Doug, 12 November 2026).** Sequence read counts will not be fitted with this model. For sequence reads the route is a spike-in, as in Alex's eDNAPlus model, which estimates changes in abundance across sites and not absolute abundance. That is the separate `TODO.md` item *Spike-in-based abundance changes*.
 - **The first use (Doug, 12 November 2026).** Predict beetles across a landscape from measured covariates and geospatial embeddings, and fit spatial fields to see whether source-sink dynamics can be detected. The dataset is the beetle survey of the embedding study: counts of individuals, several hundred species, a few hundred plots, one trap per plot and so no replicate samples. Claude's reading of what this implies is under *What the first use implies*; it is a recommendation, not a decision.
-- **The JSDM sits on abundance: configuration A (Doug, 12 November 2026).** Chosen as the more suitable for the first use, after the comparison under *Where the JSDM structure sits*. The plain count JSDM is built first; it is configuration A with the occupancy layer left out. Configuration B is deferred, not rejected: it stays the natural model for an occupancy analysis made robust to missed detections. This answers question 2 from Doug's side and is open to Alex's review.
+- **The JSDM sits on abundance: configuration A (Doug, 12 November 2026).** Chosen as the more suitable for the first use, after the comparison under *Where the JSDM structure sits*. The plain count JSDM is built first; it is configuration A with the occupancy layer left out. Configuration B is deferred, not rejected: it stays the natural model for an occupancy analysis made robust to missed detections. This answers question 2 from Doug's side and is open to Alex's review. **Reopened 15 November 2026:** Alex proposes a different configuration, one JSDM whose predictor drives both occupancy and abundance (see *Alex's proposal*). Doug has not yet decided between them.
 - **Taxonomy comes from the grouped-prior work (Doug, 12 November 2026).** The count model adds no taxonomic or phylogenetic structure of its own. Borrowing between related species will come from part 2 of the grouped-prior work on the embedding branch, which changes the prior and not the likelihood. See *Interaction with the embedding covariates*.
 
 ## Summary
@@ -71,6 +71,55 @@ The first use (see *Decided*) points to the JSDM on abundance, and possibly to n
 - **Many rare species.** With several hundred species, many seen a handful of times, a separate size and an unpooled intercept per species will be poorly determined. This bears on questions 5 and 8.
 
 Recommendation for this use: stages 1 and 2, then the embedding scale check and the spatial simulation, and the occupancy layer in configuration A only if the zero check asks for it. Configuration B is not needed for this use.
+
+## Alex's proposal: one JSDM with a shared predictor (configuration D)
+
+Alex's review of 15 November 2026 proposes a fourth configuration. He would have the JSDM inform both occupancy and abundance, as in C, but with one set of coefficients and not two. This section records the proposal and Claude's reading of it. It reopens Doug's choice of configuration A, which stays as recorded under *Decided* until Doug decides.
+
+```
+logit(psi[i,s]) = eta[i,s]
+log(mu[i,s])    = tau_0 + tau * eta[i,s]        tau positive
+```
+
+- `eta` is the JSDM predictor, written by Alex as `X_i beta`. `tau_0` sets the level of abundance and `tau` sets how steeply abundance where present rises with the occupancy predictor.
+- The rest of the model is as under *The model*: an occupancy state, negative-binomial counts where occupied, zeros where not.
+
+### The sampler claim holds
+
+Alex states that the Polya-Gamma scheme is preserved. Claude checked it. Given `tau_0` and `tau`, each cell has an occupancy term and, where occupied, a count term, and both are Gaussian in `eta` once their weights are drawn:
+
+```
+occupancy term, every cell:    kappa1 = z - 1/2      omega1 from PG(1, eta)
+count term, cells with z = 1:  kappa2 = (y - r)/2    omega2 from PG(y + r, phi)
+                               phi = tau_0 + tau * eta + o
+
+k     = kappa1 + z * tau * (kappa2 - omega2 * (tau_0 + o))
+Omega = omega1 + z * tau^2 * omega2
+```
+
+- `o` is the offset of *How it is fitted*: log effort minus log size. With replicate samples the count term is summed over a site's samples.
+- The JSDM block receives `k` and `Omega` exactly as it does now, so the range step, the coefficient draw, the trait regressions and the factor scores are unchanged.
+- Given `eta`, the pair `tau_0` and `tau` has a bivariate normal full conditional: a weighted regression of the count term's working response on `eta`, with `tau` truncated to positive values.
+
+### What it gives
+
+- **Both uses from one block.** Occupancy keeps the full JSDM, so every existing occupancy output keeps its meaning, as in B. The counts also feed the same predictor, so the spatial field, the factors and the coefficients all learn from the numbers, which was the reason for choosing A.
+- **No doubling of output.** There is one set of coefficients, loadings and spatial coefficients. This removes the objection to C.
+- **The predictor stays on the logit scale.** `occCovariates` keeps its meaning, so question 14 falls away. The grouped embedding prior keeps its calibration, so stage 3 and question 15 are not needed for this configuration.
+- **Better identified with one sample per site than A's occupancy layer.** A adds a free occupancy regression per species, which competes with the abundance model for the same zeros. D adds two numbers. A zero in good habitat cannot be written off by a separate switch: it has to be an unlikely absence, an unlikely miss, or a reason for the shared predictor, including its spatial field, to be lower there.
+
+### What it costs
+
+- **Occupancy and abundance must move together.** Within a species, every covariate, the spatial field and the factors act on abundance in the same direction as on occupancy and in the same proportion. A species that is widespread but sparse in one habitat and local but dense in another cannot be represented, and neither can a covariate that changes numbers without changing occurrence. A positive relationship between occupancy and abundance is common, so this is a reasonable first model, but it is an assumption and should be checked, for example by comparing held-out predictions with the plain count JSDM.
+- **The scale of the predictor may be weakly determined.** Abundance sees only the product of `tau` and `eta`. Occupancy alone fixes the scale of `eta`, and with one trap per plot the occupancy state is mostly inferred from the counts. Where the count distribution explains the zeros by itself, a larger `eta` with a smaller `tau` fits almost as well. The priors on the coefficients then set the scale. This needs a simulation at one sample per site.
+- **Mixing.** `tau` multiplies the whole predictor, so it will be strongly correlated with the coefficients in the posterior. Alternating draws may move slowly along that direction, and a joint move, in the spirit of the collapsed intercept shift, may be needed.
+- **The plain count JSDM is not a special case.** Occupancy near certainty needs a large `eta`, which also forces a large mean. So D always has an occupancy layer. The plain count JSDM of stage 2 remains worth building as the first step and as the comparison model, and all of stage 1 is needed either way.
+
+### Questions back to Alex
+
+16. **What is in `X_i beta`?** The whole JSDM predictor, including the species intercept, the latent factors and the spatial field, or the covariate part only? The algebra above assumes the whole predictor.
+17. **Are `tau_0` and `tau` per species?** `tau_0` has to be, since species differ in numbers at the same occupancy probability. With several hundred species, many of them rare, a per-species `tau` would need partial pooling, for example a normal prior on its logarithm with an estimated mean and spread.
+18. **How is the scale of `eta` to be kept identified** when most of the information is in the counts, and is a joint update of `tau` with the coefficients needed?
 
 ## How it is fitted
 
@@ -169,7 +218,7 @@ Checked on 12 November 2026 against the branch `claude/grouped-covariate-prior` 
 ## Questions for Alex and Doug
 
 1. **(Doug) Which data come first? Answered 12 November 2026:** counts of individuals (for example sorted trap catches, point counts, camera-trap detections). Sequence read counts are excluded; see *Decided*. Consequences: the offset is sampling effort, the test data are simulated counts of individuals, and question 6 carries less weight.
-2. **Where should the JSDM structure sit: A, B or C?** The recommendation is A without occupancy first, then one of A or B with occupancy. If the robustness use matters most, B is the smaller and safer step. If the spatial use matters most, A with occupancy is the target. Doug's first use (see *What the first use implies*) is the spatial one, so the recommendation for now is the plain count JSDM, then A with occupancy only if needed, with B deferred. **Doug's answer, 12 November 2026: A.** For Alex: is there a statistical objection to A, in particular to an occupancy layer that is a plain per-species regression beside an abundance JSDM?
+2. **Where should the JSDM structure sit: A, B or C?** The recommendation is A without occupancy first, then one of A or B with occupancy. If the robustness use matters most, B is the smaller and safer step. If the spatial use matters most, A with occupancy is the target. Doug's first use (see *What the first use implies*) is the spatial one, so the recommendation for now is the plain count JSDM, then A with occupancy only if needed, with B deferred. **Doug's answer, 12 November 2026: A.** For Alex: is there a statistical objection to A, in particular to an occupancy layer that is a plain per-species regression beside an abundance JSDM? **Alex's answer, 15 November 2026:** neither A nor B; one JSDM with a shared predictor, recorded as configuration D under *Alex's proposal*. Open between Doug and Alex.
 3. **Polya-Gamma negative binomial or Poisson-lognormal?** In particular, does the latent log-biomass work planned for the eDITH fork make the Poisson-lognormal route cheaper overall, or is it better to keep counts independent of that work?
 4. **Is Poisson as a large fixed size acceptable**, or should Poisson be left out of the first version, or be exact through the Poisson-lognormal route?
 5. **The size.** One per species, as the simulator has it, or a shared or partially pooled size? Which prior: a gamma on the size, or a half-normal on its inverse square root? The first use has several hundred species, many of them rare, which favours partial pooling.
@@ -185,6 +234,8 @@ Checked on 12 November 2026 against the branch `claude/grouped-covariate-prior` 
 15. **Embeddings with the JSDM on abundance.** The first use needs it, so the recommendation is now to recheck the grouped prior's scale on the log scale and support the combination, as stage 3. Is the half-Cauchy axis prior still the right form with a log link, where a large coefficient multiplies the expected count instead of saturating a probability?
 
 ## Staged plan
+
+The stages below are written for configuration A. If configuration D is adopted instead, stages 1 and 2 stand as written, stage 3 is not needed for D, stage 4 compares D with the plain count JSDM and with presence and absence, and stage 5 becomes D itself: the combined weights, the update of `tau_0` and `tau`, and a recovery study at one sample per site that answers question 18.
 
 Each stage is one pull request to Alex and leaves `main` working. Stages 1 and 2 do not depend on questions 2, 6, 7 or 13. Stage 2 starts from `main` after the embedding branch has merged; see *Interaction with the embedding covariates*. A task-by-task plan for each stage is written in `dev/superpowers/plans/` once its questions are answered.
 
