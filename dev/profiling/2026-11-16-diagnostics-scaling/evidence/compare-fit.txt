@@ -1,0 +1,104 @@
+compare-fit.R, 16 November 2026: main 48b2b3a (before) against claude/linear-diagnostics d644362 (after)
+stored results_output identical: TRUE 
+printed summary identical:       TRUE 
+warnings identical:              TRUE (25)
+
+Summary printed by both builds:
+
+Parameter Set: beta_theta (Flattened N = 30)
+--------------------------------------------------
+  R-hat | Max:    1.226 | Mean:   1.055
+  ESS   | Min:     25.4 | Mean:    92.2
+
+Parameter Set: p (Flattened N = 30)
+--------------------------------------------------
+  R-hat | Max:    1.063 | Mean:   1.009
+  ESS   | Min:     94.4 | Mean:   230.9
+
+Parameter Set: q (Flattened N = 30)
+--------------------------------------------------
+  R-hat | Max:    1.047 | Mean:   1.011
+  ESS   | Min:     77.1 | Mean:   221.2
+
+Parameter Set: theta0 (Flattened N = 10)
+--------------------------------------------------
+  R-hat | Max:    1.570 | Mean:   1.118
+  ESS   | Min:     37.7 | Mean:    72.3
+
+Parameter Set: B0 (Flattened N = 10)
+--------------------------------------------------
+  R-hat | Max:    1.831 | Mean:   1.224
+  ESS   | Min:     13.0 | Mean:    27.9
+
+Parameter Set: B (Flattened N = 20)
+--------------------------------------------------
+  R-hat | Max:    2.744 | Mean:   1.421
+  ESS   | Min:     11.5 | Mean:    24.8
+
+Parameter Set: G (Flattened N = 6)
+--------------------------------------------------
+  R-hat | Max:    1.766 | Mean:   1.373
+  ESS   | Min:     17.9 | Mean:    31.3
+
+Parameter Set: A (Flattened N = 10)
+--------------------------------------------------
+  R-hat | Max:    1.510 | Mean:   1.163
+  ESS   | Min:     21.5 | Mean:    59.3
+
+Parameter Set: C (Flattened N = 2)
+--------------------------------------------------
+  R-hat | Max:    1.091 | Mean:   1.051
+  ESS   | Min:     33.6 | Mean:    35.0
+
+Parameter Set: Bs (Flattened N = 200)
+--------------------------------------------------
+  R-hat | Max:    6.631 | Mean:   1.844
+  ESS   | Min:      4.2 | Mean:    13.6
+
+Parameter Set: Gs (Flattened N = 60)
+--------------------------------------------------
+  R-hat | Max:    5.265 | Mean:   1.847
+  ESS   | Min:      4.3 | Mean:    11.2
+
+Parameter Set: As (Flattened N = 10)
+--------------------------------------------------
+  R-hat | Max:    6.434 | Mean:   2.013
+  ESS   | Min:      4.9 | Mean:     8.0
+
+Parameter Set: Cs (Flattened N = 20)
+--------------------------------------------------
+  R-hat | Max:    2.327 | Mean:   1.415
+  ESS   | Min:      8.3 | Mean:    13.8
+
+Parameter Set: U (Flattened N = 200)
+--------------------------------------------------
+  R-hat | Max:    1.061 | Mean:   1.010
+  ESS   | Min:    200.9 | Mean:   363.5
+
+Parameter Set: L (Flattened N = 20)
+--------------------------------------------------
+  R-hat | Max:    1.040 | Mean:   1.012
+  ESS   | Min:    125.3 | Mean:   208.4
+
+Parameter Set: sigmab (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.017 | Mean:   1.017
+  ESS   | Min:     74.1 | Mean:    74.1
+
+Parameter Set: sigmabs (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.272 | Mean:   1.272
+  ESS   | Min:     26.9 | Mean:    26.9
+
+Parameter Set: sigmah (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.330 | Mean:   1.330
+  ESS   | Min:     33.7 | Mean:    33.7
+
+Parameter Set: mu_b0 (Flattened N = 1)
+--------------------------------------------------
+  R-hat | Max:    1.010 | Mean:   1.010
+  ESS   | Min:    104.3 | Mean:   104.3
+
+==================================================
+25 warnings
