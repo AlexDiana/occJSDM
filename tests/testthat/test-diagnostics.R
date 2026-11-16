@@ -551,7 +551,7 @@ synthetic_results_output <- function(nchain = 2L, niter = 60L) {
   holed[1L, 1L, 1L] <- NA
   # A block with an infinite draw: that parameter alone is left out.
   unbounded <- draws(n_species)
-  unbounded[2L, 4L, 1L] <- Inf
+  unbounded[2L, 1L, 1L] <- Inf
   list(
     beta_theta_output = pinned,
     theta0_output = stuck,
@@ -599,6 +599,19 @@ test_that("computeDiagnostics() prints what the coda implementation printed for 
   expect_identical(new, capture_with(legacy_computeDiagnostics, results_output))
   expect_match(paste(new$messages, collapse = ""),
                "Requires multiple chains", fixed = TRUE)
+})
+
+test_that("computeDiagnostics() prints what the coda implementation printed for chains of two and three draws", {
+  # The shortest chains coda accepts. With two draws every chain is a straight
+  # line, so there are no effective draws at all; with three the
+  # autoregression can use every degree of freedom the chain has.
+  for (niter in 2:3) {
+    results_output <- synthetic_results_output(niter = niter)
+    expect_identical(
+      capture_with(computeDiagnostics, results_output),
+      capture_with(legacy_computeDiagnostics, results_output),
+      info = paste("niter", niter))
+  }
 })
 
 test_that("computeDiagnostics() prints what the coda implementation printed for a fitted model", {

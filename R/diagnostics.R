@@ -433,9 +433,11 @@ blockRhatESS <- function(arr, n_params, niter, nchain) {
   chains <- chain_moments_ess_cpp(arr, n_params, niter, nchain)
 
   # The variance of all of a parameter's draws, from the within-chain and
-  # between-chain sums of squares.
+  # between-chain sums of squares. A chain of one draw has no variance of its
+  # own and contributes nothing within.
   grand_mean <- rowMeansRefined(chains$mean)
-  pooled_var <- ((niter - 1) * rowSums(chains$var) +
+  within_ss <- if (niter > 1) (niter - 1) * rowSums(chains$var) else 0
+  pooled_var <- (within_ss +
                    niter * rowSums((chains$mean - grand_mean)^2)) /
     (niter * nchain - 1)
   variable <- !is.na(pooled_var) & pooled_var > 1e-12
