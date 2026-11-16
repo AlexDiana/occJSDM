@@ -24,7 +24,10 @@ runOccJSDM(
   and \code{Primer} id columns (as applicable to the inferred model) plus
   the occupancy/collection/spatial covariate columns named in
   \code{occCovariates}/\code{collCovariates}/\code{spatCovariates}. See the
-  vignette for the full expected shape.}
+  vignette for the full expected shape. The rows may come in any order, as
+  long as row \emph{i} of \code{info} and row \emph{i} of \code{OTU}
+  describe the same observation. The section \emph{Row order of the
+  results} says which order the sites of the fit are then in.}
   \item{OTU}{A matrix of dimension (N x S), where N is
   \code{nrow(data$info)} and S is the number of species, containing the
   number of reads of each species in each observation.}
@@ -323,6 +326,44 @@ them. Warnings raised inside a chain in a parallel fit also go to that file,
 where each worker prints them when it stops at the end of the fit, and they
 are not raised again in this session.
 }
+\section{Row order of the results}{
+
+Every per-site result of a fit follows one order: the order of the sites in
+\code{infos$data_info}, the copy of \code{data$info} that the model was
+fitted to.
+\itemize{
+  \item With one row per site (a binary or continuous fit) the rows of
+  \code{data$info} are used as given. Row \emph{i} of \code{X_psi},
+  \code{Xs}, \code{jsdm_output$U_output} and every other per-site result is
+  row \emph{i} of \code{data$info} and of \code{data$OTU}.
+  \code{infos$siteNames} is then the row number, \code{1:n}; the site
+  identifiers, when a \code{Site} column was given, are
+  \code{infos$data_info$Site}.
+  \item With repeated rows per site (an occupancy or two-stage fit) the
+  rows of \code{data$info} and \code{data$OTU} are first sorted together by
+  \code{Site}, then \code{Sample}, then \code{Primer}, and the sites are in
+  that sorted order: increasing for numbers, by level for factors, and for
+  character names in the order of the C locale, in which capital letters
+  sort before lower-case ones and \code{"S10"} sorts before \code{"S2"}.
+  \code{infos$siteNames} names the sites in that order,
+  \code{infos$data_info} and \code{infos$OTU} hold the sorted rows, and the
+  per-sample results (\code{X_theta}, \code{w_output},
+  \code{theta_output}) have one row per (\code{Site}, \code{Sample}) pair
+  in the same sorted order.
+}
+Match results to sites by name, through \code{infos$siteNames} or, with one
+row per site, \code{infos$data_info$Site}; do not assume an order.
+
+In versions up to 0.3.0 the occupancy covariates and the coordinates of a
+fit with one row per site were sorted by \code{Site} while the response
+kept its input order. Such a fit attached covariates to the wrong sites,
+without an error or warning, unless \code{data$info} had no \code{Site}
+column or its \code{Site} column was already in sorted order (for example
+\code{1:n}, or zero-padded names such as \code{"S001"} in file order).
+Refit any one-row-per-site model whose \code{Site} column was not in
+sorted order. Occupancy and two-stage fits were not affected.
+}
+
 \section{Field-contamination uncertainty}{
 
 \code{theta0} is the probability that DNA enters a field sample when

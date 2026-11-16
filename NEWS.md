@@ -1,3 +1,15 @@
+# occJSDM 0.3.1
+
+In development, not yet released. It fixes a defect that made fits with one row per site wrong whenever the `Site` column was not in sorted order. Every earlier beta has the defect.
+
+## Bug fixes
+
+-   `runOccJSDM()` attached the occupancy covariates and the site coordinates to the wrong sites in a fit with one row per site (the binary and continuous models) whenever `data$info$Site` was not already in sorted order, without an error or a warning. The covariates were sorted by `Site` while the response kept its input order. Site names in file order such as `FHT1`, `FHT2`, ..., `FHT10` are not in sorted order, and with them a planted slope of 1.5 was estimated as about 0. Fits were correct when `data$info` had no `Site` column, or when `Site` was already sorted (for example `1:n`, or zero-padded names such as `S001` in file order), and those fits are unchanged, draw for draw. Occupancy and two-stage fits, which have repeated rows per site, were never affected. **Refit any one-row-per-site model whose `Site` column was not in sorted order:** its covariate effects, spatial field, hidden environmental covariates, predictions and site WAIC were all computed with covariates on the wrong rows. To check an existing fit, compare `fit$X_psi` with your standardised covariates row by row.
+
+## Documentation
+
+-   `?runOccJSDM` has a new section, *Row order of the results*. With one row per site, every per-site result is in the row order of `data$info`. With repeated rows per site, the sites are in sorted order by `Site` and named in `infos$siteNames`.
+
 # occJSDM 0.3.0
 
 Fourth beta, released on GitHub as `v0.3.0-beta`. The community-mean prior on the occupancy intercepts is now the default for multi-species data, so fits that leave `b0_prior` unset give different numbers from 0.2.0.
