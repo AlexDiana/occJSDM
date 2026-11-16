@@ -1,0 +1,63 @@
+=== before: 2026-11-16 17:08:28 WITA ===
+lowpowermode:  lowpowermode 0
+power source: Now drawing from 'AC Power'
+machine: Apple M4, 32 GB, macOS 27.2.1
+R: R version 4.6.1 (2026-06-24) -- "Happy Hop"
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lib: <scratch>/lib-before
+--- before n_params=300 ---
+RESULT label=before occJSDM=0.3.0 n_params=300 niter=5000 nchain=2 elapsed_s=2.60 user_s=2.48 input_mb=23 heap_peak_mb=226 footprint_base_mb=151
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 300)
+--------------------------------------------------
+  R-hat | Max:    1.005 | Mean:   1.001
+  ESS   | Min:   2948.7 | Mean:  3350.2
+
+==================================================
+WARNINGS
+(none)
+        7.29 real         6.84 user         0.21 sys
+           523452416  maximum resident set size
+           507479144  peak memory footprint
+--- before n_params=3000 ---
+RESULT label=before occJSDM=0.3.0 n_params=3000 niter=5000 nchain=2 elapsed_s=125.13 user_s=116.58 input_mb=229 heap_peak_mb=3017 footprint_base_mb=380
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 3000)
+--------------------------------------------------
+  R-hat | Max:    1.008 | Mean:   1.001
+  ESS   | Min:   2814.1 | Mean:  3348.5
+
+==================================================
+WARNINGS
+(none)
+      133.62 real       124.27 user         2.34 sys
+          3975380992  maximum resident set size
+          3739504024  peak memory footprint
+--- before n_params=6000 ---
+RESULT label=before occJSDM=0.3.0 n_params=6000 niter=5000 nchain=2 elapsed_s=479.45 user_s=442.91 input_mb=458 heap_peak_mb=8350 footprint_base_mb=628
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 6000)
+--------------------------------------------------
+  R-hat | Max:    1.006 | Mean:   1.001
+  ESS   | Min:   2713.6 | Mean:  3344.4
+
+==================================================
+WARNINGS
+(none)
+      487.73 real       449.76 user        10.59 sys
+          5478039552  maximum resident set size
+         10502775064  peak memory footprint
+
+=== before: 2026-11-16 16:45:03 WITA ===
+lowpowermode:  lowpowermode 0
+power source: Now drawing from 'AC Power'
+machine: Apple M4, 32 GB, macOS 27.2.1
+R: R version 4.6.1 (2026-06-24) -- "Happy Hop"
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lib: <scratch>/lib-before
+--- before n_params=12500 ---
+STOPPED label=before n_params=12500 reason="memory limit of 16 GB" elapsed_s=1395 polled_peak_footprint_mb=17408
+

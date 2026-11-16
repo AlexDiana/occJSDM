@@ -11,6 +11,19 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// chain_moments_ess_cpp
+Rcpp::List chain_moments_ess_cpp(const Rcpp::NumericVector& draws, int n_params, int niter, int nchain);
+RcppExport SEXP _occJSDM_chain_moments_ess_cpp(SEXP drawsSEXP, SEXP n_paramsSEXP, SEXP niterSEXP, SEXP nchainSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type draws(drawsSEXP);
+    Rcpp::traits::input_parameter< int >::type n_params(n_paramsSEXP);
+    Rcpp::traits::input_parameter< int >::type niter(niterSEXP);
+    Rcpp::traits::input_parameter< int >::type nchain(nchainSEXP);
+    rcpp_result_gen = Rcpp::wrap(chain_moments_ess_cpp(draws, n_params, niter, nchain));
+    return rcpp_result_gen;
+END_RCPP
+}
 // setOccJSDMSeed
 void setOccJSDMSeed(unsigned int seed);
 RcppExport SEXP _occJSDM_setOccJSDMSeed(SEXP seedSEXP) {
@@ -389,6 +402,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_occJSDM_chain_moments_ess_cpp", (DL_FUNC) &_occJSDM_chain_moments_ess_cpp, 4},
     {"_occJSDM_setOccJSDMSeed", (DL_FUNC) &_occJSDM_setOccJSDMSeed, 1},
     {"_occJSDM_sample_z_cpp_parallel", (DL_FUNC) &_occJSDM_sample_z_cpp_parallel, 6},
     {"_occJSDM_sample_w_cim_cipp_parallel", (DL_FUNC) &_occJSDM_sample_w_cim_cipp_parallel, 15},
