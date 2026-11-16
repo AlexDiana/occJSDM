@@ -2,7 +2,7 @@
 # of the sites in fit$infos$data_info:
 #
 #   - data with one row per site (binary and continuous fits) keep the rows of
-#     data$info as given;
+#     data$info as given, and their sites are named by the Site column;
 #   - occupancy and two-stage data are sorted by Site, then Sample, then
 #     Primer, and their sites are named in fit$infos$siteNames.
 #
@@ -119,10 +119,30 @@ test_that("site labels alone do not change a one-row-per-site fit", {
       label <- paste(response, kind)
       expect_identical(fit$results_output, reference$results_output, info = label)
       expect_identical(fit$X_psi, reference$X_psi, info = label)
-      expect_identical(returnOrdinationScores(fit), returnOrdinationScores(reference),
-                       info = label)
+      # The scores are the same numbers; only their site labels differ.
+      expect_identical(unname(returnOrdinationScores(fit)),
+                       unname(returnOrdinationScores(reference)), info = label)
     }
   }
+})
+
+test_that("a one-row-per-site fit names its sites by Site", {
+  # Until 0.3.1 these fits stored 1:n in infos$siteNames whatever Site held,
+  # so tables and plots labelled their sites by row number.
+  data <- single_visit_data()
+  n <- nrow(data$info)
+  for (kind in site_kinds) {
+    sites <- unsorted_sites(kind, n)
+    data$info$Site <- sites
+    fit <- fit_site_order(data, listParams = list(n_factors = 1, n_lattrait = 0))
+    expect_identical(fit$infos$siteNames, sites, info = kind)
+    expect_identical(dimnames(returnOrdinationScores(fit))[[2]], as.character(sites),
+                     info = kind)
+  }
+  # With no Site column there are no names to store: the row number stands in.
+  data$info$Site <- NULL
+  fit <- fit_site_order(data)
+  expect_identical(fit$infos$siteNames, seq_len(n))
 })
 
 test_that("a planted slope is recovered whatever the site labels", {

@@ -9,7 +9,8 @@ Written by Claude for Doug. Branch `claude/vigorous-bhaskara-f80e14` (worktree `
 - **Who is not affected.** Occupancy and two-stage fits (repeated rows per site). They sort the response together with the covariates. Verified by test, not assumed.
 - **Releases.** All four occJSDM betas (`v0.1.0-beta`, `v0.1.1-beta`, `v0.2.0-beta`, `v0.3.0-beta`) and `main` have the defect, reproduced by running each one. There is no `v0.1.0` tag in occJSDM: `v0.1.0` of 13 November 2026 is the workshop repository's release, which pins occJSDM `v0.3.0-beta`.
 - **Shipped and taught results.** None found affected. Every one-row-per-site fit in the lessons, the saved teaching results, the simulation studies and the tests either has no `Site` column or has `Site` as increasing integers. The Quickstart, the shipped example fits and every workshop fit are two-stage. The MCP agent's validation step already refuses one-row-per-site data with an unsorted `Site`. The one known affected analysis is the AlphaEco shakedown, where the defect was found.
-- **The fix.** One-row-per-site data now stay in input order throughout. Fits whose `Site` was absent or already sorted are identical draw for draw (22 of 22 compared fits identical to `main`).
+- **The fix.** One-row-per-site data now stay in input order throughout. Fits whose `Site` was absent or already sorted have identical draws (22 of 22 compared fits match `main`; see *Verification*).
+- **Site labels, added later the same day at Doug's request.** A one-row-per-site fit now stores its `Site` values in `infos$siteNames`, not `1:n`.
 
 ## What went wrong
 
@@ -37,7 +38,7 @@ Each line says whether the path was affected and which test in `tests/testthat/t
 - **Occupancy covariates and coordinates, occupancy and two-stage models: not affected.** Test: "occupancy and two-stage matrices follow the sorted site order", with unsorted character, factor and integer names and shuffled rows, and "an occupancy slope is recovered under unsorted site names".
 - **Collection covariates (`collCovariates`): not affected.** They exist only in occupancy and two-stage fits, where the sample table is built from the sorted data. Covered by the test above and by the existing `test-collection-alignment.R`.
 - **Traits matched to species: not affected.** They are matched by row name with `match()`. Test: "traits are matched to species by name, not by row".
-- **Site names stored in `fit$infos`: consistent, with a caveat.** Occupancy and two-stage fits store the sorted site names in `infos$siteNames`, in the order of every per-site matrix. One-row-per-site fits store `1:n`, the row number, not the `Site` values; the identifiers are in `infos$data_info$Site`. That was correct as a row index before the fix and still is. It is left unchanged because changing it would change the stored fit object (see *Not done*).
+- **Site names stored in `fit$infos`: not wrong, but inconsistent, and now changed.** Occupancy and two-stage fits store the sorted site names in `infos$siteNames`, in the order of every per-site matrix. One-row-per-site fits stored `1:n`, the row number, whatever `Site` held, with the identifiers only in `infos$data_info$Site`. Doug decided on 16 November 2026 to store the `Site` values there instead (`1:n` only when there is no `Site` column). Test: "a one-row-per-site fit names its sites by Site".
 - **`predictNewSites()`: affected only through the fit.** It takes the new sites' covariates from the caller and does no site ordering of its own, so its predictions were wrong because the coefficients were wrong. Test: the slope test checks predictions at the fitted sites against the truth (mean absolute error 0.03 after the fix, 0.22 before).
 - **`returnOrdinationScores()`, `plotOrdinationScores()`, `plotBiplot()`: affected only through the fit.** They label the rows of the factor scores with `infos$siteNames` and do no ordering of their own. The scores of a misaligned binary fit were estimated from a wrong model. Test: "site labels alone do not change a one-row-per-site fit" checks the scores are identical under sorted and unsorted labels.
 - **`returnLatentPresences()` and `plotLatentPresences()`: not affected.** Two-stage only; they read the sorted `infos$data_info` and the stored row indices. Test: "returnLatentPresences() rows carry their own site's probabilities".
@@ -54,7 +55,7 @@ Two changes in `R/runOccJSDM.R`:
 
 **The order.** Every per-site result follows the order of the sites in `infos$data_info`, the copy of `data$info` the model was fitted to:
 
-- one row per site: the rows of `data$info` as given, which is order of first appearance;
+- one row per site: the rows of `data$info` as given, which is order of first appearance, with the sites named in `infos$siteNames` by their `Site` values;
 - repeated rows per site: sorted by `Site`, then `Sample`, then `Primer`, with the sites named in `infos$siteNames`.
 
 This is documented in a new section of `?runOccJSDM`, *Row order of the results*.
@@ -71,9 +72,9 @@ If you would rather have one rule, first appearance, for every model, it is a co
 
 ## Verification
 
-- **The regression tests fail before the fix and pass after.** Run against an installed copy of `main`, six of the ten tests in `test-site-order.R` fail, 57 of 159 expectations: the binary, continuous, spatial, label-invariance, slope-recovery and site-WAIC tests. The four tests of occupancy, two-stage, latent presences and traits pass before and after. Run against an installed copy of the fix, all 159 expectations pass.
-- **The full suite.** `devtools::test()` on the fixed tree with `NOT_CRAN=true`: 1,971 expectations in 276 tests across 33 files, 0 failures, 0 errors, 0 warnings, 6 skips. The skips are the opt-in coverage study and five identity-across-`ncores` tests that need the reference BLAS (this laptop runs Accelerate); none is new. `test-collection-alignment.R`, `test-site-waic.R`, `test-quickstart-data.R` and `test-regression-bugs.R` pass unchanged. Run on mains power with Low Power Mode off, about 9 minutes.
-- **Sorted-name fits are unchanged.** `sorted-fits-identity.R` fits the same seeded data under `main` and under the fix: binary, continuous, occupancy and two-stage, each with and without a spatial field; the binary and continuous ones also with an explicit sorted `Site` column as integer, zero-padded character and factor; and short runs of the shipped `sampledata` and `quickstartdata`. All 22 fits are `identical()` between the two, comparing the whole returned object except `infos$execution` (process ids and timings).
+- **The regression tests fail before the fix and pass after.** Run against an installed copy of `main`, six of the ten tests in `test-site-order.R` fail, 57 of 159 expectations: the binary, continuous, spatial, label-invariance, slope-recovery and site-WAIC tests. The four tests of occupancy, two-stage, latent presences and traits pass before and after. Run against an installed copy of the fix, all 159 expectations pass. The site-label test added afterwards brings the file to 11 tests and 166 expectations; it failed before the label change (6 of its 7 expectations) and passes after.
+- **The full suite.** `devtools::test()` on the fixed tree with `NOT_CRAN=true`: 1,971 expectations in 276 tests across 33 files, 0 failures, 0 errors, 0 warnings, 6 skips. The skips are the opt-in coverage study and five identity-across-`ncores` tests that need the reference BLAS (this laptop runs Accelerate); none is new. `test-collection-alignment.R`, `test-site-waic.R`, `test-quickstart-data.R` and `test-regression-bugs.R` pass unchanged. Run on mains power with Low Power Mode off, about 9 minutes. Rerun after the site-label change: 1,978 expectations in 277 tests, 0 failures, 0 errors, 0 warnings, the same 6 skips.
+- **Sorted-name fits are unchanged.** `sorted-fits-identity.R` fits the same seeded data under `main` and under the fix: binary, continuous, occupancy and two-stage, each with and without a spatial field; the binary and continuous ones also with an explicit sorted `Site` column as integer, zero-padded character and factor; and short runs of the shipped `sampledata` and `quickstartdata`. With the alignment fix alone (`c7d6cb3`), all 22 fits are `identical()` between the two, comparing the whole returned object except `infos$execution` (process ids and timings). With the site-label change added, 14 of the 22 are still identical, and the 8 one-row-per-site fits with a character or factor `Site` differ only in `infos$siteNames`, which now holds the names: every draw and every other element is identical.
 - **Each release reproduces the defect.** Each of the four tags was installed from a `git archive` into its own library and `reproduce.R` was run against it, under R 4.6.1 and dplyr 1.2.1. In all four, sorted labels give a slope of 1.16 to 1.18 and unsorted labels a slope between -0.05 and 0.15, with `fit$X_psi` not matching the covariate. The same script on the fixed code gives 1.17 in every case.
 - **Help.** `devtools::document()` regenerated `man/runOccJSDM.Rd`. `tools::checkRd()` passes on it. `NAMESPACE` and `DESCRIPTION` are unchanged.
 
@@ -138,7 +139,6 @@ Checked by reading the code that builds each `data$info`, and where a saved file
 
 ## Not done
 
-- **`infos$siteNames` in one-row-per-site fits is still `1:n`.** `returnOrdinationScores()`, `plotOrdinationScores()` and the occupancy-probability tables therefore label such a fit's sites by row number, not by name. Storing the `Site` values would be friendlier but changes the stored fit object, which the brief ruled out for sorted-name fits. For a decision.
 - **No version bump.** `DESCRIPTION` still says 0.3.0. `NEWS.md` has a new top heading, *occJSDM 0.3.1*, marked as in development.
 - **No warning for old fits.** The package cannot tell from a saved fit object alone that it was made by an affected version, because fits do not record the package version. A user can check a fit by comparing `fit$X_psi` with their standardised covariates row by row, which the NEWS entry says.
 - **`?runOccJSDM` names the returned coordinates `X_s`; the returned element is `Xs`.** A documentation slip noticed in passing, not changed.
@@ -150,12 +150,12 @@ Checked by reading the code that builds each `data$info`, and where a saved file
 - **Whether to tell workshop participants.** None of the workshop's own fits is affected, since they are all two-stage. The risk is a participant who goes home and fits one row per site (ordinary presence/absence data, the JSDM mode the Quickstart mentions) with site names in file order. A short note with the patch release would cover it: update, and refit any one-row-per-site model whose site names were not sorted. The workshop repository's pin would need moving to the new release for the note to be actionable.
 - **Whether to add a line to the README's known limitations now**, before a release, for people on the current betas. The workaround until they update: drop the `Site` column from one-row-per-site data, or sort `info` and `OTU` together by `Site`.
 - **Site order for occupancy and two-stage fits.** Decided on 16 November 2026: keep sorted order.
-- **`infos$siteNames` for one-row-per-site fits.** Still `1:n`. Say if you want the `Site` values stored instead.
+- **`infos$siteNames` for one-row-per-site fits.** Decided on 16 November 2026: store the `Site` values. Done.
 - **Alex.** The item is in `TODO.md` under *Needs Alex*. Decided on 16 November 2026: no pull request. Telling him is yours to ask for.
 
 ## Files
 
-- `R/runOccJSDM.R`: the fix and the new help section.
+- `R/runOccJSDM.R`: the fix, the site labels and the new help section.
 - `tests/testthat/test-site-order.R`: the regression tests.
 - `man/runOccJSDM.Rd`, `NEWS.md`, `TODO.md`: help, changelog and the review-queue item for Alex.
 - `reproduce.R` (this folder): the reproduction; run as `Rscript --vanilla reproduce.R <library>` against a library holding the version to test.
