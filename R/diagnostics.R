@@ -333,6 +333,131 @@ returnConvergenceDiagnostics <- function(fitmodel) {
   dplyr::bind_rows(pieces)
 }
 
+#' Mean of each row, computed the way `mean()` computes it
+#'
+#' `rowMeans()` makes one pass. `mean()`, and so `var()` and `cov()`, add a
+#' second pass that removes the rounding error of the first, which is what
+#' makes the mean of identical values exactly that value. The convergence
+#' statistics below have exact zeros in their degenerate cases (chains that are
+#' copies of each other), so they need the same mean.
+#'
+#' @param x A numeric matrix.
+#' @return A vector of row means.
+#' @noRd
+rowMeansRefined <- function(x) {
+  m <- rowMeans(x)
+  m + rowMeans(x - m)
+}
+
+#' Covariance of each row of one matrix with the same row of another
+#'
+#' @param x,y Numeric matrices of the same shape, with at least two columns.
+#' @return A vector with one covariance per row, with divisor `ncol(x) - 1`.
+#' @noRd
+rowCovariances <- function(x, y = x) {
+  rowSums((x - rowMeansRefined(x)) * (y - rowMeansRefined(y))) / (ncol(x) - 1)
+}
+
+#' Gelman-Rubin R-hat from the mean and variance of every chain
+#'
+#' The point estimate of the univariate potential scale reduction factor, as
+#' `coda::gelman.diag(x, autoburnin = FALSE, multivariate = FALSE)$psrf[, 1]`
+#' returns it, including the correction for the degrees of freedom of the
+#' pooled variance estimate. The arithmetic follows `gelman.diag()` line for
+#' line and keeps its variable names, so that the degenerate cases come out
+#' the same: `Inf` when no chain moved but the chains differ, `NaN` when the
+#' chains are copies of each other. The difference is that `gelman.diag()`
+#' takes each quantity from the diagonal of a parameters-by-parameters matrix,
+#' and this computes only the diagonal.
+#'
+#' @param chain_mean,chain_var Matrices with one row per parameter and one
+#'   column per chain: the mean and the sample variance of each chain.
+#' @param niter Number of draws per chain.
+#' @return A vector of R-hat values, one per parameter.
+#' @noRd
+gelmanRhat <- function(chain_mean, chain_var, niter) {
+  Niter <- niter
+  Nchain <- ncol(chain_mean)
+  xbar <- chain_mean
+  s2 <- chain_var
+
+  w <- rowMeansRefined(s2)
+  b <- Niter * rowCovariances(xbar)
+  muhat <- rowMeansRefined(xbar)
+  var.w <- rowCovariances(s2) / Nchain
+  var.b <- (2 * b^2) / (Nchain - 1)
+  cov.wb <- (Niter / Nchain) *
+    (rowCovariances(s2, xbar^2) - 2 * muhat * rowCovariances(s2, xbar))
+  V <- (Niter - 1) * w / Niter + (1 + 1 / Nchain) * b / Niter
+  var.V <- ((Niter - 1)^2 * var.w + (1 + 1 / Nchain)^2 * var.b +
+              2 * (Niter - 1) * (1 + 1 / Nchain) * cov.wb) / Niter^2
+  df.V <- (2 * V^2) / var.V
+  df.adj <- (df.V + 3) / (df.V + 1)
+  R2.fixed <- (Niter - 1) / Niter
+  R2.random <- (1 + 1 / Nchain) * (1 / Niter) * (b / w)
+  sqrt(df.adj * (R2.fixed + R2.random))
+}
+
+#' R-hat and effective sample size for a block of parameters
+#'
+#' What [computeDiagnostics()] reports for one parameter block, computed one
+#' parameter at a time so that time and memory grow in proportion to the
+#' number of parameters. Up to 0.3.0 the block went to `coda::gelman.diag()`
+#' and `coda::effectiveSize()` whole, and `gelman.diag()` forms several
+#' parameters-by-parameters matrices even with `multivariate = FALSE`, so a
+#' block of a few thousand coefficients took minutes and gigabytes.
+#'
+#' The values are coda's. The effective sample size of each chain is computed
+#' in C++ (`chain_moments_ess_cpp()`) by the same method as
+#' `coda::effectiveSize()` and summed over chains. For the rare chain where
+#' the autoregression behind it is numerically singular, the C++ code declines
+#' and that one parameter is given to `coda::effectiveSize()` itself.
+#'
+#' A parameter is `variable` when the variance of all its draws, pooled over
+#' chains, exceeds `1e-12`. The others (fixed parameters, and any with an
+#' infinite draw, whose variance is not a number) were never passed to coda
+#' and are not here either: [computeDiagnostics()] leaves them out of its
+#' summary.
+#'
+#' @param arr An array of draws whose last two dimensions are iteration and
+#'   chain. The leading dimensions, flattened, index the parameters. It is not
+#'   copied.
+#' @param n_params,niter,nchain Number of parameters, of draws per chain and
+#'   of chains; `length(arr)` must be their product.
+#' @return A list of four vectors with one entry per parameter: `var`, the
+#'   pooled variance; `variable`, whether it exceeds the threshold; `rhat`
+#'   (`NA` with fewer than two chains); and `ess`. `rhat` and `ess` mean
+#'   nothing where `variable` is `FALSE`.
+#' @noRd
+blockRhatESS <- function(arr, n_params, niter, nchain) {
+  chains <- chain_moments_ess_cpp(arr, n_params, niter, nchain)
+
+  # The variance of all of a parameter's draws, from the within-chain and
+  # between-chain sums of squares.
+  grand_mean <- rowMeansRefined(chains$mean)
+  pooled_var <- ((niter - 1) * rowSums(chains$var) +
+                   niter * rowSums((chains$mean - grand_mean)^2)) /
+    (niter * nchain - 1)
+  variable <- !is.na(pooled_var) & pooled_var > 1e-12
+
+  ess <- rowSums(chains$ess)
+  for (p in which(variable & is.na(ess))) {
+    idx <- p + (seq_len(niter) - 1) * as.double(n_params)
+    ess[p] <- sum(coda::effectiveSize(coda::mcmc.list(
+      lapply(seq_len(nchain), function(ch) {
+        coda::mcmc(arr[idx + (ch - 1) * as.double(n_params) * niter])
+      }))))
+  }
+
+  rhat <- if (nchain > 1) {
+    gelmanRhat(chains$mean, chains$var, niter)
+  } else {
+    rep(NA_real_, n_params)
+  }
+
+  list(var = pooled_var, variable = variable, rhat = rhat, ess = ess)
+}
+
 #' Compute diagnostics
 #'
 #' @details
@@ -368,7 +493,7 @@ computeDiagnostics <- function(results_output){
       arr <- results_output_all[[param_name]]
       dims <- dim(arr)
 
-      if (is.null(dims) || length(dims) < 2 || any(dims== 0 ) || any(is.na(arr)) ) {
+      if (is.null(dims) || length(dims) < 2 || any(dims== 0 ) || anyNA(arr) ) {
         next
       }
 
@@ -380,14 +505,17 @@ computeDiagnostics <- function(results_output){
         n_params <- prod(dims[1:(ndim - 2)])
       }
 
-      # Reshape uniformly to 3D: (n_params, niter, nchain)
-      arr_3d <- array(arr, dim = c(n_params, niter, nchain))
-
-      arr_flat <- matrix(arr_3d, nrow = n_params, ncol = niter * nchain)
-      param_vars <- apply(arr_flat, 1, var, na.rm = TRUE)
+      # R-hat and ESS for every parameter of the block, one parameter at a
+      # time (see blockRhatESS()). A block whose size is not
+      # n_params * niter * nchain is first recycled or truncated to that shape,
+      # as it always has been.
+      if (length(arr) != n_params * niter * nchain) {
+        arr <- array(arr, dim = c(n_params, niter, nchain))
+      }
+      block <- blockRhatESS(arr, n_params, niter, nchain)
 
       # Keep only parameters with variance greater than a tiny threshold
-      is_variable <- !is.na(param_vars) & param_vars > 1e-12
+      is_variable <- block$variable
       valid_params <- sum(is_variable)
 
       if (valid_params == 0) {
@@ -397,29 +525,9 @@ computeDiagnostics <- function(results_output){
         next
       }
 
-      # Subset to remove the fixed parameters
-      arr_3d <- arr_3d[is_variable, , , drop = FALSE]
-
-      # Convert to coda mcmc.list
-      chain_list <- lapply(1:nchain, function(c) {
-        # Use matrix() to prevent R from dropping dimensions on single parameters
-        chain_slice <- matrix(arr_3d[, , c], nrow = valid_params, ncol = niter)
-        coda::mcmc(t(chain_slice)) # Transpose so rows = iterations, cols = parameters
-      })
-
-      mcmc_obj <- coda::mcmc.list(chain_list)
-
-      # Diagnostics
-      ess <- coda::effectiveSize(mcmc_obj)
-
-      if (nchain > 1) {
-        rhat <- tryCatch({
-          diag_res <- coda::gelman.diag(mcmc_obj, autoburnin = FALSE, multivariate = FALSE)
-          diag_res$psrf[, 1]
-        }, error = function(e) rep(NA, n_params))
-      } else {
-        rhat <- rep(NA, n_params)
-      }
+      # Diagnostics, without the fixed parameters
+      ess <- block$ess[is_variable]
+      rhat <- block$rhat[is_variable]
 
       # Print Summary
       param_name_to_print <- gsub("_output","",param_name)
