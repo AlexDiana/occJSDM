@@ -1,4 +1,6 @@
-# occJSDM (development version)
+# occJSDM 0.3.2
+
+Sixth beta, released on GitHub as `v0.3.2-beta`. It removes a cost at the end of a fit that grew with the square of the number of coefficients, which made fits with many covariates or many species slow to finish and could exhaust memory. Estimates are unchanged from 0.3.1.
 
 ## Bug fixes
 
