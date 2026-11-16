@@ -1,22 +1,22 @@
 {
   "schema_version": 1,
-  "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+  "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
   "source_hashes": {
-    "vignettes/occJSDM-00-quickstart.Rmd": "0c72df0ad50efc52f087659a9777116ff039418db647f4ae517998f8a753b30c",
-    "README.md": "1b3013d0b37e7d3b5fbb54846ba4537fa8b6426aac5233fe4832555809930f70",
-    "NAMESPACE": "1d7bad65a3abc69ba10be9222f7edcc33728add6eab1f2e8bdf22041cd2a2e91",
-    "DESCRIPTION": "77d7e1fae2d6846222dd9ee44f4aca265c33f744d1d4eb3d1dbcb101b44f3d93",
-    "R/runOccJSDM.R": "52266026c418dda295c3cdc26fa8b3d27712daccfb87c228ec13d159a9de9acf",
+    "vignettes/occJSDM-00-quickstart.Rmd": "6ddb147c187cbe0884715808c476507ad945560b7b52952f72fe54912db322f0",
+    "README.md": "5af9ca0d8f00da43421db4f87467408f651898034ebb8445d229ee3452de899b",
+    "NAMESPACE": "4bf8df9253ecd7e19f99f2251cc6177d1c9fe53335a6f30f311ffd046e0405e3",
+    "DESCRIPTION": "63466c5090faee656e9ca51f5b5d403ffa4b3941ab216bc242cab98893cdcf83",
+    "R/runOccJSDM.R": "b410486b56fbd9db37fe00b5e30e1a42fd04a4857f7597c6df0a440e888e9797",
     "R/jsdmfun.R": "5dbbc2c8433b084e8a8875d935092ee506c2de992838d18adf10e8339eabfca6",
     "R/output.R": "c999bc862bdba404224241323a2ec5b7a1218f5e07af58dfb8e38d76937d5cb3",
-    "R/diagnostics.R": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
+    "R/diagnostics.R": "7b9ab2ee5d89e42b35cceb0a8aeb682dd38281007972072cb7f3b97e9dff2f43",
     "R/simulateData.R": "0fc01b003f34f1aa326c89231b333a267e9498d717488b718affafe842c13c54",
     "R/data.R": "8ba695cd5ae6f1cbc792420d0a22df4e3907e5b7bcc34d63ad5cab7815450a91",
     "tests/testthat/helper-fixtures.R": "90c2ce4c81a753aeb64992b1fb7522d3825b756e68c088e264b6b8a6c3c6bd6c",
     "tests/testthat/test-smoke-configs.R": "1effa305833d1a70ca8bcdc62cdb8609e982303425703d4659bbfc9ebabea99c",
     "tests/testthat/test-api-contracts.R": "391b786be54eda41555be0c4a9cd05c6a8a0fd7d8f453171b54049c9f48a48f6",
     "tests/testthat/test-collection-alignment.R": "25596911d0d33acfc83fffa26d7a7d8b433cf3123bfbbffffb171bee0cb84fa9",
-    "tests/testthat/test-diagnostics.R": "ffbe3e743baae212cb3fe41c4942a3f8f550b5ce1c1ca052ceeea72ce42361ee",
+    "tests/testthat/test-diagnostics.R": "f36886b731293ce69b2075b2495a40baa324033f6d36c71dbb77133f56bab968",
     "tests/testthat/test-regression-bugs.R": "290054ecc801535bb480830f47321a806b97222535b575b4b1c66c9da094e62b",
     "tests/testthat/test-rng-safety.R": "ad20a80bab4915cf3f0d8d6d23d07d1b0d52652134dd755ff1ef8cbd1c8eac28",
     "data/sampledata.rda": "d0eac67030208302996001b17d7f1a65bec17b1c267f128dcdc3607bb9ee34e9",
@@ -43,20 +43,20 @@
         {
           "path": "R/runOccJSDM.R",
           "symbol": "inferDataModel",
-          "line_start": 152,
-          "line_end": 253,
-          "sha256": "52266026c418dda295c3cdc26fa8b3d27712daccfb87c228ec13d159a9de9acf",
+          "line_start": 153,
+          "line_end": 254,
+          "sha256": "b410486b56fbd9db37fe00b5e30e1a42fd04a4857f7597c6df0a440e888e9797",
           "visibility": "internal",
-          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+          "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
         },
         {
           "path": "R/runOccJSDM.R",
           "symbol": "process_covariates",
           "line_start": 22,
-          "line_end": 69,
-          "sha256": "52266026c418dda295c3cdc26fa8b3d27712daccfb87c228ec13d159a9de9acf",
+          "line_end": 70,
+          "sha256": "b410486b56fbd9db37fe00b5e30e1a42fd04a4857f7597c6df0a440e888e9797",
           "visibility": "internal",
-          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+          "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
         },
         {
           "path": "R/jsdmfun.R",
@@ -65,7 +65,7 @@
           "line_end": 187,
           "sha256": "5dbbc2c8433b084e8a8875d935092ee506c2de992838d18adf10e8339eabfca6",
           "visibility": "internal",
-          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+          "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
         }
       ],
       "source_section": "The example data; inferDataModel/process_covariates/create_covariates_matrix",
@@ -103,11 +103,11 @@
         {
           "path": "R/runOccJSDM.R",
           "symbol": "runOccJSDM",
-          "line_start": 596,
-          "line_end": 1413,
-          "sha256": "52266026c418dda295c3cdc26fa8b3d27712daccfb87c228ec13d159a9de9acf",
+          "line_start": 636,
+          "line_end": 1466,
+          "sha256": "b410486b56fbd9db37fe00b5e30e1a42fd04a4857f7597c6df0a440e888e9797",
           "visibility": "exported",
-          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+          "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
         }
       ],
       "source_section": "Fit the model (adapt spatial example by leaving spatCovariates empty)",
@@ -147,27 +147,27 @@
           "symbol": "returnConvergenceDiagnostics",
           "line_start": 260,
           "line_end": 334,
-          "sha256": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
+          "sha256": "7b9ab2ee5d89e42b35cceb0a8aeb682dd38281007972072cb7f3b97e9dff2f43",
           "visibility": "exported",
-          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+          "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
         },
         {
           "path": "R/diagnostics.R",
           "symbol": "summarisePosterior",
           "line_start": 175,
           "line_end": 206,
-          "sha256": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
+          "sha256": "7b9ab2ee5d89e42b35cceb0a8aeb682dd38281007972072cb7f3b97e9dff2f43",
           "visibility": "internal",
-          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+          "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
         },
         {
           "path": "R/diagnostics.R",
           "symbol": "computeRhat",
           "line_start": 80,
           "line_end": 110,
-          "sha256": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
+          "sha256": "7b9ab2ee5d89e42b35cceb0a8aeb682dd38281007972072cb7f3b97e9dff2f43",
           "visibility": "internal",
-          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+          "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
         }
       ],
       "source_section": "Check that the chains agree",
@@ -206,16 +206,16 @@
           "line_end": 663,
           "sha256": "c999bc862bdba404224241323a2ec5b7a1218f5e07af58dfb8e38d76937d5cb3",
           "visibility": "exported",
-          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+          "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
         },
         {
           "path": "R/diagnostics.R",
           "symbol": "returnConvergenceDiagnostics",
           "line_start": 260,
           "line_end": 334,
-          "sha256": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
+          "sha256": "7b9ab2ee5d89e42b35cceb0a8aeb682dd38281007972072cb7f3b97e9dff2f43",
           "visibility": "exported",
-          "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+          "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
         }
       ],
       "source_section": "Look at the results; plotOccupancyRates delegates to returnOccupancyRates",
@@ -322,7 +322,7 @@
         "line_end": 434,
         "sha256": "0fc01b003f34f1aa326c89231b333a267e9498d717488b718affafe842c13c54",
         "visibility": "exported",
-        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+        "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
       },
       "reason": "Native fixture provenance; simulator tool deferred by approved scope."
     },
@@ -337,7 +337,7 @@
         "line_end": 712,
         "sha256": "c999bc862bdba404224241323a2ec5b7a1218f5e07af58dfb8e38d76937d5cb3",
         "visibility": "exported",
-        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+        "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
       },
       "reason": "Numeric baseline operation reused through returnOccupancyRates. No plot output selected."
     },
@@ -347,11 +347,11 @@
       "implementation": {
         "path": "R/diagnostics.R",
         "symbol": "computeDiagnostics",
-        "line_start": 354,
-        "line_end": 461,
-        "sha256": "a54a48e7e60ac5170483955b9471259bb09ef73ed9ad291e3f0dd16e9c1a5aaa",
+        "line_start": 481,
+        "line_end": 571,
+        "sha256": "7b9ab2ee5d89e42b35cceb0a8aeb682dd38281007972072cb7f3b97e9dff2f43",
         "visibility": "exported",
-        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+        "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
       },
       "reason": "runOccJSDM already invokes it. Preserve emitted warnings; do not add a fifth diagnostic tool or substitute console thresholds for approved screens."
     },
@@ -372,5 +372,5 @@
     }
   ],
   "execution_verified": false,
-  "source_revision_note": "Rebound to v0.3.0-beta on 5 Nov 2026. Line citations prefixed b7b7001: refer to the Quickstart as it was at that commit; the current Quickstart was rewritten and uses quickstartdata."
+  "source_revision_note": "Rebound to v0.3.2-beta on 16 Nov 2026 (previously v0.3.0-beta, 5 Nov 2026). Line citations prefixed b7b7001: refer to the Quickstart as it was at that commit; the current Quickstart was rewritten and uses quickstartdata."
 }

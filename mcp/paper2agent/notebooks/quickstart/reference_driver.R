@@ -39,8 +39,11 @@ native_prepare <- function(dat, occ=character(), coll=character()) {
   model <- occJSDM:::inferDataModel(dat)
   inf <- dat$info
   if(is.null(inf$Site)) inf$Site <- seq_len(nrow(inf))
-  n <- length(unique(inf$Site))
-  xp <- occJSDM:::process_covariates(inf,occ,"Site",n,remove_intercept=TRUE,spline_vars=FALSE)
+  # As runOccJSDM() since 0.3.1: group by Site only for data with repeated rows
+  # per site; binary data have one row per site and keep their input order.
+  replicated <- model %in% c("occupancy","two_stage")
+  n <- if(replicated) length(unique(inf$Site)) else nrow(inf)
+  xp <- occJSDM:::process_covariates(inf,occ,if(replicated) "Site" else NULL,n,remove_intercept=TRUE,spline_vars=FALSE)
   xt <- NULL
   if(model %in% c("occupancy","two_stage")) {
     if(is.null(inf$Sample)) inf$Sample <- seq_len(nrow(inf))
@@ -187,16 +190,29 @@ probe_fit <- function(id,d,oc=occ,cc=coll,mm=defaults) {
   probes[[id]] <<- cases[[paste0("boundary_",id)]]
 }
 binary <- fixtures$binary; occupancy <- fixtures$occupancy
-u <- binary; u$info$Site <- rev(seq_len(nrow(u$info)))
-probe_fit("binary_unsorted_uniqueSite",u,fixture_occ_covariates(),character())
-if(!is.null(fits$boundary_binary_unsorted_uniqueSite)) {
-  xp <- fits$boundary_binary_unsorted_uniqueSite$X_psi
-  ordered <- order(u$info$Site)
-  x <- u$info[[occ[1]]]
-  expected <- (x-mean(x))/sd(x)
-  probes$binary_unsorted_uniqueSite$X_psi_follows_sorted_site <- isTRUE(all.equal(unname(xp[,occ[1]]),expected[ordered],tolerance=1e-14))
-  probes$binary_unsorted_uniqueSite$OTU_follows_input <- identical(fits$boundary_binary_unsorted_uniqueSite$infos$OTU,u$OTU)
-  probes$binary_unsorted_uniqueSite$X_psi_follows_input_rows <- isTRUE(all.equal(unname(xp[,occ[1]]),expected,tolerance=1e-14))
+# Binary data whose Site column is not in sorted order. Up to occJSDM 0.3.0 the
+# covariates were sorted by Site while the response kept its input order; since
+# 0.3.1 every per-site result follows the row order of data$info. The same rows
+# relabelled must give the fit of the sorted-Site binary case, draw for draw.
+binary_site_orders <- list(
+  binary_unsorted_uniqueSite=rev(seq_len(nrow(binary$info))),
+  binary_unsorted_characterSite=paste0("FHT",seq_len(nrow(binary$info))),
+  binary_shuffled_integerSite={set.seed(1704L);sample(seq_len(nrow(binary$info)))})
+for(id in names(binary_site_orders)) {
+  u <- binary; u$info$Site <- binary_site_orders[[id]]
+  stopifnot(is.unsorted(u$info$Site))
+  probe_fit(id,u,fixture_occ_covariates(),character())
+  fit <- fits[[paste0("boundary_",id)]]
+  if(!is.null(fit)) {
+    x <- u$info[[occ[1]]]
+    check(paste0(id,"_X_psi_input_rows"),unname(fit$X_psi[,occ[1]]),(x-mean(x))/sd(x),tol=1e-14)
+    check(paste0(id,"_X_psi_equals_sorted_case"),fit$X_psi,fits$binary$X_psi)
+    check(paste0(id,"_results_equal_sorted_case"),fit$results_output,fits$binary$results_output)
+    check(paste0(id,"_OTU_input_rows"),fit$infos$OTU,u$OTU)
+    check(paste0(id,"_site_names"),fit$infos$siteNames,u$info$Site)
+    prep <- native_prepare(u,fixture_occ_covariates(),character())
+    check(paste0(id,"_preparation_equals_fit"),unname(as.matrix(prep$X_psi$df)),unname(as.matrix(fit$X_psi)))
+  }
 }
 probe_fit("occupancy_localSampleIDs",alignment_data(alignment_samples("local"),"occupancy"),character(),c("effort","collection_type"))
 for(model in c("binary","occupancy","two_stage")) {

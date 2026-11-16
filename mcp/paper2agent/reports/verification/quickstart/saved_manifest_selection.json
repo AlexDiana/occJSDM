@@ -2,10 +2,10 @@
   "binary": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_1d2b7e72446441779528c89af6b1356c",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-0eab7d81a4c34e12a6d1e50aabf7453c/fit.rds",
-    "fit_sha256": "3c8d6a48247255cacce2f1b99eb8be67b8ef40c8c3eaf0be4b239e12bb54e8b9",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/binary_data.rds",
+    "fit_id": "fit_81924219ab26497887542ee83aa42afd",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-81135854c4074260aeb62ab86ac2b22d/fit.rds",
+    "fit_sha256": "601d07cad68d1429fa8cea57c85087a754af91bad2737105f6e4eda7023287da",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/binary_data.rds",
     "input_sha256": "c741c38b1df4d1a00656473422ce34976dde0a2450d0da43239d0465f7aa42aa",
     "seed": 1702,
     "model": "binary",
@@ -46,16 +46,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -101,10 +101,10 @@
   "occupancy": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_919eed4f36a7404ba990482f518adf8f",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-176c5fe376454a228a14457f776da93c/fit.rds",
-    "fit_sha256": "174212a55f9b37a38e2cc693b000a6ace12cbdc4b7ffc494c41d689e2662186f",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/occupancy_data.rds",
+    "fit_id": "fit_db1d23d38ce54af79acb1dd088cb0acd",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-6d3c5ba1fd4d48c59898659fde380621/fit.rds",
+    "fit_sha256": "66b42bc2e2e1d453db03f096397ace7aec5a474b9321f1181f82a6f3fa60fada",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/occupancy_data.rds",
     "input_sha256": "75e79af26c401380a99fb2eb64aa8039f34ffdb534b145c0e9a46b772674d30b",
     "seed": 1702,
     "model": "occupancy",
@@ -149,16 +149,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -207,10 +207,10 @@
   "two_stage": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_9ad267cf36b34e4a80c6d6c7ae9b04de",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-1bd9b06b54e449238292c5464ddd271f/fit.rds",
-    "fit_sha256": "d7894326c267a9aa911ee00122d1caf68621de94d9413fe085fbeb354ed5c227",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/two_stage_data.rds",
+    "fit_id": "fit_1620a44bd67949b1bca5317627d31e2c",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-3df81c1cf48040678aa808cc5de7acf8/fit.rds",
+    "fit_sha256": "6f26518533fe4dae81d1d1a10e1c480e5889f9c9052ccdee257aae8b67e0ea9d",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/two_stage_data.rds",
     "input_sha256": "fec6758a325e8e07b6cf1aff940cfc2b794468c78b98b24ade4902fafd894422",
     "seed": 1702,
     "model": "two_stage",
@@ -255,16 +255,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -313,10 +313,10 @@
   "no_traits": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_ab9c4f4545d84d77935ffcf33379b1e7",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-75b1553e689540adb887caa9ab988c79/fit.rds",
-    "fit_sha256": "cf05606d755566d5b280da3a576b5ceec29b510222d2229c8c8d70fbd53fe0be",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/no_traits_data.rds",
+    "fit_id": "fit_72397f56f951486781696d3c8caa6865",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-d2e4b76f5c0f4f6688d12481ca389572/fit.rds",
+    "fit_sha256": "e78569b4948a4340b7561965db007831d768e5ca9ffc2296d87b7addf566f895",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/no_traits_data.rds",
     "input_sha256": "f204b6e98c350de51dae9e818b0343d53261f8f55389cee4cbd4f46517b83b20",
     "seed": 1702,
     "model": "two_stage",
@@ -361,16 +361,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -419,10 +419,10 @@
   "renamed_single_covariates": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_b6437339810a44f289c212054482c682",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-ba82de86efdc4871bbc602680775e47d/fit.rds",
-    "fit_sha256": "c44a5a9b4094cdcef01d319ca8787d4a2e9f27b2f8a096565ec91b300d198b44",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/renamed_single_covariates_data.rds",
+    "fit_id": "fit_f7bbdb001e534ea5852ae98a7530f7be",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-7ded904f78cf45909584adde3088f90c/fit.rds",
+    "fit_sha256": "b6561572de7fe63b1459307bf5beb544fd5fd430cc6d686ad29884d85f67dc48",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/renamed_single_covariates_data.rds",
     "input_sha256": "305b676dbc94f1acd3873f5e9221d9cc06d24482b53e91452334ef021d1fc32f",
     "seed": 1702,
     "model": "two_stage",
@@ -465,16 +465,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -523,10 +523,10 @@
   "permuted_trait_rows": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_d2072a3518f441abb5e2dd4adfc454f6",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-e3583f01523b44d6b7c2d45f055aa5d0/fit.rds",
-    "fit_sha256": "0bd27dbcfdc4c4d700f8be235d2e42f576b63d0e2a13e51436f42dd0cfa6d052",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/permuted_trait_rows_data.rds",
+    "fit_id": "fit_bce126eb7e9a4c69a56a41ffcd05c001",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-f1a5298a368043c09ac00378397c57da/fit.rds",
+    "fit_sha256": "844bd4cc4fcd3b810eb3bbee30d8660893d6304e13df52ca37ef12a2516713ba",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/permuted_trait_rows_data.rds",
     "input_sha256": "cede7d950e446845dbc8c793b0b424dc65fd86fd3adc3bfa1bbe7d068a41ee67",
     "seed": 1702,
     "model": "two_stage",
@@ -571,16 +571,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -629,10 +629,10 @@
   "categorical_traits": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_6f4f7ce4573e4892ba276b00bbd2c455",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-9106f212e7094e92895787d1f93a32b6/fit.rds",
-    "fit_sha256": "a97563db855a67ba793e0f3cade5468019f8c9c539d0e4de51d5c2de002ec668",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/categorical_traits_data.rds",
+    "fit_id": "fit_74e14057517f4306ac42f9457ebf99a8",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-1858669ac2804815a825946a319d4d39/fit.rds",
+    "fit_sha256": "cc4c1e6d3b25b0fda716befaff027dcda0fa2b8470592ed9a5c8cac04ac35bb2",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/categorical_traits_data.rds",
     "input_sha256": "a9ba71afd41a5ce2230b44540982b5a9a4b37463dacb78a407b2824b9c43221b",
     "seed": 1702,
     "model": "two_stage",
@@ -677,16 +677,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -735,10 +735,10 @@
   "changed_seed_thinning2": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_984b72e62e444c909195c4bc94f14bb9",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-7fcbbaa6c23c4b69994ad50e8c77eaaa/fit.rds",
-    "fit_sha256": "b4cfaca203b2050484036e276bacb07ce38b9c7db57dcb5c8c01331b9d5574e3",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/changed_seed_thinning2_data.rds",
+    "fit_id": "fit_277c7597649f4812bb1d3f93400afea3",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-8a4f83d76730438d8a380947d603f801/fit.rds",
+    "fit_sha256": "7449bddb34adbc646efdbf067c6aa651dad2d652dffb1b5b3c92f444e9afc5ac",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/changed_seed_thinning2_data.rds",
     "input_sha256": "fec6758a325e8e07b6cf1aff940cfc2b794468c78b98b24ade4902fafd894422",
     "seed": 1703,
     "model": "two_stage",
@@ -783,16 +783,16 @@
         "nthin": 2
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -841,10 +841,10 @@
   "changed_seed_same_schedule": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_942473e3fd9e4dcc86f6139398735af0",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-d8d9d8e9a6eb4beea2bb875056318784/fit.rds",
-    "fit_sha256": "ae3f8e674e1742ed1b442a96f2dc8caecf7c4102a0d806b109cbd311217002dd",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/changed_seed_same_schedule_data.rds",
+    "fit_id": "fit_fcb18fede3ab4f82ba0c530e688f8280",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-281a62008f734886835b3c67eb0b8dce/fit.rds",
+    "fit_sha256": "a5bf12626f83bd87c27a0b938768627b5016af4715ad68b6006346e8842eb8ee",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/changed_seed_same_schedule_data.rds",
     "input_sha256": "fec6758a325e8e07b6cf1aff940cfc2b794468c78b98b24ade4902fafd894422",
     "seed": 1703,
     "model": "two_stage",
@@ -889,16 +889,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -947,10 +947,10 @@
   "alignment_global_ordered": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_929402d5d16d43218e6c43c7e4e36788",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-a25bf4ae6c6e4322aece82beb07ab3a4/fit.rds",
-    "fit_sha256": "269361dbb09f30fba336a796eb3c3e39be9a96de261ee321d4f2c2ea5e131740",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_global_ordered_data.rds",
+    "fit_id": "fit_903b5c3be31640c881ab7bd7e5ad4d3e",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-82bd62a798a64a24ae7a7c9cf5fbc2fc/fit.rds",
+    "fit_sha256": "945103e89dd23a9344639ecfa83ee1212896b46f1b4f76edb751095a43523094",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/alignment_global_ordered_data.rds",
     "input_sha256": "0e78425b45d474aaaa22d0543d5627e754aeb814de3d8736abb6d06ba699fa53",
     "seed": 1702,
     "model": "two_stage",
@@ -991,16 +991,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1043,10 +1043,10 @@
   "alignment_global_shuffled": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_0a5cc65b3a654c46972a6589664fa4f7",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-990d784f163740928b8db4f4c5e2b911/fit.rds",
-    "fit_sha256": "841377d628fafaa093f1ba563c0ca4d6d848cb39e4401eefc933510c2b060909",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_global_shuffled_data.rds",
+    "fit_id": "fit_1256d79c92234c16a47ca13d9237f1ef",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-1cb60d14197d4cc3b6dc5e052e6890b9/fit.rds",
+    "fit_sha256": "88f8102469dcb6627c01286c3f0b39881f9825d30d4bc9a8e36f6a367afab205",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/alignment_global_shuffled_data.rds",
     "input_sha256": "35b0f0abda35bc7443616979ded5493bf23e65b55350a8b7a1ac55d4428f3c86",
     "seed": 1702,
     "model": "two_stage",
@@ -1087,16 +1087,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1139,10 +1139,10 @@
   "alignment_local_ordered": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_c6f70914f5df493b8128822b03086e6b",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-dec66a90ac144d3ebab7085f3d2a5bc8/fit.rds",
-    "fit_sha256": "e0a33cbc9a6cfe51d4c97037c96de2ea94319028d67e7fee0e82e1af04a3aa91",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_local_ordered_data.rds",
+    "fit_id": "fit_32ead91c1ebe420c945aea6aa53e2cae",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-a5f25307d6ea4a1db9c9f06eb222591a/fit.rds",
+    "fit_sha256": "f4d439be7a01a939d6e61282047a4497d12f3453d3594ce9a1e21c99f9b869dd",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/alignment_local_ordered_data.rds",
     "input_sha256": "29d3f74b15d038a898923ab42a79cd5c58dba579036a38bae0c3ee32108d6a5f",
     "seed": 1702,
     "model": "two_stage",
@@ -1183,16 +1183,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1235,10 +1235,10 @@
   "alignment_local_shuffled": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_81e82eab83cf4666a7db21a9cd2ac26f",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-4392be29316a4dfc9ac62f44d2931f5c/fit.rds",
-    "fit_sha256": "e454a84681067f2d296850efec12182801c0a1d27e41c2f305a52fec9a8e7a41",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_local_shuffled_data.rds",
+    "fit_id": "fit_134951a23e6c43fe80cf734a213c9e2d",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-04c94790e6b54bf2a516bfb53570d787/fit.rds",
+    "fit_sha256": "84c90a90b22082e4958f640a96206266c84d94eb7873fe808e09ade2e98932fb",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/alignment_local_shuffled_data.rds",
     "input_sha256": "966c512a12d789f346fd7c08ec1e8e34b8a6023ba33e08fb3584aa770a452e54",
     "seed": 1702,
     "model": "two_stage",
@@ -1279,16 +1279,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1331,10 +1331,10 @@
   "alignment_character_ordered": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_1dce25e9f9f44cfb8fa7c6873e6a38e2",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-a3b3fab0881d4bd9b0a6ea413bdceece/fit.rds",
-    "fit_sha256": "42354afdb5d247eef8baa4b96ec559c772599cb27a6dbb0849dcea024f467825",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_character_ordered_data.rds",
+    "fit_id": "fit_80d46f93c9054ddc9f4baddada9c32c7",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-93683ebba29b460bbe15e0d00d24a322/fit.rds",
+    "fit_sha256": "afd96ed4070bc679e8a949f1efee0e7966b6f47c2a4408949f63c4687f18f9b6",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/alignment_character_ordered_data.rds",
     "input_sha256": "774a47e60e33a45f528effac89ced14aa36ebe3963190e11c5e0510a6343727a",
     "seed": 1702,
     "model": "two_stage",
@@ -1375,16 +1375,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1427,10 +1427,10 @@
   "alignment_character_shuffled": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_b0e8b414bafc4f65bb23d25252a1f42e",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-d934c057ce1c4d25890b78070161ce1c/fit.rds",
-    "fit_sha256": "adae53605c35d7da836a3cf19fa047c249af3384153c7e90095a8edbfb5135d6",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_character_shuffled_data.rds",
+    "fit_id": "fit_878ef5421ca448dc9b445beade8f2df0",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-23f9dcb697ab40afbe74b3fb2dc7bab4/fit.rds",
+    "fit_sha256": "842e82ec80e03379398b084ac4b96e874161680e3be2cc3c848c9f294345eb2b",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/alignment_character_shuffled_data.rds",
     "input_sha256": "2fc555c61f7cf40c13d291e4166e5dee9b0abc2c0ef37120bab80f78817cb91d",
     "seed": 1702,
     "model": "two_stage",
@@ -1471,16 +1471,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1523,10 +1523,10 @@
   "alignment_identifier_covariates": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_093e13d99d6840eaa0506ebcaa8e462f",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-2731e2432f024601a76842ccbdbffa26/fit.rds",
-    "fit_sha256": "091a3e3e832c3c5d8905d78bf8d7ca93145e2d6943fc6346713e0cf7080604d3",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_identifier_covariates_data.rds",
+    "fit_id": "fit_c893f58cddd74708b3bc4f57f183f778",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-4c9ef7b99381425fbbe4c4d80eb57065/fit.rds",
+    "fit_sha256": "6574540f41b0b9b59cd1bfd3543bbe8ec53fdb166a53fd60a4d9b1c2a89cdf2d",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/alignment_identifier_covariates_data.rds",
     "input_sha256": "966c512a12d789f346fd7c08ec1e8e34b8a6023ba33e08fb3584aa770a452e54",
     "seed": 1702,
     "model": "two_stage",
@@ -1567,16 +1567,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1618,10 +1618,10 @@
   "alignment_occupancy_shuffled": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_5a588be0c05e45079cfee2bce8f8e2da",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-43e63bbe04024e67a74e9841a134ee79/fit.rds",
-    "fit_sha256": "e0824fc8397ec54e83771090315cc4936b9eec4f2794b599dcb38c3442f57d62",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/alignment_occupancy_shuffled_data.rds",
+    "fit_id": "fit_545302a2d659485bbb1af68b1a602683",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-8fa31d6b513f484e9dad7007efa42dff/fit.rds",
+    "fit_sha256": "d1f36bd86377f31942b11eed7b3a8771302cf8c8183be22bc5c28dd7fe19eec9",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/alignment_occupancy_shuffled_data.rds",
     "input_sha256": "ff2126b20e47256a4c082e5140c6a592405fbe4a1690e106ebefbc2b9d4a34e8",
     "seed": 1702,
     "model": "occupancy",
@@ -1662,16 +1662,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1707,13 +1707,310 @@
       "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
     ]
   },
+  "boundary_binary_unsorted_uniqueSite": {
+    "schema_version": 1,
+    "status": "complete",
+    "fit_id": "fit_e16e02002eee475489b691a9db1a6b4c",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-0d6f3b06d1c546bf874d683736de08c1/fit.rds",
+    "fit_sha256": "e477a59cce6b42937f3e08f7f3ceef2665384026f2313d2e920d27525f56051e",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/boundary_binary_unsorted_uniqueSite_data.rds",
+    "input_sha256": "9fab90ff5c3068fa881b68498b3650f15c06d0b21b1c7c2cdcb79595b2901458",
+    "seed": 1702,
+    "model": "binary",
+    "effective_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      },
+      "spatCovariates": [],
+      "summarisedLatentPresences": true,
+      "listPriors": {}
+    },
+    "requested_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      }
+    },
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
+    "runtime": {
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "renv_version": "1.2.3",
+      "libPaths": [
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+      ],
+      "thread_env": {
+        "OMP_NUM_THREADS": "",
+        "OPENBLAS_NUM_THREADS": "",
+        "MKL_NUM_THREADS": "",
+        "RCPP_PARALLEL_NUM_THREADS": ""
+      },
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
+    },
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
+    "fastmcp_version": "4.0.3",
+    "pydantic_version": "2.13.5",
+    "thread_settings": {
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "MKL_NUM_THREADS": "",
+      "RCPP_PARALLEL_NUM_THREADS": ""
+    },
+    "warnings": [
+      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+      "Low ESS in 'B0'. Min ESS < 50",
+      "Convergence issue in 'B_output'. Max R-hat > 1.1",
+      "Low ESS in 'B'. Min ESS < 50",
+      "Convergence issue in 'G_output'. Max R-hat > 1.1",
+      "Low ESS in 'G'. Min ESS < 50",
+      "Convergence issue in 'A_output'. Max R-hat > 1.1",
+      "Low ESS in 'A'. Min ESS < 50",
+      "Convergence issue in 'C_output'. Max R-hat > 1.1",
+      "Low ESS in 'C'. Min ESS < 50",
+      "Convergence issue in 'U_output'. Max R-hat > 1.1",
+      "Low ESS in 'U'. Min ESS < 50",
+      "Low ESS in 'L'. Min ESS < 50",
+      "Convergence issue in 'sigmah_output'. Max R-hat > 1.1",
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Convergence issue in 'mu_b0_output'. Max R-hat > 1.1",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
+    ],
+    "qualifications": [
+      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+    ]
+  },
+  "boundary_binary_unsorted_characterSite": {
+    "schema_version": 1,
+    "status": "complete",
+    "fit_id": "fit_c8c63738436e416db380478d8c7c4be2",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-e5b229b04cef4e89affe59bbbd3614c6/fit.rds",
+    "fit_sha256": "da2fceea9e431c5c6dcc729e9a0064f464341095c3e3bf926a22c13e4bef3bbb",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/boundary_binary_unsorted_characterSite_data.rds",
+    "input_sha256": "5e54a329356519126d1c47373132a58fa81f7427fab5e09cc2e1e791bded7fa6",
+    "seed": 1702,
+    "model": "binary",
+    "effective_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      },
+      "spatCovariates": [],
+      "summarisedLatentPresences": true,
+      "listPriors": {}
+    },
+    "requested_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      }
+    },
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
+    "runtime": {
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "renv_version": "1.2.3",
+      "libPaths": [
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+      ],
+      "thread_env": {
+        "OMP_NUM_THREADS": "",
+        "OPENBLAS_NUM_THREADS": "",
+        "MKL_NUM_THREADS": "",
+        "RCPP_PARALLEL_NUM_THREADS": ""
+      },
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
+    },
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
+    "fastmcp_version": "4.0.3",
+    "pydantic_version": "2.13.5",
+    "thread_settings": {
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "MKL_NUM_THREADS": "",
+      "RCPP_PARALLEL_NUM_THREADS": ""
+    },
+    "warnings": [
+      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+      "Low ESS in 'B0'. Min ESS < 50",
+      "Convergence issue in 'B_output'. Max R-hat > 1.1",
+      "Low ESS in 'B'. Min ESS < 50",
+      "Convergence issue in 'G_output'. Max R-hat > 1.1",
+      "Low ESS in 'G'. Min ESS < 50",
+      "Convergence issue in 'A_output'. Max R-hat > 1.1",
+      "Low ESS in 'A'. Min ESS < 50",
+      "Convergence issue in 'C_output'. Max R-hat > 1.1",
+      "Low ESS in 'C'. Min ESS < 50",
+      "Convergence issue in 'U_output'. Max R-hat > 1.1",
+      "Low ESS in 'U'. Min ESS < 50",
+      "Low ESS in 'L'. Min ESS < 50",
+      "Convergence issue in 'sigmah_output'. Max R-hat > 1.1",
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Convergence issue in 'mu_b0_output'. Max R-hat > 1.1",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
+    ],
+    "qualifications": [
+      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+    ]
+  },
+  "boundary_binary_shuffled_integerSite": {
+    "schema_version": 1,
+    "status": "complete",
+    "fit_id": "fit_ea4a6cf43191499281686bf1c0c50b7d",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-0e64f24ccff04535933ad353812ccf1a/fit.rds",
+    "fit_sha256": "4ea348dc2ad80e89fdfa1fb7426c8f9cba8b91a3f9903676251d19afc3780ad0",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/boundary_binary_shuffled_integerSite_data.rds",
+    "input_sha256": "3d65edecb4242dc747fb6d822f8fd1ee6ef5bd9cafa2ba37cb879b5b75251038",
+    "seed": 1702,
+    "model": "binary",
+    "effective_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      },
+      "spatCovariates": [],
+      "summarisedLatentPresences": true,
+      "listPriors": {}
+    },
+    "requested_settings": {
+      "occCovariates": [
+        "X_psi.EnvCov.1",
+        "X_psi.EnvCov.2"
+      ],
+      "collCovariates": [],
+      "threshold": 1,
+      "listParams": {
+        "n_factors": 2
+      },
+      "MCMCparams": {
+        "nchain": 2,
+        "nburn": 20,
+        "niter": 20,
+        "nthin": 1
+      }
+    },
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
+    "runtime": {
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
+      "R": "R version 4.6.1 (2026-06-24)",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "renv_version": "1.2.3",
+      "libPaths": [
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+      ],
+      "thread_env": {
+        "OMP_NUM_THREADS": "",
+        "OPENBLAS_NUM_THREADS": "",
+        "MKL_NUM_THREADS": "",
+        "RCPP_PARALLEL_NUM_THREADS": ""
+      },
+      "Rscript": "/Library/Frameworks/R.framework/Versions/4.6/Resources/bin/Rscript"
+    },
+    "python_version": "3.12.13 (main, Apr 14 2026, 14:33:40) [Clang 22.1.3 ]",
+    "fastmcp_version": "4.0.3",
+    "pydantic_version": "2.13.5",
+    "thread_settings": {
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "MKL_NUM_THREADS": "",
+      "RCPP_PARALLEL_NUM_THREADS": ""
+    },
+    "warnings": [
+      "Convergence issue in 'B0_output'. Max R-hat > 1.1",
+      "Low ESS in 'B0'. Min ESS < 50",
+      "Convergence issue in 'B_output'. Max R-hat > 1.1",
+      "Low ESS in 'B'. Min ESS < 50",
+      "Convergence issue in 'G_output'. Max R-hat > 1.1",
+      "Low ESS in 'G'. Min ESS < 50",
+      "Convergence issue in 'A_output'. Max R-hat > 1.1",
+      "Low ESS in 'A'. Min ESS < 50",
+      "Convergence issue in 'C_output'. Max R-hat > 1.1",
+      "Low ESS in 'C'. Min ESS < 50",
+      "Convergence issue in 'U_output'. Max R-hat > 1.1",
+      "Low ESS in 'U'. Min ESS < 50",
+      "Low ESS in 'L'. Min ESS < 50",
+      "Convergence issue in 'sigmah_output'. Max R-hat > 1.1",
+      "Low ESS in 'sigmah'. Min ESS < 50",
+      "Convergence issue in 'mu_b0_output'. Max R-hat > 1.1",
+      "Low ESS in 'mu_b0'. Min ESS < 50"
+    ],
+    "qualifications": [
+      "Beta research software: faithful execution does not establish unbiased estimates or calibrated intervals.",
+      "Short fits are transport/teaching checks and are unsuitable for scientific interpretation; inspect convergence before extending sampling."
+    ]
+  },
   "boundary_occupancy_localSampleIDs": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_7f494078e1924491ada0e04a3e3a2eb9",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-f61f1b890ab4447d8e1913b679615856/fit.rds",
-    "fit_sha256": "6787572d34471d75ffa35b08b744ff196663c6c349537f7dd97d1a05c2df7960",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/boundary_occupancy_localSampleIDs_data.rds",
+    "fit_id": "fit_86f08d52f7554382a1d48fd53172d29b",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-eef404486db444b2b47f646207f67263/fit.rds",
+    "fit_sha256": "08d20cd9b0f59c4d46e2d4d5c9aeaecb7f33892a048253b81d9f24a4d0b9330c",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/boundary_occupancy_localSampleIDs_data.rds",
     "input_sha256": "ce6a4a7c0aaebf9141c2f81bdfbf2a5c78baad793b91e96c108bac745b9f1b39",
     "seed": 1702,
     "model": "occupancy",
@@ -1754,16 +2051,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",
@@ -1802,10 +2099,10 @@
   "boundary_two_stage_NA_OTU": {
     "schema_version": 1,
     "status": "complete",
-    "fit_id": "fit_4ecee9bf23944dcf8f6246cb65c464c7",
-    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-8aff53aa99b145a598007ea536b0c880/fit.rds",
-    "fit_sha256": "6f81956e4fbbfc54e94040a5805578608f4c2d7e011f83908b77ba1aac79f45b",
-    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/notebooks/quickstart/data/boundary_two_stage_NA_OTU_data.rds",
+    "fit_id": "fit_1577dafe818d48c8b6bc87396e4e38c2",
+    "fit_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-8c522e09a62a431c9b9e3388f0c64262/fit.rds",
+    "fit_sha256": "13752f232a8a6e067488525542f2008ebf89e147c8b23793104aef65198421f7",
+    "input_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/notebooks/quickstart/data/boundary_two_stage_NA_OTU_data.rds",
     "input_sha256": "9e5d4a75a249b2d6fcd478846c36e38d222eb445a2a988a01a916de2bf7deab4",
     "seed": 1702,
     "model": "two_stage",
@@ -1850,16 +2147,16 @@
         "nthin": 1
       }
     },
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "runtime": {
-      "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
       "R": "R version 4.6.1 (2026-06-24)",
-      "occJSDM_version": "0.3.0",
-      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+      "occJSDM_version": "0.3.2",
+      "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
       "renv_version": "1.2.3",
       "libPaths": [
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+        "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
       ],
       "thread_env": {
         "OMP_NUM_THREADS": "",

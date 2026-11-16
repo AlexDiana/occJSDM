@@ -1639,7 +1639,7 @@
     },
     "occJSDM": {
       "Package": "occJSDM",
-      "Version": "0.3.0",
+      "Version": "0.3.2",
       "Source": "Local",
       "Type": "Package",
       "Title": "Simultaneous Fitting of an eDNA-Aware Occupancy and Joint Species Distribution Model",
@@ -1687,8 +1687,7 @@
         "testthat (>= 3.0.0)"
       ],
       "VignetteBuilder": "knitr",
-      "Config/roxygen2/version": "8.0.0",
-      "RoxygenNote": "8.0.0",
+      "Config/roxygen2/version": "8.1.0",
       "Config/testthat/edition": "3",
       "Depends": [
         "R (>= 4.1.0)"
@@ -1697,10 +1696,10 @@
       "Author": "Alex Diana [aut, cre], Douglas W. Yu [aut]",
       "Maintainer": "Alex Diana <Alex.diana92@yahoo.it>",
       "RemoteType": "local",
-      "RemoteSha": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+      "RemoteSha": "d200b768f7ebef230b657ee8af2773779059905f",
       "P2ARepository": "https://github.com/AlexDiana/occJSDM",
-      "P2ASourceArchiveSHA256": "e9a43949242480dce4765d0831d5b081b885ab8b8680e80d07db88f732d99126",
-      "P2ACellarPath": "renv/cellar/occJSDM/occJSDM_0.3.0.tar.gz"
+      "P2ASourceArchiveSHA256": "e8c19b6e61080b06e633671608993308edb7ae4395af0c762e583f6aacdb6ec7",
+      "P2ACellarPath": "renv/cellar/occJSDM/occJSDM_0.3.2.tar.gz"
     },
     "pillar": {
       "Package": "pillar",

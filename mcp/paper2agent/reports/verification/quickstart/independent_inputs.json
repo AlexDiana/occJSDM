@@ -1,6 +1,6 @@
 {
   "binary_single": {
-    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
     "options": {
       "occCovariates": [
         "habitat_changed"
@@ -28,7 +28,7 @@
     ]
   },
   "occupancy_changed": {
-    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/occupancy_changed_data.rds",
+    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/occupancy_changed_data.rds",
     "options": {
       "occCovariates": [
         "habitat_changed",
@@ -61,7 +61,7 @@
     ]
   },
   "two_stage_single": {
-    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/two_stage_single_data.rds",
+    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/two_stage_single_data.rds",
     "options": {
       "occCovariates": [
         "habitat_changed"
@@ -91,7 +91,7 @@
     ]
   },
   "two_stage_changed": {
-    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/two_stage_changed_data.rds",
+    "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/two_stage_changed_data.rds",
     "options": {
       "occCovariates": [
         "habitat_changed",

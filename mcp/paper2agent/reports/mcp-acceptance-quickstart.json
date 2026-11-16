@@ -3,7 +3,7 @@
     "name": "validate-binary-single-first",
     "tool": "validate_data",
     "arguments": {
-      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
       "occCovariates": [
         "habitat_changed"
       ],
@@ -30,14 +30,14 @@
       }
     },
     "min_artifacts": 2,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "validate-binary-single-repeat",
     "tool": "validate_data",
     "arguments": {
-      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
       "occCovariates": [
         "habitat_changed"
       ],
@@ -64,14 +64,14 @@
       }
     },
     "min_artifacts": 2,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "fit-binary_single",
     "tool": "fit_model",
     "arguments": {
-      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
       "options": {
         "occCovariates": [
           "habitat_changed"
@@ -106,18 +106,18 @@
         1
       ],
       "runtime": {
-        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+        "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
       }
     },
     "min_artifacts": 4,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "fit-occupancy_changed",
     "tool": "fit_model",
     "arguments": {
-      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/occupancy_changed_data.rds",
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/occupancy_changed_data.rds",
       "options": {
         "occCovariates": [
           "habitat_changed",
@@ -155,18 +155,18 @@
         3
       ],
       "runtime": {
-        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+        "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
       }
     },
     "min_artifacts": 4,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "fit-two_stage_single",
     "tool": "fit_model",
     "arguments": {
-      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/two_stage_single_data.rds",
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/two_stage_single_data.rds",
       "options": {
         "occCovariates": [
           "habitat_changed"
@@ -203,18 +203,18 @@
         1
       ],
       "runtime": {
-        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+        "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
       }
     },
     "min_artifacts": 4,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "fit-two_stage_changed",
     "tool": "fit_model",
     "arguments": {
-      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/two_stage_changed_data.rds",
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/two_stage_changed_data.rds",
       "options": {
         "occCovariates": [
           "habitat_changed",
@@ -252,18 +252,18 @@
         3
       ],
       "runtime": {
-        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+        "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
       }
     },
     "min_artifacts": 4,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "fit-binary_single-repeat",
     "tool": "fit_model",
     "arguments": {
-      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
       "options": {
         "occCovariates": [
           "habitat_changed"
@@ -298,18 +298,18 @@
         1
       ],
       "runtime": {
-        "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e"
+        "source_revision": "d200b768f7ebef230b657ee8af2773779059905f"
       }
     },
     "min_artifacts": 4,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "diagnostics-single-first",
     "tool": "diagnostics",
     "arguments": {
-      "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
+      "fit_id": "fit_68dd371f8cd24e67b35ef11a34d7c417",
       "max_rows": 2
     },
     "required_inputs": [
@@ -333,14 +333,14 @@
       }
     },
     "min_artifacts": 3,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "summary-single-first",
     "tool": "summarise_fit",
     "arguments": {
-      "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
+      "fit_id": "fit_68dd371f8cd24e67b35ef11a34d7c417",
       "max_rows": 20
     },
     "required_inputs": [
@@ -369,14 +369,14 @@
       }
     },
     "min_artifacts": 4,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "diagnostics-single-repeat",
     "tool": "diagnostics",
     "arguments": {
-      "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
+      "fit_id": "fit_68dd371f8cd24e67b35ef11a34d7c417",
       "max_rows": 2
     },
     "required_inputs": [
@@ -400,14 +400,14 @@
       }
     },
     "min_artifacts": 3,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "summary-single-repeat",
     "tool": "summarise_fit",
     "arguments": {
-      "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
+      "fit_id": "fit_68dd371f8cd24e67b35ef11a34d7c417",
       "max_rows": 20
     },
     "required_inputs": [
@@ -436,14 +436,14 @@
       }
     },
     "min_artifacts": 4,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
     "name": "diagnostics-constant-chain",
     "tool": "diagnostics",
     "arguments": {
-      "fit_id": "fit_af55035a1c144090ad4fa448e20a4803",
+      "fit_id": "fit_7c57f0212e3d457f88e44f0d49c8b832",
       "max_rows": 20
     },
     "required_inputs": [
@@ -465,7 +465,7 @@
       }
     },
     "min_artifacts": 3,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   },
   {
@@ -498,7 +498,7 @@
     "name": "diagnostics-max21",
     "tool": "diagnostics",
     "arguments": {
-      "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
+      "fit_id": "fit_68dd371f8cd24e67b35ef11a34d7c417",
       "max_rows": 21
     },
     "required_inputs": [
@@ -510,7 +510,7 @@
     "name": "summary-max21",
     "tool": "summarise_fit",
     "arguments": {
-      "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
+      "fit_id": "fit_68dd371f8cd24e67b35ef11a34d7c417",
       "max_rows": 21
     },
     "required_inputs": [
@@ -522,7 +522,7 @@
     "name": "unsupported-spatial",
     "tool": "fit_model",
     "arguments": {
-      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/binary_single_data.rds",
       "options": {
         "occCovariates": [
           "habitat_changed"
@@ -556,7 +556,7 @@
     "name": "composed-row-identity-failure",
     "tool": "fit_model",
     "arguments": {
-      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/row_mismatch.rds",
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/row_mismatch.rds",
       "options": {
         "occCovariates": [
           "habitat_changed",
@@ -589,7 +589,7 @@
     "name": "traits-alias-report",
     "tool": "validate_data",
     "arguments": {
-      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/reports/verification/quickstart/traits_alias.rds",
+      "data_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/reports/verification/quickstart/traits_alias.rds",
       "occCovariates": [
         "habitat_changed"
       ],
@@ -605,7 +605,7 @@
       "model": null
     },
     "min_artifacts": 2,
-    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls",
+    "artifact_root": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls",
     "unique_artifacts": true
   }
 ]
