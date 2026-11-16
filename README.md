@@ -1,6 +1,8 @@
 # occJSDM
 
-An R package for fitting a combined occupancy and joint species distribution model (occJSDM), optionally accounting for environmental and detection covariates, species traits, spatial autocorrelation, and for eDNA-style data, a two-stage observation process (false-negative and false-positive detection errors in the field and in the lab).
+An R package for fitting a combined occupancy and joint species distribution model (**occJSDM**), optionally accounting for environmental and detection covariates, species traits, and for eDNA-style data, a two-stage observation process (false-negative and false-positive detection errors in the field and in the lab).
+
+**occJSDM** is the follow-on to **occPlus**.
 
 #### **N.B. This is [beta software](https://github.com/AlexDiana/occJSDM/releases), and we are still in bugfixing mode.** 
 
@@ -34,9 +36,13 @@ Results under different BLAS libraries agree to rounding error, not bit for bit,
 
 **Parallel chains.** To run chains on separate cores, set `ncores` in `MCMCparams`, for example `MCMCparams = list(nchain = 4, ncores = 4)`. `ncores` is the total core budget: four chains with `ncores = 4` run on four single-threaded workers, and `ncores = 8` gives each of the four workers two threads. The default, `ncores = 1`, runs the chains one after another. Every chain is seeded on its own, so under a single-threaded BLAS a seeded fit is identical whatever `ncores` says. For the same reason, and because the spatial Gram matrices are now formed with a symmetric BLAS routine, a seeded fit gives different numbers from version 0.1.1. See `?runOccJSDM`.
 
-## Getting started
+### Quickstart lesson
 
-The [quickstart](vignettes/occJSDM-00-quickstart.md) takes you from the input data through fitting and convergence checks to every main result, as figures and tables. The simulator guide shows how to simulate a survey whose truth you know. After installing with vignettes, open them in R:
+The [Quickstart](vignettes/occJSDM-00-quickstart.md) takes you from the input data through fitting and convergence checks to every main result, as figures and tables. 
+
+The [Simulator guide](vignettes/simulateOccJSDMData.Rmd) shows how to simulate a survey whose truth you know. 
+
+After installing occJSDM with vignettes, open them in R:
 
 ``` r
 vignette("occJSDM-00-quickstart", package = "occJSDM")
@@ -45,18 +51,16 @@ vignette("simulateOccJSDMData", package = "occJSDM")
 
 ### Teaching lessons
 
-The quickstart shows how to use occJSDM's functions on one example survey. The lessons go further. Lesson 1 explains what the model does, and the others test how well it works: they fit it to simulated surveys whose truth is known, then compare its answers with that truth and with other packages. Each lesson answers the question listed with it below. They live in the repository (not in the installed package) and are read in this order: Lesson 1, then 2 and 3, with the rest as needed.
+The seven Lessons go into occJSDM's functions and theory in detail. (Lessons 0 and 1 have been reviewed line by line; Lessons 2 to 7 are first drafts awaiting review.)
 
-Each lesson studies one simulated survey or one small set of them, so treat its results as illustrations, not as evidence that the model is unbiased in general. Lessons 0 and 1 have been reviewed line by line; Lessons 2 to 7 are first drafts awaiting that review.
-
-- [Lesson 0 (optional): create and explore a simulated survey](vignettes/occJSDM-lesson-0.md). Where does the simulated survey that Lessons 2 to 4 analyse come from, and how can you simulate your own?
+- [Lesson 0 (optional): create and explore a simulated survey](vignettes/occJSDM-lesson-0.md). Where does the simulated survey that Lessons 2 to 4 analyse come from, and how can you simulate your own dataset?
 - [Lesson 1: what occupancy models and joint species distribution models do](vignettes/occJSDM-lesson-1.md). If a survey did not detect a species, was it absent or missed? And what does modelling all the species together add? Worked mostly by hand.
 - [Lesson 2: fit the model and compare its answers with truth](vignettes/occJSDM-lesson-2.md). How closely does occJSDM recover occupancy, what does detection error cost, and when does it wrongly believe or dismiss a positive detection?
-- [Lesson 3: understand the model's outputs by comparing them with truth](vignettes/occJSDM-lesson-3.md). How far can each of the outputs that the quickstart draws be trusted?
-- [Lesson 4: predict occupancy at new sites and compare models](vignettes/occJSDM-lesson-4.md). How well does occJSDM predict occupancy at sites it has never seen, and can those predictions, or WAIC, tell two models apart?
+- [Lesson 3: understand the model's outputs by comparing them with truth](vignettes/occJSDM-lesson-3.md). How far can each of occJSDM's outputs be trusted?
+- [Lesson 4: predict occupancy at new sites and compare models](vignettes/occJSDM-lesson-4.md). How well does occJSDM predict occupancy at sites it has never seen, and can WAIC tell two models apart?
 - [Lesson 5: compare four JSDMs with a community whose truth we know](vignettes/occJSDM-lesson-5.md). Does occJSDM's joint species distribution model do as well as gllvm, sjSDM and Hmsc when all four are given the same perfectly observed community?
-- [Lesson 6: repeat the four-JSDM comparison across ten communities, with traits](vignettes/occJSDM-lesson-6.md). Does that comparison hold up across ten communities, and are each package's estimates biased and its intervals trustworthy?
-- [Lesson 7: spatial landscapes and survey design](vignettes/occJSDM-lesson-7.md). With 100 sites, how should they be placed if the spatial field is to be learned at all, and why does the beta recommend leaving it out?
+- [Lesson 6: repeat the four-JSDM comparison across ten communities, with traits](vignettes/occJSDM-lesson-6.md). Does that comparison hold up across ten communities?
+- [Lesson 7: spatial landscapes and survey design](vignettes/occJSDM-lesson-7.md). With 100 sites, how should they be placed if a spatial field is to be learned, and why does the beta recommend currently recommend not using the spatial field function?
 
 ### Working with posterior draws
 

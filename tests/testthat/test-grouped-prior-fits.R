@@ -451,3 +451,17 @@ test_that("a grouped fit runs with a spatial field", {
   expect_true(all(is.finite(fit$results_output$jsdm_output$lambda_output)))
   expect_grouped_scales_move(fit, 1L, 1L, "spatial field")
 })
+
+test_that("a grouped fit with one row per site keeps the embedding in input order", {
+  # Site names in file order that are not in sorted order: "FHT10" sorts before
+  # "FHT2". Covariates must stay on the rows they were given on (see
+  # test-site-order.R for the defect this guards against).
+  sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
+  info <- sim$data_list$info
+  sim$data_list$info$Site <- paste0("FHT", seq_len(nrow(info)))
+  fit <- fit_grouped(sim)
+  for (v in c("X_psi.EnvCov.1", sim$data_list$embeddingVars[c(1L, 8L)]))
+    expect_equal(cor(fit$X_psi[, v], info[[v]]), 1, info = v)
+  expect_identical(unname(fit$infos$covariate_group), rep(c("measured", "embedding"), c(2L, 8L)))
+  expect_identical(fit$infos$coef_prior$type, "grouped")
+})

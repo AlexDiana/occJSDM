@@ -420,3 +420,17 @@ test_that("the G and C draw does not trip the symmetry check at a small noise sc
   }
   expect_identical(grep("chol", printed, value = TRUE), character(0))
 })
+
+test_that("the embedding check uses the rows the design matrix is built from", {
+  info <- data.frame(Site = c("b", "b", "a", "a"), e1 = c(1, 2, 1, 3), e2 = c(1, 1, 2, 2))
+  p <- list(embeddingVars = c("e1", "e2"))
+  # Repeated rows per site: the first row of each site is used, and e1 is 1 at both.
+  expect_error(occJSDM:::check_embedding_varies(info, c("e1", "e2"), p, "Site"),
+               "embeddingVars columns must vary across sites: e1", fixed = TRUE)
+  # One row per site: the rows are used as given, and no Site column is needed.
+  one_row <- info[, c("e1", "e2")]
+  expect_no_error(occJSDM:::check_embedding_varies(one_row, c("e1", "e2"), p, NULL))
+  one_row$e2 <- 5
+  expect_error(occJSDM:::check_embedding_varies(one_row, c("e1", "e2"), p, NULL),
+               "embeddingVars columns must vary across sites: e2", fixed = TRUE)
+})

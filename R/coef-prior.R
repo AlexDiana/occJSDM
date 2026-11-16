@@ -98,9 +98,13 @@ occ_design_columns <- function(X, list_matrix, X0) {
 # before the design matrix is built, on the values it is built from: the first
 # row of each site. Names that are not numeric occupancy covariates are left
 # for read_coef_prior() to reject.
-check_embedding_varies <- function(data_info, occCovariates, params) {
+check_embedding_varies <- function(data_info, occCovariates, params,
+                                   group_by_col = "Site") {
   emb_vars <- intersect(get_param(params, "embeddingVars", NULL), occCovariates)
-  first <- !duplicated(data_info$Site)
+  # The rows process_covariates() will use: the first row of each group, or
+  # every row as given when the data already have one row per site (NULL).
+  first <- if (is.null(group_by_col)) rep(TRUE, nrow(data_info)) else
+    !duplicated(data_info[[group_by_col]])
   constant <- emb_vars[vapply(emb_vars, function(v) {
     x <- data_info[[v]]
     is.numeric(x) && length(unique(x[first])) < 2L

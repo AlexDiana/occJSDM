@@ -26,8 +26,9 @@ process_covariates <- function(data_info, covariates, group_by_col, n_obs,
   if (length(covariates) > 0) {
 
     # NULL means the caller has already supplied one ordered row per unit.
-    # Keep identifier columns available when requested as covariates.
-    df <- data_info
+    # Keep identifier columns available when requested as covariates. A tibble
+    # either way, so the stored X0 has one class whichever branch built it.
+    df <- tibble::as_tibble(data_info)
     if (!is.null(group_by_col)) {
       df <- df %>%
         dplyr::group_by(!!rlang::sym(group_by_col)) %>%
@@ -288,7 +289,10 @@ create_waic_quantities <- function(n_obs){
 #'   and \code{Primer} id columns (as applicable to the inferred model) plus
 #'   the occupancy/collection/spatial covariate columns named in
 #'   \code{occCovariates}/\code{collCovariates}/\code{spatCovariates}. See the
-#'   vignette for the full expected shape.}
+#'   vignette for the full expected shape. The rows may come in any order, as
+#'   long as row \emph{i} of \code{info} and row \emph{i} of \code{OTU}
+#'   describe the same observation. The section \emph{Row order of the
+#'   results} says which order the sites of the fit are then in.}
 #'   \item{OTU}{A matrix of dimension (N x S), where N is
 #'   \code{nrow(data$info)} and S is the number of species, containing the
 #'   number of reads of each species in each observation.}
@@ -485,6 +489,42 @@ create_waic_quantities <- function(n_obs){
 #' Embeddings can be used as occupancy covariates with an experimental prior
 #' that is off unless \code{embeddingVars} or \code{b_prior} is set. It is
 #' documented in the \link[=grouped-prior]{grouped-prior} help page.
+#'
+#' @section Row order of the results:
+#' Every per-site result of a fit follows one order: the order of the sites in
+#' \code{infos$data_info}, the copy of \code{data$info} that the model was
+#' fitted to.
+#' \itemize{
+#'   \item With one row per site (a binary or continuous fit) the rows of
+#'   \code{data$info} are used as given. Row \emph{i} of \code{X_psi},
+#'   \code{Xs}, \code{jsdm_output$U_output} and every other per-site result is
+#'   row \emph{i} of \code{data$info} and of \code{data$OTU}.
+#'   \code{infos$siteNames} is then the row number, \code{1:n}; the site
+#'   identifiers, when a \code{Site} column was given, are
+#'   \code{infos$data_info$Site}.
+#'   \item With repeated rows per site (an occupancy or two-stage fit) the
+#'   rows of \code{data$info} and \code{data$OTU} are first sorted together by
+#'   \code{Site}, then \code{Sample}, then \code{Primer}, and the sites are in
+#'   that sorted order: increasing for numbers, by level for factors, and for
+#'   character names in the order of the C locale, in which capital letters
+#'   sort before lower-case ones and \code{"S10"} sorts before \code{"S2"}.
+#'   \code{infos$siteNames} names the sites in that order,
+#'   \code{infos$data_info} and \code{infos$OTU} hold the sorted rows, and the
+#'   per-sample results (\code{X_theta}, \code{w_output},
+#'   \code{theta_output}) have one row per (\code{Site}, \code{Sample}) pair
+#'   in the same sorted order.
+#' }
+#' Match results to sites by name, through \code{infos$siteNames} or, with one
+#' row per site, \code{infos$data_info$Site}; do not assume an order.
+#'
+#' In versions up to 0.3.0 the occupancy covariates and the coordinates of a
+#' fit with one row per site were sorted by \code{Site} while the response
+#' kept its input order. Such a fit attached covariates to the wrong sites,
+#' without an error or warning, unless \code{data$info} had no \code{Site}
+#' column or its \code{Site} column was already in sorted order (for example
+#' \code{1:n}, or zero-padded names such as \code{"S001"} in file order).
+#' Refit any one-row-per-site model whose \code{Site} column was not in
+#' sorted order. Occupancy and two-stage fits were not affected.
 #'
 #' @section Field-contamination uncertainty:
 #' \code{theta0} is the probability that DNA enters a field sample when
@@ -908,10 +948,20 @@ runOccJSDM <- function(data,
 
     splineVars <- get_param(listParams, "splineVars", F)
 
-    # For occupancy covariates (group by Site, includes intercept)
+    # Site-level matrices must have their rows in the order of the response.
+    # Occupancy and two-stage data were sorted by Site above, and grouping by
+    # Site returns one row per site in that same sorted order. Data with one
+    # row per site are never sorted, so their rows are taken as they stand:
+    # grouping them by Site sorted the covariates and coordinates while the
+    # response kept its input order, which attached covariates to the wrong
+    # sites whenever Site was not already sorted (fixed in 0.3.1; see
+    # tests/testthat/test-site-order.R).
+    site_group <- if (model %in% c("occupancy", "two_stage")) "Site" else NULL
+
+    # For occupancy covariates (one row per site, includes intercept)
     {
-      check_embedding_varies(data_info, occCovariates, listParams)
-      list_X_psi <- process_covariates(data_info, occCovariates, "Site", n,
+      check_embedding_varies(data_info, occCovariates, listParams, site_group)
+      list_X_psi <- process_covariates(data_info, occCovariates, site_group, n,
                                   remove_intercept = TRUE,
                                   spline_vars = splineVars)
       X_psi <- list_X_psi$df
@@ -921,7 +971,7 @@ runOccJSDM <- function(data,
 
     # For the spatial field
     {
-      list_Xs <- process_covariates(data_info, spatCovariates, "Site", n,
+      list_Xs <- process_covariates(data_info, spatCovariates, site_group, n,
                                remove_intercept = TRUE,
                                spline_vars = F)
       Xs <- list_Xs$df
