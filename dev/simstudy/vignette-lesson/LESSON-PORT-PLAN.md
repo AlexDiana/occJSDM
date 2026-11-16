@@ -34,7 +34,7 @@
 ## Global Constraints
 
 - Work only in the worktree `/Users/douglasyu/src/occJSDM-worktrees/lesson-port`, on branch `codex/lesson-port` (created from main at fbe3ed6). Never work in `/Users/douglasyu/src/occJSDM`, never commit to main, never push (the controller pushes), never force anything.
-- The full-fit archive is `/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples`. The exporter and verifiers that read fits run from the worktree root through the step runner below, so each run is logged in the archive's `BUILD-LOG.md`. Agent shells keep no variables between calls, so commands spell paths out in full.
+- The full-fit archive is `/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples`. The exporter and verifiers that read fits run from the worktree root through the step runner below, so each run is logged in the archive's `BUILD-LOG.md`. Agent shells keep no variables between calls, so commands spell paths out in full.
 - Commit messages end with a blank line and `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - Markdown rules for every `.md` and `.Rmd` touched, from `CLAUDE.md` and `AGENTS.md`: one line per paragraph, no hard wrapping; no em-dashes anywhere, including commit messages and roxygen (use `--`); no pipe tables; escape a literal `>` `<` `~` `|` in prose as `\>` `\<` `\~` `\|` and write `-\>` for an arrow, never inside code spans or fenced blocks; keep inline code spans short; never add an `editor_options` block; no double blank lines. Re-read a file immediately before and after editing it (it may be open in RStudio); if an edit looks corrupted or duplicated, rewrite the whole file with Write.
 - Writing rules, from the spec's "The reader" and "The criteria, applied": the reader is an ecologist who runs eDNA or presence/absence surveys, knows basic R and the pipe, and has not fitted an occupancy model or a JSDM. Name each concept in the reader's terms before using it, read every printed output in the reader's terms, spell out the reasoning behind every choice, and give practical advice for the reader's own survey. Do not gloss routine dplyr verbs. Match the surrounding lesson's voice and density; additions are short.
@@ -59,9 +59,9 @@ Both must finish without a new warning (`/usr/bin/grep -c "built under" vignette
 ```sh
 Rscript dev/simstudy/vignette-lesson/test_lesson_links.R
 node --test dev/simstudy/lesson-site/test_lessons.js
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/check-frozen-chunks.R
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM-lesson-[0-7].md vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/prose-checks.zsh <files>
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-PORT-PLAN/check-frozen-chunks.R
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM-lesson-[0-7].md vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-PORT-PLAN/prose-checks.zsh <files>
 git diff --name-only fbe3ed6 -- ':!*.png' ':!*.rds' | xargs /usr/bin/grep -n $'\u2014' | wc -l
 git log fbe3ed6..HEAD --format=%B | /usr/bin/grep -c $'\u2014'
 ```
@@ -74,12 +74,12 @@ Expected: "Shared lesson-link regression checks passed."; `fail 0`; "All 36 froz
 
 ## Shared tools (controller creates them before Task 1; kept outside the repository)
 
-All live in `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/`.
+All live in `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-PORT-PLAN/`.
 
-- `run-step.zsh` and `revert-unchanged-png.zsh`: copies of Phase C's (`/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/`) with every `lesson-phase-c` replaced by `lesson-port`. Usage: `zsh run-step.zsh STEPNAME command args...` logs to the archive's `logs/STEPNAME.log` and appends a record to its `BUILD-LOG.md`; `zsh revert-unchanged-png.zsh PATHSPEC` reverts every modified tracked PNG under the pathspec whose pixels equal the index copy. Step names start with `p` (for example `p31-covariate-effect-export`).
+- `run-step.zsh` and `revert-unchanged-png.zsh`: copies of Phase C's (`/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/`) with every `lesson-phase-c` replaced by `lesson-port`. Usage: `zsh run-step.zsh STEPNAME command args...` logs to the archive's `logs/STEPNAME.log` and appends a record to its `BUILD-LOG.md`; `zsh revert-unchanged-png.zsh PATHSPEC` reverts every modified tracked PNG under the pathspec whose pixels equal the index copy. Step names start with `p` (for example `p31-covariate-effect-export`).
 - `check-frozen-chunks.R`: Phase C's, with every `7662f9a` replaced by `fbe3ed6`.
 - `prose-checks.zsh`: Phase C's, unchanged.
-- `check-lesson-links.R` is used from `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/` unchanged.
+- `check-lesson-links.R` is used from `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/` unchanged.
 
 ## File structure
 
@@ -120,7 +120,7 @@ All live in `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/`.
   - The practical tip: to make the spatial signal dominate, raise `l_s` for broader patches, or lower `sigma_h` and `sigma_b` to reduce the non-spatial variation.
   - The chunk must not change any object the main lesson uses later (it is in the appendix, after everything else; use new object names).
 
-- [ ] **Step 5: Render and check.** Render Lesson 0 with both commands. Apply the PNG policy (new figures are kept; `environmental-maps-1.png` is render noise). Run the Global Constraints checks with `<files>` = `vignettes/occJSDM-lesson-0.Rmd`, plus `Rscript dev/simstudy/vignette-lesson/unbalanced-verify.R /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples/unbalanced` through `run-step.zsh` as step `p15-unbalanced-verify` (it runs two Lesson 0 chunks). Read the rendered `.md` sections you added and check every sentence against the printed output.
+- [ ] **Step 5: Render and check.** Render Lesson 0 with both commands. Apply the PNG policy (new figures are kept; `environmental-maps-1.png` is render noise). Run the Global Constraints checks with `<files>` = `vignettes/occJSDM-lesson-0.Rmd`, plus `Rscript dev/simstudy/vignette-lesson/unbalanced-verify.R /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples/unbalanced` through `run-step.zsh` as step `p15-unbalanced-verify` (it runs two Lesson 0 chunks). Read the rendered `.md` sections you added and check every sentence against the printed output.
 
 - [ ] **Step 6: Commit.**
 
@@ -196,8 +196,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - [ ] **Step 4: Run them.** From the worktree root:
 
 ```sh
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/run-step.zsh p31-covariate-effect-export Rscript dev/simstudy/vignette-lesson/covariate-effect-export.R /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/run-step.zsh p32-covariate-effect-verify Rscript dev/simstudy/vignette-lesson/covariate-effect-verify.R /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-PORT-PLAN/run-step.zsh p31-covariate-effect-export Rscript dev/simstudy/vignette-lesson/covariate-effect-export.R /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-PORT-PLAN/run-step.zsh p32-covariate-effect-verify Rscript dev/simstudy/vignette-lesson/covariate-effect-verify.R /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 ```
 
 Look at the PNG with the Read tool and describe it in the report.
@@ -237,7 +237,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 - [ ] **Step 3: Lesson 4, `useEnvCov` (minor gap 4).** In the paragraph after the `prediction-native-call` chunk (the chunk is frozen; the paragraph is not), after the `useBiotic` sentence, add half a sentence that `useEnvCov` works the same way, so the call above includes the environmental covariates by default, and `useEnvCov = FALSE` predicts from the hidden factors (and spatial field) alone, a diagnostic rather than a prediction. Check the defaults against `R/output.R` lines 1555 to 1565 and the `resolveTerm()` lines below them.
 
-- [ ] **Step 4: Render and check.** Render Lessons 2, 3 and 4 with both commands, apply the PNG policy (Lesson 2's `probability-and-state-1.png` and Lesson 3's two noise figures), run the Global Constraints checks with the three Rmds as `<files>`, and run `prediction-verify.R` through `run-step.zsh` as `p44-prediction-verify` with arguments `/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples/prediction`.
+- [ ] **Step 4: Render and check.** Render Lessons 2, 3 and 4 with both commands, apply the PNG policy (Lesson 2's `probability-and-state-1.png` and Lesson 3's two noise figures), run the Global Constraints checks with the three Rmds as `<files>`, and run `prediction-verify.R` through `run-step.zsh` as `p44-prediction-verify` with arguments `/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples/prediction`.
 
 - [ ] **Step 5: Commit.**
 
@@ -257,7 +257,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Files:**
 - Delete: `vignettes/ORIG_occJSDM.Rmd`.
 - Modify: `.Rbuildignore` (drop `^vignettes/ORIG_occJSDM\.Rmd$`), `vignettes/LESSON-PLAN.md`, `TODO.md`, `AGENTS.md`.
-- Create (not committed): `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/pr-body.md`.
+- Create (not committed): `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-PORT-PLAN/pr-body.md`.
 
 - [ ] **Step 1: Delete and update.**
   - `git rm vignettes/ORIG_occJSDM.Rmd`; remove its `.Rbuildignore` line.
@@ -286,7 +286,7 @@ Expected: the first is empty; the second shows only `R/simulateData.R` and `man/
 
 - [ ] **Step 6: Hand back.** Report the commit list, the check outputs and the PR body path.
 
-Controller steps: push `codex/lesson-port`; `gh pr create --base main --title "Port the old vignettes into the lessons and the simulator help page" --body-file /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/pr-body.md`; fill the decision-log link in a follow-up commit with the trailer.
+Controller steps: push `codex/lesson-port`; `gh pr create --base main --title "Port the old vignettes into the lessons and the simulator help page" --body-file /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-PORT-PLAN/pr-body.md`; fill the decision-log link in a follow-up commit with the trailer.
 
 ---
 
