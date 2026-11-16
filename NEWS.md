@@ -1,6 +1,6 @@
 # occJSDM 0.3.1
 
-In development, not yet released. It fixes a defect that made fits with one row per site wrong whenever the `Site` column was not in sorted order. Every earlier beta has the defect.
+Fifth beta, released on GitHub as `v0.3.1-beta`. It fixes a defect that made fits with one row per site wrong whenever the `Site` column was not in sorted order. Every earlier beta has the defect.
 
 ## Bug fixes
 
