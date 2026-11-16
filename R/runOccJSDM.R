@@ -499,9 +499,9 @@ create_waic_quantities <- function(n_obs){
 #'   \code{data$info} are used as given. Row \emph{i} of \code{X_psi},
 #'   \code{Xs}, \code{jsdm_output$U_output} and every other per-site result is
 #'   row \emph{i} of \code{data$info} and of \code{data$OTU}.
-#'   \code{infos$siteNames} is then the row number, \code{1:n}; the site
-#'   identifiers, when a \code{Site} column was given, are
-#'   \code{infos$data_info$Site}.
+#'   \code{infos$siteNames} holds the \code{Site} values in that order, or
+#'   the row number \code{1:n} when \code{data$info} has no \code{Site}
+#'   column. (Up to 0.3.0 it was always \code{1:n} for these fits.)
 #'   \item With repeated rows per site (an occupancy or two-stage fit) the
 #'   rows of \code{data$info} and \code{data$OTU} are first sorted together by
 #'   \code{Site}, then \code{Sample}, then \code{Primer}, and the sites are in
@@ -514,8 +514,8 @@ create_waic_quantities <- function(n_obs){
 #'   \code{theta_output}) have one row per (\code{Site}, \code{Sample}) pair
 #'   in the same sorted order.
 #' }
-#' Match results to sites by name, through \code{infos$siteNames} or, with one
-#' row per site, \code{infos$data_info$Site}; do not assume an order.
+#' Match results to sites by name, through \code{infos$siteNames}; do not
+#' assume an order.
 #'
 #' In versions up to 0.3.0 the occupancy covariates and the coordinates of a
 #' fit with one row per site were sorted by \code{Site} while the response
@@ -861,7 +861,10 @@ runOccJSDM <- function(data,
 
       } else {
         n <- nrow(data_info)
-        siteNames <- 1:n
+        # One row per site, in input order: the sites are named by Site, as
+        # they are in the other models. With no Site column this is 1:n,
+        # which is what Site was set to above. Until 0.3.1 it was always 1:n.
+        siteNames <- data_info$Site
         M <- NULL
       }
 

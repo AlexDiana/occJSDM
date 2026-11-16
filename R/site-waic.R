@@ -209,8 +209,9 @@ computeSiteWAIC <- function(fitModel, threshold = NULL, draws = NULL,
   }
   observed <- rowsum(rowSums(!is.na(y)), site_index, reorder = TRUE)[, 1] > 0
   if (!any(observed)) stop("No observed responses to score.", call. = FALSE)
-  # Binary fits historically label siteNames as 1:n even when data_info
-  # records real site identities. Preserve those identities for paired scores.
+  # Binary fits made before 0.3.1 stored siteNames as 1:n even when data_info
+  # recorded real site identities, so read the identities from data_info for
+  # them. From 0.3.1 the two agree.
   site_names <- if (info$model == "binary" && !is.null(info$data_info$Site)) {
     as.character(info$data_info$Site)
   } else {
