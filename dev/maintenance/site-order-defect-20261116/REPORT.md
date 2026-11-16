@@ -65,7 +65,7 @@ This is documented in a new section of `?runOccJSDM`, *Row order of the results*
 - Sorted order is built into six places that must agree (`arrange()`, the sample table, `M`, `P`, `K`, the covariates) and is asserted by the existing `test-collection-alignment.R`, which feeds reversed rows and expects sorted results. Changing all of them is not the smallest fix.
 - The rows of those models must be regrouped anyway, since replicates of a site need not be adjacent, so "input order" there can only ever mean "sites in order of first appearance", not "rows as given".
 
-If you would rather have one rule, first appearance, for every model, it is a contained follow-up: order by `match(Site, unique(Site))` in those six places and update the alignment tests. It would change existing unsorted occupancy and two-stage fits. This is listed for a decision in `TODO.md` under *Needs Alex*.
+If you would rather have one rule, first appearance, for every model, it is a contained follow-up: order by `match(Site, unique(Site))` in those six places and update the alignment tests. It would change existing unsorted occupancy and two-stage fits. **Decided by Doug on 16 November 2026: keep sorted order.**
 
 **One caveat about "sorted".** dplyr sorts character names in the C locale: capitals before lower case, and `S10` before `S2`. Base R's `sort()` and `order()` use the session's locale and can disagree when names mix case. Match by name, through `infos$siteNames`, not by a sort of your own.
 
@@ -142,16 +142,16 @@ Checked by reading the code that builds each `data$info`, and where a saved file
 - **No version bump.** `DESCRIPTION` still says 0.3.0. `NEWS.md` has a new top heading, *occJSDM 0.3.1*, marked as in development.
 - **No warning for old fits.** The package cannot tell from a saved fit object alone that it was made by an affected version, because fits do not record the package version. A user can check a fit by comparing `fit$X_psi` with their standardised covariates row by row, which the NEWS entry says.
 - **`?runOccJSDM` names the returned coordinates `X_s`; the returned element is `Xs`.** A documentation slip noticed in passing, not changed.
-- Nothing is pushed, no pull request is open, and nobody has been told.
+- Nothing is pushed and nobody has been told. Doug decided on 16 November 2026 that the fix needs no pull request.
 
 ## Decisions for Doug
 
 - **A patch release.** The fix is small and leaves every correct fit unchanged, and all four betas are wrong for a common kind of input, so I recommend releasing it as `v0.3.1-beta` once Alex has looked at it. That needs the version bumped in `DESCRIPTION` and `CITATION.cff`, and the NEWS heading's "in development" line replaced.
 - **Whether to tell workshop participants.** None of the workshop's own fits is affected, since they are all two-stage. The risk is a participant who goes home and fits one row per site (ordinary presence/absence data, the JSDM mode the Quickstart mentions) with site names in file order. A short note with the patch release would cover it: update, and refit any one-row-per-site model whose site names were not sorted. The workshop repository's pin would need moving to the new release for the note to be actionable.
 - **Whether to add a line to the README's known limitations now**, before a release, for people on the current betas. The workaround until they update: drop the `Site` column from one-row-per-site data, or sort `info` and `OTU` together by `Site`.
-- **Site order for occupancy and two-stage fits.** Kept as sorted. Say if you want first appearance for every model (see *The fix, and the order chosen*).
+- **Site order for occupancy and two-stage fits.** Decided on 16 November 2026: keep sorted order.
 - **`infos$siteNames` for one-row-per-site fits.** Still `1:n`. Say if you want the `Site` values stored instead.
-- **Alex.** The item is in `TODO.md` under *Needs Alex*. Telling him, and opening a pull request, are yours to ask for.
+- **Alex.** The item is in `TODO.md` under *Needs Alex*. Decided on 16 November 2026: no pull request. Telling him is yours to ask for.
 
 ## Files
 
