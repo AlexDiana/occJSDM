@@ -1,3 +1,9 @@
+# occJSDM (development version)
+
+## Bug fixes
+
+-   The convergence summary that `runOccJSDM()` prints when a fit with two or more chains finishes (`computeDiagnostics()`) now takes time and memory in proportion to the number of parameters. It used to grow with the square of the size of the largest parameter block, so a fit with a few thousand occupancy coefficients (many covariates, many species, or both) spent minutes and several gigabytes after the sampler had finished, and a larger one could exhaust memory and lose the fit. The R-hat and effective sample size it reports are the same statistics as before, and the printed summary and its warnings are unchanged. `returnConvergenceDiagnostics()` is unaffected.
+
 # occJSDM 0.3.1
 
 Fifth beta, released on GitHub as `v0.3.1-beta`. It fixes a defect that made fits with one row per site wrong whenever the `Site` column was not in sorted order. Every earlier beta has the defect.
