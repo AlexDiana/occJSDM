@@ -139,16 +139,16 @@ Checked by reading the code that builds each `data$info`, and where a saved file
 
 ## Not done
 
-- **No version bump.** `DESCRIPTION` still says 0.3.0. `NEWS.md` has a new top heading, *occJSDM 0.3.1*, marked as in development.
+- **No version bump in these commits.** The version went to 0.3.1 when `v0.3.1-beta` was released on 16 November 2026.
 - **No warning for old fits.** The package cannot tell from a saved fit object alone that it was made by an affected version, because fits do not record the package version. A user can check a fit by comparing `fit$X_psi` with their standardised covariates row by row, which the NEWS entry says.
 - **`?runOccJSDM` names the returned coordinates `X_s`; the returned element is `Xs`.** A documentation slip noticed in passing, not changed.
 - Nothing is pushed and nobody has been told. Doug decided on 16 November 2026 that the fix needs no pull request.
 
 ## Decisions for Doug
 
-- **A patch release.** The fix is small and leaves every correct fit unchanged, and all four betas are wrong for a common kind of input, so I recommend releasing it as `v0.3.1-beta` once Alex has looked at it. That needs the version bumped in `DESCRIPTION` and `CITATION.cff`, and the NEWS heading's "in development" line replaced.
-- **Whether to tell workshop participants.** None of the workshop's own fits is affected, since they are all two-stage. The risk is a participant who goes home and fits one row per site (ordinary presence/absence data, the JSDM mode the Quickstart mentions) with site names in file order. A short note with the patch release would cover it: update, and refit any one-row-per-site model whose site names were not sorted. The workshop repository's pin would need moving to the new release for the note to be actionable.
-- **Whether to add a line to the README's known limitations now**, before a release, for people on the current betas. The workaround until they update: drop the `Site` column from one-row-per-site data, or sort `info` and `OTU` together by `Site`.
+- **A patch release.** Done: `v0.3.1-beta` was published on 16 November 2026 with the version bumped to 0.3.1 (record in `dev/release/2026-11-16-v0.3.1-beta/`). As written before the release: The fix is small and leaves every correct fit unchanged, and all four betas are wrong for a common kind of input, so I recommend releasing it as `v0.3.1-beta` once Alex has looked at it. That needs the version bumped in `DESCRIPTION` and `CITATION.cff`, and the NEWS heading's "in development" line replaced.
+- **Whether to tell workshop participants.** Decided by Doug on 16 November 2026: no need to tell them. As written before the decision: None of the workshop's own fits is affected, since they are all two-stage. The risk is a participant who goes home and fits one row per site (ordinary presence/absence data, the JSDM mode the Quickstart mentions) with site names in file order. A short note with the patch release would cover it: update, and refit any one-row-per-site model whose site names were not sorted. The workshop repository's pin would need moving to the new release for the note to be actionable.
+- **Whether to add a line to the README's known limitations now**, (done at the release: the README's known limitations now open with it) before a release, for people on the current betas. The workaround until they update: drop the `Site` column from one-row-per-site data, or sort `info` and `OTU` together by `Site`.
 - **Site order for occupancy and two-stage fits.** Decided on 16 November 2026: keep sorted order.
 - **`infos$siteNames` for one-row-per-site fits.** Decided on 16 November 2026: store the `Site` values. Done.
 - **Alex.** The item is in `TODO.md` under *Needs Alex*. Decided on 16 November 2026: no pull request. Telling him is yours to ask for.
