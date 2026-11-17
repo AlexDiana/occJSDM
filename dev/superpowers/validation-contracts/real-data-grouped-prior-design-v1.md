@@ -18,14 +18,14 @@ The expected result on a dataset with a weak habitat signal is that the prior sh
 
 - Detections for one community at many sites: presence or absence with one row per site, or replicated detections for a two-stage fit. The contract is written for one row per site and the optional modules say what changes otherwise.
 - A small set of measured covariates (for example five), chosen by the dataset owner and recorded.
-- At least one embedding source (AlphaEarth, TESSERA or OlmoEarth) extracted at two scales: a pond scale or site scale, the mean within a small radius of the sampling location (for AlphaEco, 30 m), and a landscape scale, the mean over a much wider area (500 m). Both together make a third set. The radii are the owner's choice and are recorded.
+- The embedding is OlmoEarth v1.3 at 64 bands, the first 64 of its nested 128 columns, which work on their own (Doug's decision, 17 November 2026). It is extracted at two scales: a pond scale or site scale, the mean within a small radius of the sampling location (for AlphaEco, 30 m), and a landscape scale, the mean over a much wider area (500 m). Both together make a third set of 128 columns. The radii are the owner's choice and are recorded. AlphaEarth, TESSERA and the full 128 bands are not part of version 1.
 - A grouping of species into a few groups, if the data have one, used as a trait and to break results down.
 - Site coordinates, used only to build spatial folds.
 
 ## Embedding rules
 
 - A pixel that is zero in every band is missing data written as a number. It is left out of every mean. Check for zeros as well as NA in any extract.
-- Check the extract before relying on it: the vector length of a single pixel (about 1 for AlphaEarth), whether any site has little valid area at a scale, and that the extraction year matches the sampling year.
+- Check the extract before relying on it: the vector length of a single pixel (about 3 for OlmoEarth, which is not unit length), whether any site has little valid area at a scale, and that the extraction year matches the sampling year.
 - Embedding columns enter the model through `embeddingVars`, which switches the grouped prior on. The package defaults are used unchanged, including the axis scale of 0.7 over K.
 
 ## Questions
@@ -36,7 +36,7 @@ Answered first in the result, before the warning signs. Each embedding set is a 
 2. Relative performance. Are the embeddings better or worse than the measured covariates? Embedding only against grouped with no embedding, as a paired difference in held-out log loss and in per-species AUC.
 3. Combining. Does adding the embedding to the measured covariates raise performance? Grouped against grouped with no embedding, and against embedding only. If the combination beats the measured covariates alone, sites still need measuring and the embedding is free extra information. If embedding only matches the combination, the measurement adds nothing.
 4. Scale. Which scale carries the signal: site scale, landscape scale or both, overall and by species group.
-5. Source. If more than one source is available, which is better at the same scale.
+5. Source. Not asked in version 1, which has one source. A later version that adds a source asks which is better at the same scale.
 
 ## Arms
 
@@ -105,7 +105,7 @@ Blends are defined only up to rotation, so a blend is never read as an ecologica
 
 ## Budget and stop rules
 
-- Time one grouped fit at each width of embedding (for example 64, 128 and 256 columns) before the full run, then project the whole set from the measured times. AlphaEco measured 29, 87 and 265 minutes for 64, 128 and 256 columns, each step costing about 3 times the last.
+- Time one grouped fit at each width before the full run (64 columns for one scale, 128 for both scales), then project the whole set from the measured times. AlphaEco measured 29 and 87 minutes at those widths, about 3 times as long for twice the columns. A 256-column fit took 265 minutes, which version 1 no longer needs.
 - If the projection is over 48 wall-hours, drop the widest arms first and say so in the run record. If it is still over, stop and report to Doug before launching.
 - Nothing is launched at full scale without the dataset owner's go-ahead.
 

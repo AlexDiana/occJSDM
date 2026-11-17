@@ -6,19 +6,21 @@ These contracts let occJSDM direct real-data validation that is run elsewhere. A
 
 Doug's rule, 17 November 2026: occJSDM designs the analyses but does not run or evaluate them. The dataset sections run them. This repository holds no dataset, no pond-level or site-level value, no dataset-derived table and no fit made on a real dataset.
 
-## The two contracts
+## The contracts
 
-Each contract has a name and a version, and a change to either bumps the version.
+Each contract has a name and a version, and a change to either bumps the version. There are two studies, each with a design contract and an output contract.
 
-- `real-data-grouped-prior-design-v1.md` is the design contract. It says what the dataset section must run: the questions, the arms, the fixed settings, the held-out evaluation, the warning signs and the stop rules.
-- `real-data-grouped-prior-output-v1.md` is the output contract. It says what the dataset section hands back: a run record and a fixed set of summary tables with no unit identifiers.
+- `simulation-grouped-prior-design-v1.md` and `simulation-grouped-prior-output-v1.md`: the known-truth simulation study, with species simulated on the dataset's real sites, measured covariates and embedding. It is run first, because only a known truth shows that the prior recovers a signal.
+- `real-data-grouped-prior-design-v1.md` and `real-data-grouped-prior-output-v1.md`: the real-data check on the dataset's real species. It looks for warning signs and answers questions about prediction, and it is read in the light of the simulation.
+
+A design contract says what the dataset section must run: the questions or truths, the arms, the fixed settings, the evaluation and the stop rules. An output contract says what it hands back: a run record, summary tables with no unit identifiers, and a written result.
 
 ## How occJSDM directs the research
 
 - occJSDM issues a new contract version when the question changes, when a defect found by one dataset needs the others to repeat a check, or when a package change makes a setting out of date.
 - A dataset section picks the version it runs, and writes that version in its run record. It may deviate where its data demand it, but every deviation goes in the run record with a reason. A run that does not follow the design contract is still read, and is reported as a deviation.
 - The contract fixes the package commit by policy (the output contract says how it is recorded), so that a failure can be told apart as a package defect or a stale build.
-- BioDivAbove and AlphaEco use the same contract version where their data allow, so that their evaluations can be read side by side. Where BioDivAbove has replicates or a management covariate, the optional modules in the design contract apply.
+- Version 1 runs on AlphaEco only, because AlphaEco has species data (Doug, 17 November 2026). The embedding is OlmoEarth v1.3 at 64 bands. BioDivAbove joins when it has species data, and its evaluations can then be read side by side with AlphaEco's. Where a dataset has replicates or a management covariate, the optional modules in the design contracts apply.
 
 ## What occJSDM does with an evaluation
 
