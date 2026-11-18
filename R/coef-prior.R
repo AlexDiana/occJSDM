@@ -286,6 +286,57 @@ axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, s
   list(B = B, G = G, C = C, lambda = lambda, accepted = accepted, log_ratio = log_ratio)
 }
 
+# PROTOTYPE (dev/simstudy/grouped-mixing-20261118, fix attempt 2): the same
+# scale-expansion move for sigma_emb, the embedding leftover scale. It tests
+# the hypothesis that sigma_emb mixes slowly because it is drawn given every
+# leftover of the embedding block and they are then drawn given it.
+#
+# Propose log(sigma_emb) + delta, delta ~ Normal(0, step^2), and multiply
+# every leftover of the embedding block, R[, embedding], by r = exp(delta).
+# G, C, A and the axis scales stay where they are, so each embedding row of B
+# moves by (r - 1) times its leftovers. A leftover's prior standard deviation
+# is sigma_emb times its column's axis scale, so the prior density of the
+# scaled leftovers at the new sigma_emb is r^-m times that of the old ones at
+# the old, m being the number of leftovers scaled, and the Jacobian of the
+# scaling is r^m: they cancel. The acceptance ratio is the likelihood ratio
+# times p(sigma') sigma' / (p(sigma) sigma), p the half-Cauchy density with
+# scale sigma_emb_scale.
+#
+# The likelihood is conditioned on the Polya-Gamma weights, as in
+# axis_scale_move(). The move adds (r - 1) * D to eta, with
+# D = X[, embedding] %*% t(R[, embedding]), so the log likelihood ratio is
+# (r - 1) * lin - (r - 1)^2 * quad / 2, lin = sum((kappa - Omega * eta) * D)
+# and quad = sum(Omega * D^2).
+#
+# `R` is the species by covariates matrix of leftovers of the `B` given. One
+# proposal: delta is drawn, then the uniform. Returns the updated B,
+# sigma_emb and eta, with `accepted` and `log_ratio` (FALSE and NA, with no
+# random number drawn, when there are no embedding columns). It runs in the
+# same fits as axis_scale_move(), just before it.
+sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step) {
+  emb <- which(coef_prior$is_emb)
+  if (length(emb) == 0L)
+    return(list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = FALSE,
+                log_ratio = NA_real_))
+  delta <- stats::rnorm(1, 0, step)
+  logu <- log(stats::runif(1))
+  r1 <- expm1(delta)
+  D <- X[, emb, drop = FALSE] %*% t(R[, emb, drop = FALSE])
+  lin <- sum((kappa - Omega * eta) * D)
+  quad <- sum(Omega * D^2)
+  proposed <- sigma_emb * exp(delta)
+  log_ratio <- r1 * lin - r1^2 * quad / 2 + delta -
+    log1p((proposed / coef_prior$sigma_emb_scale)^2) +
+    log1p((sigma_emb / coef_prior$sigma_emb_scale)^2)
+  accepted <- logu < log_ratio
+  if (accepted) {
+    B[emb, ] <- B[emb, , drop = FALSE] + r1 * t(R[, emb, drop = FALSE])
+    eta <- eta + r1 * D
+    sigma_emb <- proposed
+  }
+  list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = accepted, log_ratio = log_ratio)
+}
+
 # Burn-in adaptation of the proposal steps, one per embedding column, from
 # that sweep's log acceptance ratios: the log of each step moves by
 # (acceptance probability - target) over the square root of the number of
@@ -298,23 +349,26 @@ axis_step_adapt <- function(step, log_ratio, t) {
   pmin(pmax(step * exp((alpha - AXIS_MOVE_TARGET) / sqrt(t)), 0.01), 5)
 }
 
-# The state of the axis scale move that a chain carries, or NULL when the move
-# is off: it runs only in a grouped fit with embedding columns of model type
+# The state of the two scale moves that a chain carries, or NULL when they
+# are off: they run only in a grouped fit with embedding columns of model type
 # "binary". Per embedding column: `step`, and `accepted`, the last sweep's
-# outcome. `adapt` is set by the chain (TRUE during burn-in) and `t` counts
-# the adapting sweeps.
+# outcome, of the axis scale move. `sigma_step` and `sigma_accepted` are those
+# of the sigma_emb move. `adapt` is set by the chain (TRUE during burn-in) and
+# `t` counts the adapting sweeps.
 axis_move_start <- function(coef_prior, model) {
   if (!identical(model, "binary") || !identical(coef_prior$type, "grouped") ||
       !any(coef_prior$is_emb)) return(NULL)
   n_emb <- sum(coef_prior$is_emb)
   list(step = rep(AXIS_MOVE_STEP, n_emb), accepted = rep(FALSE, n_emb),
+       sigma_step = AXIS_MOVE_STEP, sigma_accepted = FALSE,
        adapt = FALSE, t = 0L)
 }
 
 # infos$axis_move from the chains' records, each a matrix with one row per
 # embedding column and one column per chain: the proposal step the kept sweeps
 # used, and the share of sweeps in which the move was accepted, after and
-# during burn-in. NULL when the move is off.
+# during burn-in. For the sigma_emb move, one value per chain: its step and
+# its acceptance rates. NULL when the moves are off.
 axis_move_record <- function(parts, columns) {
   parts <- parts[!vapply(parts, is.null, logical(1))]
   if (length(parts) == 0L) return(NULL)
@@ -324,8 +378,13 @@ axis_move_record <- function(parts, columns) {
     matrix(out, length(columns), length(parts), dimnames = list(columns, NULL))
   }
   step <- vapply(parts, function(p) p$step, numeric(length(columns)))
+  sigma_rate <- function(phase) vapply(parts, function(p)
+    p[[paste0("sigma_accepted_", phase)]] / p[[paste0("sweeps_", phase)]], numeric(1))
   list(step = matrix(step, length(columns), length(parts), dimnames = list(columns, NULL)),
-       acceptance = rate("kept"), acceptance_burnin = rate("burnin"))
+       acceptance = rate("kept"), acceptance_burnin = rate("burnin"),
+       sigma_emb_step = vapply(parts, function(p) p$sigma_step, numeric(1)),
+       sigma_emb_acceptance = sigma_rate("kept"),
+       sigma_emb_acceptance_burnin = sigma_rate("burnin"))
 }
 
 #' Grouped prior for occupancy coefficients (experimental)

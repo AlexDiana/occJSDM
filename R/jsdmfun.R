@@ -1521,7 +1521,8 @@ update_jSDMcoef <- function(list_data,
   # draw, an embedding column would bring nothing but its starting C.
   # Fixed prior: sigma_b as before.
   if (grouped_b) {
-    list_scales <- sample_coef_scales(t(B) - Tr_b %*% G - A %*% C, G, C,
+    leftovers <- t(B) - Tr_b %*% G - A %*% C
+    list_scales <- sample_coef_scales(leftovers, G, C,
                                       coef_prior, sigma_b, sigma_emb, lambda)
     sigma_b <- list_scales$sigma_b
     sigma_emb <- list_scales$sigma_emb
@@ -1529,9 +1530,11 @@ update_jSDMcoef <- function(list_data,
   } else {
     sigma_b <- sample_sigmab(B, Tr_b, G, A, C, a_sigmab, b_sigmab)
   }
-  # PROTOTYPE: the scale-expansion move on each embedding column's axis scale
-  # (axis_scale_move() in R/coef-prior.R), after the scale draws and before
-  # the G, C and A draws. The chain carries list_params$axis_move only in a
+  # PROTOTYPE: the scale-expansion moves, on sigma_emb (sigma_emb_move() in
+  # R/coef-prior.R) and then on each embedding column's axis scale
+  # (axis_scale_move()), after the scale draws and before the G, C and A
+  # draws. The sigma_emb move hands the axis scale move the B and linear
+  # predictor it leaves. The chain carries list_params$axis_move only in a
   # grouped fit of model type "binary" with embedding columns; every other
   # fit skips this block and draws no extra random numbers. The proposal
   # steps are adapted only while the chain says so (burn-in). The linear
@@ -1547,7 +1550,12 @@ update_jSDMcoef <- function(list_data,
       B0, G, A, C, Bt,
       Gs, As, Cs, Bst,
       U, L, Tr_b = Tr_b)$eta
-    list_move <- axis_scale_move(B, G, C, lambda, X, k, Omega, eta_drawn,
+    list_sigma <- sigma_emb_move(B, leftovers, sigma_emb, X, k, Omega, eta_drawn,
+                                 coef_prior, axis_move$sigma_step)
+    B <- list_sigma$B
+    sigma_emb <- list_sigma$sigma_emb
+    axis_move$sigma_accepted <- list_sigma$accepted
+    list_move <- axis_scale_move(B, G, C, lambda, X, k, Omega, list_sigma$eta,
                                  coef_prior, axis_move$step)
     B <- list_move$B
     G <- list_move$G
@@ -1559,6 +1567,8 @@ update_jSDMcoef <- function(list_data,
       axis_move$step <- axis_step_adapt(axis_move$step,
                                         list_move$log_ratio[coef_prior$is_emb],
                                         axis_move$t)
+      axis_move$sigma_step <- axis_step_adapt(axis_move$sigma_step,
+                                              list_sigma$log_ratio, axis_move$t)
     }
   }
   sds <- coef_prior_sds(coef_prior, sigma_b, sigma_emb, lambda, ncol(Tr_b), p)

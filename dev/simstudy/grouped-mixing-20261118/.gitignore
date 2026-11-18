@@ -1,0 +1,2 @@
+# Per-run summary and trace files of repro.R: kept locally, not tracked.
+results/**/*.rds

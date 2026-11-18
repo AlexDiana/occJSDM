@@ -124,7 +124,7 @@ test_that("the scale updates with both scale moves leave the half-Cauchy priors 
   quartiles <- tan(pi / 2 * c(.25, .5, .75))
   share <- vapply(quartiles, function(x) colMeans(keep < x), numeric(4))
   # Tolerances: see the comment at the end of this file.
-  tolerance <- c(sigma_b = 0.045, sigma_emb = 0.04, lambda_e1 = 0.04, lambda_e2 = 0.04)
+  tolerance <- c(sigma_b = 0.045, sigma_emb = 0.04, lambda_e1 = 0.05, lambda_e2 = 0.05)
   for (nm in rownames(share)) for (j in 1:3)
     expect_lt(abs(share[nm, j] - c(.25, .5, .75)[j]), tolerance[[nm]],
               label = sprintf("error of the share of %s below its prior quartile %d", nm, j))
@@ -207,5 +207,18 @@ test_that("the coefficient update runs the sigma_emb move on the current state, 
   expect_identical(seen_sigma[[6]]$step, seen_sigma[[4]]$step)
 })
 
-# Tolerances of the prior-invariance test. To be filled in from measurement
-# once the move exists (see the commit that adds it).
+# Tolerances of the prior-invariance test, measured on 18 November 2026 with
+# the test's own loop over seeds 1 to 8 (50,000 kept sweeps each, about 1,200
+# to 1,800 effective draws of each log scale). The standard deviation over
+# seeds of a share's error was at most 0.009 for sigma_b, 0.008 for sigma_emb
+# and 0.012 for an axis scale, with no bias (largest mean error 0.007), and
+# the largest error of any share in any seed was 0.019, 0.013 and 0.030. The
+# tolerances of sigma_emb and of an axis scale are four or more of those
+# standard deviations; sigma_b's is that of test-grouped-prior.R. A wrong
+# acceptance ratio in the sigma_emb move fails by far more: leaving out the
+# factor sigma' / sigma (the Jacobian of the log scale) moves the sigma_emb
+# shares by 0.39 or sends the scales to where the regression draws fail, and
+# a half-Cauchy scale wrong by a factor of 2 moves them by 0.20. About 88
+# percent of sigma_emb moves are accepted in this run at a step of 0.5, and
+# the effective draws of log sigma_emb about double (from about 800 to about
+# 1,700 of 50,000).

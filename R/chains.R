@@ -637,6 +637,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
         if (axis_on) {
           axis_accepted <- list(burnin = integer(sum(coef_prior$is_emb)),
                                 kept = integer(sum(coef_prior$is_emb)))
+          sigma_accepted <- list(burnin = 0L, kept = 0L)
         }
 
         list_psiCoef <- computePsiCoef(
@@ -726,6 +727,8 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
           axis_phase <- if (iter <= nburn) "burnin" else "kept"
           axis_accepted[[axis_phase]] <- axis_accepted[[axis_phase]] +
             list_jSDMparams$axis_move$accepted
+          sigma_accepted[[axis_phase]] <- sigma_accepted[[axis_phase]] +
+            list_jSDMparams$axis_move$sigma_accepted
         }
       }
 
@@ -877,6 +880,8 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
       accepted_kept = shift_accepted[["kept"]], proposals_kept = shift_proposed[["kept"]]) else NULL,
     axis_move = if (axis_on) list(
       step = list_jSDMparams$axis_move$step,
+      sigma_step = list_jSDMparams$axis_move$sigma_step,
+      sigma_accepted_burnin = sigma_accepted$burnin, sigma_accepted_kept = sigma_accepted$kept,
       accepted_burnin = axis_accepted$burnin, sweeps_burnin = nburn,
       accepted_kept = axis_accepted$kept, sweeps_kept = niter * nthin) else NULL,
     draws = list(
