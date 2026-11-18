@@ -180,8 +180,11 @@ test_that("a grouped binary fit runs the axis scale move and records its accepta
   fit <- axis_fit(sim)
   jo <- fit$results_output$jsdm_output
   am <- fit$infos$axis_move
-  expect_identical(am$step, 0.5)
-  expect_identical(dim(am$acceptance), c(8L, 2L))      # embedding columns by chains
+  expect_identical(dim(am$step), c(8L, 2L))            # embedding columns by chains
+  expect_identical(rownames(am$step), dimnames(jo$lambda_output)[[1]])
+  expect_true(all(am$step >= 0.01 & am$step <= 5))
+  expect_false(all(am$step == 0.5))                    # adapted during burn-in
+  expect_identical(dim(am$acceptance), c(8L, 2L))
   expect_identical(rownames(am$acceptance), dimnames(jo$lambda_output)[[1]])
   expect_identical(dim(am$acceptance_burnin), c(8L, 2L))
   expect_true(all(am$acceptance >= 0 & am$acceptance <= 1))
@@ -231,16 +234,59 @@ test_that("the coefficient update hands the move the current state and keeps its
   expect_identical(length(sweeps), 6L)
   for (i in seq_along(seen)) {
     mv <- seen[[i]]; sw <- sweeps[[i]]
-    expect_identical(sw$out$B, mv$out$B, info = i)
-    expect_identical(sw$out$lambda, mv$out$lambda, info = i)
-    expect_identical(mv$step, 0.5, info = i)
-    expect_identical(mv$kappa, sw$z - 0.5, info = i)
+    expect_identical(sw$out$B, mv$out$B, info = paste("sweep", i))
+    expect_identical(sw$out$lambda, mv$out$lambda, info = paste("sweep", i))
+    expect_identical(mv$kappa, sw$z - 0.5, info = paste("sweep", i))
     eta <- matrix(sw$out$B0, nrow(mv$X), ncol(mv$B), byrow = TRUE) + mv$X %*% mv$B +
       sw$U_before %*% sw$out$L
-    expect_equal(mv$eta, eta, tolerance = 1e-10, info = i)
+    expect_equal(unname(mv$eta), unname(eta), tolerance = 1e-10, info = paste("sweep", i))
   }
   expect_true(any(vapply(seen, function(mv) any(mv$out$accepted), logical(1))))
+  # The step of each embedding column starts at 0.5, is adapted after each of
+  # the three burn-in sweeps from that sweep's log ratios, and is then frozen.
+  expect_identical(seen[[1]]$step, rep(0.5, 8L))
+  for (i in 1:3) {
+    want <- occJSDM:::axis_step_adapt(seen[[i]]$step, seen[[i]]$out$log_ratio[3:10], i)
+    expect_identical(seen[[i + 1L]]$step, want, info = paste("sweep", i))
+  }
+  expect_false(identical(seen[[4]]$step, rep(0.5, 8L)))
+  expect_identical(seen[[5]]$step, seen[[4]]$step)
+  expect_identical(seen[[6]]$step, seen[[4]]$step)
 })
 
-# Tolerances of the prior-invariance test. To be filled in from measurement
-# once the move exists (see the commit that adds it).
+test_that("the burn-in adaptation moves each step toward the target acceptance rate", {
+  # Robbins-Monro on the log step, as for the intercept shift (R/b0_shift.R):
+  # log(step) moves by (acceptance probability - 0.44) / sqrt(t).
+  step <- c(0.5, 0.5, 0.5, 2)
+  log_ratio <- c(1.3, log(0.44), -3, -Inf)             # accepted for sure, on target, unlikely, never
+  got <- occJSDM:::axis_step_adapt(step, log_ratio, 4L)
+  expect_equal(got, step * exp((c(1, 0.44, exp(-3), 0) - 0.44) / 2))
+  expect_gt(got[1], 0.5); expect_equal(got[2], 0.5); expect_lt(got[3], 0.5); expect_lt(got[4], 2)
+  # Kept within loose bounds, and a column whose ratio is not finite counts as rejected.
+  expect_identical(occJSDM:::axis_step_adapt(c(5, 0.01), c(10, -10), 1L), c(5, 0.01))
+  expect_equal(occJSDM:::axis_step_adapt(1, NaN, 1L), exp(-0.44))
+})
+
+test_that("the axis scale move takes one step per embedding column", {
+  x <- axis_move_state(2L)
+  x$kappa[] <- 0; x$Omega[] <- 0
+  seed_both(21L); got <- run_axis_move(x, step = c(0.1, 1, 3))
+  seed_both(21L); delta <- rnorm(3, 0, c(0.1, 1, 3)); logu <- log(runif(3))
+  # With a constant likelihood only the half-Cauchy ratio is left.
+  log_ratio <- delta - log1p((x$lambda[3:5] * exp(delta) / 0.3)^2) + log1p((x$lambda[3:5] / 0.3)^2)
+  expect_equal(got$log_ratio[3:5], log_ratio)
+  expect_equal(got$lambda[3:5], x$lambda[3:5] * ifelse(logu < log_ratio, exp(delta), 1))
+})
+
+# Tolerances of the prior-invariance test, measured on 18 November 2026 with
+# the test's own loop over seeds 1 to 8 (50,000 kept sweeps each, about 1,100
+# to 1,500 effective draws of a log axis scale). The standard deviation over
+# seeds of a share's error was at most 0.004 for sigma_b, 0.010 for sigma_emb
+# and 0.010 for an axis scale, with no bias (largest mean error 0.006), and
+# the largest error of any share in any seed was 0.008, 0.018 and 0.016. The
+# axis tolerance of 0.04 is four of those standard deviations; the other two
+# are those of test-grouped-prior.R. A wrong acceptance ratio fails by far
+# more: leaving out the factor lambda' / lambda (the Jacobian of the log
+# scale) moves the axis shares by 0.47 to 0.49, and a half-Cauchy scale wrong
+# by a factor of 2 moves them by 0.30 to 0.34. About 88 percent of moves are
+# accepted in this run at a step of 0.5.

@@ -1529,6 +1529,38 @@ update_jSDMcoef <- function(list_data,
   } else {
     sigma_b <- sample_sigmab(B, Tr_b, G, A, C, a_sigmab, b_sigmab)
   }
+  # PROTOTYPE: the scale-expansion move on each embedding column's axis scale
+  # (axis_scale_move() in R/coef-prior.R), after the scale draws and before
+  # the G, C and A draws. The chain carries list_params$axis_move only in a
+  # grouped fit of model type "binary" with embedding columns; every other
+  # fit skips this block and draws no extra random numbers. The proposal
+  # steps are adapted only while the chain says so (burn-in). The linear
+  # predictor is rebuilt from the coefficients just drawn (Bt and Bst are the
+  # leftovers of the new B and Bs about the current G, A, C and their spatial
+  # counterparts) and the factor scores of the previous sweep.
+  axis_move <- list_params$axis_move
+  if (!is.null(axis_move)) {
+    if (!grouped_b || model != "binary")
+      stop("the axis scale move needs the grouped prior and a binary response")
+    eta_drawn <- computePsiCoef(
+      X, Ks, list_Xs$Xs_centers, Tr,
+      B0, G, A, C, Bt,
+      Gs, As, Cs, Bst,
+      U, L, Tr_b = Tr_b)$eta
+    list_move <- axis_scale_move(B, G, C, lambda, X, k, Omega, eta_drawn,
+                                 coef_prior, axis_move$step)
+    B <- list_move$B
+    G <- list_move$G
+    C <- list_move$C
+    lambda <- list_move$lambda
+    axis_move$accepted <- list_move$accepted[coef_prior$is_emb]
+    if (isTRUE(axis_move$adapt)) {
+      axis_move$t <- axis_move$t + 1L
+      axis_move$step <- axis_step_adapt(axis_move$step,
+                                        list_move$log_ratio[coef_prior$is_emb],
+                                        axis_move$t)
+    }
+  }
   sds <- coef_prior_sds(coef_prior, sigma_b, sigma_emb, lambda, ncol(Tr_b), p)
   check_coef_sds(sds$b, p)
   if(ps > 0){
@@ -1633,6 +1665,7 @@ update_jSDMcoef <- function(list_data,
    "psi" = psi,
    "variancePartitioning" = variancePartitioning
   )
+  if (!is.null(axis_move)) list_params$axis_move <- axis_move
 
   list_params
 

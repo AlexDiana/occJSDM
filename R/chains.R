@@ -630,6 +630,14 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
           "tau" = tau,
           "mu_b0" = 0
         )
+        # PROTOTYPE: the axis scale move (R/coef-prior.R). NULL, so no element
+        # is added, unless this is a grouped binary fit with embedding columns.
+        list_jSDMparams$axis_move <- axis_move_start(coef_prior, model)
+        axis_on <- !is.null(list_jSDMparams$axis_move)
+        if (axis_on) {
+          axis_accepted <- list(burnin = integer(sum(coef_prior$is_emb)),
+                                kept = integer(sum(coef_prior$is_emb)))
+        }
 
         list_psiCoef <- computePsiCoef(
           X_psi, Ks, list_Xs$Xs_centers, Tr,
@@ -701,6 +709,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
       # sample jsdm coef
       {
         list_data$z <- z
+        if (axis_on) list_jSDMparams$axis_move$adapt <- iter <= nburn
 
         list_jSDMparams <- update_jSDMcoef(
           list_data,
@@ -713,6 +722,11 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
         )
         psi <- list_jSDMparams$psi
         eta <- list_jSDMparams$eta
+        if (axis_on) {
+          axis_phase <- if (iter <= nburn) "burnin" else "kept"
+          axis_accepted[[axis_phase]] <- axis_accepted[[axis_phase]] +
+            list_jSDMparams$axis_move$accepted
+        }
       }
 
       # sample w
@@ -861,6 +875,10 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
       sd = shift_sd,
       accepted_burnin = shift_accepted[["burnin"]], proposals_burnin = shift_proposed[["burnin"]],
       accepted_kept = shift_accepted[["kept"]], proposals_kept = shift_proposed[["kept"]]) else NULL,
+    axis_move = if (axis_on) list(
+      step = list_jSDMparams$axis_move$step,
+      accepted_burnin = axis_accepted$burnin, sweeps_burnin = nburn,
+      accepted_kept = axis_accepted$kept, sweeps_kept = niter * nthin) else NULL,
     draws = list(
       beta_theta = beta_theta_output_chain, theta0 = theta0_output_chain,
       z = z_output_chain, psi = psi_output_chain,

@@ -212,6 +212,122 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) 
   list(sigma_b = sigma_b, sigma_emb = sigma_emb, lambda = lambda)
 }
 
+# PROTOTYPE (dev/simstudy/grouped-mixing-20261118, fix attempt 1): a
+# scale-expansion Metropolis move on each embedding column's axis scale. It
+# tests one hypothesis, that the axis scales mix slowly because each is drawn
+# given the coefficients it scales (the centred parameterisation). It is not a
+# settled part of the sampler.
+#
+# For embedding column k, propose log(lambda_k) + delta, delta ~ Normal(0,
+# step^2), and multiply the column's leftovers, its column of G and its column
+# of C by r = exp(delta). B[k, ] = Tr_b G[, k] + A C[, k] + leftovers is linear
+# in those, so it is multiplied by exactly r. All three prior standard
+# deviations are proportional to lambda_k (coef_prior_sds()), so the prior
+# density of the scaled coefficients at the new scale is r^-m times that of
+# the old ones at the old scale, m being the number of coefficients scaled,
+# and the Jacobian of the scaling is r^m: they cancel. The acceptance ratio is
+# what is left: the likelihood ratio, times the ratio of the half-Cauchy
+# density of the axis scale expressed in log scale,
+# p(lambda') lambda' / (p(lambda) lambda), p(l) = 1 / (1 + (l / axis_scale)^2).
+#
+# The likelihood is the one the coefficient draw uses, given the current
+# Polya-Gamma weights Omega: sum(kappa * eta - Omega * eta^2 / 2). Omega is
+# conditioned on, not integrated out, because the factor-score draw later in
+# the same sweep still conditions on it. Scaling B[k, ] adds
+# (r - 1) * X[, k] B[k, ] to eta, so the log likelihood ratio is
+# (r - 1) * lin - (r - 1)^2 * quad / 2 with
+# lin = sum((kappa - Omega * eta) * X[, k] B[k, ]) and
+# quad = sum(Omega * (X[, k] B[k, ])^2).
+#
+# First version: one row per site and a binary response only (model type
+# "binary"). axis_move_start() switches it on for those fits alone; fits of
+# every other model type, and every fit under the fixed prior, skip it and
+# draw exactly the random numbers they drew before. `step` is the proposal
+# standard deviation, one value or one per embedding column. Columns are
+# visited in order; all proposals are drawn first, then all uniforms. Returns
+# the updated B, G, C and lambda, with `accepted` and `log_ratio` per design
+# column (FALSE and NA on measured columns).
+AXIS_MOVE_STEP <- 0.5
+
+# The acceptance rate a one-dimensional random walk is tuned to.
+AXIS_MOVE_TARGET <- 0.44
+
+axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step) {
+  p <- nrow(B)
+  accepted <- rep(FALSE, p)
+  log_ratio <- rep(NA_real_, p)
+  emb <- which(coef_prior$is_emb)
+  if (length(emb) > 0L) {
+    delta <- stats::rnorm(length(emb), 0, step)
+    logu <- log(stats::runif(length(emb)))
+    grad <- kappa - Omega * eta
+    for (j in seq_along(emb)) {
+      k <- emb[j]
+      x <- X[, k]
+      b <- B[k, ]
+      r1 <- expm1(delta[j])
+      lin <- sum(crossprod(x, grad) * b)
+      quad <- sum(crossprod(x^2, Omega) * b^2)
+      proposed <- lambda[k] * exp(delta[j])
+      log_ratio[k] <- r1 * lin - r1^2 * quad / 2 + delta[j] -
+        log1p((proposed / coef_prior$axis_scale)^2) +
+        log1p((lambda[k] / coef_prior$axis_scale)^2)
+      if (logu[j] < log_ratio[k]) {
+        r <- exp(delta[j])
+        grad <- grad - Omega * tcrossprod(x, r1 * b)
+        B[k, ] <- b * r
+        G[, k] <- G[, k] * r
+        C[, k] <- C[, k] * r
+        lambda[k] <- proposed
+        accepted[k] <- TRUE
+      }
+    }
+  }
+  list(B = B, G = G, C = C, lambda = lambda, accepted = accepted, log_ratio = log_ratio)
+}
+
+# Burn-in adaptation of the proposal steps, one per embedding column, from
+# that sweep's log acceptance ratios: the log of each step moves by
+# (acceptance probability - target) over the square root of the number of
+# adapting sweeps so far, `t`, the Robbins-Monro recursion of b0_shift_step().
+# A ratio that is not finite counts as a rejection. Steps stay within loose
+# bounds. The chain adapts only during burn-in, so the kept sweeps use a
+# fixed kernel.
+axis_step_adapt <- function(step, log_ratio, t) {
+  alpha <- ifelse(is.finite(log_ratio), pmin(1, exp(log_ratio)), 0)
+  pmin(pmax(step * exp((alpha - AXIS_MOVE_TARGET) / sqrt(t)), 0.01), 5)
+}
+
+# The state of the axis scale move that a chain carries, or NULL when the move
+# is off: it runs only in a grouped fit with embedding columns of model type
+# "binary". Per embedding column: `step`, and `accepted`, the last sweep's
+# outcome. `adapt` is set by the chain (TRUE during burn-in) and `t` counts
+# the adapting sweeps.
+axis_move_start <- function(coef_prior, model) {
+  if (!identical(model, "binary") || !identical(coef_prior$type, "grouped") ||
+      !any(coef_prior$is_emb)) return(NULL)
+  n_emb <- sum(coef_prior$is_emb)
+  list(step = rep(AXIS_MOVE_STEP, n_emb), accepted = rep(FALSE, n_emb),
+       adapt = FALSE, t = 0L)
+}
+
+# infos$axis_move from the chains' records, each a matrix with one row per
+# embedding column and one column per chain: the proposal step the kept sweeps
+# used, and the share of sweeps in which the move was accepted, after and
+# during burn-in. NULL when the move is off.
+axis_move_record <- function(parts, columns) {
+  parts <- parts[!vapply(parts, is.null, logical(1))]
+  if (length(parts) == 0L) return(NULL)
+  rate <- function(phase) {
+    out <- vapply(parts, function(p) p[[paste0("accepted_", phase)]] /
+                    p[[paste0("sweeps_", phase)]], numeric(length(columns)))
+    matrix(out, length(columns), length(parts), dimnames = list(columns, NULL))
+  }
+  step <- vapply(parts, function(p) p$step, numeric(length(columns)))
+  list(step = matrix(step, length(columns), length(parts), dimnames = list(columns, NULL)),
+       acceptance = rate("kept"), acceptance_burnin = rate("burnin"))
+}
+
 #' Grouped prior for occupancy coefficients (experimental)
 #'
 #' An experimental prior that lets [runOccJSDM()] use an embedding, a block of
