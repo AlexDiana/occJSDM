@@ -10,7 +10,11 @@
 #
 #   Rscript --vanilla dev/simstudy/grouped-mixing-20261118/prior_scale_experiment.R \
 #       --truth=null|lowrank|unstructured --seed=1 --scale=1 [--nchain=4] [--nburn=1500] [--niter=1500] \
-#       --lib=<library> [--out=<dir>]
+#       [--start=<value>] --lib=<library> [--out=<dir>]
+#
+# --start sets the chain's starting value of sigma_emb apart from the prior scale, to separate the
+# two. It replaces the package's internal coef_scales_start() in this R session only (chains run
+# in this process, ncores = 1); no package code is changed.
 #
 # Data are simulated exactly as in repro.R (same seeds give the same null and low-rank data sets):
 # 256 sites, 48 species, 64 embedding columns, 5 measured covariates, 4 latent traits. The
@@ -27,6 +31,7 @@ scale <- as.numeric(getopt("scale", "1")); nchain <- as.integer(getopt("nchain",
 nburn <- as.integer(getopt("nburn", "1500")); niter <- as.integer(getopt("niter", "1500"))
 n <- as.integer(getopt("n", "256")); S <- as.integer(getopt("S", "48")); K <- as.integer(getopt("K", "64"))
 lib <- getopt("lib", NA_character_)
+start <- getopt("start", NA_character_)
 out_dir <- getopt("out", "dev/simstudy/grouped-mixing-20261118/results/prior-scale")
 stopifnot(truth %in% c("null", "lowrank", "unstructured"))
 if (!is.na(lib)) .libPaths(c(normalizePath(lib), .libPaths()))
@@ -34,7 +39,19 @@ suppressMessages(library(occJSDM))
 Sys.setenv(RCPP_PARALLEL_NUM_THREADS = "1")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 gt <- 4L; p_meas <- 5L
-tag <- sprintf("%s_s%d_scale%s_b%d", truth, seed, format(scale), nburn)
+tag <- sprintf("%s_s%d_scale%s%s_b%d", truth, seed, format(scale),
+               if (is.na(start)) "" else paste0("_start", start), nburn)
+if (!is.na(start)) {
+  start_value <- as.numeric(start)
+  original_start <- occJSDM:::coef_scales_start
+  utils::assignInNamespace("coef_scales_start", function(coef_prior, p) {
+    out <- original_start(coef_prior, p)
+    if (!is.na(out$sigma_emb)) out$sigma_emb <- start_value
+    out
+  }, ns = "occJSDM")
+  check <- occJSDM:::coef_scales_start(list(type = "grouped", is_emb = c(FALSE, TRUE), sigma_emb_scale = 9, axis_scale = 1), 2L)
+  stopifnot(identical(check$sigma_emb, start_value))
+}
 
 embedding <- list(n_emb = K)
 if (truth == "null") embedding$B <- matrix(0, K, S)
@@ -93,7 +110,7 @@ slope <- function(est, tru) if (all(tru == 0)) NA_real_ else sum(est * tru) / su
 per_chain <- do.call(rbind, lapply(seq_len(nchain), function(ch) {
   Bc <- apply(B[, , , ch], c(1, 2), mean)
   contribution <- X[, emb, drop = FALSE] %*% (Bc[emb, ] - true_B[emb, ])
-  data.frame(tag = tag, truth = truth, seed = seed, scale = scale, chain = ch,
+  data.frame(tag = tag, truth = truth, seed = seed, scale = scale, start = if (is.na(start)) scale else as.numeric(start), chain = ch,
              log_sigma_emb_mean = mean(log_sig[, ch]), log_sigma_emb_min = min(log_sig[, ch]),
              log_sigma_emb_max = max(log_sig[, ch]),
              mean_log_axis_active = if (length(active)) mean(log(jo$lambda_output[match(active, emb), , ch])) else NA_real_,
@@ -105,7 +122,7 @@ per_chain <- do.call(rbind, lapply(seq_len(nchain), function(ch) {
              err_contribution = rms(contribution))
 }))
 Bm <- apply(B, c(1, 2), mean)
-fit_row <- data.frame(tag = tag, truth = truth, seed = seed, scale = scale, nchain = nchain, nburn = nburn, niter = niter,
+fit_row <- data.frame(tag = tag, truth = truth, seed = seed, scale = scale, start = if (is.na(start)) scale else as.numeric(start), nchain = nchain, nburn = nburn, niter = niter,
   seconds = round(secs), package_commit = tryCatch(readLines(file.path(dirname(getNamespaceInfo("occJSDM", "path")), "COMMIT"), 1), error = function(e) NA_character_),
   logsig_rhat_coda = r_sig[["coda"]], logsig_rhat_rank = r_sig[["rank"]],
   logsig_chain_gap = diff(range(colMeans(log_sig))),
@@ -125,4 +142,4 @@ fit_row <- data.frame(tag = tag, truth = truth, seed = seed, scale = scale, ncha
 utils::write.csv(per_chain, file.path(out_dir, paste0(tag, "_chains.csv")), row.names = FALSE)
 utils::write.csv(fit_row, file.path(out_dir, paste0(tag, ".csv")), row.names = FALSE)
 num <- vapply(per_chain, is.numeric, logical(1)); per_chain[num] <- lapply(per_chain[num], round, 3)
-print(per_chain[, -(1:4)], row.names = FALSE); print(t(fit_row), quote = FALSE)
+print(per_chain[, -(1:5)], row.names = FALSE); print(t(fit_row), quote = FALSE)

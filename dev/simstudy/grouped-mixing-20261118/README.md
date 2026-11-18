@@ -254,3 +254,27 @@ sigma_emb is one number for the whole embedding block: the ratio of the size of 
 The experiment asks whether a smaller half-Cauchy scale on sigma_emb (0.3 in place of the default 1, set through `sigma_emb_scale`) puts every chain in the blend configuration, and what it costs. Four data sets: the low-rank truth with seeds 1 and 2, the null truth with seed 1, and an "unstructured" truth in which 10 embedding columns have coefficients that are independent across species, with no community average and no blends, which is the case a small ratio should fit worst. Each is fitted at both scales with attempt 2's library (4437375), 4 chains of 1,500 + 1,500. `prior_scale_experiment.R` writes the tables to `results/prior-scale`.
 
 What will be read off: how many chains end in each configuration; the recovery of the active embedding coefficients, the measured coefficients and the embedding's contribution to the linear predictor; and the R-hat of the scales, the measured coefficients and the embedding's contribution. `sigma_emb_scale` is also the chain's starting value of sigma_emb, so a clean result would not separate a better prior from a better start. That would need a second, start-only run.
+
+### Results
+
+Doug settled the question of intent on 18 November 2026, while the fits were running: the purpose of the grouped prior is to learn habitat gradients when they exist. So in a low-rank truth the leftover configuration is an unwanted solution and not an alternative answer.
+
+The first eight fits looked like support for the smaller scale. In low-rank seed 2 the default put 1 of 4 chains in the blend configuration and a scale of 0.3 put 4 of 4 there, with the slope of the active coefficients on the truth rising from 0.42 to 0.62; seed 1 was 4 of 4 at both scales; and nothing was lost in the null truth or in the unstructured truth, where sigma_emb went to about 8 under either scale and the active coefficients were recovered identically (slope 0.85 and 0.84). Three more runs were then added to separate the prior from the start, to add a third data set and to check the null truth at the longer length. `--start` in the script sets the starting value of sigma_emb apart from the prior scale, inside the script's R session only. They change the reading.
+
+Low-rank chains in the blend configuration, of 4, by prior scale and starting value of sigma_emb.
+
+- Seed 1. Scale 1, start 1: 4. Scale 0.3, start 0.3: 4.
+- Seed 2. Scale 1, start 1: 1. Scale 1, start 0.3: 3. Scale 0.3, start 1: 0. Scale 0.3, start 0.3: 4.
+- Seed 3. Scale 1, start 1: 0. Scale 0.3, start 0.3: 2.
+
+What this says.
+
+- The starting value decides, not the prior scale. In seed 2 the smaller scale with the default start puts no chain in the blend configuration, and the default scale with the smaller start puts three there. A half-Cauchy is too heavy-tailed for its scale to matter at values near 7: moving the scale from 1 to 0.3 lowers the prior density there by a factor of about 3.
+- A smaller start is not reliable either. In seed 3 it rescues two chains of four, and those two do not agree with each other: log sigma_emb is about -3.6 in both, but the slope of the active coefficients is 0.57 in one and 0.83 in the other, the embedding's contribution is over R-hat 1.1 for 75 percent of species, and 12.5 percent of the measured coefficients are too (largest 1.34). So the blend configuration is itself more than one place.
+- A low start does not trap chains in the blend configuration. In the unstructured truth chains started at 0.3 moved to about 8 within burn-in.
+- The leftover configuration is not rare at the default: 3 of 4 chains in seed 2 and 4 of 4 in seed 3, with the active coefficients at half their true size (slope 0.38 to 0.50). In those fits the scales and coefficients agree across chains, so R-hat reports nothing wrong: in seed 3 at the default, log sigma_emb has a rank-normalised R-hat of 1.10 and only 3 axis scales are over 1.1.
+- The smaller scale has a cost in the null truth that the first eight fits did not show. At 5,000 + 5,000 with 2 chains, 26 percent of the embedding coefficients are over 1.1 on the rank-normalised R-hat at a scale of 0.3, against 3.5 percent at the default. The scales, the measured coefficients and the embedding's contribution are under 1.1 at both (largest 1.04).
+
+So this experiment does not support changing `sigma_emb_scale`, and the default is left alone. What it does establish is that the configuration is chosen during burn-in by where the chain starts and is then kept, which is a posterior with several separated regions that the sampler does not cross, and that the unwanted region is the usual destination from the default start in two of three data sets. Which region holds the posterior mass is still not known.
+
+Not verified: three low-rank data sets, one size, 4 chains of 1,500 + 1,500; whether the recovered blends match the true ones (only coefficients and their combined effect were scored); held-out predictions.
