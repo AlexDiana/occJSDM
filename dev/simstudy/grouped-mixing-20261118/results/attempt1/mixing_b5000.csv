@@ -1,0 +1,19 @@
+"run","quantity","baseline","prototype","ratio"
+"lowrank seed 1","tau log axis scale, inactive (median)",314,16.2,19.4
+"lowrank seed 1","tau log axis scale, active (median)",85.5,28.3,3.03
+"lowrank seed 1","log axis scales over R-hat 1.1 (of 64)",50,2,25
+"lowrank seed 1","largest log axis scale R-hat",8.49,2.21,3.84
+"lowrank seed 1","log sigma_emb R-hat",17.7,1,17.7
+"lowrank seed 1","log sigma_emb tau",427,648,0.66
+"lowrank seed 1","share of embedding B over R-hat 1.1",0.775,0.349,2.22
+"lowrank seed 1","tau embedding B (median)",5.91,81.6,0.0724
+"lowrank seed 1","seconds per fit",1000,1820,0.551
+"null seed 1","tau log axis scale, inactive (median)",292,11.5,25.4
+"null seed 1","tau log axis scale, active (median)",NA,NA,NA
+"null seed 1","log axis scales over R-hat 1.1 (of 64)",60,0,Inf
+"null seed 1","largest log axis scale R-hat",10.8,1.03,10.5
+"null seed 1","log sigma_emb R-hat",3.5,1.14,3.06
+"null seed 1","log sigma_emb tau",1590,820,1.95
+"null seed 1","share of embedding B over R-hat 1.1",0.869,0.056,15.5
+"null seed 1","tau embedding B (median)",221,42,5.26
+"null seed 1","seconds per fit",1160,1820,0.64
