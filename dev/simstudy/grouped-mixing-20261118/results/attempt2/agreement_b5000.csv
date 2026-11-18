@@ -1,0 +1,13 @@
+"run","block","n","rms_diff","rms_expected","ratio","largest_abs_diff"
+"lowrank seed 1","B, measured rows",288,0.0272,0.0308,0.882,0.119
+"lowrank seed 1","B, embedding rows",3070,0.0213,0.0353,0.603,0.156
+"lowrank seed 1","embedding spread per species",48,0.041,0.0413,0.992,0.143
+"lowrank seed 1","log axis scales",64,0.215,0.336,0.638,0.928
+"lowrank seed 1","log sigma_emb",1,0.0855,0.0225,3.81,0.0855
+"lowrank seed 1","log sigma_b",1,0.000604,0.0117,0.0518,0.000604
+"null seed 1","B, measured rows",288,0.0202,0.0229,0.883,0.0803
+"null seed 1","B, embedding rows",3070,0.00497,0.00507,0.981,0.0242
+"null seed 1","embedding spread per species",48,0.00593,0.00553,1.07,0.0113
+"null seed 1","log axis scales",64,0.0968,0.0923,1.05,0.242
+"null seed 1","log sigma_emb",1,0.732,0.1,7.31,0.732
+"null seed 1","log sigma_b",1,0.0478,0.0238,2,0.0478

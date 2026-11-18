@@ -4,6 +4,8 @@
 #
 #   Rscript --vanilla dev/simstudy/grouped-mixing-20261118/compare.R [--attempt=attempt1] [--nburn=1500]
 #
+# For attempt 2 the "base" arm is attempt 1's prototype, copied from results/attempt1/proto.
+#
 # Mixing columns are those of repro.R. Tau is kept draws per effective draw (coda::effectiveSize,
 # which fits an autoregression within each chain, so it cannot see more persistence than a chain is
 # long: read a tau above about a tenth of the chain length as "at least").
@@ -90,6 +92,10 @@ for (tag in tags) {
     cat(sprintf("  axis move: acceptance after burn-in median %.2f (range %.2f to %.2f); step median %.2f (range %.2f to %.2f)\n",
                 stats::median(p$axis_move$acceptance), min(p$axis_move$acceptance), max(p$axis_move$acceptance),
                 stats::median(p$axis_move$step), min(p$axis_move$step), max(p$axis_move$step)))
+  if (!is.null(p$axis_move$sigma_emb_step))
+    cat(sprintf("  sigma_emb move: acceptance after burn-in %s; step %s\n",
+                paste(round(p$axis_move$sigma_emb_acceptance, 2), collapse = ", "),
+                paste(round(p$axis_move$sigma_emb_step, 2), collapse = ", ")))
 }
 utils::write.csv(mixing, file.path(root, sprintf("mixing_b%d.csv", nburn)), row.names = FALSE)
 utils::write.csv(agreement, file.path(root, sprintf("agreement_b%d.csv", nburn)), row.names = FALSE)

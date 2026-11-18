@@ -1,0 +1,2 @@
+"tag","truth","n","S","K","gt","nburn","niter","seed","seconds","package_commit","n_active","loglam_rhat_gt1.1","loglam_rhat_max","loglam_tau_med_inactive","loglam_tau_med_active","prod_tau_med","prod_rhat_gt1.1","logsig_rhat","logsig_tau","cor_logsig_meanloglam","B_emb_share_rhat_gt1.1","B_emb_tau_med"
+"lowrank_n256_S48_K64_gt4_b5000_s1","lowrank",256,48,64,4,5000,5000,1,4095,"4437375",10,3,4.67957961230308,15.0860200756564,30.7519706158697,19.6823965963962,3,1.0166216249159,180.048392669463,-0.028264452037941,0.391927083333333,80.4691770645985
