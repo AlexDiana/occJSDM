@@ -81,7 +81,12 @@ rh_pr <- rhat(log(prod_arr)); es_pr <- ess(log(prod_arr))
 mean_log_lam <- apply(log_lam, c(2, 3), mean)  # iter x chain
 cor_sig_lam <- cor(as.vector(log(sig)), as.vector(mean_log_lam))
 B <- jo$B_output                               # p x S x iter x chain
-emb_rows <- seq(p_meas + 1L, dim(B)[1])   # measured columns come first, then the embedding
+# The embedding's design rows, from the fit's own labels. Until 18 November 2026 this was
+# seq(p_meas + 1, nrow(B)), which took in the last measured row as well: one simulated measured
+# covariate is a factor with two contrast columns, so there are p_meas + 1 measured rows. The six
+# first results therefore counted 65 rows, one of them measured, in the two B_emb columns.
+emb_rows <- unname(which(fit$infos$covariate_group == "embedding"))
+stopifnot(length(emb_rows) == K)
 rh_B <- rhat(B[emb_rows, , , , drop = FALSE]); es_B <- ess(B[emb_rows, , , , drop = FALSE])
 
 row <- data.frame(tag = tag, truth = truth, n = n, S = S, K = K, gt = gt, nburn = nburn, niter = niter,
@@ -105,4 +110,27 @@ utils::write.csv(cols, file.path(out_dir, paste0(tag, "_columns.csv")), row.name
 keep <- seq(1L, nit, by = 5L)
 saveRDS(list(log_lambda = log_lam[sample(K, min(K, 8L)), keep, , drop = FALSE], log_sigma_emb = log(sig[keep, , drop = FALSE]),
              mean_log_lambda = mean_log_lam[keep, , drop = FALSE]), file.path(out_dir, paste0(tag, "_traces.rds")))
+# Posterior summaries, for checking that a change to the sampler leaves the answer alone (added
+# 18 November 2026 with fix attempt 1): the mean, sd and effective sample size of every B entry
+# and of the scales, and per species the spread across sites (sd) of the embedding's contribution
+# to the linear predictor, X_emb %*% B_emb, as a posterior mean and sd over draws. Also the axis
+# scale move's record when the package under test has one.
+X <- fit$X_psi
+spread <- vapply(seq_len(dim(B)[4]), function(ch) vapply(seq_len(dim(B)[3]), function(it)
+  apply(X[, emb_rows, drop = FALSE] %*% B[emb_rows, , it, ch], 2, stats::sd), numeric(S)), matrix(0, S, dim(B)[3]))
+sigb <- as_iter_chain(jo$sigmab_output)
+saveRDS(list(tag = tag, package_commit = row$package_commit, seconds = secs,
+             B_mean = apply(B, c(1, 2), mean), B_sd = apply(B, c(1, 2), stats::sd),
+             B_ess = matrix(ess(B), dim(B)[1], dim(B)[2]), B_rhat = matrix(rhat(B), dim(B)[1], dim(B)[2]),
+             B_chain_mean = apply(B, c(1, 2, 4), mean), emb_rows = emb_rows, true_B = true_B,
+             spread_mean = apply(spread, 1, mean), spread_sd = apply(spread, 1, stats::sd),
+             spread_chain_mean = apply(spread, c(1, 3), mean),
+             log_lambda_mean = apply(log_lam, 1, mean), log_lambda_sd = apply(log_lam, 1, stats::sd),
+             log_lambda_chain_mean = apply(log_lam, c(1, 3), mean), log_lambda_ess = es_ll,
+             log_sigma_emb = c(mean = mean(log(sig)), sd = stats::sd(log(sig)), ess = ess(log(sig))),
+             log_sigma_emb_chain_mean = colMeans(log(sig)),
+             log_sigma_b = c(mean = mean(log(sigb)), sd = stats::sd(log(sigb)), ess = ess(log(sigb))),
+             log_sigma_b_chain_mean = colMeans(log(sigb)),
+             axis_move = fit$infos$axis_move),
+        file.path(out_dir, paste0(tag, "_summary.rds")))
 print(t(row), quote = FALSE)
