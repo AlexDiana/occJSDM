@@ -525,7 +525,14 @@ arma::vec sampleBuniv(arma::mat& X, arma::mat& B,
   // arma::mat cov_matrix = arma::inv(tXOmega * X + arma::inv(B));
   // arma::vec result = mvrnormArma(cov_matrix * (arma::trans(X) * k + arma::inv(B) * b), cov_matrix);
 
-  arma::mat L = arma::trans(arma::chol(tX * X * (1 / (sigma*sigma)) + invB));
+  // symmatu() copies the upper triangle of the precision onto the lower one.
+  // tX * X is a general matrix product, so its mirror-image elements can
+  // differ by rounding; divided by a very small sigma^2 that difference
+  // passed the tolerance of Armadillo's symmetry check, which then printed
+  // "chol(): given matrix is not symmetric". chol() factorises from the upper
+  // triangle only, which symmatu() leaves as it was, so L is bit for bit the
+  // same as without it. Nothing else may read the symmetrised matrix.
+  arma::mat L = arma::trans(arma::chol(arma::symmatu(tX * X * (1 / (sigma*sigma)) + invB)));
   arma::vec tmp = arma::solve(arma::trimatl(L), tX * y / (sigma*sigma) + invB * b);
   arma::vec alpha = arma::solve(arma::trimatu(arma::trans(L)),tmp);
 
@@ -838,6 +845,20 @@ inline arma::mat computeBtcoef_cpp(const arma::mat& G,
   return Tr * G + A * C + Btilde;
 }
 
+// Prior variances of the covariate coefficients B, written into entries
+// 1..p of the joint prior diagonal. sd_b holds one prior standard deviation
+// per covariate; a length-1 sd_b is recycled to all p. Each entry is squared
+// with std::pow(), the operation the scalar code used, so a constant sd_b
+// reproduces fits made with a single sigma_b bit for bit.
+inline void fill_B_prior_variance(arma::vec& diag_B, const arma::vec& sd_b, int p) {
+  if (sd_b.n_elem != 1 && sd_b.n_elem != static_cast<arma::uword>(p)) {
+    Rcpp::stop("sd_b must have length 1 or one entry per covariate");
+  }
+  for (int i = 0; i < p; ++i) {
+    diag_B(1 + i) = std::pow(sd_b.n_elem == 1 ? sd_b(0) : sd_b(i), 2);
+  }
+}
+
 // [[Rcpp::export]]
 List sample_BBsL_cpp(arma::mat k,
                  arma::mat X,
@@ -846,7 +867,7 @@ List sample_BBsL_cpp(arma::mat k,
                  arma::mat G,
                  arma::mat A,
                  arma::mat C,
-                 double sigma_b,
+                 arma::vec sd_b,
                  arma::mat Gs,
                  arma::mat As,
                  arma::mat Cs,
@@ -856,17 +877,26 @@ List sample_BBsL_cpp(arma::mat k,
                  arma::mat Omega,
                  std::string model,
                  double sigma_b0 = 1.0,
-                 double mu_b0 = 0.0) {
+                 double mu_b0 = 0.0,
+                 Rcpp::Nullable<Rcpp::NumericMatrix> Tr_b = R_NilValue) {
 
   int p = X.n_cols;
   int ps = Cs.n_cols;
   int d = U.n_cols;
   int S = Omega.n_cols;
 
+  // Trait matrix of the covariate side (the prior mean of B, and Bt). Tr
+  // itself when Tr_b is NULL; the spatial side always uses Tr.
+  arma::mat Tr_b_given;
+  if (Tr_b.isNotNull()) {
+    Tr_b_given = Rcpp::as<arma::mat>(Tr_b.get());
+  }
+  const arma::mat& Tr_cov = Tr_b.isNotNull() ? Tr_b_given : Tr;
+
   arma::mat zero_Sp(S, p, arma::fill::zeros);
   arma::mat zero_Sps(S, ps, arma::fill::zeros);
 
-  arma::mat M_B = computeBtcoef_cpp(G, Tr, A, C, zero_Sp).t();
+  arma::mat M_B = computeBtcoef_cpp(G, Tr_cov, A, C, zero_Sp).t();
   arma::mat M_Bs = computeBtcoef_cpp(Gs, Tr, As, Cs, zero_Sps).t();
 
   arma::vec B0(S, arma::fill::zeros);
@@ -882,10 +912,9 @@ List sample_BBsL_cpp(arma::mat k,
     // Occupancy intercept prior variance; the factor loadings keep unit variance.
     diag_B(0) = std::pow(sigma_b0, 2);
 
-    // SAFEGUARD: Only subvec if p > 0 and ps > 0
-    if (p > 0) {
-      diag_B.subvec(1, p).fill(std::pow(sigma_b, 2));
-    }
+    // One prior variance per covariate (a no-op when p == 0).
+    fill_B_prior_variance(diag_B, sd_b, p);
+    // SAFEGUARD: Only subvec if ps > 0
     if (ps > 0) {
       diag_B.subvec(1 + p + d, p + d + ps).fill(std::pow(sigma_bs, 2));
     }
@@ -953,7 +982,7 @@ List sample_BBsL_cpp(arma::mat k,
     }
   }
 
-  arma::mat Bt = B.t() - Tr * G - A * C;
+  arma::mat Bt = B.t() - Tr_cov * G - A * C;
   arma::mat Bts = Bs.t() - Tr * Gs - As * Cs;
 
   return List::create(
@@ -1068,7 +1097,7 @@ List sample_BBsL_parallel(arma::mat k,
                  arma::mat G,
                  arma::mat A,
                  arma::mat C,
-                 double sigma_b,
+                 arma::vec sd_b,
                  arma::mat Gs,
                  arma::mat As,
                  arma::mat Cs,
@@ -1078,17 +1107,26 @@ List sample_BBsL_parallel(arma::mat k,
                  arma::mat Omega,
                  std::string model,
                  double sigma_b0 = 1.0,
-                 double mu_b0 = 0.0) {
+                 double mu_b0 = 0.0,
+                 Rcpp::Nullable<Rcpp::NumericMatrix> Tr_b = R_NilValue) {
 
   int p = X.n_cols;
   int ps = Cs.n_cols;
   int d = U.n_cols;
   int S = Omega.n_cols;
 
+  // Trait matrix of the covariate side (the prior mean of B, and Bt). Tr
+  // itself when Tr_b is NULL; the spatial side always uses Tr.
+  arma::mat Tr_b_given;
+  if (Tr_b.isNotNull()) {
+    Tr_b_given = Rcpp::as<arma::mat>(Tr_b.get());
+  }
+  const arma::mat& Tr_cov = Tr_b.isNotNull() ? Tr_b_given : Tr;
+
   arma::mat zero_Sp(S, p, arma::fill::zeros);
   arma::mat zero_Sps(S, ps, arma::fill::zeros);
 
-  arma::mat M_B = computeBtcoef_cpp(G, Tr, A, C, zero_Sp).t();
+  arma::mat M_B = computeBtcoef_cpp(G, Tr_cov, A, C, zero_Sp).t();
   arma::mat M_Bs = computeBtcoef_cpp(Gs, Tr, As, Cs, zero_Sps).t();
 
   arma::vec B0(S, arma::fill::zeros);
@@ -1104,9 +1142,8 @@ List sample_BBsL_parallel(arma::mat k,
     // Occupancy intercept prior variance; the factor loadings keep unit variance.
     diag_B(0) = std::pow(sigma_b0, 2);
 
-    if (p > 0) {
-      diag_B.subvec(1, p).fill(std::pow(sigma_b, 2));
-    }
+    // One prior variance per covariate (a no-op when p == 0).
+    fill_B_prior_variance(diag_B, sd_b, p);
     if (ps > 0) {
       diag_B.subvec(1 + p + d, p + d + ps).fill(std::pow(sigma_bs, 2));
     }
@@ -1133,7 +1170,7 @@ List sample_BBsL_parallel(arma::mat k,
     worker(0, S);
   }
 
-  arma::mat Bt = B.t() - Tr * G - A * C;
+  arma::mat Bt = B.t() - Tr_cov * G - A * C;
   arma::mat Bts = Bs.t() - Tr * Gs - As * Cs;
 
   return List::create(

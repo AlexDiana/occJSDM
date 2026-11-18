@@ -1,3 +1,17 @@
+# occJSDM (development version)
+
+In development, not yet released.
+
+## New features
+
+-   Experimental, off by default and not yet validated: `runOccJSDM()` can take a satellite embedding, a block of tens of numeric columns per site, as occupancy covariates beside a few measured covariates, under a new grouped prior on the occupancy coefficients. Name the embedding columns in `listParams$embeddingVars`; that alone switches the prior on, and `listPriors$b_prior = "grouped"` switches it on without an embedding. The measured covariates and the embedding columns then get scales of their own, learned from the data, each embedding column gets an axis scale that can shrink it out of the model, and every covariate gets a community-average response. Three new entries of `listPriors` set the half-Cauchy prior scales of those scales: `sigma_b_scale`, `sigma_emb_scale` and `axis_scale`. Fits that set neither `embeddingVars` nor `b_prior` are unchanged. The prior has not been through its validation study, its axis scales mix slowly, and its settings and defaults may change; see `?"grouped-prior"`.
+-   Four new functions summarise a fit made with the grouped prior: `returnCovariateScales()` (the learned scales), `returnCommunityResponse()` (the community-average response to each covariate), `returnEmbeddingBlends()` (the combinations of embedding columns that species respond to, with a score for each site) and `returnEmbeddingShare()` (for each species, the share of the covariates' contribution that comes from the embedding). They are experimental with the prior.
+-   `simulateOccJSDMData()` can add an embedding block to the simulated occupancy covariates: set `embedding` in `list_jsdmParams`, giving either the number of columns to simulate or your own matrix of columns. Calls that do not set it return what they returned before.
+
+## Documentation
+
+-   New help page `?"grouped-prior"`, also reached as `?embeddingVars` and `?b_prior`: what the grouped prior is for, how to switch it on, its settings, what the fit holds, how to read a management covariate fitted beside an embedding, and its experimental status.
+
 # occJSDM 0.3.2
 
 Sixth beta, released on GitHub as `v0.3.2-beta`. It removes a cost at the end of a fit that grew with the square of the number of coefficients, which made fits with many covariates or many species slow to finish and could exhaust memory. Estimates are unchanged from 0.3.1.
