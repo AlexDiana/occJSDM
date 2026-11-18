@@ -244,3 +244,13 @@ Two of the three attempts are used. A third move of the same kind (the joint mov
 - The R-hat comparison was run on one seed of each truth.
 - A spatial field with the new move, other model types, and `R CMD check`, as for attempt 1. The package documentation, NEWS and defaults are unchanged.
 - Nothing was run on the AlphaEco data.
+
+## The prior scale of sigma_emb: a settings-only experiment, 18 November 2026
+
+Not a fix attempt, and no package code is changed. Doug approved running it on 18 November 2026 after a discussion of the parameterisation. This part was written before the fits were run.
+
+sigma_emb is one number for the whole embedding block: the ratio of the size of a column's leftovers to the size of its shared part (community average, traits and blends). The two low-rank configurations are two values of that ratio, about 0.3 (blends carry the signal) and about 6 (leftovers carry it, and nothing is pooled across species). Scored against the simulated truth, the 18 low-rank chains run so far recover the active embedding coefficients better in the blend configuration: the slope of the estimate on the truth is 0.69 to 0.75 there and 0.40 to 0.55 in the leftover configuration, with the measured coefficients about equally well recovered in both. Which configuration a chain reaches depends mostly on the data set: seed 1 goes to blends in 10 of 12 chains, seed 2 to leftovers in 5 of 6.
+
+The experiment asks whether a smaller half-Cauchy scale on sigma_emb (0.3 in place of the default 1, set through `sigma_emb_scale`) puts every chain in the blend configuration, and what it costs. Four data sets: the low-rank truth with seeds 1 and 2, the null truth with seed 1, and an "unstructured" truth in which 10 embedding columns have coefficients that are independent across species, with no community average and no blends, which is the case a small ratio should fit worst. Each is fitted at both scales with attempt 2's library (4437375), 4 chains of 1,500 + 1,500. `prior_scale_experiment.R` writes the tables to `results/prior-scale`.
+
+What will be read off: how many chains end in each configuration; the recovery of the active embedding coefficients, the measured coefficients and the embedding's contribution to the linear predictor; and the R-hat of the scales, the measured coefficients and the embedding's contribution. `sigma_emb_scale` is also the chain's starting value of sigma_emb, so a clean result would not separate a better prior from a better start. That would need a second, start-only run.
