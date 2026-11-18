@@ -171,3 +171,76 @@ The rule. The hypothesis is supported if all of these hold.
 - The posterior agrees with the baseline's on the small problem of attempt 1, judged against the difference between two baseline runs.
 
 If the tau of log sigma_emb does not fall 5 times, the hypothesis is rejected and the move is not tuned to rescue it. The low-rank truth is reported separately and is not part of the rule, because of its two configurations: what is recorded there is which configuration each chain ends in, and whether any chain crosses.
+
+### What was built
+
+Prototype commit 4437375, on top of attempt 1. `sigma_emb_move()` in `R/coef-prior.R`, called from `update_jSDMcoef()` just before `axis_scale_move()`, which is handed the B and linear predictor the new move leaves. The algebra was checked as for attempt 1 and holds: a leftover's prior standard deviation is sigma_emb times its column's axis scale, so scaling sigma_emb and every embedding leftover by one factor leaves the leftovers' prior times the Jacobian unchanged. The new move shares attempt 1's state, guard and burn-in adaptation, and `infos$axis_move` gains its step and acceptance rates.
+
+Tests, written first and watched to fail: six in `tests/testthat/test-sigma-emb-move.R`. The acceptance decision against the written-out target density over 40 states; the joint scaling of every embedding leftover; prior invariance with both moves in the sweep (largest quartile error over 8 seeds 0.013 for sigma_emb and 0.030 for an axis scale; leaving out the log-scale factor moves the sigma_emb shares by 0.39 or makes the run fail, and a prior scale wrong by a factor of 2 moves them by 0.20, `checks/invariance_mutations_sigma_emb.R`); the wiring and order inside a real fit; the record. The full suite passes: 356 tests, 0 failures, 6 skips, none new. Fits under the fixed prior and grouped fits with the moves off are bit-identical to the baseline and to attempt 1.
+
+One existing test was changed. "a chain starts with C at its prior scale" in `test-grouped-prior-fits.R` bounded the first stored axis scales within a factor of 3.2 of their start, on the reasoning that the first stored value is the first Gibbs draw. With a scale move in the sweep that is no longer so, and a first move of that size is not rare. The test passed under attempt 1 by its seed and failed under attempt 2 when the random stream shifted. It now reads the first Gibbs draw itself from `sample_coef_scales()`, with its bounds unchanged, and passes.
+
+### Results
+
+Attempt 1 then attempt 2, at 1,500 + 1,500.
+
+- Null, seed 1. Tau of log sigma_emb 467 and 33, R-hat 1.86 and 1.05. Log axis scales over 1.1: 1 and 3 of 64, largest 1.11 and 1.20. Tau of the inactive log axis scales 9.8 and 9.8. Share of embedding B over 1.1: 0.20 and 0.38.
+- Null, seed 2. Tau of log sigma_emb 411 and 32, R-hat 7.3 and 1.08. Over 1.1: 3 and 3, largest 1.61 and 1.45. Tau of the inactive log axis scales 10.3 and 10.7. B share 0.62 and 0.47.
+- Low rank, seed 1. Tau of log sigma_emb 828 and 131, R-hat 1.12 and 1.07. Over 1.1: 19 and 6, largest 3.9 and 1.37. Tau of the log axis scales 12.8 and 12.7 for inactive columns, 21 and 19 for active ones. B share 0.62 and 0.54. All four chains are in the second configuration.
+- Low rank, seed 2. Tau of log sigma_emb 348 and 370, R-hat 19.3 and 1.08. Over 1.1: 24 and 6, largest 7.0 and 1.48. Tau of the log axis scales 17.8 and 27.1 for inactive columns, 33 and 75 for active ones. B share 0.88 and 0.025. Attempt 1 has one chain in each configuration; attempt 2 has both in the first.
+
+At 5,000 + 5,000, seed 1.
+
+- Null. Tau of log sigma_emb 820 and 26, R-hat 1.14 and 1.02. Log axis scales over 1.1: 0 and 0, largest 1.03 and 1.05. Tau of the inactive log axis scales 11.5 and 11.5. B share 0.056 and 0.088.
+- Low rank. Tau of log sigma_emb 648 and 180, R-hat 1.00 and 1.02. Over 1.1: 2 and 3, largest 2.2 and 4.7. Tau of the log axis scales 16.2 and 15.1 for inactive columns, 28 and 31 for active ones. B share 0.35 and 0.39. All four chains are in the second configuration.
+
+The move itself: acceptance after burn-in is 0.30 to 0.51. The adapted step is 1.0 to 1.2 in log units in the null fits, 0.10 to 0.18 in the low-rank chains in the second configuration, and 0.03 in the two chains in the first.
+
+### Verdict against the rule
+
+The rule is not met. The move was not tuned.
+
+The rule as written above is ambiguous on one point, and that is recorded here and not resolved in the move's favour. Its first and third conditions say "in every pair", and its last paragraph says the low-rank truth is not part of the rule. What was meant was that the configurations would be reported separately. Read with every pair, the first condition fails and the hypothesis as stated is rejected. Read with the low-rank truth left out, the first condition is met and the rule still fails, on the share of embedding B in the null pairs. The rest of this section takes the stricter reading.
+
+- Tau of log sigma_emb falls at least 5 times in every pair: not met. It fell 13 to 14 times in the null fits at the short length and 31 times at the long one. In the low-rank truth it fell 6.3 times in seed 1 at the short length, 3.6 times at the long one, and not at all in seed 2.
+- Null truth, log sigma_emb under 1.1 at 5,000 + 5,000: met (1.02). Share of embedding B lower in every null pair: not met (higher in two of the three pairs).
+- Axis scales not made worse: met in five pairs, and missed by a hair in low-rank seed 2 (27.1 against a limit of 26.7), where the two arms have different mixes of configurations.
+- Posterior agrees on the small problem: met. Against the first baseline run the prototype's posterior means differ by at most 0.12 posterior sd for the embedding rows of B, 0.04 for the measured rows, 0.22 for the log axis scales and 0.11 for log sigma_emb; the two baseline runs differ from each other by 0.14, 0.06, 0.18 and 0.13. Against the second baseline run every one of the prototype's differences is smaller than those.
+
+What the results say is narrower than the hypothesis. Where the embedding leftovers carry no signal, sigma_emb was stuck for the reason proposed and the move frees it: the likelihood is nearly flat when the leftovers are scaled, so the step is about 1. Where the leftovers carry signal the likelihood pins them, the step that keeps a 0.44 acceptance rate falls to between 0.03 and 0.18, and the move can do little. In the first low-rank configuration that step is about the size of the Gibbs draw's own (0.018), and nothing improves. There the product of sigma_emb with an axis scale is fixed by the data, and what is left slow is the trade-off between the two along that ridge. That is the joint move the original brief named, and the reasoning given under attempt 1 for setting it aside was wrong for this regime.
+
+In the large fits the yardstick of `compare.R` gives log sigma_emb a ratio of 3.9 and 7.3 in two null pairs. That is the baseline arm's doing: attempt 1's two chains start at the same value and had hardly left it (tau 470 to 820), so they agree with each other and not with the posterior. Attempt 2's six null chains have mean log sigma_emb between -1.05 and -1.56.
+
+### The R-hat of the embedding coefficients
+
+The share of embedding B entries over 1.1 does not come down with the scales, so the diagnostic was checked against two others on the same draws (`checks/rhat_check.R`, attempt 2's library, seed 1). The package uses coda's point estimate, which carries a degrees-of-freedom correction that grows when the draws are heavy-tailed, and an embedding coefficient's draws are (median kurtosis about 12, against 3 for a Normal). The other two are the plain ratio without that correction and the rank-normalised split R-hat, taking the larger of its bulk and folded versions.
+
+- Null truth, 1,500 + 1,500. Share of embedding B over 1.1: coda 0.38, plain 0.12, rank-normalised 0.45.
+- Null truth, 5,000 + 5,000. Coda 0.088, plain 0.004, rank-normalised 0.035 (largest 1.21). Measured B, the log axis scales, sigma_emb and the embedding's contribution per species have nothing over 1.1 on any of the three.
+- Low-rank truth, 5,000 + 5,000, both chains in the second configuration. Coda 0.39, plain 0.084, rank-normalised 0.35. Measured B and the embedding's contribution have nothing over 1.1 on any of the three (largest 1.07). Two axis scales are over 1.1 on the rank-normalised version (largest 1.73), and their columns' coefficients are over 1.1 in 73 and 100 percent of entries; in the other 62 columns the share is 0.34.
+
+So coda's correction inflates the share several times over, but the coefficients are not simply fine: the rank-normalised version, which also looks at spread, is nearly as high as coda's in the low-rank truth. A null fit at 5,000 + 5,000 is close to clean on it. In the low-rank truth about a third of the individual embedding coefficients still differ between chains while their combined effect on the linear predictor and the measured coefficients do not, which is what trade-offs among correlated columns would look like. That reading has not been tested.
+
+### The two low-rank configurations
+
+No chain has crossed. In the 18 low-rank chains run so far (the baseline and both attempts, both run lengths), log sigma_emb stays between 1.1 and 2.4 in seven chains and between -2.6 and 0.0 in eleven, over whole runs of up to 10,000 sweeps. By arm, the first configuration holds four of six baseline chains, one of six with attempt 1 and two of six with attempt 2. Chains that share data and seeds across the two run lengths are not independent.
+
+### Cost
+
+Both moves together add about 5 percent per sweep. Three alternating rounds of short fits (200 + 200), run alone on battery with Low Power Mode off: 31, 32 and 31 s for the baseline, 32, 33 and 32 s for attempt 1, and 33, 34 and 32 s for attempt 2. The wall times in attempt 2's tables are not timings: the fits started under Low Power Mode and the laptop slept several times.
+
+### Where this leaves the problem
+
+- The axis scales: fixed by attempt 1 where the data do not inform a column, and much improved elsewhere.
+- sigma_emb in the null truth: fixed by attempt 2. With both moves a null fit at 5,000 + 5,000 has every scale, every measured coefficient and the embedding's contribution under R-hat 1.1.
+- The low-rank truth: not fixed, and not a scale that walks slowly. It has two configurations that no chain crosses, a few axis scales that disagree between chains inside one configuration, and individual embedding coefficients that trade off.
+
+Two of the three attempts are used. A third move of the same kind (the joint move of sigma_emb against the axis scales) would be expected to speed sigma_emb inside the first configuration. It is not expected to connect the configurations, because moving between them means the leftovers handing the signal to the community response and blends, or back, and no change of scale does that. So the recommendation is to take the parameterisation question to Doug now, with one attempt in hand, and not to spend the third attempt on that move first. The question is that the leftovers and the blends can each explain the same coefficients, and the prior does not choose firmly between them. Things to decide between, none of them tried: which configuration the model is meant to find and whether chains should start in it; whether the half-Cauchy prior on sigma_emb, which allows values near 7, is wider than intended; and whether the validation's convergence rule should be judged on the scales at all in a truth like this one.
+
+### Not verified, attempt 2
+
+- One seed at 5,000 + 5,000, two at 1,500 + 1,500, one size.
+- Which low-rank configuration holds the posterior mass, and whether the first is reached only through the start.
+- The R-hat comparison was run on one seed of each truth.
+- A spatial field with the new move, other model types, and `R CMD check`, as for attempt 1. The package documentation, NEWS and defaults are unchanged.
+- Nothing was run on the AlphaEco data.
