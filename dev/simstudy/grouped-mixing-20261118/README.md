@@ -278,3 +278,24 @@ What this says.
 So this experiment does not support changing `sigma_emb_scale`, and the default is left alone. What it does establish is that the configuration is chosen during burn-in by where the chain starts and is then kept, which is a posterior with several separated regions that the sampler does not cross, and that the unwanted region is the usual destination from the default start in two of three data sets. Which region holds the posterior mass is still not known.
 
 Not verified: three low-rank data sets, one size, 4 chains of 1,500 + 1,500; whether the recovered blends match the true ones (only coefficients and their combined effect were scored); held-out predictions.
+
+## Fix attempt 3: a staged burn-in that holds sigma_emb small at first, 18 November 2026
+
+Doug approved building this on 18 November 2026, after the prior-scale experiment. It is the third and last attempt before the parameterisation itself is questioned. This part was written and committed before any code or fit of attempt 3 existed.
+
+### Hypothesis and decision rule, fixed in advance
+
+The hypothesis: chains reach the leftover configuration because of what happens early in burn-in. From the default start the leftovers can take up the signal within a few sweeps, while the community response and blends need many sweeps to organise, and once the leftovers have it the chain does not come back. If the leftovers are kept small until the blends have organised, a low-rank truth will end in the blend configuration and stay there, and a truth with no shared structure will still move to the leftover configuration once it is free to.
+
+The test: for the first half of burn-in (the whole number of sweeps at or below half), sigma_emb is held at one tenth of its prior scale, which is 0.1 at the default. The chain starts there, the draw of sigma_emb is skipped and so is its scale move; everything else runs as in attempt 2, including the draws of the axis scales, which use the held value. From the next sweep on the sampler is attempt 2's, unchanged. Burn-in is discarded, so the kept draws come from the same sampler as before and its stationary distribution is not touched. Same scope as the two moves: grouped fits of model type "binary" with embedding columns. The length of the hold and its value are fixed here and will not be adjusted after the fits.
+
+The comparison: attempt 2's library (4437375) is the baseline, and its fits in `results/prior-scale` at the default scale and start are reused. With attempt 3: the low-rank truth with seeds 1, 2 and 3, the unstructured truth and the null truth, each with 4 chains of 1,500 + 1,500 at the default prior; then low-rank seeds 2 and 3 with 4 chains and the null truth with 2 chains at 5,000 + 5,000. The tables are made by `prior_scale_experiment.R` and go to `results/attempt3`.
+
+The rule. The hypothesis is supported if all of these hold.
+
+- Every one of the 12 low-rank chains at 1,500 + 1,500 and every one of the 8 at 5,000 + 5,000 is in the blend configuration (mean log sigma_emb below 0.5 over the kept draws), and none of them has a kept draw of log sigma_emb above 0.5.
+- In low-rank seeds 2 and 3 the slope of the active coefficients on the truth, pooled over chains, is higher than the baseline's (0.42 and 0.50). In seed 1 it is within 0.02 of the baseline's 0.78.
+- In the unstructured truth all 4 chains are in the leftover configuration over the kept draws, and the pooled slope is within 0.02 of the baseline's 0.85.
+- In the null truth at 5,000 + 5,000 no log axis scale and not log sigma_emb is over 1.1 on the rank-normalised R-hat, and the error of the embedding's contribution is no more than 1.1 times the baseline's at 1,500 + 1,500 (0.094).
+
+If any low-rank chain ends in the leftover configuration the hypothesis is rejected, and the hold is not lengthened or lowered to rescue it. Reported but not part of the rule: how well the chains inside the blend configuration agree with each other (the R-hat of the measured coefficients and of the embedding's contribution), since seed 3 showed that they may not.
