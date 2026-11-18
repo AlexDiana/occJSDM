@@ -1522,8 +1522,10 @@ update_jSDMcoef <- function(list_data,
   # Fixed prior: sigma_b as before.
   if (grouped_b) {
     leftovers <- t(B) - Tr_b %*% G - A %*% C
+    # isTRUE(NULL) is FALSE: no hold in any fit without the scale moves.
     list_scales <- sample_coef_scales(leftovers, G, C,
-                                      coef_prior, sigma_b, sigma_emb, lambda)
+                                      coef_prior, sigma_b, sigma_emb, lambda,
+                                      hold_sigma_emb = isTRUE(list_params$axis_move$hold))
     sigma_b <- list_scales$sigma_b
     sigma_emb <- list_scales$sigma_emb
     lambda <- list_scales$lambda
@@ -1550,8 +1552,14 @@ update_jSDMcoef <- function(list_data,
       B0, G, A, C, Bt,
       Gs, As, Cs, Bst,
       U, L, Tr_b = Tr_b)$eta
-    list_sigma <- sigma_emb_move(B, leftovers, sigma_emb, X, k, Omega, eta_drawn,
-                                 coef_prior, axis_move$sigma_step)
+    # While sigma_emb is held (the staged burn-in, axis_hold_sweeps()) its
+    # move is skipped and draws nothing.
+    held <- isTRUE(axis_move$hold)
+    list_sigma <- if (held)
+      list(B = B, sigma_emb = sigma_emb, eta = eta_drawn, accepted = FALSE,
+           log_ratio = NA_real_) else
+      sigma_emb_move(B, leftovers, sigma_emb, X, k, Omega, eta_drawn,
+                     coef_prior, axis_move$sigma_step)
     B <- list_sigma$B
     sigma_emb <- list_sigma$sigma_emb
     axis_move$sigma_accepted <- list_sigma$accepted
@@ -1567,8 +1575,12 @@ update_jSDMcoef <- function(list_data,
       axis_move$step <- axis_step_adapt(axis_move$step,
                                         list_move$log_ratio[coef_prior$is_emb],
                                         axis_move$t)
-      axis_move$sigma_step <- axis_step_adapt(axis_move$sigma_step,
-                                              list_sigma$log_ratio, axis_move$t)
+      if (!held) {
+        axis_move$sigma_t <- axis_move$sigma_t + 1L
+        axis_move$sigma_step <- axis_step_adapt(axis_move$sigma_step,
+                                                list_sigma$log_ratio,
+                                                axis_move$sigma_t)
+      }
     }
   }
   sds <- coef_prior_sds(coef_prior, sigma_b, sigma_emb, lambda, ncol(Tr_b), p)

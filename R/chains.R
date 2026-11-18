@@ -638,6 +638,10 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
           axis_accepted <- list(burnin = integer(sum(coef_prior$is_emb)),
                                 kept = integer(sum(coef_prior$is_emb)))
           sigma_accepted <- list(burnin = 0L, kept = 0L)
+          # The staged burn-in: sigma_emb starts at, and is held at, a small
+          # value for the first half of burn-in (axis_hold_sweeps()).
+          axis_hold <- axis_hold_sweeps(nburn)
+          if (axis_hold > 0L) list_jSDMparams$sigma_emb <- axis_hold_value(coef_prior)
         }
 
         list_psiCoef <- computePsiCoef(
@@ -710,7 +714,10 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
       # sample jsdm coef
       {
         list_data$z <- z
-        if (axis_on) list_jSDMparams$axis_move$adapt <- iter <= nburn
+        if (axis_on) {
+          list_jSDMparams$axis_move$adapt <- iter <= nburn
+          list_jSDMparams$axis_move$hold <- iter <= axis_hold
+        }
 
         list_jSDMparams <- update_jSDMcoef(
           list_data,
@@ -881,6 +888,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
     axis_move = if (axis_on) list(
       step = list_jSDMparams$axis_move$step,
       sigma_step = list_jSDMparams$axis_move$sigma_step,
+      hold_sweeps = axis_hold, hold_value = axis_hold_value(coef_prior),
       sigma_accepted_burnin = sigma_accepted$burnin, sigma_accepted_kept = sigma_accepted$kept,
       accepted_burnin = axis_accepted$burnin, sweeps_burnin = nburn,
       accepted_kept = axis_accepted$kept, sweeps_kept = niter * nthin) else NULL,

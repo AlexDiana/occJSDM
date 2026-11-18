@@ -191,17 +191,23 @@ sample_scale_half_cauchy <- function(ss, n, sigma, scale) {
 # scale, then each embedding column's covariate scale given the new sigma_emb.
 # A covariate scale multiplies the prior standard deviation of its column of
 # leftovers, of G and of C, so all three inform it. With no embedding columns
-# sigma_emb and lambda are returned as given.
-sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) {
+# sigma_emb and lambda are returned as given. With `hold_sigma_emb` the draw
+# of sigma_emb is skipped (no random number is drawn for it) and the covariate
+# scales are drawn given the value passed in: the staged burn-in of
+# axis_hold_sweeps().
+sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda,
+                               hold_sigma_emb = FALSE) {
   S <- nrow(R)
   is_emb <- coef_prior$is_emb
   sigma_b <- sample_scale_half_cauchy(sum(R[, !is_emb]^2), S * sum(!is_emb),
                                       sigma_b, coef_prior$sigma_b_scale)
   if (any(is_emb)) {
     emb <- which(is_emb)
-    ss_emb <- sum(sweep(R[, emb, drop = FALSE], 2, lambda[emb], "/")^2)
-    sigma_emb <- sample_scale_half_cauchy(ss_emb, S * length(emb), sigma_emb,
-                                          coef_prior$sigma_emb_scale)
+    if (!hold_sigma_emb) {
+      ss_emb <- sum(sweep(R[, emb, drop = FALSE], 2, lambda[emb], "/")^2)
+      sigma_emb <- sample_scale_half_cauchy(ss_emb, S * length(emb), sigma_emb,
+                                            coef_prior$sigma_emb_scale)
+    }
     for (k in emb) {
       ss_k <- sum(R[, k]^2) / sigma_emb^2 + sum(G[, k]^2) +
         sum(C[, k]^2) / coef_prior$c_base[k]^2
@@ -349,26 +355,44 @@ axis_step_adapt <- function(step, log_ratio, t) {
   pmin(pmax(step * exp((alpha - AXIS_MOVE_TARGET) / sqrt(t)), 0.01), 5)
 }
 
+# PROTOTYPE (dev/simstudy/grouped-mixing-20261118, fix attempt 3): a staged
+# burn-in. In a low-rank truth chains settle in one of two configurations and
+# do not cross: the community response and blends carry the signal, or the
+# leftovers do and nothing is pooled across species. Which one is chosen early
+# in burn-in. The hypothesis is that the leftovers win because they can take
+# up the signal in a few sweeps while the blends need many to organise. So for
+# the first half of burn-in sigma_emb is held at a tenth of its prior scale:
+# the chain starts there, its draw is skipped (sample_coef_scales()) and so is
+# its scale move. From then on the sampler is unchanged. Burn-in is discarded,
+# so the kept draws come from the same kernel as before. Same fits as the two
+# scale moves. The length and the value are fixed, not tuned.
+axis_hold_sweeps <- function(nburn) as.integer(nburn %/% 2)
+axis_hold_value <- function(coef_prior) 0.1 * coef_prior$sigma_emb_scale
+
 # The state of the two scale moves that a chain carries, or NULL when they
 # are off: they run only in a grouped fit with embedding columns of model type
 # "binary". Per embedding column: `step`, and `accepted`, the last sweep's
 # outcome, of the axis scale move. `sigma_step` and `sigma_accepted` are those
 # of the sigma_emb move. `adapt` is set by the chain (TRUE during burn-in) and
-# `t` counts the adapting sweeps.
+# `t` counts the adapting sweeps; `sigma_t` counts those in which the
+# sigma_emb move ran. `hold` is set by the chain (TRUE while sigma_emb is
+# held).
 axis_move_start <- function(coef_prior, model) {
   if (!identical(model, "binary") || !identical(coef_prior$type, "grouped") ||
       !any(coef_prior$is_emb)) return(NULL)
   n_emb <- sum(coef_prior$is_emb)
   list(step = rep(AXIS_MOVE_STEP, n_emb), accepted = rep(FALSE, n_emb),
        sigma_step = AXIS_MOVE_STEP, sigma_accepted = FALSE,
-       adapt = FALSE, t = 0L)
+       adapt = FALSE, t = 0L, sigma_t = 0L, hold = FALSE)
 }
 
 # infos$axis_move from the chains' records, each a matrix with one row per
 # embedding column and one column per chain: the proposal step the kept sweeps
 # used, and the share of sweeps in which the move was accepted, after and
 # during burn-in. For the sigma_emb move, one value per chain: its step and
-# its acceptance rates. NULL when the moves are off.
+# its acceptance rates (the burn-in rate is over all burn-in sweeps, those in
+# which sigma_emb was held included). `hold_sweeps` and `hold_value` describe
+# the staged burn-in. NULL when the moves are off.
 axis_move_record <- function(parts, columns) {
   parts <- parts[!vapply(parts, is.null, logical(1))]
   if (length(parts) == 0L) return(NULL)
@@ -384,7 +408,8 @@ axis_move_record <- function(parts, columns) {
        acceptance = rate("kept"), acceptance_burnin = rate("burnin"),
        sigma_emb_step = vapply(parts, function(p) p$sigma_step, numeric(1)),
        sigma_emb_acceptance = sigma_rate("kept"),
-       sigma_emb_acceptance_burnin = sigma_rate("burnin"))
+       sigma_emb_acceptance_burnin = sigma_rate("burnin"),
+       hold_sweeps = parts[[1]]$hold_sweeps, hold_value = parts[[1]]$hold_value)
 }
 
 #' Grouped prior for occupancy coefficients (experimental)
