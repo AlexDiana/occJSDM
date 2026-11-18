@@ -150,3 +150,24 @@ A change of prior (half-t or regularised horseshoe) is not indicated by these ru
 - Nothing was run on the AlphaEco data. The AlphaEco session's figures quoted above are that session's report.
 
 A correction to the six first results: `repro.R` took the embedding rows of B to be every row after the fifth, which included one measured row (a simulated measured covariate is a factor with two contrast columns). Their two B columns counted 65 rows, one of them measured. The script now takes the rows from the fit's own labels, and every figure in this section uses the 64 embedding rows.
+
+## Fix attempt 2: a scale-expansion move on sigma_emb, 18 November 2026
+
+Doug approved building this on 18 November 2026, after the report on attempt 1. It is attempt 2 of at most 3. This part was written and committed before any code or fit of attempt 2 existed.
+
+### Hypothesis and decision rule, fixed in advance
+
+The hypothesis: sigma_emb mixes slowly for the same reason the axis scales did. It is drawn given every leftover of the embedding block, and those leftovers are then drawn given it, so its log moves by about 1 over the square root of species times columns per sweep.
+
+The test: one Metropolis proposal per sweep, after the scale draws and before the axis scale moves. A Normal step is added to log sigma_emb and every leftover of the embedding block is multiplied by the same factor, so each embedding row of B moves by that factor times its leftover; G, C, A and the axis scales stay where they are. The leftovers' prior and the Jacobian of the scaling cancel, as in attempt 1, which leaves the likelihood ratio given the Polya-Gamma weights times the half-Cauchy ratio of sigma_emb in log scale. One proposal per sweep, with a step that starts at 0.5 and is adapted during burn-in only, exactly as in attempt 1. Same scope: grouped fits of model type "binary" with embedding columns. The move is added on top of attempt 1's, which stays as it is.
+
+The comparison: attempt 1's prototype (eba6a20) is the baseline, so the only difference between the arms is the new move. The same four runs at 1,500 + 1,500 (null and low-rank truths, seeds 1 and 2, 48 species, 256 sites, 64 columns), then seed 1 of each truth at 5,000 + 5,000. The baseline arm reuses attempt 1's prototype fits, which were made with the same library, script and seeds.
+
+The rule. The hypothesis is supported if all of these hold.
+
+- The tau of log sigma_emb falls at least 5 times in every pair. The baseline's values (350 to 830) are lower bounds, so this is the easy direction for the test to fail in and the hard one to pass by accident.
+- In the null-truth fits, log sigma_emb is under R-hat 1.1 at 5,000 + 5,000 and the share of embedding B entries over 1.1 is lower than the baseline's in every null pair.
+- The axis scales are not made worse: the median tau of the inactive log axis scales is no more than 1.5 times the baseline's in every pair.
+- The posterior agrees with the baseline's on the small problem of attempt 1, judged against the difference between two baseline runs.
+
+If the tau of log sigma_emb does not fall 5 times, the hypothesis is rejected and the move is not tuned to rescue it. The low-rank truth is reported separately and is not part of the rule, because of its two configurations: what is recorded there is which configuration each chain ends in, and whether any chain crosses.
