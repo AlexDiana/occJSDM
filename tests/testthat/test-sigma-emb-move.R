@@ -156,7 +156,9 @@ test_that("the coefficient update runs the sigma_emb move on the current state, 
   # the sweep returns must be the move's (it is not redrawn afterwards); the
   # leftovers and linear predictor the move is given must be those implied by
   # the coefficients just drawn; and the axis scale move must be handed the B
-  # and linear predictor the sigma_emb move returns.
+  # and linear predictor the sigma_emb move returns. Burn-in is 4 sweeps, so
+  # sigma_emb is held for the first 2 (test-sigma-emb-hold.R) and the move
+  # runs in sweeps 3 to 6.
   original_sigma <- occJSDM:::sigma_emb_move
   original_axis <- occJSDM:::axis_scale_move
   original_update <- occJSDM:::update_jSDMcoef
@@ -180,11 +182,12 @@ test_that("the coefficient update runs the sigma_emb move on the current state, 
     out
   }, .package = "occJSDM")
   sigma_move_fit(simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L),
-                 MCMCparams = list(nchain = 1L, nburn = 3L, niter = 3L, nthin = 1L))
-  expect_identical(length(seen_sigma), 6L)
+                 MCMCparams = list(nchain = 1L, nburn = 4L, niter = 2L, nthin = 1L))
+  expect_identical(length(seen_sigma), 4L)
   expect_identical(length(seen_axis), 6L)
-  for (i in seq_along(seen_sigma)) {
-    sg <- seen_sigma[[i]]; sw <- sweeps[[i]]; label <- paste("sweep", i)
+  for (j in seq_along(seen_sigma)) {
+    i <- j + 2L
+    sg <- seen_sigma[[j]]; sw <- sweeps[[i]]; label <- paste("sweep", i)
     expect_identical(sw$out$sigma_emb, sg$out$sigma_emb, info = label)
     expect_identical(sg$kappa, sw$z - 0.5, info = label)
     eta <- matrix(sw$out$B0, nrow(sg$X), ncol(sg$B), byrow = TRUE) + sg$X %*% sg$B +
@@ -195,16 +198,15 @@ test_that("the coefficient update runs the sigma_emb move on the current state, 
     expect_identical(seen_axis[[i]]$B, sg$out$B, info = label)
     expect_identical(seen_axis[[i]]$eta, sg$out$eta, info = label)
   }
-  # The step starts at 0.5, is adapted after each of the three burn-in sweeps
-  # from that sweep's log ratio, and is then frozen.
+  # The step starts at 0.5, is adapted after each of the two burn-in sweeps in
+  # which the move ran, from that sweep's log ratio, and is then frozen.
   expect_identical(seen_sigma[[1]]$step, 0.5)
-  for (i in 1:3) {
-    want <- occJSDM:::axis_step_adapt(seen_sigma[[i]]$step, seen_sigma[[i]]$out$log_ratio, i)
-    expect_identical(seen_sigma[[i + 1L]]$step, want, info = paste("sweep", i))
+  for (j in 1:2) {
+    want <- occJSDM:::axis_step_adapt(seen_sigma[[j]]$step, seen_sigma[[j]]$out$log_ratio, j)
+    expect_identical(seen_sigma[[j + 1L]]$step, want, info = paste("proposal", j))
   }
-  expect_false(identical(seen_sigma[[4]]$step, 0.5))
-  expect_identical(seen_sigma[[5]]$step, seen_sigma[[4]]$step)
-  expect_identical(seen_sigma[[6]]$step, seen_sigma[[4]]$step)
+  expect_false(identical(seen_sigma[[3]]$step, 0.5))
+  expect_identical(seen_sigma[[4]]$step, seen_sigma[[3]]$step)
 })
 
 # Tolerances of the prior-invariance test, measured on 18 November 2026 with
