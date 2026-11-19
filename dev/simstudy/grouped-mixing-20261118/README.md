@@ -515,4 +515,6 @@ Each changes something he approved in the design. He confirmed all three on 19 N
 
 ### Still not done
 
-The limits are untested on any other size of data or on fits they were not chosen on. A fit in which species truly respond independently is marked "review". The block of community and trait responses (G) is still reported with warnings on its embedding columns. `R CMD check` has not been run on this branch since the check was added. The sampler steps are still labelled PROTOTYPE.
+The limits are untested on any other size of data or on fits they were not chosen on. A fit in which species truly respond independently is marked "review". The block of community and trait responses (G) is still reported with warnings on its embedding columns. The sampler steps are still labelled PROTOTYPE.
+
+`R CMD check` was run on an export of commit 0ff01cd on 19 November 2026 with `--no-manual --ignore-vignettes`, as for the v0.3.2 beta: 2 warnings and 2 notes, the same four as that release (the `LICENSE` file, older code notes, an undocumented argument of `predictNewSites()`, GNU extensions in `src/Makevars`), none from this branch. The tests and the examples pass inside it.
