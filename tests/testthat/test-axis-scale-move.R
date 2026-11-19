@@ -1,6 +1,7 @@
 # The scale-expansion move on the axis scales of the grouped prior
-# (axis_scale_move() in R/coef-prior.R). A prototype: fix attempt 1 for the
-# slow mixing recorded in dev/simstudy/grouped-mixing-20261118.
+# (axis_scale_move() in R/coef-prior.R): fix attempt 1 for the slow mixing
+# recorded in dev/simstudy/grouped-mixing-20261118 (tag
+# archive/grouped-mixing).
 
 # axis_move_state() and axis_move_log_target() are in helper-scale-moves.R.
 

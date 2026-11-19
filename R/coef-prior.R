@@ -218,11 +218,12 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda,
   list(sigma_b = sigma_b, sigma_emb = sigma_emb, lambda = lambda)
 }
 
-# PROTOTYPE (dev/simstudy/grouped-mixing-20261118, fix attempt 1): a
-# scale-expansion Metropolis move on each embedding column's axis scale. It
-# tests one hypothesis, that the axis scales mix slowly because each is drawn
-# given the coefficients it scales (the centred parameterisation). It is not a
-# settled part of the sampler.
+# A scale-expansion Metropolis move on each embedding column's axis scale.
+# The axis scales mix slowly under the Gibbs draws alone, because each is
+# drawn given the coefficients it scales (the centred parameterisation), and
+# this move is what lets them travel. Experimental with the prior. The record
+# of how it was found and tested is dev/simstudy/grouped-mixing-20261118 (fix
+# attempt 1), kept under the tag archive/grouped-mixing.
 #
 # For embedding column k, propose log(lambda_k) + delta, delta ~ Normal(0,
 # step^2), and multiply the column's leftovers, its column of G and its column
@@ -292,10 +293,11 @@ axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, s
   list(B = B, G = G, C = C, lambda = lambda, accepted = accepted, log_ratio = log_ratio)
 }
 
-# PROTOTYPE (dev/simstudy/grouped-mixing-20261118, fix attempt 2): the same
-# scale-expansion move for sigma_emb, the embedding leftover scale. It tests
-# the hypothesis that sigma_emb mixes slowly because it is drawn given every
-# leftover of the embedding block and they are then drawn given it.
+# The same scale-expansion move for sigma_emb, the embedding leftover scale,
+# which mixes slowly for the same reason: it is drawn given every leftover of
+# the embedding block and they are then drawn given it. Record:
+# dev/simstudy/grouped-mixing-20261118 (fix attempt 2), tag
+# archive/grouped-mixing.
 #
 # Propose log(sigma_emb) + delta, delta ~ Normal(0, step^2), and multiply
 # every leftover of the embedding block, R[, embedding], by r = exp(delta).
@@ -355,11 +357,11 @@ axis_step_adapt <- function(step, log_ratio, t) {
   pmin(pmax(step * exp((alpha - AXIS_MOVE_TARGET) / sqrt(t)), 0.01), 5)
 }
 
-# PROTOTYPE (dev/simstudy/grouped-mixing-20261118, fix attempt 3): a staged
-# burn-in. In a low-rank truth chains settle in one of two configurations and
-# do not cross: the community response and blends carry the signal, or the
-# leftovers do and nothing is pooled across species. Which one is chosen early
-# in burn-in. The hypothesis is that the leftovers win because they can take
+# A staged burn-in (record: dev/simstudy/grouped-mixing-20261118, fix attempt
+# 3, tag archive/grouped-mixing). In a low-rank truth chains settle in one of
+# two configurations and do not cross: the community response and blends carry
+# the signal, or the leftovers do and nothing is pooled across species. Which
+# one is chosen early in burn-in. The hypothesis is that the leftovers win because they can take
 # up the signal in a few sweeps while the blends need many to organise. So for
 # the first half of burn-in sigma_emb is held at a tenth of its prior scale:
 # the chain starts there, its draw is skipped (sample_coef_scales()) and so is

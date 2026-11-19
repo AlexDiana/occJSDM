@@ -9,7 +9,8 @@
 # coefficients and the scales have converged, whether the chains found the
 # same set of gradients, and how far apart their fitted effects are. Design:
 # dev/superpowers/specs/2026-11-19-grouped-convergence-check-design.md.
-# Evidence: dev/simstudy/grouped-mixing-20261118/README.md.
+# Evidence: dev/simstudy/grouped-mixing-20261118/README.md. Both are kept
+# under the tag archive/grouped-mixing.
 
 # The limits of the checks. `state`: a chain whose median sigma_emb is at
 # least this has leftovers as large as the shared part. `rhat`: the usual

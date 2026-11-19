@@ -630,7 +630,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
           "tau" = tau,
           "mu_b0" = 0
         )
-        # PROTOTYPE: the axis scale move (R/coef-prior.R). NULL, so no element
+        # The scale-expansion moves (R/coef-prior.R). NULL, so no element
         # is added, unless this is a grouped binary fit with embedding columns.
         list_jSDMparams$axis_move <- axis_move_start(coef_prior, model)
         axis_on <- !is.null(list_jSDMparams$axis_move)

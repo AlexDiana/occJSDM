@@ -1488,7 +1488,7 @@ runOccJSDM <- function(data,
   # Present only when the community prior is on in an occupancy or two-stage
   # fit, so default fits keep their shape.
   infos$b0_shift <- b0_shift_record(b0_shift, shift_parts)
-  # PROTOTYPE: present only when the axis scale move ran (a grouped fit of
+  # Present only when the scale-expansion moves ran (a grouped fit of
   # model type "binary" with embedding columns).
   infos$axis_move <- axis_move_record(
     axis_parts, occ_columns$column[coef_prior$type == "grouped" & coef_prior$is_emb])

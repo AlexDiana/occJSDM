@@ -1532,7 +1532,7 @@ update_jSDMcoef <- function(list_data,
   } else {
     sigma_b <- sample_sigmab(B, Tr_b, G, A, C, a_sigmab, b_sigmab)
   }
-  # PROTOTYPE: the scale-expansion moves, on sigma_emb (sigma_emb_move() in
+  # The scale-expansion moves, on sigma_emb (sigma_emb_move() in
   # R/coef-prior.R) and then on each embedding column's axis scale
   # (axis_scale_move()), after the scale draws and before the G, C and A
   # draws. The sigma_emb move hands the axis scale move the B and linear

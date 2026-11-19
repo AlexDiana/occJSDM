@@ -1,6 +1,7 @@
 # The scale-expansion move on sigma_emb, the embedding leftover scale of the
-# grouped prior (sigma_emb_move() in R/coef-prior.R). A prototype: fix attempt
-# 2 for the slow mixing recorded in dev/simstudy/grouped-mixing-20261118.
+# grouped prior (sigma_emb_move() in R/coef-prior.R): fix attempt 2 for the
+# slow mixing recorded in dev/simstudy/grouped-mixing-20261118 (tag
+# archive/grouped-mixing).
 # axis_move_state() and axis_move_log_target() are in helper-scale-moves.R.
 
 sigma_move_leftovers <- function(x, B = x$B) t(B) - x$Tr_b %*% x$G - x$A %*% x$C

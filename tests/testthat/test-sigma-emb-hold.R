@@ -1,7 +1,7 @@
 # The staged burn-in of the grouped prior: sigma_emb is held small for the
 # first half of burn-in, when burn-in is long enough (R/coef-prior.R,
-# R/chains.R). A prototype: fix attempt 3 for the slow mixing recorded in
-# dev/simstudy/grouped-mixing-20261118.
+# R/chains.R): fix attempt 3 for the slow mixing recorded in
+# dev/simstudy/grouped-mixing-20261118 (tag archive/grouped-mixing).
 
 # The schedule with no minimum, so that the hold itself can be tested in a
 # fit of a few sweeps.
