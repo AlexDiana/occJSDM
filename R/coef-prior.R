@@ -380,6 +380,20 @@ axis_step_adapt <- function(step, log_ratio, t) {
 AXIS_HOLD_MIN_BURN <- 5000L
 axis_hold_sweeps <- function(nburn)
   if (nburn >= AXIS_HOLD_MIN_BURN) as.integer(nburn %/% 2) else 0L
+
+# The note runOccJSDM() prints for a fit that would have the staged burn-in
+# but has too little burn-in for it, or NULL: a grouped fit of model type
+# "binary" with embedding columns, the fits axis_move_start() gives the scale
+# moves to.
+axis_hold_note <- function(coef_prior, model, nburn) {
+  if (is.null(axis_move_start(coef_prior, model)) || axis_hold_sweeps(nburn) > 0L)
+    return(NULL)
+  paste0("Grouped prior: with fewer than ",
+         format(AXIS_HOLD_MIN_BURN, big.mark = ","),
+         " burn-in iterations the embedding leftover scale is not held small at ",
+         "the start of each chain, so chains may settle where the leftovers and ",
+         "not the blends carry the species' responses. See ?\"grouped-prior\".")
+}
 axis_hold_value <- function(coef_prior) 0.1 * coef_prior$sigma_emb_scale
 
 # The state of the two scale moves that a chain carries, or NULL when they
@@ -491,7 +505,10 @@ axis_move_record <- function(parts, columns) {
 #' `G_output` gains a leading row, the community-average response.
 #' `infos$coef_prior` records the prior and its settings, and
 #' `infos$covariate_group` labels each occupancy design column `"measured"` or
-#' `"embedding"`.
+#' `"embedding"`. In a `binary` fit with embedding columns, `infos$axis_move`
+#' records the sampler's extra steps for the scales (see Sampling and chain
+#' length): their step sizes and acceptance rates, and how many burn-in
+#' iterations the embedding leftover scale was held for.
 #'
 #' Four functions summarise these:
 #' * [returnCovariateScales()]: posterior summaries of the measured-group,
@@ -514,6 +531,53 @@ axis_move_record <- function(parts, columns) {
 #' effect, fit again without the embedding and without other covariates that
 #' management can change, and compare the two fits on the probability scale.
 #'
+#' @section Sampling and chain length:
+#' The scales of this prior are hard for the sampler. In a `binary` fit with
+#' embedding columns it takes three extra steps for them. They are
+#' experimental, and they do not change the model: the draws that are kept
+#' come from the same posterior as without them.
+#' * Every iteration, each embedding column's axis scale is proposed a new
+#'   value together with that column's coefficients, rescaled by the same
+#'   factor. Without this step the axis scale of a column that no species
+#'   responds to moved very slowly.
+#' * The embedding leftover scale gets the same kind of step, together with
+#'   all the leftovers.
+#' * With 5,000 or more burn-in iterations, the embedding leftover scale is
+#'   held at a tenth of its prior scale for the first half of burn-in and then
+#'   released.
+#'
+#' The reason for the last step is that the species' responses to the
+#' embedding can be explained in two ways: by the shared part (the community
+#' average, the traits and the blends), or by the leftovers alone, species by
+#' species. Early in a chain the leftovers can take up the responses within a
+#' few iterations, before the blends have formed, and the chain then stays
+#' there. Such a fit reports almost no shared structure and shrinks the
+#' embedding coefficients too far, and because its chains agree with each
+#' other the convergence diagnostics do not show it. Holding the leftovers
+#' small at first lets the blends form. In simulations in which species shared
+#' three blends, every chain then found blends in all but one of 21 fits at
+#' 5,000 burn-in and 5,000 kept iterations, and the embedding coefficients
+#' were recovered much better in two data sets of three and equally well in
+#' the third. With 1,500 burn-in iterations the blends had too little time to
+#' settle after the release and the fits were worse, so below 5,000 there is
+#' no hold and [runOccJSDM()] prints a note. A fit that short can still end
+#' with the leftovers carrying the responses.
+#'
+#' So use at least 5,000 burn-in and 5,000 kept iterations, which are the
+#' defaults, and at least four chains. Even then the chains of some fits
+#' settle on different blends. Before relying on a fit, compare the chains on
+#' what does not depend on the particular blends: the measured coefficients,
+#' and the embedding's combined effect on each species' linear predictor
+#' (each embedding column times its coefficient, summed). The package does
+#' not yet make the second comparison for you. Do not read much into the
+#' convergence of single embedding coefficients: their draws are
+#' heavy-tailed, and the R-hat that [computeDiagnostics()] reports runs high
+#' on such draws.
+#'
+#' The `occupancy`, `two_stage` and `continuous` model types do not have these
+#' steps yet. There the scales still mix slowly, and nothing guards against
+#' the leftovers taking the responses.
+#'
 #' @section Status:
 #' This prior is experimental and has not been through its validation study.
 #' The default `axis_scale` was changed on 12 November 2026, from 1 over the
@@ -528,10 +592,22 @@ axis_move_record <- function(parts, columns) {
 #' counts, so one prior draw in twenty gives a spread larger than that. The
 #' validation study is to examine that tail.
 #'
-#' The axis scales mix slowly. In a small test with 10 embedding columns they
-#' had not converged after 1,500 burn-in and 1,500 kept iterations: the two
-#' chains still disagreed about columns that no species responds to. Expect
-#' convergence warnings on `lambda` from short fits, and run long chains.
+#' The sampler's extra steps for `binary` fits were added in November 2026
+#' and have been tried only on simulated data of one size (256 sites, 48
+#' species, 64 embedding columns). In those simulations, when no species
+#' responded to the embedding, every scale and every measured coefficient
+#' converged at 5,000 burn-in and 5,000 kept iterations. Before the steps
+#' were added the axis scales did not converge at either length that was
+#' tried there (1,500 and 5,000 of each).
+#'
+#' Each embedding column has a scale of its own, so the prior does best when
+#' the species respond to a few of the columns as they are delivered. In the
+#' same simulations, turning the columns of an embedding (which changes
+#' nothing in what it encodes) raised the error of the embedding's
+#' contribution by about a third when the responses had been placed in 10 of
+#' 64 columns, and by little or nothing when they were spread over all of
+#' them. A real embedding has no such favoured columns, so simulations that
+#' place the responses in a few columns overstate how well the prior will do.
 #'
 #' The prior was built and tested for the `binary`, `occupancy` and
 #' `two_stage` model types. A `continuous` fit runs with it, but that

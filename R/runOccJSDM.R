@@ -1230,6 +1230,12 @@ runOccJSDM <- function(data,
 
   }
 
+  # A grouped binary fit too short for the staged burn-in is told so
+  # (R/coef-prior.R). Printed here, in the parent, so that it shows whatever
+  # the number of workers.
+  hold_note <- axis_hold_note(coef_prior, model, nburn)
+  if (!is.null(hold_note)) message(hold_note)
+
   # run MCMC
   message("Running MCMC")
 

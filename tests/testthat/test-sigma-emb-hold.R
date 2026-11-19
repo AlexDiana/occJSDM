@@ -102,3 +102,31 @@ test_that("below the minimum burn-in a chain is not held", {
   expect_identical(vapply(got$sigma, function(s) s$sweep, integer(1)), 1:8)
   expect_identical(got$fit$infos$axis_move$hold_sweeps, 0L)
 })
+
+test_that("a short grouped binary fit is told that sigma_emb is not held", {
+  cp <- list(type = "grouped", is_emb = c(FALSE, TRUE), sigma_emb_scale = 1)
+  note <- occJSDM:::axis_hold_note(cp, "binary", 1500)
+  expect_match(note, "fewer than 5,000 burn-in iterations", fixed = TRUE)
+  expect_match(note, "grouped-prior", fixed = TRUE)
+  # No note where the hold applies, or where it could not apply at any length.
+  expect_null(occJSDM:::axis_hold_note(cp, "binary", 5000))
+  expect_null(occJSDM:::axis_hold_note(cp, "occupancy", 1500))
+  expect_null(occJSDM:::axis_hold_note(list(type = "fixed"), "binary", 1500))
+  expect_null(occJSDM:::axis_hold_note(list(type = "grouped", is_emb = c(FALSE, FALSE)), "binary", 1500))
+
+  # runOccJSDM() prints it once, before the chains run, and only for such a fit.
+  messages_of <- function(embedding) {
+    dat <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)$data_list
+    out <- character(0)
+    withCallingHandlers(
+      suppressWarnings(runOccJSDM(dat,
+        listParams = c(list(n_factors = 1L), if (embedding) list(embeddingVars = dat$embeddingVars)),
+        occCovariates = grouped_occ_covariates(dat), MCMCparams = FIXTURE_MCMC)),
+      message = function(m) { out <<- c(out, conditionMessage(m)); invokeRestart("muffleMessage") })
+    out
+  }
+  grouped <- messages_of(TRUE)
+  expect_identical(sum(grepl("fewer than 5,000 burn-in iterations", grouped, fixed = TRUE)), 1L)
+  expect_lt(grep("fewer than 5,000 burn-in iterations", grouped, fixed = TRUE), grep("Running MCMC", grouped, fixed = TRUE))
+  expect_false(any(grepl("burn-in iterations the embedding", messages_of(FALSE), fixed = TRUE)))
+})
