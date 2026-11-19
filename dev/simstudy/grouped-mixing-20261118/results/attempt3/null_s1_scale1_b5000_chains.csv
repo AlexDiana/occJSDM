@@ -1,0 +1,3 @@
+"tag","truth","seed","scale","start","chain","log_sigma_emb_mean","log_sigma_emb_min","log_sigma_emb_max","mean_log_axis_active","mean_log_axis_inactive","err_active","slope_active","err_inactive","err_measured","err_contribution"
+"null_s1_scale1_b5000","null",1,1,1,1,-1.37904806701648,-7.25721729975856,0.797369033068346,NA,-4.98757588928988,NA,NA,0.00749413301022277,0.363598021630271,0.09657155556914
+"null_s1_scale1_b5000","null",1,1,1,2,-1.34887330833466,-8.21562536267681,0.366219710553271,NA,-4.98707718878274,NA,NA,0.00776662159549127,0.363669451308299,0.0929439113204465

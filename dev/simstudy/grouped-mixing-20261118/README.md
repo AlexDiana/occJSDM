@@ -323,3 +323,88 @@ The design. `orientation_test.R` replaces the embedding columns handed to the fi
 What counts as helping, fixed in advance. In the 10-column truth, the error of the embedding's contribution with principal components is at least 10 percent below that of the rotated fits (the mean of the two rotations) in at least two of the three data sets. And in the 64-column truth it is not more than 10 percent above the rotated fit in either data set. Also reported, and not part of the rule: how the principal-component fits compare with the columns as simulated, the measured coefficients, and how well the four chains agree, since uncorrelated columns might settle more easily.
 
 What is expected, so that it can be held against the result: in these simulations the embedding is built from 8 underlying directions plus noise, so principal components should concentrate the signal well, and probably better than a real embedding would. A good result here shows the idea can work, not how much it gains on real data.
+
+## Fix attempt 3: results, 19 November 2026
+
+Prototype commit a3d5bb7, on top of attempts 1 and 2. While sigma_emb is held, `sample_coef_scales()` skips its draw and `update_jSDMcoef()` skips its scale move; the chain starts at the held value; the move's step is adapted from the release. `infos$axis_move` records the length and value of the hold. Tests, written first and watched to fail: four in `tests/testthat/test-sigma-emb-hold.R`, and the wiring test of the sigma_emb move rewritten for the schedule. The full suite passes: 360 tests, 0 failures, 6 skips, none new. Fits under the fixed prior and grouped fits with the moves off are bit-identical to the baseline and to attempt 2. On the small problem of attempt 1 the posterior agrees with the baseline's within the difference between two baseline runs, as it must, since the kept draws come from attempt 2's sampler.
+
+At 1,500 + 1,500, 4 chains, attempt 2 then attempt 3.
+
+- Low-rank chains in the blend configuration. Seed 1: 4 and 4. Seed 2: 1 and 4. Seed 3: 0 and 4. With attempt 3 no kept draw of log sigma_emb is above 0.5 in any of the 12 chains (largest -0.15).
+- Slope of the active coefficients on the truth, pooled over chains. Seed 1: 0.78 and 0.64. Seed 2: 0.42 and 0.50. Seed 3: 0.50 and 0.43. With attempt 3 the chains differ: 0.49 to 0.74 in seed 1, 0.39 to 0.65 in seed 2, 0.33 to 0.60 in seed 3.
+- Unstructured truth: all 4 chains in the leftover configuration in both, slope 0.85 and 0.85.
+- Null truth: error of the embedding's contribution 0.094 and 0.094.
+
+At 5,000 + 5,000, 4 chains (2 for the null truth). The baseline arm for seeds 2 and 3 is attempt 2 at the same length with 4 chains, run for this comparison; for seed 1 it is attempt 2's two-chain fit. The seed 1 fit of attempt 3 was not in the design and was added after the short fits were seen.
+
+- Seed 1. Attempt 3: 4 chains in the blend configuration, slope 0.77 (0.76 to 0.78 by chain). Attempt 2: slope 0.77. Nothing over R-hat 1.1 among the measured coefficients or the embedding's contribution.
+- Seed 2. Attempt 2: 1 of 4 chains in the blend configuration, slope 0.49, error of the embedding's contribution 0.69. Attempt 3: 4 of 4, slope 0.67 (0.65 to 0.70 by chain), error 0.64. Nothing over 1.1 among the measured coefficients or the embedding's contribution, and 6 axis scales over it.
+- Seed 3. Attempt 2: 0 of 4, slope 0.49, error 0.81. Attempt 3: 4 of 4, slope 0.65, error 0.67, but the chains differ (slope 0.42 to 0.89): 8 percent of the measured coefficients are over 1.1 (largest 1.32), the embedding's contribution is over it for 73 percent of species, and 27 axis scales are.
+- Null. No log axis scale and not log sigma_emb over 1.1 on the rank-normalised R-hat (largest 1.03 and 1.00); error of the embedding's contribution 0.094.
+- Without the hold the chains do not move: over the 10,000 kept sweeps of attempt 2's fits no chain crosses.
+
+### Verdict against the rule
+
+Not met as written.
+
+- Every low-rank chain in the blend configuration, none with a kept draw above 0.5: met, in all 20 chains of the design and the 4 added.
+- Recovery higher than the baseline's in seeds 2 and 3 and within 0.02 in seed 1: not met at 1,500 + 1,500, where seed 3 is lower (0.43 against 0.50) and seed 1 much lower (0.64 against 0.78). At 5,000 + 5,000 it holds in seeds 2 and 3, and in seed 1 on the fit added afterwards. The rule did not say which length this condition applies to. That gap is recorded and not resolved in the attempt's favour.
+- Unstructured truth still in the leftover configuration with the same recovery: met.
+- Null truth clean at 5,000 + 5,000 with the same error: met.
+
+What the results say. The part of the hypothesis about how chains reach the leftover configuration is supported: kept small at first, the leftovers do not take the signal, and no chain moves there afterwards. What does not follow is that the blends are then found well. "The blend configuration" is more than one place, and chains forced to explain everything through the blends from the first sweep need time to settle. With 2,500 sweeps after the release they do in two data sets of three; with 750 they do not, and in seed 1 the hold then does harm where the default sampler was already right. So the hold has a real limitation, a need for enough burn-in, and whether to keep it on those terms is Doug's decision. It was not lengthened or lowered. In seed 3 the chains inside the blend configuration still disagree at the long length.
+
+All three attempts are used.
+
+## The rotation test: results
+
+Nine fits on the truth with signal in 10 columns, and four on a control truth with the same three blends spread over all 64 columns, added on 19 November after Doug asked whether the result came from the simulation putting the signal in a few columns. `rotation_summary.R` makes the tables.
+
+Signal in 10 columns. Error of the embedding's contribution, and its slope on the truth, for the columns as simulated, rotation 1 and rotation 2.
+
+- Seed 1. Error 0.67, 0.95 and 0.92. Slope 0.90, 0.78 and 0.79.
+- Seed 2. Error 0.65, 0.84 and 0.86. Slope 0.94, 0.83 and 0.83.
+- Seed 3. Error 0.67, 0.93 and 0.91. Slope 0.91, 0.80 and 0.81.
+
+The rule is met: in every data set both rotations raise the error by more than 10 percent (29 to 41 percent) and lower the slope by more than 0.05 (0.10 to 0.12). The two rotations agree closely with each other. The rotated and unrotated posterior means of the contribution differ by 0.54 to 0.62, against 0.08 to 0.31 between chains within a fit. The measured coefficients hardly move (error 0.42 to 0.49 unrotated, 0.44 to 0.50 rotated).
+
+The chains. Rotation does not make the chains agree less in general. Of the contribution cells checked, the share over R-hat 1.1 is 1 percent unrotated and 16 and 27 percent rotated in seed 1; 11 percent, and 7 and 3 percent, in seed 2; 79 percent, and 87 and 71 percent, in seed 3. So the suggestion that the choice among columns is what makes the blends hard to settle is not supported: seed 3 is as unsettled in one orientation as another.
+
+The control, signal in all 64 columns, columns as simulated then rotated.
+
+- Seed 1. Error 2.25 and 2.59, an increase of 15 percent. Slope 0.76 and 0.70. Two of the four rotated chains sit apart from the other two (error 2.84 against 2.45 and 2.49).
+- Seed 2. Error 2.09 and 2.13, an increase of 2 percent. Slope 0.86 and 0.85.
+
+So where the truth has no favoured columns, rotating costs little or nothing. The loss in the main test is mostly the advantage the simulated truth hands the per-column scales, and the prior is not shown to do anything erratic. Two limits of the control: it is two data sets with one rotation each, and its truth has about three times the signal of the 10-column one (a contribution of about 7 in size against about 2.3), so the two differ in strength as well as in sparsity. The chains also agree less in the control truth in either orientation (38 to 62 percent of cells over 1.1).
+
+A note on the record: the second rotations of seeds 2 and 3 were run twice. The first runs lost their final tables because the script was edited, to add the control's option, while they were still running; the reruns are the ones in the tables and agree with the per-chain tables the first runs had already written.
+
+## The orientation test: results
+
+Five fits with the embedding turned to its principal components. `results/orientation/summary_table.csv` sets them beside the fits of the rotation test.
+
+Signal in 10 columns. Error of the embedding's contribution for the columns as simulated, the mean of the two rotations, and principal components.
+
+- Seed 1. 0.67, 0.93 and 0.95.
+- Seed 2. 0.65, 0.85 and 0.86. With principal components two of the four chains end in the leftover configuration.
+- Seed 3. 0.67, 0.92 and 0.87.
+
+Signal in all 64 columns, the columns as simulated, rotated, and principal components.
+
+- Seed 1. 2.25, 2.59 and 2.02.
+- Seed 2. 2.09, 2.13 and 2.41. Three chains have an error of 2.01 to 2.10 and the fourth 4.8.
+
+The rule is not met. In the 10-column truth principal components are within 2 percent of the rotated fits in seeds 1 and 2 and 5.5 percent below in seed 3, against the 10 percent asked for. In the 64-column truth they are 22 percent below the rotated fit in one data set and 13 percent above in the other, the second because of one chain. The expectation written down beforehand was wrong.
+
+Why. Principal components are chosen by how much the embedding varies across sites, with no reference to the species, which is Doug's point of 19 November. Measured on the simulated truths: the first 8 components hold about 90 percent of the embedding's variation and 84 to 91 percent of the species signal, but component by component the two do not match (in seed 3 the second component holds 17 percent of the variation and 2 percent of the signal), components 9 to 64 hold 9 to 16 percent of the signal, and the signal's own two or three strong directions are mixtures of several components. The fits did give the first 8 components larger scales; within them the signal is not sparse, so there was nothing for the per-column scales to gain.
+
+## Where things stand, 19 November 2026
+
+- The scales. Attempts 1 and 2 fix the slow mixing of the axis scales and of sigma_emb where the data do not inform them. A null fit at 5,000 + 5,000 has every scale, every measured coefficient and the embedding's contribution under R-hat 1.1.
+- The leftover configuration. Doug's statement of intent makes it an unwanted solution in a low-rank truth. From the default start it is the usual outcome in two of three data sets and R-hat does not show it when the chains agree. Attempt 3 keeps chains out of it, given enough burn-in.
+- Not solved. In some data sets (seed 3 of the 10-column truth, and both data sets of the 64-column truth) the chains find blends but different ones, in any orientation of the embedding. Neither a random rotation nor principal components changes that.
+- The rotation result. The prior's accuracy depends on the orientation of the embedding only through the sparsity of the truth in the delivered columns. A real embedding has no favoured columns, so the slopes of about 0.78 to 0.83 seen after rotation are the fairer guide to what to expect, and simulated truths with signal in a few columns flatter the prior. Nothing here shows that redesigning the per-column scales, or reorienting the embedding beforehand, would do better.
+
+Suggested, none of it done: keep the two scale moves; decide the staged start's rule for short chains; judge and report convergence on quantities that do not depend on the orientation (the embedding's contribution, its spread, the measured coefficients), with at least four chains and a flag when the chains disagree on sigma_emb; give the validation a truth without column sparsity, or rotate its embedding; and ask of the real data whether the fitted axis scales are dominated by a few columns. Three ideas from reading the README and one source file of the AlphaSDM package on 19 November, none tested: AlphaEarth embeddings are unit-length vectors, so standardising each column separately discards their geometry and a common scale for the block may suit them better; embeddings should be matched to the year of sampling; and a random forest per species on the same table would show how much is lost to a model that is linear in the embedding.
+
+Not verified: everything here is on simulated data, at one size (256 sites, 48 species, 64 columns); three data sets of the 10-column truth and two of the 64-column truth; no held-out predictions; whether the recovered blends match the true ones; the effect of the staged start in the 64-column truth, where every fit used it; `R CMD check`; anything on the AlphaEco or BioDivAbove data. The package documentation, NEWS and defaults are unchanged.

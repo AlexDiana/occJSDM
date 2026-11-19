@@ -1,0 +1,22 @@
+"block","pair","rms_z","max_z","rms_diff_sd","max_diff_sd"
+"B_meas","base vs base2",1.36,3.76,0.0199,0.0571
+"B_meas","base vs proto",1.14,2.68,0.0159,0.034
+"B_meas","base2 vs proto",1.21,3.41,0.016,0.0491
+"B_emb","base vs base2",1.89,4.19,0.0541,0.142
+"B_emb","base vs proto",1.78,4.18,0.0532,0.154
+"B_emb","base2 vs proto",0.991,3.39,0.0171,0.0527
+"spread","base vs base2",1.52,3.44,0.0279,0.0817
+"spread","base vs proto",1.58,3.09,0.025,0.0538
+"spread","base2 vs proto",1.03,2,0.0149,0.0317
+"log_lambda","base vs base2",1.16,2.26,0.0922,0.18
+"log_lambda","base vs proto",1.35,2.77,0.0973,0.204
+"log_lambda","base2 vs proto",0.61,0.88,0.0389,0.0568
+"log_sigma_emb","base vs base2",1.14,1.14,0.129,0.129
+"log_sigma_emb","base vs proto",1.12,1.12,0.124,0.124
+"log_sigma_emb","base2 vs proto",0.0514,0.0514,0.00487,0.00487
+"log_sigma_b","base vs base2",0.513,0.513,0.0445,0.0445
+"log_sigma_b","base vs proto",0.186,0.186,0.0167,0.0167
+"log_sigma_b","base2 vs proto",0.43,0.43,0.0297,0.0297
+"B0","base vs base2",1.32,2.39,0.015,0.0262
+"B0","base vs proto",0.877,2.48,0.00995,0.0299
+"B0","base2 vs proto",1.24,2.24,0.0142,0.0271
