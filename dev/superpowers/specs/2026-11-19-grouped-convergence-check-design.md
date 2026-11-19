@@ -35,6 +35,16 @@ The automatic report. `computeDiagnostics()` gains an optional argument naming t
 
 Made while the function was being built, after Doug pointed out that different blends must extrapolate differently. Measured on saved fits (per-chain posterior means of the coefficients against the truth): in a fit whose two chains found gradients and differ by 6 percent of the effect's size at the fitted sites, they differ by 6 percent at new sites like the fitted ones, by 11 percent where the embedding's weak directions are three times larger, and by 16 percent where every direction is equally large, and the error against the truth goes from 27 to 42 percent. So checks 3 and 4 are true of the fitted sites and of sites like them, and understate the disagreement elsewhere. Two changes follow. The wording of both checks says "at the fitted sites". And a further row is reported, `disagreement_beyond`: how far each chain's embedding coefficients are from the pooled ones, as a share of their size, which is the disagreement at sites that vary equally in every embedding direction. It is reported and never flagged, because there is no evidence yet for a limit. Checking the chains at the sites a map will be drawn for is left for later: it needs the new sites put through the fit's own standardisation.
 
+## Amendment, 19 November 2026: after the independent review
+
+The review of the finished function found faults in two definitions above, and the full-length fits run afterwards showed a third. The record and the numbers are in `dev/simstudy/grouped-mixing-20261118/README.md`. Each of the three changes below alters something Doug approved and is his to confirm.
+
+- Check 3. The agreement of one chain with another is now the share of its effect within the other's gradients divided by the share within its own. As first defined, two identical chains scored only the share their gradients hold, about 0.90, which was also the limit. The limit stays at 0.90. No saved fit has chains with clearly different gradients, so no saved fit tests it.
+- Check 4. The disagreement is now the largest difference between two chains' effects, as a share of the effect's size. As first defined (each chain's distance from the pooled effect, averaged) one chain apart was diluted by the chains that agree. The limit is 0.30, which is the old 0.15 carried over to the new statistic. `disagreement_beyond` is defined the same way.
+- Check 2. The R-hat of the scales is in two rows. `rhat_scales` covers `sigma_emb` and `sigma_b` and is flagged over 1.1. `rhat_axis` covers the axis scales, is reported with the number over 1.1, and does not decide the verdict: in full-length fits whose chains agree on everything reported, 2 to 5 of 64 axis scales fail R-hat.
+
+Also: the step at the end of a fit can no longer lose the fit (an error becomes a warning); draws with missing values flag the check they belong to; and nothing copies B.
+
 ## What checks 3 and 4 do not say
 
 They compare chain means. They say whether the chains reached the same answer and how far apart they are. They do not say whether each chain has explored its own uncertainty, which is what R-hat is for, and which is why check 2 stays for the quantities reported with intervals.

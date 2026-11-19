@@ -14,16 +14,18 @@ returnGroupedConvergence(fitModel)
 A list with four elements.
 \itemize{
 \item \code{verdict}: \code{"ok"}, or \code{"review"} when any check is flagged.
-\item \code{checks}: a data frame with one row per check and columns \code{check},
+\item \code{checks}: a data frame with one row per check (seven) and columns \code{check},
 \code{value}, \code{limit}, \code{flagged} and \code{meaning}, a sentence on what the value
 says about the fit.
 \item \code{chains}: a data frame with one row per chain and columns \code{chain},
 \code{sigma_emb_median} and \code{state} (\code{"shared structure"} or
 \code{"leftovers dominate"}).
-\item \code{effect}: what lies behind the last two checks, including \code{n_gradients},
-\code{size} (the spread of the pooled effect), \code{agreement_pairs} (entry a, b
-is the share of chain a's effect within chain b's gradients) and
-\code{disagreement_by_chain}.
+\item \code{effect}: what lies behind \code{gradients} and \code{disagreement}, including
+\code{n_gradients}, \code{size} (the spread of the pooled effect),
+\code{agreement_pairs} (entry a, b is how much of chain a's effect lies within
+chain b's gradients, as a share of how much lies within chain a's own)
+and \code{disagreement_pairs} (entry a, b is the difference between the two
+chains' effects, as a share of the effect's size).
 }
 }
 \description{
@@ -32,41 +34,50 @@ The usual check, R-hat on every coefficient, misleads for a fit made with
 and single embedding coefficients are not pinned down, so chains that found
 the same gradients can still differ on them; and chains that all ended with
 the leftovers carrying the species' responses agree with each other while
-reporting no gradients at all. This function asks four questions that do
-not have those faults. \code{\link[=runOccJSDM]{runOccJSDM()}} prints its result at the end of such
-a fit.
+reporting no gradients at all. This function asks questions that do not
+have those faults. \code{\link[=runOccJSDM]{runOccJSDM()}} prints its result at the end of such a
+fit.
 }
 \details{
-The four checks.
+The checks, one row each in \code{checks}.
 \itemize{
 \item \code{state}: which state each chain is in. A chain whose median embedding
 leftover scale is 1 or more has leftovers at least as large as the shared
 part (the community average, the traits and the blends). \code{value} is the
-number of such chains. It is flagged when the chains are in different
-states, and when every chain is in that state. The second can be right,
-if species respond independently to the embedding; it is wrong if the
-chains missed shared gradients.
+number of such chains, and it is flagged when it is over 0: when the
+chains are in different states, and when every chain is in that state.
+The second can be right, if species respond independently to the
+embedding; it is wrong if the chains missed shared gradients.
 \item \code{rhat_measured} and \code{rhat_scales}: the largest R-hat among the measured
-coefficients, and among the logs of the scales of the prior. Flagged
-over 1.1. These are the only checks here that are an R-hat.
+coefficients, and among the logs of the two scales shared by all columns
+(the embedding leftover scale and, with measured covariates, the
+measured-group scale). Flagged over 1.1.
+\item \code{rhat_axis}: the largest R-hat among the logs of the axis scales, with
+the number over 1.1 in \code{meaning}. Reported and not part of the verdict.
+A single axis scale, like a single embedding coefficient, is not pinned
+down, and a few of them fail R-hat in fits whose chains agree on
+everything else.
 \item \code{gradients}: whether the chains found the same set of gradients. For
 each chain, the posterior mean of the embedding's combined effect on the
 linear predictor (the embedding columns times their coefficients, summed,
 for every site and species) is taken, and its leading directions across
 sites are that chain's gradients. Their number is the smallest that holds
-90 percent of the effect pooled over chains. \code{value} is the smallest
-share, over pairs of chains, of one chain's effect that lies within the
-other's gradients. It does not depend on how a chain splits its gradients
-into single blends. Flagged under 0.90.
-\item \code{disagreement}: how far each chain's combined effect is from the pooled
-one, as a share of the effect's size, averaged over chains. Flagged over
-0.15.
-\item \code{disagreement_beyond}: how far each chain's embedding coefficients are
-from the pooled ones, as a share of their size. Reported and never
+90 percent of the effect pooled over chains. For a pair of chains, the
+agreement is how much of one chain's effect lies within the other's
+gradients, as a share of how much lies within its own: 1 when the two
+have the same gradients, and less the further apart they are. It does not
+depend on how a chain splits its gradients into single blends. \code{value} is
+the smallest over pairs. Flagged under 0.90.
+\item \code{disagreement}: the largest difference between two chains' combined
+effects, as a share of the effect's size (root mean squares). One chain
+apart from several that agree counts in full. Flagged over 0.30.
+\item \code{disagreement_beyond}: the largest difference between two chains'
+embedding coefficients, as a share of their size. Reported and never
 flagged.
 }
 
-The last three compare the chains' posterior means. They say whether the
+The three R-hat rows are the only ones that are an R-hat. The last three
+rows compare the chains' posterior means. They say whether the
 chains reached the same answer and how far apart they are. They do not say
 whether each chain explored its own uncertainty, which is what R-hat is
 for. They are not assessed with a single chain, or when the embedding's
@@ -80,17 +91,42 @@ sites unlike the fitted ones, such as parts of a map whose habitat was not
 sampled. The data say little about directions of the embedding in which
 the fitted sites barely vary, so each chain fills those in its own way,
 and that only shows where a site's embedding moves in those directions. In
-one simulated fit whose chains differed by 6 percent of the effect's size
-at the fitted sites, they differed by 16 percent at sites varying equally
-in every direction, and the error against the truth rose from 27 to 42
-percent. \code{disagreement_beyond} is that second kind of difference. It has no
-limit yet. A fit that is "ok" here is not thereby safe to extrapolate.
+one simulated fit whose two chains differed by 6 percent of the size of
+the true effect at the fitted sites, they differed by 16 percent at sites
+varying equally in every direction, and the error against the truth rose
+from 27 to 42 percent. \code{disagreement_beyond} is that second kind of
+difference. It has no limit yet. A fit that is "ok" here is not thereby
+safe to extrapolate.
+
+Draws that are missing or not finite flag the check they belong to, with
+that as the stated meaning.
 
 A flagged fit is marked "review" and not "failed" because the first check
-can flag a fit that is right. The limits of the last two checks were set
-against a small number of simulated fits (256 sites, 48 species, 64
-embedding columns) and may change.
+can flag a fit that is right.
 }
+\section{How far the limits have been tested}{
+
+The limits of \code{gradients} and \code{disagreement} were chosen on simulated fits
+whose answer was already known, all of one size (256 sites, 48 species, 64
+embedding columns, 4 chains of 5,000 burn-in and 5,000 kept iterations).
+They have not been tested on fits they were not chosen on, and may change.
+Among 18 such fits, the 16 with nothing known against them had a
+disagreement of 0.06 to 0.30 and the two with chains known to be apart
+0.34 and 0.68, so the limit of 0.30 has almost no margin. None of the 18
+had chains with clearly different gradients (the agreement was 0.93 to
+1.00), so the limit of 0.90 rests on made-up effects alone.
+
+The whole function has been run on four full-length fits of that size, two
+of them repeats of fits among the 18. Data with no response to the
+embedding: "ok". Data with two shared gradients, chains in agreement: "ok",
+with 2 of the 64 axis scales over 1.1, which is why \code{rhat_axis} does not
+decide the verdict. Data with three shared gradients: "review", on the
+R-hat of the measured coefficients (1.16). Data in which species respond
+independently to the embedding: "review" on \code{state}, every chain's leftover
+scale being near 8, although that fit recovered the truth as well as the
+others. That last flag is the one that can be right to set aside.
+}
+
 \seealso{
 \link[=grouped-prior]{grouped-prior} for the prior that these fits
 use, and \code{\link[=computeDiagnostics]{computeDiagnostics()}} for R-hat and effective sample size by

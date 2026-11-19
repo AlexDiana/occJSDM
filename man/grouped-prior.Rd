@@ -167,8 +167,9 @@ draws are heavy-tailed, so it fails fits that are fine. And chains that all
 ended with the leftovers carrying the responses agree with each other, so
 it passes a fit that found no gradients. \code{\link[=returnGroupedConvergence]{returnGroupedConvergence()}} asks
 instead which state each chain is in, whether the measured coefficients and
-the scales have converged, whether the chains found the same set of
-gradients, and how far apart their fitted effects of the embedding are.
+the two scales shared by all columns have converged, whether the chains
+found the same set of gradients, and how far apart their fitted effects of
+the embedding are.
 \code{\link[=runOccJSDM]{runOccJSDM()}} prints its result at the end of a fit made with
 \code{embeddingVars}, and warns when a check is flagged. In the same report the
 embedding coefficients are listed with their R-hat but without a warning.

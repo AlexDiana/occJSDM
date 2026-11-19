@@ -125,7 +125,7 @@ check_row <- function(x, name) x$checks[x$checks$check == name, ]
 test_that("a fit whose chains agree and found shared structure is ok", {
   got <- gc_of(3L, c(0.3, 0.3, 0.3))
   expect_identical(got$verdict, "ok")
-  expect_identical(got$checks$check, c("state", "rhat_measured", "rhat_scales", "gradients",
+  expect_identical(got$checks$check, c("state", "rhat_measured", "rhat_scales", "rhat_axis", "gradients",
                                        "disagreement", "disagreement_beyond"))
   expect_identical(names(got$checks), c("check", "value", "limit", "flagged", "meaning"))
   expect_false(any(got$checks$flagged))
@@ -162,6 +162,32 @@ test_that("a measured coefficient that differs between chains is flagged by R-ha
   expect_identical(got$verdict, "review")
 })
 
+test_that("the two scales shared by all columns decide the verdict, the axis scales do not", {
+  # One axis scale differs between the chains: reported, with how many are
+  # over the limit, and the verdict is unchanged. Single axis scales, like
+  # single embedding coefficients, are not pinned down, and in full-length
+  # fits whose chains agree a few of them fail R-hat.
+  x <- made_fit(3L, c(0.3, 0.3, 0.3))
+  x$lambda_output[2, , 3] <- x$lambda_output[2, , 3] * 20
+  got <- do.call(occJSDM:::grouped_convergence, x)
+  row <- check_row(got, "rhat_axis")
+  expect_gt(row$value, 1.1); expect_false(row$flagged); expect_true(is.na(row$limit))
+  expect_match(row$meaning, "1 of 3 axis scales", fixed = TRUE)
+  expect_match(row$meaning, "not part of the verdict", fixed = TRUE)
+  expect_false(check_row(got, "rhat_scales")$flagged)
+  expect_identical(got$verdict, "ok")
+  quiet <- check_row(do.call(occJSDM:::grouped_convergence, made_fit(3L, c(0.3, 0.3, 0.3))), "rhat_axis")
+  expect_lt(quiet$value, 1.1); expect_match(quiet$meaning, "0 of 3 axis scales", fixed = TRUE)
+  # sigma_emb differs between the chains, all of them under 1: flagged.
+  got <- gc_of(2L, c(0.15, 0.8))
+  expect_identical(check_row(got, "state")$value, 0)
+  expect_true(check_row(got, "rhat_scales")$flagged)
+  expect_identical(got$verdict, "review")
+  # sigma_b differs between the chains: flagged.
+  x <- made_fit(2L, c(0.3, 0.3)); x$sigmab_output[, 2] <- x$sigmab_output[, 2] * 5
+  expect_true(check_row(do.call(occJSDM:::grouped_convergence, x), "rhat_scales")$flagged)
+})
+
 test_that("a chain with other gradients is flagged", {
   got <- gc_of(3L, c(0.3, 0.3, 0.3), gradients = "other")
   expect_true(check_row(got, "gradients")$flagged)
@@ -172,7 +198,7 @@ test_that("a chain with other gradients is flagged", {
 test_that("with one chain only the state is assessed", {
   got <- gc_of(1L, 0.3)
   expect_identical(check_row(got, "state")$value, 0)
-  for (nm in c("rhat_measured", "rhat_scales", "gradients", "disagreement", "disagreement_beyond")) {
+  for (nm in c("rhat_measured", "rhat_scales", "rhat_axis", "gradients", "disagreement", "disagreement_beyond")) {
     expect_true(is.na(check_row(got, nm)$value), info = nm)
     expect_false(check_row(got, nm)$flagged, info = nm)
   }
@@ -283,6 +309,13 @@ test_that("missing values in the draws are flagged, not an error", {
 
   x <- made_fit(2L, c(0.3, 0.3)); x$lambda_output[2, 9, 1] <- NaN      # an axis scale
   got <- do.call(occJSDM:::grouped_convergence, x)
+  expect_true(check_row(got, "rhat_axis")$flagged)
+  expect_match(check_row(got, "rhat_axis")$meaning, "missing", fixed = TRUE)
+  expect_false(check_row(got, "rhat_scales")$flagged)
+  expect_identical(got$verdict, "review")
+
+  x <- made_fit(2L, c(0.3, 0.3)); x$sigmab_output[3, 1] <- NaN         # the measured group's scale
+  got <- do.call(occJSDM:::grouped_convergence, x)
   expect_true(check_row(got, "rhat_scales")$flagged)
   expect_match(check_row(got, "rhat_scales")$meaning, "missing", fixed = TRUE)
 })
@@ -305,13 +338,13 @@ test_that("returnGroupedConvergence() works on fits with embeddingVars and refus
   got <- returnGroupedConvergence(fit)
   expect_identical(names(got), c("verdict", "checks", "chains", "effect"))
   expect_true(got$verdict %in% c("ok", "review"))
-  expect_identical(nrow(got$checks), 6L)
+  expect_identical(nrow(got$checks), 7L)
   expect_identical(nrow(got$chains), 2L)
   plain <- gc_fit(simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L), embedding = FALSE)
   expect_error(returnGroupedConvergence(plain), "returnGroupedConvergence() needs a fit with embeddingVars", fixed = TRUE)
   # Nothing in it depends on the model type.
   occ <- gc_fit(simulate_grouped_fixture(model = "occupancy", p_emb = 6L, S = 8L))
-  expect_identical(nrow(returnGroupedConvergence(occ)$checks), 6L)
+  expect_identical(nrow(returnGroupedConvergence(occ)$checks), 7L)
 })
 
 # ---- the automatic report ---------------------------------------------------
@@ -377,6 +410,8 @@ test_that("the summary of the checks names the verdict and explains every flag",
   expect_true(any(grepl("Verdict +\\| ok", ok)))
   expect_false(any(grepl("^  ! ", ok)))
   expect_true(any(grepl("Gradients", ok)) && any(grepl("beyond", ok)))
+  expect_true(has(ok, "axis scales (log): 0 of 3 over 1.10"))
+  expect_true(has(ok, "not part of the verdict"))
 })
 
 test_that("a fit with embeddingVars ends with the checks, and warns when they flag it", {
@@ -394,7 +429,7 @@ test_that("a fit with embeddingVars ends with the checks, and warns when they fl
   expect_true(has(grouped$messages, paste(sprintf("%.2f", check$chains$sigma_emb_median), collapse = ", ")))
   expect_true(has(grouped$messages, paste("Verdict      |", check$verdict)))
   rhat <- check$checks$value[check$checks$check == "rhat_scales"]
-  expect_true(has(grouped$messages, sprintf("scales (log), max: %.2f", rhat)))
+  expect_true(has(grouped$messages, sprintf("sigma_emb and sigma_b (log), max: %.2f", rhat)))
   plain <- said(runOccJSDM(dat, listParams = list(n_factors = 1L),
                            occCovariates = grouped_occ_covariates(dat), MCMCparams = FIXTURE_MCMC))
   expect_false(has(plain$messages, "Grouped prior: convergence checks"))

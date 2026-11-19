@@ -1,0 +1,5 @@
+"fit","minutes","sigma_emb_median","leftover_chains","rhat_measured","measured_over","rhat_sigma_emb","rhat_sigma_b","rhat_axis_max","axis_over","n_gradients","agreement","disagreement","beyond","slope_by_chain","error_by_chain","error_measured","verdict_axis_in","verdict_axis_out","verdict_when_fitted"
+"lowrank_s1",45,"0.27 0.27 0.28 0.26",0,1.016,0,1.057,1.007,2.386,2,2,0.998,0.07,0.216,"0.90 0.90 0.90 0.89","0.27 0.26 0.26 0.27","0.22 0.21 0.22 0.22","review","ok","review"
+"lowrank_s3",45,"0.06 0.05 0.07 0.04",0,1.164,0.045,1.035,1.081,4.854,26,3,0.964,0.246,0.819,"0.91 0.88 0.92 0.94","0.33 0.34 0.31 0.31","0.25 0.25 0.24 0.25","review","review","review"
+"null_s1",45,"0.36 0.37 0.36 0.32",0,1.024,0,1.003,1.025,1.02,0,NA,NA,NA,NA,NA,NA,"0.18 0.19 0.18 0.18","ok","ok","ok"
+"unstructured_s1",45,"8.30 7.88 8.74 8.30",4,1.014,0,1.05,1.005,1.042,0,6,1,0.018,0.028,"0.98 0.98 0.98 0.97","0.27 0.27 0.27 0.27","0.21 0.21 0.21 0.21","review","review","review"

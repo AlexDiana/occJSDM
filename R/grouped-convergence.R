@@ -108,8 +108,14 @@ grouped_effect_checks <- function(E, limits = GROUPED_LIMITS) {
 #    are not, and when all are. The second can be right, and its meaning says
 #    so.
 # 2. rhat_measured and rhat_scales: the package's R-hat (blockRhatESS()) on
-#    the measured rows of B, and on the logs of sigma_emb, of the axis scales
-#    and, when there are measured columns, of sigma_b. The largest of each.
+#    the measured rows of B, and on the logs of sigma_emb and, when there are
+#    measured columns, of sigma_b. The largest of each.
+#    rhat_axis: the largest R-hat among the logs of the axis scales, with how
+#    many are over the limit. Reported, never part of the verdict: a single
+#    axis scale, like a single embedding coefficient, is not pinned down, and
+#    in full-length fits whose chains agree on everything else a few of the
+#    64 fail R-hat (README, 19 November 2026). Flagged only when its draws
+#    have missing values.
 # 3. gradients and 4. disagreement: grouped_effect_checks() on each chain's
 #    posterior mean of the embedding's combined effect at the fitted sites.
 # 5. disagreement_beyond: the largest difference between two chains' posterior
@@ -177,17 +183,25 @@ grouped_convergence <- function(B_output, sigmab_output, sigmaemb_output,
   }
   rhat_measured <- NA_real_
   rhat_scales <- NA_real_
+  rhat_axis <- NA_real_
+  axis_over <- NA_integer_
   missing_measured <- n_meas > 0L && anyNA(block$var[!emb_coef])
-  scales <- array(log(lambda_output), c(n_emb, niter, nchain))
-  scales <- array(c(aperm(scales, c(2, 3, 1)), log(sigmaemb),
-                    if (n_meas > 0L) log(matrix(sigmab_output, niter, nchain))),
-                  c(niter, nchain, n_emb + 1L + (n_meas > 0L)))
-  scales <- aperm(scales, c(3, 1, 2))
-  missing_scales <- !all(is.finite(scales))
+  # sigma_emb and, with measured columns, sigma_b: one row each, on the log scale
+  shared <- array(c(log(sigmaemb), if (n_meas > 0L) log(matrix(sigmab_output, niter, nchain))),
+                  c(niter, nchain, 1L + (n_meas > 0L)))
+  shared <- aperm(shared, c(3, 1, 2))
+  axis <- array(log(lambda_output), c(n_emb, niter, nchain))
+  missing_scales <- !all(is.finite(shared))
+  missing_axis <- !all(is.finite(axis))
   if (nchain > 1L) {
     if (n_meas > 0L && !missing_measured) rhat_measured <- max_rhat(block, !emb_coef)
     if (!missing_scales)
-      rhat_scales <- max_rhat(blockRhatESS(scales, dim(scales)[1], niter, nchain))
+      rhat_scales <- max_rhat(blockRhatESS(shared, dim(shared)[1], niter, nchain))
+    if (!missing_axis) {
+      axis_block <- blockRhatESS(axis, n_emb, niter, nchain)
+      rhat_axis <- max_rhat(axis_block)
+      axis_over <- sum(axis_block$rhat[axis_block$variable] > limits$rhat, na.rm = TRUE)
+    }
   }
   rhat_meaning <- function(value, what, none, missing) {
     if (missing)
@@ -220,22 +234,30 @@ grouped_convergence <- function(B_output, sigmab_output, sigmaemb_output,
   flag <- function(x) !is.na(x) && x
   percent <- function(x) paste0(format(100 * x), " percent")
   checks <- data.frame(
-    check = c("state", "rhat_measured", "rhat_scales", "gradients", "disagreement",
-              "disagreement_beyond"),
-    value = c(n_dom, rhat_measured, rhat_scales, effect$agreement, effect$disagreement,
-              beyond),
-    limit = c(0, limits$rhat, limits$rhat, limits$gradients,
+    check = c("state", "rhat_measured", "rhat_scales", "rhat_axis", "gradients",
+              "disagreement", "disagreement_beyond"),
+    value = c(n_dom, rhat_measured, rhat_scales, rhat_axis, effect$agreement,
+              effect$disagreement, beyond),
+    limit = c(0, limits$rhat, limits$rhat, NA_real_, limits$gradients,
               limits$disagreement, NA_real_),
     flagged = c(is.na(n_dom) || n_dom > 0L,
                 missing_measured || flag(rhat_measured > limits$rhat),
                 missing_scales || flag(rhat_scales > limits$rhat),
+                missing_axis,
                 effect$missing || flag(effect$agreement < limits$gradients),
                 flag(effect$disagreement > limits$disagreement), FALSE),
     meaning = c(
       state_meaning,
       rhat_meaning(rhat_measured, "the measured coefficients",
                    "not assessed: the fit has no measured covariate", missing_measured),
-      rhat_meaning(rhat_scales, "the scales of the prior", "not assessed", missing_scales),
+      rhat_meaning(rhat_scales,
+                   if (n_meas > 0L) "sigma_emb and sigma_b" else "sigma_emb",
+                   "not assessed", missing_scales),
+      if (missing_axis) "the draws of the axis scales have missing or non-finite values"
+      else if (nchain < 2L) "not assessed: needs two chains or more"
+      else paste0(axis_over, " of ", n_emb, " axis scales have an R-hat over ",
+                  format(limits$rhat), "; a single axis scale is not pinned ",
+                  "down, so this is reported, not part of the verdict"),
       if (!effect$assessed) not_assessed else if (effect$agreement < limits$gradients)
         paste0("the chains found different gradients at the fitted sites: at ",
                "least one chain's fitted effect of the embedding lies partly ",
@@ -298,8 +320,13 @@ print_grouped_convergence <- function(x) {
   message(sprintf("  State        | median sigma_emb by chain: %s | leftovers dominate in %s of %d chains",
                   paste(sprintf("%.2f", x$chains$sigma_emb_median), collapse = ", "),
                   if (is.na(v("state"))) "an unknown number" else format(v("state")), nchain))
-  message(sprintf("  R-hat        | measured coefficients, max: %s | scales (log), max: %s",
+  message(sprintf("  R-hat        | measured coefficients, max: %s | sigma_emb and sigma_b (log), max: %s",
                   num(v("rhat_measured")), num(v("rhat_scales"))))
+  axis_said <- x$checks$meaning[x$checks$check == "rhat_axis"]
+  message(sprintf("               | axis scales (log): %s",
+                  if (is.na(v("rhat_axis"))) axis_said else
+                    sprintf("%s over %.2f, max: %.2f, not part of the verdict",
+                            sub(" axis scales.*$", "", axis_said), GROUPED_LIMITS$rhat, v("rhat_axis"))))
   if (x$effect$assessed) {
     message(sprintf("  Gradients    | %d found | agreement between chains at the fitted sites: %.2f (limit %.2f)",
                     x$effect$n_gradients, v("gradients"), GROUPED_LIMITS$gradients))
@@ -322,39 +349,48 @@ print_grouped_convergence <- function(x) {
 #' and single embedding coefficients are not pinned down, so chains that found
 #' the same gradients can still differ on them; and chains that all ended with
 #' the leftovers carrying the species' responses agree with each other while
-#' reporting no gradients at all. This function asks four questions that do
-#' not have those faults. [runOccJSDM()] prints its result at the end of such
-#' a fit.
+#' reporting no gradients at all. This function asks questions that do not
+#' have those faults. [runOccJSDM()] prints its result at the end of such a
+#' fit.
 #'
 #' @details
-#' The four checks.
+#' The checks, one row each in `checks`.
 #' * `state`: which state each chain is in. A chain whose median embedding
 #'   leftover scale is 1 or more has leftovers at least as large as the shared
 #'   part (the community average, the traits and the blends). `value` is the
-#'   number of such chains. It is flagged when the chains are in different
-#'   states, and when every chain is in that state. The second can be right,
-#'   if species respond independently to the embedding; it is wrong if the
-#'   chains missed shared gradients.
+#'   number of such chains, and it is flagged when it is over 0: when the
+#'   chains are in different states, and when every chain is in that state.
+#'   The second can be right, if species respond independently to the
+#'   embedding; it is wrong if the chains missed shared gradients.
 #' * `rhat_measured` and `rhat_scales`: the largest R-hat among the measured
-#'   coefficients, and among the logs of the scales of the prior. Flagged
-#'   over 1.1. These are the only checks here that are an R-hat.
+#'   coefficients, and among the logs of the two scales shared by all columns
+#'   (the embedding leftover scale and, with measured covariates, the
+#'   measured-group scale). Flagged over 1.1.
+#' * `rhat_axis`: the largest R-hat among the logs of the axis scales, with
+#'   the number over 1.1 in `meaning`. Reported and not part of the verdict.
+#'   A single axis scale, like a single embedding coefficient, is not pinned
+#'   down, and a few of them fail R-hat in fits whose chains agree on
+#'   everything else.
 #' * `gradients`: whether the chains found the same set of gradients. For
 #'   each chain, the posterior mean of the embedding's combined effect on the
 #'   linear predictor (the embedding columns times their coefficients, summed,
 #'   for every site and species) is taken, and its leading directions across
 #'   sites are that chain's gradients. Their number is the smallest that holds
-#'   90 percent of the effect pooled over chains. `value` is the smallest
-#'   share, over pairs of chains, of one chain's effect that lies within the
-#'   other's gradients. It does not depend on how a chain splits its gradients
-#'   into single blends. Flagged under 0.90.
-#' * `disagreement`: how far each chain's combined effect is from the pooled
-#'   one, as a share of the effect's size, averaged over chains. Flagged over
-#'   0.15.
-#' * `disagreement_beyond`: how far each chain's embedding coefficients are
-#'   from the pooled ones, as a share of their size. Reported and never
+#'   90 percent of the effect pooled over chains. For a pair of chains, the
+#'   agreement is how much of one chain's effect lies within the other's
+#'   gradients, as a share of how much lies within its own: 1 when the two
+#'   have the same gradients, and less the further apart they are. It does not
+#'   depend on how a chain splits its gradients into single blends. `value` is
+#'   the smallest over pairs. Flagged under 0.90.
+#' * `disagreement`: the largest difference between two chains' combined
+#'   effects, as a share of the effect's size (root mean squares). One chain
+#'   apart from several that agree counts in full. Flagged over 0.30.
+#' * `disagreement_beyond`: the largest difference between two chains'
+#'   embedding coefficients, as a share of their size. Reported and never
 #'   flagged.
 #'
-#' The last three compare the chains' posterior means. They say whether the
+#' The three R-hat rows are the only ones that are an R-hat. The last three
+#' rows compare the chains' posterior means. They say whether the
 #' chains reached the same answer and how far apart they are. They do not say
 #' whether each chain explored its own uncertainty, which is what R-hat is
 #' for. They are not assessed with a single chain, or when the embedding's
@@ -368,32 +404,57 @@ print_grouped_convergence <- function(x) {
 #' sampled. The data say little about directions of the embedding in which
 #' the fitted sites barely vary, so each chain fills those in its own way,
 #' and that only shows where a site's embedding moves in those directions. In
-#' one simulated fit whose chains differed by 6 percent of the effect's size
-#' at the fitted sites, they differed by 16 percent at sites varying equally
-#' in every direction, and the error against the truth rose from 27 to 42
-#' percent. `disagreement_beyond` is that second kind of difference. It has no
-#' limit yet. A fit that is "ok" here is not thereby safe to extrapolate.
+#' one simulated fit whose two chains differed by 6 percent of the size of
+#' the true effect at the fitted sites, they differed by 16 percent at sites
+#' varying equally in every direction, and the error against the truth rose
+#' from 27 to 42 percent. `disagreement_beyond` is that second kind of
+#' difference. It has no limit yet. A fit that is "ok" here is not thereby
+#' safe to extrapolate.
+#'
+#' Draws that are missing or not finite flag the check they belong to, with
+#' that as the stated meaning.
 #'
 #' A flagged fit is marked "review" and not "failed" because the first check
-#' can flag a fit that is right. The limits of the last two checks were set
-#' against a small number of simulated fits (256 sites, 48 species, 64
-#' embedding columns) and may change.
+#' can flag a fit that is right.
+#'
+#' @section How far the limits have been tested:
+#' The limits of `gradients` and `disagreement` were chosen on simulated fits
+#' whose answer was already known, all of one size (256 sites, 48 species, 64
+#' embedding columns, 4 chains of 5,000 burn-in and 5,000 kept iterations).
+#' They have not been tested on fits they were not chosen on, and may change.
+#' Among 18 such fits, the 16 with nothing known against them had a
+#' disagreement of 0.06 to 0.30 and the two with chains known to be apart
+#' 0.34 and 0.68, so the limit of 0.30 has almost no margin. None of the 18
+#' had chains with clearly different gradients (the agreement was 0.93 to
+#' 1.00), so the limit of 0.90 rests on made-up effects alone.
+#'
+#' The whole function has been run on four full-length fits of that size, two
+#' of them repeats of fits among the 18. Data with no response to the
+#' embedding: "ok". Data with two shared gradients, chains in agreement: "ok",
+#' with 2 of the 64 axis scales over 1.1, which is why `rhat_axis` does not
+#' decide the verdict. Data with three shared gradients: "review", on the
+#' R-hat of the measured coefficients (1.16). Data in which species respond
+#' independently to the embedding: "review" on `state`, every chain's leftover
+#' scale being near 8, although that fit recovered the truth as well as the
+#' others. That last flag is the one that can be right to set aside.
 #'
 #' @param fitModel Output from the function runOccJSDM, made with
 #'   `embeddingVars`. Any model type.
 #'
 #' @return A list with four elements.
 #' * `verdict`: `"ok"`, or `"review"` when any check is flagged.
-#' * `checks`: a data frame with one row per check and columns `check`,
+#' * `checks`: a data frame with one row per check (seven) and columns `check`,
 #'   `value`, `limit`, `flagged` and `meaning`, a sentence on what the value
 #'   says about the fit.
 #' * `chains`: a data frame with one row per chain and columns `chain`,
 #'   `sigma_emb_median` and `state` (`"shared structure"` or
 #'   `"leftovers dominate"`).
-#' * `effect`: what lies behind the last two checks, including `n_gradients`,
-#'   `size` (the spread of the pooled effect), `agreement_pairs` (entry a, b
-#'   is the share of chain a's effect within chain b's gradients) and
-#'   `disagreement_by_chain`.
+#' * `effect`: what lies behind `gradients` and `disagreement`, including
+#'   `n_gradients`, `size` (the spread of the pooled effect),
+#'   `agreement_pairs` (entry a, b is how much of chain a's effect lies within
+#'   chain b's gradients, as a share of how much lies within chain a's own)
+#'   and `disagreement_pairs` (entry a, b is the difference between the two
+#'   chains' effects, as a share of the effect's size).
 #'
 #' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits
 #'   use, and [computeDiagnostics()] for R-hat and effective sample size by

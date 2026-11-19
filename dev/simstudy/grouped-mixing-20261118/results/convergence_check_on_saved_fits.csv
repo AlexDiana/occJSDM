@@ -1,19 +1,19 @@
-"fit","size","n_gradients","agreement","disagreement","flagged_gradients","flagged_disagreement"
-"lowrank_s1_rot0",1.728,2,0.986,0.035,FALSE,FALSE
-"lowrank_s1_rot1",1.674,2,0.973,0.065,FALSE,FALSE
-"lowrank_s1_rot2",1.678,2,0.969,0.076,FALSE,FALSE
-"lowrank_s2_rot0",1.783,2,0.966,0.056,FALSE,FALSE
-"lowrank_s2_rot1",1.686,2,0.955,0.07,FALSE,FALSE
-"lowrank_s2_rot2",1.586,2,0.967,0.047,FALSE,FALSE
-"lowrank_s3_rot0",2.052,3,0.949,0.131,FALSE,FALSE
-"lowrank_s3_rot1",1.849,3,0.937,0.156,FALSE,TRUE
-"lowrank_s3_rot2",1.909,3,0.929,0.145,FALSE,FALSE
-"lowrank-active64_s1_rot0",4.547,2,0.956,0.068,FALSE,FALSE
-"lowrank-active64_s1_rot1",4.379,2,0.931,0.117,FALSE,FALSE
-"lowrank-active64_s2_rot0",5.155,2,0.933,0.065,FALSE,FALSE
-"lowrank-active64_s2_rot1",5.111,2,0.934,0.07,FALSE,FALSE
-"lowrank_s1_rot0_pca",1.682,2,0.974,0.083,FALSE,FALSE
-"lowrank_s2_rot0_pca",1.625,2,0.87,0.171,TRUE,TRUE
-"lowrank_s3_rot0_pca",1.918,3,0.965,0.104,FALSE,FALSE
-"lowrank-active64_s1_rot0_pca",4.794,2,0.953,0.031,FALSE,FALSE
-"lowrank-active64_s2_rot0_pca",4.687,2,0.797,0.256,TRUE,TRUE
+"fit","size","n_gradients","agreement","disagreement","flagged_gradients","flagged_disagreement","slope_by_chain","error_by_chain"
+"lowrank_s1_rot0",1.728,2,0.998,0.07,FALSE,FALSE,"0.90 0.90 0.90 0.89","0.27 0.26 0.26 0.27"
+"lowrank_s1_rot1",1.674,2,0.989,0.126,FALSE,FALSE,"0.79 0.78 0.77 0.78","0.37 0.38 0.38 0.37"
+"lowrank_s1_rot2",1.678,2,0.983,0.156,FALSE,FALSE,"0.79 0.80 0.79 0.79","0.37 0.36 0.36 0.37"
+"lowrank_s2_rot0",1.783,2,0.99,0.127,FALSE,FALSE,"0.92 0.95 0.95 0.95","0.34 0.32 0.32 0.32"
+"lowrank_s2_rot1",1.686,2,0.984,0.147,FALSE,FALSE,"0.83 0.83 0.83 0.82","0.42 0.41 0.41 0.42"
+"lowrank_s2_rot2",1.586,2,0.995,0.087,FALSE,FALSE,"0.83 0.83 0.83 0.83","0.43 0.42 0.43 0.42"
+"lowrank_s3_rot0",2.052,3,0.964,0.246,FALSE,FALSE,"0.91 0.88 0.92 0.94","0.33 0.34 0.31 0.31"
+"lowrank_s3_rot1",1.849,3,0.954,0.287,FALSE,FALSE,"0.81 0.79 0.80 0.79","0.41 0.45 0.43 0.44"
+"lowrank_s3_rot2",1.909,3,0.942,0.296,FALSE,FALSE,"0.80 0.81 0.81 0.81","0.42 0.42 0.41 0.43"
+"lowrank-active64_s1_rot0",4.547,2,0.991,0.132,FALSE,FALSE,"0.75 0.76 0.76 0.76","0.34 0.33 0.33 0.33"
+"lowrank-active64_s1_rot1",4.379,2,0.974,0.251,FALSE,FALSE,"0.73 0.68 0.68 0.73","0.37 0.42 0.42 0.36"
+"lowrank-active64_s2_rot0",5.155,2,0.99,0.131,FALSE,FALSE,"0.85 0.86 0.88 0.85","0.28 0.27 0.27 0.29"
+"lowrank-active64_s2_rot1",5.111,2,0.991,0.14,FALSE,FALSE,"0.86 0.86 0.85 0.83","0.28 0.28 0.29 0.29"
+"lowrank_s1_rot0_pca",1.682,2,0.992,0.151,FALSE,FALSE,"0.80 0.77 0.79 0.80","0.37 0.38 0.38 0.38"
+"lowrank_s2_rot0_pca",1.625,2,0.931,0.344,FALSE,TRUE,"0.75 0.85 0.75 0.84","0.49 0.40 0.49 0.41"
+"lowrank_s3_rot0_pca",1.918,3,0.988,0.189,FALSE,FALSE,"0.85 0.85 0.84 0.83","0.39 0.40 0.39 0.40"
+"lowrank-active64_s1_rot0_pca",4.794,2,0.999,0.055,FALSE,FALSE,"0.80 0.79 0.79 0.80","0.29 0.30 0.30 0.29"
+"lowrank-active64_s2_rot0_pca",4.687,2,0.996,0.678,FALSE,TRUE,"0.89 0.87 0.88 0.41","0.26 0.27 0.27 0.62"

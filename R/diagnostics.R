@@ -493,8 +493,9 @@ blockRhatESS <- function(arr, n_params, niter, nchain) {
 #'   single embedding coefficients are not pinned down under the grouped prior
 #'   and their R-hat is not a test of convergence (see
 #'   [returnGroupedConvergence()]); and the scales of the prior are reported
-#'   on the log scale. [runOccJSDM()] passes it. Left out, the report is as
-#'   it has always been.
+#'   on the log scale. [runOccJSDM()] passes it. Its length must be the
+#'   number of rows of `B_output`. Left out, the report is as it has always
+#'   been.
 #'
 #' @return `NULL`, invisibly. Called for its side effect of printing
 #'   diagnostics to the console.
