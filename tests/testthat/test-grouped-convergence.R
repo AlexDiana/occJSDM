@@ -8,6 +8,9 @@ effect_from <- function(scores, loadings) scores %*% t(loadings)
 set.seed(1); n <- 40L; S <- 12L
 U <- qr.Q(qr(matrix(rnorm(n * 3), n, 3))); V <- matrix(rnorm(S * 3), S, 3)
 
+rms <- function(x) sqrt(mean(x^2))
+set.seed(2); rest <- matrix(rnorm(n * S, sd = 0.35), n, S)     # what two gradients do not hold
+
 test_that("identical chains agree fully and do not disagree", {
   E1 <- effect_from(U[, 1:2] %*% diag(c(9, 5)), V[, 1:2])
   got <- occJSDM:::grouped_effect_checks(array(c(E1, E1, E1), c(n, S, 3L)))
@@ -15,24 +18,63 @@ test_that("identical chains agree fully and do not disagree", {
   expect_identical(got$n_gradients, 2L)
   expect_equal(got$agreement, 1); expect_equal(got$disagreement, 0)
   expect_true(all(is.na(diag(got$agreement_pairs))))
+  expect_true(all(is.na(diag(got$disagreement_pairs))))
 })
 
-test_that("chains with the same gradients mixed differently agree fully", {
-  turn <- matrix(c(cos(0.7), sin(0.7), -sin(0.7), cos(0.7)), 2, 2)
+test_that("identical chains agree fully whatever share of the effect their gradients hold", {
+  # The gradients hold 90 percent or more of the effect, not all of it. The
+  # agreement is the share of a chain's effect within another's gradients as a
+  # share of what its own gradients hold, so chains that are the same score 1,
+  # and the limit is not the score of a perfect fit.
+  E1 <- effect_from(U[, 1:2] %*% diag(c(9, 5)), V[, 1:2]) + rest
+  got <- occJSDM:::grouped_effect_checks(array(c(E1, E1), c(n, S, 2L)))
+  d <- svd(E1)$d
+  expect_lt(sum(d[1:2]^2) / sum(d^2), 0.99)
+  expect_identical(got$n_gradients, 2L)
+  expect_equal(got$agreement, 1); expect_equal(got$disagreement, 0)
+})
+
+test_that("chains with the same gradients and other responses agree on the gradients and differ in effect", {
+  mix <- matrix(c(1, 0.4, -0.6, 1.3), 2, 2)                  # not a rotation: the effect changes
   scores <- U[, 1:2] %*% diag(c(9, 5))
   E1 <- effect_from(scores, V[, 1:2])
-  E2 <- effect_from(scores %*% turn, V[, 1:2] %*% turn)      # the same effect, other blends
+  E2 <- effect_from(scores %*% mix, V[, 1:2])                # the same span across sites
   got <- occJSDM:::grouped_effect_checks(array(c(E1, E2), c(n, S, 2L)))
-  expect_equal(got$agreement, 1); expect_equal(got$disagreement, 0)
+  expect_equal(got$agreement, 1)
+  expect_equal(got$disagreement, rms(E1 - E2) / rms((E1 + E2) / 2))
+})
+
+test_that("the disagreement is the largest difference between two chains, however many agree", {
+  E1 <- effect_from(U[, 1:2] %*% diag(c(9, 5)), V[, 1:2])
+  E3 <- effect_from(U[, c(1, 3)] %*% diag(c(9, 5)), V[, 1:2])
+  two <- occJSDM:::grouped_effect_checks(array(c(E1, E3), c(n, S, 2L)))
+  five <- occJSDM:::grouped_effect_checks(array(c(E1, E1, E1, E1, E3), c(n, S, 5L)))
+  apart <- rms(E1 - E3)
+  expect_equal(two$disagreement, apart / rms((E1 + E3) / 2))
+  expect_equal(five$disagreement, apart / rms((4 * E1 + E3) / 5))
+  expect_equal(five$disagreement_pairs[1, 5], five$disagreement)
+  expect_equal(five$disagreement_pairs[5, 1], five$disagreement)
+  expect_equal(five$disagreement_pairs[1, 2], 0)
+  expect_gt(five$disagreement, 0.8 * two$disagreement)       # one chain apart is not diluted
 })
 
 test_that("a chain with other gradients is seen by both checks", {
   E1 <- effect_from(U[, 1:2] %*% diag(c(9, 5)), V[, 1:2])
   E3 <- effect_from(U[, c(1, 3)] %*% diag(c(9, 5)), V[, 1:2])   # second gradient replaced
   got <- occJSDM:::grouped_effect_checks(array(c(E1, E1, E3), c(n, S, 3L)))
-  expect_lt(got$agreement, 0.90); expect_gt(got$disagreement, 0.15)
+  expect_lt(got$agreement, occJSDM:::GROUPED_LIMITS$gradients)
+  expect_gt(got$disagreement, occJSDM:::GROUPED_LIMITS$disagreement)
   expect_equal(got$agreement_pairs[1, 2], 1)
-  expect_lt(got$agreement_pairs[1, 3], 0.90)
+  expect_lt(got$agreement_pairs[1, 3], occJSDM:::GROUPED_LIMITS$gradients)
+})
+
+test_that("an effect with missing values is not assessed and says why", {
+  E1 <- effect_from(U[, 1:2] %*% diag(c(9, 5)), V[, 1:2])
+  E2 <- E1; E2[3, 4] <- NaN
+  got <- occJSDM:::grouped_effect_checks(array(c(E1, E2), c(n, S, 2L)))
+  expect_false(got$assessed); expect_true(got$missing)
+  expect_match(got$why_not, "missing", fixed = TRUE)
+  expect_false(occJSDM:::grouped_effect_checks(array(c(E1, E1), c(n, S, 2L)))$missing)
 })
 
 test_that("a small or absent effect, or a single chain, is not assessed", {
@@ -91,7 +133,7 @@ test_that("a fit whose chains agree and found shared structure is ok", {
   expect_equal(got$chains$sigma_emb_median, c(0.3, 0.3, 0.3), tolerance = 0.1)
   expect_true(got$effect$assessed)
   expect_identical(check_row(got, "gradients")$limit, 0.90)
-  expect_identical(check_row(got, "disagreement")$limit, 0.15)
+  expect_identical(check_row(got, "disagreement")$limit, 0.30)
 })
 
 test_that("chains in different states are flagged", {
@@ -169,6 +211,86 @@ test_that("how far the chains' coefficients differ is reported and never flagged
   expect_gt(check_row(after, "disagreement_beyond")$value, 10 * check_row(before, "disagreement_beyond")$value)
   expect_false(check_row(after, "disagreement_beyond")$flagged)
   expect_identical(after$verdict, before$verdict)
+})
+
+test_that("how far the chains' coefficients differ is the largest difference between two chains", {
+  x <- made_fit(3L, c(0.3, 0.3, 0.3), gradients = "other")
+  got <- do.call(occJSDM:::grouped_convergence, x)
+  emb <- which(x$is_emb)
+  Bm <- lapply(1:3, function(ch) apply(x$B_output[emb, , , ch], c(1, 2), mean))
+  pooled <- Reduce(`+`, Bm) / 3
+  pairs <- c(rms(Bm[[1]] - Bm[[2]]), rms(Bm[[1]] - Bm[[3]]), rms(Bm[[2]] - Bm[[3]]))
+  expect_equal(check_row(got, "disagreement_beyond")$value, max(pairs) / rms(pooled))
+})
+
+test_that("the checks' values are those of the pieces computed apart", {
+  # The whole of B goes through one pass that copies none of it; the values
+  # must be the ones the rows taken out and summarised by themselves give.
+  x <- made_fit(3L, c(0.3, 0.3, 0.3), shift_measured = 0.05)
+  got <- do.call(occJSDM:::grouped_convergence, x)
+  meas <- x$B_output[!x$is_emb, , , , drop = FALSE]
+  expect_equal(check_row(got, "rhat_measured")$value,
+               max(occJSDM:::blockRhatESS(meas, 12L, 200L, 3L)$rhat))
+  E <- vapply(1:3, function(ch) x$X[, x$is_emb] %*% apply(x$B_output[x$is_emb, , , ch], c(1, 2), mean),
+              matrix(0, 30L, 6L))
+  ref <- occJSDM:::grouped_effect_checks(E)
+  expect_equal(got$effect$agreement_pairs, ref$agreement_pairs)
+  expect_equal(got$effect$disagreement_pairs, ref$disagreement_pairs)
+})
+
+test_that("the checks do not copy the coefficient draws", {
+  skip_if_not(capabilities("profmem"))
+  # 2 measured and 30 embedding columns, 40 species, 200 draws, 2 chains: the
+  # embedding rows of one chain are 1.9 MB and the measured rows 0.26 MB. No
+  # single allocation may come near either.
+  set.seed(11); p <- 32L; S <- 40L; niter <- 200L; nchain <- 2L; is_emb <- rep(c(FALSE, TRUE), c(2L, 30L))
+  B <- array(rnorm(p * S * niter * nchain), c(p, S, niter, nchain))
+  sb <- matrix(exp(rnorm(niter * nchain, sd = 0.1)), niter, nchain); se <- sb * 0.3
+  lam <- array(exp(rnorm(30L * niter * nchain, sd = 0.1)), c(30L, niter, nchain))
+  X <- matrix(rnorm(50L * p), 50L, p)
+  big <- function(expr) {
+    f <- tempfile(); on.exit(unlink(f))
+    utils::Rprofmem(f, threshold = 2e5); force(expr); utils::Rprofmem(NULL)
+    sum(grepl("^[0-9]", readLines(f)))                       # allocations, not R's "new page" lines
+  }
+  expect_identical(big(occJSDM:::grouped_convergence(B, sb, se, lam, X, is_emb)), 0L)
+  results <- list(jsdm_output = list(B0_output = array(rnorm(S * niter * nchain), c(S, niter, nchain)),
+                                     B_output = B, sigmab_output = sb, sigmaemb_output = se, lambda_output = lam))
+  expect_identical(big(suppressMessages(suppressWarnings(computeDiagnostics(results, embedding_rows = is_emb)))), 0L)
+})
+
+test_that("missing values in the draws are flagged, not an error", {
+  x <- made_fit(2L, c(0.3, 0.3)); x$sigmaemb_output[5, 2] <- NaN
+  got <- do.call(occJSDM:::grouped_convergence, x)
+  row <- check_row(got, "state")
+  expect_true(row$flagged); expect_true(is.na(row$value))
+  expect_match(row$meaning, "missing", fixed = TRUE)
+  expect_identical(got$chains$state, c("shared structure", "not known"))
+  expect_identical(got$verdict, "review")
+  expect_silent(suppressMessages(occJSDM:::print_grouped_convergence(got)))
+
+  x <- made_fit(2L, c(0.3, 0.3)); x$B_output[4, 2, 7, 1] <- NaN        # an embedding coefficient
+  got <- do.call(occJSDM:::grouped_convergence, x)
+  expect_true(check_row(got, "gradients")$flagged)
+  expect_match(check_row(got, "gradients")$meaning, "missing", fixed = TRUE)
+  expect_false(grepl("small", check_row(got, "gradients")$meaning))
+  expect_identical(got$verdict, "review")
+
+  x <- made_fit(2L, c(0.3, 0.3)); x$B_output[1, 2, 7, 1] <- NaN        # a measured coefficient
+  got <- do.call(occJSDM:::grouped_convergence, x)
+  expect_true(check_row(got, "rhat_measured")$flagged)
+  expect_match(check_row(got, "rhat_measured")$meaning, "missing", fixed = TRUE)
+
+  x <- made_fit(2L, c(0.3, 0.3)); x$lambda_output[2, 9, 1] <- NaN      # an axis scale
+  got <- do.call(occJSDM:::grouped_convergence, x)
+  expect_true(check_row(got, "rhat_scales")$flagged)
+  expect_match(check_row(got, "rhat_scales")$meaning, "missing", fixed = TRUE)
+})
+
+test_that("the state's value and limit are on the same scale", {
+  got <- gc_of(2L, c(0.3, 6))
+  expect_identical(check_row(got, "state")$limit, 0)
+  expect_identical(check_row(got, "state")$value > check_row(got, "state")$limit, check_row(got, "state")$flagged)
 })
 
 gc_fit <- function(sim, embedding = TRUE) {
@@ -267,8 +389,54 @@ test_that("a fit with embeddingVars ends with the checks, and warns when they fl
   expect_identical(has(grouped$warnings, "The grouped prior's convergence checks flag this fit for review: see returnGroupedConvergence()."),
                    returnGroupedConvergence(fit)$verdict == "review")
   expect_false(has(grouped$warnings, "Convergence issue in 'B_output'"))
+  # What is printed is what the function returns for the same fit.
+  check <- returnGroupedConvergence(fit)
+  expect_true(has(grouped$messages, paste(sprintf("%.2f", check$chains$sigma_emb_median), collapse = ", ")))
+  expect_true(has(grouped$messages, paste("Verdict      |", check$verdict)))
+  rhat <- check$checks$value[check$checks$check == "rhat_scales"]
+  expect_true(has(grouped$messages, sprintf("scales (log), max: %.2f", rhat)))
   plain <- said(runOccJSDM(dat, listParams = list(n_factors = 1L),
                            occCovariates = grouped_occ_covariates(dat), MCMCparams = FIXTURE_MCMC))
   expect_false(has(plain$messages, "Grouped prior: convergence checks"))
   expect_false(has(plain$messages, "B (embedding)"))
+})
+
+# ---- the step at the end of a fit ------------------------------------------
+
+jsdm_of <- function(x) x[c("B_output", "sigmab_output", "sigmaemb_output", "lambda_output")]
+
+test_that("the end-of-fit step prints the checks and warns only on review", {
+  x <- made_fit(2L, c(0.3, 6))
+  review <- said(got <- occJSDM:::report_grouped_convergence(jsdm_of(x), x$X, x$is_emb))
+  expect_identical(got$verdict, "review")
+  expect_true(has(review$messages, "Grouped prior: convergence checks"))
+  expect_identical(review$warnings, "The grouped prior's convergence checks flag this fit for review: see returnGroupedConvergence().")
+  x <- made_fit(3L, c(0.3, 0.3, 0.3))
+  ok <- said(got <- occJSDM:::report_grouped_convergence(jsdm_of(x), x$X, x$is_emb))
+  expect_identical(got$verdict, "ok")
+  expect_identical(ok$warnings, character(0))
+})
+
+test_that("an error in the checks is a warning at the end of a fit, and the fit is returned", {
+  x <- made_fit(2L, c(0.3, 0.3))
+  testthat::local_mocked_bindings(grouped_convergence = function(...) stop("boom"), .package = "occJSDM")
+  got <- "not run"
+  out <- said(got <- occJSDM:::report_grouped_convergence(jsdm_of(x), x$X, x$is_emb))
+  expect_null(got)
+  expect_identical(length(out$warnings), 1L)
+  expect_match(out$warnings, "could not be computed", fixed = TRUE)
+  expect_match(out$warnings, "boom", fixed = TRUE)
+  expect_match(out$warnings, "returnGroupedConvergence()", fixed = TRUE)
+  dat <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)$data_list
+  fit <- NULL
+  whole <- said(fit <- runOccJSDM(dat, listParams = list(n_factors = 1L, embeddingVars = dat$embeddingVars),
+                                  occCovariates = grouped_occ_covariates(dat), MCMCparams = FIXTURE_MCMC))
+  expect_false(is.null(fit$results_output$jsdm_output$B_output))
+  expect_true(has(whole$warnings, "could not be computed"))
+})
+
+test_that("computeDiagnostics() refuses embedding_rows of the wrong length", {
+  results <- made_results()
+  expect_error(computeDiagnostics(results, embedding_rows = c(FALSE, TRUE)),
+               "embedding_rows must have one entry per row of B_output (5), not 2", fixed = TRUE)
 })

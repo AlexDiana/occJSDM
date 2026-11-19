@@ -13,17 +13,23 @@
 
 # The limits of the checks. `state`: a chain whose median sigma_emb is at
 # least this has leftovers as large as the shared part. `rhat`: the usual
-# limit. `gradients`: the least share of one chain's effect that must lie
-# within another's gradients. `disagreement`: the most a chain's effect may
-# differ from the pooled one, as a share of its size. `small_effect`: below
-# this spread across sites, on the scale of the linear predictor, the
-# embedding's effect is too small for the last two checks to mean anything.
-# `hold`: the gradients are as many leading directions as hold this share of
-# the pooled effect. The limits for the gradients and the disagreement were
-# set against 18 saved fits whose state was already known, which is the only
-# evidence there was and is circular to that extent.
+# limit. `gradients`: the least agreement on the gradients between two chains
+# (see grouped_effect_checks()). `disagreement`: the most two chains' effects
+# may differ, as a share of the effect's size. `small_effect`: below this
+# spread across sites, on the scale of the linear predictor, the embedding's
+# effect is too small for the last two checks to mean anything. `hold`: the
+# gradients are as many leading directions as hold this share of the pooled
+# effect. The limits for the gradients and the disagreement were looked at
+# against 18 saved fits whose state was already known, which is the only
+# evidence there was and is circular to that extent. Among them the chains of
+# the fits with nothing known against them differ by 0.06 to 0.30, and those
+# of the two fits with chains known to be apart by 0.34 and 0.68, so the limit
+# of 0.30 has almost no margin; and none of the 18 has chains with clearly
+# different gradients (the lowest agreement is 0.93), so the limit of 0.90
+# rests on made-up effects only
+# (dev/simstudy/grouped-mixing-20261118/README.md).
 GROUPED_LIMITS <- list(state = 1, rhat = 1.1, gradients = 0.90,
-                       disagreement = 0.15, small_effect = 0.5, hold = 0.90)
+                       disagreement = 0.30, small_effect = 0.5, hold = 0.90)
 
 # The two checks of the embedding's combined effect. `E` is a sites by species
 # by chains array: each chain's posterior mean of the embedding columns times
@@ -33,47 +39,62 @@ GROUPED_LIMITS <- list(state = 1, rhat = 1.1, gradients = 0.90,
 #
 # The gradients of a chain are the leading directions, across sites, of its
 # effect; their number is the smallest that holds `limits$hold` of the effect
-# pooled over chains. `agreement_pairs[a, b]` is the share of chain a's effect
-# that lies within chain b's gradients, which does not depend on how either
-# chain splits its gradients into single blends. `disagreement_by_chain` is
-# how far each chain's effect is from the pooled one, as a share of the pooled
-# effect's size (root mean squares). Not assessed, with the reason in
-# `why_not`, with fewer than two chains or when the effect is small.
+# pooled over chains. `agreement_pairs[a, b]` is how much of chain a's effect
+# lies within chain b's gradients, as a share of how much lies within chain
+# a's own. It is 1 when the two chains have the same gradients, whatever share
+# of the effect those hold, and cannot exceed 1; it does not depend on how
+# either chain splits its gradients into single blends. `disagreement_pairs[a,
+# b]` is how far apart the two chains' effects are, as a share of the pooled
+# effect's size (root mean squares). `agreement` is the smallest of the first
+# and `disagreement` the largest of the second, so one chain apart from many
+# that agree counts in full. Not assessed, with the reason in `why_not`, with
+# fewer than two chains, when the effect has missing or non-finite values
+# (`missing`), or when the effect is small.
 grouped_effect_checks <- function(E, limits = GROUPED_LIMITS) {
   nchain <- dim(E)[3]
-  pooled <- apply(E, c(1, 2), mean)
-  size <- stats::median(apply(pooled, 2, stats::sd))
-  out <- list(assessed = FALSE, why_not = NA_character_, size = size,
-              n_gradients = NA_integer_, agreement = NA_real_,
-              agreement_pairs = matrix(NA_real_, nchain, nchain),
-              disagreement = NA_real_,
-              disagreement_by_chain = rep(NA_real_, nchain))
+  blank <- matrix(NA_real_, nchain, nchain)
+  out <- list(assessed = FALSE, why_not = NA_character_, missing = FALSE,
+              size = NA_real_, n_gradients = NA_integer_, agreement = NA_real_,
+              agreement_pairs = blank, disagreement = NA_real_,
+              disagreement_pairs = blank)
+  if (!all(is.finite(E))) {
+    out$missing <- TRUE
+    out$why_not <- "the embedding's effect has missing or non-finite values"
+    return(out)
+  }
+  pooled <- rowMeans(E, dims = 2)
+  out$size <- stats::median(apply(pooled, 2, stats::sd))
   if (nchain < 2L) {
     out$why_not <- "needs two chains or more"
     return(out)
   }
-  if (!is.finite(size) || size < limits$small_effect) {
+  if (!is.finite(out$size) || out$size < limits$small_effect) {
     out$why_not <- "the embedding's effect is small"
     return(out)
   }
   d <- svd(pooled, nu = 0, nv = 0)$d
   r <- which(cumsum(d^2) / sum(d^2) >= limits$hold)[1]
-  gradients <- lapply(seq_len(nchain), function(k) svd(E[, , k], nu = r, nv = 0)$u)
-  for (a in seq_len(nchain)) for (b in seq_len(nchain)) if (a != b) {
-    out$agreement_pairs[a, b] <-
-      sum(crossprod(gradients[[b]], E[, , a])^2) / sum(E[, , a]^2)
+  gradients <- vector("list", nchain)
+  own <- numeric(nchain)                 # what each chain's own gradients hold
+  for (k in seq_len(nchain)) {
+    s <- svd(E[, , k], nu = r, nv = 0)
+    gradients[[k]] <- s$u
+    own[k] <- sum(s$d[seq_len(r)]^2)
   }
   rms <- function(x) sqrt(mean(x^2))
-  out$disagreement_by_chain <- vapply(seq_len(nchain), function(k)
-    rms(E[, , k] - pooled), numeric(1)) / rms(pooled)
+  size_pooled <- rms(pooled)
+  for (a in seq_len(nchain)) for (b in seq_len(nchain)) if (a != b) {
+    out$agreement_pairs[a, b] <- sum(crossprod(gradients[[b]], E[, , a])^2) / own[a]
+    out$disagreement_pairs[a, b] <- rms(E[, , a] - E[, , b]) / size_pooled
+  }
   out$assessed <- TRUE
   out$n_gradients <- as.integer(r)
   out$agreement <- min(out$agreement_pairs, na.rm = TRUE)
-  out$disagreement <- mean(out$disagreement_by_chain)
+  out$disagreement <- max(out$disagreement_pairs, na.rm = TRUE)
   out
 }
 
-# All four checks, from the pieces of a fit made with embeddingVars.
+# All the checks, from the pieces of a fit made with embeddingVars.
 # `B_output` is design columns by species by iterations by chains;
 # `sigmab_output` and `sigmaemb_output` are iterations by chains;
 # `lambda_output` is embedding columns by iterations by chains; `X` is the
@@ -83,36 +104,54 @@ grouped_effect_checks <- function(E, limits = GROUPED_LIMITS) {
 #
 # 1. state: the number of chains whose median sigma_emb is at least
 #    limits$state, the chains in which the leftovers are at least as large as
-#    the shared part. Flagged when some chains are and some are not, and when
-#    all are: the second can be right, and its meaning says so.
+#    the shared part. Flagged when it is over 0: when some chains are and some
+#    are not, and when all are. The second can be right, and its meaning says
+#    so.
 # 2. rhat_measured and rhat_scales: the package's R-hat (blockRhatESS()) on
 #    the measured rows of B, and on the logs of sigma_emb, of the axis scales
 #    and, when there are measured columns, of sigma_b. The largest of each.
 # 3. gradients and 4. disagreement: grouped_effect_checks() on each chain's
 #    posterior mean of the embedding's combined effect at the fitted sites.
-# 5. disagreement_beyond: how far each chain's posterior mean of the embedding
-#    coefficients is from the pooled one, as a share of their size. Chains
+# 5. disagreement_beyond: the largest difference between two chains' posterior
+#    means of the embedding coefficients, as a share of their size. Chains
 #    whose effects agree at the fitted sites can still differ in directions
 #    of the embedding those sites barely vary in, and so differ at sites
 #    unlike them: this is the disagreement at sites that vary equally in every
 #    embedding direction. Reported, never flagged: there is no evidence yet
 #    for a limit.
+#
+# B_output is the largest object a fit holds, and none of it is copied: its
+# chain means and R-hat come from one pass over the whole array, and the
+# measured and embedding rows are told apart afterwards. Draws that are
+# missing or not finite flag the check they belong to; they are never an
+# error, because this runs at the end of a fit that must still be returned.
 grouped_convergence <- function(B_output, sigmab_output, sigmaemb_output,
                                 lambda_output, X, is_emb,
                                 limits = GROUPED_LIMITS) {
   d <- dim(B_output)
-  S <- d[2]; niter <- d[3]; nchain <- d[4]
-  n_meas <- sum(!is_emb)
+  p <- d[1]; S <- d[2]; niter <- d[3]; nchain <- d[4]
+  is_emb <- as.logical(is_emb)
+  if (length(is_emb) != p) {
+    stop("is_emb must have one entry per row of B_output (", p, "), not ",
+         length(is_emb))
+  }
+  n_meas <- sum(!is_emb); n_emb <- sum(is_emb)
   sigmaemb <- matrix(sigmaemb_output, niter, nchain)
 
   # 1. state
   med <- apply(sigmaemb, 2, stats::median)
-  dominate <- med >= limits$state
+  known <- is.finite(med)
+  dominate <- known & med >= limits$state
   chains <- data.frame(chain = seq_len(nchain), sigma_emb_median = med,
-                       state = ifelse(dominate, "leftovers dominate", "shared structure"),
+                       state = ifelse(!known, "not known",
+                                      ifelse(dominate, "leftovers dominate",
+                                             "shared structure")),
                        stringsAsFactors = FALSE)
-  n_dom <- sum(dominate)
-  state_meaning <- if (n_dom == 0L) {
+  n_dom <- if (all(known)) sum(dominate) else NA_real_
+  state_meaning <- if (is.na(n_dom)) {
+    paste0("the state of ", sum(!known), " of ", nchain, " chains is not ",
+           "known: the draws of sigma_emb have missing or non-finite values")
+  } else if (n_dom == 0L) {
     "in every chain the shared part is larger than the leftovers"
   } else if (n_dom < nchain) {
     paste0("the chains are in different states: in ", n_dom, " of ", nchain,
@@ -126,26 +165,33 @@ grouped_convergence <- function(B_output, sigmab_output, sigmaemb_output,
            "other than binary")
   }
 
+  # One pass over B: every coefficient's mean in each chain, and its R-hat.
+  # Coefficient i of species j is entry i + (j - 1) * p.
+  block <- blockRhatESS(B_output, p * S, niter, nchain)
+  emb_coef <- rep(is_emb, times = S)
+
   # 2. R-hat on the measured coefficients and on the logs of the scales
-  max_rhat <- function(arr, n_params) {
-    block <- blockRhatESS(arr, n_params, niter, nchain)
-    r <- block$rhat[block$variable]
+  max_rhat <- function(block, keep = TRUE) {
+    r <- block$rhat[block$variable & keep]
     if (length(r) == 0L || all(is.na(r))) NA_real_ else max(r, na.rm = TRUE)
   }
   rhat_measured <- NA_real_
   rhat_scales <- NA_real_
+  missing_measured <- n_meas > 0L && anyNA(block$var[!emb_coef])
+  scales <- array(log(lambda_output), c(n_emb, niter, nchain))
+  scales <- array(c(aperm(scales, c(2, 3, 1)), log(sigmaemb),
+                    if (n_meas > 0L) log(matrix(sigmab_output, niter, nchain))),
+                  c(niter, nchain, n_emb + 1L + (n_meas > 0L)))
+  scales <- aperm(scales, c(3, 1, 2))
+  missing_scales <- !all(is.finite(scales))
   if (nchain > 1L) {
-    if (n_meas > 0L)
-      rhat_measured <- max_rhat(B_output[!is_emb, , , , drop = FALSE], n_meas * S)
-    n_emb <- sum(is_emb)
-    scales <- array(log(lambda_output), c(n_emb, niter, nchain))
-    scales <- array(c(aperm(scales, c(2, 3, 1)), log(sigmaemb),
-                      if (n_meas > 0L) log(matrix(sigmab_output, niter, nchain))),
-                    c(niter, nchain, n_emb + 1L + (n_meas > 0L)))
-    scales <- aperm(scales, c(3, 1, 2))
-    rhat_scales <- max_rhat(scales, dim(scales)[1])
+    if (n_meas > 0L && !missing_measured) rhat_measured <- max_rhat(block, !emb_coef)
+    if (!missing_scales)
+      rhat_scales <- max_rhat(blockRhatESS(scales, dim(scales)[1], niter, nchain))
   }
-  rhat_meaning <- function(value, what, none) {
+  rhat_meaning <- function(value, what, none, missing) {
+    if (missing)
+      return(paste0("the draws of ", what, " have missing or non-finite values"))
     if (nchain < 2L) return("not assessed: needs two chains or more")
     if (is.na(value)) return(none)
     if (value > limits$rhat)
@@ -155,10 +201,7 @@ grouped_convergence <- function(B_output, sigmab_output, sigmaemb_output,
 
   # 3 and 4. the embedding's combined effect, from each chain's mean of B
   Xe <- X[, is_emb, drop = FALSE]
-  B_mean <- vapply(seq_len(nchain), function(ch)
-    rowMeans(array(B_output[is_emb, , , ch], c(sum(is_emb), S, niter)), dims = 2),
-    matrix(0, sum(is_emb), S))
-  B_mean <- array(B_mean, c(sum(is_emb), S, nchain))
+  B_mean <- array(block$chain_mean[emb_coef, , drop = FALSE], c(n_emb, S, nchain))
   E <- vapply(seq_len(nchain), function(ch) Xe %*% B_mean[, , ch],
               matrix(0, nrow(X), S))
   effect <- grouped_effect_checks(array(E, c(nrow(X), S, nchain)), limits)
@@ -167,29 +210,32 @@ grouped_convergence <- function(B_output, sigmab_output, sigmaemb_output,
   # 5. the coefficients themselves
   beyond <- NA_real_
   if (effect$assessed) {
-    B_pooled <- apply(B_mean, c(1, 2), mean)
     rms <- function(x) sqrt(mean(x^2))
-    beyond <- mean(vapply(seq_len(nchain), function(ch)
-      rms(B_mean[, , ch] - B_pooled), numeric(1))) / rms(B_pooled)
+    apart <- 0
+    for (a in seq_len(nchain - 1L)) for (b in (a + 1L):nchain)
+      apart <- max(apart, rms(B_mean[, , a] - B_mean[, , b]))
+    beyond <- apart / rms(rowMeans(B_mean, dims = 2))
   }
 
   flag <- function(x) !is.na(x) && x
+  percent <- function(x) paste0(format(100 * x), " percent")
   checks <- data.frame(
     check = c("state", "rhat_measured", "rhat_scales", "gradients", "disagreement",
               "disagreement_beyond"),
     value = c(n_dom, rhat_measured, rhat_scales, effect$agreement, effect$disagreement,
               beyond),
-    limit = c(limits$state, limits$rhat, limits$rhat, limits$gradients,
+    limit = c(0, limits$rhat, limits$rhat, limits$gradients,
               limits$disagreement, NA_real_),
-    flagged = c(n_dom > 0L,
-                flag(rhat_measured > limits$rhat), flag(rhat_scales > limits$rhat),
-                flag(effect$agreement < limits$gradients),
+    flagged = c(is.na(n_dom) || n_dom > 0L,
+                missing_measured || flag(rhat_measured > limits$rhat),
+                missing_scales || flag(rhat_scales > limits$rhat),
+                effect$missing || flag(effect$agreement < limits$gradients),
                 flag(effect$disagreement > limits$disagreement), FALSE),
     meaning = c(
       state_meaning,
       rhat_meaning(rhat_measured, "the measured coefficients",
-                   "not assessed: the fit has no measured covariate"),
-      rhat_meaning(rhat_scales, "the scales of the prior", "not assessed"),
+                   "not assessed: the fit has no measured covariate", missing_measured),
+      rhat_meaning(rhat_scales, "the scales of the prior", "not assessed", missing_scales),
       if (!effect$assessed) not_assessed else if (effect$agreement < limits$gradients)
         paste0("the chains found different gradients at the fitted sites: at ",
                "least one chain's fitted effect of the embedding lies partly ",
@@ -197,18 +243,46 @@ grouped_convergence <- function(B_output, sigmab_output, sigmaemb_output,
       else paste0("the chains found the same ", effect$n_gradients,
                   " gradients at the fitted sites"),
       if (!effect$assessed) not_assessed else if (effect$disagreement > limits$disagreement)
-        paste0("at the fitted sites the chains' effects of the embedding ",
-               "differ by more than 15 percent of the effect's size")
+        paste0("at the fitted sites two chains' effects of the embedding ",
+               "differ by more than ", percent(limits$disagreement),
+               " of the effect's size")
       else "at the fitted sites the chains' effects of the embedding are close",
       if (!effect$assessed) not_assessed else
-        paste0("the chains' embedding coefficients differ by this share of ",
-               "their size, which is how far the chains differ at sites ",
-               "unlike the fitted ones (sites that vary equally in every ",
-               "direction of the embedding); reported, not part of the verdict")),
+        paste0("the largest difference between two chains' embedding ",
+               "coefficients, as a share of their size, which is how far the ",
+               "chains differ at sites unlike the fitted ones (sites that vary ",
+               "equally in every direction of the embedding); reported, not ",
+               "part of the verdict")),
     stringsAsFactors = FALSE)
 
   list(verdict = if (any(checks$flagged)) "review" else "ok",
        checks = checks, chains = chains, effect = effect)
+}
+
+# The step at the end of a fit made with embeddingVars: the checks, printed,
+# and one warning when the verdict is "review". `jsdm_output` is the fit's
+# jsdm_output (B_output, sigmab_output, sigmaemb_output, lambda_output). The
+# sampler has finished and the fit must be returned whatever happens here, so
+# an error in the checks or in printing them becomes a warning. Returns the
+# checks, or NULL when they could not be computed, invisibly.
+report_grouped_convergence <- function(jsdm_output, X, is_emb) {
+  check <- tryCatch({
+    x <- grouped_convergence(jsdm_output$B_output, jsdm_output$sigmab_output,
+                             jsdm_output$sigmaemb_output, jsdm_output$lambda_output,
+                             X, is_emb)
+    print_grouped_convergence(x)
+    x
+  }, error = function(e) {
+    warning("The grouped prior's convergence checks could not be computed (",
+            conditionMessage(e), "). The fit is returned: try ",
+            "returnGroupedConvergence() on it.", call. = FALSE)
+    NULL
+  })
+  if (!is.null(check) && check$verdict == "review") {
+    warning("The grouped prior's convergence checks flag this fit for review: ",
+            "see returnGroupedConvergence().", call. = FALSE)
+  }
+  invisible(check)
 }
 
 # Prints grouped_convergence()'s result with message(): one line per check,
@@ -221,15 +295,15 @@ print_grouped_convergence <- function(x) {
   nchain <- nrow(x$chains)
   message("\nGrouped prior: convergence checks")
   message("--------------------------------------------------")
-  message(sprintf("  State        | median sigma_emb by chain: %s | leftovers dominate in %d of %d chains",
+  message(sprintf("  State        | median sigma_emb by chain: %s | leftovers dominate in %s of %d chains",
                   paste(sprintf("%.2f", x$chains$sigma_emb_median), collapse = ", "),
-                  v("state"), nchain))
+                  if (is.na(v("state"))) "an unknown number" else format(v("state")), nchain))
   message(sprintf("  R-hat        | measured coefficients, max: %s | scales (log), max: %s",
                   num(v("rhat_measured")), num(v("rhat_scales"))))
   if (x$effect$assessed) {
     message(sprintf("  Gradients    | %d found | agreement between chains at the fitted sites: %.2f (limit %.2f)",
                     x$effect$n_gradients, v("gradients"), GROUPED_LIMITS$gradients))
-    message(sprintf("  Disagreement | at the fitted sites: %s of the effect's size (limit %s) | beyond them: %s",
+    message(sprintf("  Disagreement | largest between two chains, at the fitted sites: %s of the effect's size (limit %s) | beyond them: %s",
                     pct(v("disagreement")), pct(GROUPED_LIMITS$disagreement), pct(v("disagreement_beyond"))))
   } else {
     message(sprintf("  Gradients    | not assessed: %s", x$effect$why_not))

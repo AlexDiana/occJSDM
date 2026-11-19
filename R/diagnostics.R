@@ -427,7 +427,8 @@ gelmanRhat <- function(chain_mean, chain_var, niter) {
 #' @return A list of four vectors with one entry per parameter: `var`, the
 #'   pooled variance; `variable`, whether it exceeds the threshold; `rhat`
 #'   (`NA` with fewer than two chains); and `ess`. `rhat` and `ess` mean
-#'   nothing where `variable` is `FALSE`.
+#'   nothing where `variable` is `FALSE`. And `chain_mean`, a matrix with one
+#'   row per parameter and one column per chain: each chain's mean.
 #' @noRd
 blockRhatESS <- function(arr, n_params, niter, nchain) {
   chains <- chain_moments_ess_cpp(arr, n_params, niter, nchain)
@@ -457,7 +458,8 @@ blockRhatESS <- function(arr, n_params, niter, nchain) {
     rep(NA_real_, n_params)
   }
 
-  list(var = pooled_var, variable = variable, rhat = rhat, ess = ess)
+  list(var = pooled_var, variable = variable, rhat = rhat, ess = ess,
+       chain_mean = chains$mean)
 }
 
 #' Compute diagnostics
@@ -525,10 +527,19 @@ computeDiagnostics <- function(results_output, embedding_rows = NULL){
   # the embedding rows of B are reported apart, and the scales on the log
   # scale (see the @details).
   split_embedding <- !is.null(embedding_rows) && !is.null(lambda_output)
+  if (split_embedding) {
+    n_rows <- dim(results_output$jsdm_output$B_output)[1]
+    if (length(embedding_rows) != n_rows) {
+      stop("embedding_rows must have one entry per row of B_output (", n_rows,
+           "), not ", length(embedding_rows))
+    }
+  }
 
   # One block of parameters: R-hat and ESS for each, the two summary lines,
   # and the warnings. `param_name` is the name the R-hat warning carries and
   # `print_name` the one printed and carried by the ESS warning, as always.
+  # report_summary() does the printing and warning from a block's R-hat and
+  # ESS, so that one pass over an array can serve several reports.
   report_block <- function(arr, param_name,
                            print_name = gsub("_output","",param_name),
                            warn = TRUE, note = NULL) {
@@ -555,6 +566,11 @@ computeDiagnostics <- function(results_output, embedding_rows = NULL){
         arr <- array(arr, dim = c(n_params, niter, nchain))
       }
       block <- blockRhatESS(arr, n_params, niter, nchain)
+      report_summary(block, n_params, param_name, print_name, warn, note)
+  }
+
+  report_summary <- function(block, n_params, param_name, print_name,
+                             warn = TRUE, note = NULL) {
 
       # Keep only parameters with variance greater than a tiny threshold
       is_variable <- block$variable
@@ -612,14 +628,21 @@ computeDiagnostics <- function(results_output, embedding_rows = NULL){
       arr <- results_output_all[[param_name]]
 
       if (split_embedding && param_name == "B_output" && length(dim(arr)) == 4 &&
+          identical(as.numeric(dim(arr)[3:4]), as.numeric(c(niter, nchain))) &&
           !anyNA(arr)) {
-        emb <- as.logical(embedding_rows)
+        # One pass over the whole of B, which is not copied; the measured and
+        # the embedding coefficients are told apart afterwards. Coefficient i
+        # of species j is entry i + (j - 1) * nrow.
+        emb <- rep(as.logical(embedding_rows), times = dim(arr)[2])
+        block <- blockRhatESS(arr, length(emb), niter, nchain)
+        pick <- function(keep) lapply(block[c("var", "variable", "rhat", "ess")],
+                                      function(v) v[keep])
         if (any(!emb)) {
-          report_block(arr[!emb, , , , drop = FALSE], "B (measured)", "B (measured)")
+          report_summary(pick(!emb), sum(!emb), "B (measured)", "B (measured)")
         }
-        report_block(arr[emb, , , , drop = FALSE], "B (embedding)", "B (embedding)",
-                     warn = FALSE,
-                     note = "  [Not a test of convergence under the grouped prior: see returnGroupedConvergence()]")
+        report_summary(pick(emb), sum(emb), "B (embedding)", "B (embedding)",
+                       warn = FALSE,
+                       note = "  [Not a test of convergence under the grouped prior: see returnGroupedConvergence()]")
       } else if (split_embedding &&
                  param_name %in% c("sigmab_output", "sigmaemb_output", "lambda_output") &&
                  !anyNA(arr) && all(arr > 0)) {

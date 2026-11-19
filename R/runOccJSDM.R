@@ -1450,15 +1450,7 @@ runOccJSDM <- function(data,
   computeDiagnostics(results_output,
                      embedding_rows = if (embedding_fit) coef_prior$is_emb else NULL)
   if (embedding_fit) {
-    grouped_check <- grouped_convergence(
-      jsdm_results_output$B_output, jsdm_results_output$sigmab_output,
-      jsdm_results_output$sigmaemb_output, jsdm_results_output$lambda_output,
-      X_psi, coef_prior$is_emb)
-    print_grouped_convergence(grouped_check)
-    if (grouped_check$verdict == "review") {
-      warning("The grouped prior's convergence checks flag this fit for review: ",
-              "see returnGroupedConvergence().", call. = FALSE)
-    }
+    report_grouped_convergence(jsdm_results_output, X_psi, coef_prior$is_emb)
   }
 
   infos <- list(
