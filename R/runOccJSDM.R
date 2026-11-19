@@ -1230,6 +1230,12 @@ runOccJSDM <- function(data,
 
   }
 
+  # A grouped binary fit too short for the staged burn-in is told so
+  # (R/coef-prior.R). Printed here, in the parent, so that it shows whatever
+  # the number of workers.
+  hold_note <- axis_hold_note(coef_prior, model, nburn)
+  if (!is.null(hold_note)) message(hold_note)
+
   # run MCMC
   message("Running MCMC")
 
@@ -1270,6 +1276,7 @@ runOccJSDM <- function(data,
   waic_parts <- vector("list", nchain)
   elapsed <- rep(NA_real_, nchain)
   shift_parts <- vector("list", nchain)
+  axis_parts <- vector("list", nchain)
   batches <- split(seq_len(nchain), ceiling(seq_len(nchain) / budget$workers))
   for (batch in batches) {
     results <- run_chain_batch(handle, batch, seeds)
@@ -1320,6 +1327,7 @@ runOccJSDM <- function(data,
       waic_parts[chain] <- list(res$waic)
       elapsed[chain] <- res$elapsed
       shift_parts[chain] <- list(res$b0_shift)
+      axis_parts[chain] <- list(res$axis_move)
       rm(dr)
     }
     rm(results, res)
@@ -1473,6 +1481,10 @@ runOccJSDM <- function(data,
   # Present only when the community prior is on in an occupancy or two-stage
   # fit, so default fits keep their shape.
   infos$b0_shift <- b0_shift_record(b0_shift, shift_parts)
+  # Present only when the scale-expansion moves ran (a grouped fit of
+  # model type "binary" with embedding columns).
+  infos$axis_move <- axis_move_record(
+    axis_parts, occ_columns$column[coef_prior$type == "grouped" & coef_prior$is_emb])
   infos$MCMCparams <- list(nchain = as.integer(nchain), nburn = as.integer(nburn),
                            niter = as.integer(niter), nthin = as.integer(nthin))
   infos$chain_seeds <- seeds

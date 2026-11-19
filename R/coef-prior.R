@@ -191,17 +191,23 @@ sample_scale_half_cauchy <- function(ss, n, sigma, scale) {
 # scale, then each embedding column's covariate scale given the new sigma_emb.
 # A covariate scale multiplies the prior standard deviation of its column of
 # leftovers, of G and of C, so all three inform it. With no embedding columns
-# sigma_emb and lambda are returned as given.
-sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) {
+# sigma_emb and lambda are returned as given. With `hold_sigma_emb` the draw
+# of sigma_emb is skipped (no random number is drawn for it) and the covariate
+# scales are drawn given the value passed in: the staged burn-in of
+# axis_hold_sweeps().
+sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda,
+                               hold_sigma_emb = FALSE) {
   S <- nrow(R)
   is_emb <- coef_prior$is_emb
   sigma_b <- sample_scale_half_cauchy(sum(R[, !is_emb]^2), S * sum(!is_emb),
                                       sigma_b, coef_prior$sigma_b_scale)
   if (any(is_emb)) {
     emb <- which(is_emb)
-    ss_emb <- sum(sweep(R[, emb, drop = FALSE], 2, lambda[emb], "/")^2)
-    sigma_emb <- sample_scale_half_cauchy(ss_emb, S * length(emb), sigma_emb,
-                                          coef_prior$sigma_emb_scale)
+    if (!hold_sigma_emb) {
+      ss_emb <- sum(sweep(R[, emb, drop = FALSE], 2, lambda[emb], "/")^2)
+      sigma_emb <- sample_scale_half_cauchy(ss_emb, S * length(emb), sigma_emb,
+                                            coef_prior$sigma_emb_scale)
+    }
     for (k in emb) {
       ss_k <- sum(R[, k]^2) / sigma_emb^2 + sum(G[, k]^2) +
         sum(C[, k]^2) / coef_prior$c_base[k]^2
@@ -210,6 +216,229 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) 
     }
   }
   list(sigma_b = sigma_b, sigma_emb = sigma_emb, lambda = lambda)
+}
+
+# A scale-expansion Metropolis move on each embedding column's axis scale.
+# The axis scales mix slowly under the Gibbs draws alone, because each is
+# drawn given the coefficients it scales (the centred parameterisation), and
+# this move is what lets them travel. Experimental with the prior. The record
+# of how it was found and tested is dev/simstudy/grouped-mixing-20261118 (fix
+# attempt 1), kept under the tag archive/grouped-mixing.
+#
+# For embedding column k, propose log(lambda_k) + delta, delta ~ Normal(0,
+# step^2), and multiply the column's leftovers, its column of G and its column
+# of C by r = exp(delta). B[k, ] = Tr_b G[, k] + A C[, k] + leftovers is linear
+# in those, so it is multiplied by exactly r. All three prior standard
+# deviations are proportional to lambda_k (coef_prior_sds()), so the prior
+# density of the scaled coefficients at the new scale is r^-m times that of
+# the old ones at the old scale, m being the number of coefficients scaled,
+# and the Jacobian of the scaling is r^m: they cancel. The acceptance ratio is
+# what is left: the likelihood ratio, times the ratio of the half-Cauchy
+# density of the axis scale expressed in log scale,
+# p(lambda') lambda' / (p(lambda) lambda), p(l) = 1 / (1 + (l / axis_scale)^2).
+#
+# The likelihood is the one the coefficient draw uses, given the current
+# Polya-Gamma weights Omega: sum(kappa * eta - Omega * eta^2 / 2). Omega is
+# conditioned on, not integrated out, because the factor-score draw later in
+# the same sweep still conditions on it. Scaling B[k, ] adds
+# (r - 1) * X[, k] B[k, ] to eta, so the log likelihood ratio is
+# (r - 1) * lin - (r - 1)^2 * quad / 2 with
+# lin = sum((kappa - Omega * eta) * X[, k] B[k, ]) and
+# quad = sum(Omega * (X[, k] B[k, ])^2).
+#
+# First version: one row per site and a binary response only (model type
+# "binary"). axis_move_start() switches it on for those fits alone; fits of
+# every other model type, and every fit under the fixed prior, skip it and
+# draw exactly the random numbers they drew before. `step` is the proposal
+# standard deviation, one value or one per embedding column. Columns are
+# visited in order; all proposals are drawn first, then all uniforms. Returns
+# the updated B, G, C and lambda, with `accepted` and `log_ratio` per design
+# column (FALSE and NA on measured columns).
+AXIS_MOVE_STEP <- 0.5
+
+# The acceptance rate a one-dimensional random walk is tuned to.
+AXIS_MOVE_TARGET <- 0.44
+
+axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step) {
+  p <- nrow(B)
+  accepted <- rep(FALSE, p)
+  log_ratio <- rep(NA_real_, p)
+  emb <- which(coef_prior$is_emb)
+  if (length(emb) > 0L) {
+    delta <- stats::rnorm(length(emb), 0, step)
+    logu <- log(stats::runif(length(emb)))
+    grad <- kappa - Omega * eta
+    for (j in seq_along(emb)) {
+      k <- emb[j]
+      x <- X[, k]
+      b <- B[k, ]
+      r1 <- expm1(delta[j])
+      lin <- sum(crossprod(x, grad) * b)
+      quad <- sum(crossprod(x^2, Omega) * b^2)
+      proposed <- lambda[k] * exp(delta[j])
+      log_ratio[k] <- r1 * lin - r1^2 * quad / 2 + delta[j] -
+        log1p((proposed / coef_prior$axis_scale)^2) +
+        log1p((lambda[k] / coef_prior$axis_scale)^2)
+      if (logu[j] < log_ratio[k]) {
+        r <- exp(delta[j])
+        grad <- grad - Omega * tcrossprod(x, r1 * b)
+        B[k, ] <- b * r
+        G[, k] <- G[, k] * r
+        C[, k] <- C[, k] * r
+        lambda[k] <- proposed
+        accepted[k] <- TRUE
+      }
+    }
+  }
+  list(B = B, G = G, C = C, lambda = lambda, accepted = accepted, log_ratio = log_ratio)
+}
+
+# The same scale-expansion move for sigma_emb, the embedding leftover scale,
+# which mixes slowly for the same reason: it is drawn given every leftover of
+# the embedding block and they are then drawn given it. Record:
+# dev/simstudy/grouped-mixing-20261118 (fix attempt 2), tag
+# archive/grouped-mixing.
+#
+# Propose log(sigma_emb) + delta, delta ~ Normal(0, step^2), and multiply
+# every leftover of the embedding block, R[, embedding], by r = exp(delta).
+# G, C, A and the axis scales stay where they are, so each embedding row of B
+# moves by (r - 1) times its leftovers. A leftover's prior standard deviation
+# is sigma_emb times its column's axis scale, so the prior density of the
+# scaled leftovers at the new sigma_emb is r^-m times that of the old ones at
+# the old, m being the number of leftovers scaled, and the Jacobian of the
+# scaling is r^m: they cancel. The acceptance ratio is the likelihood ratio
+# times p(sigma') sigma' / (p(sigma) sigma), p the half-Cauchy density with
+# scale sigma_emb_scale.
+#
+# The likelihood is conditioned on the Polya-Gamma weights, as in
+# axis_scale_move(). The move adds (r - 1) * D to eta, with
+# D = X[, embedding] %*% t(R[, embedding]), so the log likelihood ratio is
+# (r - 1) * lin - (r - 1)^2 * quad / 2, lin = sum((kappa - Omega * eta) * D)
+# and quad = sum(Omega * D^2).
+#
+# `R` is the species by covariates matrix of leftovers of the `B` given. One
+# proposal: delta is drawn, then the uniform. Returns the updated B,
+# sigma_emb and eta, with `accepted` and `log_ratio` (FALSE and NA, with no
+# random number drawn, when there are no embedding columns). It runs in the
+# same fits as axis_scale_move(), just before it.
+sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step) {
+  emb <- which(coef_prior$is_emb)
+  if (length(emb) == 0L)
+    return(list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = FALSE,
+                log_ratio = NA_real_))
+  delta <- stats::rnorm(1, 0, step)
+  logu <- log(stats::runif(1))
+  r1 <- expm1(delta)
+  D <- X[, emb, drop = FALSE] %*% t(R[, emb, drop = FALSE])
+  lin <- sum((kappa - Omega * eta) * D)
+  quad <- sum(Omega * D^2)
+  proposed <- sigma_emb * exp(delta)
+  log_ratio <- r1 * lin - r1^2 * quad / 2 + delta -
+    log1p((proposed / coef_prior$sigma_emb_scale)^2) +
+    log1p((sigma_emb / coef_prior$sigma_emb_scale)^2)
+  accepted <- logu < log_ratio
+  if (accepted) {
+    B[emb, ] <- B[emb, , drop = FALSE] + r1 * t(R[, emb, drop = FALSE])
+    eta <- eta + r1 * D
+    sigma_emb <- proposed
+  }
+  list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = accepted, log_ratio = log_ratio)
+}
+
+# Burn-in adaptation of the proposal steps, one per embedding column, from
+# that sweep's log acceptance ratios: the log of each step moves by
+# (acceptance probability - target) over the square root of the number of
+# adapting sweeps so far, `t`, the Robbins-Monro recursion of b0_shift_step().
+# A ratio that is not finite counts as a rejection. Steps stay within loose
+# bounds. The chain adapts only during burn-in, so the kept sweeps use a
+# fixed kernel.
+axis_step_adapt <- function(step, log_ratio, t) {
+  alpha <- ifelse(is.finite(log_ratio), pmin(1, exp(log_ratio)), 0)
+  pmin(pmax(step * exp((alpha - AXIS_MOVE_TARGET) / sqrt(t)), 0.01), 5)
+}
+
+# A staged burn-in (record: dev/simstudy/grouped-mixing-20261118, fix attempt
+# 3, tag archive/grouped-mixing). In a low-rank truth chains settle in one of
+# two configurations and do not cross: the community response and blends carry
+# the signal, or the leftovers do and nothing is pooled across species. Which
+# one is chosen early in burn-in. The hypothesis is that the leftovers win because they can take
+# up the signal in a few sweeps while the blends need many to organise. So for
+# the first half of burn-in sigma_emb is held at a tenth of its prior scale:
+# the chain starts there, its draw is skipped (sample_coef_scales()) and so is
+# its scale move. From then on the sampler is unchanged. Burn-in is discarded,
+# so the kept draws come from the same kernel as before. Same fits as the two
+# scale moves. The length and the value are fixed, not tuned.
+#
+# The hold is applied only from AXIS_HOLD_MIN_BURN burn-in sweeps up; below
+# that there is none and the sampler is that of the two scale moves alone
+# (Doug's decision of 19 November 2026). After the release the blends need
+# time to settle. With 5,000 burn-in sweeps (2,500 after the release) every
+# low-rank chain reached the blend configuration and the active coefficients
+# were recovered much better in two data sets of three, at no cost in the
+# third; with 1,500 (750 after the release) recovery was worse than without
+# the hold in two of three. Those are the only two lengths that were tried,
+# so the minimum is the shorter of the lengths known to work, not a measured
+# threshold.
+AXIS_HOLD_MIN_BURN <- 5000L
+axis_hold_sweeps <- function(nburn)
+  if (nburn >= AXIS_HOLD_MIN_BURN) as.integer(nburn %/% 2) else 0L
+
+# The note runOccJSDM() prints for a fit that would have the staged burn-in
+# but has too little burn-in for it, or NULL: a grouped fit of model type
+# "binary" with embedding columns, the fits axis_move_start() gives the scale
+# moves to.
+axis_hold_note <- function(coef_prior, model, nburn) {
+  if (is.null(axis_move_start(coef_prior, model)) || axis_hold_sweeps(nburn) > 0L)
+    return(NULL)
+  paste0("Grouped prior: with fewer than ",
+         format(AXIS_HOLD_MIN_BURN, big.mark = ","),
+         " burn-in iterations the embedding leftover scale is not held small at ",
+         "the start of each chain, so chains may settle where the leftovers and ",
+         "not the blends carry the species' responses. See ?\"grouped-prior\".")
+}
+axis_hold_value <- function(coef_prior) 0.1 * coef_prior$sigma_emb_scale
+
+# The state of the two scale moves that a chain carries, or NULL when they
+# are off: they run only in a grouped fit with embedding columns of model type
+# "binary". Per embedding column: `step`, and `accepted`, the last sweep's
+# outcome, of the axis scale move. `sigma_step` and `sigma_accepted` are those
+# of the sigma_emb move. `adapt` is set by the chain (TRUE during burn-in) and
+# `t` counts the adapting sweeps; `sigma_t` counts those in which the
+# sigma_emb move ran. `hold` is set by the chain (TRUE while sigma_emb is
+# held).
+axis_move_start <- function(coef_prior, model) {
+  if (!identical(model, "binary") || !identical(coef_prior$type, "grouped") ||
+      !any(coef_prior$is_emb)) return(NULL)
+  n_emb <- sum(coef_prior$is_emb)
+  list(step = rep(AXIS_MOVE_STEP, n_emb), accepted = rep(FALSE, n_emb),
+       sigma_step = AXIS_MOVE_STEP, sigma_accepted = FALSE,
+       adapt = FALSE, t = 0L, sigma_t = 0L, hold = FALSE)
+}
+
+# infos$axis_move from the chains' records, each a matrix with one row per
+# embedding column and one column per chain: the proposal step the kept sweeps
+# used, and the share of sweeps in which the move was accepted, after and
+# during burn-in. For the sigma_emb move, one value per chain: its step and
+# its acceptance rates (the burn-in rate is over all burn-in sweeps, those in
+# which sigma_emb was held included). `hold_sweeps` and `hold_value` describe
+# the staged burn-in. NULL when the moves are off.
+axis_move_record <- function(parts, columns) {
+  parts <- parts[!vapply(parts, is.null, logical(1))]
+  if (length(parts) == 0L) return(NULL)
+  rate <- function(phase) {
+    out <- vapply(parts, function(p) p[[paste0("accepted_", phase)]] /
+                    p[[paste0("sweeps_", phase)]], numeric(length(columns)))
+    matrix(out, length(columns), length(parts), dimnames = list(columns, NULL))
+  }
+  step <- vapply(parts, function(p) p$step, numeric(length(columns)))
+  sigma_rate <- function(phase) vapply(parts, function(p)
+    p[[paste0("sigma_accepted_", phase)]] / p[[paste0("sweeps_", phase)]], numeric(1))
+  list(step = matrix(step, length(columns), length(parts), dimnames = list(columns, NULL)),
+       acceptance = rate("kept"), acceptance_burnin = rate("burnin"),
+       sigma_emb_step = vapply(parts, function(p) p$sigma_step, numeric(1)),
+       sigma_emb_acceptance = sigma_rate("kept"),
+       sigma_emb_acceptance_burnin = sigma_rate("burnin"),
+       hold_sweeps = parts[[1]]$hold_sweeps, hold_value = parts[[1]]$hold_value)
 }
 
 #' Grouped prior for occupancy coefficients (experimental)
@@ -278,7 +507,10 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) 
 #' `G_output` gains a leading row, the community-average response.
 #' `infos$coef_prior` records the prior and its settings, and
 #' `infos$covariate_group` labels each occupancy design column `"measured"` or
-#' `"embedding"`.
+#' `"embedding"`. In a `binary` fit with embedding columns, `infos$axis_move`
+#' records the sampler's extra steps for the scales (see Sampling and chain
+#' length): their step sizes and acceptance rates, and how many burn-in
+#' iterations the embedding leftover scale was held for.
 #'
 #' Four functions summarise these:
 #' * [returnCovariateScales()]: posterior summaries of the measured-group,
@@ -301,6 +533,53 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) 
 #' effect, fit again without the embedding and without other covariates that
 #' management can change, and compare the two fits on the probability scale.
 #'
+#' @section Sampling and chain length:
+#' The scales of this prior are hard for the sampler. In a `binary` fit with
+#' embedding columns it takes three extra steps for them. They are
+#' experimental, and they do not change the model: the draws that are kept
+#' come from the same posterior as without them.
+#' * Every iteration, each embedding column's axis scale is proposed a new
+#'   value together with that column's coefficients, rescaled by the same
+#'   factor. Without this step the axis scale of a column that no species
+#'   responds to moved very slowly.
+#' * The embedding leftover scale gets the same kind of step, together with
+#'   all the leftovers.
+#' * With 5,000 or more burn-in iterations, the embedding leftover scale is
+#'   held at a tenth of its prior scale for the first half of burn-in and then
+#'   released.
+#'
+#' The reason for the last step is that the species' responses to the
+#' embedding can be explained in two ways: by the shared part (the community
+#' average, the traits and the blends), or by the leftovers alone, species by
+#' species. Early in a chain the leftovers can take up the responses within a
+#' few iterations, before the blends have formed, and the chain then stays
+#' there. Such a fit reports almost no shared structure and shrinks the
+#' embedding coefficients too far, and because its chains agree with each
+#' other the convergence diagnostics do not show it. Holding the leftovers
+#' small at first lets the blends form. In simulations in which species shared
+#' three blends, every chain then found blends in all but one of 21 fits at
+#' 5,000 burn-in and 5,000 kept iterations, and the embedding coefficients
+#' were recovered much better in two data sets of three and equally well in
+#' the third. With 1,500 burn-in iterations the blends had too little time to
+#' settle after the release and the fits were worse, so below 5,000 there is
+#' no hold and [runOccJSDM()] prints a note. A fit that short can still end
+#' with the leftovers carrying the responses.
+#'
+#' So use at least 5,000 burn-in and 5,000 kept iterations, which are the
+#' defaults, and at least four chains. Even then the chains of some fits
+#' settle on different blends. Before relying on a fit, compare the chains on
+#' what does not depend on the particular blends: the measured coefficients,
+#' and the embedding's combined effect on each species' linear predictor
+#' (each embedding column times its coefficient, summed). The package does
+#' not yet make the second comparison for you. Do not read much into the
+#' convergence of single embedding coefficients: their draws are
+#' heavy-tailed, and the R-hat that [computeDiagnostics()] reports runs high
+#' on such draws.
+#'
+#' The `occupancy`, `two_stage` and `continuous` model types do not have these
+#' steps yet. There the scales still mix slowly, and nothing guards against
+#' the leftovers taking the responses.
+#'
 #' @section Status:
 #' This prior is experimental and has not been through its validation study.
 #' The default `axis_scale` was changed on 12 November 2026, from 1 over the
@@ -315,10 +594,22 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda) 
 #' counts, so one prior draw in twenty gives a spread larger than that. The
 #' validation study is to examine that tail.
 #'
-#' The axis scales mix slowly. In a small test with 10 embedding columns they
-#' had not converged after 1,500 burn-in and 1,500 kept iterations: the two
-#' chains still disagreed about columns that no species responds to. Expect
-#' convergence warnings on `lambda` from short fits, and run long chains.
+#' The sampler's extra steps for `binary` fits were added in November 2026
+#' and have been tried only on simulated data of one size (256 sites, 48
+#' species, 64 embedding columns). In those simulations, when no species
+#' responded to the embedding, every scale and every measured coefficient
+#' converged at 5,000 burn-in and 5,000 kept iterations. Before the steps
+#' were added the axis scales did not converge at either length that was
+#' tried there (1,500 and 5,000 of each).
+#'
+#' Each embedding column has a scale of its own, so the prior does best when
+#' the species respond to a few of the columns as they are delivered. In the
+#' same simulations, turning the columns of an embedding (which changes
+#' nothing in what it encodes) raised the error of the embedding's
+#' contribution by about a third when the responses had been placed in 10 of
+#' 64 columns, and by little or nothing when they were spread over all of
+#' them. A real embedding has no such favoured columns, so simulations that
+#' place the responses in a few columns overstate how well the prior will do.
 #'
 #' The prior was built and tested for the `binary`, `occupancy` and
 #' `two_stage` model types. A `continuous` fit runs with it, but that
