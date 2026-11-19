@@ -480,11 +480,21 @@ blockRhatESS <- function(arr, n_params, niter, nchain) {
 #'
 #' @param results_output The `results_output` element of a fitted model, as
 #'   returned by \code{\link{runOccJSDM}} (`fitModel$results_output`).
+#' @param embedding_rows Optional. For a fit made with `embeddingVars`, a
+#'   logical vector with one entry per row of `B_output` (per occupancy design
+#'   column), `TRUE` for the embedding columns. With it, the measured rows of
+#'   `B` are reported as `B (measured)`, with the usual warnings; the
+#'   embedding rows are reported as `B (embedding)` with no warning, because
+#'   single embedding coefficients are not pinned down under the grouped prior
+#'   and their R-hat is not a test of convergence (see
+#'   [returnGroupedConvergence()]); and the scales of the prior are reported
+#'   on the log scale. [runOccJSDM()] passes it. Left out, the report is as
+#'   it has always been.
 #'
 #' @return `NULL`, invisibly. Called for its side effect of printing
 #'   diagnostics to the console.
 #' @export
-computeDiagnostics <- function(results_output){
+computeDiagnostics <- function(results_output, embedding_rows = NULL){
 
   nchain <- dim(results_output$jsdm_output$B0_output)[3]
   niter <- dim(results_output$jsdm_output$B0_output)[2]
@@ -508,15 +518,22 @@ computeDiagnostics <- function(results_output){
     }
   }
 
-  for (param_name in names(results_output_all)) {
+  # A fit with embedding columns whose rows of B are known: the measured and
+  # the embedding rows of B are reported apart, and the scales on the log
+  # scale (see the @details).
+  split_embedding <- !is.null(embedding_rows) && !is.null(lambda_output)
 
-    if(!(param_name %in% skip_params)){
+  # One block of parameters: R-hat and ESS for each, the two summary lines,
+  # and the warnings. `param_name` is the name the R-hat warning carries and
+  # `print_name` the one printed and carried by the ESS warning, as always.
+  report_block <- function(arr, param_name,
+                           print_name = gsub("_output","",param_name),
+                           warn = TRUE, note = NULL) {
 
-      arr <- results_output_all[[param_name]]
       dims <- dim(arr)
 
       if (is.null(dims) || length(dims) < 2 || any(dims== 0 ) || anyNA(arr) ) {
-        next
+        return(invisible(NULL))
       }
 
       ndim <- length(dims)
@@ -544,7 +561,7 @@ computeDiagnostics <- function(results_output){
         message(sprintf("\nParameter Set: %s", param_name))
         message("--------------------------------------------------")
         message("  [Skipped: All parameters in this set are fixed/constant]")
-        next
+        return(invisible(NULL))
       }
 
       # Diagnostics, without the fixed parameters
@@ -552,7 +569,7 @@ computeDiagnostics <- function(results_output){
       rhat <- block$rhat[is_variable]
 
       # Print Summary
-      param_name_to_print <- gsub("_output","",param_name)
+      param_name_to_print <- print_name
       message(sprintf("\nParameter Set: %s (Flattened N = %d)", param_name_to_print, n_params))
       message("--------------------------------------------------")
 
@@ -567,7 +584,7 @@ computeDiagnostics <- function(results_output){
         mean_rhat <- mean(rhat, na.rm = TRUE)
         message(sprintf("  R-hat | Max:  %7.3f | Mean: %7.3f", max_rhat, mean_rhat))
 
-        if (is.finite(max_rhat) && max_rhat > 1.1) {
+        if (warn && is.finite(max_rhat) && max_rhat > 1.1) {
           warning(sprintf("Convergence issue in '%s'. Max R-hat > 1.1", param_name), call. = FALSE)
         }
       } else {
@@ -576,8 +593,37 @@ computeDiagnostics <- function(results_output){
 
       message(sprintf("  ESS   | Min:  %7.1f | Mean: %7.1f", min_ess, mean_ess))
 
-      if (is.finite(min_ess) && min_ess < 50) {
+      if (warn && is.finite(min_ess) && min_ess < 50) {
         warning(sprintf("Low ESS in '%s'. Min ESS < 50", param_name_to_print), call. = FALSE)
+      }
+
+      if (!is.null(note)) message(note)
+
+      invisible(NULL)
+  }
+
+  for (param_name in names(results_output_all)) {
+
+    if(!(param_name %in% skip_params)){
+
+      arr <- results_output_all[[param_name]]
+
+      if (split_embedding && param_name == "B_output" && length(dim(arr)) == 4 &&
+          !anyNA(arr)) {
+        emb <- as.logical(embedding_rows)
+        if (any(!emb)) {
+          report_block(arr[!emb, , , , drop = FALSE], "B (measured)", "B (measured)")
+        }
+        report_block(arr[emb, , , , drop = FALSE], "B (embedding)", "B (embedding)",
+                     warn = FALSE,
+                     note = "  [Not a test of convergence under the grouped prior: see returnGroupedConvergence()]")
+      } else if (split_embedding &&
+                 param_name %in% c("sigmab_output", "sigmaemb_output", "lambda_output") &&
+                 !anyNA(arr) && all(arr > 0)) {
+        log_name <- paste("log", gsub("_output", "", param_name))
+        report_block(log(arr), log_name, log_name)
+      } else {
+        report_block(arr, param_name)
       }
 
     }

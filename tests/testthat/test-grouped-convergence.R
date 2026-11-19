@@ -191,3 +191,84 @@ test_that("returnGroupedConvergence() works on fits with embeddingVars and refus
   occ <- gc_fit(simulate_grouped_fixture(model = "occupancy", p_emb = 6L, S = 8L))
   expect_identical(nrow(returnGroupedConvergence(occ)$checks), 6L)
 })
+
+# ---- the automatic report ---------------------------------------------------
+
+# A results_output for computeDiagnostics(), from made_fit(): rows 1 and 2 of
+# B are measured, rows 3 to 5 embedding. One coefficient can be moved in
+# chain 2 so that its R-hat is far over 1.1.
+made_results <- function(shift_embedding = 0, shift_measured = 0) {
+  x <- made_fit(2L, c(0.3, 0.3))
+  x$B_output[4, 2, , 2] <- x$B_output[4, 2, , 2] + shift_embedding
+  x$B_output[1, 3, , 2] <- x$B_output[1, 3, , 2] + shift_measured
+  set.seed(8)
+  list(jsdm_output = list(B0_output = array(rnorm(6 * 200 * 2), c(6L, 200L, 2L)), B_output = x$B_output,
+                          sigmab_output = x$sigmab_output, sigmaemb_output = x$sigmaemb_output,
+                          lambda_output = x$lambda_output))
+}
+said <- function(expr) {
+  messages <- character(0); warnings <- character(0)
+  withCallingHandlers(expr,
+    message = function(m) { messages <<- c(messages, conditionMessage(m)); invokeRestart("muffleMessage") },
+    warning = function(w) { warnings <<- c(warnings, conditionMessage(w)); invokeRestart("muffleWarning") })
+  list(messages = messages, warnings = warnings)
+}
+has <- function(x, what) any(grepl(what, x, fixed = TRUE))
+emb_rows <- c(FALSE, FALSE, TRUE, TRUE, TRUE)
+
+test_that("computeDiagnostics() does not warn on a single embedding coefficient when told which rows they are", {
+  results <- made_results(shift_embedding = 5)
+  before <- said(computeDiagnostics(results))
+  expect_true(has(before$warnings, "Convergence issue in 'B_output'"))
+  expect_true(has(before$messages, "Parameter Set: B (Flattened N = 30)"))
+  expect_false(has(before$messages, "B (measured)"))
+  after <- said(computeDiagnostics(results, embedding_rows = emb_rows))
+  expect_identical(after$warnings, character(0))
+  expect_true(has(after$messages, "Parameter Set: B (measured) (Flattened N = 12)"))
+  expect_true(has(after$messages, "Parameter Set: B (embedding) (Flattened N = 18)"))
+  expect_true(has(after$messages, "Not a test of convergence under the grouped prior: see returnGroupedConvergence()"))
+  for (nm in c("log sigmab", "log sigmaemb", "log lambda"))
+    expect_true(has(after$messages, paste0("Parameter Set: ", nm)), info = nm)
+})
+
+test_that("computeDiagnostics() still warns on a measured coefficient", {
+  results <- made_results(shift_measured = 5)
+  after <- said(computeDiagnostics(results, embedding_rows = emb_rows))
+  expect_true(has(after$warnings, "Convergence issue in 'B (measured)'"))
+  expect_false(has(after$warnings, "embedding"))
+})
+
+test_that("computeDiagnostics() reports as before when not told the embedding rows", {
+  results <- made_results()
+  a <- said(computeDiagnostics(results)); b <- said(computeDiagnostics(results, embedding_rows = NULL))
+  expect_identical(a, b)
+  expect_true(has(a$messages, "Parameter Set: lambda")); expect_false(has(a$messages, "log lambda"))
+  expect_false(has(a$messages, "Not a test of convergence"))
+})
+
+test_that("the summary of the checks names the verdict and explains every flag", {
+  flagged <- said(occJSDM:::print_grouped_convergence(gc_of(2L, c(0.3, 6))))$messages
+  expect_true(has(flagged, "Grouped prior: convergence checks"))
+  expect_true(any(grepl("Verdict +\\| review", flagged)))
+  expect_true(any(grepl("^  ! .*different states", flagged)))
+  ok <- said(occJSDM:::print_grouped_convergence(gc_of(3L, c(0.3, 0.3, 0.3))))$messages
+  expect_true(any(grepl("Verdict +\\| ok", ok)))
+  expect_false(any(grepl("^  ! ", ok)))
+  expect_true(any(grepl("Gradients", ok)) && any(grepl("beyond", ok)))
+})
+
+test_that("a fit with embeddingVars ends with the checks, and warns when they flag it", {
+  dat <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)$data_list
+  fit <- NULL
+  grouped <- said(fit <- runOccJSDM(dat, listParams = list(n_factors = 1L, embeddingVars = dat$embeddingVars),
+                                    occCovariates = grouped_occ_covariates(dat), MCMCparams = FIXTURE_MCMC))
+  expect_identical(sum(grepl("Grouped prior: convergence checks", grouped$messages, fixed = TRUE)), 1L)
+  expect_true(has(grouped$messages, "B (embedding)"))
+  expect_identical(has(grouped$warnings, "The grouped prior's convergence checks flag this fit for review: see returnGroupedConvergence()."),
+                   returnGroupedConvergence(fit)$verdict == "review")
+  expect_false(has(grouped$warnings, "Convergence issue in 'B_output'"))
+  plain <- said(runOccJSDM(dat, listParams = list(n_factors = 1L),
+                           occCovariates = grouped_occ_covariates(dat), MCMCparams = FIXTURE_MCMC))
+  expect_false(has(plain$messages, "Grouped prior: convergence checks"))
+  expect_false(has(plain$messages, "B (embedding)"))
+})

@@ -211,6 +211,36 @@ grouped_convergence <- function(B_output, sigmab_output, sigmaemb_output,
        checks = checks, chains = chains, effect = effect)
 }
 
+# Prints grouped_convergence()'s result with message(): one line per check,
+# the verdict, and the meaning of every flagged check on a line starting
+# "  ! ". runOccJSDM() calls it at the end of a fit with embedding columns.
+print_grouped_convergence <- function(x) {
+  v <- function(name) x$checks$value[x$checks$check == name]
+  pct <- function(z) sprintf("%.0f%%", 100 * z)
+  num <- function(z) if (is.na(z)) "not assessed" else sprintf("%.2f", z)
+  nchain <- nrow(x$chains)
+  message("\nGrouped prior: convergence checks")
+  message("--------------------------------------------------")
+  message(sprintf("  State        | median sigma_emb by chain: %s | leftovers dominate in %d of %d chains",
+                  paste(sprintf("%.2f", x$chains$sigma_emb_median), collapse = ", "),
+                  v("state"), nchain))
+  message(sprintf("  R-hat        | measured coefficients, max: %s | scales (log), max: %s",
+                  num(v("rhat_measured")), num(v("rhat_scales"))))
+  if (x$effect$assessed) {
+    message(sprintf("  Gradients    | %d found | agreement between chains at the fitted sites: %.2f (limit %.2f)",
+                    x$effect$n_gradients, v("gradients"), GROUPED_LIMITS$gradients))
+    message(sprintf("  Disagreement | at the fitted sites: %s of the effect's size (limit %s) | beyond them: %s",
+                    pct(v("disagreement")), pct(GROUPED_LIMITS$disagreement), pct(v("disagreement_beyond"))))
+  } else {
+    message(sprintf("  Gradients    | not assessed: %s", x$effect$why_not))
+    message(sprintf("  Disagreement | not assessed: %s", x$effect$why_not))
+  }
+  message(sprintf("  Verdict      | %s", x$verdict))
+  for (i in which(x$checks$flagged)) message(sprintf("  ! %s", x$checks$meaning[i]))
+  message("\n==================================================")
+  invisible(NULL)
+}
+
 #' Convergence checks for a fit made with the grouped prior and an embedding
 #'
 #' The usual check, R-hat on every coefficient, misleads for a fit made with
