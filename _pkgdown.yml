@@ -69,6 +69,7 @@ reference:
   - returnCommunityResponse
   - returnEmbeddingBlends
   - returnEmbeddingShare
+  - returnGroupedConvergence
 
 - title: JSDM structure
   desc: Factor loadings, ordination, residual species correlation.

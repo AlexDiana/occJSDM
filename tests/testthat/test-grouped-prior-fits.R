@@ -127,6 +127,24 @@ test_that("a chain starts with C at its prior scale, so the first scale draw agr
   # would be about gt * gt and would throw every axis scale to about
   # gt / sqrt(S + g_b + gt) in the first sweep, whatever axis_scale is.
   sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L, gt = 4L)
+  # The values checked are the first scale draw itself, taken from
+  # sample_coef_scales() inside the first sweep of each chain. They used to be
+  # read from the fit's first stored draw, which was the same thing until the
+  # scale-expansion moves (R/coef-prior.R) were added: in a grouped binary fit
+  # the stored axis scale is now the draw times the factor of an accepted
+  # move, and a move of a factor 3.2 is not rare (a proposal 2.3 standard
+  # deviations out at the starting step of 0.5).
+  first_draws <- list()
+  original_scales <- occJSDM:::sample_coef_scales
+  update <- occJSDM:::update_jSDMcoef
+  update_env <- new.env(parent = environment(update))
+  update_env$sample_coef_scales <- function(...) {
+    out <- original_scales(...)
+    first_draws[[length(first_draws) + 1L]] <<- out$lambda
+    out
+  }
+  environment(update) <- update_env
+  local_mocked_bindings(update_jSDMcoef = update, .package = "occJSDM")
   set.seed(71)
   # Four kept sweeps and no burn-in: only the first sweep is used, and the
   # convergence diagnostics cannot be computed from a single draw.
@@ -145,7 +163,8 @@ test_that("a chain starts with C at its prior scale, so the first scale draw agr
   # bound the Gamma variate would have to fall below 0.77, which has
   # probability 1e-8, or 5e-6 were the rate twice as large. The fit is also
   # seeded, so on one machine the outcome is fixed.
-  first <- jo$lambda_output[, 1, ]
+  expect_identical(length(first_draws), 8L)             # 2 chains of 4 sweeps, one after the other
+  first <- cbind(first_draws[[1]][cp$is_emb], first_draws[[5]][cp$is_emb])
   expect_identical(dim(first), c(8L, 2L))
   expect_lt(max(first), sqrt(cp$axis_scale * thrown))
   # Nor thrown the other way, by the same factor of 3.2 below the start (the

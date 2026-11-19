@@ -1521,13 +1521,67 @@ update_jSDMcoef <- function(list_data,
   # draw, an embedding column would bring nothing but its starting C.
   # Fixed prior: sigma_b as before.
   if (grouped_b) {
-    list_scales <- sample_coef_scales(t(B) - Tr_b %*% G - A %*% C, G, C,
-                                      coef_prior, sigma_b, sigma_emb, lambda)
+    leftovers <- t(B) - Tr_b %*% G - A %*% C
+    # isTRUE(NULL) is FALSE: no hold in any fit without the scale moves.
+    list_scales <- sample_coef_scales(leftovers, G, C,
+                                      coef_prior, sigma_b, sigma_emb, lambda,
+                                      hold_sigma_emb = isTRUE(list_params$axis_move$hold))
     sigma_b <- list_scales$sigma_b
     sigma_emb <- list_scales$sigma_emb
     lambda <- list_scales$lambda
   } else {
     sigma_b <- sample_sigmab(B, Tr_b, G, A, C, a_sigmab, b_sigmab)
+  }
+  # The scale-expansion moves, on sigma_emb (sigma_emb_move() in
+  # R/coef-prior.R) and then on each embedding column's axis scale
+  # (axis_scale_move()), after the scale draws and before the G, C and A
+  # draws. The sigma_emb move hands the axis scale move the B and linear
+  # predictor it leaves. The chain carries list_params$axis_move only in a
+  # grouped fit of model type "binary" with embedding columns; every other
+  # fit skips this block and draws no extra random numbers. The proposal
+  # steps are adapted only while the chain says so (burn-in). The linear
+  # predictor is rebuilt from the coefficients just drawn (Bt and Bst are the
+  # leftovers of the new B and Bs about the current G, A, C and their spatial
+  # counterparts) and the factor scores of the previous sweep.
+  axis_move <- list_params$axis_move
+  if (!is.null(axis_move)) {
+    if (!grouped_b || model != "binary")
+      stop("the axis scale move needs the grouped prior and a binary response")
+    eta_drawn <- computePsiCoef(
+      X, Ks, list_Xs$Xs_centers, Tr,
+      B0, G, A, C, Bt,
+      Gs, As, Cs, Bst,
+      U, L, Tr_b = Tr_b)$eta
+    # While sigma_emb is held (the staged burn-in, axis_hold_sweeps()) its
+    # move is skipped and draws nothing.
+    held <- isTRUE(axis_move$hold)
+    list_sigma <- if (held)
+      list(B = B, sigma_emb = sigma_emb, eta = eta_drawn, accepted = FALSE,
+           log_ratio = NA_real_) else
+      sigma_emb_move(B, leftovers, sigma_emb, X, k, Omega, eta_drawn,
+                     coef_prior, axis_move$sigma_step)
+    B <- list_sigma$B
+    sigma_emb <- list_sigma$sigma_emb
+    axis_move$sigma_accepted <- list_sigma$accepted
+    list_move <- axis_scale_move(B, G, C, lambda, X, k, Omega, list_sigma$eta,
+                                 coef_prior, axis_move$step)
+    B <- list_move$B
+    G <- list_move$G
+    C <- list_move$C
+    lambda <- list_move$lambda
+    axis_move$accepted <- list_move$accepted[coef_prior$is_emb]
+    if (isTRUE(axis_move$adapt)) {
+      axis_move$t <- axis_move$t + 1L
+      axis_move$step <- axis_step_adapt(axis_move$step,
+                                        list_move$log_ratio[coef_prior$is_emb],
+                                        axis_move$t)
+      if (!held) {
+        axis_move$sigma_t <- axis_move$sigma_t + 1L
+        axis_move$sigma_step <- axis_step_adapt(axis_move$sigma_step,
+                                                list_sigma$log_ratio,
+                                                axis_move$sigma_t)
+      }
+    }
   }
   sds <- coef_prior_sds(coef_prior, sigma_b, sigma_emb, lambda, ncol(Tr_b), p)
   check_coef_sds(sds$b, p)
@@ -1633,6 +1687,7 @@ update_jSDMcoef <- function(list_data,
    "psi" = psi,
    "variancePartitioning" = variancePartitioning
   )
+  if (!is.null(axis_move)) list_params$axis_move <- axis_move
 
   list_params
 
