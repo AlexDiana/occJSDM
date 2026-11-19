@@ -4,11 +4,22 @@
 \alias{computeDiagnostics}
 \title{Compute diagnostics}
 \usage{
-computeDiagnostics(results_output)
+computeDiagnostics(results_output, embedding_rows = NULL)
 }
 \arguments{
 \item{results_output}{The `results_output` element of a fitted model, as
 returned by \code{\link{runOccJSDM}} (`fitModel$results_output`).}
+
+\item{embedding_rows}{Optional. For a fit made with `embeddingVars`, a
+logical vector with one entry per row of `B_output` (per occupancy design
+column), `TRUE` for the embedding columns. With it, the measured rows of
+`B` are reported as `B (measured)`, with the usual warnings; the
+embedding rows are reported as `B (embedding)` with no warning, because
+single embedding coefficients are not pinned down under the grouped prior
+and their R-hat is not a test of convergence (see
+[returnGroupedConvergence()]); and the scales of the prior are reported
+on the log scale. [runOccJSDM()] passes it. Left out, the report is as
+it has always been.}
 }
 \value{
 `NULL`, invisibly. Called for its side effect of printing
@@ -31,5 +42,8 @@ For a fit made with `embeddingVars` (see
 \link[=grouped-prior]{grouped-prior}) the latent trait blocks (`A_output`
 and `C_output`) are skipped as well, and so is the measured-group scale
 (`sigmab_output`) when every occupancy covariate is an embedding column,
-because nothing informs that scale then.
+because nothing informs that scale then. With `embedding_rows`, which
+[runOccJSDM()] supplies for such a fit, the embedding rows of `B` are
+reported without a warning and the scales of the prior on the log scale;
+the checks that do test such a fit are in [returnGroupedConvergence()].
 }

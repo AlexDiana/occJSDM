@@ -476,7 +476,10 @@ blockRhatESS <- function(arr, n_params, niter, nchain) {
 #' \link[=grouped-prior]{grouped-prior}) the latent trait blocks (`A_output`
 #' and `C_output`) are skipped as well, and so is the measured-group scale
 #' (`sigmab_output`) when every occupancy covariate is an embedding column,
-#' because nothing informs that scale then.
+#' because nothing informs that scale then. With `embedding_rows`, which
+#' [runOccJSDM()] supplies for such a fit, the embedding rows of `B` are
+#' reported without a warning and the scales of the prior on the log scale;
+#' the checks that do test such a fit are in [returnGroupedConvergence()].
 #'
 #' @param results_output The `results_output` element of a fitted model, as
 #'   returned by \code{\link{runOccJSDM}} (`fitModel$results_output`).
