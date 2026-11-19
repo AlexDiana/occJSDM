@@ -505,9 +505,9 @@ Smaller points taken at the same time: a missing value among the embedding coeff
 
 The earlier fits of attempt 3 say the same about the axis scales: 3, 5 and 27 of 64 over 1.1 in the three low-rank fits at this length, and none in the null fit. So with the axis scales deciding, every low-rank fit at 5,000 + 5,000 would be marked for review, including those whose chains agree on everything that is reported. The R-hat of the scales was therefore split. `rhat_scales` now covers sigma_emb and sigma_b, the two scales shared by all columns, and decides the verdict. `rhat_axis` reports the largest R-hat among the axis scales and how many are over 1.1, and does not decide it. The reasoning is the one that already applies to single embedding coefficients: one axis scale is not pinned down. What chains that differ in their axis scales do differ in is the coefficients away from the fitted sites, and `disagreement_beyond` reports that (0.22 and 0.82 in the two low-rank fits above).
 
-### Three calls made here that are Doug's to confirm
+### Three calls made here, confirmed by Doug
 
-Each changes something he approved in the design.
+Each changes something he approved in the design. He confirmed all three on 19 November 2026.
 
 - The limit on the disagreement is 0.30, for the new statistic. It is the old limit carried over, and the saved fits leave it almost no margin.
 - The limit on the agreement stays at 0.90, although no saved fit now tests it.

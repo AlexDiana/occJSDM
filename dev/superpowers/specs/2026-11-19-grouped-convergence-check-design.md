@@ -37,7 +37,7 @@ Made while the function was being built, after Doug pointed out that different b
 
 ## Amendment, 19 November 2026: after the independent review
 
-The review of the finished function found faults in two definitions above, and the full-length fits run afterwards showed a third. The record and the numbers are in `dev/simstudy/grouped-mixing-20261118/README.md`. Each of the three changes below alters something Doug approved and is his to confirm.
+The review of the finished function found faults in two definitions above, and the full-length fits run afterwards showed a third. The record and the numbers are in `dev/simstudy/grouped-mixing-20261118/README.md`. Each of the three changes below alters something Doug approved. He confirmed all three on 19 November 2026.
 
 - Check 3. The agreement of one chain with another is now the share of its effect within the other's gradients divided by the share within its own. As first defined, two identical chains scored only the share their gradients hold, about 0.90, which was also the limit. The limit stays at 0.90. No saved fit has chains with clearly different gradients, so no saved fit tests it.
 - Check 4. The disagreement is now the largest difference between two chains' effects, as a share of the effect's size. As first defined (each chain's distance from the pooled effect, averaged) one chain apart was diluted by the chains that agree. The limit is 0.30, which is the old 0.15 carried over to the new statistic. `disagreement_beyond` is defined the same way.
