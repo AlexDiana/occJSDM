@@ -366,7 +366,20 @@ axis_step_adapt <- function(step, log_ratio, t) {
 # its scale move. From then on the sampler is unchanged. Burn-in is discarded,
 # so the kept draws come from the same kernel as before. Same fits as the two
 # scale moves. The length and the value are fixed, not tuned.
-axis_hold_sweeps <- function(nburn) as.integer(nburn %/% 2)
+#
+# The hold is applied only from AXIS_HOLD_MIN_BURN burn-in sweeps up; below
+# that there is none and the sampler is that of the two scale moves alone
+# (Doug's decision of 19 November 2026). After the release the blends need
+# time to settle. With 5,000 burn-in sweeps (2,500 after the release) every
+# low-rank chain reached the blend configuration and the active coefficients
+# were recovered much better in two data sets of three, at no cost in the
+# third; with 1,500 (750 after the release) recovery was worse than without
+# the hold in two of three. Those are the only two lengths that were tried,
+# so the minimum is the shorter of the lengths known to work, not a measured
+# threshold.
+AXIS_HOLD_MIN_BURN <- 5000L
+axis_hold_sweeps <- function(nburn)
+  if (nburn >= AXIS_HOLD_MIN_BURN) as.integer(nburn %/% 2) else 0L
 axis_hold_value <- function(coef_prior) 0.1 * coef_prior$sigma_emb_scale
 
 # The state of the two scale moves that a chain carries, or NULL when they

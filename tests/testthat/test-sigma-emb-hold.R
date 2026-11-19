@@ -1,10 +1,17 @@
 # The staged burn-in of the grouped prior: sigma_emb is held small for the
-# first half of burn-in (R/coef-prior.R, R/chains.R). A prototype: fix attempt
-# 3 for the slow mixing recorded in dev/simstudy/grouped-mixing-20261118.
+# first half of burn-in, when burn-in is long enough (R/coef-prior.R,
+# R/chains.R). A prototype: fix attempt 3 for the slow mixing recorded in
+# dev/simstudy/grouped-mixing-20261118.
 
-test_that("the hold lasts the first half of burn-in at a tenth of the prior scale", {
-  expect_identical(vapply(c(0, 1, 2, 3, 20, 1500, 5001), occJSDM:::axis_hold_sweeps, integer(1)),
-                   c(0L, 0L, 1L, 1L, 10L, 750L, 2500L))
+# The schedule with no minimum, so that the hold itself can be tested in a
+# fit of a few sweeps.
+half_of_burnin <- function(nburn) as.integer(nburn %/% 2)
+
+test_that("the hold lasts the first half of burn-in, from 5,000 burn-in sweeps up", {
+  # Below the minimum there is no hold at all: with 1,500 burn-in sweeps the
+  # hold left the blends too little time to settle and did harm.
+  expect_identical(vapply(c(0, 1, 6, 20, 1500, 4999, 5000, 5001, 20000), occJSDM:::axis_hold_sweeps, integer(1)),
+                   c(0L, 0L, 0L, 0L, 0L, 0L, 2500L, 2500L, 10000L))
   expect_equal(occJSDM:::axis_hold_value(list(sigma_emb_scale = 1)), 0.1)
   expect_equal(occJSDM:::axis_hold_value(list(sigma_emb_scale = 0.3)), 0.03)
 })
@@ -36,7 +43,9 @@ test_that("a held sigma_emb is not drawn and the axis scales use the held value"
   expect_false(free$sigma_emb == 0.1)
 })
 
-hold_fit <- function(MCMCparams, spy = TRUE) {
+hold_fit <- function(MCMCparams, schedule = NULL) {
+  if (!is.null(schedule))
+    local_mocked_bindings(axis_hold_sweeps = schedule, .package = "occJSDM", .env = parent.frame())
   seen <- new.env(); seen$sigma <- list(); seen$sweeps <- list()
   original_sigma <- occJSDM:::sigma_emb_move
   update <- occJSDM:::update_jSDMcoef
@@ -60,7 +69,7 @@ hold_fit <- function(MCMCparams, spy = TRUE) {
 }
 
 test_that("a chain holds sigma_emb for the first half of burn-in and then releases it", {
-  got <- hold_fit(list(nchain = 1L, nburn = 6L, niter = 2L, nthin = 1L))
+  got <- hold_fit(list(nchain = 1L, nburn = 6L, niter = 2L, nthin = 1L), schedule = half_of_burnin)
   sw <- got$sweeps
   expect_identical(length(sw), 8L)
   # The chain starts at the held value and keeps it for sweeps 1 to 3.
@@ -83,9 +92,13 @@ test_that("a chain holds sigma_emb for the first half of burn-in and then releas
   expect_identical(am$hold_value, 0.1)
 })
 
-test_that("with too little burn-in to halve there is no hold", {
-  got <- hold_fit(list(nchain = 1L, nburn = 1L, niter = 2L, nthin = 1L))
-  expect_identical(got$sweeps[[1]]$before, 1)          # the usual start, the prior scale
-  expect_identical(vapply(got$sigma, function(s) s$sweep, integer(1)), 1:3)
+test_that("below the minimum burn-in a chain is not held", {
+  # The same fit as above with the schedule as shipped: 6 burn-in sweeps is
+  # below the minimum, so sigma_emb starts at its prior scale, is drawn from
+  # the first sweep and its move runs in every sweep.
+  got <- hold_fit(list(nchain = 1L, nburn = 6L, niter = 2L, nthin = 1L))
+  expect_identical(got$sweeps[[1]]$before, 1)
+  for (i in 1:8) expect_false(got$sweeps[[i]]$after == 0.1, info = paste("sweep", i))
+  expect_identical(vapply(got$sigma, function(s) s$sweep, integer(1)), 1:8)
   expect_identical(got$fit$infos$axis_move$hold_sweeps, 0L)
 })
