@@ -426,3 +426,17 @@ Doug asked for both after the decision above.
 - The development entry of `NEWS.md` had the sentence "its axis scales mix slowly", which the help page now contradicts; it was replaced by one sentence on the extra steps and the minimum.
 
 One test was added for the note, written first. The full suite passes: 361 tests, 0 failures, 6 skips, none new.
+
+## Are the gradients themselves recovered, and do the chains agree on them, 19 November 2026
+
+Asked after Doug's question of whether the prior is reliable yet. The stated purpose is to learn habitat gradients, and nothing above scored the gradients as such: every measure was of single coefficients, of single cells of the embedding's contribution, or of an R-hat on those. This is an analysis of fits already made (the 18 fits of the rotation and orientation tests, 4 chains of 5,000 + 5,000 with attempt 3's library), with no new fits. It was thought of after those results were seen, and the number of gradients (three) was chosen knowing that the simulated truth has three blends.
+
+The measure. For each chain, the posterior mean of the embedding's contribution is a sites-by-species matrix; its three leading directions are that chain's gradients, as scores for the sites and as responses of the species. Two chains are compared by how far the three-dimensional spaces spanned by their gradients coincide, which is 1 when they are the same space and does not care how the three are rotated or ordered within it. Each chain is compared with the truth by the share of the true contribution that lies within its three site gradients. `gradient_subspace.R` computes both, and the table is `results/gradient_subspace.csv`.
+
+- Between chains, for the species' responses: 0.98 or more in 15 of the 18 fits, and 0.93 or more in one more. For the site scores: 0.90 or more in 16 of the 18. This includes seed 3 of the 10-column truth (0.96 to 0.99 for sites unrotated, 0.92 to 0.98 rotated), where 79 to 87 percent of the single cells were over R-hat 1.1 and the slope of the active coefficients ran from 0.42 to 0.89 between chains.
+- The two exceptions are fits already known to have chains apart: the rotated fit of the 64-column truth, seed 1 (as low as 0.72 for sites), and the principal-component fit of the 10-column truth, seed 2, where two chains were in the leftover configuration (as low as 0.87).
+- Against the truth: a chain's three gradients hold 94 to 98 percent of the true contribution with the columns as simulated, 87 to 93 percent after a random rotation of the 10-column truth, and 91 to 98 percent in the 64-column truth.
+
+So the chains agree on the gradients as a set, and recover most of the true signal with them, in nearly every fit. What they disagree on is how that set is split into single blends and single coefficients, which the help page already says are not to be read one by one, and the R-hat of single coefficients and cells picks up that disagreement along with the heavy tails. The chain disagreement reported as "not solved" above is therefore much less of a problem for the stated purpose than those measures made it look. It remains a problem for anyone reading single embedding coefficients, and for a convergence rule based on them.
+
+Limits. Post hoc, as said. The comparison is of posterior means per chain, not of whole posteriors. Three gradients were assumed known. In two data sets the truth's third direction carries only 1 to 4 percent of the signal, so "three" there is mostly two. Simulated data of one size.
