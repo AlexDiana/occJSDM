@@ -7,7 +7,7 @@
 # predictor at each site and species, its spread per species, and the measured coefficients.
 #
 #   Rscript --vanilla dev/simstudy/grouped-mixing-20261118/rotation_test.R \
-#       --truth=lowrank --seed=1 --rotate=0|1|2|... [--nchain=4] [--nburn=5000] [--niter=5000] \
+#       --truth=lowrank --seed=1 --rotate=0|1|2|... [--active=10] [--nchain=4] [--nburn=5000] [--niter=5000] \
 #       --lib=<library> [--out=<dir>]
 #
 # --rotate=0 leaves the columns as simulated. --rotate=r (r at least 1) multiplies them by a random
@@ -16,6 +16,11 @@
 # The fit standardises each column it is given, as always. The model can represent the truth exactly
 # in either set of columns, because X Q D^-1 times D Q' B equals X B for an orthogonal Q and a
 # diagonal rescaling D. All data are simulated here; no dataset content.
+#
+# --active is the number of embedding columns that carry signal in the low-rank truth (10 of 64 by
+# default, as in repro.R). --active=64 gives a truth with the same three blends spread over every
+# column, which has no favoured set of columns to begin with: the control for whether a loss after
+# rotation is only the loss of the sparsity the simulated truth happens to have.
 args <- commandArgs(trailingOnly = TRUE)
 getopt <- function(name, default) {
   hit <- grep(paste0("^--", name, "="), args, value = TRUE)
@@ -25,7 +30,7 @@ truth <- getopt("truth", "lowrank"); seed <- as.integer(getopt("seed", "1")); ro
 nchain <- as.integer(getopt("nchain", "4"))
 nburn <- as.integer(getopt("nburn", "5000")); niter <- as.integer(getopt("niter", "5000"))
 n <- as.integer(getopt("n", "256")); S <- as.integer(getopt("S", "48")); K <- as.integer(getopt("K", "64"))
-lib <- getopt("lib", NA_character_)
+lib <- getopt("lib", NA_character_); n_active <- as.integer(getopt("active", "10"))
 out_dir <- getopt("out", "dev/simstudy/grouped-mixing-20261118/results/rotation")
 stopifnot(truth %in% c("null", "lowrank"))
 if (!is.na(lib)) .libPaths(c(normalizePath(lib), .libPaths()))
@@ -33,10 +38,10 @@ suppressMessages(library(occJSDM))
 Sys.setenv(RCPP_PARALLEL_NUM_THREADS = "1")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 gt <- 4L; p_meas <- 5L
-tag <- sprintf("%s_s%d_rot%d_b%d", truth, seed, rotate, nburn)
+tag <- sprintf("%s%s_s%d_rot%d_b%d", truth, if (n_active == 10L) "" else paste0("-active", n_active), seed, rotate, nburn)
 
 embedding <- list(n_emb = K)
-if (truth == "null") embedding$B <- matrix(0, K, S) else embedding <- c(embedding, list(n_blends = 3L, n_active = min(10L, K)))
+if (truth == "null") embedding$B <- matrix(0, K, S) else embedding <- c(embedding, list(n_blends = 3L, n_active = min(n_active, K)))
 set.seed(seed)
 datasettings <- list(n = n, S = S, g = 2L, M = rep(1L, n), P = 1L, K = rep(1L, n),
                      ncov_psi = p_meas, ncov_theta = 1L)
@@ -100,7 +105,7 @@ slope <- function(est) sum(est * true_contribution) / sum(true_contribution^2)
 
 per_chain <- do.call(rbind, lapply(seq_len(nchain), function(ch) {
   Bc <- apply(B[meas, , , ch, drop = FALSE], c(1, 2), mean)
-  data.frame(tag = tag, truth = truth, seed = seed, rotate = rotate, chain = ch,
+  data.frame(tag = tag, truth = truth, active = n_active, seed = seed, rotate = rotate, chain = ch,
              log_sigma_emb_mean = mean(log_sig[, ch]), log_sigma_emb_max = max(log_sig[, ch]),
              mean_log_axis = mean(log(jo$lambda_output[, , ch])), sd_log_axis_across_columns = stats::sd(rowMeans(log(jo$lambda_output[, , ch]))),
              err_contribution = rms(contribution_mean[, , ch] - true_contribution),
@@ -109,7 +114,7 @@ per_chain <- do.call(rbind, lapply(seq_len(nchain), function(ch) {
 }))
 pooled <- apply(contribution_mean, c(1, 2), mean)
 between <- if (nchain > 1) mean(sapply(seq_len(nchain), function(ch) rms(contribution_mean[, , ch] - pooled))) else NA_real_
-fit_row <- data.frame(tag = tag, truth = truth, seed = seed, rotate = rotate, nchain = nchain, nburn = nburn, niter = niter,
+fit_row <- data.frame(tag = tag, truth = truth, active = n_active, seed = seed, rotate = rotate, nchain = nchain, nburn = nburn, niter = niter,
   seconds = round(secs), package_commit = tryCatch(readLines(file.path(dirname(getNamespaceInfo("occJSDM", "path")), "COMMIT"), 1), error = function(e) NA_character_),
   err_contribution = rms(pooled - true_contribution), slope_contribution = if (truth == "null") NA_real_ else slope(pooled),
   truth_rms_contribution = rms(true_contribution), chain_rms_from_pooled = between,
@@ -125,4 +130,4 @@ saveRDS(list(tag = tag, contribution_mean = contribution_mean, true_contribution
              B_measured_chain_mean = apply(B[meas, , , , drop = FALSE], c(1, 2, 4), mean), true_B_measured = true_B[meas, ]),
         file.path(out_dir, paste0(tag, "_summary.rds")))
 num <- vapply(per_chain, is.numeric, logical(1)); per_chain[num] <- lapply(per_chain[num], round, 3)
-print(per_chain[, -(1:4)], row.names = FALSE); print(t(fit_row), quote = FALSE)
+print(per_chain[, -(1:5)], row.names = FALSE); print(t(fit_row), quote = FALSE)
