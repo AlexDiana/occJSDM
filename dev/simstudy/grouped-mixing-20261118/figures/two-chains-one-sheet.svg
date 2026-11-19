@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="500" viewBox="0 0 680 500" role="img" font-family="Helvetica, Arial, sans-serif">
+<title>Two chains find the same sheet and draw different blends in it</title>
+<desc>Two panels, one per chain. In both, the same ten arrows, one per species, lie in the same tilted sheet in the embedding space. Chain 1 draws its two blends along one pair of directions in the sheet and chain 2 along another pair. Below each panel one species' vector is taken apart: in chain 1 it is 0.9 times blend 1 plus 1.1 times blend 2, in chain 2 it is 1.3 times blend 1 plus 0.5 times blend 2. The vector is the same; the numbers differ.</desc>
+<defs>
+<marker id="arrow-coral" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#D85A30" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<style>.th{font-size:14px;font-weight:bold;fill:#1a1a19}.ts{font-size:12px;fill:#52514e}</style>
+<!-- The sheet and the ten species arrows of species-vectors-in-blend-sheet.svg, drawn once and used in both panels. -->
+<g id="sheet-and-species">
+<line x1="200" y1="250" x2="400" y2="250" stroke="#c3c2b7" stroke-width="1.2"/>
+<line x1="200" y1="250" x2="200" y2="90" stroke="#c3c2b7" stroke-width="1.2"/>
+<line x1="200" y1="250" x2="120" y2="330" stroke="#c3c2b7" stroke-width="1.2"/>
+<polygon points="352,196.4 256,332.4 48,303.6 144,167.6" fill="#7F77DD" fill-opacity="0.10" stroke="#7F77DD" stroke-opacity="0.5" stroke-width="0.9"/>
+<line x1="200" y1="250" x2="296" y2="235.3" stroke="#1D9E75" stroke-width="1.9" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="275" y2="204.4" stroke="#1D9E75" stroke-width="1.9" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="178" y2="200.3" stroke="#1D9E75" stroke-width="1.9" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="128" y2="230.7" stroke="#1D9E75" stroke-width="1.9" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="111" y2="275" stroke="#1D9E75" stroke-width="1.9" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="151" y2="299.2" stroke="#1D9E75" stroke-width="1.9" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="222" y2="299.7" stroke="#1D9E75" stroke-width="1.9" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="279" y2="279.6" stroke="#1D9E75" stroke-width="1.9" marker-end="url(#arrow-teal)"/>
+<line x1="200" y1="250" x2="234.5" y2="231.5" stroke="#1D9E75" stroke-width="1.9" marker-end="url(#arrow-teal)"/>
+<line x1="330.5" y1="216.8" x2="330.5" y2="186" stroke="#898781" stroke-width="1.2" stroke-dasharray="3 3"/>
+<line x1="200" y1="250" x2="330.5" y2="182.8" stroke="#1D9E75" stroke-width="1.9" marker-end="url(#arrow-teal)"/>
+</g>
+</defs>
+<rect x="0" y="0" width="680" height="500" fill="#ffffff"/>
+<text class="th" x="40" y="40">Chain 1</text>
+<text class="th" x="380" y="40">Chain 2</text>
+<text class="ts" x="40" y="58">Its two blends</text>
+<text class="ts" x="380" y="58">The same sheet, the same arrows, other blends</text>
+
+<!-- Chain 1 -->
+<g transform="translate(2.6,-2) scale(0.78)">
+<use href="#sheet-and-species"/>
+<line x1="200" y1="250" x2="297.5" y2="263.5" stroke="#D85A30" stroke-width="3.2" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<line x1="200" y1="250" x2="245" y2="186.3" stroke="#D85A30" stroke-width="3.2" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+</g>
+<text class="th" x="242" y="212">Blend 1</text>
+<text class="th" x="170" y="132">Blend 2</text>
+
+<!-- Chain 2: blends turned within the sheet (0.3 b1 + b2, and b1 - 0.3 b2) -->
+<g transform="translate(342.6,-2) scale(0.78)">
+<use href="#sheet-and-species"/>
+<line x1="200" y1="250" x2="274.25" y2="190.35" stroke="#D85A30" stroke-width="3.2" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<line x1="200" y1="250" x2="284" y2="282.6" stroke="#D85A30" stroke-width="3.2" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+</g>
+<text class="th" x="530" y="134">Blend 1</text>
+<text class="th" x="570" y="232">Blend 2</text>
+
+<line x1="40" y1="282" x2="640" y2="282" stroke="#c3c2b7" stroke-width="0.75"/>
+<text class="th" x="40" y="306">One species, taken apart</text>
+<text class="th" x="380" y="306">The same species</text>
+
+<!-- Chain 1: 0.9 blend 1 then 1.1 blend 2 -->
+<line x1="70" y1="392" x2="138.4" y2="401.5" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<line x1="138.4" y1="401.5" x2="177" y2="346.8" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<line x1="70" y1="392" x2="175.6" y2="347.6" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<text class="ts" x="72" y="420">0.9 × blend 1</text>
+<text class="ts" x="170" y="384">1.1 × blend 2</text>
+<text class="ts" x="40" y="340">Its vector</text>
+
+<!-- Chain 2: 1.26 blend 1 then 0.52 blend 2, the same vector -->
+<line x1="410" y1="392" x2="482.8" y2="333.5" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<line x1="482.8" y1="333.5" x2="517.1" y2="346.8" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<line x1="410" y1="392" x2="515.6" y2="347.6" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<text class="ts" x="380" y="352">1.3 × blend 1</text>
+<text class="ts" x="508" y="328">0.5 × blend 2</text>
+<text class="ts" x="470" y="392">The same vector</text>
+
+<text class="ts" x="40" y="452">A check on single numbers compares 0.9 and 1.1 with 1.3 and 0.5, and reports that the chains disagree.</text>
+<text class="ts" x="40" y="470">The sheet, and every species' arrow in it, is the same in both chains.</text>
+
+<line x1="40" y1="488" x2="68" y2="488" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+<text class="ts" x="78" y="492">One species' vector</text>
+<line x1="222" y1="488" x2="250" y2="488" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow-coral)"/>
+<text class="ts" x="260" y="492">Blend, as one chain draws it</text>
+<line x1="462" y1="488" x2="490" y2="488" stroke="#898781" stroke-width="1" stroke-dasharray="3 3"/>
+<text class="ts" x="498" y="492">Leftover</text>
+</svg>

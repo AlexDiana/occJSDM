@@ -440,3 +440,10 @@ The measure. For each chain, the posterior mean of the embedding's contribution 
 So the chains agree on the gradients as a set, and recover most of the true signal with them, in nearly every fit. What they disagree on is how that set is split into single blends and single coefficients, which the help page already says are not to be read one by one, and the R-hat of single coefficients and cells picks up that disagreement along with the heavy tails. The chain disagreement reported as "not solved" above is therefore much less of a problem for the stated purpose than those measures made it look. It remains a problem for anyone reading single embedding coefficients, and for a convergence rule based on them.
 
 Limits. Post hoc, as said. The comparison is of posterior means per chain, not of whole posteriors. Three gradients were assumed known. In two data sets the truth's third direction carries only 1 to 4 percent of the signal, so "three" there is mostly two. Simulated data of one size.
+
+### Two figures for the point above
+
+Drawn on 19 November 2026 at Doug's request, in the style of the two figures of the grouped prior's specification (`dev/superpowers/specs/2026-11-11-grouped-covariate-prior-figures`), which show species' vectors lying in a sheet spanned by two blends.
+
+- `figures/two-chains-one-sheet.svg`: a drawing, not data. Two chains with the same sheet and the same species' vectors but different blends drawn in it, and one species taken apart in each: 0.9 and 1.1 of the blends in one chain, 1.3 and 0.5 in the other, for the same vector.
+- `figures/four-chains-on-the-gradients.svg`: from one fit (the 10-column truth, seed 3, columns as simulated, attempt 3's library, 4 chains of 5,000 + 5,000). Each species' true position on the three gradients, and where each of the four chains puts it, after each chain's gradients are turned as a rigid set onto the true ones. A species' four positions differ, on average, by 6 to 9 percent of the spread between species. `figures/make_four_chains_figure.R` draws it from the run's saved summary.
