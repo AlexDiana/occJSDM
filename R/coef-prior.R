@@ -512,7 +512,9 @@ axis_move_record <- function(parts, columns) {
 #' length): their step sizes and acceptance rates, and how many burn-in
 #' iterations the embedding leftover scale was held for.
 #'
-#' Four functions summarise these:
+#' Five functions summarise these:
+#' * [returnGroupedConvergence()]: the convergence checks for a fit with
+#'   embedding columns (see Checking convergence).
 #' * [returnCovariateScales()]: posterior summaries of the measured-group,
 #'   embedding leftover and axis scales.
 #' * [returnCommunityResponse()]: the community-average response of every
@@ -567,18 +569,39 @@ axis_move_record <- function(parts, columns) {
 #'
 #' So use at least 5,000 burn-in and 5,000 kept iterations, which are the
 #' defaults, and at least four chains. Even then the chains of some fits
-#' settle on different blends. Before relying on a fit, compare the chains on
-#' what does not depend on the particular blends: the measured coefficients,
-#' and the embedding's combined effect on each species' linear predictor
-#' (each embedding column times its coefficient, summed). The package does
-#' not yet make the second comparison for you. Do not read much into the
-#' convergence of single embedding coefficients: their draws are
-#' heavy-tailed, and the R-hat that [computeDiagnostics()] reports runs high
-#' on such draws.
+#' settle on different blends.
 #'
 #' The `occupancy`, `two_stage` and `continuous` model types do not have these
 #' steps yet. There the scales still mix slowly, and nothing guards against
 #' the leftovers taking the responses.
+#'
+#' @section Checking convergence:
+#' The usual test, R-hat on every coefficient, misleads for these fits. Single
+#' blends and single embedding coefficients are not pinned down, and their
+#' draws are heavy-tailed, so it fails fits that are fine. And chains that all
+#' ended with the leftovers carrying the responses agree with each other, so
+#' it passes a fit that found no gradients. [returnGroupedConvergence()] asks
+#' instead which state each chain is in, whether the measured coefficients and
+#' the two scales shared by all columns have converged, whether the chains
+#' found the same set of gradients, and how far apart their fitted effects of
+#' the embedding are.
+#' [runOccJSDM()] prints its result at the end of a fit made with
+#' `embeddingVars`, and warns when a check is flagged. In the same report the
+#' embedding coefficients are listed with their R-hat but without a warning.
+#'
+#' A flagged fit is marked "review", not failed, because one check can flag a
+#' fit that is right: where species truly respond independently to the
+#' embedding, the leftovers should carry the responses.
+#'
+#' Two limits of these checks. The comparisons of gradients and of fitted
+#' effects use each chain's posterior mean, so they say whether the chains
+#' reached the same answer, not whether each explored its own uncertainty.
+#' And they are made at the fitted sites. Chains that agree there can differ
+#' at sites unlike them, such as parts of a map whose habitat was not
+#' sampled, because the data say little about directions of the embedding in
+#' which the fitted sites barely vary. The function reports one number for
+#' that, without a limit. A fit that passes is not thereby safe to
+#' extrapolate.
 #'
 #' @section Status:
 #' This prior is experimental and has not been through its validation study.

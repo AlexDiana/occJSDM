@@ -125,8 +125,10 @@ test_that("a short grouped binary fit is told that sigma_emb is not held", {
       message = function(m) { out <<- c(out, conditionMessage(m)); invokeRestart("muffleMessage") })
     out
   }
+  # The note is found by words of its own: the convergence checks printed at
+  # the end of the fit also speak of 5,000 burn-in iterations.
   grouped <- messages_of(TRUE)
-  expect_identical(sum(grepl("fewer than 5,000 burn-in iterations", grouped, fixed = TRUE)), 1L)
-  expect_lt(grep("fewer than 5,000 burn-in iterations", grouped, fixed = TRUE), grep("Running MCMC", grouped, fixed = TRUE))
+  expect_identical(sum(grepl("is not held small at the start of each chain", grouped, fixed = TRUE)), 1L)
+  expect_lt(grep("is not held small at the start of each chain", grouped, fixed = TRUE), grep("Running MCMC", grouped, fixed = TRUE))
   expect_false(any(grepl("burn-in iterations the embedding", messages_of(FALSE), fixed = TRUE)))
 })

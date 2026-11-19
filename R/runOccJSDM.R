@@ -1443,8 +1443,15 @@ runOccJSDM <- function(data,
   results_output$w_output <- w_output_mean
   results_output$theta_output <- theta_output_mean
 
-  # print diagnostics
-  computeDiagnostics(results_output)
+  # print diagnostics. For a fit with embedding columns the report treats the
+  # embedding rows of B apart, and the grouped prior's own convergence checks
+  # follow (R/grouped-convergence.R).
+  embedding_fit <- identical(coef_prior$type, "grouped") && any(coef_prior$is_emb)
+  computeDiagnostics(results_output,
+                     embedding_rows = if (embedding_fit) coef_prior$is_emb else NULL)
+  if (embedding_fit) {
+    report_grouped_convergence(jsdm_results_output, X_psi, coef_prior$is_emb)
+  }
 
   infos <- list(
     "S" = S,
