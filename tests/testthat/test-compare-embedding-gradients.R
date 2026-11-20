@@ -62,3 +62,79 @@ test_that("categorical covariates are assessed level by level in check 1", {
   expect_setequal(unique(c1$covariate),
                   c("inplane", "noise", "habitat: bog", "habitat: fen", "habitat: pond", "two"))
 })
+
+pooled <- function(out) out$gradients_from_covariates$overall$explained[
+  out$gradients_from_covariates$overall$chain == "pooled"]
+set.seed(4)
+mix <- data.frame(Site = rownames(Z), a = Z[, 1] + rnorm(40, sd = 0.5), b = Z[, 1] + Z[, 2] + rnorm(40, sd = 0.5))
+mix$dup <- mix$a
+
+test_that("covariates that span the gradients explain everything and leave nothing unmeasured", {
+  out <- compareEmbeddingGradients(g, data.frame(Site = rownames(Z), a = Z[, 1] + Z[, 2], b = Z[, 1] - 2 * Z[, 2]))
+  expect_identical(names(out$gradients_from_covariates), c("overall", "by_covariate", "by_gradient"))
+  expect_setequal(out$gradients_from_covariates$overall$chain, c("pooled", "1", "2"))
+  expect_equal(pooled(out), 1)
+  expect_identical(ncol(out$unmeasured$site_scores), 0L); expect_identical(ncol(out$unmeasured$species_loadings), 0L)
+  expect_identical(nrow(out$unmeasured$share), 0L)
+})
+
+test_that("a covariate that is one gradient leaves the other as the unmeasured gradient", {
+  out <- compareEmbeddingGradients(g, data.frame(Site = rownames(Z), a = Z[, 1]))
+  bg <- out$gradients_from_covariates$by_gradient; u <- out$unmeasured
+  expect_equal(pooled(out), 0.8, tolerance = 1e-6)
+  expect_equal(bg$r_squared, c(1, 0)); expect_equal(bg$share, c(0.8, 0.2), tolerance = 1e-6)
+  expect_identical(dim(u$site_scores), c(40L, 1L)); expect_identical(colnames(u$site_scores), "unmeasured1")
+  expect_identical(rownames(u$site_scores), rownames(Z))
+  expect_equal(abs(cor(u$site_scores[, 1], Z[, 2])), 1); expect_equal(u$share$share, 0.2, tolerance = 1e-6)
+  expect_equal(unname(u$site_scores %*% t(u$species_loadings)),
+               unname(Z[, 2, drop = FALSE] %*% t(g$species_loadings[, 2, drop = FALSE])), tolerance = 1e-6)
+})
+
+test_that("alone, unique and the unmeasured shares add up, with a duplicated covariate", {
+  out <- compareEmbeddingGradients(g, mix); c2 <- out$gradients_from_covariates
+  expect_equal(sum(out$unmeasured$share$share), 1 - pooled(out))
+  expect_identical(c2$by_covariate$covariate, c("a", "b", "dup"))
+  expect_true(all(c2$by_covariate$alone <= pooled(out) + 1e-12))
+  expect_equal(c2$by_covariate$unique[c(1, 3)], c(0, 0)); expect_gt(c2$by_covariate$unique[2], 0)
+  expect_equal(c2$by_covariate$alone[1], c2$by_covariate$alone[3])
+  expect_equal(sum(c2$by_gradient$share * c2$by_gradient$r_squared), pooled(out))
+  expect_lt(max(abs(cor(out$unmeasured$site_scores, cbind(mix$a, mix$b)))), 1e-8)
+})
+
+test_that("findings do not depend on how the gradients are rotated", {
+  th <- 0.7; Q <- matrix(c(cos(th), sin(th), -sin(th), cos(th)), 2, 2)
+  plain <- g; plain$by_chain <- list()
+  rot <- plain; rot$site_scores <- g$site_scores %*% Q; rot$species_loadings <- g$species_loadings %*% Q
+  rownames(rot$site_scores) <- rownames(Z)
+  a <- compareEmbeddingGradients(plain, mix); b <- compareEmbeddingGradients(rot, mix)
+  expect_equal(b$gradients_from_covariates$overall, a$gradients_from_covariates$overall)
+  expect_equal(b$gradients_from_covariates$by_covariate, a$gradients_from_covariates$by_covariate)
+  expect_equal(b$unmeasured$share, a$unmeasured$share)
+  top <- function(x) { t <- x$covariate_from_gradients; t[t$n_gradients == 2, ] }
+  expect_equal(top(b), top(a))
+  expect_equal(unname(abs(diag(cor(b$unmeasured$site_scores, a$unmeasured$site_scores)))),
+               rep(1, ncol(a$unmeasured$site_scores)))
+})
+
+test_that("one gradient works throughout", {
+  g1 <- g; g1$n_gradients <- 1L; g1$by_chain <- list()
+  g1$site_scores <- g$site_scores[, 1, drop = FALSE]; g1$species_loadings <- g$species_loadings[, 1, drop = FALSE]
+  out <- compareEmbeddingGradients(g1, mix)
+  expect_identical(nrow(out$gradients_from_covariates$by_gradient), 1L)
+  expect_equal(out$gradients_from_covariates$by_gradient$r_squared, pooled(out))
+  expect_lte(ncol(out$unmeasured$site_scores), 1L)
+})
+
+test_that("squared terms catch a humped response", {
+  set.seed(5); x <- rnorm(40); rms1 <- function(v) v / sqrt(mean(v^2))
+  hand <- list(n_gradients = 2L, by_chain = list(),
+               site_scores = cbind(rms1(x - mean(x)), rms1(resid(lm(I(x^2) ~ x)))),
+               species_loadings = qr.Q(qr(matrix(rnorm(24), 12))) %*% diag(c(3, 2)))
+  rownames(hand$site_scores) <- paste0("s", 1:40)
+  hump <- data.frame(Site = paste0("s", 1:40), x = x)
+  expect_equal(pooled(compareEmbeddingGradients(hand, hump)), 9 / 13)
+  sq <- compareEmbeddingGradients(hand, hump, squared = TRUE)
+  expect_equal(pooled(sq), 1)
+  expect_identical(sq$gradients_from_covariates$by_covariate$covariate, "x")
+  expect_identical(unique(sq$covariate_from_gradients$covariate), "x")
+})

@@ -424,15 +424,32 @@ compareEmbeddingGradients <- function(gradients, covariates, site_col = "Site",
   cov <- matched$cov
   m <- length(rows)
 
+  # The covariates as regressors: `F_cov` without the intercept (regress_out()
+  # adds it), and `owner`, the covariate each column belongs to.
   design <- stats::model.matrix(~ ., data = cov)
-  terms <- qr(design)$rank - 1L
+  F_cov <- design[, -1, drop = FALSE]
+  owner <- attr(design, "assign")[-1]
+  if (isTRUE(squared)) {
+    for (j in seq_along(cov)) {
+      x <- cov[[j]]
+      if (is.numeric(x) && length(unique(x)) > 2L) {
+        F_cov <- cbind(F_cov, (x - mean(x))^2)
+        owner <- c(owner, j)
+      }
+    }
+  }
+  terms <- qr(cbind(1, F_cov))$rank - 1L
   if (m < terms + 3L) matched$few()
 
   # The gradient sets compared: pooled, then every chain that has one.
-  sets <- list(pooled = list(Z = Z[rows, , drop = FALSE]))
+  sets <- list(pooled = list(Z = Z[rows, , drop = FALSE],
+                             L = as.matrix(gradients$species_loadings)))
   for (ch in seq_along(gradients$by_chain)) {
     g <- gradients$by_chain[[ch]]
-    if (!is.null(g)) sets[[as.character(ch)]] <- list(Z = as.matrix(g$site_scores)[rows, , drop = FALSE])
+    if (!is.null(g)) {
+      sets[[as.character(ch)]] <- list(Z = as.matrix(g$site_scores)[rows, , drop = FALSE],
+                                       L = as.matrix(g$species_loadings))
+    }
   }
 
   # Check 1: each covariate from the first k gradients together.
@@ -451,8 +468,73 @@ compareEmbeddingGradients <- function(gradients, covariates, site_col = "Site",
   check1 <- check1[order(match(check1$covariate, names(targets))), , drop = FALSE]
   rownames(check1) <- NULL
 
+  # Check 2: the gradients from the covariates. G = Z (L'L)^(1/2) has the sums
+  # of squares of the effect the gradients hold, Z L', whatever the rotation
+  # of (Z, L): Z L' = G O' with O = L (L'L)^(-1/2), whose columns are
+  # orthonormal.
+  weighted <- function(set) {
+    e <- eigen(crossprod(set$L), symmetric = TRUE)
+    root <- sqrt(pmax(e$values, 0))
+    list(G = set$Z %*% e$vectors %*% diag(root, nrow = r) %*% t(e$vectors),
+         inv_root = e$vectors %*% diag(ifelse(root > 0, 1 / root, 0), nrow = r) %*% t(e$vectors))
+  }
+  explained_by <- function(G, cols) {
+    fit <- regress_out(G, F_cov[, cols, drop = FALSE])
+    1 - sum(fit$rss) / sum(fit$tss)
+  }
+  all_cols <- seq_len(ncol(F_cov))
+  overall <- do.call(rbind, lapply(names(sets), function(set) {
+    share <- explained_by(weighted(sets[[set]])$G, all_cols)
+    data.frame(chain = set, explained = share,
+               adj_explained = adjusted_share(share, m, terms), stringsAsFactors = FALSE)
+  }))
+
+  pooled <- weighted(sets$pooled)
+  G <- pooled$G
+  explained <- overall$explained[1]
+  by_covariate <- do.call(rbind, lapply(seq_along(cov), function(j) {
+    mine <- which(owner == j)
+    unique_share <- explained - explained_by(G, setdiff(all_cols, mine))
+    data.frame(covariate = names(cov)[j], alone = explained_by(G, mine),
+               unique = max(unique_share, 0), stringsAsFactors = FALSE)
+  }))
+
+  # Gradient by gradient, for the gradients as given: this table alone depends
+  # on their rotation.
+  L <- sets$pooled$L
+  each <- regress_out(sweep(sets$pooled$Z, 2, sqrt(colSums(L^2)), `*`), F_cov)
+  r2 <- 1 - each$rss / each$tss
+  by_gradient <- data.frame(gradient = paste0("gradient", seq_len(r)),
+                            share = unname(each$tss / sum(each$tss)),
+                            r_squared = unname(r2),
+                            adj_r_squared = unname(adjusted_share(r2, m, terms)),
+                            stringsAsFactors = FALSE)
+
+  # Check 3: the leading directions of what the covariates leave of G.
+  left <- regress_out(G, F_cov)
+  s <- svd(left$resid)
+  held <- s$d^2 / sum(left$tss)
+  keep <- which(held > 1e-10)
+  u_scores <- sqrt(m) * s$u[, keep, drop = FALSE]
+  u_loadings <- L %*% pooled$inv_root %*% s$v[, keep, drop = FALSE] %*%
+    diag(s$d[keep], nrow = length(keep)) / sqrt(m)
+  for (k in seq_along(keep)) {
+    if (u_loadings[which.max(abs(u_loadings[, k])), k] < 0) {
+      u_scores[, k] <- -u_scores[, k]
+      u_loadings[, k] <- -u_loadings[, k]
+    }
+  }
+  u_names <- if (length(keep) > 0L) paste0("unmeasured", seq_along(keep)) else character(0)
+  dimnames(u_scores) <- list(rownames(Z)[rows], u_names)
+  dimnames(u_loadings) <- list(rownames(L), u_names)
+  unmeasured <- list(site_scores = u_scores, species_loadings = u_loadings,
+                     share = data.frame(gradient = u_names, share = held[keep],
+                                        cumulative = cumsum(held[keep]),
+                                        stringsAsFactors = FALSE))
+
   list(covariate_from_gradients = check1,
-       gradients_from_covariates = NULL,
-       unmeasured = NULL,
+       gradients_from_covariates = list(overall = overall, by_covariate = by_covariate,
+                                        by_gradient = by_gradient),
+       unmeasured = unmeasured,
        sites = matched$sites)
 }
