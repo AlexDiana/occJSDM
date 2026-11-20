@@ -498,3 +498,14 @@ test_that("returnEmbeddingGradients() gives one named score per site on real fit
     }
   }
 })
+
+test_that("the help page's recipe compares the gradients with the hidden environmental covariates", {
+  fit <- grouped_fit()
+  scores <- returnOrdinationScores(fit)
+  factors <- data.frame(Site = dimnames(scores)[[2]],
+                        matrix(scores[2, , ], nrow = dim(scores)[2]))
+  out <- compareEmbeddingGradients(suppressWarnings(returnEmbeddingGradients(fit)), factors)
+  expect_identical(out$sites$n_used, nrow(fit$X_psi))
+  expect_true(all(is.finite(out$gradients_from_covariates$overall$explained)))
+  expect_identical(out$gradients_from_covariates$by_covariate$covariate, setdiff(names(factors), "Site"))
+})

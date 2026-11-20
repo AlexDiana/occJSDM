@@ -337,6 +337,10 @@ returnCommunityResponse <- function(fitModel, confidence = .95){
 #' Read them together, as a summary of the subspace the species responses
 #' to the embedding occupy.
 #'
+#' This function works from the shared part of the responses only.
+#' [returnEmbeddingGradients()] works from the whole response, and is the one
+#' to use for interpretation.
+#'
 #' @param fitModel Output from the function runOccJSDM, made with
 #' `embeddingVars` and at least one latent trait
 #' @param n_blends Number of blends to keep. Defaults to the smallest of the
