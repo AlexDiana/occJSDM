@@ -484,3 +484,17 @@ test_that("a grouped fit with one row per site keeps the embedding in input orde
   expect_identical(unname(fit$infos$covariate_group), rep(c("measured", "embedding"), c(2L, 8L)))
   expect_identical(fit$infos$coef_prior$type, "grouped")
 })
+
+test_that("returnEmbeddingGradients() gives one named score per site on real fits", {
+  for (fit in list(grouped_fit(),
+                   fit_grouped(simulate_grouped_fixture(model = "occupancy", p_emb = 6L, S = 8L)))) {
+    g <- suppressWarnings(returnEmbeddingGradients(fit))
+    expect_identical(nrow(g$site_scores), nrow(fit$X_psi))
+    expect_identical(rownames(g$site_scores), as.character(fit$infos$siteNames))
+    expect_identical(nrow(g$weights), sum(fit$infos$coef_prior$is_emb))
+    conv <- suppressWarnings(returnGroupedConvergence(fit))
+    if (conv$effect$assessed) {
+      expect_identical(g$n_gradients, conv$effect$n_gradients); expect_equal(g$agreement, conv$effect$agreement)
+    }
+  }
+})
