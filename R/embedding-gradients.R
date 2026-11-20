@@ -222,3 +222,237 @@ returnEmbeddingGradients <- function(fitModel, n_gradients = NULL) {
        agreement = agreement, agreement_pairs = agreement_pairs,
        by_chain = by_chain)
 }
+
+# ---- comparison with covariates ---------------------------------------------
+
+# Residual and total sums of squares of each column of `Y` regressed on the
+# columns of `X` and an intercept, by QR, so collinear columns of `X` are
+# allowed. `terms` is the rank of `X` beyond the intercept.
+regress_out <- function(Y, X = NULL) {
+  Y <- as.matrix(Y)
+  Q <- qr(cbind(rep(1, nrow(Y)), X))
+  resid <- qr.resid(Q, Y)
+  list(resid = resid, rss = colSums(resid^2),
+       tss = colSums(sweep(Y, 2, colMeans(Y))^2), terms = Q$rank - 1L)
+}
+
+adjusted_share <- function(share, m, terms) 1 - (1 - share) * (m - 1) / (m - terms - 1)
+
+# Matches the rows of `covariates` to the sites of the gradients, by name, and
+# cleans the covariates. Returns `rows` (the positions, among the fitted sites
+# and in their order, of the sites used), `cov` (the covariates of those
+# sites: numeric columns and factors, none constant) and `sites` (how many
+# were used and which were left out, by reason). Says what it leaves out.
+match_gradient_sites <- function(fit_sites, covariates, site_col, r) {
+  if (!is.data.frame(covariates)) {
+    stop("covariates must be a data frame with one row per site")
+  }
+  if (!is.character(site_col) || length(site_col) != 1L || !site_col %in% names(covariates)) {
+    stop("site_col must name the column of covariates that holds the site names")
+  }
+  sites <- as.character(covariates[[site_col]])
+  if (anyNA(sites)) stop("The site column of covariates has missing values")
+  if (anyDuplicated(sites) > 0L) {
+    stop("These sites appear more than once in covariates: ",
+         paste(unique(sites[duplicated(sites)]), collapse = ", "))
+  }
+  cov <- as.data.frame(covariates)[setdiff(names(covariates), site_col)]
+  if (ncol(cov) == 0L) stop("covariates has no column other than the site column")
+
+  count <- function(k, one, many) paste(k, if (k == 1L) one else many)
+  not_in_fit <- sites[!sites %in% fit_sites]
+  if (length(not_in_fit) > 0L) {
+    message(count(length(not_in_fit), "row of covariates is for a site that is not in the fit and is ignored",
+                  "rows of covariates are for sites that are not in the fit and are ignored"))
+  }
+  idx <- match(fit_sites, sites)
+  present <- !is.na(idx)
+  if (!any(present)) {
+    stop("No site in covariates matches a site of the fit. The fit's sites are ",
+         "named in the row names of the site scores (infos$siteNames of the fit).")
+  }
+  not_in_covariates <- fit_sites[!present]
+  if (length(not_in_covariates) > 0L) {
+    message(count(length(not_in_covariates), "fitted site is not in covariates and is left out",
+                  "fitted sites are not in covariates and are left out"))
+  }
+  rows <- which(present)
+  cov <- cov[idx[present], , drop = FALSE]
+
+  for (v in names(cov)) {
+    x <- cov[[v]]
+    if (is.logical(x)) cov[[v]] <- as.numeric(x)
+    else if (is.character(x)) cov[[v]] <- factor(x)
+    else if (!is.numeric(x) && !is.factor(x)) {
+      stop("Covariate \"", v, "\" must be numeric, logical, a factor or character")
+    }
+  }
+  complete <- stats::complete.cases(cov)
+  missing_values <- fit_sites[rows[!complete]]
+  if (length(missing_values) > 0L) {
+    message(count(length(missing_values), "site has missing covariate values and is left out",
+                  "sites have missing covariate values and are left out"))
+  }
+  rows <- rows[complete]
+  cov <- cov[complete, , drop = FALSE]
+  m <- length(rows)
+  few <- function() {
+    stop("There are too few sites to compare: ", m, " with covariate values, for ",
+         r, " gradient", if (r > 1L) "s", " and the covariates given")
+  }
+  if (m < r + 2L) few()
+  for (v in names(cov)) {
+    if (is.factor(cov[[v]])) cov[[v]] <- droplevels(cov[[v]])
+    if (length(unique(cov[[v]])) < 2L) {
+      stop("Covariate \"", v, "\" is constant over the sites used, so it cannot be compared")
+    }
+  }
+  rownames(cov) <- NULL
+  list(rows = rows, cov = cov, few = few,
+       sites = list(n_used = m, not_in_fit = not_in_fit,
+                    not_in_covariates = not_in_covariates,
+                    missing_values = missing_values))
+}
+
+# The covariates as columns to be predicted in check 1: a numeric covariate
+# as it is, a two-level one as the indicator of its second level, and one with
+# more levels as an indicator per level, named "<covariate>: <level>".
+covariate_targets <- function(cov) {
+  out <- list()
+  for (v in names(cov)) {
+    x <- cov[[v]]
+    if (!is.factor(x)) {
+      out[[v]] <- x
+    } else if (nlevels(x) == 2L) {
+      out[[v]] <- as.numeric(x == levels(x)[2])
+    } else {
+      for (lev in levels(x)) out[[paste0(v, ": ", lev)]] <- as.numeric(x == lev)
+    }
+  }
+  out
+}
+
+#' compareEmbeddingGradients
+#'
+#' Compares the gradients of the embedding response with covariates known for
+#' the same sites.
+#'
+#' @details
+#' The gradients from [returnEmbeddingGradients()] are defined only up to
+#' rotation, so correlating one gradient with one covariate gives an answer
+#' that depends on an arbitrary choice. This function compares the gradients
+#' as a set, in three ways.
+#'
+#' * Covariate from gradients: how well do the site scores of the first
+#'   gradients, taken together, predict each covariate?
+#' * Gradients from covariates: how much of the gradients do all the covariates
+#'   together account for, and how much does each account for alone and
+#'   uniquely? "Alone" is with that covariate only; "unique" is what is lost
+#'   when it is taken away and the others are left, so it is what that
+#'   covariate accounts for that the others cannot.
+#' * Unmeasured gradients: the leading directions of what the covariates leave
+#'   unexplained. This is habitat variation that the embedding records and the
+#'   species respond to, but that the covariates do not describe.
+#'
+#' The main use is with covariates that were not in the model, to suggest what
+#' the gradients may stand for. A covariate that was in the model can still
+#' match the gradients, because the embedding columns are correlated with it:
+#' that shows overlap between the covariate and the embedding, not a new
+#' driver. To ask what a new covariate adds beyond those in the model, give
+#' both and read the new one's `unique` value.
+#'
+#' Sites are matched by name, never by row order. Rows of `covariates` for
+#' sites that are not in the fit, fitted sites that are not in `covariates`,
+#' and sites with a missing value in any covariate are left out, with a
+#' message saying how many.
+#'
+#' The function gives no test and no interval. Sites near one another are not
+#' independent, so a test would overstate the evidence, and a match is a
+#' hypothesis about what drives the species, not evidence of it: anything
+#' correlated with the covariate across your sites would match as well.
+#'
+#' @param gradients The list returned by [returnEmbeddingGradients()]
+#' @param covariates A data frame with one row per site: a column of site
+#' names, and one column for each covariate. Numeric and logical columns are
+#' used as numbers; factor and character columns are categorical.
+#' @param site_col Name of the column of `covariates` that holds the site
+#' names, which must be those of the fit (`infos$siteNames`)
+#' @param squared If `TRUE`, each numeric covariate also enters the second and
+#' third comparisons as its square, for species that respond to a covariate
+#' with a hump. The square counts as part of that covariate.
+#'
+#' @return A list.
+#' * `covariate_from_gradients`: a data frame with columns `covariate`, `chain`
+#'   (`"pooled"`, or the number of a chain), `n_gradients`, `r_squared` and
+#'   `adj_r_squared`: how well the first `n_gradients` site scores together
+#'   predict the covariate. A categorical covariate with two levels is its
+#'   second level against its first; one with more levels has a row set for
+#'   each level, named `"covariate: level"`.
+#' * `gradients_from_covariates`: a list of three data frames. `overall` has
+#'   columns `chain`, `explained` and `adj_explained`: the share of the
+#'   gradients that all the covariates together account for. `by_covariate`
+#'   has columns `covariate`, `alone` and `unique`. `by_gradient` has columns
+#'   `gradient`, `share`, `r_squared` and `adj_r_squared`, where `share` is the
+#'   gradient's share of the response at the sites used; this last table
+#'   depends on the rotation and is for description only.
+#' * `unmeasured`: a list with `site_scores` (the sites used by unmeasured
+#'   gradients), `species_loadings` and `share` (a data frame with columns
+#'   `gradient`, `share` and `cumulative`, as shares of the gradients at the
+#'   sites used). The shares sum to what the covariates leave unexplained.
+#'   There can be fewer unmeasured gradients than gradients, and none when the
+#'   covariates account for everything.
+#' * `sites`: `n_used`, and the names of the sites left out: `not_in_fit`,
+#'   `not_in_covariates` and `missing_values`.
+#'
+#' @seealso \link[=grouped-prior]{grouped-prior} for how to interpret the
+#' gradients.
+#'
+#' @md
+#' @export
+compareEmbeddingGradients <- function(gradients, covariates, site_col = "Site",
+                                      squared = FALSE) {
+
+  if (!is.list(gradients) ||
+      !all(c("n_gradients", "site_scores", "species_loadings") %in% names(gradients)) ||
+      is.null(rownames(gradients$site_scores))) {
+    stop("gradients must be the list returned by returnEmbeddingGradients()")
+  }
+  Z <- as.matrix(gradients$site_scores)
+  r <- ncol(Z)
+  matched <- match_gradient_sites(rownames(Z), covariates, site_col, r)
+  rows <- matched$rows
+  cov <- matched$cov
+  m <- length(rows)
+
+  design <- stats::model.matrix(~ ., data = cov)
+  terms <- qr(design)$rank - 1L
+  if (m < terms + 3L) matched$few()
+
+  # The gradient sets compared: pooled, then every chain that has one.
+  sets <- list(pooled = list(Z = Z[rows, , drop = FALSE]))
+  for (ch in seq_along(gradients$by_chain)) {
+    g <- gradients$by_chain[[ch]]
+    if (!is.null(g)) sets[[as.character(ch)]] <- list(Z = as.matrix(g$site_scores)[rows, , drop = FALSE])
+  }
+
+  # Check 1: each covariate from the first k gradients together.
+  targets <- covariate_targets(cov)
+  Y <- do.call(cbind, targets)
+  check1 <- list()
+  for (set in names(sets)) for (k in seq_len(r)) {
+    fit <- regress_out(Y, sets[[set]]$Z[, seq_len(k), drop = FALSE])
+    r2 <- 1 - fit$rss / fit$tss
+    check1[[length(check1) + 1L]] <- data.frame(
+      covariate = names(targets), chain = set, n_gradients = k,
+      r_squared = unname(r2), adj_r_squared = unname(adjusted_share(r2, m, fit$terms)),
+      stringsAsFactors = FALSE)
+  }
+  check1 <- do.call(rbind, check1)
+  check1 <- check1[order(match(check1$covariate, names(targets))), , drop = FALSE]
+  rownames(check1) <- NULL
+
+  list(covariate_from_gradients = check1,
+       gradients_from_covariates = NULL,
+       unmeasured = NULL,
+       sites = matched$sites)
+}
