@@ -367,10 +367,16 @@ covariate_targets <- function(cov) {
 #'   together account for, and how much does each account for alone and
 #'   uniquely? "Alone" is with that covariate only; "unique" is what is lost
 #'   when it is taken away and the others are left, so it is what that
-#'   covariate accounts for that the others cannot.
+#'   covariate accounts for that the others cannot. With correlated
+#'   covariates, "unique" can be a little larger than "alone": a covariate can
+#'   account for more once the others are held fixed than it does by itself.
+#'   That is not an error.
 #' * Unmeasured gradients: the leading directions of what the covariates leave
 #'   unexplained. This is habitat variation that the embedding records and the
-#'   species respond to, but that the covariates do not describe.
+#'   species respond to, but that the covariates do not describe. Read their
+#'   shares, not how many there are: with real data something is always left
+#'   over, so there are usually as many unmeasured gradients as gradients, and
+#'   a small total share means the covariates leave little.
 #'
 #' The main use is with covariates that were not in the model, to suggest what
 #' the gradients may stand for. A covariate that was in the model can still

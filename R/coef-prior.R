@@ -577,7 +577,9 @@ axis_move_record <- function(parts, columns) {
 #'   species respond to, but that the covariates do not describe, which
 #'   includes a response to a measured covariate that is not a straight line.
 #'   Each has a score at every site used, which can be mapped for those sites,
-#'   and a loading per species.
+#'   and a loading per species. Read their shares, not how many there are:
+#'   something is always left over, and a small total share means the
+#'   covariates leave little.
 #'
 #' The covariates can also be the site scores of the hidden environmental
 #' covariates, from this fit or from a fit without the embedding. The
