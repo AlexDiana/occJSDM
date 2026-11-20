@@ -93,3 +93,15 @@ test_that("the default matches the convergence check's own numbers", {
   expect_equal(g$agreement, chk$agreement); expect_equal(g$agreement_pairs, chk$agreement_pairs)
   expect_equal(g$size, chk$size)
 })
+
+test_that("a fit without usable site names is refused, not numbered", {
+  nameless <- fit2; nameless$infos$siteNames <- NULL
+  expect_error(returnEmbeddingGradients(nameless), "siteNames")
+  short <- fit2; short$infos$siteNames <- fit2$infos$siteNames[1:5]
+  expect_error(returnEmbeddingGradients(short), "siteNames")
+})
+
+test_that("an embedding with no effect at all is refused", {
+  zero <- fit2; zero$results_output$jsdm_output$B_output[-1, , , ] <- 0
+  expect_error(returnEmbeddingGradients(zero), "zero at every fitted site")
+})

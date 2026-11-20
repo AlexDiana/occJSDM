@@ -503,9 +503,9 @@ test_that("the help page's recipe compares the gradients with the hidden environ
   fit <- grouped_fit()
   scores <- returnOrdinationScores(fit)
   factors <- data.frame(Site = dimnames(scores)[[2]],
-                        matrix(scores[2, , ], nrow = dim(scores)[2]))
+                        as.data.frame(matrix(scores[2, , ], nrow = dim(scores)[2])))
   out <- compareEmbeddingGradients(suppressWarnings(returnEmbeddingGradients(fit)), factors)
   expect_identical(out$sites$n_used, nrow(fit$X_psi))
   expect_true(all(is.finite(out$gradients_from_covariates$overall$explained)))
-  expect_identical(out$gradients_from_covariates$by_covariate$covariate, setdiff(names(factors), "Site"))
+  expect_identical(out$gradients_from_covariates$by_covariate$covariate, paste0("V", seq_len(dim(scores)[3])))
 })

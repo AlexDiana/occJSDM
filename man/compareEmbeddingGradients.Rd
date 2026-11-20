@@ -21,9 +21,10 @@ used as numbers; factor and character columns are categorical.}
 \item{site_col}{Name of the column of \code{covariates} that holds the site
 names, which must be those of the fit (\code{infos$siteNames})}
 
-\item{squared}{If \code{TRUE}, each numeric covariate also enters the second and
-third comparisons as its square, for species that respond to a covariate
-with a hump. The square counts as part of that covariate.}
+\item{squared}{If \code{TRUE}, each numeric covariate with more than two
+distinct values also enters the second and third comparisons as its square,
+for species that respond to a covariate with a hump. The square counts as
+part of that covariate.}
 }
 \value{
 A list.
@@ -36,17 +37,26 @@ second level against its first; one with more levels has a row set for
 each level, named \code{"covariate: level"}.
 \item \code{gradients_from_covariates}: a list of three data frames. \code{overall} has
 columns \code{chain}, \code{explained} and \code{adj_explained}: the share of the
-gradients that all the covariates together account for. \code{by_covariate}
-has columns \code{covariate}, \code{alone} and \code{unique}. \code{by_gradient} has columns
-\code{gradient}, \code{share}, \code{r_squared} and \code{adj_r_squared}, where \code{share} is the
-gradient's share of the response at the sites used; this last table
+gradients that all the covariates together account for, for the pooled
+gradients and for each chain's own. The other two are for the pooled
+gradients only. \code{by_covariate} has columns \code{covariate}, \code{alone} and
+\code{unique}. \code{by_gradient} has columns \code{gradient}, \code{share}, \code{r_squared} and
+\code{adj_r_squared}, where \code{share} is the gradient's share, at the sites used,
+of the part of the response that the gradients hold. These shares sum to
+1, unlike \code{share} from \code{\link[=returnEmbeddingGradients]{returnEmbeddingGradients()}}. This last table
 depends on the rotation and is for description only.
-\item \code{unmeasured}: a list with \code{site_scores} (the sites used by unmeasured
-gradients), \code{species_loadings} and \code{share} (a data frame with columns
-\code{gradient}, \code{share} and \code{cumulative}, as shares of the gradients at the
-sites used). The shares sum to what the covariates leave unexplained.
+\item \code{unmeasured}: a list, from the pooled gradients only, with \code{site_scores}
+(the sites used by unmeasured gradients), \code{species_loadings} and \code{share}
+(a data frame with columns \code{gradient}, \code{share} and \code{cumulative}, as shares
+of the gradients at the sites used). Each column of \code{site_scores} has
+mean 0 and mean square 1 over the sites used and is unrelated to every
+covariate given, and a loading is the change in a species' linear
+predictor per unit of that score. Each unmeasured gradient is signed so
+that its species loading of largest absolute value is positive; the sign
+has no meaning. The shares sum to what the covariates leave unexplained.
 There can be fewer unmeasured gradients than gradients, and none when the
-covariates account for everything.
+covariates account for everything. They exist only at the sites used:
+there are no weights to score other sites with.
 \item \code{sites}: \code{n_used}, and the names of the sites left out: \code{not_in_fit},
 \code{not_in_covariates} and \code{missing_values}.
 }

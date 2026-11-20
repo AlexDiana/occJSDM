@@ -90,14 +90,19 @@ gradient_parts <- function(E1, B1, r) {
 #' * `n_gradients`: the number of gradients, and `rule`: `"hold 0.90"` when the
 #'   rule chose it and `"set"` when you did.
 #' * `site_scores`: sites by gradients, with the site names as row names. Each
-#'   column has mean 0 and mean square 1 over the fitted sites.
+#'   column has mean 0 and mean square 1 over the fitted sites. Each gradient
+#'   is signed so that its weight of largest absolute value is positive; the
+#'   sign has no meaning, and scores, loadings and weights change sign
+#'   together.
 #' * `species_loadings`: species by gradients. A loading is the change in that
 #'   species' linear predictor per unit (one standard deviation across the
 #'   fitted sites) of the gradient. `site_scores %*% t(species_loadings)` is
 #'   the part of the embedding's effect that the gradients hold.
 #' * `weights`: embedding columns by gradients. The embedding columns of the
-#'   standardised design matrix times `weights` give `site_scores`, so the
-#'   weights can score sites that were not fitted.
+#'   standardised design matrix times `weights` give `site_scores`. The
+#'   weights can score sites that were not fitted, but only after those sites'
+#'   embedding columns are standardised with the fitted sites' means and
+#'   standard deviations; columns that are not give wrong scores.
 #' * `share`: a data frame with columns `gradient`, `share` and `cumulative`:
 #'   the share of the response each direction holds, for every direction the
 #'   response has and not only those returned, so you can see what one more
@@ -110,8 +115,9 @@ gradient_parts <- function(E1, B1, r) {
 #'   holds the value for each pair of chains.
 #' * `by_chain`: one entry per chain, with that chain's own `site_scores`,
 #'   `species_loadings` and `share`. Single gradients cannot be matched from
-#'   one chain to another; only the sets can be compared. An entry is `NULL`
-#'   when that chain's response has fewer directions than `n_gradients`.
+#'   one chain to another; only the sets can be compared. Each chain's
+#'   gradients are signed by that chain's own weights. An entry is `NULL` when
+#'   that chain's response has fewer directions than `n_gradients`.
 #'
 #' @seealso \link[=grouped-prior]{grouped-prior} for the prior that these fits
 #' use and for how to interpret the gradients.
@@ -165,8 +171,14 @@ returnEmbeddingGradients <- function(fitModel, n_gradients = NULL) {
   }
   r <- as.integer(r)
 
+  # Sites are matched to covariates by these names, so a fit that does not
+  # name its sites is refused: numbering them here would let a table of site
+  # numbers be matched to row positions.
   site_names <- as.character(fitModel$infos$siteNames)
-  if (length(site_names) != n) site_names <- as.character(seq_len(n))
+  if (length(site_names) != n) {
+    stop("The fit's infos$siteNames does not name its ", n, " sites, so the ",
+         "gradients cannot be matched to sites by name.")
+  }
   species_names <- as.character(fitModel$infos$speciesNames)
   if (length(species_names) != S) species_names <- as.character(seq_len(S))
   gradient_names <- paste0("gradient", seq_len(r))
@@ -227,13 +239,20 @@ returnEmbeddingGradients <- function(fitModel, n_gradients = NULL) {
 
 # Residual and total sums of squares of each column of `Y` regressed on the
 # columns of `X` and an intercept, by QR, so collinear columns of `X` are
-# allowed. `terms` is the rank of `X` beyond the intercept.
+# allowed. `terms` is the rank of `X` beyond the intercept. Both are centred
+# first, which is the intercept; left in, a column of `X` with a large mean and
+# a small spread would be taken for the intercept and dropped.
 regress_out <- function(Y, X = NULL) {
   Y <- as.matrix(Y)
-  Q <- qr(cbind(rep(1, nrow(Y)), X))
+  Y <- sweep(Y, 2, colMeans(Y))
+  tss <- colSums(Y^2)
+  if (is.null(X) || ncol(X) == 0L) {
+    return(list(resid = Y, rss = tss, tss = tss, terms = 0L))
+  }
+  X <- as.matrix(X)
+  Q <- qr(sweep(X, 2, colMeans(X)))
   resid <- qr.resid(Q, Y)
-  list(resid = resid, rss = colSums(resid^2),
-       tss = colSums(sweep(Y, 2, colMeans(Y))^2), terms = Q$rank - 1L)
+  list(resid = resid, rss = colSums(resid^2), tss = tss, terms = Q$rank)
 }
 
 adjusted_share <- function(share, m, terms) 1 - (1 - share) * (m - 1) / (m - terms - 1)
@@ -296,11 +315,10 @@ match_gradient_sites <- function(fit_sites, covariates, site_col, r) {
   rows <- rows[complete]
   cov <- cov[complete, , drop = FALSE]
   m <- length(rows)
-  few <- function() {
+  if (m < r + 2L) {
     stop("There are too few sites to compare: ", m, " with covariate values, for ",
-         r, " gradient", if (r > 1L) "s", " and the covariates given")
+         r, " gradient", if (r > 1L) "s")
   }
-  if (m < r + 2L) few()
   for (v in names(cov)) {
     if (is.factor(cov[[v]])) cov[[v]] <- droplevels(cov[[v]])
     if (length(unique(cov[[v]])) < 2L) {
@@ -308,7 +326,7 @@ match_gradient_sites <- function(fit_sites, covariates, site_col, r) {
     }
   }
   rownames(cov) <- NULL
-  list(rows = rows, cov = cov, few = few,
+  list(rows = rows, cov = cov,
        sites = list(n_used = m, not_in_fit = not_in_fit,
                     not_in_covariates = not_in_covariates,
                     missing_values = missing_values))
@@ -377,9 +395,10 @@ covariate_targets <- function(cov) {
 #' used as numbers; factor and character columns are categorical.
 #' @param site_col Name of the column of `covariates` that holds the site
 #' names, which must be those of the fit (`infos$siteNames`)
-#' @param squared If `TRUE`, each numeric covariate also enters the second and
-#' third comparisons as its square, for species that respond to a covariate
-#' with a hump. The square counts as part of that covariate.
+#' @param squared If `TRUE`, each numeric covariate with more than two
+#' distinct values also enters the second and third comparisons as its square,
+#' for species that respond to a covariate with a hump. The square counts as
+#' part of that covariate.
 #'
 #' @return A list.
 #' * `covariate_from_gradients`: a data frame with columns `covariate`, `chain`
@@ -390,17 +409,26 @@ covariate_targets <- function(cov) {
 #'   each level, named `"covariate: level"`.
 #' * `gradients_from_covariates`: a list of three data frames. `overall` has
 #'   columns `chain`, `explained` and `adj_explained`: the share of the
-#'   gradients that all the covariates together account for. `by_covariate`
-#'   has columns `covariate`, `alone` and `unique`. `by_gradient` has columns
-#'   `gradient`, `share`, `r_squared` and `adj_r_squared`, where `share` is the
-#'   gradient's share of the response at the sites used; this last table
+#'   gradients that all the covariates together account for, for the pooled
+#'   gradients and for each chain's own. The other two are for the pooled
+#'   gradients only. `by_covariate` has columns `covariate`, `alone` and
+#'   `unique`. `by_gradient` has columns `gradient`, `share`, `r_squared` and
+#'   `adj_r_squared`, where `share` is the gradient's share, at the sites used,
+#'   of the part of the response that the gradients hold. These shares sum to
+#'   1, unlike `share` from [returnEmbeddingGradients()]. This last table
 #'   depends on the rotation and is for description only.
-#' * `unmeasured`: a list with `site_scores` (the sites used by unmeasured
-#'   gradients), `species_loadings` and `share` (a data frame with columns
-#'   `gradient`, `share` and `cumulative`, as shares of the gradients at the
-#'   sites used). The shares sum to what the covariates leave unexplained.
+#' * `unmeasured`: a list, from the pooled gradients only, with `site_scores`
+#'   (the sites used by unmeasured gradients), `species_loadings` and `share`
+#'   (a data frame with columns `gradient`, `share` and `cumulative`, as shares
+#'   of the gradients at the sites used). Each column of `site_scores` has
+#'   mean 0 and mean square 1 over the sites used and is unrelated to every
+#'   covariate given, and a loading is the change in a species' linear
+#'   predictor per unit of that score. Each unmeasured gradient is signed so
+#'   that its species loading of largest absolute value is positive; the sign
+#'   has no meaning. The shares sum to what the covariates leave unexplained.
 #'   There can be fewer unmeasured gradients than gradients, and none when the
-#'   covariates account for everything.
+#'   covariates account for everything. They exist only at the sites used:
+#'   there are no weights to score other sites with.
 #' * `sites`: `n_used`, and the names of the sites left out: `not_in_fit`,
 #'   `not_in_covariates` and `missing_values`.
 #'
@@ -438,8 +466,17 @@ compareEmbeddingGradients <- function(gradients, covariates, site_col = "Site",
       }
     }
   }
-  terms <- qr(cbind(1, F_cov))$rank - 1L
-  if (m < terms + 3L) matched$few()
+  terms <- qr(sweep(F_cov, 2, colMeans(F_cov)))$rank
+  # Say what uses up the sites: most often a column of labels.
+  if (m < terms + 3L) {
+    n_levels <- vapply(cov, function(x) if (is.factor(x)) nlevels(x) else 0L, 0L)
+    hint <- if (max(n_levels) > 2L) {
+      paste0(" The categorical covariate \"", names(cov)[which.max(n_levels)], "\" alone has ",
+             max(n_levels), " levels: leave out columns that are labels or notes, not covariates.")
+    } else ""
+    stop("There are too few sites to compare: ", m, " with covariate values, for ",
+         "covariates that need ", terms, " terms.", hint)
+  }
 
   # The gradient sets compared: pooled, then every chain that has one.
   sets <- list(pooled = list(Z = Z[rows, , drop = FALSE],

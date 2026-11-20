@@ -574,8 +574,10 @@ axis_move_record <- function(parts, columns) {
 #'   and uniquely?
 #' * Unmeasured gradients: the leading directions of what the covariates leave
 #'   unexplained. This is habitat variation that the embedding records and the
-#'   species respond to, but that you did not measure. Each has a score per
-#'   site, which can be mapped, and a loading per species.
+#'   species respond to, but that the covariates do not describe, which
+#'   includes a response to a measured covariate that is not a straight line.
+#'   Each has a score at every site used, which can be mapped for those sites,
+#'   and a loading per species.
 #'
 #' The covariates can also be the site scores of the hidden environmental
 #' covariates, from this fit or from a fit without the embedding. The
@@ -587,7 +589,7 @@ axis_move_record <- function(parts, columns) {
 #' ```
 #' scores <- returnOrdinationScores(fit)
 #' factors <- data.frame(Site = dimnames(scores)[[2]],
-#'                       matrix(scores[2, , ], nrow = dim(scores)[2]))
+#'                       as.data.frame(matrix(scores[2, , ], nrow = dim(scores)[2])))
 #' compareEmbeddingGradients(returnEmbeddingGradients(fit), factors)
 #' ```
 #'

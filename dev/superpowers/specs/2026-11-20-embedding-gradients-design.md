@@ -1,6 +1,6 @@
 # Gradients of the embedding response, and their comparison with covariates
 
-Date: 20 November 2026. Status: design written from a conversation with Doug on 20 November 2026, awaiting his approval. Nothing is implemented. Branch `claude/embedding-gradients`, stacked on `claude/grouped-prior-part-2` (draft PR 44), which is stacked on `claude/grouped-covariate-prior` (PR 41).
+Date: 20 November 2026. Status: design written from a conversation with Doug on 20 November 2026 and approved by him the same day; implemented on this branch on 20 November 2026 (plan in `dev/superpowers/plans/2026-11-20-embedding-gradients.md`). Branch `claude/embedding-gradients`, stacked on `claude/grouped-prior-part-2` (draft PR 44), which is stacked on `claude/grouped-covariate-prior` (PR 41).
 
 ## Purpose
 
@@ -271,7 +271,7 @@ These gradients are hidden environmental covariates of a second kind. Those set 
 
 - Covariate from gradients: how well do the site scores of the first few gradients, taken together, predict each covariate?
 - Gradients from covariates: how much of the gradients do all the covariates together account for, and how much does each covariate account for alone and uniquely?
-- Unmeasured gradients: the leading directions of what the covariates leave unexplained. This is habitat variation that the embedding records and the species respond to, but that you did not measure. Each has a score per site, which can be mapped, and a position per species.
+- Unmeasured gradients: the leading directions of what the covariates leave unexplained. This is habitat variation that the embedding records and the species respond to, but that the covariates do not describe, which includes a response to a measured covariate that is not a straight line. Each has a score at every site used, which can be mapped for those sites, and a position per species.
 
 The covariates can also be the site scores of the hidden environmental covariates, from this fit or from a fit without the embedding. The comparison then shows whether a factor duplicates an embedding gradient, or which hidden environmental covariates the satellite sees. Take the median slice of `returnOrdinationScores()` and add a `Site` column. Factors are also defined only up to rotation, so read the overall share, not single factors.
 

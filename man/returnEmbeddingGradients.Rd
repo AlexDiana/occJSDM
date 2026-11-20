@@ -20,14 +20,19 @@ A list.
 \item \code{n_gradients}: the number of gradients, and \code{rule}: \code{"hold 0.90"} when the
 rule chose it and \code{"set"} when you did.
 \item \code{site_scores}: sites by gradients, with the site names as row names. Each
-column has mean 0 and mean square 1 over the fitted sites.
+column has mean 0 and mean square 1 over the fitted sites. Each gradient
+is signed so that its weight of largest absolute value is positive; the
+sign has no meaning, and scores, loadings and weights change sign
+together.
 \item \code{species_loadings}: species by gradients. A loading is the change in that
 species' linear predictor per unit (one standard deviation across the
 fitted sites) of the gradient. \code{site_scores \%*\% t(species_loadings)} is
 the part of the embedding's effect that the gradients hold.
 \item \code{weights}: embedding columns by gradients. The embedding columns of the
-standardised design matrix times \code{weights} give \code{site_scores}, so the
-weights can score sites that were not fitted.
+standardised design matrix times \code{weights} give \code{site_scores}. The
+weights can score sites that were not fitted, but only after those sites'
+embedding columns are standardised with the fitted sites' means and
+standard deviations; columns that are not give wrong scores.
 \item \code{share}: a data frame with columns \code{gradient}, \code{share} and \code{cumulative}:
 the share of the response each direction holds, for every direction the
 response has and not only those returned, so you can see what one more
@@ -40,8 +45,9 @@ here: 1 when they did, less the further apart they are. \code{agreement_pairs}
 holds the value for each pair of chains.
 \item \code{by_chain}: one entry per chain, with that chain's own \code{site_scores},
 \code{species_loadings} and \code{share}. Single gradients cannot be matched from
-one chain to another; only the sets can be compared. An entry is \code{NULL}
-when that chain's response has fewer directions than \code{n_gradients}.
+one chain to another; only the sets can be compared. Each chain's
+gradients are signed by that chain's own weights. An entry is \code{NULL} when
+that chain's response has fewer directions than \code{n_gradients}.
 }
 }
 \description{

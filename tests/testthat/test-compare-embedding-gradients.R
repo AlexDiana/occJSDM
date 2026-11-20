@@ -40,7 +40,8 @@ test_that("rows and sites that cannot be used are left out and counted", {
   expect_message(o1 <- compareEmbeddingGradients(g, extra), "1 row")
   expect_identical(o1$sites$not_in_fit, "elsewhere"); expect_identical(o1$sites$n_used, 40L)
   partial <- covs[-(1:3), ]; partial$noise[1] <- NA
-  expect_message(o2 <- compareEmbeddingGradients(g, partial), "3 fitted site")
+  expect_message(expect_message(o2 <- compareEmbeddingGradients(g, partial), "3 fitted site"),
+                 "1 site has missing covariate values")
   expect_identical(o2$sites$n_used, 36L)
   expect_identical(o2$sites$not_in_covariates, rownames(Z)[1:3])
   expect_identical(o2$sites$missing_values, rownames(Z)[4])
@@ -137,4 +138,16 @@ test_that("squared terms catch a humped response", {
   expect_equal(pooled(sq), 1)
   expect_identical(sq$gradients_from_covariates$by_covariate$covariate, "x")
   expect_identical(unique(sq$covariate_from_gradients$covariate), "x")
+})
+
+test_that("a covariate with a large offset is still used", {
+  out <- compareEmbeddingGradients(g, data.frame(Site = rownames(Z), when = 1.7e9 + Z[, 1]))
+  expect_equal(pooled(out), 0.8, tolerance = 1e-6)
+  expect_equal(out$gradients_from_covariates$by_covariate$alone, 0.8, tolerance = 1e-6)
+  expect_equal(out$gradients_from_covariates$by_covariate$unique, 0.8, tolerance = 1e-6)
+})
+
+test_that("a label column is named when it leaves too few sites", {
+  labelled <- covs; labelled$notes <- paste("plot", 1:40)
+  expect_error(compareEmbeddingGradients(g, labelled), "too few sites.*notes")
 })
