@@ -87,7 +87,7 @@ records the sampler's extra steps for the scales (see Sampling and chain
 length): their step sizes and acceptance rates, and how many burn-in
 iterations the embedding leftover scale was held for.
 
-Five functions summarise these:
+Seven functions summarise these:
 \itemize{
 \item \code{\link[=returnGroupedConvergence]{returnGroupedConvergence()}}: the convergence checks for a fit with
 embedding columns (see Checking convergence).
@@ -98,6 +98,11 @@ occupancy design column.
 \item \code{\link[=returnEmbeddingBlends]{returnEmbeddingBlends()}}: the blends, as weights on the embedding
 columns and as scores for each site. Blends are defined only up to
 rotation, so do not interpret them one by one.
+\item \code{\link[=returnEmbeddingGradients]{returnEmbeddingGradients()}}: the gradients of the species' whole
+response to the embedding, as scores for each site and loadings for each
+species (see Interpreting the gradients).
+\item \code{\link[=compareEmbeddingGradients]{compareEmbeddingGradients()}}: those gradients compared with covariates
+known for the same sites, and what the covariates leave unexplained.
 \item \code{\link[=returnEmbeddingShare]{returnEmbeddingShare()}}: for each species, the share of the variation
 (across sites) in the covariates' contribution to its linear predictor
 that comes from the embedding columns.
@@ -113,6 +118,89 @@ satellite can see. It is not the total effect, because the embedding is
 measured after the management and partly records its results. For the total
 effect, fit again without the embedding and without other covariates that
 management can change, and compare the two fits on the probability scale.
+}
+
+\section{Interpreting the gradients}{
+
+The embedding columns have no meaning one by one. What can be read is the
+small set of gradients that the species share in their responses to the
+embedding. Two gradients mark out a plane and three a block. Any rotation of
+them marks out the same plane or block and fits the data equally well, so
+the data determine the plane, not the particular directions a function
+returns. Read the gradients as a set, never one by one.
+
+\code{\link[=returnEmbeddingGradients]{returnEmbeddingGradients()}} takes the gradients from each species' whole
+response to the embedding, the shared part plus the leftover. How a response
+is divided between those two is poorly determined, and at weak signal a fit
+can put most of it in the leftovers although the species share gradients.
+The leading directions of the whole response are far more stable. In
+simulations they recovered the true gradients across sites, and chains
+agreed on them, even in fits where the division was wrong and the scales
+failed their convergence checks. \code{\link[=returnEmbeddingBlends]{returnEmbeddingBlends()}} works from the
+shared part only, so rely on it only when the \code{state} row of
+\code{\link[=returnGroupedConvergence]{returnGroupedConvergence()}} is 0.
+
+These gradients are hidden environmental covariates of a second kind. Those
+set by \code{n_factors} are free scores for each site, learned only from the
+species found there. The embedding gradients are weighted sums of a site's
+embedding columns, so they can be computed and mapped wherever the embedding
+exists.
+
+\code{\link[=compareEmbeddingGradients]{compareEmbeddingGradients()}} relates the gradients to covariates known for
+the same sites. It makes three comparisons.
+\itemize{
+\item Covariate from gradients: how well do the site scores of the first few
+gradients, taken together, predict each covariate?
+\item Gradients from covariates: how much of the gradients do all the covariates
+together account for, and how much does each covariate account for alone
+and uniquely?
+\item Unmeasured gradients: the leading directions of what the covariates leave
+unexplained. This is habitat variation that the embedding records and the
+species respond to, but that the covariates do not describe, which
+includes a response to a measured covariate that is not a straight line.
+Each has a score at every site used, which can be mapped for those sites,
+and a loading per species. Read their shares, not how many there are:
+something is always left over, and a small total share means the
+covariates leave little.
+}
+
+The covariates can also be the site scores of the hidden environmental
+covariates, from this fit or from a fit without the embedding. The
+comparison then shows whether a factor duplicates an embedding gradient, or
+which hidden environmental covariates the satellite sees.
+\code{\link[=returnOrdinationScores]{returnOrdinationScores()}} returns quantiles by sites by factors, so take
+its second slice, the median, and add the site names:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{scores <- returnOrdinationScores(fit)
+factors <- data.frame(Site = dimnames(scores)[[2]],
+                      as.data.frame(matrix(scores[2, , ], nrow = dim(scores)[2])))
+compareEmbeddingGradients(returnEmbeddingGradients(fit), factors)
+}\if{html}{\out{</div>}}
+
+Factors are also defined only up to rotation, so read the overall share,
+not single factors.
+
+Cautions.
+\itemize{
+\item The number of gradients is uncertain. Check that a conclusion holds with
+one more and one fewer.
+\item A match is a hypothesis about a driver, not evidence of one. Anything
+correlated with the covariate across your sites would match as well. The
+function gives no test and no interval, because sites near one another
+are not independent.
+\item The number of gradients is not the number of drivers. One covariate with
+a humped response can take up two gradients, and one gradient can be a
+mixture of several covariates. Set \code{squared = TRUE} when responses may be
+humped.
+\item Species' positions on the gradients are less well determined than the
+sites' scores, most of all at weak signal.
+\item A covariate that was in the model can still match the gradients, because
+the embedding columns are correlated with it. The model holds it fixed
+when estimating the embedding coefficients, but that does not make the
+gradients' site scores unrelated to it. Such a match shows overlap between
+the covariate and the embedding, not a new driver. To ask what a new
+covariate adds beyond the model's covariates, give both and read \code{unique}.
+}
 }
 
 \section{Sampling and chain length}{
