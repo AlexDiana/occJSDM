@@ -61,7 +61,7 @@ Also recorded: coverage and bias of the other measured coefficients, effective s
 
 - The pre-study times one fit per arm on truth 1 and checks the measured-only AUC under every truth. It tunes the truth strengths, then fixes them. It also fixes the number of species S. Using the real data's 48 species costs about half as much per fit as the package spec's 100.
 - A first pass uses 30 replicates per cell, and the cells that decide a criterion are confirmed at 100. A cell is a truth (truth 4 split into its two effect halves) by arm.
-- The pre-study's timings project the first pass. At 30 replicates it is about 600 fits, one per arm per replicate per truth with truth 4 doubled, and at a measured cost per fit that is likely many days on five workers. If the projection is over 48 wall-hours on five workers, the dataset owner stops and reports to Doug before launching. The usual cuts, in order, are fewer species, fewer replicates in the first pass (10), truths 1 and 3 first, and dropping the 10-component arm. Any cut is recorded as a deviation.
+- The pre-study's timings project the first pass. At 30 replicates it is 750 fits: 30 replicates, 5 cells (truths 1 to 3 and the two halves of truth 4) and 5 arms, and at a measured cost per fit that is likely many days on five workers. If the projection is over 48 wall-hours on five workers, the dataset owner stops and reports to Doug before launching. The usual cuts, in order, are fewer species, fewer replicates in the first pass (10), truths 1 and 3 first, and dropping the 10-component arm. Any cut is recorded as a deviation.
 - At most 5 fitting workers at once, single-threaded fits, and nothing is launched at full scale without the dataset owner's go-ahead.
 
 ## Things to know before building
