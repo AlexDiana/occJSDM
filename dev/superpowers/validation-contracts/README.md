@@ -11,6 +11,7 @@ Doug's rule, 17 November 2026: occJSDM designs the analyses but does not run or 
 Each contract has a name and a version, and a change to either bumps the version. There are two studies, each with a design contract and an output contract.
 
 - `simulation-grouped-prior-design-v1.md` and `simulation-grouped-prior-output-v1.md`: the known-truth simulation study, with species simulated on the dataset's real sites, measured covariates and embedding. It is run first, because only a known truth shows that the prior recovers a signal.
+- `simulation-grouped-prior-design-v2.md` and `simulation-grouped-prior-output-v2.md`: version 2 of the simulation study, written on 21 November 2026 and not yet issued. It changes the convergence rule, adds a gradients criterion and a shared-part criterion, and uses 4 chains. Its smaller changes against version 1 are listed at its head. It was written after the results of a version 1 run had been seen, and its Disclosure section says what had been seen. Two drafts beside it, `simulation-grouped-prior-convergence-v2-draft.md` and `simulation-grouped-prior-gradients-criterion-draft.md`, hold the reasoning, the scores of the existing fits, and each decision Doug made with what he was told before making it.
 - `real-data-grouped-prior-design-v1.md` and `real-data-grouped-prior-output-v1.md`: the real-data check on the dataset's real species. It looks for warning signs and answers questions about prediction, and it is read in the light of the simulation.
 
 A design contract says what the dataset section must run: the questions or truths, the arms, the fixed settings, the evaluation and the stop rules. An output contract says what it hands back: a run record, summary tables with no unit identifiers, and a written result.
@@ -34,4 +35,10 @@ AlphaEco's `analysis/occjsdm_shakedown/` (branch `claude/occjsdm-shakedown` on 1
 
 ## Status
 
-Version 1 was written on 17 November 2026 from the AlphaEco shakedown design, on the head of draft PR 41 (grouped covariate prior, package 0.3.2). It has not been run by anyone as a contract.
+Version 1 was written on 17 November 2026 from the AlphaEco shakedown design, on the head of draft PR 41 (grouped covariate prior, package 0.3.2).
+
+The simulation contract, version 1, was run on AlphaEco. The grouped arm was fitted on 20 November 2026 on package 2b9b890, the head of draft PR 44 (150 fits). By version 1's convergence rule the prior failed on mixing grounds in every cell. That verdict stands.
+
+Version 2 of the simulation contracts was written on 21 November 2026, on the head of draft PR 45 (a2a64a1, package 0.3.2). It is not issued. Version 1 stays in force until Doug says that version 2 is issued. Version 2 judges only fits made after that, on new seeds.
+
+The real-data contracts are still at version 1 and have not been changed. Their first warning sign judges the same scales that version 2 stops judging in the simulation, so it needs the same change before a real-data run is read.
