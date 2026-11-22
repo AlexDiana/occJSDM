@@ -206,7 +206,7 @@ covariate adds beyond the model's covariates, give both and read \code{unique}.
 \section{Sampling and chain length}{
 
 The scales of this prior are hard for the sampler. In a \code{binary} fit with
-embedding columns it takes three extra steps for them. They are
+embedding columns it takes four extra steps for them. They are
 experimental, and they do not change the model: the draws that are kept
 come from the same posterior as without them.
 \itemize{
@@ -216,6 +216,12 @@ factor. Without this step the axis scale of a column that no species
 responds to moved very slowly.
 \item The embedding leftover scale gets the same kind of step, together with
 all the leftovers.
+\item The scale of the measured covariates' species leftovers (\code{sigma_b}) gets
+the same kind of step, together with those leftovers, twice in each
+iteration: once with a step tuned during burn-in and once with a large
+fixed step. Without it a chain could stay for thousands of iterations
+with this scale near zero, and disagree with the other chains on the
+measured coefficients meanwhile.
 \item With 5,000 or more burn-in iterations, the embedding leftover scale is
 held at a tenth of its prior scale for the first half of burn-in and then
 released.

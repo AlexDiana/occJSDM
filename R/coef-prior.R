@@ -698,7 +698,7 @@ axis_move_record <- function(parts, columns) {
 #'
 #' @section Sampling and chain length:
 #' The scales of this prior are hard for the sampler. In a `binary` fit with
-#' embedding columns it takes three extra steps for them. They are
+#' embedding columns it takes four extra steps for them. They are
 #' experimental, and they do not change the model: the draws that are kept
 #' come from the same posterior as without them.
 #' * Every iteration, each embedding column's axis scale is proposed a new
@@ -707,6 +707,12 @@ axis_move_record <- function(parts, columns) {
 #'   responds to moved very slowly.
 #' * The embedding leftover scale gets the same kind of step, together with
 #'   all the leftovers.
+#' * The scale of the measured covariates' species leftovers (`sigma_b`) gets
+#'   the same kind of step, together with those leftovers, twice in each
+#'   iteration: once with a step tuned during burn-in and once with a large
+#'   fixed step. Without it a chain could stay for thousands of iterations
+#'   with this scale near zero, and disagree with the other chains on the
+#'   measured coefficients meanwhile.
 #' * With 5,000 or more burn-in iterations, the embedding leftover scale is
 #'   held at a tenth of its prior scale for the first half of burn-in and then
 #'   released.
