@@ -345,6 +345,69 @@ sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, st
   list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = accepted, log_ratio = log_ratio)
 }
 
+# The same scale-expansion move for sigma_b, the measured group's scale. Under
+# the grouped prior sigma_b has a half-Cauchy prior with no floor, and chains
+# were seen to drift to sigma_b near zero and stay there for hundreds to
+# thousands of sweeps: it is drawn given the measured leftovers and they are
+# then drawn given it, so near zero each draw moves it by only a few percent.
+# Design: dev/superpowers/specs/2026-11-22-sigma-b-move-design.md.
+#
+# Propose log(sigma_b) + delta, delta ~ Normal(0, step^2), and multiply every
+# leftover of the measured columns, R[, measured], by r = exp(delta). G, C, A
+# and the embedding block stay where they are, so each measured row of B
+# moves by (r - 1) times its leftovers. The axis scale of a measured column is
+# 1, so the prior of the leftovers and the Jacobian cancel as in
+# sigma_emb_move(), and the acceptance ratio is
+#   (r - 1) * lin - (r - 1)^2 * quad / 2 + delta
+#     - log1p((sigma_b' / sigma_b_scale)^2) + log1p((sigma_b / sigma_b_scale)^2)
+# with D = X[, measured] %*% t(R[, measured]), lin = sum((kappa - Omega * eta) * D)
+# and quad = sum(Omega * D^2), the likelihood conditioned on the Polya-Gamma
+# weights. Far below the ordinary range D is proportional to sigma_b, so the
+# ratio is close to delta and every upward proposal is accepted.
+#
+# `step` has one element per proposal, made in order, each from the state the
+# one before it left. update_jSDMcoef() gives two: the step adapted during
+# burn-in and SIGMA_B_MOVE_LARGE_STEP. All the deltas are drawn first, then
+# all the uniforms. Returns B, R (the leftovers of the returned B), sigma_b
+# and eta, with `accepted` and `log_ratio` of one element per proposal (FALSE
+# and NA, with no random number drawn, when there are no measured columns).
+sigma_b_move <- function(B, R, sigma_b, X, kappa, Omega, eta, coef_prior, step) {
+  meas <- which(!coef_prior$is_emb)
+  n_prop <- length(step)
+  if (length(meas) == 0L)
+    return(list(B = B, R = R, sigma_b = sigma_b, eta = eta,
+                accepted = rep(FALSE, n_prop), log_ratio = rep(NA_real_, n_prop)))
+  delta <- stats::rnorm(n_prop, 0, step)
+  logu <- log(stats::runif(n_prop))
+  accepted <- logical(n_prop); log_ratio <- numeric(n_prop)
+  D <- X[, meas, drop = FALSE] %*% t(R[, meas, drop = FALSE])
+  for (j in seq_len(n_prop)) {
+    r1 <- expm1(delta[j])
+    lin <- sum((kappa - Omega * eta) * D)
+    quad <- sum(Omega * D^2)
+    proposed <- sigma_b * exp(delta[j])
+    log_ratio[j] <- r1 * lin - r1^2 * quad / 2 + delta[j] -
+      log1p((proposed / coef_prior$sigma_b_scale)^2) +
+      log1p((sigma_b / coef_prior$sigma_b_scale)^2)
+    accepted[j] <- logu[j] < log_ratio[j]
+    if (accepted[j]) {
+      B[meas, ] <- B[meas, , drop = FALSE] + r1 * t(R[, meas, drop = FALSE])
+      eta <- eta + r1 * D
+      R[, meas] <- R[, meas, drop = FALSE] * exp(delta[j])
+      D <- D * exp(delta[j])
+      sigma_b <- proposed
+    }
+  }
+  list(B = B, R = R, sigma_b = sigma_b, eta = eta, accepted = accepted, log_ratio = log_ratio)
+}
+
+# The fixed step of the second sigma_b proposal in each sweep, on the log
+# scale. The adapted step settles where the ordinary state accepts about half
+# of the proposals, which is small for a chain far below that state; this one
+# is large enough to climb back in a few tens of sweeps and is mostly
+# rejected elsewhere.
+SIGMA_B_MOVE_LARGE_STEP <- 1
+
 # Burn-in adaptation of the proposal steps, one per embedding column, from
 # that sweep's log acceptance ratios: the log of each step moves by
 # (acceptance probability - target) over the square root of the number of

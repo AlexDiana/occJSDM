@@ -27,9 +27,9 @@ axis_move_state <- function(seed = 1L, n = 25L, S = 7L) {
 # The log of the density the sampler targets, written out term by term: the
 # Normal priors of the leftovers, G and C at the standard deviations
 # coef_prior_sds() gives, the half-Cauchy priors of each axis scale and of
-# sigma_emb expressed as densities of the log scale (hence the added log of
-# each), and the likelihood given the Polya-Gamma weights. Terms neither
-# scale move can change (the priors of A and of sigma_b) are left out.
+# sigma_emb and of sigma_b expressed as densities of the log scale (hence the
+# added log of each), and the likelihood given the Polya-Gamma weights. The
+# prior of A, which no scale move changes, is left out.
 axis_move_log_target <- function(x) {
   S <- ncol(x$B); gt <- nrow(x$C); emb <- which(x$cp$is_emb)
   sds <- occJSDM:::coef_prior_sds(x$cp, x$sigma_b, x$sigma_emb, x$lambda, nrow(x$G), ncol(x$X))
@@ -40,5 +40,6 @@ axis_move_log_target <- function(x) {
     sum(dnorm(x$C, 0, rep(sds$c, each = gt), log = TRUE)) +
     sum(dcauchy(x$lambda[emb], 0, x$cp$axis_scale, log = TRUE) + log(x$lambda[emb])) +
     dcauchy(x$sigma_emb, 0, x$cp$sigma_emb_scale, log = TRUE) + log(x$sigma_emb) +
+    dcauchy(x$sigma_b, 0, x$cp$sigma_b_scale, log = TRUE) + log(x$sigma_b) +
     sum(x$kappa * eta - x$Omega * eta^2 / 2)
 }
