@@ -43,3 +43,12 @@ axis_move_log_target <- function(x) {
     dcauchy(x$sigma_b, 0, x$cp$sigma_b_scale, log = TRUE) + log(x$sigma_b) +
     sum(x$kappa * eta - x$Omega * eta^2 / 2)
 }
+
+# A short grouped binary fit, with the scale moves on. Used by
+# test-sigma-emb-move.R and test-sigma-b-move.R.
+sigma_move_fit <- function(sim, MCMCparams = FIXTURE_MCMC) {
+  dat <- sim$data_list
+  suppressMessages(suppressWarnings(runOccJSDM(dat,
+    listParams = list(n_factors = 1L, embeddingVars = dat$embeddingVars),
+    occCovariates = grouped_occ_covariates(dat), MCMCparams = MCMCparams)))
+}

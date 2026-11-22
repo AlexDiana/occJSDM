@@ -1532,14 +1532,16 @@ update_jSDMcoef <- function(list_data,
   } else {
     sigma_b <- sample_sigmab(B, Tr_b, G, A, C, a_sigmab, b_sigmab)
   }
-  # The scale-expansion moves, on sigma_emb (sigma_emb_move() in
-  # R/coef-prior.R) and then on each embedding column's axis scale
-  # (axis_scale_move()), after the scale draws and before the G, C and A
-  # draws. The sigma_emb move hands the axis scale move the B and linear
-  # predictor it leaves. The chain carries list_params$axis_move only in a
-  # grouped fit of model type "binary" with embedding columns; every other
-  # fit skips this block and draws no extra random numbers. The proposal
-  # steps are adapted only while the chain says so (burn-in). The linear
+  # The three scale-expansion moves, on sigma_b (sigma_b_move() in
+  # R/coef-prior.R), then on sigma_emb (sigma_emb_move()) and then on each
+  # embedding column's axis scale (axis_scale_move()), after the scale draws
+  # and before the G, C and A draws. Each move hands the next the B and
+  # linear predictor it leaves; the sigma_b move also hands on the leftovers,
+  # whose embedding columns it does not touch. The chain carries
+  # list_params$axis_move only in a grouped fit of model type "binary" with
+  # embedding columns; every other fit skips this block and draws no extra
+  # random numbers. The proposal steps are adapted only while the chain says
+  # so (burn-in); the sigma_b move's large step is fixed. The linear
   # predictor is rebuilt from the coefficients just drawn (Bt and Bst are the
   # leftovers of the new B and Bs about the current G, A, C and their spatial
   # counterparts) and the factor scores of the previous sweep.
@@ -1552,13 +1554,22 @@ update_jSDMcoef <- function(list_data,
       B0, G, A, C, Bt,
       Gs, As, Cs, Bst,
       U, L, Tr_b = Tr_b)$eta
+    # Two proposals on sigma_b, with the adapted step and the large fixed
+    # one. It runs whether or not sigma_emb is held. With no measured column
+    # it changes nothing and draws nothing.
+    list_b <- sigma_b_move(B, leftovers, sigma_b, X, k, Omega, eta_drawn, coef_prior,
+                           c(axis_move$sigma_b_step, SIGMA_B_MOVE_LARGE_STEP))
+    B <- list_b$B
+    sigma_b <- list_b$sigma_b
+    leftovers <- list_b$R
+    axis_move$sigma_b_accepted <- list_b$accepted
     # While sigma_emb is held (the staged burn-in, axis_hold_sweeps()) its
     # move is skipped and draws nothing.
     held <- isTRUE(axis_move$hold)
     list_sigma <- if (held)
-      list(B = B, sigma_emb = sigma_emb, eta = eta_drawn, accepted = FALSE,
+      list(B = B, sigma_emb = sigma_emb, eta = list_b$eta, accepted = FALSE,
            log_ratio = NA_real_) else
-      sigma_emb_move(B, leftovers, sigma_emb, X, k, Omega, eta_drawn,
+      sigma_emb_move(B, leftovers, sigma_emb, X, k, Omega, list_b$eta,
                      coef_prior, axis_move$sigma_step)
     B <- list_sigma$B
     sigma_emb <- list_sigma$sigma_emb
@@ -1575,6 +1586,12 @@ update_jSDMcoef <- function(list_data,
       axis_move$step <- axis_step_adapt(axis_move$step,
                                         list_move$log_ratio[coef_prior$is_emb],
                                         axis_move$t)
+      if (any(!coef_prior$is_emb)) {
+        axis_move$sigma_b_t <- axis_move$sigma_b_t + 1L
+        axis_move$sigma_b_step <- axis_step_adapt(axis_move$sigma_b_step,
+                                                  list_b$log_ratio[1],
+                                                  axis_move$sigma_b_t)
+      }
       if (!held) {
         axis_move$sigma_t <- axis_move$sigma_t + 1L
         axis_move$sigma_step <- axis_step_adapt(axis_move$sigma_step,

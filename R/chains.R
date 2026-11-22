@@ -638,6 +638,7 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
           axis_accepted <- list(burnin = integer(sum(coef_prior$is_emb)),
                                 kept = integer(sum(coef_prior$is_emb)))
           sigma_accepted <- list(burnin = 0L, kept = 0L)
+          sigma_b_accepted <- list(burnin = integer(2), kept = integer(2))
           # The staged burn-in: sigma_emb starts at, and is held at, a small
           # value for the first half of burn-in (axis_hold_sweeps()).
           axis_hold <- axis_hold_sweeps(nburn)
@@ -736,6 +737,8 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
             list_jSDMparams$axis_move$accepted
           sigma_accepted[[axis_phase]] <- sigma_accepted[[axis_phase]] +
             list_jSDMparams$axis_move$sigma_accepted
+          sigma_b_accepted[[axis_phase]] <- sigma_b_accepted[[axis_phase]] +
+            list_jSDMparams$axis_move$sigma_b_accepted
         }
       }
 
@@ -890,6 +893,9 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
       sigma_step = list_jSDMparams$axis_move$sigma_step,
       hold_sweeps = axis_hold, hold_value = axis_hold_value(coef_prior),
       sigma_accepted_burnin = sigma_accepted$burnin, sigma_accepted_kept = sigma_accepted$kept,
+      sigma_b_step = list_jSDMparams$axis_move$sigma_b_step,
+      sigma_b_accepted_burnin = sigma_b_accepted$burnin,
+      sigma_b_accepted_kept = sigma_b_accepted$kept,
       accepted_burnin = axis_accepted$burnin, sweeps_burnin = nburn,
       accepted_kept = axis_accepted$kept, sweeps_kept = niter * nthin) else NULL,
     draws = list(

@@ -131,13 +131,6 @@ test_that("the scale updates with both scale moves leave the half-Cauchy priors 
               label = sprintf("error of the share of %s below its prior quartile %d", nm, j))
 })
 
-sigma_move_fit <- function(sim, MCMCparams = FIXTURE_MCMC) {
-  dat <- sim$data_list
-  suppressMessages(suppressWarnings(runOccJSDM(dat,
-    listParams = list(n_factors = 1L, embeddingVars = dat$embeddingVars),
-    occCovariates = grouped_occ_covariates(dat), MCMCparams = MCMCparams)))
-}
-
 test_that("a grouped binary fit runs the sigma_emb move and records its acceptance", {
   fit <- sigma_move_fit(simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L))
   am <- fit$infos$axis_move

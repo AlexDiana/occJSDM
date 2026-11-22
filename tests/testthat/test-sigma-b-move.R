@@ -163,3 +163,77 @@ test_that("the scale updates with all three scale moves leave the half-Cauchy pr
     expect_lt(abs(share[nm, j] - c(.25, .5, .75)[j]), tolerance[[nm]],
               label = sprintf("error of the share of %s below its prior quartile %d", nm, j))
 })
+
+test_that("a grouped binary fit runs the sigma_b move and records its acceptance", {
+  for (mcmc in list(FIXTURE_MCMC, c(FIXTURE_MCMC, list(ncores = 2L)))) {
+    fit <- sigma_move_fit(simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L), mcmc)
+    am <- fit$infos$axis_move
+    expect_length(am$sigma_b_step, 2L)                 # one per chain
+    expect_true(all(am$sigma_b_step >= 0.01 & am$sigma_b_step <= 5))
+    expect_false(all(am$sigma_b_step == 0.5))          # adapted during burn-in
+    expect_identical(am$sigma_b_large_step, 1)
+    for (nm in c("sigma_b_acceptance", "sigma_b_acceptance_burnin")) {
+      expect_identical(dim(am[[nm]]), c(2L, 2L))
+      expect_identical(rownames(am[[nm]]), c("adapted", "large"))
+      expect_true(all(am[[nm]] >= 0 & am[[nm]] <= 1))
+    }
+    expect_true(all(is.finite(fit$results_output$jsdm_output$sigmab_output)))
+  }
+})
+
+test_that("the coefficient update runs the sigma_b move first and hands its state on", {
+  # Spies on the sigma_b and sigma_emb moves inside update_jSDMcoef(), in a
+  # real fit, as the last test of test-sigma-emb-move.R does. The sigma_b move
+  # must be given the leftovers and linear predictor of the B just drawn; the
+  # sigma_emb move must be given the B, leftovers and linear predictor the
+  # sigma_b move returns; and the sweep's sigma_b must be the move's.
+  original_b <- occJSDM:::sigma_b_move
+  original_emb <- occJSDM:::sigma_emb_move
+  original_update <- occJSDM:::update_jSDMcoef
+  seen_b <- list(); seen_emb <- list(); sweeps <- list()
+  update <- original_update
+  update_env <- new.env(parent = environment(update))
+  update_env$sigma_b_move <- function(B, R, sigma_b, X, kappa, Omega, eta, coef_prior, step) {
+    out <- original_b(B, R, sigma_b, X, kappa, Omega, eta, coef_prior, step)
+    seen_b[[length(seen_b) + 1L]] <<- list(B = B, R = R, X = X, eta = eta, step = step, out = out)
+    out
+  }
+  update_env$sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step) {
+    seen_emb[[length(seen_emb) + 1L]] <<- list(B = B, R = R, eta = eta)
+    original_emb(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step)
+  }
+  environment(update) <- update_env
+  local_mocked_bindings(update_jSDMcoef = function(list_data, list_params, ...) {
+    out <- update(list_data, list_params, ...)
+    sweeps[[length(sweeps) + 1L]] <<- list(Tr_b = list_data$Tr_b, before = list_params, out = out)
+    out
+  }, .package = "occJSDM")
+  sigma_move_fit(simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L),
+                 MCMCparams = list(nchain = 1L, nburn = 3L, niter = 3L, nthin = 1L))
+  expect_identical(length(seen_b), 6L)
+  expect_identical(length(seen_emb), 6L)
+  for (i in seq_along(seen_b)) {
+    sb <- seen_b[[i]]; sw <- sweeps[[i]]; label <- paste("sweep", i)
+    leftovers <- t(sb$B) - sw$Tr_b %*% sw$before$G - sw$before$A %*% sw$before$C
+    expect_equal(unname(sb$R), unname(leftovers), tolerance = 1e-10, info = label)
+    eta <- matrix(sw$out$B0, nrow(sb$X), ncol(sb$B), byrow = TRUE) + sb$X %*% sb$B +
+      sw$before$U %*% sw$out$L
+    expect_equal(unname(sb$eta), unname(eta), tolerance = 1e-10, info = label)
+    expect_identical(sb$step[2], occJSDM:::SIGMA_B_MOVE_LARGE_STEP, info = label)
+    expect_identical(seen_emb[[i]]$B, sb$out$B, info = label)
+    expect_identical(seen_emb[[i]]$R, sb$out$R, info = label)
+    expect_identical(seen_emb[[i]]$eta, sb$out$eta, info = label)
+    expect_identical(sw$out$sigma_b, sb$out$sigma_b, info = label)
+  }
+  # The adapted step starts at 0.5, is adapted after each of the three burn-in
+  # sweeps from that sweep's first log ratio, and is then frozen. The large
+  # step is never adapted.
+  expect_identical(seen_b[[1]]$step, c(0.5, 1))
+  for (i in 1:3) {
+    want <- occJSDM:::axis_step_adapt(seen_b[[i]]$step[1], seen_b[[i]]$out$log_ratio[1], i)
+    expect_identical(seen_b[[i + 1L]]$step, c(want, 1), info = paste("sweep", i))
+  }
+  expect_false(identical(seen_b[[4]]$step[1], 0.5))
+  expect_identical(seen_b[[5]]$step, seen_b[[4]]$step)
+  expect_identical(seen_b[[6]]$step, seen_b[[4]]$step)
+})

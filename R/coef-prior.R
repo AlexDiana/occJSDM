@@ -433,7 +433,7 @@ axis_step_adapt <- function(step, log_ratio, t) {
 # scale moves. The length and the value are fixed, not tuned.
 #
 # The hold is applied only from AXIS_HOLD_MIN_BURN burn-in sweeps up; below
-# that there is none and the sampler is that of the two scale moves alone
+# that there is none and the sampler is that of the scale moves alone
 # (Doug's decision of 19 November 2026). After the release the blends need
 # time to settle. With 5,000 burn-in sweeps (2,500 after the release) every
 # low-rank chain reached the blend configuration and the active coefficients
@@ -461,21 +461,25 @@ axis_hold_note <- function(coef_prior, model, nburn) {
 }
 axis_hold_value <- function(coef_prior) 0.1 * coef_prior$sigma_emb_scale
 
-# The state of the two scale moves that a chain carries, or NULL when they
+# The state of the three scale moves that a chain carries, or NULL when they
 # are off: they run only in a grouped fit with embedding columns of model type
 # "binary". Per embedding column: `step`, and `accepted`, the last sweep's
 # outcome, of the axis scale move. `sigma_step` and `sigma_accepted` are those
-# of the sigma_emb move. `adapt` is set by the chain (TRUE during burn-in) and
+# of the sigma_emb move. `sigma_b_step` is the adapted step of the sigma_b
+# move and `sigma_b_accepted` the last sweep's outcomes of its two proposals
+# (adapted, then large). `adapt` is set by the chain (TRUE during burn-in) and
 # `t` counts the adapting sweeps; `sigma_t` counts those in which the
-# sigma_emb move ran. `hold` is set by the chain (TRUE while sigma_emb is
-# held).
+# sigma_emb move ran, and `sigma_b_t` those in which the sigma_b move adapted
+# (all adapting sweeps, when there is a measured column). `hold` is set by
+# the chain (TRUE while sigma_emb is held).
 axis_move_start <- function(coef_prior, model) {
   if (!identical(model, "binary") || !identical(coef_prior$type, "grouped") ||
       !any(coef_prior$is_emb)) return(NULL)
   n_emb <- sum(coef_prior$is_emb)
   list(step = rep(AXIS_MOVE_STEP, n_emb), accepted = rep(FALSE, n_emb),
        sigma_step = AXIS_MOVE_STEP, sigma_accepted = FALSE,
-       adapt = FALSE, t = 0L, sigma_t = 0L, hold = FALSE)
+       sigma_b_step = AXIS_MOVE_STEP, sigma_b_accepted = c(FALSE, FALSE),
+       adapt = FALSE, t = 0L, sigma_t = 0L, sigma_b_t = 0L, hold = FALSE)
 }
 
 # infos$axis_move from the chains' records, each a matrix with one row per
@@ -483,8 +487,10 @@ axis_move_start <- function(coef_prior, model) {
 # used, and the share of sweeps in which the move was accepted, after and
 # during burn-in. For the sigma_emb move, one value per chain: its step and
 # its acceptance rates (the burn-in rate is over all burn-in sweeps, those in
-# which sigma_emb was held included). `hold_sweeps` and `hold_value` describe
-# the staged burn-in. NULL when the moves are off.
+# which sigma_emb was held included). For the sigma_b move: its adapted step,
+# one per chain, its large step, and its acceptance rates, each a matrix with
+# rows "adapted" and "large" and one column per chain. `hold_sweeps` and
+# `hold_value` describe the staged burn-in. NULL when the moves are off.
 axis_move_record <- function(parts, columns) {
   parts <- parts[!vapply(parts, is.null, logical(1))]
   if (length(parts) == 0L) return(NULL)
@@ -496,11 +502,20 @@ axis_move_record <- function(parts, columns) {
   step <- vapply(parts, function(p) p$step, numeric(length(columns)))
   sigma_rate <- function(phase) vapply(parts, function(p)
     p[[paste0("sigma_accepted_", phase)]] / p[[paste0("sweeps_", phase)]], numeric(1))
+  sigma_b_rate <- function(phase) {
+    out <- vapply(parts, function(p) p[[paste0("sigma_b_accepted_", phase)]] /
+                    p[[paste0("sweeps_", phase)]], numeric(2))
+    matrix(out, 2L, length(parts), dimnames = list(c("adapted", "large"), NULL))
+  }
   list(step = matrix(step, length(columns), length(parts), dimnames = list(columns, NULL)),
        acceptance = rate("kept"), acceptance_burnin = rate("burnin"),
        sigma_emb_step = vapply(parts, function(p) p$sigma_step, numeric(1)),
        sigma_emb_acceptance = sigma_rate("kept"),
        sigma_emb_acceptance_burnin = sigma_rate("burnin"),
+       sigma_b_step = vapply(parts, function(p) p$sigma_b_step, numeric(1)),
+       sigma_b_large_step = SIGMA_B_MOVE_LARGE_STEP,
+       sigma_b_acceptance = sigma_b_rate("kept"),
+       sigma_b_acceptance_burnin = sigma_b_rate("burnin"),
        hold_sweeps = parts[[1]]$hold_sweeps, hold_value = parts[[1]]$hold_value)
 }
 
