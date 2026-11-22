@@ -103,3 +103,63 @@ test_that("with sigma_b and its leftovers near zero the ratio is finite and upwa
   }
   expect_identical(up, total)                          # every upward proposal accepted
 })
+
+test_that("the scale updates with all three scale moves leave the half-Cauchy priors unchanged", {
+  # The loop of the test of the same kind in test-sigma-emb-move.R, with the
+  # sigma_b move added where update_jSDMcoef() runs it: after the scale draws
+  # and before the sigma_emb move, with both of its proposals. With a constant
+  # likelihood every step leaves the prior invariant, so each scale divided by
+  # its prior scale must be half-Cauchy(1). Same seed, sizes and tolerances.
+  S <- 3L; p <- 3L; gt <- 2L; g_b <- 2L; n <- 4L; N <- 50000L; burn <- 1000L
+  seed_both(1L)
+  Tr_b <- cbind(1, rnorm(S)); X <- matrix(rnorm(n * p), n, p)
+  zero <- matrix(0, n, S)
+  cp <- occJSDM:::read_coef_prior(
+    list(sigma_b_scale = 0.8, sigma_emb_scale = 1.3, axis_scale = 0.5),
+    list(embeddingVars = c("e1", "e2")), S, gt,
+    data.frame(column = c("m1", "e1", "e2"), variable = c("m1", "e1", "e2"), kind = "numeric"))
+  start <- occJSDM:::coef_scales_start(cp, p)
+  sigma_b <- cp$sigma_b_scale; sigma_emb <- start$sigma_emb; lambda <- start$lambda
+  G <- matrix(rnorm(g_b * p), g_b, p); C <- matrix(rnorm(gt * p), gt, p)
+  A <- matrix(rnorm(S * gt), S, gt)
+  keep <- matrix(NA_real_, N + burn, 4L,
+                 dimnames = list(NULL, c("sigma_b", "sigma_emb", "lambda_e1", "lambda_e2")))
+  accepted <- 0L; accepted_b <- c(0L, 0L)
+  done <- tryCatch({
+    for (i in seq_len(N + burn)) {
+      sds <- occJSDM:::coef_prior_sds(cp, sigma_b, sigma_emb, lambda, g_b, p)
+      centre <- Tr_b %*% G + A %*% C
+      B <- t(centre + matrix(rnorm(S * p), S, p) * rep(sds$b, each = S))
+      sc <- occJSDM:::sample_coef_scales(t(B) - centre, G, C, cp, sigma_b, sigma_emb, lambda)
+      sigma_b <- sc$sigma_b; sigma_emb <- sc$sigma_emb; lambda <- sc$lambda
+      sb <- occJSDM:::sigma_b_move(B, t(B) - centre, sigma_b, X, zero, zero, zero, cp,
+                                   c(0.5, occJSDM:::SIGMA_B_MOVE_LARGE_STEP))
+      B <- sb$B; sigma_b <- sb$sigma_b
+      accepted_b <- accepted_b + sb$accepted
+      sg <- occJSDM:::sigma_emb_move(B, t(B) - centre, sigma_emb, X, zero, zero, zero, cp, 0.5)
+      B <- sg$B; sigma_emb <- sg$sigma_emb
+      accepted <- accepted + sg$accepted
+      mv <- occJSDM:::axis_scale_move(B, G, C, lambda, X, zero, zero, sg$eta, cp, 0.5)
+      B <- mv$B; G <- mv$G; C <- mv$C; lambda <- mv$lambda
+      sds <- occJSDM:::coef_prior_sds(cp, sigma_b, sigma_emb, lambda, g_b, p)
+      gc <- occJSDM:::sample_GC(B, Tr_b, A, sds$b, sds$g, sds$c); G <- gc$G; C <- gc$C
+      A <- occJSDM:::sample_A(B, C, Tr_b, G, sds$b)$A
+      keep[i, ] <- c(sigma_b / cp$sigma_b_scale, sigma_emb / cp$sigma_emb_scale,
+                     lambda[2:3] / cp$axis_scale)
+    }
+    TRUE
+  }, error = function(e) conditionMessage(e))
+  expect_identical(done, TRUE, label = "the chain ran to the end (it does not when the scales run away)")
+  if (!isTRUE(done)) return(invisible(NULL))
+  keep <- keep[-seq_len(burn), ]
+  expect_true(all(is.finite(keep) & keep > 0))
+  expect_gt(accepted / (N + burn), 0.5)                # with no data most moves are accepted
+  expect_true(all(accepted_b / (N + burn) > 0.5))      # both sigma_b proposals too
+  quartiles <- tan(pi / 2 * c(.25, .5, .75))
+  share <- vapply(quartiles, function(x) colMeans(keep < x), numeric(4))
+  # Tolerances: those of test-sigma-emb-move.R; see the comment at its end.
+  tolerance <- c(sigma_b = 0.045, sigma_emb = 0.04, lambda_e1 = 0.05, lambda_e2 = 0.05)
+  for (nm in rownames(share)) for (j in 1:3)
+    expect_lt(abs(share[nm, j] - c(.25, .5, .75)[j]), tolerance[[nm]],
+              label = sprintf("error of the share of %s below its prior quartile %d", nm, j))
+})
