@@ -39,6 +39,6 @@ Version 1 was written on 17 November 2026 from the AlphaEco shakedown design, on
 
 The simulation contract, version 1, was run on AlphaEco. The grouped arm was fitted on 20 November 2026 on package 2b9b890, the head of draft PR 44 (150 fits). By version 1's convergence rule the prior failed on mixing grounds in every cell. That verdict stands.
 
-Version 2 of the simulation contracts was written on 21 November 2026, on the head of draft PR 45 (a2a64a1, package 0.3.2). It is not issued. Version 1 stays in force until Doug says that version 2 is issued. Version 2 judges only fits made after that, on new seeds.
+Version 2 of the simulation contracts was written on 21 November 2026 on the head of draft PR 45 (a2a64a1), and its pin was moved on 23 November 2026 to the head of draft PR 46 (cf38763, package 0.3.2), which adds a scale move for `sigma_b`. It is not issued. Version 1 stays in force until Doug says that version 2 is issued. Version 2 judges only fits made after that, on new seeds.
 
 The real-data contracts are still at version 1 and have not been changed. Their first warning sign judges the same scales that version 2 stops judging in the simulation, so it needs the same change before a real-data run is read.

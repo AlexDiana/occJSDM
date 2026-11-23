@@ -25,6 +25,7 @@ Per-fit extracts and logs stay in the dataset repository.
 - `replicates`: the number per cell in the first pass and in the confirmation, and which cells were confirmed.
 - `pilot`: the time per fit by arm with 4 chains, and the projection that was made from it.
 - `chains`: the number of chains by arm, and whether they ran one after another or on separate cores.
+- `library`: the package commit the grouped fits were made with, and the evidence that the move on `sigma_b` ran in every grouped binary fit.
 - `rules`: both rule versions by name, the date each was written and the date the fits were made, and the limits used (1.1, 0.30, 0.90, the package's small-effect line, the 10% limit for a cell, and the tolerance of 0.05 for the gradients criterion).
 - `package_check`: the evidence that the study's gradients calculation reproduces `returnEmbeddingGradients()` on the grouped arm.
 
