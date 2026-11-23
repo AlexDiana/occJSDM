@@ -1,6 +1,6 @@
 # A scale move for the measured group's scale, `sigma_b`
 
-Date: 22 November 2026. Status: design written by Claude at Doug's request ("Yes, design it") on 22 November 2026. Approved by Doug on 22 November 2026 with the first option in each of the three choices ("Yes, write the plan"): two proposals per sweep, a branch and draft PR of its own stacked on PR 45, and building the move before raising the prior with Alex. The plan is `dev/superpowers/plans/2026-11-22-sigma-b-move.md`. Nothing is built, and building needs Doug's say again, since it changes the sampler. It proposes a change to the sampler of the grouped covariate prior, on top of draft PR 45 (commit a2a64a1).
+Date: 22 November 2026. Status: design written by Claude at Doug's request ("Yes, design it") on 22 November 2026. Approved by Doug on 22 November 2026 with the first option in each of the three choices ("Yes, write the plan"): two proposals per sweep, a branch and draft PR of its own stacked on PR 45, and building the move before raising the prior with Alex. The plan is `dev/superpowers/plans/2026-11-22-sigma-b-move.md`. Doug authorised the build the same day, and it was built on this branch on 22 November 2026. The three pieces of evidence below are recorded in `dev/simstudy/sigma-b-move-20261122/RECORD.md`; the third reads "the move is enough". It proposes a change to the sampler of the grouped covariate prior, on top of draft PR 45 (commit a2a64a1).
 
 ## Purpose
 

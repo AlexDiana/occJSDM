@@ -1,6 +1,6 @@
 # Simulation of the sigma_b move, 22 November 2026
 
-This records steps 1 and 2 of the evidence in `dev/superpowers/specs/2026-11-22-sigma-b-move-design.md`, run as Task 7 of `dev/superpowers/plans/2026-11-22-sigma-b-move.md`. Step 3, the replay by the AlphaEco project, is not part of this record.
+This records steps 1 and 2 of the evidence in `dev/superpowers/specs/2026-11-22-sigma-b-move-design.md`, run as Task 7 of `dev/superpowers/plans/2026-11-22-sigma-b-move.md`. Step 3, the replay by the AlphaEco project, was run there on 22 and 23 November 2026 and is summarised at the end, in the section "Step 3".
 
 ## What was run
 
@@ -41,6 +41,32 @@ Per chain, chains 1 to 4. The adapted proposal's step was adapted during burn-in
 - Adapted step at the end of burn-in: d1 0.029/0.054/0.042/0.040; d2 0.041/0.046/0.044/0.048; d3 0.019/0.021/0.021/0.020; d4 0.047/0.045/0.044/0.044; d5 0.025/0.056/0.029/0.031. None is near the adaptation bound of 5.
 
 Nothing is claimed beyond the two readings.
+
+## Step 3: the replay by the AlphaEco project
+
+Run by the AlphaEco project on its own data design, 22 November 2026 16:59 to 23 November 2026 01:26, on Doug's laptop, on AC power with Low Power Mode off, at most 5 workers. Its report is held by the design session and is not in this repository, since it was made on that project's data. What follows is a summary: counts only, no dataset content. The design session recounted every count below from the report's per-fit sections.
+
+- Data sets: the 18 simulated data sets whose grouped fits failed the measured-coefficient check in that project's main run, and 6 controls whose fits passed it. Same simulated species, sites and splits as the main run.
+- Libraries: this branch at eb362e1 ("move"), and f8a1a21, an earlier commit of PR 45 whose sampler is the same as at a2a64a1 ("no move"). The move ran in every fit of the first and in none of the second.
+- Seeds: a new fit seed for every data set, the same in both arms. The project checked that none of them, and none of the chain seeds drawn from them, had been used in any earlier run.
+- Fits: 4 chains of 5,000 burn-in and 5,000 kept sweeps; four data sets with the move run on to 20,000 kept. 48 fits, 0 errors.
+
+The reading fixed in the spec, on the 18 data sets at 5,000 kept sweeps with the move: **the move is enough**. 1 of the 18 fails the measured-coefficient check (at most 2 allowed), and no chain of any fit has a run of more than 500 sweeps with sigma_b under 0.02 (the longest is 79).
+
+Beside it, with no label:
+
+- Without the move, on the same seeds: 5 of the 18 fail, and 5 fits have a chain with a run of more than 500 sweeps under 0.02 (the longest 1,459).
+- Paired by data set: 18 pass in both arms, 5 fail only without the move, 1 fails only with it.
+- Measured coefficients over 1.1, summed over all 24 data sets: 1 with the move, 18 without. Fits with an R-hat of log sigma_b over 1.1: 5 with the move, 11 without.
+- Controls: 0 of 6 fail in either arm.
+- The four long fits with the move pass at 20,000 kept sweeps, with no measured coefficient over 1.1 (largest R-hat 1.005 to 1.011).
+- The one failure with the move has nothing to do with sigma_b: no chain goes low, and one of its four chains sits in the shared-structure state while the others sit in the leftover state (R-hat of log sigma_emb 2.7). The move does not address that. The same data set and seed pass without the move.
+- The chains at different levels of sigma_b seen in data set 4 above did not appear: within a fit, the largest chain median of sigma_b is at most 2.16 times the smallest with the move. Between data sets the level runs from 0.05 to 0.31.
+- Acceptance over kept sweeps, per chain: adapted proposal 0.23 to 0.64, large proposal 0.04 to 0.29.
+- Share of kept sweeps with sigma_b under 0.02, mean over fits: 0.040 with the move, 0.031 without. As in steps 1 and 2, the move shortens the stays and does not empty the low state.
+- Time per short fit: 29 to 52 minutes with the move and 34 to 43 without, with up to 5 fits running at once. No cost is visible at this level of noise.
+
+How strong this is: 5 failures against 1 out of 18 could arise by chance about one time in five, so the count alone is suggestive. The disappearance of the long stays (no fit with the move, 5 without) is the direct evidence for the move.
 
 ## Summary without the move, in full
 
