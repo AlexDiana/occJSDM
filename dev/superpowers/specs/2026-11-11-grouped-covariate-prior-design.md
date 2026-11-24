@@ -91,20 +91,78 @@ Added on 12 November 2026, from a description Doug asked for. It restates the tw
 
 **Aim.** Fit K = 64 to 128 embedding columns as occupancy covariates beside a few measured ones, with about 250 sites and 100 or more species. The prior is opt-in, and fits under the existing prior are reproduced bit for bit.
 
-**Model.** Only the prior on `B` changes. For covariate k and species s:
+**Model.** Rewritten on 24 November 2026, after Alex asked for a clearer statement of how the formula for `B` differs between an ordinary covariate and an embedding column. The model is unchanged. Only the prior on `B` differs from `main`.
 
-```
-B[k,s]  = (Tr_b G)[s,k] + (A C)[s,k] + e[k,s]
-Tr_b    = cbind(1, Tr)             row 1 of G is a community-average response
-e[k,s]  ~ N(0, sd_k^2)             sd_k = sigma_b on a measured covariate,
-                                   sigma_emb * lambda_k on an embedding column
-G[,k]   ~ N(0, lambda_k^2)         lambda_k = 1 on measured covariates
-C[,k]   ~ N(0, lambda_k^2 / gt)    on embedding columns; N(0, 1) on measured ones
-A[s,]   ~ N(0, I)
-sigma_b ~ C+(1),  sigma_emb ~ C+(1),  lambda_k ~ C+(0.7 / K)
+*Where `B` sits.* The occupancy design matrix has two blocks of columns, the measured covariates and the K embedding columns, and `B` (covariates by species) has the matching two blocks of rows. For site i and species s the occupancy linear predictor is
+
+``` math
+\eta_{is} = B_{0s} + \sum_{k\,\in\,\text{measured}} X_{ik} B_{ks} + \sum_{k\,\in\,\text{embedding}} X_{ik} B_{ks} + (\text{factor and spatial terms})
 ```
 
-So `lambda_k` rescales the whole of row k, centre and leftover alike. It is a horseshoe-type scale per column, not per coefficient, and there are no inclusion indicators. `A C` over the embedding columns is a reduced-rank regression of rank `n_lattrait`, and the latent traits are shared with the measured covariates.
+The intercept, the factor and spatial terms and the detection stages are as on `main`.
+
+*One formula for every covariate.* For covariate k, measured or embedding, and species s:
+
+``` math
+B_{ks} = \underbrace{\mu_k}_{\text{community average}} + \underbrace{t_s^\top g_k}_{\text{measured traits}} + \underbrace{a_s^\top c_k}_{\text{latent traits}} + \underbrace{e_{ks}}_{\text{leftover}}
+```
+
+- `t_s` is species s's row of the trait matrix `Tr`, and `g_k` holds the effects of the traits on the response to covariate k.
+- `a_s` is species s's vector of q latent traits (row s of `A`; q is `n_lattrait`, `gt` in the code), with prior N(0, I). Each species has one `a_s`, used for the measured covariates and the embedding columns alike.
+- `c_k` is column k of `C`: the effects of the latent traits on the response to covariate k.
+- In the code, `mu_k` and `g_k` are stacked as column k of `G`, and the trait matrix is `Tr_b = cbind(1, Tr)`.
+
+This is the formula on `main` with one term added, `mu_k`. On `main` the trait matrix has no column of ones, so there is no community average.
+
+*The two kinds of covariate differ in the prior scales and in nothing else.* Every entry below is independent Normal with mean 0. The first column is the prior on `main`, for comparison.
+
+``` math
+\begin{array}{lccc}
+ & \text{on main, any covariate } k & \text{measured covariate } k & \text{embedding column } k \\ \hline
+\mu_k & \text{absent} & N(0,\ 1) & N(0,\ \lambda_k^2) \\
+\text{each entry of } g_k & N(0,\ 1) & N(0,\ 1) & N(0,\ \lambda_k^2) \\
+\text{each entry of } c_k & N(0,\ 1) & N(0,\ 1) & N(0,\ \lambda_k^2 / q) \\
+e_{ks} & N(0,\ \sigma_b^2) & N(0,\ \sigma_b^2) & N(0,\ \sigma_{\mathrm{emb}}^2 \lambda_k^2)
+\end{array}
+```
+
+``` math
+\sigma_b \sim C^{+}(1), \qquad \sigma_{\mathrm{emb}} \sim C^{+}(1), \qquad \lambda_k \sim C^{+}(0.7 / K) \ \text{ independently for each embedding column } k
+```
+
+- `sigma_b` is one number, the leftover standard deviation on every measured covariate. On `main` its square has an InvGamma(10, 1) prior; under the grouped prior it has the half-Cauchy above.
+- `sigma_emb` is one number, and takes the place of `sigma_b` on the embedding columns.
+- `lambda_k` (the "axis scale") is one number per embedding column. Measured covariates have none, which is the same as fixing it at 1.
+
+*The same model with `lambda_k` taken outside.* For an embedding column k, the table is equivalent to
+
+``` math
+B_{ks} = \lambda_k \left( \tilde\mu_k + t_s^\top \tilde g_k + \frac{1}{\sqrt{q}}\, a_s^\top \tilde c_k + \sigma_{\mathrm{emb}}\, \tilde e_{ks} \right), \qquad \tilde\mu_k,\ \tilde g_{hk},\ \tilde c_{jk},\ \tilde e_{ks} \sim N(0,\ 1)
+```
+
+Column k enters the linear predictor as `X_ik B_ks`, so this says the model multiplies embedding column k by a learned `lambda_k` and then treats it as it treats a measured covariate, with two differences inside the bracket:
+
+- the leftover scale is `sigma_emb` in place of `sigma_b`;
+- the latent-trait effects have prior variance 1 / q in place of 1, so that the q latent traits together contribute as much prior variance as the community average does.
+
+A `lambda_k` near 0 removes column k for every species at once: the community average, the trait effects, the latent-trait effects and the leftovers. It is a horseshoe-type scale per column, not per coefficient, and there are no inclusion indicators.
+
+*The embedding block in matrix form.* Write `B_emb` for the K by S block of `B`, and `mu_emb`, `G_emb`, `C_emb` and `E_emb` for the matching columns of the terms above. Then
+
+``` math
+B_{\mathrm{emb}}^\top = \mathbf{1}\,\mu_{\mathrm{emb}}^\top + \mathit{Tr}\; G_{\mathrm{emb}} + A\, C_{\mathrm{emb}} + E_{\mathrm{emb}} \qquad (S \times K)
+```
+
+and the embedding's contribution to the sites by species linear predictor is
+
+``` math
+X_{\mathrm{emb}} B_{\mathrm{emb}} = X_{\mathrm{emb}}\,\mu_{\mathrm{emb}}\mathbf{1}^\top + X_{\mathrm{emb}} G_{\mathrm{emb}}^\top \mathit{Tr}^\top + \left( X_{\mathrm{emb}} C_{\mathrm{emb}}^\top \right) A^\top + X_{\mathrm{emb}} E_{\mathrm{emb}}^\top
+```
+
+- Row j of `C_emb` is blend j: K weights, one per embedding column. `X_emb C_emb'` is the sites by q matrix of blend scores, and `A[s, j]` is species s's weight on blend j.
+- `A C_emb` has rank at most q, so the third term is a reduced-rank regression on the embedding, of rank `n_lattrait`. The same `A` multiplies the measured columns of `C`, so the latent traits are shared between the two blocks.
+- `E_emb` has full rank. It is each species' own response to the embedding, outside the blends: the "leftover" of the drawings in the description of PR 41.
+- `A` and `C_emb` are identified only up to a rotation of the q latent traits, so single blends are not interpretable; the space they span is.
 
 **Sampler.** Everything stays conjugate. The three kinds of scale use the inverse-gamma auxiliary form of the half-Cauchy. The joint draw of the coefficient block and the spatial range step take a prior standard deviation per covariate in place of the scalar. `sample_GC()` uses noise `sd_k` per covariate, and `sample_A()` becomes a weighted regression. The scales are drawn after the joint coefficient draw, where `sample_sigmab()` ran.
 
