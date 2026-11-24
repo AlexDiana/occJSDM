@@ -23,14 +23,14 @@
     "observations": 40
   },
   "runtime": {
-    "source_revision": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "source_revision": "d200b768f7ebef230b657ee8af2773779059905f",
     "R": "R version 4.6.1 (2026-06-24)",
-    "occJSDM_version": "0.3.0",
-    "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
+    "occJSDM_version": "0.3.2",
+    "occJSDM_path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23/occJSDM",
     "renv_version": "1.2.3",
     "libPaths": [
-      "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
-      "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
+      "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/library/macos/R-4.6/aarch64-apple-darwin23",
+      "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/r-runtime/sandbox/macos/R-4.6/aarch64-apple-darwin23/46003b10"
     ],
     "thread_env": {
       "OMP_NUM_THREADS": "",
@@ -56,34 +56,34 @@
   "warning_count": 7,
   "schema_version": 1,
   "message": "Native non-spatial fit saved; inspect convergence before interpretation.",
-  "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
+  "reference": "https://github.com/AlexDiana/occJSDM/blob/d200b768f7ebef230b657ee8af2773779059905f/vignettes/occJSDM-00-quickstart.Rmd",
   "artifacts": [
     {
       "kind": "log",
       "description": "Captured native R console output",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-2ed1fad0edb041c48809c67df0bd7b9a/stdout.log",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-c18df6b323b74bbb91b2905030433115/stdout.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "kind": "log",
       "description": "Captured native R startup diagnostics",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-2ed1fad0edb041c48809c67df0bd7b9a/stderr.log",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-c18df6b323b74bbb91b2905030433115/stderr.log",
       "sha256": "28959c06c715342327d26ffc7a2622e90d09a8846229c16887bd19e3b807cb42"
     },
     {
       "kind": "fit",
       "description": "Native occJSDM fit, reload with readRDS",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-2ed1fad0edb041c48809c67df0bd7b9a/fit.rds",
-      "sha256": "1ba55e9ce78d6463e0ce8fc0fb0c5e094a625afa41005f2e4a97039acefb3a95"
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-c18df6b323b74bbb91b2905030433115/fit.rds",
+      "sha256": "6a211d1289342755bd940838f181fcec3332decd7cebd36abeee6ff0d14665ab"
     },
     {
       "kind": "manifest",
       "description": "Fit provenance and effective settings",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/fit_model-2ed1fad0edb041c48809c67df0bd7b9a/manifest.json",
-      "sha256": "6339938a17ab4d3061797af946c5903e92aa6acbe3ab142e717250bf846f758e"
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/fit_model-c18df6b323b74bbb91b2905030433115/manifest.json",
+      "sha256": "eae166c027f9f03f4727a93eaa3c1426c594f17dae3ec8b1e5cb8c8f8cce5e10"
     }
   ],
-  "fit_id": "fit_f48bd85f6fc3439382135b5c4d32e5a5",
+  "fit_id": "fit_4d659649dc8f4d7e8e997c602c00aa56",
   "settings": {
     "occCovariates": [
       "habitat_changed"
