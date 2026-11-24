@@ -53,6 +53,14 @@ K2 <- function(x1, x2, a, l) {
     .Call(`_occJSDM_K2`, x1, x2, a, l)
 }
 
+samplePGvariables_parallel <- function(Xbeta) {
+    .Call(`_occJSDM_samplePGvariables_parallel`, Xbeta)
+}
+
+samplePGvariables_count_parallel <- function(Xbeta, b_mat) {
+    .Call(`_occJSDM_samplePGvariables_count_parallel`, Xbeta, b_mat)
+}
+
 computeNewOutputs <- function(X, B0_output, B_output, Ks_all, Bs_output, L_output, sigmah_output, idx_ls_output, conflevels, useEnvCov, useSpatial, useBiotic, model, verbose) {
     .Call(`_occJSDM_computeNewOutputs`, X, B0_output, B_output, Ks_all, Bs_output, L_output, sigmah_output, idx_ls_output, conflevels, useEnvCov, useSpatial, useBiotic, model, verbose)
 }
