@@ -247,7 +247,7 @@ inferDataModel <- function(data){
 
   message("Check your data if this is not what you were expecting!")
 
-
+  if(model == "counts") stop("Counts model not supported yet :(")
 
   model
 
@@ -1192,7 +1192,6 @@ runOccJSDM <- function(data,
       U_output  <- array(NA, dim = c(n, d, niter, nchain))
       L_output  <- array(NA, dim = c(d, S, niter, nchain))
       tau_output <- array(NA, dim = c(S, niter, nchain))
-      if(model == "counts") rnb_output <- array(NA, dim = c(S, niter, nchain))
       sigmab_output <- array(NA, dim = c(niter, nchain))
       sigmabs_output <- array(NA, dim = c(niter, nchain))
       sigmah_output <- array(NA, dim = c(niter, nchain))
@@ -1285,7 +1284,6 @@ runOccJSDM <- function(data,
         idx_ls_output[,chain] <- dr$idx_ls
         varPart_output[,,,chain] <- dr$varPart
         tau_output[,,chain] <- dr$tau
-        if(model == "counts") rnb_output[,,chain] <- dr$rnb
         if (!is.null(mu_b0_output)) mu_b0_output[,chain] <- dr$mu_b0
       }
 
@@ -1381,8 +1379,7 @@ runOccJSDM <- function(data,
     "sigmah_output" = sigmah_output,
     "idx_ls_output" = idx_ls_output,
     "varPart_output" = varPart_output,
-    "tau_output" = tau_output,
-    "rnb_output" = if(model=="counts") rnb_output else NULL,
+    "tau_output" = tau_output
   )
   # Present only when b0_prior = "community", so fixed-prior fits keep their shape.
   jsdm_results_output$mu_b0_output <- mu_b0_output

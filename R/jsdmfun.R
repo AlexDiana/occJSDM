@@ -772,7 +772,7 @@ simulateData <- function(
       })
     }))
 
-  } else if (model == "counts"){
+  } else if (model == "count"){
 
     mu <- exp(eta)
 
@@ -1240,24 +1240,6 @@ sample_ls <- function(logweights) {
   sample.int(length(logweights),1L,prob=exp(logweights-max(logweights)))
 }
 
-sample_rnb <- function(z, eta, rnb, prior_shape = 0.01, prior_rate = 0.01, tune_sd = 1){
-  n <- nrow(z)
-  S <- ncol(z)
-  mu <- exp(eta)
-  rnb_new <- sapply(1:S, function(s){
-    r_current <- rnb[s]
-    r_star <- max(1, round(exp(rnorm(1, mean = log(r_current), sd = tune_sd))))
-    ll_star <- sum(dnbinom(z[,s], size = r_star, mu = mu[,s], log = TRUE))
-    ll_current <- sum(dnbinom(z[,s], size = r_current, mu = mu[,s], log = TRUE))
-    lp_star <- dgamma(r_star, shape = prior_shape, rate = prior_rate, log = TRUE)
-    lp_current <- dgamma(r_current, shape = prior_shape, rate = prior_rate, log = TRUE)
-    jacobian <- log(r_star) - log(r_current)
-    log_alpha <- (ll_star - ll_current) + (lp_star - lp_current) + jacobian
-    if (log(runif(1)) < log_alpha) return(r_star) else return(r_current)
-  })
-  rnb_new
-}
-
 update_jSDMcoef <- function(list_data,
                             list_params,
                             list_priors,
@@ -1293,7 +1275,6 @@ update_jSDMcoef <- function(list_data,
     sigma_h <- list_params$sigma_h
     idx_ls <- list_params$idx_ls
     tau <- list_params$tau
-    rnb <- list_params$rnb
     mu_b0 <- list_params$mu_b0
 
     l_s <- list_SoRSummaries$l_s_grid[idx_ls]
@@ -1331,8 +1312,8 @@ update_jSDMcoef <- function(list_data,
     k <- z
   } else if(model == "binary"){
     k <- z - .5
-  } else if(model == "counts"){
-
+  } else if(model == "count"){
+    # k <- k / w
   }
 
   # compute linear predictor
@@ -1361,11 +1342,6 @@ update_jSDMcoef <- function(list_data,
   } else if(model == "binary"){
     Omega <- samplePGvariables_parallel(psiCoef)
     # Omega <- samplePGvariables(psiCoef)
-  } else if(model == "counts"){
-    rnb_mat <- matrix(rnb, nrow(z), ncol(z), byrow = TRUE)
-    b_mat <- z + rnb_mat
-    Omega <- samplePGvariables_count_parallel(psiCoef - log(rnb_mat), b_mat)
-    k <- (z - rnb_mat) / 2 + Omega * log(rnb_mat)
   }
 
   # Choose range after integrating the coefficient block, then immediately
@@ -1489,9 +1465,6 @@ update_jSDMcoef <- function(list_data,
 
   # output params
 
-  if(model == "counts") {
-    rnb <- sample_rnb(z, psiCoef, rnb)
-  }
   list_params <- list(
    "B0" = B0,
    "B" = B,
@@ -1511,7 +1484,6 @@ update_jSDMcoef <- function(list_data,
    "sigma_h" = sigma_h,
    "idx_ls" = idx_ls,
    "tau" = tau,
-   "rnb" = rnb,
    "mu_b0" = mu_b0,
    "eta" = eta,
    "psi" = psi,
@@ -1754,7 +1726,7 @@ SD <- function(eta, model) {
   } else if (model == "binary"){
     # apply(logistic(eta), 2, sd)
     fast_sd(logistic(eta))
-  } else if (model == "counts"){
+  } else if (model == "count"){
     # apply(exp(eta), 2, sd)
     fast_sd(exp(eta))
   } else {

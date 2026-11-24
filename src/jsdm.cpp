@@ -353,39 +353,6 @@ struct PG_Worker : public RcppParallel::Worker {
 // [[Rcpp::export]]
 arma::mat samplePGvariables_parallel(const arma::mat& Xbeta) {
 
-// Helper structure for parallel PG variables (counts)
-struct PG_Count_Worker : public RcppParallel::Worker {
-  const double* Xbeta_ptr;
-  const double* b_ptr;
-  double* Omega_ptr;
-
-  PG_Count_Worker(const double* Xbeta_ptr, const double* b_ptr, double* Omega_ptr)
-    : Xbeta_ptr(Xbeta_ptr), b_ptr(b_ptr), Omega_ptr(Omega_ptr) {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    for (std::size_t k = begin; k < end; ++k) {
-      Omega_ptr[k] = rpg((int)std::round(b_ptr[k]), Xbeta_ptr[k]);
-    }
-  }
-};
-
-// [[Rcpp::export]]
-arma::mat samplePGvariables_count_parallel(const arma::mat& Xbeta, const arma::mat& b_mat) {
-  arma::mat Omega_mat(Xbeta.n_rows, Xbeta.n_cols);
-  std::size_t n_elem = Xbeta.n_elem;
-
-  if (n_elem > 0) {
-    const double* Xbeta_ptr = Xbeta.memptr();
-    const double* b_ptr = b_mat.memptr();
-    double* Omega_ptr = Omega_mat.memptr();
-
-    PG_Count_Worker worker(Xbeta_ptr, b_ptr, Omega_ptr);
-    RcppParallel::parallelFor(0, n_elem, worker);
-  }
-
-  return Omega_mat;
-}
-
   // Allocate the output matrix with the exact same dimensions
   arma::mat Omega_mat(Xbeta.n_rows, Xbeta.n_cols);
 
