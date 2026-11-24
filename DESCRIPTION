@@ -1,7 +1,7 @@
 Package: occJSDM
 Type: Package
 Title: Simultaneous Fitting of an eDNA-Aware Occupancy and Joint Species Distribution Model
-Version: 0.3.0
+Version: 0.3.2
 Authors@R: c(
     person(
       "Alex", "Diana",
@@ -61,8 +61,7 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
-Config/roxygen2/version: 8.0.0
-RoxygenNote: 8.0.0
+Config/roxygen2/version: 8.1.0
 Config/testthat/edition: 3
 Depends: 
     R (>= 4.1.0)

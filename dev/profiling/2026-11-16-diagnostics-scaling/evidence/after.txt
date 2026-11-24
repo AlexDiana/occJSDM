@@ -1,0 +1,68 @@
+=== after: 2026-11-16 17:19:05 WITA ===
+lowpowermode:  lowpowermode 0
+power source: Now drawing from 'AC Power'
+machine: Apple M4, 32 GB, macOS 27.2.1
+R: R version 4.6.1 (2026-06-24) -- "Happy Hop"
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lib: <scratch>/lib-after
+--- after n_params=300 ---
+RESULT label=after occJSDM=0.3.0 n_params=300 niter=5000 nchain=2 elapsed_s=0.11 user_s=0.11 input_mb=23 heap_peak_mb=3 footprint_base_mb=152
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 300)
+--------------------------------------------------
+  R-hat | Max:    1.005 | Mean:   1.001
+  ESS   | Min:   2948.7 | Mean:  3350.2
+
+==================================================
+WARNINGS
+(none)
+        5.88 real         5.10 user         0.18 sys
+           175046656  maximum resident set size
+           159400800  peak memory footprint
+--- after n_params=3000 ---
+RESULT label=after occJSDM=0.3.0 n_params=3000 niter=5000 nchain=2 elapsed_s=0.97 user_s=0.92 input_mb=229 heap_peak_mb=6 footprint_base_mb=380
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 3000)
+--------------------------------------------------
+  R-hat | Max:    1.008 | Mean:   1.001
+  ESS   | Min:   2814.1 | Mean:  3348.5
+
+==================================================
+WARNINGS
+(none)
+        7.78 real         7.12 user         0.23 sys
+           415318016  maximum resident set size
+           399787016  peak memory footprint
+--- after n_params=6000 ---
+RESULT label=after occJSDM=0.3.0 n_params=6000 niter=5000 nchain=2 elapsed_s=2.00 user_s=1.90 input_mb=458 heap_peak_mb=8 footprint_base_mb=629
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 6000)
+--------------------------------------------------
+  R-hat | Max:    1.006 | Mean:   1.001
+  ESS   | Min:   2713.6 | Mean:  3344.4
+
+==================================================
+WARNINGS
+(none)
+       10.49 real         9.70 user         0.31 sys
+           674594816  maximum resident set size
+           659195080  peak memory footprint
+--- after n_params=12500 ---
+RESULT label=after occJSDM=0.3.0 n_params=12500 niter=5000 nchain=2 elapsed_s=4.26 user_s=4.08 input_mb=954 heap_peak_mb=13 footprint_base_mb=1190
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 12500)
+--------------------------------------------------
+  R-hat | Max:    1.009 | Mean:   1.001
+  ESS   | Min:   2547.4 | Mean:  3348.1
+
+==================================================
+WARNINGS
+(none)
+       15.84 real        14.74 user         0.43 sys
+          1262764032  maximum resident set size
+          1247626824  peak memory footprint
+

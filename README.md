@@ -1,6 +1,8 @@
 # occJSDM
 
-An R package for fitting a combined occupancy and joint species distribution model (occJSDM), optionally accounting for environmental and detection covariates, species traits, spatial autocorrelation, and for eDNA-style data, a two-stage observation process (false-negative and false-positive detection errors in the field and in the lab).
+An R package for fitting a combined occupancy and joint species distribution model (**occJSDM**), optionally accounting for environmental and detection covariates, species traits, and for eDNA-style data, a two-stage observation process (false-negative and false-positive detection errors in the field and in the lab).
+
+**occJSDM** is the follow-on to **occPlus**.
 
 #### **N.B. This is [beta software](https://github.com/AlexDiana/occJSDM/releases), and we are still in bugfixing mode.** 
 
@@ -34,9 +36,13 @@ Results under different BLAS libraries agree to rounding error, not bit for bit,
 
 **Parallel chains.** To run chains on separate cores, set `ncores` in `MCMCparams`, for example `MCMCparams = list(nchain = 4, ncores = 4)`. `ncores` is the total core budget: four chains with `ncores = 4` run on four single-threaded workers, and `ncores = 8` gives each of the four workers two threads. The default, `ncores = 1`, runs the chains one after another. Every chain is seeded on its own, so under a single-threaded BLAS a seeded fit is identical whatever `ncores` says. For the same reason, and because the spatial Gram matrices are now formed with a symmetric BLAS routine, a seeded fit gives different numbers from version 0.1.1. See `?runOccJSDM`.
 
-## Getting started
+### Quickstart lesson
 
-The [quickstart](vignettes/occJSDM-00-quickstart.md) takes you from the input data through fitting and convergence checks to every main result, as figures and tables. The simulator guide shows how to simulate a survey whose truth you know. After installing with vignettes, open them in R:
+The [Quickstart](vignettes/occJSDM-00-quickstart.md) takes you from the input data through fitting and convergence checks to every main result, as figures and tables. 
+
+The [Simulator guide](vignettes/simulateOccJSDMData.Rmd) shows how to simulate a survey whose truth you know. 
+
+After installing occJSDM with vignettes, open them in R:
 
 ``` r
 vignette("occJSDM-00-quickstart", package = "occJSDM")
@@ -45,18 +51,16 @@ vignette("simulateOccJSDMData", package = "occJSDM")
 
 ### Teaching lessons
 
-The quickstart shows how to use occJSDM's functions on one example survey. The lessons go further. Lesson 1 explains what the model does, and the others test how well it works: they fit it to simulated surveys whose truth is known, then compare its answers with that truth and with other packages. Each lesson answers the question listed with it below. They live in the repository (not in the installed package) and are read in this order: Lesson 1, then 2 and 3, with the rest as needed.
+The seven Lessons go into occJSDM's functions and theory in detail. (Lessons 0 and 1 have been reviewed line by line; Lessons 2 to 7 are first drafts awaiting review.)
 
-Each lesson studies one simulated survey or one small set of them, so treat its results as illustrations, not as evidence that the model is unbiased in general. Lessons 0 and 1 have been reviewed line by line; Lessons 2 to 7 are first drafts awaiting that review.
-
-- [Lesson 0 (optional): create and explore a simulated survey](vignettes/occJSDM-lesson-0.md). Where does the simulated survey that Lessons 2 to 4 analyse come from, and how can you simulate your own?
+- [Lesson 0 (optional): create and explore a simulated survey](vignettes/occJSDM-lesson-0.md). Where does the simulated survey that Lessons 2 to 4 analyse come from, and how can you simulate your own dataset?
 - [Lesson 1: what occupancy models and joint species distribution models do](vignettes/occJSDM-lesson-1.md). If a survey did not detect a species, was it absent or missed? And what does modelling all the species together add? Worked mostly by hand.
 - [Lesson 2: fit the model and compare its answers with truth](vignettes/occJSDM-lesson-2.md). How closely does occJSDM recover occupancy, what does detection error cost, and when does it wrongly believe or dismiss a positive detection?
-- [Lesson 3: understand the model's outputs by comparing them with truth](vignettes/occJSDM-lesson-3.md). How far can each of the outputs that the quickstart draws be trusted?
-- [Lesson 4: predict occupancy at new sites and compare models](vignettes/occJSDM-lesson-4.md). How well does occJSDM predict occupancy at sites it has never seen, and can those predictions, or WAIC, tell two models apart?
+- [Lesson 3: understand the model's outputs by comparing them with truth](vignettes/occJSDM-lesson-3.md). How far can each of occJSDM's outputs be trusted?
+- [Lesson 4: predict occupancy at new sites and compare models](vignettes/occJSDM-lesson-4.md). How well does occJSDM predict occupancy at sites it has never seen, and can WAIC tell two models apart?
 - [Lesson 5: compare four JSDMs with a community whose truth we know](vignettes/occJSDM-lesson-5.md). Does occJSDM's joint species distribution model do as well as gllvm, sjSDM and Hmsc when all four are given the same perfectly observed community?
-- [Lesson 6: repeat the four-JSDM comparison across ten communities, with traits](vignettes/occJSDM-lesson-6.md). Does that comparison hold up across ten communities, and are each package's estimates biased and its intervals trustworthy?
-- [Lesson 7: spatial landscapes and survey design](vignettes/occJSDM-lesson-7.md). With 100 sites, how should they be placed if the spatial field is to be learned at all, and why does the beta recommend leaving it out?
+- [Lesson 6: repeat the four-JSDM comparison across ten communities, with traits](vignettes/occJSDM-lesson-6.md). Does that comparison hold up across ten communities?
+- [Lesson 7: spatial landscapes and survey design](vignettes/occJSDM-lesson-7.md). With 100 sites, how should they be placed if a spatial field is to be learned, and why does the beta recommend currently recommend not using the spatial field function?
 
 ### Working with posterior draws
 
@@ -64,12 +68,13 @@ Each lesson studies one simulated survey or one small set of them, so treat its 
 
 ### Optional assistant (MCP) pilot
 
-An optional pilot exposes four tools (`validate_data`, `fit_model`, `diagnostics` and `summarise_fit`) to AI assistants through an MCP server. It is not needed to use the package. Since 5 November 2026 it pins occJSDM 0.3.0 (`v0.3.0-beta`); its short example fits are for testing execution rather than inference. Cloning this repository does not install it: follow the [installation guide](mcp/INSTALL.md) for your own Mac or Posit Cloud, and see the [pilot guide](mcp/README.md) for what it does and what has been tested.
+An optional pilot exposes four tools (`validate_data`, `fit_model`, `diagnostics` and `summarise_fit`) to AI assistants through an MCP server. It is not needed to use the package. Since 16 November 2026 it pins occJSDM 0.3.2 (`v0.3.2-beta`); its short example fits are for testing execution rather than inference. Cloning this repository does not install it: follow the [installation guide](mcp/INSTALL.md) for your own Mac or Posit Cloud, and see the [pilot guide](mcp/README.md) for what it does and what has been tested.
 
 ## Known limitations
 
 occJSDM is beta software and validation is still in progress. These limitations come from simulation studies of particular designs, so treat the numbers as examples rather than as the errors to expect in your own survey.
 
+- **Earlier betas misplaced covariates in fits with one row per site; update and refit.** Up to version 0.3.0, a fit with one row per site (binary or continuous data) attached the occupancy covariates and coordinates to the wrong sites whenever the `Site` column was not in sorted order, for example `FHT1`, `FHT2`, ..., `FHT10`. Version 0.3.1 fixes this. Refit any such model with 0.3.1 or later. Fits with no `Site` column or with `Site` already sorted, and all occupancy and two-stage (eDNA) fits, were not affected. See [NEWS.md](NEWS.md).
 - **The contamination priors assume careful field and laboratory practice.** The default priors favour low probabilities of field and laboratory contamination. High-contamination simulations deliberately challenge that assumption. Poor recovery in those scenarios documents sensitivity to a mismatch with the priors; it does not, by itself, establish a model or sampler defect. For a survey with substantial contamination, assess whether these priors are appropriate and check for disagreement between chains before interpreting pooled estimates. Under heavy contamination one species' chains can settle in a stable mirror-image explanation of the data (field contamination and real DNA swapped) that a single chain cannot reveal, and how often this happens is not known; see [When chains settle on two different explanations](vignettes/occJSDM-lesson-3.md#when-chains-settle-on-two-different-explanations) in Lesson 3. See the [stress-test interpretation](dev/simstudy/interval-calibration/REPORT.md).
 - **Occupancy probabilities are pulled towards the middle.** Low probabilities are estimated too high and high ones too low. The bias is strongest with limited replication, and it appears even when the overall average is close to the truth. Under the fixed intercept prior (`b0_prior = "fixed"`, the default before 0.3.0), in non-spatial two-stage (eDNA) simulations at 100 sites (two field samples per site, six PCR replicates per primer), true probabilities below 20% were overestimated on average by about 17 to 20 percentage points and those above 80% underestimated by about 20 to 25, depending on contamination; more field samples or sites reduced this without removing it, and perfect presence/absence data still left about 10 points at both extremes. See the [current-code comparison](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/current-main-recheck/REPORT.md) and its [summary table](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/current-main-recheck/results/paired-summary.csv). The community-mean prior, now the default, removes most of the overestimation of a community in which most species are rare, but not the pull towards the middle. In spatial two-stage simulations with 100 sites, 10 species, 2 field samples per site and 3 PCR replicates per field sample, such a community's average occupancy was overestimated by 17 points under the fixed prior and underestimated by 5 under the community mean. The slope of estimated on true occupancy, which would be 1 with no pull, was 0.52 under the community mean against 0.27 under the fixed prior, and 0.50 against 0.44 in an ordinary community. More field samples per site reduce the pull: with the community mean the slope reached 0.85 at 10 field samples per site and 0.94 to 0.95 at 20, in both communities. See the [field-sample ladder report](https://github.com/AlexDiana/occJSDM/blob/archive/community-mean-ladder/dev/simstudy/community-mean-ladder-20261016/REPORT.md).
 - **Widening the occupancy-baseline prior is not a general fix.** The experimental `listPriors$sigma_b0` option sets the prior standard deviation (SD) of each species' baseline occupancy on the logit scale; the default is 1 and larger values widen the prior. In simulations, SD 2, 3 and 5 reduced the overestimation of low probabilities, clearly in spatial binary presence/absence fits, slightly in non-spatial binary fits and by up to about 3 points in two-stage (eDNA) fits. In two-stage fits, however, they made the MCMC chains mix worse and increased the bias of probabilities between 20% and 80%, by under a point at SD 2 and by more at 3 and 5, so the default is unchanged. Occupancy-only and continuous fits were not tested. See the [study report](https://github.com/AlexDiana/occJSDM/blob/main/dev/simstudy/occupancy-intercept-prior/REPORT.md) and `?runOccJSDM`.
@@ -92,6 +97,6 @@ If you use `occJSDM`, please cite the methods paper describing the underlying tw
 
 **Software (secondary citation):**
 
-> Diana, A., & Yu, D. W. (2026). occJSDM: Occupancy Joint Species Distribution Models (Version 0.3.0) [Computer software]. <https://github.com/AlexDiana/occJSDM>
+> Diana, A., & Yu, D. W. (2026). occJSDM: Occupancy Joint Species Distribution Models (Version 0.3.2) [Computer software]. <https://github.com/AlexDiana/occJSDM>
 
 A machine-readable citation is also available in [`CITATION.cff`](CITATION.cff) -- GitHub uses this to populate the "Cite this repository" button in the sidebar of the repo page.

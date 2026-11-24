@@ -6,7 +6,7 @@ Sys.setenv(P2A_R_PROJECT=normalizePath(a[3]));source(file.path(a[3],'activate.R'
 suppressPackageStartupMessages(library(occJSDM));suppressPackageStartupMessages(library(jsonlite))
 stopifnot(startsWith(normalizePath(find.package('occJSDM')),paste0(normalizePath(a[3]),'/')))
 sha <- unique(as.character(stats::na.omit(read.dcf(file.path(find.package('occJSDM'),'DESCRIPTION'),fields='RemoteSha')[,'RemoteSha'])))
-stopifnot(identical(sha,'5cba0db2d78d23f2f7985fcf12d61cd6121ff05e'))
+stopifnot(identical(sha,'d200b768f7ebef230b657ee8af2773779059905f'))
 prior <- if(file.exists(a[2]))basename(unlist(read_json(a[2]),use.names=FALSE)) else character()
 if(!file.exists(a[2]) && !is.finite(cutoff))stop('Second argument must be a prior call-directory JSON array or finite Unix cutoff')
 specs <- read_json(file.path(out,'independent_inputs.json'),simplifyVector=FALSE)

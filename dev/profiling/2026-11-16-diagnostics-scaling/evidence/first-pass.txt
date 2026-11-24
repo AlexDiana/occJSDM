@@ -1,0 +1,131 @@
+First pass, 16 November 2026, kept to show run-to-run variation. Made with the first revision of bench-diagnostics.R and run-bench.sh, which reported rss_base_mb (resident set size before the call) where the final one reports footprint_base_mb, and did not collect garbage while building the draws, so the process peaks of the 'after' runs include up to 0.6 GB of garbage from building the block. The draws, and so the printed summaries, are the same. 'after' here is commit 0d81436; the final runs in after.txt are d644362, which differs only for chains of one draw. The machine was quieter than during the final pass.
+
+=== before: 2026-11-16 16:34:35 WITA ===
+lowpowermode:  lowpowermode 0
+power source: Now drawing from 'AC Power'
+machine: Apple M4, 32 GB, macOS 27.2.1
+R: R version 4.6.1 (2026-06-24) -- "Happy Hop"
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lib: <scratch>/lib-before
+--- before n_params=300 ---
+RESULT label=before occJSDM=0.3.0 n_params=300 niter=5000 nchain=2 elapsed_s=1.31 user_s=1.26 input_mb=23 heap_peak_mb=225 rss_base_mb=195
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 300)
+--------------------------------------------------
+  R-hat | Max:    1.005 | Mean:   1.001
+  ESS   | Min:   2948.7 | Mean:  3350.2
+
+==================================================
+WARNINGS
+(none)
+        2.58 real         1.92 user         0.10 sys
+           539803648  maximum resident set size
+           524010576  peak memory footprint
+--- before n_params=3000 ---
+RESULT label=before occJSDM=0.3.0 n_params=3000 niter=5000 nchain=2 elapsed_s=77.38 user_s=74.34 input_mb=229 heap_peak_mb=2719 rss_base_mb=448
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 3000)
+--------------------------------------------------
+  R-hat | Max:    1.008 | Mean:   1.001
+  ESS   | Min:   2814.1 | Mean:  3348.5
+
+==================================================
+WARNINGS
+(none)
+       78.85 real        75.60 user         1.49 sys
+          3477553152  maximum resident set size
+          3615591736  peak memory footprint
+
+=== before: 2026-11-16 16:36:35 WITA ===
+lowpowermode:  lowpowermode 0
+power source: Now drawing from 'AC Power'
+machine: Apple M4, 32 GB, macOS 27.2.1
+R: R version 4.6.1 (2026-06-24) -- "Happy Hop"
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lib: <scratch>/lib-before
+--- before n_params=6000 ---
+RESULT label=before occJSDM=0.3.0 n_params=6000 niter=5000 nchain=2 elapsed_s=423.06 user_s=399.05 input_mb=458 heap_peak_mb=8571 rss_base_mb=909
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 6000)
+--------------------------------------------------
+  R-hat | Max:    1.006 | Mean:   1.001
+  ESS   | Min:   2713.6 | Mean:  3344.4
+
+==================================================
+WARNINGS
+(none)
+      429.18 real       403.79 user         9.59 sys
+          6721306624  maximum resident set size
+         11051541216  peak memory footprint
+--- before n_params=12500 ---
+=== after: 2026-11-16 16:52:13 WITA ===
+lowpowermode:  lowpowermode 0
+power source: Now drawing from 'AC Power'
+machine: Apple M4, 32 GB, macOS 27.2.1
+R: R version 4.6.1 (2026-06-24) -- "Happy Hop"
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+lib: <scratch>/lib-after
+--- after n_params=300 ---
+RESULT label=after occJSDM=0.3.0 n_params=300 niter=5000 nchain=2 elapsed_s=0.08 user_s=0.08 input_mb=23 heap_peak_mb=3 rss_base_mb=198
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 300)
+--------------------------------------------------
+  R-hat | Max:    1.005 | Mean:   1.001
+  ESS   | Min:   2948.7 | Mean:  3350.2
+
+==================================================
+WARNINGS
+(none)
+        2.15 real         1.34 user         0.13 sys
+           207880192  maximum resident set size
+           192414536  peak memory footprint
+--- after n_params=3000 ---
+RESULT label=after occJSDM=0.3.0 n_params=3000 niter=5000 nchain=2 elapsed_s=0.83 user_s=0.81 input_mb=229 heap_peak_mb=6 rss_base_mb=441
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 3000)
+--------------------------------------------------
+  R-hat | Max:    1.008 | Mean:   1.001
+  ESS   | Min:   2814.1 | Mean:  3348.5
+
+==================================================
+WARNINGS
+(none)
+        3.32 real         3.06 user         0.18 sys
+           463093760  maximum resident set size
+           447792184  peak memory footprint
+--- after n_params=6000 ---
+RESULT label=after occJSDM=0.3.0 n_params=6000 niter=5000 nchain=2 elapsed_s=1.70 user_s=1.65 input_mb=458 heap_peak_mb=8 rss_base_mb=865
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 6000)
+--------------------------------------------------
+  R-hat | Max:    1.006 | Mean:   1.001
+  ESS   | Min:   2713.6 | Mean:  3344.4
+
+==================================================
+WARNINGS
+(none)
+        5.86 real         5.35 user         0.33 sys
+           907493376  maximum resident set size
+           892405104  peak memory footprint
+--- after n_params=12500 ---
+RESULT label=after occJSDM=0.3.0 n_params=12500 niter=5000 nchain=2 elapsed_s=3.45 user_s=3.35 input_mb=954 heap_peak_mb=13 rss_base_mb=1702
+PRINTED SUMMARY
+
+Parameter Set: B0 (Flattened N = 12500)
+--------------------------------------------------
+  R-hat | Max:    1.009 | Mean:   1.001
+  ESS   | Min:   2547.4 | Mean:  3348.1
+
+==================================================
+WARNINGS
+(none)
+       10.39 real         9.60 user         0.53 sys
+          1784283136  maximum resident set size
+          1769637808  peak memory footprint
+

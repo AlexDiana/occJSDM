@@ -8,7 +8,7 @@
 
 **Architecture:** The verifiers compare the source hashes recorded when the fits were made with `lesson_source_hashes()` on the current tree. A new helper in `dev/simstudy/vignette-lesson/helpers.R` replaces those `identical()` checks: for each R file whose raw md5 differs, it finds the recorded version in git history, parses both versions, and compares them function by function with comments dropped; differences are allowed only in a declared list of plot-only functions. The archive's package library is reinstalled from current main (the old one kept), and every bundle that records the library's files is re-exported from the existing fits. Lessons 2, 5, 6 and 7 draw their figures live, so their colours change in the lesson code alone.
 
-**Tech Stack:** R 4.5, rmarkdown, knitr, ggplot2, testthat, git; the full-fit archive at `/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples`.
+**Tech Stack:** R 4.5, rmarkdown, knitr, ggplot2, testthat, git; the full-fit archive at `/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples`.
 
 **Spec:** Doug's decisions of 4 October 2026: verifiers may ignore comment lines; for #23's plot-only code changes, use a function-level fingerprint with a named allowlist and re-export the figure bundles from the existing fits (no refitting); drop Lesson 3's manual colour scales; colour-blind fixes for Lessons 2, 5, 6 and 7. Writing rules for lesson prose: `dev/simstudy/vignette-lesson/LESSON-STYLE-SPEC.md`, "The reader" and "The criteria, applied".
 
@@ -25,7 +25,7 @@
 - Commit messages end with a blank line and `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`, exactly, whatever model writes them.
 - Markdown rules from `/Users/douglasyu/src/occJSDM/CLAUDE.md`: one line per paragraph; no em-dashes anywhere (code comments and commit messages included; use `--`); no pipe tables; escape a literal `>` `<` `~` `|` in prose, never inside code; re-read a file before and after editing it.
 - Shell is zsh: `/usr/bin/grep`, `/bin/ls`.
-- Step runner: `zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-VERIFY-PLAN/run-step.zsh STEP command args` (sets `R_LIBS` to the archive library, runs from the worktree, logs to the archive's `logs/` and `BUILD-LOG.md`). Step names start with `v` and are new.
+- Step runner: `zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-VERIFY-PLAN/run-step.zsh STEP command args` (sets `R_LIBS` to the archive library, runs from the worktree, logs to the archive's `logs/` and `BUILD-LOG.md`). Step names start with `v` and are new.
 - Render commands, from the worktree root:
 
 ```sh
@@ -33,8 +33,8 @@ Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);libr
 Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);library(ggplot2)}); rmarkdown::render("vignettes/<stem>.Rmd", output_format="rmarkdown::html_vignette")'
 ```
 
-- PNG policy: keep a changed PNG only when its chunk or its exported figure changed on purpose; restore render noise (`vignettes/occJSDM-lesson-0_files/figure-gfm/environmental-maps-1.png`, `vignettes/occJSDM-lesson-2_files/figure-gfm/probability-and-state-1.png`, `vignettes/occJSDM-lesson-3_files/figure-gfm/mirror-labelling-chains-1.png`, `vignettes/occJSDM-lesson-3_files/figure-gfm/trait-cancellation-1.png`) with `git checkout --`. Use `zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-VERIFY-PLAN/revert-unchanged-png.zsh PATHSPEC` to revert pixel-identical PNGs.
-- Checks at the end of every task: `Rscript dev/simstudy/vignette-lesson/test_lesson_links.R`; `node --test dev/simstudy/lesson-site/test_lessons.js`; `Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM-lesson-[0-7].md vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md`; em-dash counts on `git diff 471611b` and on `git log 471611b..HEAD --format=%B` are 0.
+- PNG policy: keep a changed PNG only when its chunk or its exported figure changed on purpose; restore render noise (`vignettes/occJSDM-lesson-0_files/figure-gfm/environmental-maps-1.png`, `vignettes/occJSDM-lesson-2_files/figure-gfm/probability-and-state-1.png`, `vignettes/occJSDM-lesson-3_files/figure-gfm/mirror-labelling-chains-1.png`, `vignettes/occJSDM-lesson-3_files/figure-gfm/trait-cancellation-1.png`) with `git checkout --`. Use `zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-VERIFY-PLAN/revert-unchanged-png.zsh PATHSPEC` to revert pixel-identical PNGs.
+- Checks at the end of every task: `Rscript dev/simstudy/vignette-lesson/test_lesson_links.R`; `node --test dev/simstudy/lesson-site/test_lessons.js`; `Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM-lesson-[0-7].md vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md`; em-dash counts on `git diff 471611b` and on `git log 471611b..HEAD --format=%B` are 0.
 - Stop and report if: a fit would need refitting; a change to `R/` would be needed; a verifier fails for a reason this plan does not expect.
 
 ---
@@ -66,14 +66,14 @@ Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);libr
 - [ ] **Step 3: Drop Lesson 3's manual colour scales.** Remove the `scale_colour_manual()` lines Task 6 of the port added to `native-primer-1-example`, `native-primer-2-example`, `remaining-plots-stage2-fp` and `remaining-plots-detection`, identically in the snippets and in Lesson 3, so the package's own Okabe-Ito colours draw them. Keep the manual scale in `combine-rate-plots` only if the package no longer covers it (check); keep the invented figure's scale only if it is still needed (`plotDetectionRates()` now colours primers A, B, C in the same order, so it is probably redundant: remove it if the colours match). Remove any `message=FALSE` that only existed for the scale message.
 - [ ] **Step 4: Re-export.** Through the step runner, in dependency order: `export_native_plots.R`, `native-traits-export.R`, `ordination-export.R`, `remaining-plots-export.R`, `covariate-effect-export.R`, `prediction-export.R` (read each header for its arguments; `prediction-build.R` fits and is NOT run). Then every verifier: `verify_lesson.R`, `verify_outputs.R`, `verify_diagnostics.R`, `verify_latent_tables.R`, `verify_native_plots.R`, `native-traits-verify.R`, `ordination-verify.R`, `remaining-plots-verify.R`, `covariate-effect-verify.R`, `prediction-verify.R`, `unbalanced-verify.R`, `test_lesson.R`, `test_source_check.R`, `dev/simstudy/jsdm-package-comparison/verify-teaching.R archive dev/simstudy/jsdm-package-comparison`, `dev/simstudy/jsdm-package-comparison/extension/verify.R /Users/douglasyu/src/occJSDM/dev/simstudy/results/lesson-4-extension-20260923 .`, `dev/simstudy/spatial-design-sweep/verify-lesson.R .`. All exit 0. If a summary bundle (for example `output-lesson.rds`) must be rebuilt, rebuild it only with its existing summarise script and say why.
 - [ ] **Step 5: Compare.** Every fit md5 unchanged. Look at every re-exported PNG (Read tool) against its previous version: only the trace plots' chain colours (Okabe-Ito now) and nothing else may differ; colours in the four primer figures must be identical to before (the package now draws the same Okabe-Ito colours the manual scales did).
-- [ ] **Step 6: Render Lessons 3 and 4** (both commands), PNG policy, and confirm "Scale for colour is already present" no longer appears in `vignettes/occJSDM-lesson-3.md`. Update the controller's frozen-chunk tool if any chunk it pins changed (`/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-VERIFY-PLAN/check-frozen-chunks.R`).
+- [ ] **Step 6: Render Lessons 3 and 4** (both commands), PNG policy, and confirm "Scale for colour is already present" no longer appears in `vignettes/occJSDM-lesson-3.md`. Update the controller's frozen-chunk tool if any chunk it pins changed (`/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-VERIFY-PLAN/check-frozen-chunks.R`).
 - [ ] **Step 7: Commit** "Re-export the lesson figures with the package's Okabe-Ito colours".
 
 ### Task 3: Colour-blind-safe figures in Lessons 2, 5, 6 and 7
 
 **Files:** `vignettes/occJSDM-lesson-2.Rmd`, `-5.Rmd`, `-6.Rmd`, `-7.Rmd`, their `.md`, and their figures (Lessons 5 to 7 write to `vignettes/teaching-data/lesson-N-*`).
 
-The audit from the port (Task 6 report, `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-PORT-PLAN/task-6-report.md`): Lessons 2 and 7 use purple `#7B3294` beside Okabe-Ito blue and vermillion (Lesson 7's fit-recovery figure is most at risk); Lesson 5 uses a custom 4-colour palette, and its errors-by-species and two gradient figures rely on colour alone; Lesson 6 has six figures on ggplot2's default palette with 2 or 3 groups.
+The audit from the port (Task 6 report, `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-PORT-PLAN/task-6-report.md`): Lessons 2 and 7 use purple `#7B3294` beside Okabe-Ito blue and vermillion (Lesson 7's fit-recovery figure is most at risk); Lesson 5 uses a custom 4-colour palette, and its errors-by-species and two gradient figures rely on colour alone; Lesson 6 has six figures on ggplot2's default palette with 2 or 3 groups.
 
 - [ ] **Step 1:** Re-audit each lesson's figures (colour and fill aesthetics, manual values, defaults). Replace every categorical palette with Okabe-Ito in a consistent order (`#0072B2`, `#E69F00`, `#009E73`, `#CC79A7`, `#56B4E9`, `#D55E00`, `#F0E442`, `#000000`), keeping any meaning a lesson attaches to a colour consistent across that lesson. Where a figure relies on colour alone to separate groups that matter, also add a second cue (shape or linetype) if it fits without clutter. Continuous scales: use viridis if a scale is red-green; leave others.
 - [ ] **Step 2:** Before editing a chunk, check whether a verifier compares or runs it (`/usr/bin/grep` the chunk label in `dev/simstudy/`); if so, stop and report rather than edit it.
@@ -86,7 +86,7 @@ The audit from the port (Task 6 report, `/Users/douglasyu/src/occJSDM-worktrees/
 - [ ] Run every verifier and test from Task 2 Step 4 again, plus `Rscript -e 'devtools::test()'`. Confirm every archive fit md5 is unchanged and `git diff --stat 471611b -- R src DESCRIPTION NAMESPACE` is empty.
 - [ ] Update `vignettes/LESSON-PLAN.md` (dated log entry) and `TODO.md`. Remove or update any item this branch resolves, for example notes that the verifiers fail on main, and say in the log entry that the archive library was reinstalled and why.
 - [ ] Render HTML for Lessons 2 to 7 into `vignettes/` (gitignored).
-- [ ] Draft `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-VERIFY-PLAN/pr-body.md`. It covers:
+- [ ] Draft `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-VERIFY-PLAN/pr-body.md`. It covers:
   - the fingerprint design and the allow list;
   - that no fit changed;
   - the library reinstall;

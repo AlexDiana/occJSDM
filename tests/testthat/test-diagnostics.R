@@ -341,3 +341,285 @@ test_that("computeDiagnostics() warns on a block that has not converged", {
   out <- cached_diagnostics()
   expect_true(any(grepl("Convergence issue", out$warnings)))
 })
+
+# blockRhatESS() -----------------------------------------------------------
+#
+# computeDiagnostics() used to hand a whole parameter block to
+# coda::gelman.diag() and coda::effectiveSize(). Even with
+# multivariate = FALSE, gelman.diag() forms parameters-by-parameters
+# covariance matrices, so a block of a few thousand coefficients cost minutes
+# and gigabytes after the sampler had finished. blockRhatESS() computes the
+# same two statistics one parameter at a time. coda is the oracle throughout:
+# the contract is equality with what coda returned, to numerical tolerance,
+# including in the degenerate cases, not merely plausible values.
+
+# What computeDiagnostics() took from coda up to 0.3.0, for a block of shape
+# [n_params, niter, nchain].
+coda_block <- function(arr) {
+  d <- dim(arr)
+  chains <- coda::mcmc.list(lapply(seq_len(d[3L]), function(ch) {
+    coda::mcmc(t(matrix(arr[, , ch], nrow = d[1L], ncol = d[2L])))
+  }))
+  rhat <- if (d[3L] > 1L) {
+    coda::gelman.diag(chains, autoburnin = FALSE,
+                      multivariate = FALSE)$psrf[, 1L]
+  } else {
+    rep(NA_real_, d[1L])
+  }
+  list(rhat = unname(rhat), ess = unname(coda::effectiveSize(chains)))
+}
+
+block_rhat_ess <- function(arr) {
+  d <- dim(arr)
+  occJSDM:::blockRhatESS(arr, d[1L], d[2L], d[3L])
+}
+
+# Autocorrelated draws, one AR(1) coefficient per parameter, with each chain
+# started from its own offset so that R-hat is not trivially 1.
+ar1_block <- function(rho, niter = 200L, nchain = 2L, offset = 0.3,
+                      seed = 7L) {
+  set.seed(seed)
+  n_params <- length(rho)
+  arr <- array(stats::rnorm(n_params * niter * nchain),
+               dim = c(n_params, niter, nchain))
+  for (t in seq_len(niter)[-1L]) {
+    arr[, t, ] <- rho * arr[, t - 1L, ] + arr[, t, ]
+  }
+  arr + rep(offset * seq_len(nchain), each = n_params * niter)
+}
+
+expect_matches_coda <- function(arr, tolerance = 1e-8) {
+  new <- block_rhat_ess(arr)
+  old <- coda_block(arr)
+  expect_equal(new$rhat, old$rhat, tolerance = tolerance)
+  expect_equal(new$ess, old$ess, tolerance = tolerance)
+}
+
+test_that("blockRhatESS() equals coda on autocorrelated chains", {
+  # Positive, negative, near-zero and near-unit-root autocorrelation, so the
+  # AR order chosen for the spectral density ranges from 0 upwards.
+  expect_matches_coda(ar1_block(c(0, 0.3, 0.6, 0.9, 0.98, -0.5, -0.9),
+                                nchain = 3L))
+  expect_matches_coda(ar1_block(c(0.5, 0.8), niter = 5000L))
+})
+
+test_that("blockRhatESS() equals coda on a block of one parameter", {
+  # The scalar blocks (sigma-type parameters) arrive as [1, niter, nchain].
+  # The old code needed a matrix() guard to stop R dropping the dimension;
+  # this is the same boundary.
+  expect_matches_coda(ar1_block(0.4))
+})
+
+test_that("blockRhatESS() equals coda on short chains", {
+  # The tier-1 fixtures keep 20 draws per chain, and the AR order allowed for
+  # the spectral density is capped by the chain length, so short chains take
+  # a different branch from long ones.
+  for (niter in c(10L, 20L, 37L)) {
+    expect_matches_coda(ar1_block(c(0, 0.5, 0.9, -0.6), niter = niter,
+                                  nchain = 4L, seed = niter))
+  }
+})
+
+test_that("blockRhatESS() equals coda when one chain never moved", {
+  # A stuck chain alongside a moving one. coda gives the stuck chain no
+  # effective draws and a finite R-hat, and the summary line must not change.
+  arr <- ar1_block(c(0.2, 0.7))
+  arr[1L, , 1L] <- 0.25
+  expect_matches_coda(arr)
+  expect_equal(block_rhat_ess(arr)$ess[1L],
+               unname(coda::effectiveSize(coda::mcmc(arr[1L, , 2L]))),
+               tolerance = 1e-8)
+})
+
+test_that("blockRhatESS() equals coda when no chain moved", {
+  # Every chain stuck, at different values: between-chain variance with no
+  # within-chain variance. coda returns an infinite R-hat and zero effective
+  # draws. computeDiagnostics() reports the Inf and (because it is not finite)
+  # raises no warning, which is existing behaviour this must not alter.
+  arr <- ar1_block(c(0.2, 0.7))
+  arr[1L, , 1L] <- 0.25
+  arr[1L, , 2L] <- -0.5
+  expect_matches_coda(arr)
+  out <- block_rhat_ess(arr)
+  expect_identical(out$rhat[1L], Inf)
+  expect_identical(out$ess[1L], 0)
+})
+
+test_that("blockRhatESS() equals coda when the chains are copies of each other", {
+  # Chains run from one seed are identical, so every between-chain quantity is
+  # exactly zero and coda's degrees-of-freedom correction is 0/0. The NaN has
+  # to survive, because computeDiagnostics() drops it with na.rm = TRUE.
+  arr <- ar1_block(c(0.2, 0.7))
+  arr[, , 2L] <- arr[, , 1L]
+  expect_matches_coda(arr)
+  expect_true(all(is.nan(block_rhat_ess(arr)$rhat)))
+
+  # With three copies the mean of the chain means is only exactly a chain
+  # mean if it is computed in two passes, as mean() does it; (a + a + a) / 3
+  # is not always a. Enough parameters that some would come out finite.
+  arr <- ar1_block(rep(0.5, 60L), niter = 50L, nchain = 3L, offset = 0)
+  arr[, , 2L] <- arr[, , 1L]
+  arr[, , 3L] <- arr[, , 1L]
+  expect_matches_coda(arr)
+  expect_true(all(is.nan(block_rhat_ess(arr)$rhat)))
+})
+
+test_that("blockRhatESS() equals coda on chains that are a straight line", {
+  # coda tests each chain for being a linear trend before fitting the AR
+  # model, and calls the spectral density zero if it is (which also covers the
+  # constant chain). A drifting chain is the nearest a real fit gets to it.
+  arr <- ar1_block(c(0.2, 0.7), niter = 100L)
+  arr[1L, , 1L] <- 0.01 * seq_len(100L)
+  expect_matches_coda(arr)
+})
+
+test_that("blockRhatESS() reports the pooled variance of each parameter", {
+  # computeDiagnostics() uses this to drop parameters that are fixed, so a
+  # constant parameter has to come back as exactly zero, at any magnitude.
+  arr <- ar1_block(c(0.2, 0.7, 0.4))
+  arr[2L, , ] <- 1e6 / 3
+  out <- block_rhat_ess(arr)
+  expect_identical(out$var[2L], 0)
+  expect_identical(out$variable, c(TRUE, FALSE, TRUE))
+  expect_equal(out$var,
+               apply(matrix(arr, nrow = 3L), 1L, stats::var),
+               tolerance = 1e-12)
+})
+
+test_that("blockRhatESS() hands a chain its own code declines to coda", {
+  # The C++ code returns NA for a chain whose autoregression it will not
+  # vouch for, and that parameter is recomputed by coda::effectiveSize()
+  # from the draws picked out of the block. No ordinary chain triggers this,
+  # so decline one by hand: the answer must still be coda's, which also
+  # checks that the right draws are picked out.
+  arr <- ar1_block(c(0.2, 0.7, 0.5), nchain = 3L)
+  kernel <- occJSDM:::chain_moments_ess_cpp
+  testthat::local_mocked_bindings(
+    chain_moments_ess_cpp = function(...) {
+      out <- kernel(...)
+      out$ess[2L, 3L] <- NA_real_
+      out
+    },
+    .package = "occJSDM")
+  expect_matches_coda(arr)
+})
+
+test_that("blockRhatESS() does not hand coda a parameter that is not variable", {
+  # A parameter with an infinite draw has no variance, was never passed to
+  # coda, and must not be now: coda stops on it, which would lose the summary
+  # of every block after it.
+  arr <- ar1_block(c(0.2, 0.7, 0.5))
+  arr[2L, 5L, 1L] <- Inf
+  out <- block_rhat_ess(arr)
+  expect_identical(out$variable, c(TRUE, FALSE, TRUE))
+  old <- coda_block(arr[c(1L, 3L), , ])
+  expect_equal(out$rhat[out$variable], old$rhat, tolerance = 1e-8)
+  expect_equal(out$ess[out$variable], old$ess, tolerance = 1e-8)
+})
+
+test_that("blockRhatESS() has no R-hat to give for a single chain", {
+  arr <- ar1_block(c(0.2, 0.7), nchain = 1L)
+  out <- block_rhat_ess(arr)
+  expect_identical(out$rhat, rep(NA_real_, 2L))
+  expect_equal(out$ess, coda_block(arr)$ess, tolerance = 1e-8)
+})
+
+# computeDiagnostics() against the implementation it replaced ----------------
+#
+# legacy_computeDiagnostics() is the 0.3.0 function, verbatim (see
+# helper-legacy-diagnostics.R). Same input, same console output.
+
+# A results_output holding every shape and special case the reporting loop
+# branches on.
+synthetic_results_output <- function(nchain = 2L, niter = 60L) {
+  set.seed(11L)
+  n_species <- 5L
+  draws <- function(...) {
+    array(stats::rnorm(prod(...) * niter * nchain), dim = c(..., niter, nchain))
+  }
+  # A block whose chains disagree, to trip the R-hat warning.
+  split <- draws(3L, n_species)
+  if (nchain > 1L) split[, , , 2L] <- split[, , , 2L] + 4
+  # A block with one coefficient pinned (a reference level, say).
+  pinned <- draws(2L, n_species)
+  pinned[1L, 2L, , ] <- 0
+  # A block one of whose chains never left its starting value.
+  stuck <- draws(n_species)
+  stuck[3L, , 1L] <- 0.7
+  # A block with a missing draw: skipped without comment.
+  holed <- draws(n_species)
+  holed[1L, 1L, 1L] <- NA
+  # A block with an infinite draw: that parameter alone is left out.
+  unbounded <- draws(n_species)
+  unbounded[2L, 1L, 1L] <- Inf
+  list(
+    beta_theta_output = pinned,
+    theta0_output = stuck,
+    p_output = holed,
+    q_output = array(0.05, dim = c(1L, n_species, niter, nchain)),
+    z_output = draws(4L, n_species),
+    jsdm_output = list(
+      B0_output = draws(n_species),
+      B_output = split,
+      tau_output = unbounded,
+      sigmah_output = draws(1L)[1L, , ]
+    )
+  )
+}
+
+capture_with <- function(fun, results_output) {
+  warns <- character()
+  msgs <- withCallingHandlers(
+    testthat::capture_messages(fun(results_output)),
+    warning = function(w) {
+      warns <<- c(warns, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    })
+  list(messages = msgs, warnings = warns)
+}
+
+test_that("computeDiagnostics() prints what the coda implementation printed", {
+  results_output <- synthetic_results_output()
+  new <- capture_with(computeDiagnostics, results_output)
+  old <- capture_with(legacy_computeDiagnostics, results_output)
+  expect_identical(new, old)
+
+  # Guard against the comparison passing because the input exercised nothing.
+  text <- paste(new$messages, collapse = "")
+  expect_match(text, "Parameter Set: sigmah (Flattened N = 1)", fixed = TRUE)
+  expect_match(text, "All parameters in this set are fixed/constant",
+               fixed = TRUE)
+  expect_false(grepl("Parameter Set: p ", text, fixed = TRUE))
+  expect_true(any(grepl("Convergence issue in 'B_output'", new$warnings)))
+})
+
+test_that("computeDiagnostics() prints what the coda implementation printed for one chain", {
+  results_output <- synthetic_results_output(nchain = 1L)
+  new <- capture_with(computeDiagnostics, results_output)
+  expect_identical(new, capture_with(legacy_computeDiagnostics, results_output))
+  expect_match(paste(new$messages, collapse = ""),
+               "Requires multiple chains", fixed = TRUE)
+})
+
+test_that("computeDiagnostics() prints what the coda implementation printed for chains of two and three draws", {
+  # The shortest chains coda accepts. With two draws every chain is a straight
+  # line, so there are no effective draws at all; with three the
+  # autoregression can use every degree of freedom the chain has.
+  for (niter in 2:3) {
+    results_output <- synthetic_results_output(niter = niter)
+    expect_identical(
+      capture_with(computeDiagnostics, results_output),
+      capture_with(legacy_computeDiagnostics, results_output),
+      info = paste("niter", niter))
+  }
+})
+
+test_that("computeDiagnostics() prints what the coda implementation printed for a fitted model", {
+  # Real sampler output: 20 draws on 2 chains, with the latent factor and
+  # spatial blocks a synthetic list does not have.
+  for (fit in list(fixture_twostage(), fixture_continuous())) {
+    expect_identical(
+      capture_with(computeDiagnostics, fit$results_output),
+      capture_with(legacy_computeDiagnostics, fit$results_output))
+  }
+})

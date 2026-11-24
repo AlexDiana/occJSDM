@@ -1,3 +1,27 @@
+# occJSDM 0.3.2
+
+Sixth beta, released on GitHub as `v0.3.2-beta`. It removes a cost at the end of a fit that grew with the square of the number of coefficients, which made fits with many covariates or many species slow to finish and could exhaust memory. Estimates are unchanged from 0.3.1.
+
+## Bug fixes
+
+-   The convergence summary that `runOccJSDM()` prints when a fit with two or more chains finishes (`computeDiagnostics()`) now takes time and memory in proportion to the number of parameters. It used to grow with the square of the size of the largest parameter block, so a fit with a few thousand occupancy coefficients (many covariates, many species, or both) spent minutes and several gigabytes after the sampler had finished, and a larger one could exhaust memory and lose the fit. The R-hat and effective sample size it reports are the same statistics as before, and the printed summary and its warnings are unchanged. `returnConvergenceDiagnostics()` is unaffected.
+
+# occJSDM 0.3.1
+
+Fifth beta, released on GitHub as `v0.3.1-beta`. It fixes a defect that made fits with one row per site wrong whenever the `Site` column was not in sorted order. Every earlier beta has the defect.
+
+## Bug fixes
+
+-   `runOccJSDM()` attached the occupancy covariates and the site coordinates to the wrong sites in a fit with one row per site (the binary and continuous models) whenever `data$info$Site` was not already in sorted order, without an error or a warning. The covariates were sorted by `Site` while the response kept its input order. Site names in file order such as `FHT1`, `FHT2`, ..., `FHT10` are not in sorted order, and with them a planted slope of 1.5 was estimated as about 0. Fits were correct when `data$info` had no `Site` column, or when `Site` was already sorted (for example `1:n`, or zero-padded names such as `S001` in file order), and those fits' estimates are unchanged, draw for draw. Occupancy and two-stage fits, which have repeated rows per site, were never affected. **Refit any one-row-per-site model whose `Site` column was not in sorted order:** its covariate effects, spatial field, hidden environmental covariates, predictions and site WAIC were all computed with covariates on the wrong rows. To check an existing fit, compare `fit$X_psi` with your standardised covariates row by row.
+
+## Behaviour changes
+
+-   A fit with one row per site now stores its site names in `infos$siteNames`, as occupancy and two-stage fits already did, so `returnOrdinationScores()` and `plotOrdinationScores()` label its sites by name. It used to store the row numbers `1:n` whatever the `Site` column held. With no `Site` column it still stores `1:n`. No estimate changes; code that used `infos$siteNames` of such a fit as a row index should use `seq_len(fit$infos$n)`.
+
+## Documentation
+
+-   `?runOccJSDM` has a new section, *Row order of the results*. With one row per site, every per-site result is in the row order of `data$info`. With repeated rows per site, the sites are in sorted order by `Site` and named in `infos$siteNames`.
+
 # occJSDM 0.3.0
 
 Fourth beta, released on GitHub as `v0.3.0-beta`. The community-mean prior on the occupancy intercepts is now the default for multi-species data, so fits that leave `b0_prior` unset give different numbers from 0.2.0.
