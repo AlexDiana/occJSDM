@@ -2,7 +2,9 @@
 
 This page gets the optional occJSDM MCP server running under Posit Assistant, either on your own Mac or in a Posit Cloud project. You do not need it to use the package. For what the four tools do, how artifacts are written and what has been tested, see the [server usage guide](paper2agent/USAGE.md).
 
-Cloning this repository does not install the server. The server needs a Python environment and its own R runtime, built from the occJSDM 0.3.0 source tarball, and Git carries neither. Everything is in one download, `occJSDM-cloud-pilot-v0.3.0.zip`, attached to the [v0.3.0-beta release](https://github.com/AlexDiana/occJSDM/releases/tag/v0.3.0-beta).
+Cloning this repository does not install the server. The server needs a Python environment and its own R runtime, built from the occJSDM 0.3.2 source tarball, and Git carries neither. Everything is in one download, `occJSDM-cloud-pilot-v0.3.2.zip`, attached to the [v0.3.2-beta release](https://github.com/AlexDiana/occJSDM/releases/tag/v0.3.2-beta).
+
+To update an earlier installation, such as the 0.3.0 one, install the new version in place of the old one rather than over it: the server refuses a runtime built from any other occJSDM version, and the restore needs a new runtime folder. Rename the old folder first, for example `mv ~/occJSDM-mcp ~/occJSDM-mcp-0.3.0` on a Mac or `mv mcp/paper2agent mcp/paper2agent-0.3.0` in the Cloud project, then follow the steps below. The new folder has the same paths as the old one, so the projects' settings entries keep working once Assistant is restarted. Delete the renamed folder after the check at the end passes.
 
 ## On your own Mac
 
@@ -22,8 +24,8 @@ These steps follow the restore recorded on macOS 27 (arm64) with R 4.6.1. The re
 
     ``` sh
     cd ~/Downloads
-    curl -fL -O https://github.com/AlexDiana/occJSDM/releases/download/v0.3.0-beta/occJSDM-cloud-pilot-v0.3.0.zip
-    unzip -q occJSDM-cloud-pilot-v0.3.0.zip -d ~
+    curl -fL -O https://github.com/AlexDiana/occJSDM/releases/download/v0.3.2-beta/occJSDM-cloud-pilot-v0.3.2.zip
+    unzip -q occJSDM-cloud-pilot-v0.3.2.zip -d ~
     cd ~/occJSDM-mcp
     ```
 
@@ -75,7 +77,7 @@ These steps follow the restore recorded on macOS 27 (arm64) with R 4.6.1. The re
 
 Posit Cloud is Linux, so nothing needs the Mac workarounds. The restore took about 13 minutes on Cloud.
 
-1.  Upload `occJSDM-cloud-pilot-v0.3.0.zip` from the release page to the root of the Cloud project with the Files pane. Cloud unpacks it into a folder called `occJSDM-mcp`. Delete the zip afterwards.
+1.  Upload `occJSDM-cloud-pilot-v0.3.2.zip` from the release page to the root of the Cloud project with the Files pane. Cloud unpacks it into a folder called `occJSDM-mcp`. Delete the zip afterwards.
 
 2.  In the Terminal tab, move the folder into place, then create the Python environment and restore the R runtime.
 

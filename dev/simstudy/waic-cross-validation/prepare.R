@@ -15,7 +15,7 @@ lesson <- readRDS(lesson_path)
 data <- lesson$input$sim$data_list
 sites <- sort(unique(data$info$Site))
 stopifnot(length(sites) == 100L, nrow(data$OTU) == 3600L, ncol(data$OTU) == 10L)
-archive_input <- "/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-post-pr14-20261007/input.rds"
+archive_input <- "/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-post-pr14-20261007/input.rds"
 folds <- cv_make_folds(sites)
 jobs <- do.call(rbind, lapply(cv_job_names(), function(job) as.data.frame(cv_parse_job(job))))
 scripts <- list.files("dev/simstudy/waic-cross-validation", pattern = "\\.(R|sh)$", full.names = TRUE)

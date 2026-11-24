@@ -8,7 +8,7 @@ project <- normalizePath(Sys.getenv('P2A_R_PROJECT'),mustWork=TRUE)
 if(!startsWith(normalizePath(find.package('occJSDM')),paste0(project,'/'))) stop('occJSDM resolved outside isolated P2A_R_PROJECT')
 if(!startsWith(normalizePath(find.package('jsonlite')),paste0(project,'/'))) stop('jsonlite resolved outside isolated P2A_R_PROJECT')
 source_revision <- unique(as.character(stats::na.omit(read.dcf(file.path(find.package('occJSDM'),'DESCRIPTION'),fields='RemoteSha')[,'RemoteSha'])))
-if(!identical(source_revision,'5cba0db2d78d23f2f7985fcf12d61cd6121ff05e')) stop('Isolated occJSDM source revision differs from pinned source; restore the recorded runtime')
+if(!identical(source_revision,'d200b768f7ebef230b657ee8af2773779059905f')) stop('Isolated occJSDM source revision differs from pinned source; restore the recorded runtime')
 req <- read_json(args[2],simplifyVector=FALSE)
 out <- req$output_dir
 warns <- character()
@@ -71,14 +71,14 @@ preflight <- function(dat,oc,cc) {
   if(!(model %in% c('binary','occupancy','two_stage'))) add(paste('Pilot supports non-spatial binary, occupancy and two_stage models; native inferred',model))
   if(anyNA(y) && model!='two_stage') add('NAs are allowed only in the native two-stage model')
   if(model=='two_stage' && !('Primer' %in% names(inf))) add('Native inference selected two_stage but Primer is missing. Reused local Sample IDs across sites can cause this inference; use globally unique IDs for one-stage occupancy or supply actual PCR/primer metadata for a two-stage survey.')
-  if(model=='binary' && !is.null(inf$Site)) {
-    ord <- dplyr::arrange(inf,Site)
-    if(!identical(inf$Site,ord$Site)) add('Pinned binary preparation sorts covariates by unique Site but retains OTU input order. Explicit Site must already be ordered; reorder paired info and OTU yourself before saving, or omit Site when each row is a site.')
-  }
   if(length(issues)) return(done())
   if(is.null(inf$Site)) inf$Site <- seq_len(nrow(inf))
   if(model %in% c('occupancy','two_stage') && is.null(inf$Sample)) inf$Sample <- seq_len(nrow(inf))
-  n <- length(unique(inf$Site))
+  # Mirror runOccJSDM() since occJSDM 0.3.1: data with repeated rows per site
+  # are grouped by Site (one row per site, in sorted order); binary data have
+  # one row per site and are used in input order, whatever order Site is in.
+  site_group <- if(model %in% c('occupancy','two_stage')) 'Site' else NULL
+  n <- if(model %in% c('occupancy','two_stage')) length(unique(inf$Site)) else nrow(inf)
   invariant <- function(cols,groups,label) {
     grouped <- dplyr::group_by(inf,dplyr::across(dplyr::all_of(groups)))
     indices <- dplyr::group_rows(grouped)
@@ -89,7 +89,7 @@ preflight <- function(dat,oc,cc) {
   else if(length(cc)) notes <- c(notes,'Binary fits skip collection detection; selected collection covariates are checked for existence but unused by the native sampler.')
   if(length(issues)) return(done())
   prepared <- native_try({
-    xp <- occJSDM:::process_covariates(inf,oc,'Site',n,remove_intercept=TRUE,spline_vars=FALSE)$df
+    xp <- occJSDM:::process_covariates(inf,oc,site_group,n,remove_intercept=TRUE,spline_vars=FALSE)$df
     if(nrow(xp)!=n || any(!is.finite(xp))) stop('Occupancy covariate preparation produced missing/nonfinite design rows; check constant covariates')
     xt <- NULL; ns <- NULL
     if(model %in% c('occupancy','two_stage')) {

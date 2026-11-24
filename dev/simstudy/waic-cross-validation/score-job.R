@@ -61,8 +61,8 @@ if (is.na(spec$fold)) {
   out$waic_warnings <- waic_warnings
   # How the refit compares with the archived fit made with the same seed
   # under R 4.5.0 and the older package (a56f554). Informational only.
-  archived <- c(one = "/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-post-pr14-20261007/prediction/one-factor-fit.rds",
-                two = "/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-post-pr14-20261007/default-fit.rds")[[spec$model]]
+  archived <- c(one = "/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-post-pr14-20261007/prediction/one-factor-fit.rds",
+                two = "/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-post-pr14-20261007/default-fit.rds")[[spec$model]]
   if (file.exists(archived)) {
     old <- readRDS(archived)
     stopifnot(identical(old$seed, spec$seed))
