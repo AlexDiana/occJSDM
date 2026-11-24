@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 640" width="1240" height="640" font-family="-apple-system, Helvetica, Arial, sans-serif">
+<rect width="1240" height="640" fill="#fcfcfb"/>
+<defs><marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#52514e"/></marker><marker id="headb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2a78d6"/></marker><marker id="heado" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#eb6834"/></marker></defs>
+<text x="40.0" y="50.0" font-size="19" fill="#0b0b0b" text-anchor="start" font-weight="600">One species, two chains: the same arrow, split two ways</text>
+<text x="40.0" y="78.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400">Both chains reach the same arrow, so they agree on everything the arrow sets: predictions, the gradients,</text>
+<text x="40.0" y="97.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400">and the measured coefficients. They disagree on the split, and so on the scales that set it.</text>
+<line x1="110.0" y1="500.0" x2="501.0" y2="500.0" stroke="#8a8984" stroke-width="1"/>
+<text x="531.0" y="504.0" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400">column 1</text>
+<line x1="110.0" y1="500.0" x2="306.1" y2="385.9" stroke="#8a8984" stroke-width="1"/>
+<text x="336.1" y="389.9" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400">column 2</text>
+<line x1="110.0" y1="500.0" x2="110.0" y2="224.0" stroke="#8a8984" stroke-width="1"/>
+<text x="110.0" y="228.0" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400">column 3</text>
+<polygon points="74.3,521.2 419.3,459.1 590.1,229.3 245.1,291.4" fill="#b7d3f6" fill-opacity="0.75" stroke="#2a78d6" stroke-width="2"/>
+<line x1="110.0" y1="500.0" x2="434.9" y2="331.0" stroke="#2a78d6" stroke-width="4" marker-end="url(#headb)"/>
+<line x1="434.9" y1="331.0" x2="446.4" y2="181.4" stroke="#eb6834" stroke-width="4" marker-end="url(#heado)"/>
+<line x1="110.0" y1="500.0" x2="446.4" y2="181.4" stroke="#52514e" stroke-width="2" stroke-dasharray="2 5" marker-end="url(#head)"/>
+<text x="458.4" y="177.4" font-size="14" fill="#0b0b0b" text-anchor="start" font-weight="400">the species' arrow</text>
+<text x="40.0" y="145.0" font-size="17" fill="#0b0b0b" text-anchor="start" font-weight="600">Chain 1</text>
+<text x="40.0" y="166.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400">large shared part, small leftover</text>
+<line x1="730.0" y1="500.0" x2="1121.0" y2="500.0" stroke="#8a8984" stroke-width="1"/>
+<text x="1151.0" y="504.0" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400">column 1</text>
+<line x1="730.0" y1="500.0" x2="926.1" y2="385.9" stroke="#8a8984" stroke-width="1"/>
+<text x="956.1" y="389.9" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400">column 2</text>
+<line x1="730.0" y1="500.0" x2="730.0" y2="224.0" stroke="#8a8984" stroke-width="1"/>
+<text x="730.0" y="228.0" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400">column 3</text>
+<polygon points="694.4,521.2 1039.3,459.1 1210.1,229.3 865.1,291.4" fill="#b7d3f6" fill-opacity="0.75" stroke="#2a78d6" stroke-width="2"/>
+<line x1="730.0" y1="500.0" x2="824.3" y2="453.5" stroke="#2a78d6" stroke-width="4" marker-end="url(#headb)"/>
+<line x1="824.3" y1="453.5" x2="1066.4" y2="181.4" stroke="#eb6834" stroke-width="4" marker-end="url(#heado)"/>
+<line x1="730.0" y1="500.0" x2="1066.4" y2="181.4" stroke="#52514e" stroke-width="2" stroke-dasharray="2 5" marker-end="url(#head)"/>
+<text x="1078.4" y="177.4" font-size="14" fill="#0b0b0b" text-anchor="start" font-weight="400">the species' arrow</text>
+<text x="660.0" y="145.0" font-size="17" fill="#0b0b0b" text-anchor="start" font-weight="600">Chain 2</text>
+<text x="660.0" y="166.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400">small shared part, large leftover</text>
+<line x1="40" y1="578" x2="70" y2="578" stroke="#2a78d6" stroke-width="4"/>
+<text x="80.0" y="583.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400">shared part (lies in the blend sheet)</text>
+<line x1="420" y1="578" x2="450" y2="578" stroke="#eb6834" stroke-width="4"/>
+<text x="460.0" y="583.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400">leftover (the species' own)</text>
+<line x1="720" y1="578" x2="750" y2="578" stroke="#52514e" stroke-width="2" stroke-dasharray="2 5" marker-end="url(#head)"/>
+<text x="760.0" y="583.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400">the whole response, the same in both chains</text>
+<text x="40.0" y="622.0" font-size="12" fill="#8a8984" text-anchor="start" font-weight="400">Schematic with made-up points. Like 7 = 5 + 2 = 1 + 6: the data pin down the sum, not how it is divided.</text>
+</svg>
