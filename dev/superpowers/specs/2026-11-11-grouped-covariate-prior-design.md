@@ -127,12 +127,12 @@ e_{ks} & N(0,\ \sigma_b^2) & N(0,\ \sigma_b^2) & N(0,\ \sigma_{\mathrm{emb}}^2 \
 ```
 
 ``` math
-\sigma_b \sim C^{+}(1), \qquad \sigma_{\mathrm{emb}} \sim C^{+}(1), \qquad \lambda_k \sim C^{+}(0.7 / K) \ \text{ independently for each embedding column } k
+\sigma_b \sim C^{+}(1), \qquad \sigma_{\mathrm{emb}} \sim C^{+}(1), \qquad \lambda_k \sim C^{+}(0.7 / K)
 ```
 
 - `sigma_b` is one number, the leftover standard deviation on every measured covariate. On `main` its square has an InvGamma(10, 1) prior; under the grouped prior it has the half-Cauchy above.
 - `sigma_emb` is one number, and takes the place of `sigma_b` on the embedding columns.
-- `lambda_k` (the "axis scale") is one number per embedding column. Measured covariates have none, which is the same as fixing it at 1.
+- `lambda_k` (the "axis scale") is one number per embedding column, each with the same prior, independently. Measured covariates have none, which is the same as fixing it at 1.
 
 *The same model with `lambda_k` taken outside.* For an embedding column k, the table is equivalent to
 
