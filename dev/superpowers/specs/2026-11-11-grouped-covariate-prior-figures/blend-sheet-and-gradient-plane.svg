@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 640" width="1240" height="640" font-family="-apple-system, Helvetica, Arial, sans-serif">
+<rect width="1240" height="640" fill="#fcfcfb"/>
+<defs><marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#52514e"/></marker></defs>
+<text x="40.0" y="52.0" font-size="19" fill="#0b0b0b" text-anchor="start" font-weight="600" >A. Shared part carries the response (strong signal)</text>
+<text x="40.0" y="80.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400" >The species' arrows lie close to the blend sheet,</text>
+<text x="40.0" y="99.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400" >so the gradient plane is the same sheet.</text>
+<line x1="105.0" y1="430.0" x2="481.2" y2="430.0" stroke="#8a8984" stroke-width="1"/>
+<line x1="105.0" y1="430.0" x2="300.1" y2="316.5" stroke="#8a8984" stroke-width="1"/>
+<line x1="105.0" y1="430.0" x2="105.0" y2="161.2" stroke="#8a8984" stroke-width="1"/>
+<text x="520.0" y="434.0" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400" >column 1</text>
+<text x="345.5" y="311.5" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400" >column 2</text>
+<text x="105.0" y="152.3" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400" >column 3</text>
+<polygon points="55.0,459.7 377.5,401.6 554.9,163.0 232.4,221.0" fill="#b7d3f6" fill-opacity="0.75" stroke="#2a78d6" stroke-width="2"/>
+<line x1="304.4" y1="249.4" x2="296.4" y2="232.5" stroke="#eb6834" stroke-width="2.5"/>
+<line x1="366.8" y1="265.7" x2="376.4" y2="286.1" stroke="#eb6834" stroke-width="2.5"/>
+<line x1="406.5" y1="299.9" x2="395.3" y2="276.2" stroke="#eb6834" stroke-width="2.5"/>
+<line x1="451.1" y1="202.3" x2="444.7" y2="188.8" stroke="#eb6834" stroke-width="2.5"/>
+<line x1="492.0" y1="222.5" x2="500.0" y2="239.5" stroke="#eb6834" stroke-width="2.5"/>
+<line x1="276.5" y1="337.1" x2="266.8" y2="316.8" stroke="#eb6834" stroke-width="2.5"/>
+<line x1="392.6" y1="343.8" x2="399.8" y2="359.0" stroke="#eb6834" stroke-width="2.5"/>
+<line x1="105.0" y1="430.0" x2="296.4" y2="232.5" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="105.0" y1="430.0" x2="376.4" y2="286.1" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="105.0" y1="430.0" x2="395.3" y2="276.2" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="105.0" y1="430.0" x2="444.7" y2="188.8" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="105.0" y1="430.0" x2="500.0" y2="239.5" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="105.0" y1="430.0" x2="266.8" y2="316.8" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="105.0" y1="430.0" x2="399.8" y2="359.0" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<polygon points="38.3,469.6 386.6,406.9 578.2,149.1 229.9,211.8" fill="none" stroke="#1baf7a" stroke-width="2.5" stroke-dasharray="9 6"/>
+<text x="560.9" y="145.0" font-size="14" fill="#0b0b0b" text-anchor="end" font-weight="400" >blend sheet = gradient plane</text>
+<text x="660.0" y="52.0" font-size="19" fill="#0b0b0b" text-anchor="start" font-weight="600" >B. Leftovers carry the response (weak signal)</text>
+<text x="660.0" y="80.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400" >The fitted blend sheet is small and points the wrong way.</text>
+<text x="660.0" y="99.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400" >The gradient plane still fits the whole arrows, so it finds the gradients.</text>
+<line x1="735.0" y1="430.0" x2="1111.2" y2="430.0" stroke="#8a8984" stroke-width="1"/>
+<line x1="735.0" y1="430.0" x2="930.1" y2="316.5" stroke="#8a8984" stroke-width="1"/>
+<line x1="735.0" y1="430.0" x2="735.0" y2="161.2" stroke="#8a8984" stroke-width="1"/>
+<text x="1150.0" y="434.0" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400" >column 1</text>
+<text x="975.5" y="311.5" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400" >column 2</text>
+<text x="735.0" y="152.3" font-size="12" fill="#8a8984" text-anchor="middle" font-weight="400" >column 3</text>
+<polygon points="725.2,441.2 759.1,305.6 853.0,296.2 819.1,431.8" fill="#b7d3f6" fill-opacity="0.75" stroke="#2a78d6" stroke-width="2"/>
+<line x1="735.0" y1="430.0" x2="815.5" y2="355.0" stroke="#2a78d6" stroke-width="3"/>
+<line x1="815.5" y1="355.0" x2="926.4" y2="232.5" stroke="#eb6834" stroke-width="2.5"/>
+<line x1="735.0" y1="430.0" x2="791.9" y2="342.9" stroke="#2a78d6" stroke-width="3"/>
+<line x1="791.9" y1="342.9" x2="1025.3" y2="276.2" stroke="#eb6834" stroke-width="2.5"/>
+<line x1="735.0" y1="430.0" x2="776.9" y2="372.3" stroke="#2a78d6" stroke-width="3"/>
+<line x1="776.9" y1="372.3" x2="1029.8" y2="359.0" stroke="#eb6834" stroke-width="2.5"/>
+<line x1="735.0" y1="430.0" x2="926.4" y2="232.5" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="735.0" y1="430.0" x2="1006.4" y2="286.1" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="735.0" y1="430.0" x2="1025.3" y2="276.2" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="735.0" y1="430.0" x2="1074.7" y2="188.8" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="735.0" y1="430.0" x2="1130.0" y2="239.5" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="735.0" y1="430.0" x2="896.8" y2="316.8" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<line x1="735.0" y1="430.0" x2="1029.8" y2="359.0" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<polygon points="668.4,469.6 1016.6,406.9 1208.2,149.1 859.9,211.8" fill="none" stroke="#1baf7a" stroke-width="2.5" stroke-dasharray="9 6"/>
+<text x="1190.9" y="145.0" font-size="14" fill="#0b0b0b" text-anchor="end" font-weight="400" >gradient plane</text>
+<text x="749.1" y="297.6" font-size="14" fill="#0b0b0b" text-anchor="end" font-weight="400" >fitted blend sheet</text>
+<line x1="40" y1="552" x2="70" y2="552" stroke="#52514e" stroke-width="2" marker-end="url(#head)"/>
+<text x="80.0" y="557.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400" >a species' whole response (shared part + leftover)</text>
+<rect x="660" y="544" width="30" height="16" fill="#b7d3f6" stroke="#2a78d6" stroke-width="2"/>
+<text x="700.0" y="557.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400" >blend sheet (shared part)</text>
+<line x1="40" y1="584" x2="70" y2="584" stroke="#eb6834" stroke-width="2.5"/>
+<text x="80.0" y="589.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400" >leftover</text>
+<line x1="660" y1="584" x2="690" y2="584" stroke="#1baf7a" stroke-width="2.5" stroke-dasharray="9 6"/>
+<text x="700.0" y="589.0" font-size="14" fill="#52514e" text-anchor="start" font-weight="400" >gradient plane (returnEmbeddingGradients)</text>
+<text x="40.0" y="628.0" font-size="12" fill="#8a8984" text-anchor="start" font-weight="400" >Schematic with made-up points. The embedding has 64 columns; 3 are drawn. A species' arrow is its 64 coefficients on the embedding.</text>
+</svg>
