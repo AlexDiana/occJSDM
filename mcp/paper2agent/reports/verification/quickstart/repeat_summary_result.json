@@ -39,34 +39,34 @@
   "warning_count": 0,
   "schema_version": 1,
   "message": "Baseline occupancy summarizes intercept-based draws; inspect diagnostic qualifications.",
-  "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
+  "reference": "https://github.com/AlexDiana/occJSDM/blob/d200b768f7ebef230b657ee8af2773779059905f/vignettes/occJSDM-00-quickstart.Rmd",
   "artifacts": [
     {
       "kind": "log",
       "description": "Captured native R console output",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-231fa849bd954c68b38684228966214e/stdout.log",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/summarise_fit-bf7f37fa64484c65b63b850a127b04bb/stdout.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "kind": "log",
       "description": "Captured native R startup diagnostics",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-231fa849bd954c68b38684228966214e/stderr.log",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/summarise_fit-bf7f37fa64484c65b63b850a127b04bb/stderr.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "kind": "summary",
       "description": "Full per-species baseline occupancy summary",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-231fa849bd954c68b38684228966214e/summary.csv",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/summarise_fit-bf7f37fa64484c65b63b850a127b04bb/summary.csv",
       "sha256": "61051b88d0da560e73886d52b772ee6885c08d1d045a0e0e83ca4785cc4aa781"
     },
     {
       "kind": "diagnostics",
       "description": "Full native diagnostic qualifications",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/summarise_fit-231fa849bd954c68b38684228966214e/diagnostics.csv",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/summarise_fit-bf7f37fa64484c65b63b850a127b04bb/diagnostics.csv",
       "sha256": "4edd96b1b7b24b0d32670b435c879aab3b9cbfc3ae90918d590ebc6d67fe475c"
     }
   ],
-  "fit_id": "fit_49a22e939eb14bad9458c86e228f6405",
+  "fit_id": "fit_68dd371f8cd24e67b35ef11a34d7c417",
   "model": "binary",
   "settings": {
     "occCovariates": [

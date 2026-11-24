@@ -8,14 +8,14 @@
 
 **Tech Stack:** R 4.5 with rmarkdown and knitr, dplyr, tidyr, tibble, ggplot2 and ggtern; the committed bundles in `vignettes/teaching-data/`; the occJSDM library in the full-fit archive for the verifiers that read fits; the verifiers in `dev/simstudy/vignette-lesson/`, `dev/simstudy/jsdm-package-comparison/` and `dev/simstudy/spatial-design-sweep/`; Node for the site test; perl and awk for the prose checks; git.
 
-**Spec:** `dev/simstudy/vignette-lesson/LESSON-STYLE-SPEC.md`: "Sequence" (Phase C), "The reader", "The criteria, applied", "Decisions taken on 2 October 2026", "Lesson 3" and "Lesson 4" (the old Lesson 4 bullets now apply to Lessons 5 and 6), "What does not change" and "Verification for every lesson pull request". The owner's Phase C decisions of 3 October 2026 in `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/notes.md` override the spec where they differ: Lesson 7 gets edges only; Lesson 5 cites sjSDM fork release v0.1.0 now, drops the `SJSDM_MOJO_BACKEND` line, states the code-diff argument as an argument and adds a TODO item for the v0.1.0 rerun (no environment setup, no downloads); Lesson 3 has no line target. The diagnostic reports are `dev/simstudy/vignette-lesson/style-diagnostic/lesson-3.md` (now Lessons 3 and 4) and `lesson-4.md` (now Lessons 5 and 6); their line numbers refer to the lessons before Phase B, so every task below maps each item to the current lesson and section by quoted text. Format models: `LESSON-STYLE-PLAN-A.md` and `LESSON-STYLE-PLAN-B.md` in the same directory.
+**Spec:** `dev/simstudy/vignette-lesson/LESSON-STYLE-SPEC.md`: "Sequence" (Phase C), "The reader", "The criteria, applied", "Decisions taken on 2 October 2026", "Lesson 3" and "Lesson 4" (the old Lesson 4 bullets now apply to Lessons 5 and 6), "What does not change" and "Verification for every lesson pull request". The owner's Phase C decisions of 3 October 2026 in `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/notes.md` override the spec where they differ: Lesson 7 gets edges only; Lesson 5 cites sjSDM fork release v0.1.0 now, drops the `SJSDM_MOJO_BACKEND` line, states the code-diff argument as an argument and adds a TODO item for the v0.1.0 rerun (no environment setup, no downloads); Lesson 3 has no line target. The diagnostic reports are `dev/simstudy/vignette-lesson/style-diagnostic/lesson-3.md` (now Lessons 3 and 4) and `lesson-4.md` (now Lessons 5 and 6); their line numbers refer to the lessons before Phase B, so every task below maps each item to the current lesson and section by quoted text. Format models: `LESSON-STYLE-PLAN-A.md` and `LESSON-STYLE-PLAN-B.md` in the same directory.
 
 ## Decisions this plan takes
 
 Each is recorded so the reviewer and the owner can see it; the final report lists the ones the owner may want to revisit.
 
 - **Task shape.** Lesson 4 (362 lines) is one task with two commits, teaching then copyedit. Lessons 3, 5 and 6 each have a teaching task and a copyedit task. Lesson 7's edges and the parked cross-lesson items are one task. A final task runs every check and drafts the pull request.
-- **Shared tools.** Phase B's `run-step.zsh` and `revert-unchanged-png.zsh` change directory to the removed Phase B worktree, so Task 1 copies them into `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/` with the worktree path changed. `check-lesson-links.R` has no path in it and is reused from Phase B's directory unchanged. Two new tools are added beside the copies: `check-frozen-chunks.R` and `prose-checks.zsh`, both given in full below.
+- **Shared tools.** Phase B's `run-step.zsh` and `revert-unchanged-png.zsh` change directory to the removed Phase B worktree, so Task 1 copies them into `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/` with the worktree path changed. `check-lesson-links.R` has no path in it and is reused from Phase B's directory unchanged. Two new tools are added beside the copies: `check-frozen-chunks.R` and `prose-checks.zsh`, both given in full below.
 - **Frozen chunks.** Thirty-six chunks are compared or executed by verifiers (listed in `check-frozen-chunks.R`). They stay byte-identical, header line included, and may only move as whole blocks. Where a report item asks to change one (show one of the two near-identical native trait chunks; write the MCMC settings literally in `prediction-fit-one-factor`), the prose does the job instead and the pull request lists the item as deferred for that reason.
 - **The ggtern theme.** Checked while planning, on 3 October 2026 with ggplot2 4.0.3 and ggtern 4.0.0: after `loadNamespace("occJSDM")` (which loads ggtern, an import), `theme_set(ggplot2::theme_bw())` makes the next plot fail with the error `The tern.axis.ticks.length.major theme element must be a <rel> object.`, while adding `theme_bw()` to a single plot and `theme_set(ggtern::theme_bw())` both work. Lesson 3 states this symptom in one sentence; why ggtern's elements fail ggplot2's check, and whether the package can avoid it, goes on the "needs Alex" list and into a `TODO.md` item. Lessons 4, 5 and 6 point to Lesson 3's sentence.
 - **Hmsc schedule.** `dev/simstudy/jsdm-package-comparison/extension/fit-job.R` lines 27 and 28 and `extension/PLAN.md` line 27 confirm the schedule: four chains, 2,000 warm-up and 4,000 retained draws, then at most one longer attempt with 8,000 and 16,000; a fit still failing after it stays flagged. Lesson 6 states this, and the statement goes on the "needs Alex" list as the task instructions require.
@@ -31,7 +31,7 @@ Each is recorded so the reviewer and the owner can see it; the final report list
 ## Global Constraints
 
 - Work only in the worktree `/Users/douglasyu/src/occJSDM-worktrees/lesson-phase-c`, on branch `codex/lesson-phase-c` (created from main at 7662f9a). Never work in `/Users/douglasyu/src/occJSDM`, never commit to main, never push (the controller pushes), never force anything (no `push --force`, no `reset --hard` of committed work, no `-f` on `git mv`). Reading the extension archive under `/Users/douglasyu/src/occJSDM/dev/simstudy/results/` for its verifier is read-only use.
-- The full-fit archive is `/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples`. Verifiers that read fits run from the worktree root through the Phase C step runner below, so each run is logged in the archive's `BUILD-LOG.md`. Agent shells keep no variables between calls, so commands spell paths out in full.
+- The full-fit archive is `/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples`. Verifiers that read fits run from the worktree root through the Phase C step runner below, so each run is logged in the archive's `BUILD-LOG.md`. Agent shells keep no variables between calls, so commands spell paths out in full.
 - Commit messages end with a blank line and `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The pull request body (drafted in Task 9, opened by the controller) ends with `🤖 Generated with [Claude Code](https://claude.com/claude-code)` and carries a "needs Alex" list containing only package facts the lessons newly state that the spec marks unconfirmed.
 - Markdown rules for every `.md` and `.Rmd` touched, from `CLAUDE.md` and `AGENTS.md` lines 89 to 124: one line per paragraph, no hard wrapping; no em-dashes anywhere, including commit messages (use `--`); no pipe tables (bullet lists instead); escape a literal `>` `<` `~` `|` in prose as `\>` `\<` `\~` `\|` and write `-\>` for an arrow, never inside code spans or fenced blocks; keep inline code spans short; never add an `editor_options` block; no double blank lines. Re-read a file immediately before and after editing it (it may be open in RStudio); if an edit looks corrupted or duplicated, rewrite the whole file with Write.
 - Writing rules, from the spec's "The reader" and "The criteria, applied" and `AGENTS.md`: the reader is an ecologist who runs eDNA or presence/absence surveys, knows basic R and the pipe, and has not fitted an occupancy model or a JSDM; explanations remind rather than introduce. Each section must name the concepts the reader needs in the reader's terms before using them, answer the question the reader is about to ask, show every part of the data or output the reader will handle, read every printed output in the reader's terms, spell out the reasoning behind every choice, and give practical advice for the reader's own survey. Cut glosses of the pipe, `select()`, `filter()`, `mutate()`, `summarise()`, `group_by()`, `readRDS()`, lists and `$`; keep a gloss only for an unusual operation (a join on species identity, a pivot, an array slice). Refer to a lesson by what it teaches where a number would otherwise be the only identifier.
@@ -56,9 +56,9 @@ Both must finish without a new warning in the console or in the `.md` (`/usr/bin
 ```sh
 Rscript dev/simstudy/vignette-lesson/test_lesson_links.R
 node --test dev/simstudy/lesson-site/test_lessons.js
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/check-frozen-chunks.R
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM-lesson-[0-7].md vignettes/LESSON-PLAN.md TODO.md
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/prose-checks.zsh <files>
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/check-frozen-chunks.R
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM-lesson-[0-7].md vignettes/LESSON-PLAN.md TODO.md
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/prose-checks.zsh <files>
 git diff --name-only 7662f9a -- ':!*.png' ':!*.rds' | xargs /usr/bin/grep -n $'\u2014' | wc -l
 git log 7662f9a..HEAD --format=%B | /usr/bin/grep -c $'\u2014'
 ```
@@ -71,11 +71,11 @@ The `$'\u2014'` argument is zsh's spelling of the em-dash character, so this pla
 
 ## Shared tools (created in Task 1 Step 1, kept outside the repository)
 
-All four Phase C tools live in `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/`, the controller's working directory. They are not committed.
+All four Phase C tools live in `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/`, the controller's working directory. They are not committed.
 
 `run-step.zsh` and `revert-unchanged-png.zsh` are Phase B's scripts (printed in full in `LESSON-STYLE-PLAN-B.md`, "Shared tools") with every `lesson-phase-b` replaced by `lesson-phase-c`. Usage is unchanged: `zsh run-step.zsh STEPNAME command args...` logs to the archive's `logs/STEPNAME.log` and appends a record to its `BUILD-LOG.md`; `zsh revert-unchanged-png.zsh PATHSPEC` reverts every modified tracked PNG under the pathspec whose pixels equal the index copy. Phase C step names start with `c` (for example `c11-L3-native-plots`), so they never collide with Phase B's numbered steps.
 
-`check-lesson-links.R` is used from `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/` unchanged.
+`check-lesson-links.R` is used from `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/` unchanged.
 
 `check-frozen-chunks.R` (tested while planning: "All 36 frozen chunks match main at 7662f9a."):
 
@@ -184,7 +184,7 @@ The last line sets ggtern's version of `theme_bw()`; [Lesson 3](occJSDM-lesson-3
 - `vignettes/occJSDM-lesson-7.Rmd` and `.md`, `vignettes/occJSDM-lesson-1.Rmd` and `.md`: Task 8.
 - `TODO.md`: Task 1 (ggtern item), Task 4 (sjSDM v0.1.0 rerun item), Task 8 (one double parenthetical).
 - `vignettes/LESSON-PLAN.md`: Task 8 (last-updated line, line 29, the five link placeholders), Task 9 (the Phase C decision-log line).
-- Not committed: the four shared tools, `lesson-N-before.md` copies and `pr-body.md` in `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/`.
+- Not committed: the four shared tools, `lesson-N-before.md` copies and `pr-body.md` in `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/`.
 
 ## Known collision with PR #14 (open, `codex/site-waic`)
 
@@ -196,7 +196,7 @@ PR #14 edits the WAIC subsection that is now in `vignettes/occJSDM-lesson-4.Rmd`
 
 **Files:**
 - Modify: `vignettes/occJSDM-lesson-3.Rmd` (1,822 lines), `vignettes/occJSDM-lesson-3.md`, `TODO.md`; `vignettes/occJSDM-lesson-3_files/figure-gfm/` only if a chunk's figure changes on purpose (none is expected)
-- Create (not committed): the four shared tools; `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/lesson-3-before.md`
+- Create (not committed): the four shared tools; `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/lesson-3-before.md`
 - Read: `style-diagnostic/lesson-3.md` sections 2 to 5 (items up to old line 785 and from old line 1086 on; old lines 786 to 1085 are Lesson 4's, Task 3), the spec's Lesson 3 bullets, `notes.md`, `AGENTS.md` lines 89 to 124, Lesson 1 (`vignettes/occJSDM-lesson-1.Rmd`) for its vocabulary
 
 **Verifiers that read this lesson:** `verify_native_plots.R`, `native-traits-verify.R`, `ordination-verify.R`, `remaining-plots-verify.R` (each compares the lesson's frozen chunks with its snippet file and prints "Lesson 3 displays the exact exported ...").
@@ -208,18 +208,18 @@ PR #14 edits the WAIC subsection that is now in `vignettes/occJSDM-lesson-4.Rmd`
 - [ ] **Step 1: Create the shared tools and run the baseline**
 
 ```sh
-mkdir -p /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C
-sed 's#lesson-phase-b#lesson-phase-c#g; s#Phase B worktree#Phase C worktree#' /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh > /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh
-sed 's#lesson-phase-b#lesson-phase-c#g' /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/revert-unchanged-png.zsh > /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh
-/usr/bin/grep -c "lesson-phase-c" /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh
-/usr/bin/grep -c "lesson-phase-b" /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh
+mkdir -p /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C
+sed 's#lesson-phase-b#lesson-phase-c#g; s#Phase B worktree#Phase C worktree#' /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh > /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh
+sed 's#lesson-phase-b#lesson-phase-c#g' /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/revert-unchanged-png.zsh > /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh
+/usr/bin/grep -c "lesson-phase-c" /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh
+/usr/bin/grep -c "lesson-phase-b" /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh
 ```
 
 Expected: `run-step.zsh:2` and `revert-unchanged-png.zsh:1` for `lesson-phase-c`, and 0 for both files for `lesson-phase-b`. Write `check-frozen-chunks.R` and `prose-checks.zsh` into the same directory with the Write tool, exactly as printed under "Shared tools". Then run the baseline from the worktree root:
 
 ```sh
-S=/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh; A=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/check-frozen-chunks.R
+S=/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh; A=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/check-frozen-chunks.R
 zsh $S c01-base-native-plots Rscript dev/simstudy/vignette-lesson/verify_native_plots.R $A
 zsh $S c02-base-native-traits Rscript dev/simstudy/vignette-lesson/native-traits-verify.R $A
 zsh $S c03-base-ordination Rscript dev/simstudy/vignette-lesson/ordination-verify.R $A
@@ -238,7 +238,7 @@ Expected: "All 36 frozen chunks match main at 7662f9a."; every runner line ends 
 Read `style-diagnostic/lesson-3.md` in full, the spec's Lesson 3 bullets and `notes.md`, then `vignettes/occJSDM-lesson-3.Rmd` once from top to bottom as the reader would, before editing anything. Keep the report open: every section 2 item for old lines 27 to 785 and 1086 to 2085 is a step below, done or recorded as deferred. Keep the before state:
 
 ```sh
-git show 7662f9a:vignettes/occJSDM-lesson-3.md > /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/lesson-3-before.md
+git show 7662f9a:vignettes/occJSDM-lesson-3.md > /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/lesson-3-before.md
 wc -l vignettes/occJSDM-lesson-3.Rmd
 ```
 
@@ -425,9 +425,9 @@ Go through the spec's Lesson 3 bullets and section 2 of the report (old lines 27
 ```sh
 Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);library(ggplot2)}); rmarkdown::render("vignettes/occJSDM-lesson-3.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
 Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);library(ggplot2)}); rmarkdown::render("vignettes/occJSDM-lesson-3.Rmd", output_format="rmarkdown::html_vignette")'
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh vignettes/occJSDM-lesson-3_files
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh vignettes/occJSDM-lesson-3_files
 git status --short vignettes/
-S=/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh; A=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+S=/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh; A=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 zsh $S c11-L3-teach-native-plots Rscript dev/simstudy/vignette-lesson/verify_native_plots.R $A
 zsh $S c12-L3-teach-native-traits Rscript dev/simstudy/vignette-lesson/native-traits-verify.R $A
 zsh $S c13-L3-teach-ordination Rscript dev/simstudy/vignette-lesson/ordination-verify.R $A
@@ -483,7 +483,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Files:**
 - Modify: `vignettes/occJSDM-lesson-4.Rmd` (362 lines), `vignettes/occJSDM-lesson-4.md`; `vignettes/occJSDM-lesson-4_files/` only for a figure whose chunk changes on purpose (none expected)
-- Create (not committed): `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/lesson-4-before.md`
+- Create (not committed): `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/lesson-4-before.md`
 - Read: `style-diagnostic/lesson-3.md` items for old lines 786 to 1085 and the matching section 5 items; the finished Lesson 3 (terms list, diagnostics section, ggtern sentence)
 
 **Verifiers that read this lesson:** `prediction-verify.R` (it parses and executes the frozen chunks `prediction-fit-one-factor` and `prediction-native-call` with stubbed API calls and compares the captured arguments and seeds).
@@ -497,7 +497,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 Read the report items for old lines 786 to 1085, then the lesson end to end. Run:
 
 ```sh
-git show 7662f9a:vignettes/occJSDM-lesson-4.md > /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/lesson-4-before.md
+git show 7662f9a:vignettes/occJSDM-lesson-4.md > /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/lesson-4-before.md
 ```
 
 - [ ] **Step 2: Opening, prerequisites, theme**
@@ -557,9 +557,9 @@ This subsection is in the PR #14 collision; keep edits to the sentences named he
 ```sh
 Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);library(ggplot2)}); rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
 Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);library(ggplot2)}); rmarkdown::render("vignettes/occJSDM-lesson-4.Rmd", output_format="rmarkdown::html_vignette")'
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh vignettes/occJSDM-lesson-4_files
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh vignettes/occJSDM-lesson-4_files
 git status --short vignettes/
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh c21-L4-teach-prediction Rscript dev/simstudy/vignette-lesson/prediction-verify.R /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples/prediction
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh c21-L4-teach-prediction Rscript dev/simstudy/vignette-lesson/prediction-verify.R /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples/prediction
 ```
 
 Expected: renders clean; no PNG kept; the verifier ends "PASS: displayed fit/prediction chunk arguments and seeds captured without fitting" and "All prediction verification checks passed." with `EXIT 0`. Diff the `.md` against `lesson-4-before.md`: computed tables unchanged apart from the new reference-score output. Run the Global Constraints checks with `<files>` = `vignettes/occJSDM-lesson-4.Rmd`. Then:
@@ -588,7 +588,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Files:**
 - Modify: `vignettes/occJSDM-lesson-5.Rmd` (848 lines), `vignettes/occJSDM-lesson-5.md`, `TODO.md`; `vignettes/teaching-data/lesson-5-*.png` only for a figure whose chunk changes on purpose (none expected)
-- Create (not committed): `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/lesson-5-before.md`
+- Create (not committed): `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/lesson-5-before.md`
 - Read: `style-diagnostic/lesson-4.md` items for old lines 34 to 855 (opening to the reproduction record), the spec's Lesson 4 bullets, `notes.md` (sjSDM decision), `dev/simstudy/jsdm-package-comparison/SJSDM-STABILITY-REPORT.md` ("Two genuine local maxima" and "Twelve independent starts"), the finished Lessons 3 and 4
 
 **Verifiers that read this lesson:** `dev/simstudy/jsdm-package-comparison/verify-teaching.R` (it evaluates the frozen `reproduce-community` chunk and checks the bundle).
@@ -602,7 +602,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 Read the report items, the spec's Lesson 4 bullets and the stability report sections named above, then the lesson end to end. Confirm from the stability report that it does not establish that the two maxima explain the unpenalised starts' disagreement (its "Two genuine local maxima" section reports the maxima under the penalty only); the Phase B hedge stays. Run:
 
 ```sh
-git show 7662f9a:vignettes/occJSDM-lesson-5.md > /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/lesson-5-before.md
+git show 7662f9a:vignettes/occJSDM-lesson-5.md > /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/lesson-5-before.md
 ```
 
 - [ ] **Step 2: Opening ("What are we comparing?")**
@@ -737,9 +737,9 @@ Add this bullet to `TODO.md` under "## Review and maintenance", after the ggtern
 ```sh
 Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);library(ggplot2)}); rmarkdown::render("vignettes/occJSDM-lesson-5.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
 Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);library(ggplot2)}); rmarkdown::render("vignettes/occJSDM-lesson-5.Rmd", output_format="rmarkdown::html_vignette")'
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh "vignettes/teaching-data/lesson-5-*"
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh "vignettes/teaching-data/lesson-5-*"
 git status --short vignettes/
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh c31-L5-teach-verify-teaching Rscript dev/simstudy/jsdm-package-comparison/verify-teaching.R archive dev/simstudy/jsdm-package-comparison
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh c31-L5-teach-verify-teaching Rscript dev/simstudy/jsdm-package-comparison/verify-teaching.R archive dev/simstudy/jsdm-package-comparison
 ```
 
 Expected: renders clean; no PNG kept (no figure chunk changed); "Displayed simulation exactly reproduces the saved community and inputs." and "Teaching numerical verification passed for every check the committed archive supports." with `EXIT 0`. Diff the `.md` against `lesson-5-before.md`: computed tables unchanged apart from the new `str()` and reference-score outputs. Run the Global Constraints checks with `<files>` = `vignettes/occJSDM-lesson-5.Rmd TODO.md`. Then:
@@ -788,7 +788,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Files:**
 - Modify: `vignettes/occJSDM-lesson-6.Rmd` (724 lines), `vignettes/occJSDM-lesson-6.md`, `vignettes/teaching-data/lesson-6-calibration-native-coefficient-intervals-1.png` (its chunk changes on purpose in Step 7; keep it only if its pixels change); other `lesson-6-*` PNGs only if their chunk changes
-- Create (not committed): `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/lesson-6-before.md`
+- Create (not committed): `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/lesson-6-before.md`
 - Read: `style-diagnostic/lesson-4.md` items for old lines 857 to 1532 (sections 12 to 15 and the full results), the spec's Lesson 4 bullets on rare species, coverage and Hmsc, `dev/simstudy/jsdm-package-comparison/extension/PLAN.md` line 27 and `extension/fit-job.R` lines 25 to 35 (read-only), the finished Lessons 3 and 5
 
 **Verifiers that read this lesson:** `dev/simstudy/jsdm-package-comparison/extension/verify.R` (bundle checks; it reads no lesson chunk).
@@ -800,7 +800,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - [ ] **Step 1: Read, then keep the before state**
 
 ```sh
-git show 7662f9a:vignettes/occJSDM-lesson-6.md > /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/lesson-6-before.md
+git show 7662f9a:vignettes/occJSDM-lesson-6.md > /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/lesson-6-before.md
 ```
 
 - [ ] **Step 2: Opening ("What this lesson adds")**
@@ -882,7 +882,7 @@ and confirm that the `.md` no longer prints the warning; keep the re-rendered PN
 ```sh
 Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);library(ggplot2)}); rmarkdown::render("vignettes/occJSDM-lesson-6.Rmd", output_format=rmarkdown::github_document(html_preview=FALSE, pandoc_args="--wrap=none"))'
 Rscript -e 'suppressMessages({library(dplyr);library(tidyr);library(tibble);library(ggplot2)}); rmarkdown::render("vignettes/occJSDM-lesson-6.Rmd", output_format="rmarkdown::html_vignette")'
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh "vignettes/teaching-data/lesson-6-*"
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/revert-unchanged-png.zsh "vignettes/teaching-data/lesson-6-*"
 git status --short vignettes/
 Rscript dev/simstudy/jsdm-package-comparison/extension/verify.R /Users/douglasyu/src/occJSDM/dev/simstudy/results/lesson-4-extension-20260923 .
 ```
@@ -957,7 +957,7 @@ Render Lessons 1, 5, 6 and 7 to markdown and HTML with the Global Constraints co
 
 ```sh
 Rscript dev/simstudy/spatial-design-sweep/verify-lesson.R .
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh c41-L5-edges-verify-teaching Rscript dev/simstudy/jsdm-package-comparison/verify-teaching.R archive dev/simstudy/jsdm-package-comparison
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh c41-L5-edges-verify-teaching Rscript dev/simstudy/jsdm-package-comparison/verify-teaching.R archive dev/simstudy/jsdm-package-comparison
 Rscript dev/simstudy/jsdm-package-comparison/extension/verify.R /Users/douglasyu/src/occJSDM/dev/simstudy/results/lesson-4-extension-20260923 .
 ```
 
@@ -981,7 +981,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Files:**
 - Modify: `vignettes/LESSON-PLAN.md` (the Phase C decision-log line)
-- Create (not committed): `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/pr-body.md`
+- Create (not committed): `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/pr-body.md`
 - No other repository change unless a check fails, in which case the fix is committed with a message naming the check.
 
 **Interfaces:**
@@ -1006,7 +1006,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - [ ] **Step 2: Every verifier**
 
 ```sh
-S=/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh; A=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+S=/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/run-step.zsh; A=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 zsh $S c90-test_lesson Rscript dev/simstudy/vignette-lesson/test_lesson.R
 zsh $S c91-verify_lesson Rscript dev/simstudy/vignette-lesson/verify_lesson.R $A
 zsh $S c92-verify_outputs Rscript dev/simstudy/vignette-lesson/verify_outputs.R $A
@@ -1023,7 +1023,7 @@ Rscript dev/simstudy/jsdm-package-comparison/extension/verify.R /Users/douglasyu
 Rscript dev/simstudy/spatial-design-sweep/verify-lesson.R .
 Rscript dev/simstudy/vignette-lesson/test_lesson_links.R
 node --test dev/simstudy/lesson-site/test_lessons.js
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/check-frozen-chunks.R
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/check-frozen-chunks.R
 ```
 
 Expected last lines, in order: `test_lesson.R` passes; "All teaching-evidence checks passed."; "Trait decomposition, sampling-effort truth, source hashes and fit hashes verified."; "Diagnostic selection, fit hashes, source hashes and plotting identities verified."; "Truth joins survive row permutations and reject duplicate identities; native table builds."; "Twelve PNGs, compact export, full-fit hash, source hashes and exact teaching-code provenance verified."; the traits PASS line; the ordination PASS line; "Five PNGs, compact bundle, full-fit/library/source hashes, and exact displayed code verified."; "All prediction verification checks passed."; the unbalanced "... and displayed code." line; "Teaching numerical verification passed for every check the committed archive supports."; "... 626 scored results; 640 of 640 fits attempted."; "Lesson 2 bundle verified against the committed results."; "Shared lesson-link regression checks passed."; `fail 0`; "All 36 frozen chunks match main at 7662f9a." The four Lesson 3 logs each contain "Lesson 3 displays the exact exported ...".
@@ -1035,8 +1035,8 @@ git diff --name-only 7662f9a -- ':!*.png' ':!*.rds' | xargs /usr/bin/grep -n $'\
 git log 7662f9a..HEAD --format=%B | /usr/bin/grep -c $'\u2014'
 git log 7662f9a..HEAD --format=%B | /usr/bin/grep -c "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 git log --oneline 7662f9a..HEAD | wc -l
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/prose-checks.zsh vignettes/occJSDM-lesson-[0-7].Rmd vignettes/LESSON-PLAN.md TODO.md
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM-lesson-[0-7].md vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md AGENTS.md dev/simstudy/vignette-lesson/README.md dev/simstudy/jsdm-package-comparison/README.md
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/prose-checks.zsh vignettes/occJSDM-lesson-[0-7].Rmd vignettes/LESSON-PLAN.md TODO.md
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM-lesson-[0-7].md vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md AGENTS.md dev/simstudy/vignette-lesson/README.md dev/simstudy/jsdm-package-comparison/README.md
 git diff --stat 7662f9a -- R src DESCRIPTION NAMESPACE dev/simstudy/spatial-design-sweep vignettes/teaching-data ':!vignettes/teaching-data/*.png' dev/simstudy/vignette-lesson/*-examples.Rmd dev/simstudy/vignette-lesson/*verify*.R dev/simstudy/vignette-lesson/*export*.R dev/simstudy/jsdm-package-comparison
 /usr/bin/grep -n "lesson guide\|link added when opened" vignettes/occJSDM-lesson-[0-7].Rmd vignettes/LESSON-PLAN.md
 wc -l vignettes/occJSDM-lesson-[0-7].Rmd
@@ -1050,7 +1050,7 @@ Render each of the eight lessons with the HTML command (Lessons 0 and 2 included
 
 - [ ] **Step 5: Draft the pull request body**
 
-Write `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/pr-body.md` (markdown rules apply; one line per paragraph; no em-dashes) with these sections:
+Write `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/pr-body.md` (markdown rules apply; one line per paragraph; no em-dashes) with these sections:
 - Summary: one paragraph on Phase C (teaching then copyedit passes on Lessons 3 to 6, two commits each; Lesson 7 edges only by Doug's decision; the parked cross-lesson items), and that no bundle, exporter, verifier or package file changed and every verifier passes.
 - Per lesson: what the teaching pass added (by section, three to six bullets), what the copyedit pass changed, and the line count before and after.
 - Doug's Phase C decisions and how each was carried out: Lesson 7 edges; sjSDM v0.1.0 citation, the dropped `SJSDM_MOJO_BACKEND` line, the code-diff argument stated as an argument and the `TODO.md` rerun item; no line target for Lesson 3.
@@ -1068,7 +1068,7 @@ Write `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/pr-body.m
 Report: the commit list (`git log --oneline 7662f9a..HEAD`), the check outputs, the PR body path, and any check that needed a fix. The branch is ready to push.
 
 Controller steps, not for an implementer:
-- Push `codex/lesson-phase-c` and open the pull request with `gh pr create --base main --title "Lesson rewrite Phase C: teaching and copyedit passes on Lessons 3 to 6, Lesson 7 edges" --body-file /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/pr-body.md`; then replace "(link added when opened)" in the Phase C decision-log entry with the pull request link in a follow-up commit with the trailer.
+- Push `codex/lesson-phase-c` and open the pull request with `gh pr create --base main --title "Lesson rewrite Phase C: teaching and copyedit passes on Lessons 3 to 6, Lesson 7 edges" --body-file /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/pr-body.md`; then replace "(link added when opened)" in the Phase C decision-log entry with the pull request link in a follow-up commit with the trailer.
 
 ---
 
@@ -1079,5 +1079,5 @@ Controller steps, not for an implementer:
 - **Report section 2 coverage.** Lesson 3 report, old lines 27 to 785 and 1086 to 2085: Task 1 Steps 3 to 13, each item named by its old line; old lines 786 to 1085: Task 3 Steps 3 to 8. Lesson 4 report, old lines 34 to 855: Task 4 Steps 2 to 9 (section 3's items 221 and 226 moved with that material to Lesson 1 in Phases A and B and are outside Phase C); old lines 857 to 1532: Task 6 Steps 3 to 7. Section 5 copyedit items: Tasks 2, 3 (Step 11), 5 and 7.
 - **Phase B deferred items.** Plan B "Deferred to Phase C": prose passes (Tasks 1 to 7), prerequisites block (Tasks 1, 3, 4, 6; Lesson 7 already has one), R-gloss cuts (the copyedit procedure and Global Constraints), the ggtern explanation (Task 1), the sjSDM v0.1.0 citation and switch line (Task 4), the line 765 claim (Task 4 Steps 1 and 6), the `calibration_targets` rename (Task 6 Step 7), the Lesson 3 trim (replaced by `notes.md`). PR #20 "Deferred and Phase C": Lesson 1's Continue line, the "Quickstart and lesson guide" label and `LESSON-PLAN.md`'s date and line 29 (Task 8 Step 2); the 795c34a message (not rewritable, listed in the PR body); Lesson 3's "the figure below" seam, stranded per-chain guidance, `fitmodel_perfect` before its load and "You do not need the spatial lesson first" (Task 1 Steps 3, 5 and 6; Task 4 Step 2 for Lesson 5); Lesson 6's "The extension below", coverage defined twice, the lost clauses and the `geom_text` warning (Task 6 Steps 3, 5, 6 and 7, Task 7); Lesson 7's chunk labels (Task 8 Step 1); the stale extension dev copies (deferred, hash-stamped); the render-noise PNGs (PNG policy); `git log --follow` (PR body). Final review CAN WAIT items: Task 1 M1, M2 and M5 and Task 7 M2, M5 and the sweep note are verifier, process, hash-stamped or historical items listed as deferred in the PR body; Task 1 M3 is the PNG policy; Task 1 M4, Task 3's items and seams are in Task 1; Task 2 M1 and Task 4 M6 were resolved in Phase B; Task 2 M2 is Task 3 Step 8; Task 4 M2, M3, M5, M7 and the note are Tasks 6 and 7 or deferred; Task 5 M3 and M4 are Task 4 Steps 5 and 2; Task 5 M5 is deferred with its option; Task 6 M1 is the PR body and M2 Task 8; Task 7 M3 and M4 are Task 8. The Phase-C-labelled minors in `task-3-review.md` (Minors 2, 3, 5, 7), `task-4-review.md` (Minors 1 to 5, 7 and the note) and `task-5-review.md` (Minors 1, 3, 4, 5) are each placed above; Task 3 Minor 4 (`species_order` unused) no longer applies, because the restored custom figure uses it.
 - **Placeholder scan.** No "TBD" or bracketed fill-ins. The `<stem>`, `<files>` and `<path>` in the Global Constraints commands are substitutions defined where they appear; the dates come from `date`. Where a step says "inline", it names the bundle object and the filter; where the wording of a sentence matters (the ggtern sentence, the sjSDM paragraph, the two TODO items, the decision-log entry, the navigation lines), it is quoted. Two steps leave a reasoned choice to the executor with both branches written out (the stability check's rationale in Task 4 Step 6, the sjSDM argument glosses in Step 9), because the recorded documents decide which branch is true.
-- **Name consistency.** The tool paths `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-C/{run-step.zsh,revert-unchanged-png.zsh,check-frozen-chunks.R,prose-checks.zsh}` and `.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R` are used identically in every task. New chunk labels (`show-teaching-objects`, `display-native-state-table-markdown` and its probability twin, `occjsdm-new-site-route`, `reference-scores`, `occjsdm-trait-call`, `lesson-7-load`, `lesson-7-contents`) are unique within their lessons and match none of the verifiers' patterns (`native-`, `ordination-`, `remaining-plots-` with `purl=TRUE`; `prediction-fit-one-factor`, `prediction-native-call`, `reproduce-community`). The anchor `#what-this-lesson-answers` is produced by Lesson 3's existing heading and consumed by the pointer text in Tasks 3, 4 and 6. Lesson 4's heading "Compare models using what actually occurred" is linked from Task 4 Step 4 only if it survived Task 3, which keeps it. Run-step names (`c01` to `c07`, `c11` to `c18`, `c21`, `c22`, `c31`, `c32`, `c41`, `c90` to `c101`) are unique.
+- **Name consistency.** The tool paths `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-C/{run-step.zsh,revert-unchanged-png.zsh,check-frozen-chunks.R,prose-checks.zsh}` and `.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R` are used identically in every task. New chunk labels (`show-teaching-objects`, `display-native-state-table-markdown` and its probability twin, `occjsdm-new-site-route`, `reference-scores`, `occjsdm-trait-call`, `lesson-7-load`, `lesson-7-contents`) are unique within their lessons and match none of the verifiers' patterns (`native-`, `ordination-`, `remaining-plots-` with `purl=TRUE`; `prediction-fit-one-factor`, `prediction-native-call`, `reproduce-community`). The anchor `#what-this-lesson-answers` is produced by Lesson 3's existing heading and consumed by the pointer text in Tasks 3, 4 and 6. Lesson 4's heading "Compare models using what actually occurred" is linked from Task 4 Step 4 only if it survived Task 3, which keeps it. Run-step names (`c01` to `c07`, `c11` to `c18`, `c21`, `c22`, `c31`, `c32`, `c41`, `c90` to `c101`) are unique.
 - **Choices a reviewer may question.** Splitting the latent-table chunks into an HTML chunk and a hidden Markdown chunk changes visible code; it follows the report (the site-build branch is not for the reader) and the step requires the rendered tables to stay identical. Adding transformation lines to `extension-curved-design-example` changes a visible chunk, chosen over deleting the comment because the reader asked how. The Lesson 6 appendix rename touches four chunks, and the step requires byte-identical tables.

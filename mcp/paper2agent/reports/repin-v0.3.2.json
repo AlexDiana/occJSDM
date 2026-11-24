@@ -1,0 +1,86 @@
+{
+  "date": "2026-11-16",
+  "from": {
+    "commit": "5cba0db2d78d23f2f7985fcf12d61cd6121ff05e",
+    "release_tag": "v0.3.0-beta",
+    "package_version": "0.3.0"
+  },
+  "to": {
+    "commit": "d200b768f7ebef230b657ee8af2773779059905f",
+    "release_tag": "v0.3.2-beta",
+    "package_version": "0.3.2",
+    "git_archive_sha256": "e8c19b6e61080b06e633671608993308edb7ae4395af0c762e583f6aacdb6ec7",
+    "cellar_sha256": "2119ccc04f4f489e2329ba3b8f1a7397628beeb21e971af93e874a20319e4bf5"
+  },
+  "reason": "occJSDM 0.3.1 fixed binary (one row per site) fits that attached covariates to the wrong sites when data$info$Site was not in sorted order; 0.3.2 makes the end-of-fit convergence summary linear in cost. The v0.3.0 pin carried the defect, which the server worked around by rejecting such data.",
+  "runtime": {
+    "host": "macOS 27.2 arm64",
+    "R": "4.6.1",
+    "renv": "1.2.3",
+    "python": "3.12.13",
+    "fastmcp": "4.0.3",
+    "blas": "Accelerate, VECLIB_MAXIMUM_THREADS=1 for all comparisons",
+    "restore": "r-runtime/restore-runtime.R into a new cloud-r-runtime from the CRAN repository and the retained occJSDM source cellar: 60 packages at lock versions in 510 seconds, 49 installed as CRAN macOS binaries and 11 built from source, occJSDM 0.3.2 among them. The development runtime r-runtime received copies of that bootstrap library and library.",
+    "local_toolchain_workarounds": "MACOSX_DEPLOYMENT_TARGET=15.0 and a user Makevars adding the Homebrew gettext include path, as for v0.3.0. Local only; not needed on Linux."
+  },
+  "lock_changes": [
+    "occJSDM record only: 0.3.0 at the v0.3.0-beta commit -> 0.3.2 at the v0.3.2-beta commit; Config/roxygen2/version 8.0.0 -> 8.1.0 and RoxygenNote dropped, as in the package DESCRIPTION. Imports, Suggests and every other dependency pin are unchanged."
+  ],
+  "behaviour_changes_seen": [
+    "Binary data whose Site column is not in sorted order are now accepted by validate_data and fit_model. The dispatcher's guard that rejected them is removed, and its own occupancy covariate preparation now mirrors runOccJSDM() 0.3.1: grouped by Site only for occupancy and two-stage data, used in input order for binary data. With the old grouping the validator's design rows disagreed with the fitted X_psi for all three unsorted test inputs; with the new one they agree exactly.",
+    "Binary fits now store the Site values in infos$siteNames instead of 1:n (1:n when info has no Site column). Nothing in the server reads siteNames; the reference driver now checks it.",
+    "Two-stage, occupancy and sorted-Site binary results are unchanged: every saved reference case that existed at v0.3.0 refits and passes its exact checks, and the dhole fit flags the same three parameters with the same R-hat and ESS values."
+  ],
+  "verification": {
+    "native_reference_driver": "38 cases, 25 fits, 13 expected native errors, 128 of 128 checks passed. New: boundary_binary_unsorted_characterSite (FHT1..FHT40 in file order) and boundary_binary_shuffled_integerSite (a fixed permutation of 1:40) beside the existing reversed-integer case, which now fits instead of being rejected. For each of the three, six checks at tolerance 0 (1e-14 for the standardised covariate): X_psi equals the standardised covariate in input row order, X_psi and results_output equal those of the binary case with the same rows, seed and settings and no Site column, infos$OTU equals the input OTU, infos$siteNames equals Site, and the validator's preparation equals the fitted X_psi.",
+    "pytest": "137 passed after test_full_native_fit_and_installed_source was updated from 19 to 22 audited reference cases (the first run failed only that count). The three unsorted-Site binary cases moved from the rejection test to the exact-agreement test, and a new test requires their reference checks to pass and validate_data to accept them with the expected design.",
+    "acceptance": "19 of 19 cases through Client(module); 5 published fits and 5 tables audited exactly against direct native R",
+    "workshop_dhole": {
+      "input": "occJSDM-workshop data-derived/dhole_input.rds (read only; md5 9cb62541d74afcf757fa1b0589db7887)",
+      "settings": {
+        "nchain": 2,
+        "nburn": 5000,
+        "niter": 5000,
+        "nthin": 1
+      },
+      "seed": 2026,
+      "validate": {
+        "eligible": true,
+        "model": "two_stage",
+        "issues": [],
+        "notes": [
+          "Traits absent: native no-traits route retained."
+        ],
+        "dimensions": [
+          1818,
+          1
+        ]
+      },
+      "fit_seconds": 24.4,
+      "validate_seconds": 2.4,
+      "diagnostics_seconds": 2.0,
+      "summary_seconds": 1.8,
+      "timing_note": "The laptop was on AC power, not in Low Power Mode, but busy with other work (load average 8 to 9). Direct runOccJSDM() fits of the same call took 20.2 s at ncores 1 and 13.3 s at ncores 2 in the same conditions, so the slower time than v0.3.0's 10.4 s is load, not the package.",
+      "screening": {
+        "total_rows": 16,
+        "rhat_flagged": 1,
+        "ess_flagged": 2,
+        "flagged_rows": 3
+      },
+      "flagged": "beta_theta PrevDayRain (rhat 1.03, ess 1055), p and q (rhat 1.00, ess 215 and 203), the same as at v0.3.0",
+      "agreement": "The MCP fit equals direct runOccJSDM() with set.seed(2026) at ncores 1 and 2 (results_output identical, tolerance 0). Not compared with the workshop's saved dhole_fit.rds, which another session is regenerating."
+    },
+    "cloud_transfer_zip": {
+      "archive": "dist/occJSDM-cloud-pilot-v0.3.2.zip",
+      "archive_sha256": "24690d95ee26f520f46b80a7c1c6c928df1c64539a7651bb2cfbe6f301d9a9d2",
+      "archive_bytes": 70684042,
+      "difference_from_v0.3.0_zip": "Same 21 files. The source tarball is replaced; CLOUD-SETUP.md, USAGE.md, r-runtime/README.md, renv.lock, source-provenance.json and src/tools/quickstart.py change only in the pin and its documentation; src/r_scripts/quickstart.R changes in the pin and the binary Site handling above. The other 13 files are byte-identical.",
+      "relocation_check": "Extracted into an empty folder outside the repository and restored with r-runtime/restore-runtime.R (462 seconds in all, all lock checks passed); the dhole steps through the extracted server and runtime gave the same validation, 3 of 16 flagged parameters and the same baseline occupancy to all printed digits, with a 20.1-second fit on the loaded host. The zip was rebuilt after the check, so its hash differs from the tested one; all 21 files in bundle-inventory.json match the tested extraction byte for byte."
+    }
+  },
+  "not_verified": [
+    "Restoration on Posit Cloud Linux with this lock (Doug)",
+    "Assistant registration and a model-driven conversation with the new runtime (Doug)",
+    "The release download URL in mcp/INSTALL.md, which works only once the zip is attached to the v0.3.2-beta release"
+  ]
+}

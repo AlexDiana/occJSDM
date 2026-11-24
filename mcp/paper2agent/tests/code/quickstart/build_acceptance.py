@@ -30,7 +30,7 @@ for name in ('binary_single','occupancy_changed','two_stage_single','two_stage_c
     positive('fit-'+name+('-repeat' if name=='binary_single' and any(x['name']=='fit-binary_single' for x in cases) else ''),'fit_model',
              dict(data_path=c['data_path'],options=c['options'],seed=c['seed']),
              dict(model=c['model'],readback_valid=True,effective_n_factors=c['options']['listParams']['n_factors'],kept_draws_per_chain=20,
-                  total_iterations_per_chain=20+20*c['options']['MCMCparams']['nthin'],dimensions=c['dimensions'],runtime={'source_revision':'5cba0db2d78d23f2f7985fcf12d61cd6121ff05e'}),4)
+                  total_iterations_per_chain=20+20*c['options']['MCMCparams']['nthin'],dimensions=c['dimensions'],runtime={'source_revision':'d200b768f7ebef230b657ee8af2773779059905f'}),4)
 fid=actual['binary_single']['fit_model']['fit_id']
 for suffix in ('first','repeat'):
     positive('diagnostics-single-'+suffix,'diagnostics',dict(fit_id=fid,max_rows=2),

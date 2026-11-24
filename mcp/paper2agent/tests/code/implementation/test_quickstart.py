@@ -43,7 +43,7 @@ def test_unknown_and_unsupported_options_fail_before_outputs(mutation):
         asyncio.run(call('fit_model',dict(data_path='notebooks/quickstart/data/two_stage_data.rds',options=o,seed=1702)))
     assert 'validation' in str(failure.value).lower() or 'input' in str(failure.value).lower()
 
-@pytest.mark.parametrize('name',['binary','occupancy','two_stage','no_traits','renamed_single_covariates','permuted_trait_rows','categorical_traits','changed_seed_thinning2','changed_seed_same_schedule','alignment_global_ordered','alignment_global_shuffled','alignment_local_ordered','alignment_local_shuffled','alignment_character_ordered','alignment_character_shuffled','alignment_identifier_covariates','alignment_occupancy_shuffled','boundary_two_stage_NA_OTU','boundary_occupancy_localSampleIDs'])
+@pytest.mark.parametrize('name',['binary','occupancy','two_stage','no_traits','renamed_single_covariates','permuted_trait_rows','categorical_traits','changed_seed_thinning2','changed_seed_same_schedule','alignment_global_ordered','alignment_global_shuffled','alignment_local_ordered','alignment_local_shuffled','alignment_character_ordered','alignment_character_shuffled','alignment_identifier_covariates','alignment_occupancy_shuffled','boundary_two_stage_NA_OTU','boundary_occupancy_localSampleIDs','boundary_binary_unsorted_uniqueSite','boundary_binary_unsorted_characterSite','boundary_binary_shuffled_integerSite'])
 def test_native_fit_and_postprocessing_agreement(name):
     # Wrong seed/options, Python replacement math, changed row order or wrong draw orientation fail this comparison.
     c=NATIVE['cases'][name];o=options(c)
@@ -67,16 +67,32 @@ def test_native_fit_and_postprocessing_agreement(name):
         json.dumps(result,allow_nan=False)
     manifest=json.loads(Path(next(a['path'] for a in fit['artifacts'] if a['kind']=='manifest')).read_text())
     assert manifest['seed']==c['seed'] and manifest['effective_settings']['spatCovariates']==[]
-    assert manifest['source_revision']=='5cba0db2d78d23f2f7985fcf12d61cd6121ff05e'
+    assert manifest['source_revision']=='d200b768f7ebef230b657ee8af2773779059905f'
     assert manifest['runtime']['occJSDM_path'].startswith(str(ROOT/'r-runtime'))
 
-@pytest.mark.parametrize('name',['wrong_dimensions','missing_covariate','missing_trait_species','missing_Primer','NA_site_ID','duplicated_species','within_site_covariate_conflict','within_sample_covariate_conflict','infinite_OTU','binary_NA_OTU','occupancy_NA_OTU','binary_unsorted_uniqueSite','NA_occupancy_covariate','Inf_occupancy_covariate','NaN_occupancy_covariate','no_stage_count_response'])
+@pytest.mark.parametrize('name',['wrong_dimensions','missing_covariate','missing_trait_species','missing_Primer','NA_site_ID','duplicated_species','within_site_covariate_conflict','within_sample_covariate_conflict','infinite_OTU','binary_NA_OTU','occupancy_NA_OTU','NA_occupancy_covariate','Inf_occupancy_covariate','NaN_occupancy_covariate','no_stage_count_response'])
 def test_validation_rejects_native_failures_and_misleading_successes(name):
     c=NATIVE['cases']['boundary_'+name];o=options(c)
     result=asyncio.run(call('validate_data',dict(data_path=f'notebooks/quickstart/data/boundary_{name}_data.rds',occCovariates=o['occCovariates'],collCovariates=o['collCovariates'])))
     assert result['eligible'] is False and result['issues']
     with pytest.raises(Exception):
         asyncio.run(call('fit_model',dict(data_path=f'notebooks/quickstart/data/boundary_{name}_data.rds',options=o,seed=1702)))
+
+BINARY_SITE_ORDER_CHECKS=('X_psi_input_rows','X_psi_equals_sorted_case','results_equal_sorted_case','OTU_input_rows','site_names','preparation_equals_fit')
+
+@pytest.mark.parametrize('name',['binary_unsorted_uniqueSite','binary_unsorted_characterSite','binary_shuffled_integerSite'])
+def test_binary_unsorted_site_accepted_with_covariates_on_input_rows(name):
+    # Since occJSDM 0.3.1 binary rows keep their input order whatever order Site is in (NEWS 0.3.1).
+    # The native reference checks that covariates follow the input rows, that the fit equals the
+    # sorted-Site binary fit draw for draw, that siteNames holds Site, and that the validator's
+    # covariate preparation equals the fitted X_psi; the wrapper must accept the data and design.
+    for check in BINARY_SITE_ORDER_CHECKS:
+        assert NATIVE['checks'][f'{name}_{check}']['pass'] is True,check
+    c=NATIVE['cases']['boundary_'+name];o=options(c)
+    valid=asyncio.run(call('validate_data',dict(data_path=f'notebooks/quickstart/data/boundary_{name}_data.rds',occCovariates=o['occCovariates'],collCovariates=o['collCovariates'])))
+    assert valid['eligible'] is True and valid['model']=='binary' and valid['issues']==[]
+    assert valid['design']['n_sites']==c['input_dim'][0] and valid['design']['occupancy_columns']==c['X_psi_columns']
+    assert c['site_names']!=sorted(c['site_names'])
 
 @pytest.mark.parametrize('path',['../README.md','/etc/passwd','notebooks/../quickstart/data/two_stage_data.rds'])
 def test_input_paths_confined(path):
@@ -113,7 +129,7 @@ def test_effective_factor_cap_and_pinned_runtime_identity():
     manifest=json.loads(Path(next(a['path'] for a in fit['artifacts'] if a['kind']=='manifest')).read_text())
     assert manifest['effective_settings']['listParams']['n_factors']==4
     assert manifest['requested_settings']['listParams']['n_factors']==99
-    assert manifest['runtime']['source_revision']=='5cba0db2d78d23f2f7985fcf12d61cd6121ff05e'
+    assert manifest['runtime']['source_revision']=='d200b768f7ebef230b657ee8af2773779059905f'
 
 
 def register_reference_for_test(path):
