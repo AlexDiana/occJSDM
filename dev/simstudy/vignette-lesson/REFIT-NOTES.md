@@ -12,7 +12,7 @@
 
 ## What was refitted
 
-- Build archive: `/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-community-prior-fixed-alt-20261104`, with its own `library` (1b4a2cd's `R/` and `src/`, R 4.6.1, Accelerate BLAS), `run-rebuild.py` (the exact steps), `verify-relaxed.sh`, `logs/` and `build-steps.jsonl`. Recorded source commit 5290373, which adds `b0_prior = "fixed"` to the alternative arm in `helpers.R`. Battery power, Low Power Mode off, one thread per fit. Same seeds, data, contamination priors, MCMC schedules and fit arguments as the 7 October build. The perfect, default, alternative and longer alternative fits took 27, 101, 71 and 126 s; the one-factor prediction and unbalanced fits took 76 and 81 s.
+- Build archive: `/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-community-prior-fixed-alt-20261104`, with its own `library` (1b4a2cd's `R/` and `src/`, R 4.6.1, Accelerate BLAS), `run-rebuild.py` (the exact steps), `verify-relaxed.sh`, `logs/` and `build-steps.jsonl`. Recorded source commit 5290373, which adds `b0_prior = "fixed"` to the alternative arm in `helpers.R`. Battery power, Low Power Mode off, one thread per fit. Same seeds, data, contamination priors, MCMC schedules and fit arguments as the 7 October build. The perfect, default, alternative and longer alternative fits took 27, 101, 71 and 126 s; the one-factor prediction and unbalanced fits took 76 and 81 s.
 - The perfect, default, one-factor and unbalanced fits use the package default (the community mean) and are identical, draw for draw, to those of the first refit archive, `lesson-archive-community-prior-20261104` (AC power; recorded source commit 739a1f2). That archive is kept as the record of the alternative arm fitted with the community mean, with the two diagnostic fits in `diagnose-alternative/`.
 - Shipped data: `data/sampleresults.rda` (seed 20261007, 2 chains of 5,000 + 5,000, 1.1 minutes) and `data/quickstartresults.rda` (seed 20261101, 2,000 + 2,000, `nthin = 2`, 0.5 minutes), by `dev/release/2026-11-04-community-prior-refit/refit-shipped.R`, which also saved their diagnostics and provenance there.
 - Teaching bundles regenerated (from the second archive) in `vignettes/teaching-data/`: `nonspatial-lesson`, `output-lesson`, `diagnostics-lesson`, `latent-presence-lesson`, `native-plots`, `ordination-examples`, `remaining-plots-data`, `native-traits-data`, `covariate-effect-data`, `prediction-lesson`, `unbalanced-lesson`, `site-waic-lesson`, and the PNGs their exporters write. WAIC tables are in `community-prior-validation/`.
@@ -144,11 +144,11 @@ Source lines are in the `.Rmd`; "md" lines are in the regenerated `.md` render. 
 From the repository root, with the archive created as above. The shipped refits were run once, from the first archive; the lesson chain's `logs/sampleresults.done` gate was created by hand in the second.
 
 ```sh
-A=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-community-prior-fixed-alt-20261104
+A=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-community-prior-fixed-alt-20261104
 R CMD INSTALL --preclean --library=$A/library .
 python3 $A/run-rebuild.py          # the lesson chain
 R_LIBS=$A/library Rscript dev/simstudy/vignette-lesson/check-mu-b0.R $A dev/simstudy/vignette-lesson/community-prior-validation/mu-b0-convergence.csv
-F=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-community-prior-20261104
+F=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-community-prior-20261104
 $F/run-shipped.sh                  # sampleresults, then quickstartresults
 ```
 

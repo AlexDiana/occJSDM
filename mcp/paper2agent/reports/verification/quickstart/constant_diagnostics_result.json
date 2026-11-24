@@ -196,28 +196,28 @@
   "warning_count": 0,
   "schema_version": 1,
   "message": "Screening covers selected coefficient blocks; unavailable diagnostics are inconclusive.",
-  "reference": "https://github.com/AlexDiana/occJSDM/blob/5cba0db2d78d23f2f7985fcf12d61cd6121ff05e/vignettes/occJSDM-00-quickstart.Rmd",
+  "reference": "https://github.com/AlexDiana/occJSDM/blob/d200b768f7ebef230b657ee8af2773779059905f/vignettes/occJSDM-00-quickstart.Rmd",
   "artifacts": [
     {
       "kind": "log",
       "description": "Captured native R console output",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-4e5cc4371f9f443b9377e9837d08b9cf/stdout.log",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/diagnostics-fd816f12639c485db27357f43ff6cde6/stdout.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "kind": "log",
       "description": "Captured native R startup diagnostics",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-4e5cc4371f9f443b9377e9837d08b9cf/stderr.log",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/diagnostics-fd816f12639c485db27357f43ff6cde6/stderr.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "kind": "diagnostics",
       "description": "Complete native convergence diagnostic table",
-      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-v0.3.0/mcp/paper2agent/artifacts/calls/diagnostics-4e5cc4371f9f443b9377e9837d08b9cf/diagnostics.csv",
+      "path": "/Users/douglasyu/src/occJSDM/.worktrees/mcp-repin-v0.3.2/mcp/paper2agent/artifacts/calls/diagnostics-fd816f12639c485db27357f43ff6cde6/diagnostics.csv",
       "sha256": "7f28d12b5495f7d792d726cead7d49948638c51e2662aa4e8775ec56579c6cbc"
     }
   ],
-  "fit_id": "fit_af55035a1c144090ad4fa448e20a4803",
+  "fit_id": "fit_7c57f0212e3d457f88e44f0d49c8b832",
   "model": "binary",
   "settings": {},
   "fit_qualifications": [

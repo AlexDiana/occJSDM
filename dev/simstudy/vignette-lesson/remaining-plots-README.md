@@ -7,8 +7,8 @@ The compact bundle contains truth, the original predictor means/standard deviati
 Run from the repository root:
 
 ```sh
-R_LIBS='/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples/library' Rscript dev/simstudy/vignette-lesson/remaining-plots-export.R /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
-R_LIBS='/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples/library' Rscript dev/simstudy/vignette-lesson/remaining-plots-verify.R /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+R_LIBS='/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples/library' Rscript dev/simstudy/vignette-lesson/remaining-plots-export.R /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
+R_LIBS='/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples/library' Rscript dev/simstudy/vignette-lesson/remaining-plots-verify.R /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 ```
 
 `remaining-plots-diagnose-covariate.R` reproduces the pre-PR #13 covariate-response bug against the old archive and package only; it cannot pass on code after PR #13, which removed `plotCovariateEffect_base()` and corrected the calculation, so it is not run in a rebuild from current main.
@@ -19,7 +19,7 @@ Verification independently reconstructs every gradient's 95% interval and median
 
 All 50 native rate intervals are checked against posterior draws. Field false-positive truth is generating `theta0`. Both laboratory helpers preserve species/primer identity; their native confidence intervals do not pool primers. Laboratory truth uses the corresponding read-threshold-adjusted event rate, separately for true and contamination reads. The verifier maps actual native colours to primers and checks that each black cross shares its matching error bar's dodged position.
 
-The exporter and verifier check the full-fit/input hashes, source hashes, installed library location and hashes, and installed function bodies/formals against the current source. Confirmed archive hashes, for the three-sample rebuild of 2 October 2026 in `/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples` (source commit eeb1675), are `035f82108bbd94b1230e82e725de1e1d` for `default-fit.rds` and `a788a24de838ee78e19ce3973b8956e5` for `input.rds`. The two-sample build's were `67a364872efeb742de94e705194a7c33` and `a34d5d3282519756b87c1f54a77e6f94`.
+The exporter and verifier check the full-fit/input hashes, source hashes, installed library location and hashes, and installed function bodies/formals against the current source. Confirmed archive hashes, for the three-sample rebuild of 2 October 2026 in `/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples` (source commit eeb1675), are `035f82108bbd94b1230e82e725de1e1d` for `default-fit.rds` and `a788a24de838ee78e19ce3973b8956e5` for `input.rds`. The two-sample build's were `67a364872efeb742de94e705194a7c33` and `a34d5d3282519756b87c1f54a77e6f94`.
 
 ## Why `plotCovariateEffect()` was documented as blocked before PR #13
 

@@ -18,7 +18,7 @@ checks=[]
 for p in selected:
     if not (p/'manifest.json').is_file():continue
     m=json.loads((p/'manifest.json').read_text())
-    assert m['source_revision']==m['runtime']['source_revision']=='5cba0db2d78d23f2f7985fcf12d61cd6121ff05e'
+    assert m['source_revision']==m['runtime']['source_revision']=='d200b768f7ebef230b657ee8af2773779059905f'
     assert Path(m['runtime']['occJSDM_path']).resolve().is_relative_to(runtime)
     assert sha(m['fit_path'])==m['fit_sha256']
     assert sha(m['input_path'])==m['input_sha256']==sha(p/'input.rds')

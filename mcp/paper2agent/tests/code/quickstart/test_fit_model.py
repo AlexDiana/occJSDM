@@ -7,7 +7,8 @@ from conftest import ROOT,OUT,invoke,artifact,sha
 
 def test_full_native_fit_and_installed_source(numerical_audit):
     assert numerical_audit['all_passed'] is True
-    assert len(numerical_audit['saved_reference_cases'])==19
+    # 19 cases at the v0.3.0 pin; the v0.3.2 pin adds three binary cases with unsorted Site.
+    assert len(numerical_audit['saved_reference_cases'])==22
     assert len(numerical_audit['changed_cases'])==4
     assert numerical_audit['installed_source_bodies_identical'] is True
 
@@ -17,7 +18,7 @@ def test_provenance_effective_settings_qualifications(specs,exercised,name):
     assert m['requested_settings']==c['options'] and m['seed']==c['seed']
     assert m['input_sha256']==sha(c['data_path'])==r['input_sha256']
     assert m['effective_settings']['listParams']==c['options']['listParams']
-    assert m['runtime']['source_revision']==m['source_revision']=='5cba0db2d78d23f2f7985fcf12d61cd6121ff05e'
+    assert m['runtime']['source_revision']==m['source_revision']=='d200b768f7ebef230b657ee8af2773779059905f'
     assert m['runtime']['occJSDM_path'].startswith(str(ROOT/'r-runtime'))
     assert r['kept_draws_per_chain']==20 and r['total_iterations_per_chain']==20+20*c['options']['MCMCparams']['nthin']
     assert any('unsuitable for scientific interpretation' in q for q in m['qualifications'])

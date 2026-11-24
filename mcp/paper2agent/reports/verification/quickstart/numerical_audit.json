@@ -104,6 +104,24 @@
       "diagnostics": true,
       "baseline": true
     },
+    "boundary_binary_unsorted_uniqueSite": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "boundary_binary_unsorted_characterSite": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
+    "boundary_binary_shuffled_integerSite": {
+      "full_arrays": true,
+      "dimensions_identifiers_classes": true,
+      "diagnostics": true,
+      "baseline": true
+    },
     "boundary_occupancy_localSampleIDs": {
       "full_arrays": true,
       "dimensions_identifiers_classes": true,

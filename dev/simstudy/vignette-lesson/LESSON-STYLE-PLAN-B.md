@@ -8,7 +8,7 @@
 
 **Tech Stack:** R 4.5.0 with rmarkdown and knitr, dplyr, tidyr, tibble, ggplot2, ggtern and png; the occJSDM library installed in the full-fit archive; the committed bundles in `vignettes/teaching-data/`; the verifiers in `dev/simstudy/vignette-lesson/` and `dev/simstudy/jsdm-package-comparison/`; Node for the site test; perl for one mechanical link rewrite; git.
 
-**Spec:** `dev/simstudy/vignette-lesson/LESSON-STYLE-SPEC.md`: "Sequence" (Phase B), "Lesson 3", "Lesson 4", "The intuition lesson", "Decisions taken on 2 October 2026", "What does not change" and "Verification for every lesson pull request". The owner's decisions of 3 October 2026 in `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/notes.md` override the spec where they differ: Phase B starts now, before PR #14 merges and before the beta tag; eight lessons numbered 0 to 7; path-only edits to verifiers and `finish-study.py` for the renumbering are approved; Lesson 3's four figure groups (environmental gradient 2, perfect-observation versions, `plotVariancePartitioning()`, the unaligned ordination plot) are re-exported now with new exporter code and matching verifier checks, no existing check loosened or removed. Research maps in the same directory: `lesson-3-map.md`, `lesson-4-map.md`, `renumber-inventory.md`. Format model: `dev/simstudy/vignette-lesson/LESSON-STYLE-PLAN-A.md`.
+**Spec:** `dev/simstudy/vignette-lesson/LESSON-STYLE-SPEC.md`: "Sequence" (Phase B), "Lesson 3", "Lesson 4", "The intuition lesson", "Decisions taken on 2 October 2026", "What does not change" and "Verification for every lesson pull request". The owner's decisions of 3 October 2026 in `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/notes.md` override the spec where they differ: Phase B starts now, before PR #14 merges and before the beta tag; eight lessons numbered 0 to 7; path-only edits to verifiers and `finish-study.py` for the renumbering are approved; Lesson 3's four figure groups (environmental gradient 2, perfect-observation versions, `plotVariancePartitioning()`, the unaligned ordination plot) are re-exported now with new exporter code and matching verifier checks, no existing check loosened or removed. Research maps in the same directory: `lesson-3-map.md`, `lesson-4-map.md`, `renumber-inventory.md`. Format model: `dev/simstudy/vignette-lesson/LESSON-STYLE-PLAN-A.md`.
 
 ## Final numbering
 
@@ -42,7 +42,7 @@ Each is recorded here so the reviewer and the owner can see it; the final report
 ## Global Constraints
 
 - Work only in the worktree `/Users/douglasyu/src/occJSDM-worktrees/lesson-phase-b`, on branch `codex/lesson-phase-b` (created from main at 0f48dae). Never work in `/Users/douglasyu/src/occJSDM`, never commit to main, never push (the controller pushes), never force anything (no `push --force`, no `reset --hard` of committed work, no `-f` on `git mv`). Reading the Lesson 4 extension archive under `/Users/douglasyu/src/occJSDM/dev/simstudy/results/` for its verifier is read-only use; nothing is written there.
-- The full-fit archive is `/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples`. Every exporter and archive verifier runs from the worktree root with `R_LIBS=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples/library`, through the step runner below so that each run is logged in the archive's `BUILD-LOG.md`. Agent shells keep no variables between calls, so commands below spell paths out in full.
+- The full-fit archive is `/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples`. Every exporter and archive verifier runs from the worktree root with `R_LIBS=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples/library`, through the step runner below so that each run is logged in the archive's `BUILD-LOG.md`. Agent shells keep no variables between calls, so commands below spell paths out in full.
 - Commit messages end with a blank line and `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The pull request body (drafted in Task 8, opened by the controller) ends with `🤖 Generated with [Claude Code](https://claude.com/claude-code)` and carries a "needs Alex" list containing only package facts the lessons newly state that the spec marks unconfirmed.
 - Markdown rules for every `.md` and `.Rmd` touched, from `CLAUDE.md` and `AGENTS.md` lines 89 to 124: one line per paragraph, no hard wrapping; no em-dashes anywhere, including commit messages (use `--`); no pipe tables in lessons or in `vignettes/LESSON-PLAN.md` (bullet lists instead); escape a literal `>` `<` `~` `|` in prose as `\>` `\<` `\~` `\|`, never inside code spans or fenced blocks; keep inline code spans short; never add an `editor_options` block. Re-read a file immediately before and after editing it (it may be open in RStudio); if an edit looks corrupted or duplicated, rewrite the whole file with Write.
 - Out of scope unless a task names it: package code (`R/`, `src/`, `DESCRIPTION`, `NAMESPACE`); everything under `dev/simstudy/spatial-design-sweep/`; the Lesson 2 (spatial) and Lesson 4 (comparison and extension) bundles and their exporters; any verifier change other than the approved path edits (Tasks 2, 4, 6) and the Task 1 additions.
@@ -75,7 +75,7 @@ git grep -n "^|" -- 'vignettes/occJSDM*.Rmd' | wc -l
 
 ## Shared tools (created in Task 1 Step 1, kept outside the repository)
 
-These three files live in `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/`, the controller's working directory. They are not committed.
+These three files live in `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/`, the controller's working directory. They are not committed.
 
 `run-step.zsh`, the logged step runner (the archive's own `run-step.sh` points at a removed worktree):
 
@@ -84,7 +84,7 @@ These three files live in `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-ST
 # Usage: zsh run-step.zsh STEPNAME command args...
 # Runs from the Phase B worktree with the archive library first in R_LIBS,
 # logs to the archive's logs/STEPNAME.log and appends a record to BUILD-LOG.md.
-ARCHIVE=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+ARCHIVE=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 WT=/Users/douglasyu/src/occJSDM-worktrees/lesson-phase-b
 export R_LIBS=$ARCHIVE/library
 step=$1; shift
@@ -133,7 +133,7 @@ done
 rm -rf $tmp
 ```
 
-`check-lesson-links.R`, which checks that every lesson link or file name in the files given names an existing lesson source and, if it has a fragment, an existing heading; for lesson sources it also checks same-file `](#anchor)` links. Historical text is skipped: everything from `### Decisions made after this update` on (the dated log of `vignettes/LESSON-PLAN.md`) and any line containing a struck-through `~~` item (the DONE items of `TODO.md`). Run from the worktree root: `Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R FILE...`.
+`check-lesson-links.R`, which checks that every lesson link or file name in the files given names an existing lesson source and, if it has a fragment, an existing heading; for lesson sources it also checks same-file `](#anchor)` links. Historical text is skipped: everything from `### Decisions made after this update` on (the dated log of `vignettes/LESSON-PLAN.md`) and any line containing a struck-through `~~` item (the DONE items of `TODO.md`). Run from the worktree root: `Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R FILE...`.
 
 ```r
 slug <- function(heading) {
@@ -223,13 +223,13 @@ git status --short && git branch --show-current && git log --oneline -1
 Expected: clean tree, `codex/lesson-phase-b`, HEAD at or after 0f48dae (the plan commit). Write the three files of "Shared tools" with the Write tool, then mark the start of Phase B in the archive log:
 
 ```sh
-printf '\n## Phase B begins\n\nFrom here, steps run from worktree lesson-phase-b on branch codex/lesson-phase-b through .sdd/LESSON-STYLE-PLAN-B/run-step.zsh.\n' >> /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples/BUILD-LOG.md
+printf '\n## Phase B begins\n\nFrom here, steps run from worktree lesson-phase-b on branch codex/lesson-phase-b through .sdd/LESSON-STYLE-PLAN-B/run-step.zsh.\n' >> /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples/BUILD-LOG.md
 ```
 
 - [ ] **Step 2: Run the four existing verifiers as a baseline**
 
 ```sh
-S=/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+S=/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 zsh $S 40-baseline-verify_native_plots Rscript dev/simstudy/vignette-lesson/verify_native_plots.R $A
 zsh $S 41-baseline-native-traits-verify Rscript dev/simstudy/vignette-lesson/native-traits-verify.R $A
 zsh $S 42-baseline-ordination-verify Rscript dev/simstudy/vignette-lesson/ordination-verify.R $A
@@ -241,7 +241,7 @@ Expected final lines, in order: "Nine PNGs, compact export, full-fit hash, sourc
 - [ ] **Step 3: Trial the new calls without writing anything**
 
 ```sh
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh 44-trial-new-plots Rscript -e 'suppressMessages({library(occJSDM); library(ggplot2)}); A <- "/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples"; fp <- readRDS(file.path(A, "perfect-fit.rds"))$fit; fd <- readRDS(file.path(A, "default-fit.rds"))$fit; stopifnot(identical(fp$X_psi, fd$X_psi)); print(dim(plotOccupancyCovariates(fp, covName = "X_psi.EnvCov.2")$data)); print(dim(plotTraitsCoefficients(fp, covName = "X_psi.EnvCov.1")$data)); tr <- data.frame(Env = c(.2, .5), Biotic = c(.8, .5), Spatial = 0); b <- ggplot_build(plotVariancePartitioning(fd) + geom_point(data = tr, aes(x = Env, y = Biotic, z = Spatial), inherit.aes = FALSE, shape = 4)); print(b$data[[2]][, c("x", "y", "z")]); print(length(ggplot_build(plotBiplot(fd))$data))'
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh 44-trial-new-plots Rscript -e 'suppressMessages({library(occJSDM); library(ggplot2)}); A <- "/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples"; fp <- readRDS(file.path(A, "perfect-fit.rds"))$fit; fd <- readRDS(file.path(A, "default-fit.rds"))$fit; stopifnot(identical(fp$X_psi, fd$X_psi)); print(dim(plotOccupancyCovariates(fp, covName = "X_psi.EnvCov.2")$data)); print(dim(plotTraitsCoefficients(fp, covName = "X_psi.EnvCov.1")$data)); tr <- data.frame(Env = c(.2, .5), Biotic = c(.8, .5), Spatial = 0); b <- ggplot_build(plotVariancePartitioning(fd) + geom_point(data = tr, aes(x = Env, y = Biotic, z = Spatial), inherit.aes = FALSE, shape = 4)); print(b$data[[2]][, c("x", "y", "z")]); print(length(ggplot_build(plotBiplot(fd))$data))'
 ```
 
 Expected: two data dimensions printed without error, the truth layer printed with columns `x`, `y`, `z` holding 0.2/0.8/0 and 0.5/0.5/0, and `3` for the biplot layers. A warning "Ignoring unknown aesthetics: z" is expected and harmless (the ternary coordinates still read `z`, as the printed layer shows). If any call errors, stop.
@@ -547,7 +547,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - [ ] **Step 10: Run the four exporters**
 
 ```sh
-S=/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+S=/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 zsh $S 45-export_native_plots Rscript dev/simstudy/vignette-lesson/export_native_plots.R $A
 zsh $S 46-native-traits-export Rscript dev/simstudy/vignette-lesson/native-traits-export.R $A
 zsh $S 47-ordination-export Rscript dev/simstudy/vignette-lesson/ordination-export.R $A
@@ -705,24 +705,24 @@ The four verifiers require every locked chunk of a snippet file to be present in
 - [ ] **Step 13: Run the four verifiers**
 
 ```sh
-S=/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+S=/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 zsh $S 49-verify_native_plots Rscript dev/simstudy/vignette-lesson/verify_native_plots.R $A
 zsh $S 50-native-traits-verify Rscript dev/simstudy/vignette-lesson/native-traits-verify.R $A
 zsh $S 51-ordination-verify Rscript dev/simstudy/vignette-lesson/ordination-verify.R $A
 zsh $S 52-remaining-plots-verify Rscript dev/simstudy/vignette-lesson/remaining-plots-verify.R $A
-/usr/bin/grep -h "Lesson 3 displays\|verified" /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples/logs/{49,50,51,52}-*.log
+/usr/bin/grep -h "Lesson 3 displays\|verified" /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples/logs/{49,50,51,52}-*.log
 ```
 
 Expected: all four exit 0; each log has its "Lesson 3 displays the exact exported ..." line, the new lines of Step 11, "Twelve PNGs, ..." and "Six PNGs, ...". A failure in a new check means a wrong layer index or a wrong draws array; fix the verifier (never the bundle) and rerun.
 
 - [ ] **Step 14: Render Lesson 3 and record the build**
 
-Render Lesson 3 with both commands. Open the rendered `.md` at the seven new images and confirm each shows. Apply the PNG policy to the lesson's own figures only: `zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/revert-unchanged-png.zsh vignettes/occJSDM-lesson-3_files` (expected: every changed PNG reverted, since no knit-time figure changed). In `dev/simstudy/vignette-lesson/README.md`, add this record as the last section of the file:
+Render Lesson 3 with both commands. Open the rendered `.md` at the seven new images and confirm each shows. Apply the PNG policy to the lesson's own figures only: `zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/revert-unchanged-png.zsh vignettes/occJSDM-lesson-3_files` (expected: every changed PNG reverted, since no knit-time figure changed). In `dev/simstudy/vignette-lesson/README.md`, add this record as the last section of the file:
 
 ```markdown
 ### Lesson 3: package plots for gradient 2, the perfect-observation fit, variation partitioning and the ordinary biplot, added 3 October 2026
 
-Phase B of the lesson rewrite makes the package's own plot with truth the main figure of each Lesson 3 section. Four exporters were extended and re-run on `/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples` without refitting: `export_native_plots.R` adds `plotOccupancyCovariates()` for gradient 2 and for both gradients of the perfect-observation fit; `native-traits-export.R` adds `plotTraitsCoefficients()` for both gradients of the perfect-observation fit; `remaining-plots-export.R` adds `plotVariancePartitioning()` with the true shares; `ordination-export.R` saves the ordinary, unaligned biplot without a truth layer. The matching verifiers re-derive every new plotted interval or point from all 24,000 draws of the relevant fit, re-derive the truth independently, and still require the lesson's displayed code to equal the exported code. The runs are logged as steps 40 to 52 in that archive's `BUILD-LOG.md`.
+Phase B of the lesson rewrite makes the package's own plot with truth the main figure of each Lesson 3 section. Four exporters were extended and re-run on `/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples` without refitting: `export_native_plots.R` adds `plotOccupancyCovariates()` for gradient 2 and for both gradients of the perfect-observation fit; `native-traits-export.R` adds `plotTraitsCoefficients()` for both gradients of the perfect-observation fit; `remaining-plots-export.R` adds `plotVariancePartitioning()` with the true shares; `ordination-export.R` saves the ordinary, unaligned biplot without a truth layer. The matching verifiers re-derive every new plotted interval or point from all 24,000 draws of the relevant fit, re-derive the truth independently, and still require the lesson's displayed code to equal the exported code. The runs are logged as steps 40 to 52 in that archive's `BUILD-LOG.md`.
 ```
 
 - [ ] **Step 15: Commit the bundles, figures, verifiers and lesson**
@@ -867,11 +867,11 @@ Expected: only the lines replaced in Steps 3 to 5 (the old sentence at line 33, 
 
 - [ ] **Step 8: Render, verify and commit**
 
-Render `occJSDM-lesson-prediction`, `occJSDM-lesson-3` and `occJSDM-lesson-2` with both commands. Apply the PNG policy: `zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/revert-unchanged-png.zsh vignettes/occJSDM-lesson-prediction_files`, then `vignettes/occJSDM-lesson-3_files`, then `'vignettes/teaching-data/lesson-2-*'` (a quoted glob, so git matches the file names; expected: all reverted). Then:
+Render `occJSDM-lesson-prediction`, `occJSDM-lesson-3` and `occJSDM-lesson-2` with both commands. Apply the PNG policy: `zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/revert-unchanged-png.zsh vignettes/occJSDM-lesson-prediction_files`, then `vignettes/occJSDM-lesson-3_files`, then `'vignettes/teaching-data/lesson-2-*'` (a quoted glob, so git matches the file names; expected: all reverted). Then:
 
 ```sh
-zsh /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh 53-prediction-verify Rscript dev/simstudy/vignette-lesson/prediction-verify.R /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples /Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples/prediction
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-prediction.Rmd vignettes/occJSDM-lesson-3.Rmd vignettes/occJSDM-lesson-2.Rmd
+zsh /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh 53-prediction-verify Rscript dev/simstudy/vignette-lesson/prediction-verify.R /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples /Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples/prediction
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-prediction.Rmd vignettes/occJSDM-lesson-3.Rmd vignettes/occJSDM-lesson-2.Rmd
 ```
 
 Expected: "All prediction verification checks passed."; the link checker's success line. Run the Global Constraints checks (link test now "All 8 lesson sources ..."; site test `fail 0`). Then:
@@ -918,7 +918,7 @@ Target outline, in reading order (chunk labels in brackets; "gallery" means the 
 
 - [ ] **Step 1: Record the before state**
 
-Keep the rendered markdown committed at the end of Task 2 for comparison: `cp vignettes/occJSDM-lesson-3.md /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/lesson-3-before.md`. Note `wc -l vignettes/occJSDM-lesson-3.Rmd`.
+Keep the rendered markdown committed at the end of Task 2 for comparison: `cp vignettes/occJSDM-lesson-3.md /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/lesson-3-before.md`. Note `wc -l vignettes/occJSDM-lesson-3.Rmd`.
 
 - [ ] **Step 2: Move commit, part 1: diagnostics to the front**
 
@@ -1012,12 +1012,12 @@ Arrange the holding area under `## Appendix: evidence and reproduction` in this 
 Render Lesson 3 with both commands. Read the rendered `.md` once from top to bottom against the outline and `lesson-3-before.md`: every figure present, no "above" or "below" pointing the wrong way in the sentences touched, no dangling reference to a removed figure. Apply the PNG policy to `vignettes/occJSDM-lesson-3_files` (expected: moved knit-time figures reverted as unchanged). Run:
 
 ```sh
-S=/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+S=/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 zsh $S 54-verify_native_plots Rscript dev/simstudy/vignette-lesson/verify_native_plots.R $A
 zsh $S 55-native-traits-verify Rscript dev/simstudy/vignette-lesson/native-traits-verify.R $A
 zsh $S 56-ordination-verify Rscript dev/simstudy/vignette-lesson/ordination-verify.R $A
 zsh $S 57-remaining-plots-verify Rscript dev/simstudy/vignette-lesson/remaining-plots-verify.R $A
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-3.Rmd vignettes/occJSDM-lesson-prediction.Rmd vignettes/occJSDM-lesson-1.Rmd vignettes/occJSDM-lesson-intuition.Rmd
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-3.Rmd vignettes/occJSDM-lesson-prediction.Rmd vignettes/occJSDM-lesson-1.Rmd vignettes/occJSDM-lesson-intuition.Rmd
 wc -l vignettes/occJSDM-lesson-3.Rmd
 ```
 
@@ -1183,7 +1183,7 @@ Render `occJSDM-lesson-extension` and `occJSDM-lesson-4` with both commands. In 
 ```sh
 Rscript dev/simstudy/jsdm-package-comparison/verify-teaching.R archive dev/simstudy/jsdm-package-comparison
 Rscript dev/simstudy/jsdm-package-comparison/extension/verify.R /Users/douglasyu/src/occJSDM/dev/simstudy/results/lesson-4-extension-20260923 .
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-4.Rmd vignettes/occJSDM-lesson-extension.Rmd vignettes/LESSON-PLAN.md
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-4.Rmd vignettes/occJSDM-lesson-extension.Rmd vignettes/LESSON-PLAN.md
 ```
 
 Expected: "Teaching numerical verification passed for every check the committed archive supports." (its `reproduce-community` and `marginal-extraction-example` chunks are still in Lesson 4); "Verified input identity, held-out states, independent probability truth and error summaries for 626 scored results; 640 of 640 fits attempted."; the link checker's success line. Run the Global Constraints checks. Then:
@@ -1347,7 +1347,7 @@ Render, with the markdown command, `occJSDM-lesson-0` to `occJSDM-lesson-7`. App
 - [ ] **Step 6: Verify and commit**
 
 ```sh
-S=/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+S=/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 zsh $S 58-unbalanced-verify Rscript dev/simstudy/vignette-lesson/unbalanced-verify.R $A/unbalanced
 zsh $S 59-prediction-verify Rscript dev/simstudy/vignette-lesson/prediction-verify.R $A $A/prediction
 Rscript dev/simstudy/jsdm-package-comparison/verify-teaching.R archive dev/simstudy/jsdm-package-comparison
@@ -1398,7 +1398,7 @@ Then by hand: in `dev/simstudy/jsdm-package-comparison/extension/README.md` line
 - [ ] **Step 2: Check every link target and heading**
 
 ```sh
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md dev/simstudy/vignette-lesson/README.md dev/simstudy/jsdm-package-comparison/README.md dev/simstudy/jsdm-package-comparison/extension/README.md dev/simstudy/jsdm-package-comparison/extension/CALIBRATION.md dev/simstudy/jsdm-package-comparison/FITTING-REPORT.md
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md dev/simstudy/vignette-lesson/README.md dev/simstudy/jsdm-package-comparison/README.md dev/simstudy/jsdm-package-comparison/extension/README.md dev/simstudy/jsdm-package-comparison/extension/CALIBRATION.md dev/simstudy/jsdm-package-comparison/FITTING-REPORT.md
 ```
 
 Expected: the success line. A "no such heading" line names a link whose content moved: point it at the lesson that now holds the heading. Known cases already handled: the spatial lesson's link to `#predict-occupancy-at-genuinely-new-sites` (now Lesson 4), `LESSON-PLAN.md`'s link to `#which-fits-passed-remained-flagged-or-failed` (now Lesson 6), and the intuition lesson's links to `#exercise-predict-one-species-given-another` (now Lesson 5). A "no such lesson" line naming `occJSDM-lesson-intuition`, `-prediction` or `-extension` is a missed live reference: fix it by the file rule.
@@ -1457,7 +1457,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 8: Final verification and the pull request draft
 
 **Files:**
-- Create (not committed): `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/pr-body.md`
+- Create (not committed): `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/pr-body.md`
 - No repository file changes unless a check fails, in which case the fix is committed with a message naming the check.
 
 **Interfaces:**
@@ -1467,7 +1467,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - [ ] **Step 1: Every verifier**
 
 ```sh
-S=/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-worktrees/lesson-archive-3samples
+S=/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/run-step.zsh; A=/Users/douglasyu/src/occJSDM-lesson-archives/lesson-archive-3samples
 zsh $S 60-test_lesson Rscript dev/simstudy/vignette-lesson/test_lesson.R
 zsh $S 61-verify_lesson Rscript dev/simstudy/vignette-lesson/verify_lesson.R $A
 zsh $S 62-verify_outputs Rscript dev/simstudy/vignette-lesson/verify_outputs.R $A
@@ -1498,7 +1498,7 @@ git grep -n "editor_options" -- 'vignettes/occJSDM*.Rmd' | wc -l
 git grep -n -E "teaching-data/lesson-[24]-[a-z0-9-]+-1\.png" -- vignettes | wc -l
 git grep -n -E "occJSDM-lesson-(intuition|prediction|extension)" -- . ':!dev/simstudy/vignette-lesson/LESSON-STYLE-PLAN-A.md' ':!dev/simstudy/vignette-lesson/LESSON-STYLE-PLAN-B.md' ':!dev/simstudy/vignette-lesson/LESSON-STYLE-SPEC.md' ':!dev/simstudy/vignette-lesson/style-diagnostic' ':!dev/simstudy/lesson-site/PLAN.md' ':!dev/simstudy/lesson-site/DESIGN.md'
 git grep -n -E "Lesson (1: Fit|2: Spatial|4: Compare)" -- 'vignettes/occJSDM*' assets _config.yml dev/simstudy/lesson-site/test_lessons.js
-Rscript /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md dev/simstudy/vignette-lesson/README.md dev/simstudy/jsdm-package-comparison/README.md dev/simstudy/jsdm-package-comparison/extension/README.md dev/simstudy/jsdm-package-comparison/extension/CALIBRATION.md dev/simstudy/jsdm-package-comparison/FITTING-REPORT.md
+Rscript /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/check-lesson-links.R vignettes/occJSDM-lesson-[0-7].Rmd vignettes/occJSDM.Rmd vignettes/LESSON-PLAN.md TODO.md dev/simstudy/vignette-lesson/README.md dev/simstudy/jsdm-package-comparison/README.md dev/simstudy/jsdm-package-comparison/extension/README.md dev/simstudy/jsdm-package-comparison/extension/CALIBRATION.md dev/simstudy/jsdm-package-comparison/FITTING-REPORT.md
 /usr/bin/grep -n "Phase B restructure and renumbering" vignettes/LESSON-PLAN.md
 wc -l vignettes/occJSDM-lesson-[0-7].Rmd
 ```
@@ -1511,7 +1511,7 @@ Render each of the eight lessons with the HTML command. Confirm `git status --sh
 
 - [ ] **Step 4: Draft the pull request body**
 
-Write `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/pr-body.md` (markdown rules apply; one line per paragraph; no em-dashes) with these sections:
+Write `/Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/pr-body.md` (markdown rules apply; one line per paragraph; no em-dashes) with these sections:
   - Summary: the final numbering (the "Final numbering" bullets) and one paragraph on what Phase B is (structure, moves, splits, figures, renumbering; no teaching prose, which is Phase C).
   - Per task: what changed, in two to four bullets each, naming the new figures, the two custom figures kept and why, the seven removed, the appendices, the echo leak fix, the reduced full results, and the registrations.
   - Verifier changes: the four extended verifiers with their new checks and raised chunk counts, stating that no existing check was loosened or removed; the path-only edits with file and line.
@@ -1527,7 +1527,7 @@ Write `/Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/pr-body.m
 Report: the commit list (`git log --oneline 0f48dae..HEAD`), the check outputs, the PR body path, and any check that needed a fix. The branch is ready to push.
 
 Controller steps, not for an implementer:
-  - Push `codex/lesson-phase-b` and open the pull request with `gh pr create --base main --title "Lesson rewrite Phase B: restructure Lessons 3 and 4, split prediction and the extension, renumber 0 to 7" --body-file /Users/douglasyu/src/occJSDM-worktrees/.sdd/LESSON-STYLE-PLAN-B/pr-body.md`; then add the pull request link to the Phase B decision-log entry in `vignettes/LESSON-PLAN.md` in a follow-up commit.
+  - Push `codex/lesson-phase-b` and open the pull request with `gh pr create --base main --title "Lesson rewrite Phase B: restructure Lessons 3 and 4, split prediction and the extension, renumber 0 to 7" --body-file /Users/douglasyu/src/occJSDM-lesson-archives/.sdd/LESSON-STYLE-PLAN-B/pr-body.md`; then add the pull request link to the Phase B decision-log entry in `vignettes/LESSON-PLAN.md` in a follow-up commit.
   - Update the memory notes once (`/Users/douglasyu/.claude/projects/-Users-douglasyu-src-occJSDM/memory/`): add a note recording the 0 to 7 numbering and the old-to-new mapping, so later sessions do not read "Lesson 2" or "Lesson 4" with their old meanings, and index it in `MEMORY.md`; the existing `beta-waits-on-pr14.md` lines that name Lessons 2 and 4 are history and stay.
 
 ---
