@@ -84,3 +84,71 @@ test_that("count sampler draws are reproducible and validate their inputs", {
   expect_error(samplePGcount_cpp(replace(shape, 1, 0), phi), "shape must be positive")
   expect_error(samplePGcount_cpp(shape, replace(phi, 1, NA)), "phi must be finite")
 })
+
+test_that("count_log_mean adds each sample's log effort to its site's predictor", {
+  eta <- matrix(1:6, 3, 2)
+  expect_equal(occJSDM:::count_log_mean(eta, c(1L, 1L, 3L), log(c(1, 2, 4))),
+               eta[c(1, 1, 3), ] + log(c(1, 2, 4)))
+  expect_error(occJSDM:::count_log_mean(eta, c(1L, 4L), c(0, 0)), "idx_site")
+  expect_error(occJSDM:::count_log_mean(eta, c(1L, 2L), c(0, NA)), "log_effort")
+})
+
+test_that("the size prior is a half-normal on the inverse square root of the size", {
+  log_r <- seq(-3, 5, length.out = 9)
+  r <- exp(log_r)
+  direct <- log(2 * stats::dnorm(r^(-1/2), 0, 0.7) * 0.5 * r^(-1/2))
+  gap <- direct - occJSDM:::count_size_logprior(log_r, 0.7)
+  expect_equal(gap, rep(gap[1], 9), tolerance = 1e-10)
+})
+
+size_run <- function(y, log_mean, include = matrix(TRUE, nrow(y), ncol(y)),
+                     iterations = 3000, burn = 1000) {
+  S <- ncol(y)
+  r <- rep(1, S); step <- rep(occJSDM:::count_size_initial_step, S); t <- 0L
+  keep <- matrix(NA_real_, iterations - burn, S)
+  accepted <- keep
+  for (it in seq_len(iterations)) {
+    o <- occJSDM:::count_size_step(r, y, log_mean, include, 1, step, it <= burn, t)
+    r <- o$r; step <- o$step; t <- o$t
+    if (it > burn) { keep[it - burn, ] <- r; accepted[it - burn, ] <- o$accepted }
+  }
+  list(draws = keep, acceptance = colMeans(accepted), step = step, t = t)
+}
+
+test_that("the size update recovers the size from counts with a known mean", {
+  set.seed(20261125)
+  N <- 400
+  centre <- c(2, 2, 0, 0, -2, -2)
+  truth <- c(0.5, 5, 0.5, 5, 0.5, 5)
+  log_mean <- sapply(centre, function(m) stats::rnorm(N, m, 1))
+  y <- sapply(1:6, function(s) stats::rnbinom(N, size = truth[s], mu = exp(log_mean[, s])))
+  fit <- size_run(y, log_mean)
+  q <- apply(fit$draws, 2, stats::quantile, c(0.005, 0.5, 0.995))
+  expect_true(all(truth >= q[1, ] & truth <= q[3, ]))
+  expect_true(all(abs(log(q[2, 1:4] / truth[1:4])) < log(1.5)))
+  expect_true(all(fit$acceptance > 0.25 & fit$acceptance < 0.65))
+  expect_identical(fit$t, 1000L)
+})
+
+test_that("the size update ignores missing and excluded cells and survives a species never counted", {
+  set.seed(1)
+  N <- 60
+  log_mean <- matrix(stats::rnorm(N * 3), N, 3)
+  y <- matrix(stats::rnbinom(N * 3, size = 2, mu = exp(log_mean)), N, 3)
+  y[, 3] <- 0
+  y[1:10, 1] <- NA
+  include <- matrix(TRUE, N, 3)
+  include[11:20, 2] <- FALSE
+  changed <- y
+  changed[11:20, 2] <- 999
+  set.seed(5); a <- occJSDM:::count_size_step(rep(1, 3), y, log_mean, include, 1, rep(0.5, 3), TRUE, 0L)
+  set.seed(5); b <- occJSDM:::count_size_step(rep(1, 3), changed, log_mean, include, 1, rep(0.5, 3), TRUE, 0L)
+  expect_identical(a, b)
+  expect_true(all(is.finite(a$r)) && all(a$r > 0))
+  expect_identical(a$t, 1L)
+  fixed <- occJSDM:::count_size_step(rep(1, 3), y, log_mean, include, 1, rep(0.5, 3), FALSE, 7L)
+  expect_identical(fixed$step, rep(0.5, 3))
+  expect_identical(fixed$t, 7L)
+  expect_error(occJSDM:::count_size_step(rep(1, 2), y, log_mean, include, 1, rep(0.5, 3), TRUE, 0L),
+               "one size per species")
+})
