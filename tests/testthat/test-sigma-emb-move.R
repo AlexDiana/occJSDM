@@ -216,3 +216,76 @@ test_that("the coefficient update runs the sigma_emb move on the current state, 
 # percent of sigma_emb moves are accepted in this run at a step of 0.5, and
 # the effective draws of log sigma_emb about double (from about 800 to about
 # 1,700 of 50,000).
+
+# The sigma_emb move under a cap (slab_scale). Design:
+# dev/superpowers/specs/2026-11-25-axis-slab-design.md, "Mathematics", "The
+# leftover scale move". Under a cap the move needs the current axis scales.
+
+run_capped_sigma_move <- function(x, step = 0.5) with(x, occJSDM:::sigma_emb_move(
+  B, sigma_move_leftovers(x), sigma_emb, X, kappa, Omega, eta, cp, step, lambda = lambda))
+
+# The factor by which a proposed sigma_emb multiplies each embedding column's
+# leftovers under a cap: the ratio of the leftover's capped standard
+# deviations at the proposed and current sigma_emb.
+capped_sigma_factors <- function(x, proposed) {
+  emb <- which(x$cp$is_emb)
+  occJSDM:::coef_effective_scales(x$cp, proposed, x$lambda)$leftover[emb] /
+    occJSDM:::coef_effective_scales(x$cp, x$sigma_emb, x$lambda)$leftover[emb]
+}
+
+test_that("under a cap the sigma_emb move accepts on the exact ratio of the target density", {
+  # As the uncapped test above, with a cap of 0.8. Column k of the embedding
+  # leftovers is multiplied by its own factor rho_k, so the Jacobian is
+  # S times the sum of log(rho_k).
+  n_accept <- 0L; n_reject <- 0L
+  for (seed in 1:40) {
+    x <- axis_move_state(seed); x$cp$slab_scale <- 0.8
+    emb <- which(x$cp$is_emb)
+    step <- c(0.5, 0.05)[1L + seed %% 2L]
+    seed_both(300L + seed)
+    got <- run_capped_sigma_move(x, step)
+    seed_both(300L + seed)
+    delta <- rnorm(1, 0, step); logu <- log(runif(1))
+    prop <- x
+    prop$sigma_emb <- x$sigma_emb * exp(delta)
+    rho <- capped_sigma_factors(x, prop$sigma_emb)
+    R <- sigma_move_leftovers(x); R[, emb] <- R[, emb] * rep(rho, each = nrow(R))
+    prop$B <- t(x$Tr_b %*% x$G + x$A %*% x$C + R)
+    log_ratio <- axis_move_log_target(prop) - axis_move_log_target(x) + ncol(x$B) * sum(log(rho))
+    accepted <- logu < log_ratio
+    expect_equal(got$log_ratio, log_ratio, tolerance = 1e-8, info = paste("seed", seed))
+    expect_identical(got$accepted, accepted, info = paste("seed", seed))
+    if (accepted) {
+      expect_equal(got$B, prop$B, info = paste("seed", seed))
+      expect_equal(got$sigma_emb, prop$sigma_emb, info = paste("seed", seed))
+      expect_equal(got$eta, x$rest + x$X %*% prop$B, info = paste("seed", seed))
+      n_accept <- n_accept + 1L
+    } else {
+      expect_identical(got[c("B", "sigma_emb", "eta")], x[c("B", "sigma_emb", "eta")],
+                       info = paste("seed", seed))
+      n_reject <- n_reject + 1L
+    }
+  }
+  expect_gt(n_accept, 5L); expect_gt(n_reject, 5L)   # both outcomes were exercised
+})
+
+test_that("under a cap an accepted sigma_emb move scales each embedding column's leftovers by its own factor", {
+  x <- axis_move_state(3L); x$cp$slab_scale <- 0.8
+  x$kappa[] <- 0; x$Omega[] <- 0                     # a constant likelihood
+  got <- NULL
+  for (s in 1:20) {                                  # the first seed whose move is accepted
+    seed_both(s); got <- run_capped_sigma_move(x)
+    if (got$accepted) break
+  }
+  expect_true(got$accepted)
+  rho <- capped_sigma_factors(x, got$sigma_emb)
+  expect_false(any(rho == 1))
+  expect_gt(max(rho) - min(rho), 1e-3)               # one factor per column, not one in all
+  R0 <- sigma_move_leftovers(x); R1 <- sigma_move_leftovers(x, got$B)
+  for (j in 1:3)
+    expect_equal(R1[, 2L + j], rho[j] * R0[, 2L + j], tolerance = 1e-10, info = format(j))
+  # Measured rows of B come back bit for bit, so their leftovers are unchanged.
+  expect_identical(got$B[1:2, ], x$B[1:2, ])
+  # The linear predictor follows B.
+  expect_equal(got$eta, x$rest + x$X %*% got$B, tolerance = 1e-12)
+})

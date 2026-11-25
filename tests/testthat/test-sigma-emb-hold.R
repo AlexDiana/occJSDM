@@ -201,3 +201,40 @@ test_that("while sigma_emb is held the axis scale move starts from the state the
   # a held sweep.
   expect_true(any(vapply(seen_b[which(held)], function(s) any(s$accepted), logical(1))))
 })
+
+test_that("while sigma_emb is held under a cap, its draw and its move are skipped", {
+  # The test above with a cap of 1. sigma_emb is drawn by a slice draw under
+  # a cap, and that draw as well as the sigma_emb move must be skipped in a
+  # held sweep, so that sigma_emb stays at the held value; the sigma_b move
+  # still runs.
+  local_mocked_bindings(axis_hold_sweeps = half_of_burnin, .package = "occJSDM")
+  calls <- character(0); sweep <- 0L; held <- logical(0); after <- numeric(0)
+  original_b <- occJSDM:::sigma_b_move
+  original_emb <- occJSDM:::sigma_emb_move
+  update <- occJSDM:::update_jSDMcoef
+  update_env <- new.env(parent = environment(update))
+  update_env$sigma_b_move <- function(...) { calls <<- c(calls, paste0("b", sweep + 1L)); original_b(...) }
+  update_env$sigma_emb_move <- function(...) { calls <<- c(calls, paste0("emb", sweep + 1L)); original_emb(...) }
+  environment(update) <- update_env
+  local_mocked_bindings(update_jSDMcoef = function(list_data, list_params, ...) {
+    held <<- c(held, isTRUE(list_params$axis_move$hold))
+    out <- update(list_data, list_params, ...)
+    after <<- c(after, out$sigma_emb)
+    sweep <<- sweep + 1L
+    out
+  }, .package = "occJSDM")
+  dat <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)$data_list
+  fit <- suppressMessages(suppressWarnings(runOccJSDM(dat,
+    listParams = list(n_factors = 1L, embeddingVars = dat$embeddingVars),
+    listPriors = list(slab_scale = 1),
+    occCovariates = grouped_occ_covariates(dat),
+    MCMCparams = list(nchain = 1L, nburn = 6L, niter = 2L, nthin = 1L))))
+  expect_identical(fit$infos$coef_prior$slab_scale, 1)
+  expect_identical(held, c(rep(TRUE, 3), rep(FALSE, 5)))
+  for (i in 1:8) {
+    expect_true(paste0("b", i) %in% calls, info = paste("sweep", i))
+    expect_identical(paste0("emb", i) %in% calls, !held[i], info = paste("sweep", i))
+  }
+  expect_identical(after[1:3], rep(0.1, 3))
+  for (i in 4:8) expect_false(after[i] == 0.1, info = paste("sweep", i))
+})

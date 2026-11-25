@@ -1545,6 +1545,13 @@ update_jSDMcoef <- function(list_data,
   # predictor is rebuilt from the coefficients just drawn (Bt and Bst are the
   # leftovers of the new B and Bs about the current G, A, C and their spatial
   # counterparts) and the factor scores of the previous sweep.
+  #
+  # Under a finite cap on the embedding scales (coef_slab()) the two
+  # embedding moves need more: the sigma_emb move the current axis scales, and
+  # the axis scale move the current sigma_emb and the leftovers of the B the
+  # sigma_emb move returns, which are recomputed after it from that B and the
+  # current G, A and C. With an infinite cap, or a record without one, both
+  # moves are called exactly as before and nothing extra is computed.
   axis_move <- list_params$axis_move
   if (!is.null(axis_move)) {
     if (!grouped_b || model != "binary")
@@ -1566,16 +1573,24 @@ update_jSDMcoef <- function(list_data,
     # While sigma_emb is held (the staged burn-in, axis_hold_sweeps()) its
     # move is skipped and draws nothing.
     held <- isTRUE(axis_move$hold)
+    capped <- is.finite(coef_slab(coef_prior))
     list_sigma <- if (held)
       list(B = B, sigma_emb = sigma_emb, eta = list_b$eta, accepted = FALSE,
-           log_ratio = NA_real_) else
+           log_ratio = NA_real_) else if (capped)
+      sigma_emb_move(B, leftovers, sigma_emb, X, k, Omega, list_b$eta,
+                     coef_prior, axis_move$sigma_step, lambda = lambda) else
       sigma_emb_move(B, leftovers, sigma_emb, X, k, Omega, list_b$eta,
                      coef_prior, axis_move$sigma_step)
     B <- list_sigma$B
     sigma_emb <- list_sigma$sigma_emb
     axis_move$sigma_accepted <- list_sigma$accepted
-    list_move <- axis_scale_move(B, G, C, lambda, X, k, Omega, list_sigma$eta,
-                                 coef_prior, axis_move$step)
+    list_move <- if (capped) {
+      leftovers <- t(B) - Tr_b %*% G - A %*% C
+      axis_scale_move(B, G, C, lambda, X, k, Omega, list_sigma$eta,
+                      coef_prior, axis_move$step, R = leftovers, sigma_emb = sigma_emb)
+    } else
+      axis_scale_move(B, G, C, lambda, X, k, Omega, list_sigma$eta,
+                      coef_prior, axis_move$step)
     B <- list_move$B
     G <- list_move$G
     C <- list_move$C

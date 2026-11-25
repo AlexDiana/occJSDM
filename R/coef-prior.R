@@ -449,12 +449,41 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda,
 # visited in order; all proposals are drawn first, then all uniforms. Returns
 # the updated B, G, C and lambda, with `accepted` and `log_ratio` per design
 # column (FALSE and NA on measured columns).
+#
+# Under a finite cap (coef_slab()) the prior standard deviations are no
+# longer proportional to lambda_k: G and C of column k have the effective
+# axis scale (lambda_k capped) and its leftovers lambda_k * sigma_emb capped
+# (coef_effective_scales()). The move is then the design's "The axis scale
+# move" (dev/superpowers/specs/2026-11-25-axis-slab-design.md, section
+# "Mathematics"), in axis_scale_move_capped(): the same proposal on
+# log(lambda_k), but each part of the column is multiplied by the ratio of
+# its own prior standard deviation, new over old. Column k of G and of C is
+# multiplied by rho_g, the ratio of the effective axis scales, and the
+# column's leftovers by rho_e, the ratio of the leftover's capped standard
+# deviations. Each part keeps its value in units of its own prior standard
+# deviation, so the prior densities and the Jacobian cancel as above, and the
+# acceptance ratio is again the likelihood ratio times the half-Cauchy term.
+# Row k of B moves by d = (rho_g - 1) (B[k, ] - e) + (rho_e - 1) e, e being
+# the column's leftovers, and the log likelihood ratio is lin - quad / 2 with
+# lin = sum((kappa - Omega * eta) * X[, k] d) and
+# quad = sum(Omega * (X[, k] d)^2). This needs the leftovers `R` of the `B`
+# given (species by covariates) and the current `sigma_emb`, which are
+# required under a finite cap and not used otherwise. With an infinite cap,
+# or a record without one, rho_g = rho_e = exp(delta) and the code below runs
+# unchanged, drawing the same random numbers, whether or not `R` and
+# `sigma_emb` are given. The random numbers are drawn in the same order under
+# a cap. Returns the same list.
 AXIS_MOVE_STEP <- 0.5
 
 # The acceptance rate a one-dimensional random walk is tuned to.
 AXIS_MOVE_TARGET <- 0.44
 
-axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step) {
+axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step,
+                            R = NULL, sigma_emb = NULL) {
+  slab <- coef_slab(coef_prior)
+  if (is.finite(slab))
+    return(axis_scale_move_capped(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step,
+                                  R, sigma_emb, slab))
   p <- nrow(B)
   accepted <- rep(FALSE, p)
   log_ratio <- rep(NA_real_, p)
@@ -480,6 +509,68 @@ axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, s
         B[k, ] <- b * r
         G[, k] <- G[, k] * r
         C[, k] <- C[, k] * r
+        lambda[k] <- proposed
+        accepted[k] <- TRUE
+      }
+    }
+  }
+  list(B = B, G = G, C = C, lambda = lambda, accepted = accepted, log_ratio = log_ratio)
+}
+
+# The log of capped(s * exp(delta), slab) / capped(s, slab), elementwise,
+# given log(s): how a proposal of delta on the log scale changes a capped
+# standard deviation (coef_capped()). Both capped values are written as in
+# coef_capped(), through the smaller and the larger of s and the cap, so
+# that the log of the cap cancels exactly when s is far above it and the
+# ratio stays finite and accurate for s from far below the cap to far above
+# it. Taking log(s) rather than s keeps a product of two small scales from
+# underflowing.
+coef_capped_log_ratio <- function(log_s, delta, slab) {
+  log_c <- log(slab)
+  lo0 <- pmin(log_s, log_c); hi0 <- pmax(log_s, log_c)
+  lo1 <- pmin(log_s + delta, log_c); hi1 <- pmax(log_s + delta, log_c)
+  (lo1 - lo0) - (log1p(exp(2 * (lo1 - hi1))) - log1p(exp(2 * (lo0 - hi0)))) / 2
+}
+
+# axis_scale_move() under a finite cap `slab`: see the comment above it. The
+# factors rho_g and rho_e are formed on the log scale (coef_capped_log_ratio())
+# and rho - 1 by expm1(), so that a column far above the cap, whose factors
+# are within rounding of 1, moves B by a correspondingly tiny amount rather
+# than by rounding error. `R` is read for column k only when column k is
+# visited, and the move changes no other column's leftovers, so it need not
+# be updated after an acceptance.
+axis_scale_move_capped <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step,
+                                   R, sigma_emb, slab) {
+  if (is.null(R) || is.null(sigma_emb))
+    stop("under a cap the axis scale move needs the leftovers R and sigma_emb")
+  p <- nrow(B)
+  accepted <- rep(FALSE, p)
+  log_ratio <- rep(NA_real_, p)
+  emb <- which(coef_prior$is_emb)
+  if (length(emb) > 0L) {
+    delta <- stats::rnorm(length(emb), 0, step)
+    logu <- log(stats::runif(length(emb)))
+    grad <- kappa - Omega * eta
+    log_sigma <- log(sigma_emb)
+    for (j in seq_along(emb)) {
+      k <- emb[j]
+      x <- X[, k]
+      b <- B[k, ]
+      e <- R[, k]
+      log_rho_g <- coef_capped_log_ratio(log(lambda[k]), delta[j], slab)
+      log_rho_e <- coef_capped_log_ratio(log_sigma + log(lambda[k]), delta[j], slab)
+      d <- expm1(log_rho_g) * (b - e) + expm1(log_rho_e) * e
+      lin <- sum(crossprod(x, grad) * d)
+      quad <- sum(crossprod(x^2, Omega) * d^2)
+      proposed <- lambda[k] * exp(delta[j])
+      log_ratio[k] <- lin - quad / 2 + delta[j] -
+        log1p((proposed / coef_prior$axis_scale)^2) +
+        log1p((lambda[k] / coef_prior$axis_scale)^2)
+      if (logu[j] < log_ratio[k]) {
+        grad <- grad - Omega * tcrossprod(x, d)
+        B[k, ] <- b + d
+        G[, k] <- G[, k] * exp(log_rho_g)
+        C[, k] <- C[, k] * exp(log_rho_g)
         lambda[k] <- proposed
         accepted[k] <- TRUE
       }
@@ -516,7 +607,30 @@ axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, s
 # sigma_emb and eta, with `accepted` and `log_ratio` (FALSE and NA, with no
 # random number drawn, when there are no embedding columns). It runs in the
 # same fits as axis_scale_move(), just before it.
-sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step) {
+#
+# Under a finite cap (coef_slab()) a leftover's prior standard deviation is
+# sigma_emb * lambda_k capped, which is not proportional to sigma_emb. The
+# move is then the design's "The leftover scale move" (same file and section
+# as for axis_scale_move()), in sigma_emb_move_capped(): the same proposal,
+# but the leftovers of embedding column k are multiplied by their own factor
+# rho_k, the ratio of the capped standard deviations at the proposed and
+# current sigma_emb, so that each leftover keeps its value in units of its
+# prior standard deviation and the prior and the Jacobian cancel as above.
+# Each embedding row of B moves by (rho_k - 1) times its leftovers, and with
+# D = X[, embedding] %*% diag(rho - 1) %*% t(R[, embedding]) the log
+# likelihood ratio is lin - quad / 2, lin = sum((kappa - Omega * eta) * D)
+# and quad = sum(Omega * D^2). This needs the current axis scales `lambda`
+# (uncapped, one per design column), which are required under a finite cap
+# and not used otherwise. With an infinite cap, or a record without one,
+# every rho_k is exp(delta) and the code below runs unchanged, drawing the
+# same random numbers, whether or not `lambda` is given. Same random numbers
+# in the same order under a cap, and the same return.
+sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step,
+                           lambda = NULL) {
+  slab <- coef_slab(coef_prior)
+  if (is.finite(slab))
+    return(sigma_emb_move_capped(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step,
+                                 lambda, slab))
   emb <- which(coef_prior$is_emb)
   if (length(emb) == 0L)
     return(list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = FALSE,
@@ -535,6 +649,39 @@ sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, st
   if (accepted) {
     B[emb, ] <- B[emb, , drop = FALSE] + r1 * t(R[, emb, drop = FALSE])
     eta <- eta + r1 * D
+    sigma_emb <- proposed
+  }
+  list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = accepted, log_ratio = log_ratio)
+}
+
+# sigma_emb_move() under a finite cap `slab`: see the comment above it. The
+# factors are formed on the log scale (coef_capped_log_ratio()) and rho - 1
+# by expm1(), as in axis_scale_move_capped().
+sigma_emb_move_capped <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step,
+                                  lambda, slab) {
+  emb <- which(coef_prior$is_emb)
+  if (length(emb) == 0L)
+    return(list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = FALSE,
+                log_ratio = NA_real_))
+  if (is.null(lambda))
+    stop("under a cap the sigma_emb move needs the axis scales lambda")
+  delta <- stats::rnorm(1, 0, step)
+  logu <- log(stats::runif(1))
+  rho1 <- expm1(coef_capped_log_ratio(log(sigma_emb) + log(lambda[emb]), delta, slab))
+  # Row j of dB is rho_j - 1 times the leftovers of embedding column j: the
+  # change of that row of B.
+  dB <- t(R[, emb, drop = FALSE]) * rho1
+  D <- X[, emb, drop = FALSE] %*% dB
+  lin <- sum((kappa - Omega * eta) * D)
+  quad <- sum(Omega * D^2)
+  proposed <- sigma_emb * exp(delta)
+  log_ratio <- lin - quad / 2 + delta -
+    log1p((proposed / coef_prior$sigma_emb_scale)^2) +
+    log1p((sigma_emb / coef_prior$sigma_emb_scale)^2)
+  accepted <- logu < log_ratio
+  if (accepted) {
+    B[emb, ] <- B[emb, , drop = FALSE] + dB
+    eta <- eta + D
     sigma_emb <- proposed
   }
   list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = accepted, log_ratio = log_ratio)
