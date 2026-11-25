@@ -257,9 +257,9 @@ sample_scale_half_cauchy <- function(ss, n, sigma, scale) {
 # out on the log scale, or a density of zero) counts as outside the slice.
 # If the level rounds to f(u0) itself, which can happen only when |f(u0)| is
 # huge, no point may ever be accepted; after 200 rejections the interval has
-# shrunk far below the precision of a double and u0 is returned. Random numbers come from
-# R's generator, all of them uniforms: the level, the placement, the split,
-# then one per proposal.
+# shrunk far below the precision of a double and u0 is returned. Random
+# numbers come from R's generator, all of them uniforms: the level, the
+# placement, the split, then one per proposal.
 slice_sample_log <- function(f, u0, w = 1, max_steps = 50L) {
   f0 <- f(u0)
   if (!is.finite(f0))
@@ -313,17 +313,22 @@ log1p_exp <- function(x) pmax(x, 0) + log1p(exp(-abs(x)))
 # ss_gc is the sum of squares of the g_b rows of G[, k] plus sum(C[, k]^2) /
 # c_base[k]^2, and m_gc = g_b + q is their number; ss_r is the sum of squares
 # of the S leftovers of column k. The leading u is the Jacobian of the log.
-# Both precisions are handled through their logs, so that every term stays
-# finite for u from about -350 to 350; beyond that a term overflows to -Inf,
-# which a slice draw treats as outside the slice. A sum of squares of zero
-# gives a term of exactly zero. With slab = Inf this is the uncapped density.
+# The parts c^-2 ss_gc / 2 and c^-2 ss_r / 2 of the two quadratic terms do
+# not depend on u and are dropped, so the quadratic terms are
+# e^(-2u) ss_gc / 2 and e^(-2u) ss_r / (2 sigma_emb^2); keeping them would
+# only add a large constant that costs precision when a sum of squares is
+# large. The log precisions and the quadratic terms are computed through
+# logs, so that every term stays finite for u from about -350 to 350; beyond
+# that a term overflows to -Inf, which a slice draw treats as outside the
+# slice. A sum of squares of zero gives a term of exactly zero. With
+# slab = Inf this is the uncapped density.
 axis_scale_logdens <- function(u, ss_gc, m_gc, ss_r, S, sigma_emb, axis_scale, slab) {
   log_cap <- -2 * log(slab)
   log_pg <- log_add_exp(-2 * u, log_cap)
   log_pe <- log_add_exp(-2 * u - 2 * log(sigma_emb), log_cap)
   u - log1p_exp(2 * (u - log(axis_scale))) +
-    m_gc / 2 * log_pg - exp(log_pg + log(ss_gc)) / 2 +
-    S / 2 * log_pe - exp(log_pe + log(ss_r)) / 2
+    m_gc / 2 * log_pg - exp(-2 * u + log(ss_gc)) / 2 +
+    S / 2 * log_pe - exp(-2 * u - 2 * log(sigma_emb) + log(ss_r)) / 2
 }
 
 # The log of the conditional density of v = log(sigma_emb) under a cap
@@ -337,11 +342,14 @@ axis_scale_logdens <- function(u, ss_gc, m_gc, ss_r, S, sigma_emb, axis_scale, s
 #
 # with b = scale and c = slab. `ss_r` and `lambda` have one element per
 # embedding column: the sum of squares of its S leftovers, and its uncapped
-# axis scale. Computed as axis_scale_logdens() is.
+# axis scale. Computed as axis_scale_logdens() is, with the constant parts
+# c^-2 ss_rk / 2 of the quadratic terms dropped, so that each quadratic term
+# is e^(-2v) ss_rk / (2 lambda_k^2).
 sigma_emb_logdens <- function(v, ss_r, S, lambda, scale, slab) {
-  log_pe <- log_add_exp(-2 * v - 2 * log(lambda), -2 * log(slab))
+  log_lam <- 2 * log(lambda)
+  log_pe <- log_add_exp(-2 * v - log_lam, -2 * log(slab))
   v - log1p_exp(2 * (v - log(scale))) +
-    sum(S / 2 * log_pe - exp(log_pe + log(ss_r)) / 2)
+    sum(S / 2 * log_pe - exp(-2 * v - log_lam + log(ss_r)) / 2)
 }
 
 # Update the scales of the grouped prior. R is the species by covariates

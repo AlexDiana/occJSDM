@@ -80,6 +80,29 @@ test_that("the slice draw samples a known density", {
   expect_lt(max(abs(share - c(.05, .25, .5, .75, .95))), 0.03)
 })
 
+test_that("the slice draw stays exact when its stepping-out limit binds", {
+  # With max_steps = 2 the interval can step out by one width in all, on one
+  # side chosen at random, while N(0, 2^2) needs several widths, so the limit
+  # binds on most draws. The random split of the limit between the two ends
+  # (Neal 2003, Figure 3) is what keeps the draw exact then. Tolerances, one
+  # per quantile: over 72 seeds of 200,000 draws the standard deviation of a
+  # share was 0.0020, 0.0045, 0.0050, 0.0040 and 0.0017, with no bias (no
+  # mean error above 1.2 standard errors), and each tolerance is five of
+  # them, the larger of the two at symmetric quantiles. A fixed cap on each
+  # side instead of the split (one step or two) moves the shares by about
+  # 0.02 at the 5% and 95% points and 0.04 at the quartiles.
+  seed_both(8L); u <- 0; draws <- numeric(200000L)
+  for (i in seq_along(draws))
+    draws[i] <- u <- occJSDM:::slice_sample_log(function(u) dnorm(u, 0, 2, log = TRUE), u,
+                                                max_steps = 2L)
+  p <- c(.05, .25, .5, .75, .95)
+  share <- vapply(qnorm(p, 0, 2), function(q) mean(draws < q), numeric(1))
+  tolerance <- c(0.010, 0.023, 0.025, 0.023, 0.010)
+  for (j in seq_along(p))
+    expect_lt(abs(share[j] - p[j]), tolerance[j],
+              label = sprintf("error of the share below the %g quantile", p[j]))
+})
+
 test_that("the log densities of the capped scale draws are the target's", {
   x <- axis_move_state(); x$cp$slab_scale <- 0.8
   R <- t(x$B) - x$Tr_b %*% x$G - x$A %*% x$C; S <- nrow(R); emb <- 3:5; ls <- c(0.01, 0.3, 2, 40)
