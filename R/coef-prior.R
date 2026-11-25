@@ -240,6 +240,110 @@ sample_scale_half_cauchy <- function(ss, n, sigma, scale) {
   sqrt(rinvgamma_cpp((n + 1) / 2, ss / 2 + 1 / aux))
 }
 
+# One univariate slice draw (Neal 2003, "Slice sampling", Annals of
+# Statistics 31: 705-767; stepping out as in his Figure 3, shrinkage as in his
+# Figure 5) from the density whose log is `f`, started at `u0`, which is
+# returned unchanged only in the degenerate case below. The draw leaves that
+# density exactly invariant and needs no tuning. Used on the log scale of the
+# embedding scales under a cap (sample_coef_scales()).
+#
+# The slice is every u with f(u) above a level drawn below f(u0). An interval
+# of width `w` is placed at random around u0, and its ends step out by `w`
+# while they are inside the slice, for at most `max_steps` steps in all, split
+# at random between the two ends as Neal's Figure 3 does (the random split is
+# what keeps a limited stepping out exact). A point is then drawn uniformly
+# from the interval, and on each rejection the interval shrinks to that point
+# on the side away from u0. A value of f that is not finite (an overflow far
+# out on the log scale, or a density of zero) counts as outside the slice.
+# If the level rounds to f(u0) itself, which can happen only when |f(u0)| is
+# huge, no point may ever be accepted; after 200 rejections the interval has
+# shrunk far below the precision of a double and u0 is returned. Random numbers come from
+# R's generator, all of them uniforms: the level, the placement, the split,
+# then one per proposal.
+slice_sample_log <- function(f, u0, w = 1, max_steps = 50L) {
+  f0 <- f(u0)
+  if (!is.finite(f0))
+    stop("a slice draw must start at a point where the log density is finite")
+  level <- f0 + log(stats::runif(1))
+  inside <- function(u) {
+    fu <- f(u)
+    is.finite(fu) && fu > level
+  }
+  left <- u0 - w * stats::runif(1)
+  right <- left + w
+  steps_left <- floor(max_steps * stats::runif(1))
+  steps_right <- max_steps - 1 - steps_left
+  while (steps_left > 0 && inside(left)) {
+    left <- left - w
+    steps_left <- steps_left - 1
+  }
+  while (steps_right > 0 && inside(right)) {
+    right <- right + w
+    steps_right <- steps_right - 1
+  }
+  for (i in seq_len(200L)) {
+    u <- left + stats::runif(1) * (right - left)
+    if (inside(u)) return(u)
+    if (u < u0) left <- u else right <- u
+  }
+  u0
+}
+
+# log(exp(x) + exp(y)), elementwise, without overflow: the log of a sum of two
+# precisions given their logs. With y = -Inf (no cap) it is x.
+log_add_exp <- function(x, y) {
+  big <- pmax(x, y)
+  big + log1p(exp(pmin(x, y) - big))
+}
+
+# log(1 + exp(x)), elementwise, without overflow.
+log1p_exp <- function(x) pmax(x, 0) + log1p(exp(-abs(x)))
+
+# The log of the conditional density of u = log(lambda_k), an embedding
+# column's axis scale, under a cap `slab`, up to a constant: f_k of the
+# design's "The draw of an axis scale" (dev/superpowers/specs/
+# 2026-11-25-axis-slab-design.md, section "Mathematics"):
+#
+#   f_k(u) = u - log(1 + e^(2u) / a^2) + (m_gc / 2) log P_g - P_g ss_gc / 2
+#            + (S / 2) log P_e - P_e ss_r / 2,
+#   P_g = e^(-2u) + c^-2,  P_e = e^(-2u) / sigma_emb^2 + c^-2,
+#
+# with a = axis_scale and c = slab. P_g is the precision of column k of G and
+# (divided by c_base[k]^2) of C, and P_e that of column k of the leftovers.
+# ss_gc is the sum of squares of the g_b rows of G[, k] plus sum(C[, k]^2) /
+# c_base[k]^2, and m_gc = g_b + q is their number; ss_r is the sum of squares
+# of the S leftovers of column k. The leading u is the Jacobian of the log.
+# Both precisions are handled through their logs, so that every term stays
+# finite for u from about -350 to 350; beyond that a term overflows to -Inf,
+# which a slice draw treats as outside the slice. A sum of squares of zero
+# gives a term of exactly zero. With slab = Inf this is the uncapped density.
+axis_scale_logdens <- function(u, ss_gc, m_gc, ss_r, S, sigma_emb, axis_scale, slab) {
+  log_cap <- -2 * log(slab)
+  log_pg <- log_add_exp(-2 * u, log_cap)
+  log_pe <- log_add_exp(-2 * u - 2 * log(sigma_emb), log_cap)
+  u - log1p_exp(2 * (u - log(axis_scale))) +
+    m_gc / 2 * log_pg - exp(log_pg + log(ss_gc)) / 2 +
+    S / 2 * log_pe - exp(log_pe + log(ss_r)) / 2
+}
+
+# The log of the conditional density of v = log(sigma_emb) under a cap
+# `slab`, up to a constant: f_sigma of the design's "The draw of the leftover
+# scale" (same file and section as above):
+#
+#   f_sigma(v) = v - log(1 + e^(2v) / b^2)
+#                + sum over embedding columns k of
+#                  [(S / 2) log P_ek - P_ek ss_rk / 2],
+#   P_ek = e^(-2v) / lambda_k^2 + c^-2,
+#
+# with b = scale and c = slab. `ss_r` and `lambda` have one element per
+# embedding column: the sum of squares of its S leftovers, and its uncapped
+# axis scale. Computed as axis_scale_logdens() is.
+sigma_emb_logdens <- function(v, ss_r, S, lambda, scale, slab) {
+  log_pe <- log_add_exp(-2 * v - 2 * log(lambda), -2 * log(slab))
+  v - log1p_exp(2 * (v - log(scale))) +
+    sum(S / 2 * log_pe - exp(log_pe + log(ss_r)) / 2)
+}
+
 # Update the scales of the grouped prior. R is the species by covariates
 # matrix of leftovers, B minus its trait regression; G and C have one column
 # per covariate. Drawn in this order: sigma_b from the measured columns,
@@ -251,13 +355,40 @@ sample_scale_half_cauchy <- function(ss, n, sigma, scale) {
 # of sigma_emb is skipped (no random number is drawn for it) and the covariate
 # scales are drawn given the value passed in: the staged burn-in of
 # axis_hold_sweeps().
+#
+# Under a finite cap (coef_slab()) the embedding scales no longer have
+# inverse-gamma conditionals. sigma_b is drawn as above, then sigma_emb and
+# each axis scale, in the same order, by one slice draw each on the log scale
+# (slice_sample_log()) from sigma_emb_logdens() and axis_scale_logdens(),
+# started at the current value. The three sums of squares per column are the
+# ones the uncapped draw forms. With an infinite cap, or a record without
+# one, the uncapped draws run exactly as before and draw the same random
+# numbers.
 sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda,
                                hold_sigma_emb = FALSE) {
   S <- nrow(R)
   is_emb <- coef_prior$is_emb
   sigma_b <- sample_scale_half_cauchy(sum(R[, !is_emb]^2), S * sum(!is_emb),
                                       sigma_b, coef_prior$sigma_b_scale)
-  if (any(is_emb)) {
+  slab <- coef_slab(coef_prior)
+  if (any(is_emb) && is.finite(slab)) {
+    emb <- which(is_emb)
+    ss_r <- colSums(R[, emb, drop = FALSE]^2)
+    if (!hold_sigma_emb) {
+      lambda_emb <- lambda[emb]
+      f_sigma <- function(v) sigma_emb_logdens(v, ss_r, S, lambda_emb,
+                                               coef_prior$sigma_emb_scale, slab)
+      sigma_emb <- exp(slice_sample_log(f_sigma, log(sigma_emb)))
+    }
+    m_gc <- nrow(G) + nrow(C)
+    for (j in seq_along(emb)) {
+      k <- emb[j]
+      ss_gc <- sum(G[, k]^2) + sum(C[, k]^2) / coef_prior$c_base[k]^2
+      f_k <- function(u) axis_scale_logdens(u, ss_gc, m_gc, ss_r[[j]], S, sigma_emb,
+                                            coef_prior$axis_scale, slab)
+      lambda[k] <- exp(slice_sample_log(f_k, log(lambda[k])))
+    }
+  } else if (any(is_emb)) {
     emb <- which(is_emb)
     if (!hold_sigma_emb) {
       ss_emb <- sum(sweep(R[, emb, drop = FALSE], 2, lambda[emb], "/")^2)
