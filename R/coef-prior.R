@@ -56,8 +56,10 @@ read_coef_prior <- function(priors, params, S, gt, columns, model = "binary") {
     # scale (dev/simstudy/grouped-prior-checks-20261111).
     axis_scale <- read_scale("axis_scale", 0.7 / p_emb)
     # The cap on the embedding scales (see coef_capped()). Inf is no cap. The
-    # model type is accepted for the default that a later task sets by model.
-    slab_scale <- get_param(priors, "slab_scale", Inf)
+    # cap is in logits per standard deviation of an embedding column, so a
+    # continuous fit, whose unit is the response's, has none unless set.
+    slab_scale <- get_param(priors, "slab_scale",
+                            if (identical(model, "continuous")) Inf else 2)
     if (!is.numeric(slab_scale) || length(slab_scale) != 1L || is.na(slab_scale) ||
         slab_scale <= 0)
       stop("slab_scale must be a positive number or Inf")
@@ -289,6 +291,61 @@ slice_sample_log <- function(f, u0, w = 1, max_steps = 50L) {
   u0
 }
 
+# K independent slice draws at once, one per element of `u0`: for each element
+# exactly the draw of slice_sample_log(), with the same width, the same limit
+# on stepping out and the same treatment of a value that is not finite, so
+# each element has the same distribution as there. `f(u, idx)` returns the
+# log densities of the elements `idx` at the points `u`, elementwise. Only the
+# order of the random numbers differs: all K levels, then all K placements,
+# then all K splits, then one uniform per element still being drawn in each
+# round of shrinkage. Used for the axis scales under a cap, where a loop of K
+# scalar draws cost about 5 ms a sweep at 64 columns (Task 5 of
+# dev/superpowers/plans/2026-11-25-axis-slab.md).
+slice_sample_log_vec <- function(f, u0, w = 1, max_steps = 50L) {
+  K <- length(u0)
+  every <- seq_len(K)
+  f0 <- f(u0, every)
+  if (!all(is.finite(f0)))
+    stop("a slice draw must start at a point where the log density is finite")
+  level <- f0 + log(stats::runif(K))
+  inside <- function(u, idx) {
+    fu <- f(u, idx)
+    is.finite(fu) & fu > level[idx]
+  }
+  left <- u0 - w * stats::runif(K)
+  right <- left + w
+  steps_left <- floor(max_steps * stats::runif(K))
+  steps_right <- max_steps - 1 - steps_left
+  idx <- every[steps_left > 0]
+  while (length(idx)) {
+    idx <- idx[inside(left[idx], idx)]
+    left[idx] <- left[idx] - w
+    steps_left[idx] <- steps_left[idx] - 1
+    idx <- idx[steps_left[idx] > 0]
+  }
+  idx <- every[steps_right > 0]
+  while (length(idx)) {
+    idx <- idx[inside(right[idx], idx)]
+    right[idx] <- right[idx] + w
+    steps_right[idx] <- steps_right[idx] - 1
+    idx <- idx[steps_right[idx] > 0]
+  }
+  u <- u0
+  active <- every
+  for (i in seq_len(200L)) {
+    if (!length(active)) break
+    prop <- left[active] + stats::runif(length(active)) * (right[active] - left[active])
+    ok <- inside(prop, active)
+    u[active[ok]] <- prop[ok]
+    active <- active[!ok]
+    prop <- prop[!ok]
+    below <- prop < u0[active]
+    left[active[below]] <- prop[below]
+    right[active[!below]] <- prop[!below]
+  }
+  u
+}
+
 # log(exp(x) + exp(y)), elementwise, without overflow: the log of a sum of two
 # precisions given their logs. With y = -Inf (no cap) it is x.
 log_add_exp <- function(x, y) {
@@ -365,10 +422,11 @@ sigma_emb_logdens <- function(v, ss_r, S, lambda, scale, slab) {
 # axis_hold_sweeps().
 #
 # Under a finite cap (coef_slab()) the embedding scales no longer have
-# inverse-gamma conditionals. sigma_b is drawn as above, then sigma_emb and
-# each axis scale, in the same order, by one slice draw each on the log scale
-# (slice_sample_log()) from sigma_emb_logdens() and axis_scale_logdens(),
-# started at the current value. The three sums of squares per column are the
+# inverse-gamma conditionals. sigma_b is drawn as above, then sigma_emb by one
+# slice draw on the log scale (slice_sample_log()) from sigma_emb_logdens(),
+# then all the axis scales given the new sigma_emb, one independent slice draw
+# each from axis_scale_logdens(), made together (slice_sample_log_vec()); all
+# start at the current values. The three sums of squares per column are the
 # ones the uncapped draw forms. With an infinite cap, or a record without
 # one, the uncapped draws run exactly as before and draw the same random
 # numbers.
@@ -389,13 +447,11 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda,
       sigma_emb <- exp(slice_sample_log(f_sigma, log(sigma_emb)))
     }
     m_gc <- nrow(G) + nrow(C)
-    for (j in seq_along(emb)) {
-      k <- emb[j]
-      ss_gc <- sum(G[, k]^2) + sum(C[, k]^2) / coef_prior$c_base[k]^2
-      f_k <- function(u) axis_scale_logdens(u, ss_gc, m_gc, ss_r[[j]], S, sigma_emb,
-                                            coef_prior$axis_scale, slab)
-      lambda[k] <- exp(slice_sample_log(f_k, log(lambda[k])))
-    }
+    ss_gc <- colSums(G[, emb, drop = FALSE]^2) +
+      colSums(C[, emb, drop = FALSE]^2) / coef_prior$c_base[emb]^2
+    f_axis <- function(u, idx) axis_scale_logdens(u, ss_gc[idx], m_gc, ss_r[idx], S,
+                                                  sigma_emb, coef_prior$axis_scale, slab)
+    lambda[emb] <- exp(slice_sample_log_vec(f_axis, log(lambda[emb])))
   } else if (any(is_emb)) {
     emb <- which(is_emb)
     if (!hold_sigma_emb) {
@@ -903,24 +959,36 @@ axis_move_record <- function(parts, columns) {
 #' scale times that column's axis scale for an embedding column. Each embedding
 #' column's axis scale also multiplies that column's community-average, trait
 #' and blend terms, so an axis that no species responds to shrinks out of the
-#' model.
+#' model. Under the cap set by `slab_scale` (see Settings), what multiplies
+#' these terms is the column's effective axis scale, which equals the axis
+#' scale while that is small and levels off at the cap as it grows, and the
+#' leftover's standard deviation levels off at the cap in the same way. The
+#' fit stores and reports the effective axis scale, which cannot exceed the
+#' cap.
 #'
 #' @section Settings:
-#' Set these in `listPriors`. Each is a half-Cauchy scale and must be a finite
-#' positive number.
+#' Set these in `listPriors`. The first three are half-Cauchy scales and must
+#' be finite positive numbers.
 #' * `sigma_b_scale`: scale of the measured-group scale. Default 1.
 #' * `sigma_emb_scale`: scale of the embedding leftover scale. Default 1.
 #' * `axis_scale`: scale of each embedding column's axis scale. Default
 #'   `0.7 / K`, where K is the number of embedding columns.
+#' * `slab_scale`: the cap on the prior standard deviation of every part of an
+#'   embedding column's coefficients (the community average, the trait and
+#'   blend terms, and the leftover), in logits per standard deviation of an
+#'   embedding column. A positive number, or `Inf` for no cap, which gives the
+#'   prior as it was before the cap was added. Default 2. In a `continuous`
+#'   fit the unit would be the response's, not logits, so there is no cap by
+#'   default and one applies only if you set it.
 #'
 #' The number of blends is `listParams$n_lattrait`, the number of latent
 #' traits.
 #'
 #' @section What the fit holds:
-#' In `results_output$jsdm_output`, `lambda_output` holds the axis scales and
-#' `sigmaemb_output` the embedding leftover scale; both are present only when
-#' the fit has embedding columns. `sigmab_output` holds the measured-group
-#' scale. When every occupancy covariate is an embedding column there is
+#' In `results_output$jsdm_output`, `lambda_output` holds the effective axis
+#' scales and `sigmaemb_output` the embedding leftover scale; both are present
+#' only when the fit has embedding columns. `sigmab_output` holds the
+#' measured-group scale. When every occupancy covariate is an embedding column there is
 #' nothing for that scale to learn from, so `sigmab_output` then holds draws
 #' from its prior. They stay in the fit, but [returnCovariateScales()] leaves
 #' the measured-group scale out and [computeDiagnostics()] does not check it.

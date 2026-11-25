@@ -190,6 +190,7 @@ test_that("while sigma_emb is held the axis scale move starts from the state the
   dat <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)$data_list
   suppressMessages(suppressWarnings(runOccJSDM(dat,
     listParams = list(n_factors = 1L, embeddingVars = dat$embeddingVars),
+    listPriors = list(slab_scale = Inf),
     occCovariates = grouped_occ_covariates(dat),
     MCMCparams = list(nchain = 1L, nburn = 6L, niter = 2L, nthin = 1L))))
   expect_identical(which(held), 1:3)

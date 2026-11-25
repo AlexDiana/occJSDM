@@ -115,7 +115,7 @@ test_that("the scale updates with all three scale moves leave the half-Cauchy pr
   Tr_b <- cbind(1, rnorm(S)); X <- matrix(rnorm(n * p), n, p)
   zero <- matrix(0, n, S)
   cp <- occJSDM:::read_coef_prior(
-    list(sigma_b_scale = 0.8, sigma_emb_scale = 1.3, axis_scale = 0.5),
+    list(sigma_b_scale = 0.8, sigma_emb_scale = 1.3, axis_scale = 0.5, slab_scale = Inf),
     list(embeddingVars = c("e1", "e2")), S, gt,
     data.frame(column = c("m1", "e1", "e2"), variable = c("m1", "e1", "e2"), kind = "numeric"))
   start <- occJSDM:::coef_scales_start(cp, p)
@@ -209,7 +209,8 @@ test_that("the coefficient update runs the sigma_b move first and hands its stat
     out
   }, .package = "occJSDM")
   sigma_move_fit(simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L),
-                 MCMCparams = list(nchain = 1L, nburn = 3L, niter = 3L, nthin = 1L))
+                 MCMCparams = list(nchain = 1L, nburn = 3L, niter = 3L, nthin = 1L),
+                 listPriors = list(slab_scale = Inf))
   expect_identical(length(seen_b), 6L)
   expect_identical(length(seen_emb), 6L)
   for (i in seq_along(seen_b)) {

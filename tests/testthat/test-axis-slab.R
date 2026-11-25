@@ -41,7 +41,9 @@ test_that("slab_scale is read and validated", {
   cols <- data.frame(column = c("m1", "e1", "e2"), variable = c("m1", "e1", "e2"), kind = "numeric")
   rd <- function(priors, params = list(embeddingVars = c("e1", "e2")), ...)
     occJSDM:::read_coef_prior(priors, params, 3L, 2L, cols, ...)
-  expect_identical(rd(list())$slab_scale, Inf)          # the default until Task 5
+  expect_identical(rd(list())$slab_scale, 2)
+  expect_identical(rd(list(), model = "continuous")$slab_scale, Inf)
+  expect_identical(rd(list(slab_scale = 5), model = "continuous")$slab_scale, 5)
   expect_identical(rd(list(slab_scale = 3))$slab_scale, 3)
   expect_identical(rd(list(slab_scale = Inf))$slab_scale, Inf)
   for (bad in list(0, -1, NA_real_, "2", c(1, 2)))
@@ -101,6 +103,32 @@ test_that("the slice draw stays exact when its stepping-out limit binds", {
   for (j in seq_along(p))
     expect_lt(abs(share[j] - p[j]), tolerance[j],
               label = sprintf("error of the share below the %g quantile", p[j]))
+})
+
+test_that("the vector slice draw samples each element's density, also where stepping out binds", {
+  # Three elements with different Normal densities, drawn together as
+  # slice_sample_log_vec() draws the axis scales. Each element must have its
+  # own distribution, as the scalar draw has (the two tests above, same
+  # tolerances): with the default stepping out, and with max_steps = 2, where
+  # the limit binds on most draws and only the random split keeps the draw
+  # exact.
+  mu <- c(1, -3, 0); sd <- c(2, 0.3, 2)
+  f <- function(u, idx) dnorm(u, mu[idx], sd[idx], log = TRUE)
+  p <- c(.05, .25, .5, .75, .95)
+  for (case in list(list(n = 20000L, max_steps = 50L, tol = rep(0.03, 5)),
+                    list(n = 200000L, max_steps = 2L, tol = c(0.010, 0.023, 0.025, 0.023, 0.010)))) {
+    seed_both(9L); u <- c(0, 0, 0); draws <- matrix(NA_real_, case$n, 3L)
+    for (i in seq_len(case$n))
+      draws[i, ] <- u <- occJSDM:::slice_sample_log_vec(f, u, max_steps = case$max_steps)
+    for (j in 1:3) {
+      share <- vapply(qnorm(p, mu[j], sd[j]), function(q) mean(draws[, j] < q), numeric(1))
+      expect_true(all(abs(share - p) < case$tol),
+                  label = sprintf("element %d at max_steps = %d: shares %s", j, case$max_steps,
+                                  paste(format(share, digits = 3), collapse = " ")))
+    }
+  }
+  expect_error(occJSDM:::slice_sample_log_vec(function(u, idx) ifelse(idx == 2L, -Inf, 0), c(0, 0)),
+               "a slice draw must start at a point where the log density is finite")
 })
 
 test_that("the log densities of the capped scale draws are the target's", {
@@ -215,10 +243,13 @@ test_that("under a cap the scale updates leave the half-Cauchy priors of the sca
 test_that("under a cap sigma_b is drawn as now, then sigma_emb, then each axis scale", {
   x <- axis_move_state(); cp <- x$cp; cp$slab_scale <- 0.8; R <- slab_leftovers(x); S <- nrow(R)
   emb <- 3:5; m_gc <- nrow(x$G) + nrow(x$C)
+  # The axis scales are drawn together, one slice draw each
+  # (slice_sample_log_vec()), given the sigma_emb passed in.
   axis_draws <- function(sigma_emb, lambda) {
-    for (k in emb) lambda[k] <- exp(occJSDM:::slice_sample_log(function(u) occJSDM:::axis_scale_logdens(
-      u, sum(x$G[, k]^2) + sum(x$C[, k]^2) / cp$c_base[k]^2, m_gc, sum(R[, k]^2), S,
-      sigma_emb, cp$axis_scale, 0.8), log(lambda[k])))
+    ss_gc <- colSums(x$G[, emb]^2) + colSums(x$C[, emb]^2) / cp$c_base[emb]^2
+    ss_r <- colSums(R[, emb]^2)
+    lambda[emb] <- exp(occJSDM:::slice_sample_log_vec(function(u, idx) occJSDM:::axis_scale_logdens(
+      u, ss_gc[idx], m_gc, ss_r[idx], S, sigma_emb, cp$axis_scale, 0.8), log(lambda[emb])))
     lambda
   }
   seed_both(42L)
@@ -240,12 +271,14 @@ test_that("a held sigma_emb is not drawn under a cap", {
   # follow sigma_b's directly.
   seed_both(42L)
   sigma_b <- occJSDM:::sample_scale_half_cauchy(sum(R[, 1:2]^2), S * 2, x$sigma_b, 1)
-  k <- 3L
-  lambda3 <- exp(occJSDM:::slice_sample_log(function(u) occJSDM:::axis_scale_logdens(
-    u, sum(x$G[, k]^2) + sum(x$C[, k]^2) / cp$c_base[k]^2, nrow(x$G) + nrow(x$C),
-    sum(R[, k]^2), S, x$sigma_emb, cp$axis_scale, 0.8), log(x$lambda[k])))
+  emb <- 3:5
+  ss_gc <- colSums(x$G[, emb]^2) + colSums(x$C[, emb]^2) / cp$c_base[emb]^2
+  ss_r <- colSums(R[, emb]^2)
+  lambda_emb <- exp(occJSDM:::slice_sample_log_vec(function(u, idx) occJSDM:::axis_scale_logdens(
+    u, ss_gc[idx], nrow(x$G) + nrow(x$C), ss_r[idx], S, x$sigma_emb, cp$axis_scale, 0.8),
+    log(x$lambda[emb])))
   expect_identical(got$sigma_b, sigma_b)
-  expect_identical(got$lambda[3], lambda3)
+  expect_identical(got$lambda[emb], lambda_emb)
 })
 
 test_that("the capped draws return finite positive scales at extreme columns", {

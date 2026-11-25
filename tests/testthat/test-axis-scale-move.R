@@ -86,7 +86,7 @@ test_that("the scale updates with the axis scale move leave the half-Cauchy prio
   Tr_b <- cbind(1, rnorm(S)); X <- matrix(rnorm(n * p), n, p)
   zero <- matrix(0, n, S)
   cp <- occJSDM:::read_coef_prior(
-    list(sigma_b_scale = 0.8, sigma_emb_scale = 1.3, axis_scale = 0.5),
+    list(sigma_b_scale = 0.8, sigma_emb_scale = 1.3, axis_scale = 0.5, slab_scale = Inf),
     list(embeddingVars = c("e1", "e2")), S, gt,
     data.frame(column = c("m1", "e1", "e2"), variable = c("m1", "e1", "e2"), kind = "numeric"))
   start <- occJSDM:::coef_scales_start(cp, p)
@@ -130,11 +130,12 @@ test_that("the scale updates with the axis scale move leave the half-Cauchy prio
               label = sprintf("error of the share of %s below its prior quartile %d", nm, j))
 })
 
-axis_fit <- function(sim, embedding = TRUE, MCMCparams = FIXTURE_MCMC) {
+axis_fit <- function(sim, embedding = TRUE, MCMCparams = FIXTURE_MCMC, listPriors = list()) {
   dat <- sim$data_list
   suppressMessages(suppressWarnings(runOccJSDM(dat,
     listParams = c(list(n_factors = 1L), if (embedding) list(embeddingVars = dat$embeddingVars)),
-    occCovariates = grouped_occ_covariates(dat), MCMCparams = MCMCparams)))
+    occCovariates = grouped_occ_covariates(dat), MCMCparams = MCMCparams,
+    listPriors = listPriors)))
 }
 
 test_that("a grouped binary fit runs the axis scale move and records its acceptance", {
@@ -191,7 +192,8 @@ test_that("the coefficient update hands the move the current state and keeps its
     out
   }, .package = "occJSDM")
   sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
-  axis_fit(sim, MCMCparams = list(nchain = 1L, nburn = 3L, niter = 3L, nthin = 1L))
+  axis_fit(sim, MCMCparams = list(nchain = 1L, nburn = 3L, niter = 3L, nthin = 1L),
+           listPriors = list(slab_scale = Inf))
   expect_identical(length(seen), 6L)
   expect_identical(length(sweeps), 6L)
   for (i in seq_along(seen)) {

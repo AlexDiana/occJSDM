@@ -52,18 +52,30 @@ measured-group scale for a measured covariate, and the embedding leftover
 scale times that column's axis scale for an embedding column. Each embedding
 column's axis scale also multiplies that column's community-average, trait
 and blend terms, so an axis that no species responds to shrinks out of the
-model.
+model. Under the cap set by \code{slab_scale} (see Settings), what multiplies
+these terms is the column's effective axis scale, which equals the axis
+scale while that is small and levels off at the cap as it grows, and the
+leftover's standard deviation levels off at the cap in the same way. The
+fit stores and reports the effective axis scale, which cannot exceed the
+cap.
 }
 
 \section{Settings}{
 
-Set these in \code{listPriors}. Each is a half-Cauchy scale and must be a finite
-positive number.
+Set these in \code{listPriors}. The first three are half-Cauchy scales and must
+be finite positive numbers.
 \itemize{
 \item \code{sigma_b_scale}: scale of the measured-group scale. Default 1.
 \item \code{sigma_emb_scale}: scale of the embedding leftover scale. Default 1.
 \item \code{axis_scale}: scale of each embedding column's axis scale. Default
 \code{0.7 / K}, where K is the number of embedding columns.
+\item \code{slab_scale}: the cap on the prior standard deviation of every part of an
+embedding column's coefficients (the community average, the trait and
+blend terms, and the leftover), in logits per standard deviation of an
+embedding column. A positive number, or \code{Inf} for no cap, which gives the
+prior as it was before the cap was added. Default 2. In a \code{continuous}
+fit the unit would be the response's, not logits, so there is no cap by
+default and one applies only if you set it.
 }
 
 The number of blends is \code{listParams$n_lattrait}, the number of latent
@@ -72,10 +84,10 @@ traits.
 
 \section{What the fit holds}{
 
-In \code{results_output$jsdm_output}, \code{lambda_output} holds the axis scales and
-\code{sigmaemb_output} the embedding leftover scale; both are present only when
-the fit has embedding columns. \code{sigmab_output} holds the measured-group
-scale. When every occupancy covariate is an embedding column there is
+In \code{results_output$jsdm_output}, \code{lambda_output} holds the effective axis
+scales and \code{sigmaemb_output} the embedding leftover scale; both are present
+only when the fit has embedding columns. \code{sigmab_output} holds the
+measured-group scale. When every occupancy covariate is an embedding column there is
 nothing for that scale to learn from, so \code{sigmab_output} then holds draws
 from its prior. They stay in the fit, but \code{\link[=returnCovariateScales]{returnCovariateScales()}} leaves
 the measured-group scale out and \code{\link[=computeDiagnostics]{computeDiagnostics()}} does not check it.
