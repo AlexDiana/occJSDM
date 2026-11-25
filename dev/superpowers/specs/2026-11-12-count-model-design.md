@@ -10,6 +10,7 @@ Date: 12 November 2026, revised 15, 16, 23 and 25 November 2026. Status: a desig
 - **The plain count JSDM is built first.** It has no occupancy layer. It is the first step towards D, because D needs every piece of it, and it stays in the package as the comparison model.
 - **Taxonomy comes from the grouped-prior work (Doug, 12 November 2026).** The count model adds no taxonomic or phylogenetic structure of its own. Borrowing between related species will come from part 2 of the grouped-prior work on the embedding branch, which changes the prior and not the likelihood. See *Interaction with the embedding covariates*.
 - **No false-positive counts (Doug, 25 November 2026).** A count at an unoccupied site is exactly zero, so any positive count fixes the site as occupied. There is no false-positive count rate. This answers question 6.
+- **The interface (Doug, 25 November 2026).** One `countModel` argument holding a list. Its `occupancy` entry has no default, so the user must write `TRUE` or `FALSE`. A count model is fitted only when the user asks for one, never chosen from the data. This answers question 10; see *Proposed interface*.
 
 ## Summary
 
@@ -159,10 +160,11 @@ Doug asked for this on 16 November 2026. Estimators of sample completeness, such
 
 ## Proposed interface
 
-Open to change; see question 10.
+Doug decided the three points of question 10 on 25 November 2026: one list argument, no default for `occupancy`, and no count model unless the user asks for one. Alex has not yet commented on the interface.
 
 - A new argument to `runOccJSDM()`, `countModel`, `NULL` by default. When `NULL`, behaviour is as now, except that the "not supported" error tells the user how to ask for a count model.
 - When set, a list: `family` ("negbin" or "poisson"), `occupancy` (`TRUE` for the shared-predictor model, `FALSE` for the plain count JSDM) and `offset` (the name of an effort column in `data$info`, on the natural scale).
+- `occupancy` has no default. A `countModel` list without it stops with an error that explains the two choices, because the choice changes what every coefficient means: the logit of occupancy in one model, the log of the expected count in the other.
 - With `countModel` set, repeated rows per site are replicate counts and `threshold` is not applied.
 - New stored output: the draws of the size, `tau_0` and `tau`, with their convergence diagnostics; the expected count where present. The occupancy state and probability are stored as the occupancy model stores them now.
 - `simulateOccJSDMData()` gains both count models, and its `rnb` input, documented today as having no effect, becomes live.
@@ -237,7 +239,7 @@ Questions keep their numbers from earlier versions of this document. Those marke
 7. **Occupancy with one sample per site.** Now part of question 18.
 8. **The intercepts.** In the shared-predictor model the JSDM intercepts are occupancy intercepts and keep the community prior they have by default. For the plain count JSDM, where the intercepts are log expected counts: fixed prior or community prior?
 9. **The Polya-Gamma approximation.** Is a moment-matched normal draw above a shape cut-off acceptable in a sampler otherwise exact, and is 170 the right cut-off?
-10. **(Doug and Alex) Interface.** One `countModel` list, as proposed, or separate arguments? Should `occupancy` default to `TRUE`? Should integer data without site replication fit a count model automatically, as the current inference half-intends? The recommendation on the last is no: a table of sequence reads is also whole numbers, and automatic inference would fit it as counts of individuals.
+10. **Interface. Resolved 25 November 2026 (Doug):** one `countModel` list, not separate arguments; `occupancy` has no default and must be stated; a count model is fitted only when the user supplies `countModel`, never inferred from whole-number data, because a table of sequence reads is also whole numbers. Alex may still comment.
 11. **Site-level WAIC.** Leave counts out of `computeSiteWAIC()` at first, with a clear error, and keep only the complete-data WAIC?
 12. **Variation partitioning.** In the shared-predictor model, partition on the logit scale of the predictor, as now? In the plain count JSDM the stub takes standard deviations of `exp(eta)`, which the sites with the largest means will dominate; partition on the log scale instead?
 13. **(Doug) Where and when.** Pull requests to `main` from this branch, one per stage, or in Qin's fork? Before or after the beta work in `TODO.md`?
@@ -250,7 +252,7 @@ Questions keep their numbers from earlier versions of this document. Those marke
 
 ## Staged plan
 
-Each stage is one pull request to Alex and leaves `main` working. Stage 2 starts from `main` after the embedding branch has merged; see *Interaction with the embedding covariates*. A task-by-task plan for each stage is written in `dev/superpowers/plans/` once its questions are answered: stage 1 needs questions 5 and 9, stage 2 needs 4, 8, 10, 11 and 12, and stage 3 has no open question left.
+Each stage is one pull request to Alex and leaves `main` working. Stage 2 starts from `main` after the embedding branch has merged; see *Interaction with the embedding covariates*. A task-by-task plan for each stage is written in `dev/superpowers/plans/` once its questions are answered: stage 1 needs questions 5 and 9, stage 2 needs 4, 8, 11 and 12, and stage 3 has no open question left.
 
 - **Stage 1: likelihood pieces, tested alone.** The general-shape Polya-Gamma sampler, checked against the exact mean and variance across shapes and against the existing sampler at whole-number shapes. A negative-binomial log-likelihood with offsets. The size update with its prior, checked on simulated counts with a known predictor. One name for the model, "counts", in R and C++. No change to any fit.
 - **Stage 2: the plain count JSDM.** Wire the count branch into `update_jSDMcoef()`; accept `countModel`; offsets and replicate samples; size draws in the output, the posterior-draw helpers and the diagnostics; a log link in the covariate-response plots; the complete-data WAIC with the negative-binomial density; `simulateOccJSDMData()` with a count model; a posterior predictive check that compares observed and predicted numbers of zeros per species. Done when a simulate-and-recover test passes for coefficients, size and residual correlations, existing fits of the other four models are unchanged draw for draw, and a comparison with an independent negative-binomial JSDM (Hmsc or gllvm) on one simulated dataset agrees within Monte Carlo error.
