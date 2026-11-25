@@ -1,0 +1,12 @@
+K = 64, approach A with the axis scale rescaled, S = 100
+  A: zeta = 2, a = 0.7 / K           sd: 5%  0.20  med  0.50  95%   1.37  99%     2.1 | max|b|: med  0.36  95%   1.19
+  A: zeta = 2, a = 2 / K             sd: 5%  0.44  med  1.01  95%   2.43  99%     3.4 | max|b|: med  0.67  95%   1.79
+  A: zeta = 2, a = 4 / K             sd: 5%  0.74  med  1.53  95%   3.32  99%     4.5 | max|b|: med  0.98  95%   2.32
+  A: zeta = 2, a = 8 / K             sd: 5%  1.14  med  2.25  95%   4.41  99%     5.7 | max|b|: med  1.30  95%   2.68
+  A: zeta = 3, a = 0.7 / K           sd: 5%  0.22  med  0.54  95%   1.53  99%     2.6 | max|b|: med  0.40  95%   1.38
+  A: zeta = 3, a = 2 / K             sd: 5%  0.48  med  1.13  95%   2.90  99%     4.7 | max|b|: med  0.80  95%   2.26
+  A: zeta = 3, a = 4 / K             sd: 5%  0.85  med  1.83  95%   4.17  99%     5.3 | max|b|: med  1.22  95%   3.15
+  A: zeta = 3, a = 8 / K             sd: 5%  1.33  med  2.69  95%   5.75  99%     7.6 | max|b|: med  1.69  95%   3.77
+B with the leftover capped, c = 2, checking it does not depend on a rerun
+  B+: c = 2                          sd: 5%  0.29  med  1.25  95%   5.81  99%     9.6 | max|b|: med  1.04  95%   4.47
+  B+: c = 2.5                        sd: 5%  0.30  med  1.26  95%   6.43  99%    10.4 | max|b|: med  1.06  95%   4.99
