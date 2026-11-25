@@ -1188,11 +1188,16 @@ axis_move_record <- function(parts, columns) {
 #' alone, before any data. What it measures is the spread across sites, as a
 #' standard deviation, of the embedding's contribution to a species' linear
 #' predictor, on the logit scale. The design target for the prior median of
-#' that spread is 1 to 2. Under the present default the prior median is about
-#' 1.4 with 64 embedding columns and about 1.5 with 128, both with 8 latent
-#' traits. The upper tail is wide: the 95% point is about 28 at both column
-#' counts, so one prior draw in twenty gives a spread larger than that. The
-#' validation study is to examine that tail.
+#' that spread is 1 to 2. Without the cap (`slab_scale = Inf`) the prior
+#' median is about 1.4 with 64 embedding columns and about 1.5 with 128, both
+#' with 8 latent traits, but the upper tail is wide: the 95% point is about 28
+#' at both column counts, so one prior draw in twenty gives a spread larger
+#' than that, and the 99% point is about 160 to 210. The cap was added in
+#' November 2026 to cut that tail. Under the default cap of 2 the prior median
+#' is about 1.3 at both column counts, the 95% point about 5.7 and the 99%
+#' point about 9 to 10. Whether the cap also shrinks strong responses that the
+#' data support is still to be measured, in simulations and in the validation
+#' study.
 #'
 #' The sampler's extra steps for `binary` fits were added in November 2026
 #' and have been tried only on simulated data of one size (256 sites, 48
