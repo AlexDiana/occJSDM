@@ -8,8 +8,11 @@
 # conditional, so each is updated by a random-walk Metropolis step on log(r):
 # propose log(r) + step * Normal(0, 1) and accept under the species' summed
 # negative-binomial log density plus the prior. The prior is a half-normal on
-# 1 / sqrt(r), which pulls towards the Poisson (1 / sqrt(r) = 0) when the data
-# say little, as they do for a rare species. The step size of each species is
+# 1 / sqrt(r). Its density is highest at the Poisson limit (1 / sqrt(r) = 0),
+# but it is broad: with standard deviation 1 the median size is about 2.2 and
+# a 95% interval runs from about 0.2 to about 1,000. When the data say little,
+# as they do for a rare species, the posterior stays close to that prior
+# (dev/count-model/stage1-report.md). The step size of each species is
 # adapted during burn-in, as in b0_shift_step().
 #
 # This is stage 1 of the count model: nothing here is called by the sampler

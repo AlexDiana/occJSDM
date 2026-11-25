@@ -4,16 +4,17 @@ Date: 25 November 2026. Written by Claude from one run of `dev/count-model/stage
 
 ## Recommendation
 
-- **No saddlepoint sampler is needed.** On the realistic matrix the route for shapes from 13 to 170 took 22% of the count sampler's draw time, under the quarter that the stage 1 plan set as the line. It is close to the line, and it would cross it in a survey with larger counts.
+- **No saddlepoint sampler is needed.** On the realistic matrix the route for shapes from 13 to 170 took 22% of the count sampler's draw time, under the quarter that the stage 1 plan set as the line. It is close to the line, and a survey with larger counts could cross it.
 - **The cost to look at first is the fractional part of the shape, not the shapes from 13 to 170.** Cells with a shape up to 13 are 92% of the matrix and took 78% of the draw time, and most of what each of them costs is the 20-term series for the fractional part. See *Time per draw by shape*.
 - **The size of a species with fewer than 10 non-zero counts is not recovered.** Its posterior is close to the prior. See *Size recovery by rarity*.
 
 ## How it was run
 
 - Command: `Rscript dev/count-model/stage1-checks.R`, once, in the foreground, in one process with no parallel workers. Seeds: `set.seed(20261125)` and `setOccJSDMSeed(20261125L)`.
-- Machine: Apple M4 laptop, 10 cores. R version 4.6.1 (2026-06-24).
+- Machine: Apple M4 laptop, 10 cores (from `sysctl`; the script does not print it). R version 4.6.1 (2026-06-24).
 - Power state: on battery ("Now drawing from 'Battery Power'"), `lowpowermode 0`.
 - One other R job was running on the laptop at the time, a single-threaded script from another session (`slab_prior.R`) using one core. The timings below may be a little slower than on an idle machine. The shares of time, which the recommendation rests on, compare routes timed within a few seconds of each other.
+- After this run the extreme-predictor route was changed to a numerically stable form of the same inverse Gaussian draw, because the review of this stage found draws that were zero or negative at shapes below about 1e-7. No cell in either timing block uses that route (the predictors are 0 and -3 in the first, and none is beyond 12 in the second), so the timings stand and the run was not repeated.
 
 ## Time per draw by shape
 
@@ -32,7 +33,7 @@ What the numbers show:
 
 - **Each whole unit of shape costs about 0.26 microseconds at predictor 0.** That is the slope from shape 1.5 to 5.5, and it is one draw of the existing unit sampler.
 - **The fractional part costs about 3.2 microseconds, as much as 12 unit draws.** A draw at shape 0.5 has no whole-number part and takes 3.3 microseconds. Every cell whose shape is not a whole number pays this, which is every cell unless the size is a whole number.
-- **Cost rises in proportion to the shape up to 170 and then drops by a factor of about 600** when the normal route takes over.
+- **Cost rises in a straight line with the shape up to 170, starting from the 3.2 microseconds of the fractional part, and then drops by a factor of about 600** when the normal route takes over.
 
 ## Where the time goes on a realistic matrix
 
@@ -53,7 +54,7 @@ One draw of the whole matrix took 0.40 s (the mean of 20), which is 5.3 microsec
 
 Applying the plan's rule: the route for shapes from 13 to 170 takes under a quarter of the draw time, so no saddlepoint sampler is needed. Two cautions on that reading:
 
-- 22% is close to 25%. The share depends on how many counts fall between 13 and 170, so a survey with larger counts could cross the line. If it does, the first thing to try is the 20-term series for the whole shape, which is already built. It costs about 3.2 microseconds whatever the shape, against 6.7 at a shape of 13.5 and 52 at a shape of 169.5 for the exact route, and it is an approximation where the exact route is exact. A saddlepoint sampler would come only after that.
+- 22% is close to 25%. The share depends on how many counts fall between 13 and 170, so a survey with larger counts could cross the line. If it does, the plan's rule says the first thing to try is the 20-term series for the whole shape, and a saddlepoint sampler only after that. The series code exists, but only the fractional part uses it: a whole-shape route was not built or timed in this stage. From the timings above it should cost about what the fractional part costs, 3.2 microseconds, against 6.7 at a shape of 13.5 and 52 at a shape of 169.5 for the exact route. That is an inference and not a measurement, and the series is an approximation where the exact route is exact.
 - The larger share, 78%, is in cells with a shape up to 13, and there the fractional part dominates. This is not what question 9 asked about, and nothing was changed in response. It is recorded here because it is where a speed-up would pay most: for example fewer terms in the series, which trades a little variance for time. That is a decision for Doug and Alex.
 
 ## Size recovery by rarity
@@ -77,9 +78,9 @@ The same, split by the true size, because the two behave differently:
 What the numbers show:
 
 - **With fewer than 10 non-zero counts the size is not recovered.** The posterior median was between 1.0 and 2.0 for all five species, whether the true size was 0.5 or 5, and the 95% intervals ran from a lower limit of 0.13 to 0.25 up to an upper limit of 300 to 1,500. That is the prior, barely changed. The intervals cover the truth only because they are so wide. The update did not fail for any species, including the one with a single non-zero count.
-- **A large size needs far more data than a small one.** At a true size of 0.5 the interval is already narrow (a ratio under 6) with 10 to 49 non-zero counts. At a true size of 5 it is still over three orders of magnitude wide there, and still about 100-fold wide with 50 to 149 non-zero counts. With a size of 5 the counts of a rare species are close to Poisson, and the data cannot tell a size of 5 from a much larger one, so the upper limit is set by the prior.
+- **A large size needs far more data than a small one, and the group medians hide a sharp change within each group.** At a true size of 0.5, of the ten species with 10 to 49 non-zero counts, the six with 34 to 47 have intervals 3 to 6-fold wide, and the four with 10 to 26 have intervals 100 to 2,000-fold wide. At a true size of 5 all seven species with 10 to 49 non-zero counts have wide intervals (85 to 7,300-fold, median about 3,300). Of the eight with 50 to 149, the three with 107, 120 and 142 non-zero counts have intervals 5 to 6-fold wide and the other five, with 53 to 108, have intervals 64 to 5,500-fold wide. The likely reason, which this run does not test: at a size of 5 the counts of a rare species are close to Poisson, so the data cannot tell a size of 5 from a much larger one, and the upper limit is set by the prior.
 - **With 150 or more non-zero counts the size is recovered.** The median error is within 8% at both true sizes, and the interval is 1.6-fold wide in the median.
-- **For the first use this matters.** The beetle survey has several hundred species, many seen a handful of times. For those the size will be set by its prior, which pulls towards the Poisson as intended. Whether that is acceptable, or whether the sizes should share a community prior, is question 5 in the design, still open for Alex.
+- **For the first use this matters.** The beetle survey has several hundred species, many seen a handful of times. For those the size will be set by its prior. In this run that meant a posterior median of 1 to 2 and a 95% interval from about 0.15 to about 1,000, whatever the truth. The stage 1 plan says the prior then pulls towards the Poisson. This run does not show that. The prior's density is highest at the Poisson limit, but its median size is about 2.2 and about a third of its mass is on sizes below 1. For the two rarest species with a true size of 5 the posterior medians were 2.0 and 2.0: more overdispersion than the truth, not less. Whether that is acceptable, whether the prior should be tighter, and whether the sizes should share a community prior, are question 5 in the design, still open for Alex.
 
 ## What this run does not show
 
