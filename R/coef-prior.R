@@ -1112,11 +1112,16 @@ axis_move_record <- function(parts, columns) {
 #' experimental, and they do not change the model: the draws that are kept
 #' come from the same posterior as without them.
 #' * Every iteration, each embedding column's axis scale is proposed a new
-#'   value together with that column's coefficients, rescaled by the same
-#'   factor. Without this step the axis scale of a column that no species
+#'   value together with that column's coefficients, each part rescaled by the
+#'   change in its own prior scale. With no cap that is one factor for the
+#'   whole column. Under a cap the shared part (the community average, the
+#'   traits and the blends) and the leftover are rescaled by different
+#'   factors. Without this step the axis scale of a column that no species
 #'   responds to moved very slowly.
 #' * The embedding leftover scale gets the same kind of step, together with
-#'   all the leftovers.
+#'   all the leftovers. With no cap they share one factor. Under a cap each
+#'   embedding column's leftovers are rescaled by the change in their own
+#'   capped prior scale, so the columns get different factors.
 #' * The scale of the measured covariates' species leftovers (`sigma_b`) gets
 #'   the same kind of step, together with those leftovers, twice in each
 #'   iteration: once with a step tuned during burn-in and once with a large

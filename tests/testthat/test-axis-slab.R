@@ -571,3 +571,17 @@ test_that("grouped occupancy and two-stage fits run with a cap", {
     expect_true(all(is.finite(jo$B_output)), info = model)
   }
 })
+
+test_that("under a finite cap the start of C is the pattern times c_base times the effective axis scale, measured columns untouched", {
+  x <- axis_move_state(); cp <- x$cp; cp$slab_scale <- 0.8
+  C0 <- matrix(seq(0.5, 2, length.out = 3 * 5), 3L, 5L)
+  got <- occJSDM:::coef_C_start(cp, C0, x$lambda)
+  axis <- occJSDM:::coef_effective_scales(cp, NA_real_, x$lambda)$axis
+  emb <- which(cp$is_emb)
+  want <- C0
+  want[, emb] <- C0[, emb] * rep(cp$c_base[emb] * axis[emb], each = 3L)
+  expect_equal(got, want)
+  expect_identical(got[, -emb], C0[, -emb])
+  # the capped scale differs from the uncapped one, so a wrong branch is caught
+  expect_false(isTRUE(all.equal(got[, emb], C0[, emb] * rep(cp$c_base[emb] * x$lambda[emb], each = 3L))))
+})

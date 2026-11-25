@@ -52,7 +52,7 @@ embedding; it is wrong if the chains missed shared gradients.
 coefficients, and among the logs of the two scales shared by all columns
 (the embedding leftover scale and, with measured covariates, the
 measured-group scale). Flagged over 1.1.
-\item \code{rhat_axis}: the largest R-hat among the logs of the axis scales, with
+\item \code{rhat_axis}: the largest R-hat among the logs of the effective axis scales, with
 the number over 1.1 in \code{meaning}. Reported and not part of the verdict.
 A single axis scale, like a single embedding coefficient, is not pinned
 down, and a few of them fail R-hat in fits whose chains agree on
