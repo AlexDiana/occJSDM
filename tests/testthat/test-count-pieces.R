@@ -85,6 +85,25 @@ test_that("count sampler draws are reproducible and validate their inputs", {
   expect_error(samplePGcount_cpp(shape, replace(phi, 1, NA)), "phi must be finite")
 })
 
+test_that("extreme-predictor draws stay positive and inverse Gaussian at tiny shapes", {
+  # Added after the stage 1 review; not in the plan. pinvgauss() is the
+  # distribution function of an inverse Gaussian with mean m and shape
+  # parameter lambda.
+  pinvgauss <- function(x, m, lambda) {
+    stats::pnorm(sqrt(lambda / x) * (x / m - 1)) +
+      exp(2 * lambda / m + stats::pnorm(-sqrt(lambda / x) * (x / m + 1), log.p = TRUE))
+  }
+  setOccJSDMSeed(1L)
+  for (b in c(1e-6, 1e-8, 1e-9, 1e-12)) {
+    x <- as.vector(samplePGcount_cpp(matrix(b, 2e5, 1), matrix(-13, 2e5, 1)))
+    expect_true(all(is.finite(x)) && all(x > 0), info = paste(b))
+    p <- suppressWarnings(stats::ks.test(x, pinvgauss, m = b / 26, lambda = b^2 / 4)$p.value)
+    expect_gt(p, 0.001)
+  }
+  tiny <- samplePGcount_cpp(matrix(1e-200, 100, 1), matrix(40, 100, 1))
+  expect_true(all(is.finite(tiny)) && all(tiny > 0))
+})
+
 test_that("count_log_mean adds each sample's log effort to its site's predictor", {
   eta <- matrix(1:6, 3, 2)
   expect_equal(occJSDM:::count_log_mean(eta, c(1L, 1L, 3L), log(c(1, 2, 4))),

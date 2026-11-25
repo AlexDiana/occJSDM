@@ -1234,17 +1234,38 @@ static double rgamma_fraction(double f) {
   return g * std::pow(runif(), 1.0 / f);
 }
 
+// An inverse Gaussian draw with mean mu and shape parameter 1: the draw
+// randinvg() makes, from the same two random numbers in the same order, with
+// the smaller root written as 2 mu / (2 + A + sqrt(A^2 + 4 A)), A = mu V.
+// randinvg() forms that root as a difference, which cancels when mu V is
+// large. Here mu = 2 / (|z| b), so a shape below about 1e-7 at an extreme
+// predictor gave draws that were zero or negative. randinvg() is left as it
+// is because the existing sampler uses it.
+static double randinvg_stable(double mu) {
+  const double u = rnorm();
+  const double A = mu * u * u;
+  double out = 2.0 * mu / (2.0 + A + std::sqrt(A) * std::sqrt(A + 4.0));
+  if (runif() > mu / (mu + out)) {
+    out = mu * mu / out;
+  }
+  return out;
+}
+
 // One Polya-Gamma draw with any positive shape b at predictor z.
 static double rpg_shape(double b, double z) {
   const double a = std::fabs(z);
 
   // Extreme predictor: the large-predictor limit of the Polya-Gamma
   // distribution is inverse Gaussian with mean b / (2 |z|) and shape
-  // parameter b^2 / 4. samplepg_fast() is never called here, because beyond
-  // 12 it uses a normal draw with half the true variance.
+  // parameter b^2 / 4, which is b^2 / 4 times a draw with mean 2 / (|z| b)
+  // and shape parameter 1. samplepg_fast() is never called here, because
+  // beyond 12 it uses a normal draw with half the true variance. The mean
+  // stands in when the draw cannot be represented (a shape below about
+  // 1e-150, where b^2 underflows).
   if (a > PG_EXTREME_Z) {
     const double lambda = 0.25 * b * b;
-    return lambda * randinvg((b / (2.0 * a)) / lambda);
+    const double x = lambda * randinvg_stable(2.0 / (a * b));
+    return (std::isfinite(x) && x > 0.0) ? x : pg_mean(b, z);
   }
 
   // Large shape: a normal draw with the exact mean and variance.
