@@ -5,7 +5,7 @@
 # them with b_prior = "fixed" is an error. Embedding columns that are in
 # occCovariates but not in embeddingVars are ordinary measured covariates.
 # `columns` has one row per design column: column, variable, kind.
-read_coef_prior <- function(priors, params, S, gt, columns) {
+read_coef_prior <- function(priors, params, S, gt, columns, model = "binary") {
   emb_vars <- get_param(params, "embeddingVars", NULL)
   has_emb <- length(emb_vars) > 0L
   type <- get_param(priors, "b_prior", NULL)
@@ -18,7 +18,7 @@ read_coef_prior <- function(priors, params, S, gt, columns) {
   type <- unname(type)
   if (type == "fixed") {
     if (has_emb) stop("embeddingVars cannot be used with b_prior = 'fixed'")
-    for (nm in c("sigma_b_scale", "sigma_emb_scale", "axis_scale"))
+    for (nm in c("sigma_b_scale", "sigma_emb_scale", "axis_scale", "slab_scale"))
       if (nm %in% names(priors)) stop(nm, " requires the grouped prior")
     return(list(type = "fixed"))
   }
@@ -34,7 +34,7 @@ read_coef_prior <- function(priors, params, S, gt, columns) {
       stop("embeddingVars must be numeric covariates without splines: ",
            paste(bad_kind, collapse = ", "))
   } else {
-    for (nm in c("sigma_emb_scale", "axis_scale"))
+    for (nm in c("sigma_emb_scale", "axis_scale", "slab_scale"))
       if (nm %in% names(priors)) stop(nm, " requires embeddingVars")
   }
   is_emb <- columns$variable %in% emb_vars
@@ -48,18 +48,26 @@ read_coef_prior <- function(priors, params, S, gt, columns) {
   sigma_b_scale <- read_scale("sigma_b_scale", 1)
   sigma_emb_scale <- NA_real_
   axis_scale <- NA_real_
+  slab_scale <- NA_real_
   if (has_emb) {
     sigma_emb_scale <- read_scale("sigma_emb_scale", 1)
     # 0.7 / K, not 1 / sqrt(K): the half-Cauchy tails of K axis scales make
     # the embedding's prior contribution grow in proportion to K times this
     # scale (dev/simstudy/grouped-prior-checks-20261111).
     axis_scale <- read_scale("axis_scale", 0.7 / p_emb)
+    # The cap on the embedding scales (see coef_capped()). Inf is no cap. The
+    # model type is accepted for the default that a later task sets by model.
+    slab_scale <- get_param(priors, "slab_scale", Inf)
+    if (!is.numeric(slab_scale) || length(slab_scale) != 1L || is.na(slab_scale) ||
+        slab_scale <= 0)
+      stop("slab_scale must be a positive number or Inf")
+    slab_scale <- unname(slab_scale)
   }
   c_base <- rep(1, length(is_emb))
   if (gt > 0) c_base[is_emb] <- 1 / sqrt(gt)
   list(type = "grouped", is_emb = is_emb, sigma_b_scale = sigma_b_scale,
        sigma_emb_scale = sigma_emb_scale, axis_scale = axis_scale,
-       c_base = c_base)
+       slab_scale = slab_scale, c_base = c_base)
 }
 
 # One row per column of the occupancy design matrix X: its name, the covariate
@@ -148,8 +156,14 @@ coef_scales_start <- function(coef_prior, p) {
 coef_C_start <- function(coef_prior, C, lambda) {
   if (!identical(coef_prior$type, "grouped") || !any(coef_prior$is_emb)) return(C)
   emb <- which(coef_prior$is_emb)
-  C[, emb] <- C[, emb, drop = FALSE] *
-    rep(coef_prior$c_base[emb] * lambda[emb], each = nrow(C))
+  if (is.infinite(coef_slab(coef_prior))) {
+    C[, emb] <- C[, emb, drop = FALSE] *
+      rep(coef_prior$c_base[emb] * lambda[emb], each = nrow(C))
+  } else {
+    axis <- coef_effective_scales(coef_prior, NA_real_, lambda)$axis
+    C[, emb] <- C[, emb, drop = FALSE] *
+      rep(coef_prior$c_base[emb] * axis[emb], each = nrow(C))
+  }
   C
 }
 
@@ -170,9 +184,51 @@ check_coef_sds <- function(sd_b, p) {
 coef_prior_sds <- function(coef_prior, sigma_b, sigma_emb, lambda, g_b, p) {
   if (coef_prior$type == "fixed")
     return(list(b = rep(sigma_b, p), g = matrix(1, g_b, p), c = rep(1, p)))
-  list(b = ifelse(coef_prior$is_emb, sigma_emb, sigma_b) * lambda,
-       g = matrix(lambda, g_b, p, byrow = TRUE),
-       c = coef_prior$c_base * lambda)
+  if (is.infinite(coef_slab(coef_prior)))
+    return(list(b = ifelse(coef_prior$is_emb, sigma_emb, sigma_b) * lambda,
+                g = matrix(lambda, g_b, p, byrow = TRUE),
+                c = coef_prior$c_base * lambda))
+  eff <- coef_effective_scales(coef_prior, sigma_emb, lambda)
+  list(b = ifelse(coef_prior$is_emb, eff$leftover, sigma_b * lambda),
+       g = matrix(eff$axis, g_b, p, byrow = TRUE),
+       c = coef_prior$c_base * eff$axis)
+}
+
+# The cap on the embedding scales of a grouped prior record: its slab_scale,
+# or Inf (no cap) when the record has none, as the hand-built records of the
+# older tests do, or when it is NA (no embedding columns).
+coef_slab <- function(coef_prior) {
+  slab <- coef_prior$slab_scale
+  if (is.null(slab) || is.na(slab)) Inf else slab
+}
+
+# A standard deviation `s` capped at `slab`: the value whose precision is
+# 1 / s^2 + 1 / slab^2, so s * slab / sqrt(s^2 + slab^2). It is computed from
+# the smaller of the two times a factor between 0.7 and 1, so that nothing
+# overflows or underflows however extreme `s` is. With slab = Inf it is `s`
+# itself.
+coef_capped <- function(s, slab) {
+  if (is.infinite(slab)) return(s)
+  small <- pmin(s, slab)
+  big <- pmax(s, slab)
+  small / sqrt(1 + (small / big)^2)
+}
+
+# The scales the prior actually uses on the embedding columns, once the cap is
+# applied. `axis` is the effective axis scale: lambda on measured columns, the
+# capped lambda on embedding columns. `leftover` is the effective standard
+# deviation of the leftovers of B: NA on measured columns, the capped
+# sigma_emb * lambda on embedding columns. Both have one element per column.
+coef_effective_scales <- function(coef_prior, sigma_emb, lambda) {
+  slab <- coef_slab(coef_prior)
+  is_emb <- coef_prior$is_emb
+  axis <- lambda
+  leftover <- rep(NA_real_, length(lambda))
+  if (any(is_emb)) {
+    axis[is_emb] <- coef_capped(lambda[is_emb], slab)
+    leftover[is_emb] <- coef_capped(sigma_emb * lambda[is_emb], slab)
+  }
+  list(axis = axis, leftover = leftover)
 }
 
 # One draw of a standard deviation with a half-Cauchy(scale) prior, given `n`
