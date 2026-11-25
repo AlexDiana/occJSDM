@@ -97,6 +97,14 @@ sample_BBsL_parallel <- function(k, X, Tr, U, G, A, C, sigma_b, Gs, As, Cs, sigm
     .Call(`_occJSDM_sample_BBsL_parallel`, k, X, Tr, U, G, A, C, sigma_b, Gs, As, Cs, sigma_bs, Ks, Xs_centers, Omega, model, sigma_b0, mu_b0)
 }
 
+pgMoments_cpp <- function(b, z) {
+    .Call(`_occJSDM_pgMoments_cpp`, b, z)
+}
+
+nbLogPmf_cpp <- function(y, log_mean, r) {
+    .Call(`_occJSDM_nbLogPmf_cpp`, y, log_mean, r)
+}
+
 site_loglik_cpp <- function(eta, log_g0, log_g1, loadings, nodes, log_weights) {
     .Call(`_occJSDM_site_loglik_cpp`, eta, log_g0, log_g1, loadings, nodes, log_weights)
 }

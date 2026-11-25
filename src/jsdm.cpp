@@ -7,6 +7,7 @@
 // [[Rcpp::plugins(openmp)]]
 
 #include "rng.h"
+#include "count.h"
 
 // inline double exprnd(double rate) {
 //   std::exponential_distribution<double> dist(rate);
@@ -1144,4 +1145,51 @@ List sample_BBsL_parallel(arma::mat k,
     Named("Bts") = Bts,
     Named("B0")  = B0
   );
+}
+
+// ---------------------------------------------------------------------
+// Count model
+// ---------------------------------------------------------------------
+// Stage 1 of the count model: likelihood pieces that nothing in the sampler
+// loop calls yet. The formulas are in count.h; the design is
+// dev/superpowers/specs/2026-11-12-count-model-design.md.
+
+// Mean and variance of a Polya-Gamma variable for each pair of shape b and
+// predictor z. One row per pair; the mean is column 1, the variance column 2.
+// [[Rcpp::export]]
+arma::mat pgMoments_cpp(const arma::vec& b, const arma::vec& z) {
+  if (b.n_elem != z.n_elem) {
+    Rcpp::stop("b and z must have the same length");
+  }
+  arma::mat out(b.n_elem, 2);
+  for (arma::uword i = 0; i < b.n_elem; ++i) {
+    out(i, 0) = pg_mean(b[i], z[i]);
+    out(i, 1) = pg_var(b[i], z[i]);
+  }
+  return out;
+}
+
+// Negative-binomial log probability of every count. y and log_mean have one
+// row per sample and one column per species; r has one size per species.
+// [[Rcpp::export]]
+arma::mat nbLogPmf_cpp(const arma::mat& y, const arma::mat& log_mean,
+                       const arma::vec& r) {
+  if (y.n_rows != log_mean.n_rows || y.n_cols != log_mean.n_cols) {
+    Rcpp::stop("y and log_mean must have the same dimensions");
+  }
+  if (r.n_elem != y.n_cols) {
+    Rcpp::stop("one size per species");
+  }
+  for (arma::uword j = 0; j < r.n_elem; ++j) {
+    if (!std::isfinite(r[j]) || r[j] <= 0.0) {
+      Rcpp::stop("size must be positive");
+    }
+  }
+  arma::mat out(y.n_rows, y.n_cols);
+  for (arma::uword j = 0; j < y.n_cols; ++j) {
+    for (arma::uword i = 0; i < y.n_rows; ++i) {
+      out(i, j) = nb_logpmf(y(i, j), log_mean(i, j), r[j]);
+    }
+  }
+  return out;
 }
