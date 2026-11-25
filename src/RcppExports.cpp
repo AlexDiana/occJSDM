@@ -407,6 +407,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// samplePGcount_cpp
+arma::mat samplePGcount_cpp(const arma::mat& shape, const arma::mat& phi);
+RcppExport SEXP _occJSDM_samplePGcount_cpp(SEXP shapeSEXP, SEXP phiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type shape(shapeSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type phi(phiSEXP);
+    rcpp_result_gen = Rcpp::wrap(samplePGcount_cpp(shape, phi));
+    return rcpp_result_gen;
+END_RCPP
+}
 // site_loglik_cpp
 arma::vec site_loglik_cpp(const arma::mat& eta, const arma::mat& log_g0, const arma::mat& log_g1, const arma::mat& loadings, const arma::mat& nodes, const arma::vec& log_weights);
 RcppExport SEXP _occJSDM_site_loglik_cpp(SEXP etaSEXP, SEXP log_g0SEXP, SEXP log_g1SEXP, SEXP loadingsSEXP, SEXP nodesSEXP, SEXP log_weightsSEXP) {
@@ -449,6 +461,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_occJSDM_sample_BBsL_parallel", (DL_FUNC) &_occJSDM_sample_BBsL_parallel, 18},
     {"_occJSDM_pgMoments_cpp", (DL_FUNC) &_occJSDM_pgMoments_cpp, 2},
     {"_occJSDM_nbLogPmf_cpp", (DL_FUNC) &_occJSDM_nbLogPmf_cpp, 3},
+    {"_occJSDM_samplePGcount_cpp", (DL_FUNC) &_occJSDM_samplePGcount_cpp, 2},
     {"_occJSDM_site_loglik_cpp", (DL_FUNC) &_occJSDM_site_loglik_cpp, 6},
     {NULL, NULL, 0}
 };

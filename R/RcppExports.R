@@ -105,6 +105,10 @@ nbLogPmf_cpp <- function(y, log_mean, r) {
     .Call(`_occJSDM_nbLogPmf_cpp`, y, log_mean, r)
 }
 
+samplePGcount_cpp <- function(shape, phi) {
+    .Call(`_occJSDM_samplePGcount_cpp`, shape, phi)
+}
+
 site_loglik_cpp <- function(eta, log_g0, log_g1, loadings, nodes, log_weights) {
     .Call(`_occJSDM_site_loglik_cpp`, eta, log_g0, log_g1, loadings, nodes, log_weights)
 }

@@ -1193,3 +1193,117 @@ arma::mat nbLogPmf_cpp(const arma::mat& y, const arma::mat& log_mean,
   }
   return out;
 }
+
+// Where each route of the count sampler takes over. Beyond PG_EXTREME_Z the
+// draw is inverse Gaussian at every shape; above PG_NORMAL_SHAPE it is
+// normal; otherwise it is exact for the whole-number part of the shape, with
+// PG_FRAC_TERMS terms of the defining series for the fractional part.
+static const double PG_EXTREME_Z = 12.0;
+static const double PG_NORMAL_SHAPE = 170.0;
+static const int PG_FRAC_TERMS = 20;
+
+// Gamma(a, 1) for a >= 1, by Marsaglia and Tsang's method (2000), on the
+// package's own stream. std::gamma_distribution keeps hidden state between
+// calls and R::rgamma is R's stream, so neither is used.
+static double rgamma_marsaglia(double a) {
+  const double d = a - 1.0 / 3.0;
+  const double c = 1.0 / std::sqrt(9.0 * d);
+  while (true) {
+    double x = rnorm();
+    double v = 1.0 + c * x;
+    while (v <= 0.0) {
+      x = rnorm();
+      v = 1.0 + c * x;
+    }
+    v = v * v * v;
+    const double u = runif();
+    const double x2 = x * x;
+    if (u < 1.0 - 0.0331 * x2 * x2) {
+      return d * v;
+    }
+    if (std::log(u) < 0.5 * x2 + d * (1.0 - v + std::log(v))) {
+      return d * v;
+    }
+  }
+}
+
+// Gamma(f, 1) for 0 < f < 1: a Gamma(f + 1, 1) draw times a uniform draw
+// raised to 1 / f.
+static double rgamma_fraction(double f) {
+  const double g = rgamma_marsaglia(f + 1.0);
+  return g * std::pow(runif(), 1.0 / f);
+}
+
+// One Polya-Gamma draw with any positive shape b at predictor z.
+static double rpg_shape(double b, double z) {
+  const double a = std::fabs(z);
+
+  // Extreme predictor: the large-predictor limit of the Polya-Gamma
+  // distribution is inverse Gaussian with mean b / (2 |z|) and shape
+  // parameter b^2 / 4. samplepg_fast() is never called here, because beyond
+  // 12 it uses a normal draw with half the true variance.
+  if (a > PG_EXTREME_Z) {
+    const double lambda = 0.25 * b * b;
+    return lambda * randinvg((b / (2.0 * a)) / lambda);
+  }
+
+  // Large shape: a normal draw with the exact mean and variance.
+  if (b > PG_NORMAL_SHAPE) {
+    const double mean = pg_mean(b, z);
+    const double x = mean + std::sqrt(pg_var(b, z)) * rnorm();
+    return (x > 1e-12) ? x : mean;
+  }
+
+  // Exact route: one unit draw for each whole unit of the shape.
+  const double whole = std::floor(b);
+  const double f = b - whole;
+  const int n = (int)whole;
+  double x = 0.0;
+  for (int i = 0; i < n; ++i) {
+    x += samplepg_fast(z);
+  }
+
+  // Fractional part: the first PG_FRAC_TERMS terms of the series
+  // sum_k G_k d_k with G_k ~ Gamma(f, 1), plus the exact mean of the terms
+  // left out. With n == 0 this is the whole draw, and the added mean keeps
+  // it positive however small the shape.
+  if (f > 1e-8 || n == 0) {
+    double series = 0.0;
+    double d_sum = 0.0;
+    for (int k = 1; k <= PG_FRAC_TERMS; ++k) {
+      const double h = k - 0.5;
+      const double d = 1.0 / (2.0 * MATH_PI2 * h * h + 0.5 * z * z);
+      series += rgamma_fraction(f) * d;
+      d_sum += d;
+    }
+    x += series + (pg_mean(f, z) - f * d_sum);
+  }
+  return x;
+}
+
+// Polya-Gamma draws with shape shape(i, j) at predictor phi(i, j), drawn on
+// the calling thread in column-major order. Stage 2 calls this with
+// shape = y + r and phi = the log mean minus the log size.
+// [[Rcpp::export]]
+arma::mat samplePGcount_cpp(const arma::mat& shape, const arma::mat& phi) {
+  if (shape.n_rows != phi.n_rows || shape.n_cols != phi.n_cols) {
+    Rcpp::stop("shape and phi must have the same dimensions");
+  }
+  const arma::uword n_elem = shape.n_elem;
+  const double* shape_ptr = shape.memptr();
+  const double* phi_ptr = phi.memptr();
+  for (arma::uword k = 0; k < n_elem; ++k) {
+    if (!std::isfinite(shape_ptr[k]) || shape_ptr[k] <= 0.0) {
+      Rcpp::stop("shape must be positive");
+    }
+    if (!std::isfinite(phi_ptr[k])) {
+      Rcpp::stop("phi must be finite");
+    }
+  }
+  arma::mat out(shape.n_rows, shape.n_cols);
+  double* out_ptr = out.memptr();
+  for (arma::uword k = 0; k < n_elem; ++k) {
+    out_ptr[k] = rpg_shape(shape_ptr[k], phi_ptr[k]);
+  }
+  return out;
+}
