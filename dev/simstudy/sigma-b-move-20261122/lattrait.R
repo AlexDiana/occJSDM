@@ -11,10 +11,34 @@
 #
 # Usage:
 #   Rscript --vanilla lattrait.R --lib PATH --lattrait 2|4 --datasets 1:5 --workers 5
-#     [--commit SHA] [--nburn 5000] [--niter 20000] [--outdir DIR]
+#     [--truth default|small] [--commit SHA] [--nburn 5000] [--niter 20000] [--outdir DIR]
 # --nburn, --niter and --outdir exist for the short check of the script only.
 #
-# Writes dev/simstudy/results/sigma-b-move-20261122/gt<N>-d<k>.rds per data set.
+# Writes dev/simstudy/results/sigma-b-move-20261122/gt<N>-d<k>.rds per data set
+# (small-gt<N>-d<k>.rds with --truth small).
+#
+# --truth small, added on 26 November 2026 after the first test was read. The
+# simulator draws the embedding's blends from species responses of their own,
+# apart from the latent traits of the measured block, and a fit has one set of
+# latent traits for both. So the default truth (4 latent traits and 3 blends)
+# has 7 latent dimensions, more than either arm fits, and the first test could
+# not separate "fewer latent traits identify sigma_b" from "fewer latent traits
+# leave more for the leftover to carry". The small truth has 1 latent trait and
+# 1 blend, 2 latent dimensions: a fit with 2 latent traits matches it and a fit
+# with 4 has 2 to spare. Everything else is as before, with the same seeds (the
+# data sets differ from the first test's, since the truth differs).
+#
+# Reading rules for --truth small, fixed on 26 November 2026 before any run:
+# 1. Low stays, defined as in rule 1 below. "Supports the suggestion" if the
+#    4-trait arm has at least one long stay and the 2-trait arm has none. "Low
+#    state not reproduced" if neither arm has one. "Does not support the
+#    suggestion" if the 2-trait arm has a long stay.
+# 2. Measured coefficients, as in rule 2 below.
+# 3. Recovery, the ratio of rule 3 below (2 latent traits over 4), for (a) and
+#    (b). "4 latent traits do harm" if the ratio is under 0.91 in 2 or more of
+#    the 5 data sets, "2 latent traits do harm" if it is over 1.10 in 2 or
+#    more, and "no difference" otherwise.
+#    The chain medians of sigma_b (truth 0.1) are given beside these, no rule.
 #
 # Reading rules, fixed on 26 November 2026 before any run:
 # 1. Low stays. A kept sweep is low when sigma_b is under 0.02, and a stay is
@@ -46,7 +70,9 @@ arg <- function(name, default = NULL) {
 lib <- normalizePath(arg("lib"), mustWork = TRUE)
 gt_fit <- as.integer(arg("lattrait"))
 if (!gt_fit %in% c(2L, 4L)) stop("--lattrait must be 2 or 4")
-label <- paste0("gt", gt_fit)
+truth <- arg("truth", "default")
+if (!truth %in% c("default", "small")) stop("--truth must be default or small")
+label <- paste0(if (truth == "small") "small-" else "", "gt", gt_fit)
 # "1:5" or "1,3,5"; parsed without evaluating code.
 parse_datasets <- function(x) {
   if (grepl("^[0-9]+:[0-9]+$", x)) {
@@ -88,6 +114,10 @@ datasettings <- list(n = n, S = S, g = 2L, M = rep(1L, n), P = 1L,
 jsdmParams <- list(gt = 4L, d = 2L, ds = 0, sigma_b = 0.1, sigma_bs = 0.5, sigma_ts = 0.5,
                    sigma_h = 1, sigma_s = 0.5, l_s = 0.3, tau = rep(1, S),
                    useSpatField = FALSE, embedding = list(n_emb = 64L))
+if (truth == "small") {
+  jsdmParams$gt <- 1L
+  jsdmParams$embedding$n_blends <- 1L
+}
 MCMCparams <- list(nchain = 4L, nburn = nburn, niter = niter, nthin = 1L)
 
 # The largest unsplit coda R-hat among the measured rows of B_output, over all
@@ -182,7 +212,8 @@ fit_one <- function(k) {
   conv <- tryCatch(returnGroupedConvergence(fit), error = function(e) conditionMessage(e))
 
   res <- list(
-    label = label, dataset = k, n_lattrait = gt_fit,
+    label = label, dataset = k, n_lattrait = gt_fit, truth = truth,
+    true_sigma_b = tp$sigma_b, true_dims = c(A = NCOL(tp$A), C = NROW(tp$C)),
     sigma_b = matrix(jo$sigmab_output, niter, MCMCparams$nchain),
     sigma_emb = matrix(jo$sigmaemb_output, niter, MCMCparams$nchain),
     rhat = rhat, convergence = conv,
