@@ -1,12 +1,14 @@
 # A slab for the embedding scales, 25 November 2026
 
-Study folder for `dev/superpowers/specs/2026-11-25-axis-slab-design.md`. It holds the scratch simulation that the design's numbers come from, the identity check of the infinite cap, and evidence steps 1 and 2. What was run and what it read are in `RECORD.md`.
+Study folder for `dev/superpowers/specs/2026-11-25-axis-slab-design.md`. It holds the scratch simulation that the design's numbers come from, the identity check of the infinite cap, and evidence steps 1 to 3. What was run and what it read are in `RECORD.md`.
 
 ## Scripts
 
 - `identity.R`: checks that a grouped fit with `slab_scale = Inf`, and a fixed-prior fit, draw exactly what they drew at a03a1b8. Four small fits, run once against a library built from a03a1b8 and once against this branch with `--slab Inf`.
 - `prior_check.R`: evidence step 1. Prior draws only, with the package's own `read_coef_prior()` and `coef_prior_sds()`, at 64 and 128 embedding columns, with the default cap and with `slab_scale = Inf`. Usage: `Rscript --vanilla prior_check.R --lib PATH [--out FILE]`.
 - `separation.R`: evidence step 2. Builds the design's data set of a rare species that one column separates (seed 3001) and fits it once per arm (fit seed 3101). Usage: `Rscript --vanilla separation.R --lib PATH --slab default|Inf [--ncores 1] [--commit SHA]`. It writes `separation-<slab>.rds` to `dev/simstudy/results/axis-slab-20261125/`, which git ignores.
+- `compare.R`: evidence step 3. Simulates the five data sets of the `sigma_b` move study (data seeds 1001 to 1005, as in `dev/simstudy/sigma-b-move-20261122/repro.R`) and fits them under one arm, `--slab 2` or `--slab Inf`, with fit seeds 2001 to 2005 and 4 chains of 5,000 + 5,000. Usage: `Rscript --vanilla compare.R --lib PATH --slab 2|Inf --datasets 1:5 --workers 3 [--commit SHA] [--outdir DIR] [--nburn N] [--niter N]`. It writes `slab<VALUE>-d<k>.rds` per data set to `dev/simstudy/results/axis-slab-20261125/`, which git ignores.
+- `summarise.R`: reads the ten files of `compare.R` and prints, per data set, the truth's two numbers and each arm's numbers, then the design's four readings of step 3 when all ten files are present. Usage: `Rscript --vanilla summarise.R [--dir DIR] [--datasets 1:5]`.
 
 ## `scratch/`
 

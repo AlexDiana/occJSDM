@@ -316,9 +316,15 @@ at both column counts, so one prior draw in twenty gives a spread larger
 than that, and the 99\% point is about 160 to 210. The cap was added in
 November 2026 to cut that tail. Under the default cap of 2 the prior median
 is about 1.3 at both column counts, the 95\% point about 5.7 and the 99\%
-point about 9 to 10. Whether the cap also shrinks strong responses that the
-data support is still to be measured, in simulations and in the validation
-study.
+point about 9 to 10. In simulations of the size described below (five
+data sets, each with a strongest true embedding column whose coefficients
+have a root mean square across species of 1.1 to 1.4), the cap did not
+shrink the strongest responses: on the five strongest columns of each data
+set, the slope of the estimated coefficients on the true ones was within
+3\% of the slope without the cap, and the error of the embedding's
+contribution to the linear predictor was at most 6\% larger. Whether the cap
+shrinks responses nearer to it, or on real data, is still to be measured in
+the validation study.
 
 The sampler's extra steps for \code{binary} fits were added in November 2026
 and have been tried only on simulated data of one size (256 sites, 48
