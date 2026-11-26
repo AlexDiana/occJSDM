@@ -129,3 +129,57 @@ move d5 chain 4: low share 0.000, longest low run 0, runs >= 500: 0, median sigm
 move d5 fit: R-hat measured max 1.261 (20 over 1.1) at 5,000 kept; 1.071 (0 over 1.1) at 20000 kept; 75.7 minutes; low share 0.000, sigma_b acceptance adapted 0.45/0.28/0.41/0.39, large 0.01/0.02/0.01/0.01, adapted step 0.025/0.056/0.029/0.031
 move: longest low run over all chains 87
 ```
+
+## Fewer latent traits, 26 November 2026
+
+On PR 46 (25 November 2026) Alex Diana explained the low state as the latent-trait term over-fitting the measured block: with 4 latent traits and 5 measured covariates the model cannot tell the leftover from the latent-trait term, and the leftover's scale goes to zero. He suggested fewer latent traits or more covariates. Doug asked for a test of the first.
+
+What was run:
+
+- `lattrait.R`, with the reading rules fixed in its header before any run, and `lattrait_summarise.R`. The script was not edited after the runs began.
+- The five data sets and seeds of `repro.R`, a library without the move built from a2a64a1, 4 chains of 5,000 + 20,000, 5 workers. Arm `gt2` fits 2 latent traits (09:09 to 11:03 GMT, 113 to 114 minutes per fit). Arm `gt4` fits 4, as a control (11:05 to 13:21 GMT, 134 to 136 minutes per fit).
+- Power: the laptop went onto battery during the first arm and back onto AC power during the second. Low Power Mode was off throughout. The arms ran one after the other, so their times are not a fair comparison.
+- The control arm's `sigma_b` draws are identical to those in the `base` files of `repro.R` in all five data sets.
+- The measured block is 6 design columns, not 5: one of the 5 measured covariates is categorical with three levels and enters as two indicator columns.
+
+The readings:
+
+1. Low stays: **long stays gone**. With 2 latent traits no chain of any data set has a kept sweep under 0.02. With 4, data set 4 has four stays of 500 sweeps or more (700, 636 and 1,250 in chains 1 to 3) and 8.0% of its kept sweeps are low; the other four data sets have none.
+2. Measured coefficients: 2 fits fail with 2 latent traits (data sets 1 and 2) and 3 with 4 (data sets 1, 4 and 5). At all 20,000 kept sweeps the coefficients over 1.1 are 11 and 60 in data sets 1 and 2 with 2 latent traits, and 7 and 1 in data sets 1 and 4 with 4.
+3. Recovery, error with 2 latent traits over error with 4. Embedding contribution: 1.032, 0.988, 1.025, 1.045, 1.126, which reads **no harm**. Measured coefficients: 1.057, 1.023, 1.001, 1.243, 1.037, which reads **no harm**. Coverage of the measured coefficients' 95% intervals with 2: 0.944, 0.944, 0.955, 0.878, 0.934; with 4: 0.951, 0.934, 0.948, 0.931, 0.938.
+
+Beside the rules:
+
+- The two failures with 2 latent traits are fits with one chain in the other state of the embedding: median `sigma_emb` 6.3 against 0.57 to 0.66 in data set 1, and 6.1 against 0.30 in data set 2. That chain's `sigma_b` sits at a different level too (0.63 against 1.10, and 0.65 against 1.80). They do not clear by 20,000 kept sweeps.
+- Chain medians of `sigma_b` are 0.63 to 1.80 with 2 latent traits. With 4 they are 0.62 to 1.46 in four data sets and 0.11 to 0.17 in data set 4. The simulated truth is 0.1, so the one data set with the low state is also the one whose `sigma_b` is near the truth, and it is the one where 2 latent traits recover the measured coefficients worst (ratio 1.243, coverage 0.878).
+- The package's own verdict is "ok" in 2 of 5 fits with 2 latent traits (data sets 3 and 5) and in 3 of 5 with 4 (data sets 2, 3 and 5).
+
+What this does not show:
+
+- The truth has 4 latent traits, so a fit with 2 has fewer than the truth. Part of the rise in `sigma_b` may be the leftover taking up what the missing latent traits carried. A truth with 2 latent traits, fitted with 2 and with 4, would separate the two. It has not been run.
+- Only 1 data set of 5 shows the low state with 4 latent traits, so reading 1 rests on that one.
+
+The summary in full:
+
+```
+gt2 d1: low share by chain 0.000 0.000 0.000 0.000; longest low stay 0 0 0 0; long stays 0; median sigma_b 0.628 1.100 1.097 1.098
+gt2 d1: measured R-hat max 1.260 (10 over 1.1) at 5,000 kept; 1.262 (11 over 1.1) at all 20000; verdict review; RMSE embedding 0.6911, measured 0.3738; coverage 0.944, width 1.433; median sigma_emb by chain 6.31 0.57 0.61 0.66; 114 minutes
+gt2 d2: low share by chain 0.000 0.000 0.000 0.000; longest low stay 0 0 0 0; long stays 0; median sigma_b 1.798 1.804 1.802 0.651
+gt2 d2: measured R-hat max 1.730 (65 over 1.1) at 5,000 kept; 1.715 (60 over 1.1) at all 20000; verdict review; RMSE embedding 0.6458, measured 0.4807; coverage 0.944, width 1.723; median sigma_emb by chain 0.30 0.30 0.31 6.12; 114 minutes
+gt2 d3: low share by chain 0.000 0.000 0.000 0.000; longest low stay 0 0 0 0; long stays 0; median sigma_b 1.664 1.672 1.666 1.672
+gt2 d3: measured R-hat max 1.013 (0 over 1.1) at 5,000 kept; 1.002 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.7433, measured 0.4664; coverage 0.955, width 1.672; median sigma_emb by chain 0.64 0.67 0.66 0.66; 114 minutes
+gt2 d4: low share by chain 0.000 0.000 0.000 0.000; longest low stay 0 0 0 0; long stays 0; median sigma_b 0.654 0.655 0.655 0.658
+gt2 d4: measured R-hat max 1.007 (0 over 1.1) at 5,000 kept; 1.002 (0 over 1.1) at all 20000; verdict review; RMSE embedding 0.8040, measured 0.4965; coverage 0.878, width 1.434; median sigma_emb by chain 5.78 5.94 6.15 5.82; 114 minutes
+gt2 d5: low share by chain 0.000 0.000 0.000 0.000; longest low stay 0 0 0 0; long stays 0; median sigma_b 1.349 1.359 1.350 1.349
+gt2 d5: measured R-hat max 1.009 (0 over 1.1) at 5,000 kept; 1.002 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.7915, measured 0.4587; coverage 0.934, width 1.594; median sigma_emb by chain 0.69 0.66 0.74 0.70; 113 minutes
+gt4 d1: low share by chain 0.000 0.000 0.000 0.000; longest low stay 0 0 0 0; long stays 0; median sigma_b 0.625 0.623 0.627 0.897
+gt4 d1: measured R-hat max 1.155 (8 over 1.1) at 5,000 kept; 1.240 (7 over 1.1) at all 20000; verdict review; RMSE embedding 0.6699, measured 0.3538; coverage 0.951, width 1.386; median sigma_emb by chain 0.55 0.53 0.56 0.07; 136 minutes
+gt4 d2: low share by chain 0.000 0.000 0.000 0.000; longest low stay 0 0 0 0; long stays 0; median sigma_b 0.632 0.639 0.633 0.635
+gt4 d2: measured R-hat max 1.022 (0 over 1.1) at 5,000 kept; 1.010 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.6540, measured 0.4697; coverage 0.934, width 1.570; median sigma_emb by chain 0.32 0.32 0.32 0.30; 135 minutes
+gt4 d3: low share by chain 0.000 0.000 0.000 0.000; longest low stay 0 0 0 0; long stays 0; median sigma_b 1.455 1.458 1.459 1.460
+gt4 d3: measured R-hat max 1.072 (0 over 1.1) at 5,000 kept; 1.016 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.7255, measured 0.4661; coverage 0.948, width 1.683; median sigma_emb by chain 0.17 0.17 0.19 0.17; 135 minutes
+gt4 d4: low share by chain 0.114 0.048 0.080 0.077; longest low stay 700 636 1250 336; long stays 4; median sigma_b 0.106 0.106 0.169 0.126
+gt4 d4: measured R-hat max 1.566 (51 over 1.1) at 5,000 kept; 1.106 (1 over 1.1) at all 20000; verdict review; RMSE embedding 0.7693, measured 0.3996; coverage 0.931, width 1.387; median sigma_emb by chain 5.38 5.61 4.11 5.28; 134 minutes
+gt4 d5: low share by chain 0.000 0.000 0.000 0.000; longest low stay 0 0 0 0; long stays 0; median sigma_b 1.076 1.076 1.077 1.080
+gt4 d5: measured R-hat max 1.225 (9 over 1.1) at 5,000 kept; 1.072 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.7027, measured 0.4421; coverage 0.938, width 1.595; median sigma_emb by chain 0.06 0.04 0.05 0.05; 135 minutes
+```
