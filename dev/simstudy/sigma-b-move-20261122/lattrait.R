@@ -11,8 +11,17 @@
 #
 # Usage:
 #   Rscript --vanilla lattrait.R --lib PATH --lattrait 2|4 --datasets 1:5 --workers 5
-#     [--truth default|small] [--commit SHA] [--nburn 5000] [--niter 20000] [--outdir DIR]
-# --nburn, --niter and --outdir exist for the short check of the script only.
+#     [--truth default|small] [--move no|yes] [--commit SHA] [--nburn 5000] [--niter 20000]
+#     [--outdir DIR]
+# --nburn and --niter exist for the short check of the script only. --outdir is
+# for that check and for the run with the move, below.
+#
+# --move yes, added on 26 November 2026 for the run of the move on the small
+# truth (its reading rules are in RECORD.md). It says that the library given
+# has the sigma_b move. The script stops before any fit if the library does not
+# agree with --move, and that run's files go to a folder of their own with
+# --outdir, under the same names. A first launch without this option fitted for
+# 108 minutes and then stopped at the check after the fit, saving nothing.
 #
 # Writes dev/simstudy/results/sigma-b-move-20261122/gt<N>-d<k>.rds per data set
 # (small-gt<N>-d<k>.rds with --truth small).
@@ -73,6 +82,8 @@ if (!gt_fit %in% c(2L, 4L)) stop("--lattrait must be 2 or 4")
 truth <- arg("truth", "default")
 if (!truth %in% c("default", "small")) stop("--truth must be default or small")
 label <- paste0(if (truth == "small") "small-" else "", "gt", gt_fit)
+move <- arg("move", "no")
+if (!move %in% c("no", "yes")) stop("--move must be no or yes")
 # "1:5" or "1,3,5"; parsed without evaluating code.
 parse_datasets <- function(x) {
   if (grepl("^[0-9]+:[0-9]+$", x)) {
@@ -90,6 +101,10 @@ library(occJSDM, lib.loc = lib)
 pkg_path <- normalizePath(dirname(system.file(package = "occJSDM")))
 if (pkg_path != lib) stop("occJSDM was loaded from ", pkg_path, ", not from ", lib)
 RcppParallel::setThreadOptions(numThreads = 1)
+lib_has_move <- exists("sigma_b_move", envir = asNamespace("occJSDM"), inherits = FALSE)
+if (lib_has_move != (move == "yes"))
+  stop("the library ", if (lib_has_move) "has" else "does not have",
+       " the sigma_b move, and --move is ", move)
 
 # The study directory, found from this script's own path.
 script <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
@@ -173,8 +188,9 @@ fit_one <- function(k) {
   jo <- fit$results_output$jsdm_output
   cp <- fit$infos$coef_prior
   if (!identical(cp$type, "grouped")) stop("the fit's prior is not grouped")
-  if (!is.null(fit$infos$axis_move$sigma_b_acceptance))
-    stop("this library has the sigma_b move; the test needs one without it")
+  if (is.null(fit$infos$axis_move$sigma_b_acceptance) == (move == "yes"))
+    stop("the fit ", if (move == "yes") "has no" else "has a",
+         " sigma_b acceptance record, and --move is ", move)
   is_emb <- cp$is_emb
   if (!identical(colnames(fit$X_psi)[is_emb], emb))
     stop("the embedding columns of X_psi are not the simulated ones in order")
@@ -212,7 +228,7 @@ fit_one <- function(k) {
   conv <- tryCatch(returnGroupedConvergence(fit), error = function(e) conditionMessage(e))
 
   res <- list(
-    label = label, dataset = k, n_lattrait = gt_fit, truth = truth,
+    label = label, dataset = k, n_lattrait = gt_fit, truth = truth, move = move,
     true_sigma_b = tp$sigma_b, true_dims = c(A = NCOL(tp$A), C = NROW(tp$C)),
     sigma_b = matrix(jo$sigmab_output, niter, MCMCparams$nchain),
     sigma_emb = matrix(jo$sigmaemb_output, niter, MCMCparams$nchain),

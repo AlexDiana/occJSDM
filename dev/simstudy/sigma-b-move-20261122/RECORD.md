@@ -248,3 +248,59 @@ gt4 d4: measured R-hat max 1.818 (170 over 1.1) at 5,000 kept; 1.185 (10 over 1.
 gt4 d5: low share by chain 0.145 0.213 0.033 0.221; longest low stay 761 612 268 2403; long stays 4; median sigma_b 0.063 0.044 0.080 0.064
 gt4 d5: measured R-hat max 1.292 (52 over 1.1) at 5,000 kept; 1.070 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.4256, measured 0.2036; coverage 0.958, width 0.828; median sigma_emb by chain 0.13 0.14 0.14 0.16; 109 minutes
 ```
+
+## The move on the small truth, 26 November 2026
+
+The move of this PR was tested only on the default truth, where the low state turned out to be rare (one data set of five). On the small truth it is common, so Doug asked for the move to be run there.
+
+What is run: `lattrait.R --truth small --lattrait 2`, the matched fit, on the same five data sets and fit seeds as arm `small-gt2` above, with a library that has the move (built from a03a1b8; the package code of this branch has not changed since). The files go to the subfolder `small-move` of the results folder, under the same names, so that the files without the move are not overwritten. The comparison is with arm `small-gt2` above, which differs only in having no move.
+
+Reading rules, fixed on 26 November 2026 before the run:
+
+1. Stays. A kept sweep is low when `sigma_b` is under 0.02 and a stay is long at 500 sweeps or more, as before. "Stays are short" if no chain of the five fits has a long stay, and "long stays remain" otherwise. Without the move there are 17, the longest 7,778. The number and the longest are given.
+2. Measured coefficients. A fit fails if any measured coefficient has an R-hat over 1.1 at the first 5,000 kept sweeps. Without the move 3 fail. "Fewer failures" if 2 or fewer fail with the move, "no worse" if 3, "worse" if 4 or 5.
+3. Recovery. Per data set, the root mean squared error with the move over that without, for the embedding's contribution and for the measured coefficients. Each reads "no harm" if the ratio is at most 1.10 in at least 4 of the 5 data sets, and "harm" otherwise.
+
+Beside the rules, with no reading: the share of kept sweeps that are low (the move is meant to shorten stays, and is not expected to lower the share), the chain medians of `sigma_b`, the coverage of the measured coefficients' 95% intervals, and the package's own verdict.
+
+What was run, as it happened:
+
+- A first launch at 19:41 GMT failed at 21:29 GMT and saved nothing. `lattrait.R` had a check after the fit that stops when the library has the move, written for the first test, and all five fits stopped at it after 108 minutes. The script gained `--move no|yes`, which checks the library before any fit starts, and was run with 100 + 200 sweeps for both wrong pairings (each stops at once) and both right ones (each saves its files) before the relaunch.
+- The relaunch ran 21:33 to 23:24 GMT, 110 minutes per fit, 5 workers, on AC power with Low Power Mode off. The script was not edited after it began (its checksum at the end begins 2fd4816f, as at the start). The reading rules above were not changed.
+- Each fit with the move has the same true coefficients and the same settings as its fit without (checked on the saved files).
+
+The readings:
+
+1. Stays: **stays are short**. No chain of the five fits has a long stay. The longest stay by data set is 8, 75, 65, 64, 49 sweeps, against 0, 7,778, 1,034, 179, 1,060 without the move.
+2. Measured coefficients: **fewer failures**. 2 fits fail with the move (data sets 2 and 4, with 2 and 1 coefficients over 1.1, largest R-hat 1.13 and 1.10) against 3 without (data sets 2, 4 and 5, with 222, 2 and 4 over 1.1, largest 2.51, 1.14 and 1.15). At all 20,000 kept sweeps no coefficient is over 1.1 in any fit with the move, against 13 in data set 2 without.
+3. Recovery, error with the move over error without. Embedding contribution: 0.996, 1.011, 0.998, 1.001, 0.995, which reads **no harm**. Measured coefficients: 1.008, 0.998, 1.005, 1.010, 1.005, which reads **no harm**.
+
+Beside the rules:
+
+- Share of kept sweeps under 0.02, by data set: 0.000, 0.232, 0.067, 0.039, 0.020 with the move (mean 0.072) against 0.000, 0.303, 0.098, 0.010, 0.030 without (mean 0.088). As expected the move does not remove the low state. It makes the visits short: the mean stay is 3 to 6 sweeps with the move against 12 to 216 without, in the four data sets that have any.
+- The chains of a fit now agree on the share. In data set 2 it is 0.26, 0.22, 0.21, 0.24 by chain with the move, against 0.18, 0.29, 0.21, 0.54 without.
+- Chain medians of `sigma_b` (truth 0.1): 0.14, 0.04 to 0.05, 0.08 to 0.09, 0.10, 0.10 to 0.11. In data set 2 all four chains agree on a level under half the truth, with 23% of sweeps low, so there the low values are part of the posterior and not a failure of the sampler.
+- Coverage of the measured coefficients' 95% intervals: 0.972, 0.872, 0.938, 0.958, 0.941 with the move against 0.965, 0.875, 0.920, 0.951, 0.944 without. Data set 2 undercovers either way.
+- Acceptance of the move's proposals, adapted step and large step, by data set (range over chains): 0.40 to 0.46 and 0.10; 0.43 to 0.57 and 0.32 to 0.35; 0.31 to 0.48 and 0.20 to 0.21; 0.41 to 0.52 and 0.16 to 0.18; 0.40 to 0.46 and 0.14 to 0.16.
+- The package's own verdict is "ok" in all 5 fits with the move, against 4 of 5 without.
+
+What this does not show:
+
+- That the low values of data set 2 are harmless. Its intervals undercover (0.87) with and without the move.
+- Anything with 4 latent traits on this truth, where the low state is more common still. The move was run with 2 only.
+- Anything beyond five data sets of one design.
+
+The summary with the move in full:
+
+```
+gt2 d1: low share by chain 0.001 0.000 0.000 0.000; longest low stay 8 0 1 6; long stays 0; median sigma_b 0.135 0.138 0.138 0.139
+gt2 d1: measured R-hat max 1.041 (0 over 1.1) at 5,000 kept; 1.014 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.4215, measured 0.1883; coverage 0.972, width 0.770; median sigma_emb by chain 0.18 0.18 0.19 0.17; 110 minutes
+gt2 d2: low share by chain 0.257 0.222 0.211 0.236; longest low stay 75 61 45 70; long stays 0; median sigma_b 0.041 0.046 0.048 0.044
+gt2 d2: measured R-hat max 1.129 (2 over 1.1) at 5,000 kept; 1.038 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.4864, measured 0.2296; coverage 0.872, width 0.715; median sigma_emb by chain 0.57 0.60 0.53 0.54; 110 minutes
+gt2 d3: low share by chain 0.060 0.074 0.062 0.073; longest low stay 64 65 51 41; long stays 0; median sigma_b 0.083 0.082 0.085 0.082
+gt2 d3: measured R-hat max 1.062 (0 over 1.1) at 5,000 kept; 1.016 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.3574, measured 0.2376; coverage 0.938, width 0.864; median sigma_emb by chain 0.70 0.62 0.69 0.67; 110 minutes
+gt2 d4: low share by chain 0.027 0.046 0.029 0.053; longest low stay 27 41 48 64; long stays 0; median sigma_b 0.097 0.096 0.101 0.096
+gt2 d4: measured R-hat max 1.100 (1 over 1.1) at 5,000 kept; 1.031 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.4296, measured 0.1880; coverage 0.958, width 0.763; median sigma_emb by chain 0.15 0.15 0.16 0.17; 110 minutes
+gt2 d5: low share by chain 0.014 0.022 0.019 0.025; longest low stay 36 28 32 49; long stays 0; median sigma_b 0.105 0.106 0.104 0.105
+gt2 d5: measured R-hat max 1.066 (0 over 1.1) at 5,000 kept; 1.011 (0 over 1.1) at all 20000; verdict ok; RMSE embedding 0.4173, measured 0.1983; coverage 0.941, width 0.738; median sigma_emb by chain 0.22 0.24 0.23 0.24; 110 minutes
+```
