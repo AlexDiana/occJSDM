@@ -384,6 +384,43 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// pgMoments_cpp
+arma::mat pgMoments_cpp(const arma::vec& b, const arma::vec& z);
+RcppExport SEXP _occJSDM_pgMoments_cpp(SEXP bSEXP, SEXP zSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type z(zSEXP);
+    rcpp_result_gen = Rcpp::wrap(pgMoments_cpp(b, z));
+    return rcpp_result_gen;
+END_RCPP
+}
+// nbLogPmf_cpp
+arma::mat nbLogPmf_cpp(const arma::mat& y, const arma::mat& log_mean, const arma::vec& r);
+RcppExport SEXP _occJSDM_nbLogPmf_cpp(SEXP ySEXP, SEXP log_meanSEXP, SEXP rSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type log_mean(log_meanSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type r(rSEXP);
+    rcpp_result_gen = Rcpp::wrap(nbLogPmf_cpp(y, log_mean, r));
+    return rcpp_result_gen;
+END_RCPP
+}
+// samplePGcount_cpp
+arma::mat samplePGcount_cpp(const arma::mat& shape, const arma::mat& phi);
+RcppExport SEXP _occJSDM_samplePGcount_cpp(SEXP shapeSEXP, SEXP phiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type shape(shapeSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type phi(phiSEXP);
+    rcpp_result_gen = Rcpp::wrap(samplePGcount_cpp(shape, phi));
+    return rcpp_result_gen;
+END_RCPP
+}
 // site_loglik_cpp
 arma::vec site_loglik_cpp(const arma::mat& eta, const arma::mat& log_g0, const arma::mat& log_g1, const arma::mat& loadings, const arma::mat& nodes, const arma::vec& log_weights);
 RcppExport SEXP _occJSDM_site_loglik_cpp(SEXP etaSEXP, SEXP log_g0SEXP, SEXP log_g1SEXP, SEXP loadingsSEXP, SEXP nodesSEXP, SEXP log_weightsSEXP) {
@@ -424,6 +461,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_occJSDM_spatEffectMeanCpp", (DL_FUNC) &_occJSDM_spatEffectMeanCpp, 3},
     {"_occJSDM_sample_BBsL_cpp", (DL_FUNC) &_occJSDM_sample_BBsL_cpp, 19},
     {"_occJSDM_sample_BBsL_parallel", (DL_FUNC) &_occJSDM_sample_BBsL_parallel, 19},
+    {"_occJSDM_pgMoments_cpp", (DL_FUNC) &_occJSDM_pgMoments_cpp, 2},
+    {"_occJSDM_nbLogPmf_cpp", (DL_FUNC) &_occJSDM_nbLogPmf_cpp, 3},
+    {"_occJSDM_samplePGcount_cpp", (DL_FUNC) &_occJSDM_samplePGcount_cpp, 2},
     {"_occJSDM_site_loglik_cpp", (DL_FUNC) &_occJSDM_site_loglik_cpp, 6},
     {NULL, NULL, 0}
 };
