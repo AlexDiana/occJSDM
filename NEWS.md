@@ -2,9 +2,19 @@
 
 In development, not yet released.
 
+## New features
+
+-   Experimental, off by default and not yet validated: `runOccJSDM()` can take a satellite embedding, a block of tens of numeric columns per site, as occupancy covariates beside a few measured covariates, under a new grouped prior on the occupancy coefficients. Name the embedding columns in `listParams$embeddingVars`; that alone switches the prior on, and `listPriors$b_prior = "grouped"` switches it on without an embedding. The measured covariates and the embedding columns then get scales of their own, learned from the data, each embedding column gets an axis scale that can shrink it out of the model, and every covariate gets a community-average response. Three new entries of `listPriors` set the half-Cauchy prior scales of those scales: `sigma_b_scale`, `sigma_emb_scale` and `axis_scale`. Fits that set neither `embeddingVars` nor `b_prior` are unchanged. The prior has not been through its validation study, its axis scales mix slowly, and its settings and defaults may change; see `?"grouped-prior"`.
+-   Four new functions summarise a fit made with the grouped prior: `returnCovariateScales()` (the learned scales), `returnCommunityResponse()` (the community-average response to each covariate), `returnEmbeddingBlends()` (the combinations of embedding columns that species respond to, with a score for each site) and `returnEmbeddingShare()` (for each species, the share of the covariates' contribution that comes from the embedding). They are experimental with the prior.
+-   `simulateOccJSDMData()` can add an embedding block to the simulated occupancy covariates: set `embedding` in `list_jsdmParams`, giving either the number of columns to simulate or your own matrix of columns. Calls that do not set it return what they returned before.
+
 ## Bug fixes
 
 -   The Polya-Gamma draws that `runOccJSDM()` makes in binary, occupancy and two-stage fits had half the correct variance in every cell whose linear predictor was beyond 12 in absolute value, which is a fitted probability below about 6 in a million or above about 0.999994. Their mean was correct. Such cells are species that the model is almost certain are absent from a site, or present at it. In the Quickstart fit they are 0.05% of the occupancy cells drawn, with at least one in 44% of iterations, and 15 of the 37 million collection cells drawn. The draw in those cells is now an inverse Gaussian, which is what the Polya-Gamma distribution tends to for a large predictor, in place of a normal with half the variance. Every beta from `v0.1.0-beta` to `v0.3.2-beta` has the defect. In the Quickstart example its effect is too small to see: refitted with five seeds before the fix and five after, no posterior mean moves by more than 0.07 posterior standard deviations, which is less than two seeds differ by. Its effect has not been measured on data in which a species is nearly absent or nearly everywhere. A fit that contains such a cell now gives different numbers from the same seed, from the first such cell onwards; a fit with none is unchanged, draw for draw. The continuous model makes no Polya-Gamma draws and is unaffected.
+
+## Documentation
+
+-   New help page `?"grouped-prior"`, also reached as `?embeddingVars` and `?b_prior`: what the grouped prior is for, how to switch it on, its settings, what the fit holds, how to read a management covariate fitted beside an embedding, and its experimental status.
 
 # occJSDM 0.3.2
 

@@ -4,7 +4,7 @@ spatial_range_fixture <- function() {
                    .8,.9,1, .9,.8,.7), c(3,2,3))
   list(X=matrix(c(-1,0,1),3,1), U=matrix(c(.2,-.5,.8),3,1),
        M_B=matrix(c(.4,-.3),1,2), M_Bs=matrix(c(1,-.5,.3,1.2),2,2),
-       sigma_b=.6,sigma_bs=1.2,
+       sd_b=.6,sigma_bs=1.2,
        Omega=matrix(c(.7,1.1,.4,.8,.5,.9),3,2),
        Xs_centers=matrix(rep(1:2,each=3),3,2),
        list_SoRSummaries=list(Ks_all=basis,l_s_grid=c(.05,.15,.25)),
@@ -16,7 +16,7 @@ spatial_range_fixture <- function() {
 range_marginal_reference <- function(x,y) {
   vapply(1:3,function(j) {
     Z <- cbind(1,x$X,x$U,x$list_SoRSummaries$Ks_all[,,j])
-    V <- diag(c(1,x$sigma_b^2,1,rep(x$sigma_bs^2,2)))
+    V <- diag(c(1,x$sd_b^2,1,rep(x$sigma_bs^2,2)))
     sum(vapply(1:2,function(s) {
       mean <- Z %*% c(0,x$M_B[,s],0,x$M_Bs[,s])
       cov <- diag(1/x$Omega[,s]) + Z %*% V %*% t(Z)
@@ -68,7 +68,7 @@ test_that("spatial coefficient updates retain the trait-predicted prior mean", {
   # Its nonzero spatial mean must survive every coefficient sampler.
   args <- list(k=matrix(0,4,2),X=matrix(0,4,0),Tr=matrix(c(1,2),2,1),
                U=matrix(0,4,0),G=matrix(0,1,0),A=matrix(0,2,0),C=matrix(0,0,0),
-               sigma_b=.3,Gs=matrix(c(1.5,-.5),1,2),As=matrix(0,2,0),
+               sd_b=.3,Gs=matrix(c(1.5,-.5),1,2),As=matrix(0,2,0),
                Cs=matrix(0,0,2),sigma_bs=.2,Ks=matrix(0,4,2),
                Xs_centers=matrix(rep(1:2,each=4),4,2),
                Omega=matrix(0,4,2),model="continuous")
