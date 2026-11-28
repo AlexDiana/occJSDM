@@ -213,19 +213,28 @@ static double samplepg_fast(double z) {
   double orig_z = (double)std::fabs((double)z);
 
   // -------------------------------------------------------------
-  // FAST PATH: Normal Approximation for large Z
+  // FAST PATH: inverse Gaussian limit for large Z
   // Skips the expensive rejection loop.
-  // Mean = 1 / (2z), Var = 1 / (4z^3)
+  //
+  // As |z| grows PG(1, z) tends to an inverse Gaussian with mean 1 / (2|z|)
+  // and shape 1/4, whose variance 1 / (2|z|^3) is the limit of the exact
+  // (sinh(z) - z) / (4 z^3 cosh^2(z/2)). At |z| = 12 the mean and the
+  // variance are each within 0.02% of the exact values.
+  //
+  // randinvg(m) draws an inverse Gaussian with mean m and shape 1, and
+  // c * IG(m, 1) is IG(c * m, c), so the draw is randinvg(2 / |z|) / 4. That
+  // is the J*(1, z/2) of the exact sampler below without its truncation.
+  //
+  // Until 27 November 2026 this was a normal draw with variance 1 / (4|z|^3),
+  // half the true value.
   // -------------------------------------------------------------
   if (orig_z > 12.0) {
-    double mu = 0.5 / orig_z;
-    double var = 0.25 / (orig_z * orig_z * orig_z);
+    double draw = 0.25 * randinvg(2.0 / orig_z);
 
-    // Assumes your custom rnorm() returns a standard normal draw
-    double draw = mu + std::sqrt(var) * rnorm();
-
-    // Ensure strict positivity (draws < 0 are astronomically rare here)
-    return (draw > 1e-12) ? draw : mu;
+    // randinvg() forms mu * mu, which underflows to zero beyond |z| of about
+    // 1e162, and it then returns zero in about half its calls. Fall back on
+    // the mean there, so the value is finite and positive for every finite z.
+    return (draw > 0.0 && std::isfinite(draw)) ? draw : 0.5 / orig_z;
   }
 
   // -------------------------------------------------------------
