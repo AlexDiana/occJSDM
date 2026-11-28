@@ -772,7 +772,7 @@ simulateData <- function(
       })
     }))
 
-  } else if (model == "count"){
+  } else if (model == "counts"){
 
     mu <- exp(eta)
 
@@ -1312,7 +1312,7 @@ update_jSDMcoef <- function(list_data,
     k <- z
   } else if(model == "binary"){
     k <- z - .5
-  } else if(model == "count"){
+  } else if(model == "counts"){
     # k <- k / w
   }
 
@@ -1726,7 +1726,7 @@ SD <- function(eta, model) {
   } else if (model == "binary"){
     # apply(logistic(eta), 2, sd)
     fast_sd(logistic(eta))
-  } else if (model == "count"){
+  } else if (model == "counts"){
     # apply(exp(eta), 2, sd)
     fast_sd(exp(eta))
   } else {

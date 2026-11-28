@@ -7,6 +7,7 @@
 // [[Rcpp::plugins(openmp)]]
 
 #include "rng.h"
+#include "count.h"
 
 // inline double exprnd(double rate) {
 //   std::exponential_distribution<double> dist(rate);
@@ -1144,4 +1145,186 @@ List sample_BBsL_parallel(arma::mat k,
     Named("Bts") = Bts,
     Named("B0")  = B0
   );
+}
+
+// ---------------------------------------------------------------------
+// Count model
+// ---------------------------------------------------------------------
+// Stage 1 of the count model: likelihood pieces that nothing in the sampler
+// loop calls yet. The formulas are in count.h; the design is
+// dev/superpowers/specs/2026-11-12-count-model-design.md.
+
+// Mean and variance of a Polya-Gamma variable for each pair of shape b and
+// predictor z. One row per pair; the mean is column 1, the variance column 2.
+// [[Rcpp::export]]
+arma::mat pgMoments_cpp(const arma::vec& b, const arma::vec& z) {
+  if (b.n_elem != z.n_elem) {
+    Rcpp::stop("b and z must have the same length");
+  }
+  arma::mat out(b.n_elem, 2);
+  for (arma::uword i = 0; i < b.n_elem; ++i) {
+    out(i, 0) = pg_mean(b[i], z[i]);
+    out(i, 1) = pg_var(b[i], z[i]);
+  }
+  return out;
+}
+
+// Negative-binomial log probability of every count. y and log_mean have one
+// row per sample and one column per species; r has one size per species.
+// [[Rcpp::export]]
+arma::mat nbLogPmf_cpp(const arma::mat& y, const arma::mat& log_mean,
+                       const arma::vec& r) {
+  if (y.n_rows != log_mean.n_rows || y.n_cols != log_mean.n_cols) {
+    Rcpp::stop("y and log_mean must have the same dimensions");
+  }
+  if (r.n_elem != y.n_cols) {
+    Rcpp::stop("one size per species");
+  }
+  for (arma::uword j = 0; j < r.n_elem; ++j) {
+    if (!std::isfinite(r[j]) || r[j] <= 0.0) {
+      Rcpp::stop("size must be positive");
+    }
+  }
+  arma::mat out(y.n_rows, y.n_cols);
+  for (arma::uword j = 0; j < y.n_cols; ++j) {
+    for (arma::uword i = 0; i < y.n_rows; ++i) {
+      out(i, j) = nb_logpmf(y(i, j), log_mean(i, j), r[j]);
+    }
+  }
+  return out;
+}
+
+// Where each route of the count sampler takes over. Beyond PG_EXTREME_Z the
+// draw is inverse Gaussian at every shape; above PG_NORMAL_SHAPE it is
+// normal; otherwise it is exact for the whole-number part of the shape, with
+// PG_FRAC_TERMS terms of the defining series for the fractional part.
+static const double PG_EXTREME_Z = 12.0;
+static const double PG_NORMAL_SHAPE = 170.0;
+static const int PG_FRAC_TERMS = 20;
+
+// Gamma(a, 1) for a >= 1, by Marsaglia and Tsang's method (2000), on the
+// package's own stream. std::gamma_distribution keeps hidden state between
+// calls and R::rgamma is R's stream, so neither is used.
+static double rgamma_marsaglia(double a) {
+  const double d = a - 1.0 / 3.0;
+  const double c = 1.0 / std::sqrt(9.0 * d);
+  while (true) {
+    double x = rnorm();
+    double v = 1.0 + c * x;
+    while (v <= 0.0) {
+      x = rnorm();
+      v = 1.0 + c * x;
+    }
+    v = v * v * v;
+    const double u = runif();
+    const double x2 = x * x;
+    if (u < 1.0 - 0.0331 * x2 * x2) {
+      return d * v;
+    }
+    if (std::log(u) < 0.5 * x2 + d * (1.0 - v + std::log(v))) {
+      return d * v;
+    }
+  }
+}
+
+// Gamma(f, 1) for 0 < f < 1: a Gamma(f + 1, 1) draw times a uniform draw
+// raised to 1 / f.
+static double rgamma_fraction(double f) {
+  const double g = rgamma_marsaglia(f + 1.0);
+  return g * std::pow(runif(), 1.0 / f);
+}
+
+// An inverse Gaussian draw with mean mu and shape parameter 1: the draw
+// randinvg() makes, from the same two random numbers in the same order, with
+// the smaller root written as 2 mu / (2 + A + sqrt(A^2 + 4 A)), A = mu V.
+// randinvg() forms that root as a difference, which cancels when mu V is
+// large. Here mu = 2 / (|z| b), so a shape below about 1e-7 at an extreme
+// predictor gave draws that were zero or negative. randinvg() is left as it
+// is because the existing sampler uses it.
+static double randinvg_stable(double mu) {
+  const double u = rnorm();
+  const double A = mu * u * u;
+  double out = 2.0 * mu / (2.0 + A + std::sqrt(A) * std::sqrt(A + 4.0));
+  if (runif() > mu / (mu + out)) {
+    out = mu * mu / out;
+  }
+  return out;
+}
+
+// One Polya-Gamma draw with any positive shape b at predictor z.
+static double rpg_shape(double b, double z) {
+  const double a = std::fabs(z);
+
+  // Extreme predictor: the large-predictor limit of the Polya-Gamma
+  // distribution is inverse Gaussian with mean b / (2 |z|) and shape
+  // parameter b^2 / 4, which is b^2 / 4 times a draw with mean 2 / (|z| b)
+  // and shape parameter 1. samplepg_fast() is never called here, because
+  // beyond 12 it uses a normal draw with half the true variance. The mean
+  // stands in when the draw cannot be represented (a shape below about
+  // 1e-150, where b^2 underflows).
+  if (a > PG_EXTREME_Z) {
+    const double lambda = 0.25 * b * b;
+    const double x = lambda * randinvg_stable(2.0 / (a * b));
+    return (std::isfinite(x) && x > 0.0) ? x : pg_mean(b, z);
+  }
+
+  // Large shape: a normal draw with the exact mean and variance.
+  if (b > PG_NORMAL_SHAPE) {
+    const double mean = pg_mean(b, z);
+    const double x = mean + std::sqrt(pg_var(b, z)) * rnorm();
+    return (x > 1e-12) ? x : mean;
+  }
+
+  // Exact route: one unit draw for each whole unit of the shape.
+  const double whole = std::floor(b);
+  const double f = b - whole;
+  const int n = (int)whole;
+  double x = 0.0;
+  for (int i = 0; i < n; ++i) {
+    x += samplepg_fast(z);
+  }
+
+  // Fractional part: the first PG_FRAC_TERMS terms of the series
+  // sum_k G_k d_k with G_k ~ Gamma(f, 1), plus the exact mean of the terms
+  // left out. With n == 0 this is the whole draw, and the added mean keeps
+  // it positive however small the shape.
+  if (f > 1e-8 || n == 0) {
+    double series = 0.0;
+    double d_sum = 0.0;
+    for (int k = 1; k <= PG_FRAC_TERMS; ++k) {
+      const double h = k - 0.5;
+      const double d = 1.0 / (2.0 * MATH_PI2 * h * h + 0.5 * z * z);
+      series += rgamma_fraction(f) * d;
+      d_sum += d;
+    }
+    x += series + (pg_mean(f, z) - f * d_sum);
+  }
+  return x;
+}
+
+// Polya-Gamma draws with shape shape(i, j) at predictor phi(i, j), drawn on
+// the calling thread in column-major order. Stage 2 calls this with
+// shape = y + r and phi = the log mean minus the log size.
+// [[Rcpp::export]]
+arma::mat samplePGcount_cpp(const arma::mat& shape, const arma::mat& phi) {
+  if (shape.n_rows != phi.n_rows || shape.n_cols != phi.n_cols) {
+    Rcpp::stop("shape and phi must have the same dimensions");
+  }
+  const arma::uword n_elem = shape.n_elem;
+  const double* shape_ptr = shape.memptr();
+  const double* phi_ptr = phi.memptr();
+  for (arma::uword k = 0; k < n_elem; ++k) {
+    if (!std::isfinite(shape_ptr[k]) || shape_ptr[k] <= 0.0) {
+      Rcpp::stop("shape must be positive");
+    }
+    if (!std::isfinite(phi_ptr[k])) {
+      Rcpp::stop("phi must be finite");
+    }
+  }
+  arma::mat out(shape.n_rows, shape.n_cols);
+  double* out_ptr = out.memptr();
+  for (arma::uword k = 0; k < n_elem; ++k) {
+    out_ptr[k] = rpg_shape(shape_ptr[k], phi_ptr[k]);
+  }
+  return out;
 }
