@@ -39,7 +39,7 @@ Each of these goes beyond the design and is for Doug and Alex to confirm. Alex a
 - **The complete-data WAIC of a count fit has one term per sample row and species,** not per site and species.
 - **`predictNewSites()` returns the expected count per unit of effort** for a count fit.
 - **The wording of the existing "Counts model not supported yet" error changes,** and Lesson 2 quotes it, so one line of the lesson changes too.
-- **Missing counts are not allowed,** as for every model except the two-stage one. Delete the row. Open again since 28 November 2026: Alex asked whether missing values could simply be allowed and left out of the likelihood. Doug to decide; until then the tasks below are unchanged.
+- **Missing counts are allowed** and are left out of the likelihood (Task 9a). Reversed on 28 November 2026: the plan first refused them, Alex asked whether they could simply be allowed, and Doug agreed. Every species needs at least one count that is not missing.
 - **`collCovariates` with a count model is an error,** not silently ignored as it is for a binary fit. Alex (28 November 2026) asked for a warning at least, and thought stopping might be better, because a user who sets them has misunderstood the model being fitted. The plan stops.
 
 ## Out of scope: a second defect found while planning
@@ -52,6 +52,7 @@ The stored WAIC of a continuous fit is computed with a residual standard deviati
 - **Effort that is missing or unusable:** no `offset` means an effort of 1; an effort of zero, a negative effort or `NA` is an error naming the column. Pinned in Task 2.
 - **A species never counted, and a species counted in the hundreds:** the first has no information about its size, the second sends the sampler down its normal route. Both must fit with finite draws. Pinned in Task 6.
 - **Data of 0 and 1:** without `countModel` they are still a binary fit; with it they are a count fit. Pinned in Task 4.
+- **A species with no count at a site, and a site with no counts at all:** the weights there are exactly 0, and the existing updates must still give finite draws, in spatial and non-spatial fits. Pinned in Task 9a.
 - **One species:** the community prior needs two, so a single-species count fit must fall back to the fixed prior and still run. Pinned in Task 6.
 
 ---
@@ -660,6 +661,108 @@ git add src/site_waic.cpp src/RcppExports.cpp R/RcppExports.R R/site-waic.R test
 git commit -m "Score count fits with the site-level WAIC"
 ```
 
+### Task 9a: Missing counts
+
+Added 28 November 2026, after Alex asked for it and Doug agreed. It comes after Tasks 5 to 9 because it changes something each of them built, and until it is done a count fit keeps refusing missing counts, as Task 2 wrote it. It is numbered 9a so that the later tasks keep their numbers.
+
+**Files:**
+- Modify: `R/count_model.R` (`check_count_response()`)
+- Modify: `R/count_pieces.R` (`count_working_response()`)
+- Modify: `R/runOccJSDM.R` (the site totals `z`; `observed_zeros`)
+- Modify: `R/chains.R` (the replicate zeros and the WAIC terms)
+- Modify: `src/site_waic.cpp` (`site_loglik_count_cpp()`)
+- Test: `tests/testthat/test-count-model.R` and `tests/testthat/test-site-waic.R`
+
+**Interfaces:**
+- Consumes from stage 1, unchanged: `nbLogPmf_cpp()` returns `NA` for a missing count; `count_size_step()` leaves missing cells out; `samplePGcount_cpp()` stops on a shape that is not finite, so a missing count must never reach it.
+- Produces: a count fit accepts `NA` in `data$OTU`. A missing cell is left out of the likelihood: it adds nothing to `k`, to `Omega`, to the size update, to either WAIC or to the zero check. Every species needs at least one count that is not missing.
+
+- [ ] **Step 1: Write the failing tests.** In `tests/testthat/test-count-model.R`, and take `c(0, NA)` out of the list of refused inputs in Task 2's test of `check_count_response()`:
+
+```r
+test_that("a missing count is allowed and a species with no counts is not", {
+  expect_silent(occJSDM:::check_count_response(matrix(c(0, NA, 4, 1), 2)))
+  expect_error(occJSDM:::check_count_response(matrix(c(NA, NA, 4, 1), 2)), "at least one count")
+})
+
+test_that("a missing count adds nothing to the working response", {
+  set.seed(3)
+  site_index <- c(1L, 1L, 2L, 3L, 3L, 3L)
+  y <- matrix(stats::rnbinom(12, size = 2, mu = 4), 6, 2)
+  y[2, 1] <- NA   # one of the two rows of site 1
+  y[3, 2] <- NA   # the only row of site 2
+  eta <- matrix(stats::rnorm(6), 3, 2)
+  size <- c(0.7, 3)
+  log_effort <- log(c(1, 2, 1, 0.5, 1, 4))
+  setOccJSDMSeed(5L)
+  got <- occJSDM:::count_working_response(y, eta, size, site_index, log_effort)
+  o <- outer(log_effort, log(size), "-")
+  seen <- !is.na(y)
+  y0 <- replace(y, !seen, 0)
+  setOccJSDMSeed(5L)
+  omega <- samplePGcount_cpp(sweep(y0, 2, size, "+"), eta[site_index, ] + o) * seen
+  expect_equal(got$Omega, unname(rowsum(omega, site_index)))
+  expect_equal(got$k, unname(rowsum((sweep(y0, 2, size, "-") / 2 - omega * o) * seen, site_index)))
+  expect_identical(got$Omega[2, 2], 0)
+  expect_identical(got$k[2, 2], 0)
+})
+
+test_that("a count fit with missing counts runs, with and without a spatial field", {
+  for (spatial in c(FALSE, TRUE)) {
+    sim <- simulate_fixture(model = "counts", n = 40, S = 4, M = 2, useSpatField = spatial, seed = 8)
+    y <- sim$data_list$OTU
+    sites <- unique(sim$data_list$info$Site)
+    set.seed(4); y[sample(length(y), 60)] <- NA
+    y[sim$data_list$info$Site %in% sites[1:5], 1] <- NA   # species 1 not counted at five sites
+    y[sim$data_list$info$Site == sites[6], ] <- NA        # one site with no counts at all
+    sim$data_list$OTU <- y
+    set.seed(21)
+    fit <- fit_fixture(sim, spatial = spatial, countModel = list(occupancy = FALSE, offset = "Effort"))
+    jsdm <- fit$results_output$jsdm_output
+    expect_true(all(is.finite(jsdm$size_output)) && all(jsdm$size_output > 0))
+    expect_true(all(is.finite(jsdm$B0_output)))
+    expect_true(is.finite(fit$results_output$WAIC))
+    expect_true(anyNA(fit$infos$count$y))
+    expect_identical(fit$infos$count$observed_zeros, as.integer(colSums(y == 0, na.rm = TRUE)))
+    expect_true(all(jsdm$zeros_output <= colSums(!is.na(y))))
+  }
+})
+```
+
+In `tests/testthat/test-site-waic.R`:
+
+```r
+test_that("a missing count drops out of the count site likelihood", {
+  y <- matrix(c(3, NA, 5, 1, 2, 2), 3, 2)
+  fit <- waic_count_fit(y, site_index = c(1L, 1L, 2L), effort = c(1, 2, 0.5), factors = 0)
+  score <- computeSiteWAIC(fit)
+  want <- c(sum(stats::dnbinom(y[1:2, ], size = 2, mu = c(1, 2), log = TRUE), na.rm = TRUE),
+            sum(stats::dnbinom(y[3, ], size = 2, mu = 0.5, log = TRUE)))
+  expect_equal(unname(score$log_lik[1, ]), want, tolerance = 1e-10)
+})
+```
+
+- [ ] **Step 2: Run and see them fail,** the first on "whole numbers of at least 0".
+
+- [ ] **Step 3: Implement.**
+
+  - `check_count_response()` accepts a missing value. Its message becomes "With countModel set, data$OTU must hold whole numbers of at least 0", and a species with no count at all stops with "With countModel set, every species in data$OTU needs at least one count that is not missing".
+  - `count_working_response()` sets a missing count to 0 for the Polya-Gamma draw only, so that the shape stays finite and the number of draws does not depend on what is missing. It then sets that cell's weight, and that cell's term in `k`, to 0.
+  - In `runOccJSDM()` the site totals `z` leave missing counts out, and `observed_zeros` is `colSums(y == 0, na.rm = TRUE)` as an integer vector.
+  - In `run_one_chain()` the replicate zeros are drawn at the observed cells only, with a probability of 0 at a missing cell, and the WAIC accumulators hold one term per observed cell where Task 6 had `N * S`.
+  - `count_size_step()` needs no change.
+  - `site_loglik_count_cpp()` gives a missing count a factor of 1. A site with no count at all then has a log-likelihood of 0 at every draw and adds nothing to the WAIC.
+  - `returnZeroCheck()` needs no change: both of the numbers it compares count observed cells only.
+
+- [ ] **Step 4: Run both test files and the unchanged check.** Expected: PASS and four lines ending "identical". The coefficient, factor and range updates now receive a weight of exactly 0 for a species with no count at a site. They were read on 28 November 2026 and none divides by a weight, but that was not run, and the fit test above is the check. If it fails, stop and report to Doug: the fix must not edit those updates (*Global Constraints*).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add R/count_model.R R/count_pieces.R R/runOccJSDM.R R/chains.R src/site_waic.cpp tests/testthat/test-count-model.R tests/testthat/test-site-waic.R
+git commit -m "Allow missing counts, left out of the likelihood"
+```
+
 ### Task 10: Help pages
 
 **Files:**
@@ -670,7 +773,7 @@ git commit -m "Score count fits with the site-level WAIC"
 - Modify: `NEWS.md`
 - Regenerate: `man/`, `NAMESPACE`
 
-- [ ] **Step 1: Write the `countModel` help topic.** It must say, in this order: what the list holds and that `occupancy` has no default; that with `occupancy = FALSE` the `occCovariates` act on the log of the expected count per unit of effort, despite the argument's name; that the model is for counts of individuals and must not be used for sequence read counts, which are not counts of organisms; that without `countModel`, counts with repeated rows per site are fitted as an occupancy model and cut to detections at `threshold`, with no warning; that `collCovariates` and missing counts are not accepted; that the shared-predictor model, `occupancy = TRUE`, is not available yet; and what a count fit stores (`size_output`, `infos$count`) and which functions read it (`returnPosteriorDraws()`, `returnZeroCheck()`, `computeSiteWAIC()`).
+- [ ] **Step 1: Write the `countModel` help topic.** It must say, in this order: what the list holds and that `occupancy` has no default; that with `occupancy = FALSE` the `occCovariates` act on the log of the expected count per unit of effort, despite the argument's name; that the model is for counts of individuals and must not be used for sequence read counts, which are not counts of organisms; that without `countModel`, counts with repeated rows per site are fitted as an occupancy model and cut to detections at `threshold`, with no warning; that `collCovariates` are not accepted; that a missing count is allowed and is left out of the likelihood, and that every species needs at least one count that is not missing; that the shared-predictor model, `occupancy = TRUE`, is not available yet; and what a count fit stores (`size_output`, `infos$count`) and which functions read it (`returnPosteriorDraws()`, `returnZeroCheck()`, `computeSiteWAIC()`).
 
 - [ ] **Step 2: Regenerate and check.**
 
