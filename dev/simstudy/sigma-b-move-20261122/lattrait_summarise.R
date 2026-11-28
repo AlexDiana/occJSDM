@@ -2,7 +2,11 @@
 # rules are fixed in that script's header. Also checks that the 4-trait arm
 # repeats the "base" files of repro.R, when those are present.
 #
-# Usage: Rscript --vanilla lattrait_summarise.R [--dir DIR]
+# Usage: Rscript --vanilla lattrait_summarise.R [--dir DIR] [--prefix small-]
+# With --prefix small- it reads the files of lattrait.R --truth small. The
+# printed readings 1 and 3 are then worded by the rules of the first test; the
+# rules for the small truth are in lattrait.R's header and are applied by hand
+# from the printed numbers.
 
 LOW <- 0.02
 LONG <- 500L
@@ -19,8 +23,10 @@ read_arm <- function(label) {
   lapply(f, function(x) if (file.exists(x)) readRDS(x) else NULL)
 }
 low_runs <- function(low) { r <- rle(low); r$lengths[r$values] }
-arms <- list(gt2 = read_arm("gt2"), gt4 = read_arm("gt4"))
-base <- read_arm("base")
+j <- match("--prefix", args)
+prefix <- if (is.na(j)) "" else args[j + 1L]
+arms <- list(gt2 = read_arm(paste0(prefix, "gt2")), gt4 = read_arm(paste0(prefix, "gt4")))
+base <- if (prefix == "") read_arm("base") else vector("list", 5)
 
 chain_stats <- function(x) {
   sb <- x$sigma_b
