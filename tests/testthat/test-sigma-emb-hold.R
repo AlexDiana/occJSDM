@@ -132,3 +132,72 @@ test_that("a short grouped binary fit is told that sigma_emb is not held", {
   expect_lt(grep("is not held small at the start of each chain", grouped, fixed = TRUE), grep("Running MCMC", grouped, fixed = TRUE))
   expect_false(any(grepl("burn-in iterations the embedding", messages_of(FALSE), fixed = TRUE)))
 })
+
+test_that("while sigma_emb is held the sigma_b move still runs and the sigma_emb move does not", {
+  # The chain of the first hold test (6 burn-in sweeps with the first 3 held),
+  # with a spy on the sigma_b move as well.
+  local_mocked_bindings(axis_hold_sweeps = half_of_burnin, .package = "occJSDM")
+  calls <- character(0); sweep <- 0L; held <- logical(0)
+  original_b <- occJSDM:::sigma_b_move
+  original_emb <- occJSDM:::sigma_emb_move
+  update <- occJSDM:::update_jSDMcoef
+  update_env <- new.env(parent = environment(update))
+  update_env$sigma_b_move <- function(...) { calls <<- c(calls, paste0("b", sweep + 1L)); original_b(...) }
+  update_env$sigma_emb_move <- function(...) { calls <<- c(calls, paste0("emb", sweep + 1L)); original_emb(...) }
+  environment(update) <- update_env
+  local_mocked_bindings(update_jSDMcoef = function(list_data, list_params, ...) {
+    held <<- c(held, isTRUE(list_params$axis_move$hold))
+    out <- update(list_data, list_params, ...)
+    sweep <<- sweep + 1L
+    out
+  }, .package = "occJSDM")
+  dat <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)$data_list
+  suppressMessages(suppressWarnings(runOccJSDM(dat,
+    listParams = list(n_factors = 1L, embeddingVars = dat$embeddingVars),
+    occCovariates = grouped_occ_covariates(dat),
+    MCMCparams = list(nchain = 1L, nburn = 6L, niter = 2L, nthin = 1L))))
+  expect_identical(held, c(rep(TRUE, 3), rep(FALSE, 5)))
+  for (i in 1:8) {
+    expect_true(paste0("b", i) %in% calls, info = paste("sweep", i))
+    expect_identical(paste0("emb", i) %in% calls, !held[i], info = paste("sweep", i))
+  }
+})
+
+test_that("while sigma_emb is held the axis scale move starts from the state the sigma_b move leaves", {
+  # In a held sweep the sigma_emb move is skipped, so the axis scale move must
+  # be handed the B and linear predictor the sigma_b move returned, not those
+  # from before it.
+  local_mocked_bindings(axis_hold_sweeps = half_of_burnin, .package = "occJSDM")
+  seen_b <- list(); seen_axis <- list(); held <- logical(0)
+  original_b <- occJSDM:::sigma_b_move
+  original_axis <- occJSDM:::axis_scale_move
+  update <- occJSDM:::update_jSDMcoef
+  update_env <- new.env(parent = environment(update))
+  update_env$sigma_b_move <- function(...) {
+    out <- original_b(...)
+    seen_b[[length(seen_b) + 1L]] <<- out
+    out
+  }
+  update_env$axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step) {
+    seen_axis[[length(seen_axis) + 1L]] <<- list(B = B, eta = eta)
+    original_axis(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step)
+  }
+  environment(update) <- update_env
+  local_mocked_bindings(update_jSDMcoef = function(list_data, list_params, ...) {
+    held <<- c(held, isTRUE(list_params$axis_move$hold))
+    update(list_data, list_params, ...)
+  }, .package = "occJSDM")
+  dat <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)$data_list
+  suppressMessages(suppressWarnings(runOccJSDM(dat,
+    listParams = list(n_factors = 1L, embeddingVars = dat$embeddingVars),
+    occCovariates = grouped_occ_covariates(dat),
+    MCMCparams = list(nchain = 1L, nburn = 6L, niter = 2L, nthin = 1L))))
+  expect_identical(which(held), 1:3)
+  for (i in which(held)) {
+    expect_identical(seen_axis[[i]]$B, seen_b[[i]]$B, info = paste("sweep", i))
+    expect_identical(seen_axis[[i]]$eta, seen_b[[i]]$eta, info = paste("sweep", i))
+  }
+  # The check means something only if the sigma_b move did move the state in
+  # a held sweep.
+  expect_true(any(vapply(seen_b[which(held)], function(s) any(s$accepted), logical(1))))
+})

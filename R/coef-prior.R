@@ -345,6 +345,69 @@ sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, st
   list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = accepted, log_ratio = log_ratio)
 }
 
+# The same scale-expansion move for sigma_b, the measured group's scale. Under
+# the grouped prior sigma_b has a half-Cauchy prior with no floor, and chains
+# were seen to drift to sigma_b near zero and stay there for hundreds to
+# thousands of sweeps: it is drawn given the measured leftovers and they are
+# then drawn given it, so near zero each draw moves it by only a few percent.
+# Design: dev/superpowers/specs/2026-11-22-sigma-b-move-design.md.
+#
+# Propose log(sigma_b) + delta, delta ~ Normal(0, step^2), and multiply every
+# leftover of the measured columns, R[, measured], by r = exp(delta). G, C, A
+# and the embedding block stay where they are, so each measured row of B
+# moves by (r - 1) times its leftovers. The axis scale of a measured column is
+# 1, so the prior of the leftovers and the Jacobian cancel as in
+# sigma_emb_move(), and the acceptance ratio is
+#   (r - 1) * lin - (r - 1)^2 * quad / 2 + delta
+#     - log1p((sigma_b' / sigma_b_scale)^2) + log1p((sigma_b / sigma_b_scale)^2)
+# with D = X[, measured] %*% t(R[, measured]), lin = sum((kappa - Omega * eta) * D)
+# and quad = sum(Omega * D^2), the likelihood conditioned on the Polya-Gamma
+# weights. Far below the ordinary range D is proportional to sigma_b, so the
+# ratio is close to delta and every upward proposal is accepted.
+#
+# `step` has one element per proposal, made in order, each from the state the
+# one before it left. update_jSDMcoef() gives two: the step adapted during
+# burn-in and SIGMA_B_MOVE_LARGE_STEP. All the deltas are drawn first, then
+# all the uniforms. Returns B, R (the leftovers of the returned B), sigma_b
+# and eta, with `accepted` and `log_ratio` of one element per proposal (FALSE
+# and NA, with no random number drawn, when there are no measured columns).
+sigma_b_move <- function(B, R, sigma_b, X, kappa, Omega, eta, coef_prior, step) {
+  meas <- which(!coef_prior$is_emb)
+  n_prop <- length(step)
+  if (length(meas) == 0L)
+    return(list(B = B, R = R, sigma_b = sigma_b, eta = eta,
+                accepted = rep(FALSE, n_prop), log_ratio = rep(NA_real_, n_prop)))
+  delta <- stats::rnorm(n_prop, 0, step)
+  logu <- log(stats::runif(n_prop))
+  accepted <- logical(n_prop); log_ratio <- numeric(n_prop)
+  D <- X[, meas, drop = FALSE] %*% t(R[, meas, drop = FALSE])
+  for (j in seq_len(n_prop)) {
+    r1 <- expm1(delta[j])
+    lin <- sum((kappa - Omega * eta) * D)
+    quad <- sum(Omega * D^2)
+    proposed <- sigma_b * exp(delta[j])
+    log_ratio[j] <- r1 * lin - r1^2 * quad / 2 + delta[j] -
+      log1p((proposed / coef_prior$sigma_b_scale)^2) +
+      log1p((sigma_b / coef_prior$sigma_b_scale)^2)
+    accepted[j] <- logu[j] < log_ratio[j]
+    if (accepted[j]) {
+      B[meas, ] <- B[meas, , drop = FALSE] + r1 * t(R[, meas, drop = FALSE])
+      eta <- eta + r1 * D
+      R[, meas] <- R[, meas, drop = FALSE] * exp(delta[j])
+      D <- D * exp(delta[j])
+      sigma_b <- proposed
+    }
+  }
+  list(B = B, R = R, sigma_b = sigma_b, eta = eta, accepted = accepted, log_ratio = log_ratio)
+}
+
+# The fixed step of the second sigma_b proposal in each sweep, on the log
+# scale. The adapted step settles where the ordinary state accepts about half
+# of the proposals, which is small for a chain far below that state; this one
+# is large enough to climb back in a few tens of sweeps and is mostly
+# rejected elsewhere.
+SIGMA_B_MOVE_LARGE_STEP <- 1
+
 # Burn-in adaptation of the proposal steps, one per embedding column, from
 # that sweep's log acceptance ratios: the log of each step moves by
 # (acceptance probability - target) over the square root of the number of
@@ -370,7 +433,7 @@ axis_step_adapt <- function(step, log_ratio, t) {
 # scale moves. The length and the value are fixed, not tuned.
 #
 # The hold is applied only from AXIS_HOLD_MIN_BURN burn-in sweeps up; below
-# that there is none and the sampler is that of the two scale moves alone
+# that there is none and the sampler is that of the scale moves alone
 # (Doug's decision of 19 November 2026). After the release the blends need
 # time to settle. With 5,000 burn-in sweeps (2,500 after the release) every
 # low-rank chain reached the blend configuration and the active coefficients
@@ -398,21 +461,25 @@ axis_hold_note <- function(coef_prior, model, nburn) {
 }
 axis_hold_value <- function(coef_prior) 0.1 * coef_prior$sigma_emb_scale
 
-# The state of the two scale moves that a chain carries, or NULL when they
+# The state of the three scale moves that a chain carries, or NULL when they
 # are off: they run only in a grouped fit with embedding columns of model type
 # "binary". Per embedding column: `step`, and `accepted`, the last sweep's
 # outcome, of the axis scale move. `sigma_step` and `sigma_accepted` are those
-# of the sigma_emb move. `adapt` is set by the chain (TRUE during burn-in) and
+# of the sigma_emb move. `sigma_b_step` is the adapted step of the sigma_b
+# move and `sigma_b_accepted` the last sweep's outcomes of its two proposals
+# (adapted, then large). `adapt` is set by the chain (TRUE during burn-in) and
 # `t` counts the adapting sweeps; `sigma_t` counts those in which the
-# sigma_emb move ran. `hold` is set by the chain (TRUE while sigma_emb is
-# held).
+# sigma_emb move ran, and `sigma_b_t` those in which the sigma_b move adapted
+# (all adapting sweeps, when there is a measured column). `hold` is set by
+# the chain (TRUE while sigma_emb is held).
 axis_move_start <- function(coef_prior, model) {
   if (!identical(model, "binary") || !identical(coef_prior$type, "grouped") ||
       !any(coef_prior$is_emb)) return(NULL)
   n_emb <- sum(coef_prior$is_emb)
   list(step = rep(AXIS_MOVE_STEP, n_emb), accepted = rep(FALSE, n_emb),
        sigma_step = AXIS_MOVE_STEP, sigma_accepted = FALSE,
-       adapt = FALSE, t = 0L, sigma_t = 0L, hold = FALSE)
+       sigma_b_step = AXIS_MOVE_STEP, sigma_b_accepted = c(FALSE, FALSE),
+       adapt = FALSE, t = 0L, sigma_t = 0L, sigma_b_t = 0L, hold = FALSE)
 }
 
 # infos$axis_move from the chains' records, each a matrix with one row per
@@ -420,8 +487,10 @@ axis_move_start <- function(coef_prior, model) {
 # used, and the share of sweeps in which the move was accepted, after and
 # during burn-in. For the sigma_emb move, one value per chain: its step and
 # its acceptance rates (the burn-in rate is over all burn-in sweeps, those in
-# which sigma_emb was held included). `hold_sweeps` and `hold_value` describe
-# the staged burn-in. NULL when the moves are off.
+# which sigma_emb was held included). For the sigma_b move: its adapted step,
+# one per chain, its large step, and its acceptance rates, each a matrix with
+# rows "adapted" and "large" and one column per chain. `hold_sweeps` and
+# `hold_value` describe the staged burn-in. NULL when the moves are off.
 axis_move_record <- function(parts, columns) {
   parts <- parts[!vapply(parts, is.null, logical(1))]
   if (length(parts) == 0L) return(NULL)
@@ -433,11 +502,20 @@ axis_move_record <- function(parts, columns) {
   step <- vapply(parts, function(p) p$step, numeric(length(columns)))
   sigma_rate <- function(phase) vapply(parts, function(p)
     p[[paste0("sigma_accepted_", phase)]] / p[[paste0("sweeps_", phase)]], numeric(1))
+  sigma_b_rate <- function(phase) {
+    out <- vapply(parts, function(p) p[[paste0("sigma_b_accepted_", phase)]] /
+                    p[[paste0("sweeps_", phase)]], numeric(2))
+    matrix(out, 2L, length(parts), dimnames = list(c("adapted", "large"), NULL))
+  }
   list(step = matrix(step, length(columns), length(parts), dimnames = list(columns, NULL)),
        acceptance = rate("kept"), acceptance_burnin = rate("burnin"),
        sigma_emb_step = vapply(parts, function(p) p$sigma_step, numeric(1)),
        sigma_emb_acceptance = sigma_rate("kept"),
        sigma_emb_acceptance_burnin = sigma_rate("burnin"),
+       sigma_b_step = vapply(parts, function(p) p$sigma_b_step, numeric(1)),
+       sigma_b_large_step = SIGMA_B_MOVE_LARGE_STEP,
+       sigma_b_acceptance = sigma_b_rate("kept"),
+       sigma_b_acceptance_burnin = sigma_b_rate("burnin"),
        hold_sweeps = parts[[1]]$hold_sweeps, hold_value = parts[[1]]$hold_value)
 }
 
@@ -620,7 +698,7 @@ axis_move_record <- function(parts, columns) {
 #'
 #' @section Sampling and chain length:
 #' The scales of this prior are hard for the sampler. In a `binary` fit with
-#' embedding columns it takes three extra steps for them. They are
+#' embedding columns it takes four extra steps for them. They are
 #' experimental, and they do not change the model: the draws that are kept
 #' come from the same posterior as without them.
 #' * Every iteration, each embedding column's axis scale is proposed a new
@@ -629,6 +707,12 @@ axis_move_record <- function(parts, columns) {
 #'   responds to moved very slowly.
 #' * The embedding leftover scale gets the same kind of step, together with
 #'   all the leftovers.
+#' * The scale of the measured covariates' species leftovers (`sigma_b`) gets
+#'   the same kind of step, together with those leftovers, twice in each
+#'   iteration: once with a step tuned during burn-in and once with a large
+#'   fixed step. Without it a chain could stay for thousands of iterations
+#'   with this scale near zero, and disagree with the other chains on the
+#'   measured coefficients meanwhile.
 #' * With 5,000 or more burn-in iterations, the embedding leftover scale is
 #'   held at a tenth of its prior scale for the first half of burn-in and then
 #'   released.
