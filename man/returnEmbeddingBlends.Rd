@@ -46,6 +46,10 @@ Blends are defined only up to rotation: any rotation of the leading
 blends describes the same fit. They must not be interpreted one by one.
 Read them together, as a summary of the subspace the species responses
 to the embedding occupy.
+
+This function works from the shared part of the responses only.
+\code{\link[=returnEmbeddingGradients]{returnEmbeddingGradients()}} works from the whole response, and is the one
+to use for interpretation.
 }
 \seealso{
 \link[=grouped-prior]{grouped-prior} for the prior that these fits use.

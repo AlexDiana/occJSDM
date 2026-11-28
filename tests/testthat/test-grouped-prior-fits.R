@@ -484,3 +484,28 @@ test_that("a grouped fit with one row per site keeps the embedding in input orde
   expect_identical(unname(fit$infos$covariate_group), rep(c("measured", "embedding"), c(2L, 8L)))
   expect_identical(fit$infos$coef_prior$type, "grouped")
 })
+
+test_that("returnEmbeddingGradients() gives one named score per site on real fits", {
+  for (fit in list(grouped_fit(),
+                   fit_grouped(simulate_grouped_fixture(model = "occupancy", p_emb = 6L, S = 8L)))) {
+    g <- suppressWarnings(returnEmbeddingGradients(fit))
+    expect_identical(nrow(g$site_scores), nrow(fit$X_psi))
+    expect_identical(rownames(g$site_scores), as.character(fit$infos$siteNames))
+    expect_identical(nrow(g$weights), sum(fit$infos$coef_prior$is_emb))
+    conv <- suppressWarnings(returnGroupedConvergence(fit))
+    if (conv$effect$assessed) {
+      expect_identical(g$n_gradients, conv$effect$n_gradients); expect_equal(g$agreement, conv$effect$agreement)
+    }
+  }
+})
+
+test_that("the help page's recipe compares the gradients with the hidden environmental covariates", {
+  fit <- grouped_fit()
+  scores <- returnOrdinationScores(fit)
+  factors <- data.frame(Site = dimnames(scores)[[2]],
+                        as.data.frame(matrix(scores[2, , ], nrow = dim(scores)[2])))
+  out <- compareEmbeddingGradients(suppressWarnings(returnEmbeddingGradients(fit)), factors)
+  expect_identical(out$sites$n_used, nrow(fit$X_psi))
+  expect_true(all(is.finite(out$gradients_from_covariates$overall$explained)))
+  expect_identical(out$gradients_from_covariates$by_covariate$covariate, paste0("V", seq_len(dim(scores)[3])))
+})

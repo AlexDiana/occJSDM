@@ -75,17 +75,10 @@ grouped_effect_checks <- function(E, limits = GROUPED_LIMITS) {
   }
   d <- svd(pooled, nu = 0, nv = 0)$d
   r <- which(cumsum(d^2) / sum(d^2) >= limits$hold)[1]
-  gradients <- vector("list", nchain)
-  own <- numeric(nchain)                 # what each chain's own gradients hold
-  for (k in seq_len(nchain)) {
-    s <- svd(E[, , k], nu = r, nv = 0)
-    gradients[[k]] <- s$u
-    own[k] <- sum(s$d[seq_len(r)]^2)
-  }
+  out$agreement_pairs <- gradient_agreement(E, r)
   rms <- function(x) sqrt(mean(x^2))
   size_pooled <- rms(pooled)
   for (a in seq_len(nchain)) for (b in seq_len(nchain)) if (a != b) {
-    out$agreement_pairs[a, b] <- sum(crossprod(gradients[[b]], E[, , a])^2) / own[a]
     out$disagreement_pairs[a, b] <- rms(E[, , a] - E[, , b]) / size_pooled
   }
   out$assessed <- TRUE
@@ -93,6 +86,41 @@ grouped_effect_checks <- function(E, limits = GROUPED_LIMITS) {
   out$agreement <- min(out$agreement_pairs, na.rm = TRUE)
   out$disagreement <- max(out$disagreement_pairs, na.rm = TRUE)
   out
+}
+
+# gradient_agreement() gives `agreement_pairs` for `r` gradients: a chains by
+# chains matrix with NA on the diagonal. It is also what
+# returnEmbeddingGradients() reports, so the two cannot differ.
+gradient_agreement <- function(E, r) {
+  nchain <- dim(E)[3]
+  pairs <- matrix(NA_real_, nchain, nchain)
+  gradients <- vector("list", nchain)
+  own <- numeric(nchain)                 # what each chain's own gradients hold
+  for (k in seq_len(nchain)) {
+    s <- svd(E[, , k], nu = r, nv = 0)
+    gradients[[k]] <- s$u
+    own[k] <- sum(s$d[seq_len(r)]^2)
+  }
+  for (a in seq_len(nchain)) for (b in seq_len(nchain)) if (a != b) {
+    pairs[a, b] <- sum(crossprod(gradients[[b]], E[, , a])^2) / own[a]
+  }
+  pairs
+}
+
+# Each chain's posterior mean of the embedding coefficients and of the
+# embedding's combined effect at the fitted sites. `chain_mean` is
+# blockRhatESS()'s: one row per coefficient (coefficient i of species j is row
+# i + (j - 1) * p) and one column per chain. Returns `B_mean`, embedding
+# columns by species by chains, and `E`, sites by species by chains.
+embedding_effect <- function(chain_mean, X, is_emb, S) {
+  is_emb <- as.logical(is_emb)
+  nchain <- ncol(chain_mean)
+  n_emb <- sum(is_emb)
+  X_emb <- X[, is_emb, drop = FALSE]
+  B_mean <- array(chain_mean[rep(is_emb, times = S), , drop = FALSE], c(n_emb, S, nchain))
+  E <- vapply(seq_len(nchain), function(ch) X_emb %*% B_mean[, , ch],
+              matrix(0, nrow(X), S))
+  list(B_mean = B_mean, E = array(E, c(nrow(X), S, nchain)))
 }
 
 # All the checks, from the pieces of a fit made with embeddingVars.
@@ -215,11 +243,9 @@ grouped_convergence <- function(B_output, sigmab_output, sigmaemb_output,
   }
 
   # 3 and 4. the embedding's combined effect, from each chain's mean of B
-  Xe <- X[, is_emb, drop = FALSE]
-  B_mean <- array(block$chain_mean[emb_coef, , drop = FALSE], c(n_emb, S, nchain))
-  E <- vapply(seq_len(nchain), function(ch) Xe %*% B_mean[, , ch],
-              matrix(0, nrow(X), S))
-  effect <- grouped_effect_checks(array(E, c(nrow(X), S, nchain)), limits)
+  parts <- embedding_effect(block$chain_mean, X, is_emb, S)
+  B_mean <- parts$B_mean
+  effect <- grouped_effect_checks(parts$E, limits)
   not_assessed <- paste0("not assessed: ", effect$why_not)
 
   # 5. the coefficients themselves

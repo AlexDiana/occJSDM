@@ -68,6 +68,8 @@ reference:
   - returnCovariateScales
   - returnCommunityResponse
   - returnEmbeddingBlends
+  - returnEmbeddingGradients
+  - compareEmbeddingGradients
   - returnEmbeddingShare
   - returnGroupedConvergence
 
