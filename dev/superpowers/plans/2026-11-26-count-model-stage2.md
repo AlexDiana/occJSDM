@@ -16,7 +16,7 @@
 - A count model is fitted only when the user supplies `countModel`. It is never chosen from the data. Data of 0 and 1 without `countModel` are still fitted as "binary".
 - `countModel` is a list. `occupancy` has no default and must be `TRUE` or `FALSE`. `family` defaults to "negbin", the only family. `offset` names an effort column of `data$info` on the natural scale; without it the effort is 1.
 - `occupancy = TRUE` (the shared-predictor model) stops with a clear error in this stage. It is stage 3.
-- One size per species. The prior on the size is the stage 1 one, a half-normal on its inverse square root with standard deviation `listPriors$size_prior_sd`, default 1. Alex has not chosen between this, a community prior and a tighter half-normal (question 5); see *Decisions made in this plan*.
+- One size per species. The prior on the size is a half-normal on its inverse square root with standard deviation `listPriors$size_prior_sd`, default 0.5 (Alex, 28 November 2026, question 5); see *Decisions made in this plan*.
 - The intercepts of a count fit get the community prior by default (question 8).
 - No Poisson family. No embedding block. No taxonomic structure. `collCovariates` are not used by a count model.
 - Count code in `update_jSDMcoef()` only forms `k` and `Omega`. Do not edit `sample_BBsL_cpp()`, `sample_U_cpp()`, `spatial_range_logweights()` or `samplepg_fast()`. Keep every edit to `R/jsdmfun.R`, `R/chains.R`, `R/runOccJSDM.R` and `src/jsdm.cpp` small and additive, because the grouped-prior pull requests (41, 44, 45, 46) rewrite the same functions and will be rebased onto this.
@@ -29,18 +29,18 @@
 
 ## Decisions made in this plan
 
-Each of these goes beyond the design and is for Doug and Alex to confirm.
+Each of these goes beyond the design and is for Doug and Alex to confirm. Alex answered on 28 November 2026, in a comment on pull request 47. He wrote that he mostly agreed with all of them, and commented on four: the size prior, the name of the zero check, missing counts and `collCovariates`. His answers are marked on those four.
 
-- **The size prior is the stage 1 independent half-normal,** with the standard deviation exposed as `listPriors$size_prior_sd`. Stage 1 showed that it sets a rare species' size at about 2. If Alex chooses the community prior, it is one further task after this plan: a normal distribution on the log sizes with an estimated mean and spread. Nothing here blocks it.
+- **The size prior is an independent half-normal on the inverse square root of the size, with a standard deviation of 0.5 by default.** Settled 28 November 2026. Alex chose the tighter half-normal over the community prior on 26 November, for more shrinkage of rare species, and Doug followed him. Of the three standard deviations then offered (1, 0.5 and 0.25) Alex took the second; his words were "We can go with option 2". The standard deviation is exposed as `listPriors$size_prior_sd`. The prior's median size is about 9 at 0.5, against about 2.2 at 1. Stage 1 measured, at a standard deviation of 1, that a species with fewer than 10 non-zero counts ends near the prior's median whatever its true size. That has not been measured at 0.5, and Task 11 reports where rare species end. No community prior is built.
 - **The intercept prior's spread stays at the package default,** `sigma_b0 = 1`. A count fit's intercepts are log expected counts, and species' abundances can differ by far more than that. Task 11 measures what the default costs when the true spread is 2.
 - **The stored parameter is called `size`:** `size_output` in the fit, "size" in `returnPosteriorDraws()`.
-- **A new exported function, `returnZeroCheck()`,** gives the posterior predictive check on zeros. Doug to confirm the name.
+- **A new exported function, `returnZeroCheck()`,** gives the posterior predictive check on zeros. Alex agreed to the name on 28 November 2026.
 - **The independent comparison is with `MASS::glm.nb()`,** on a model with intercepts only. The design asked for Hmsc or gllvm. Neither is installed under R 4.6, and Hmsc has no negative binomial. A comparison with gllvm on a model with latent factors needs Doug's go-ahead to install it and is not in this plan.
 - **The complete-data WAIC of a count fit has one term per sample row and species,** not per site and species.
 - **`predictNewSites()` returns the expected count per unit of effort** for a count fit.
 - **The wording of the existing "Counts model not supported yet" error changes,** and Lesson 2 quotes it, so one line of the lesson changes too.
-- **Missing counts are not allowed,** as for every model except the two-stage one. Delete the row.
-- **`collCovariates` with a count model is an error,** not silently ignored as it is for a binary fit.
+- **Missing counts are not allowed,** as for every model except the two-stage one. Delete the row. Open again since 28 November 2026: Alex asked whether missing values could simply be allowed and left out of the likelihood. Doug to decide; until then the tasks below are unchanged.
+- **`collCovariates` with a count model is an error,** not silently ignored as it is for a binary fit. Alex (28 November 2026) asked for a warning at least, and thought stopping might be better, because a user who sets them has misunderstood the model being fitted. The plan stops.
 
 ## Out of scope: a second defect found while planning
 
@@ -95,7 +95,7 @@ git commit -m "Add a before-and-after check that existing fits are unchanged"
 - Produces, internal:
   - `read_count_model(countModel, data_info)`: `NULL` when `countModel` is `NULL`; otherwise `list(family = "negbin", occupancy = FALSE, offset = <name or NULL>, log_effort = <one value per row of data_info>)`.
   - `check_count_response(OTU)`: stops unless every value is a whole number of at least 0 with none missing.
-  - `read_size_prior(listPriors, counts)`: the prior standard deviation, default 1.
+  - `read_size_prior(listPriors, counts)`: the prior standard deviation, default 0.5.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -133,8 +133,8 @@ test_that("the count response must be whole numbers of at least zero", {
 })
 
 test_that("the size prior is a count-only setting", {
-  expect_identical(occJSDM:::read_size_prior(list(), TRUE), 1)
-  expect_identical(occJSDM:::read_size_prior(list(size_prior_sd = 0.5), TRUE), 0.5)
+  expect_identical(occJSDM:::read_size_prior(list(), TRUE), 0.5)
+  expect_identical(occJSDM:::read_size_prior(list(size_prior_sd = 0.25), TRUE), 0.25)
   expect_error(occJSDM:::read_size_prior(list(size_prior_sd = 0), TRUE), "finite positive number")
   expect_error(occJSDM:::read_size_prior(list(size_prior_sd = 1), FALSE), "requires countModel")
   expect_null(occJSDM:::read_size_prior(list(), FALSE))
@@ -462,7 +462,7 @@ git commit -m "Fit the plain count JSDM: size update, storage and WAIC"
 **Interfaces:**
 - Produces, in the helper: a scenario with `model = "counts"` simulates with `rnb` and an effort, fits with `countModel = list(occupancy = FALSE, offset = "Effort")`, and `simstudy_param_blocks()` gains a block named "size" that compares `size_output` with `true_params$size_true`.
 
-- [ ] **Step 1: Write the comparison test.** No covariates, no factors, a wide fixed intercept prior, so that the posterior should sit on the maximum-likelihood fit.
+- [ ] **Step 1: Write the comparison test.** No covariates, no factors, a wide fixed intercept prior, so that the posterior should sit on the maximum-likelihood fit. The size keeps its default prior: on these data a standard deviation of 0.5 moves the posterior mode of the log size by at most 0.013 from the maximum-likelihood value (computed 28 November 2026), well inside the tolerance of 0.08.
 
 ```r
 test_that("an intercept-only count fit agrees with MASS::glm.nb", {
