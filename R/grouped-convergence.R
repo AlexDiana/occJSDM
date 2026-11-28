@@ -139,7 +139,7 @@ embedding_effect <- function(chain_mean, X, is_emb, S) {
 # 2. rhat_measured and rhat_scales: the package's R-hat (blockRhatESS()) on
 #    the measured rows of B, and on the logs of sigma_emb and, when there are
 #    measured columns, of sigma_b. The largest of each.
-#    rhat_axis: the largest R-hat among the logs of the axis scales, with how
+#    rhat_axis: the largest R-hat among the logs of the effective axis scales, with how
 #    many are over the limit. Reported, never part of the verdict: a single
 #    axis scale, like a single embedding coefficient, is not pinned down, and
 #    in full-length fits whose chains agree on everything else a few of the
@@ -393,7 +393,7 @@ print_grouped_convergence <- function(x) {
 #'   coefficients, and among the logs of the two scales shared by all columns
 #'   (the embedding leftover scale and, with measured covariates, the
 #'   measured-group scale). Flagged over 1.1.
-#' * `rhat_axis`: the largest R-hat among the logs of the axis scales, with
+#' * `rhat_axis`: the largest R-hat among the logs of the effective axis scales, with
 #'   the number over 1.1 in `meaning`. Reported and not part of the verdict.
 #'   A single axis scale, like a single embedding coefficient, is not pinned
 #'   down, and a few of them fail R-hat in fits whose chains agree on

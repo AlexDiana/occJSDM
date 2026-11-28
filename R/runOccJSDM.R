@@ -1122,7 +1122,7 @@ runOccJSDM <- function(data,
     # traits, so its trait matrix Tr_b gains a column of ones; otherwise Tr_b
     # is Tr. The spatial side always uses Tr.
     occ_columns <- occ_design_columns(X_psi, list_Xpsi_mat, X0_psi)
-    coef_prior <- read_coef_prior(listPriors, listParams, S, gt, occ_columns)
+    coef_prior <- read_coef_prior(listPriors, listParams, S, gt, occ_columns, model)
     Tr_b <- if (coef_prior$type == "grouped") cbind(1, Tr) else Tr
     g_b <- ncol(Tr_b)
 

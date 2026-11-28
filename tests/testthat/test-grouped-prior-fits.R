@@ -175,7 +175,8 @@ test_that("a chain starts with C at its prior scale, so the first scale draw agr
   # above the diagonal; with 4 latent traits design columns 4 and up are all ones.
   cols <- data.frame(column = c(paste0("m", 1:4), paste0("e", 1:3)),
                      variable = c(paste0("m", 1:4), paste0("e", 1:3)), kind = "numeric")
-  cp7 <- occJSDM:::read_coef_prior(list(), list(embeddingVars = paste0("e", 1:3)), 10L, 4L, cols)
+  cp7 <- occJSDM:::read_coef_prior(list(slab_scale = Inf), list(embeddingVars = paste0("e", 1:3)),
+                                   10L, 4L, cols)
   pattern <- matrix(1, 4L, 7L); pattern[lower.tri(pattern)] <- 0
   lambda <- occJSDM:::coef_scales_start(cp7, 7L)$lambda
   C <- occJSDM:::coef_C_start(cp7, pattern, lambda)

@@ -52,18 +52,30 @@ measured-group scale for a measured covariate, and the embedding leftover
 scale times that column's axis scale for an embedding column. Each embedding
 column's axis scale also multiplies that column's community-average, trait
 and blend terms, so an axis that no species responds to shrinks out of the
-model.
+model. Under the cap set by \code{slab_scale} (see Settings), what multiplies
+these terms is the column's effective axis scale, which equals the axis
+scale while that is small and levels off at the cap as it grows, and the
+leftover's standard deviation levels off at the cap in the same way. The
+fit stores and reports the effective axis scale, which cannot exceed the
+cap.
 }
 
 \section{Settings}{
 
-Set these in \code{listPriors}. Each is a half-Cauchy scale and must be a finite
-positive number.
+Set these in \code{listPriors}. The first three are half-Cauchy scales and must
+be finite positive numbers.
 \itemize{
 \item \code{sigma_b_scale}: scale of the measured-group scale. Default 1.
 \item \code{sigma_emb_scale}: scale of the embedding leftover scale. Default 1.
 \item \code{axis_scale}: scale of each embedding column's axis scale. Default
 \code{0.7 / K}, where K is the number of embedding columns.
+\item \code{slab_scale}: the cap on the prior standard deviation of every part of an
+embedding column's coefficients (the community average, the trait and
+blend terms, and the leftover), in logits per standard deviation of an
+embedding column. A positive number, or \code{Inf} for no cap, which gives the
+prior as it was before the cap was added. Default 2. In a \code{continuous}
+fit the unit would be the response's, not logits, so there is no cap by
+default and one applies only if you set it.
 }
 
 The number of blends is \code{listParams$n_lattrait}, the number of latent
@@ -72,10 +84,10 @@ traits.
 
 \section{What the fit holds}{
 
-In \code{results_output$jsdm_output}, \code{lambda_output} holds the axis scales and
-\code{sigmaemb_output} the embedding leftover scale; both are present only when
-the fit has embedding columns. \code{sigmab_output} holds the measured-group
-scale. When every occupancy covariate is an embedding column there is
+In \code{results_output$jsdm_output}, \code{lambda_output} holds the effective axis
+scales and \code{sigmaemb_output} the embedding leftover scale; both are present
+only when the fit has embedding columns. \code{sigmab_output} holds the
+measured-group scale. When every occupancy covariate is an embedding column there is
 nothing for that scale to learn from, so \code{sigmab_output} then holds draws
 from its prior. They stay in the fit, but \code{\link[=returnCovariateScales]{returnCovariateScales()}} leaves
 the measured-group scale out and \code{\link[=computeDiagnostics]{computeDiagnostics()}} does not check it.
@@ -211,11 +223,16 @@ experimental, and they do not change the model: the draws that are kept
 come from the same posterior as without them.
 \itemize{
 \item Every iteration, each embedding column's axis scale is proposed a new
-value together with that column's coefficients, rescaled by the same
-factor. Without this step the axis scale of a column that no species
+value together with that column's coefficients, each part rescaled by the
+change in its own prior scale. With no cap that is one factor for the
+whole column. Under a cap the shared part (the community average, the
+traits and the blends) and the leftover are rescaled by different
+factors. Without this step the axis scale of a column that no species
 responds to moved very slowly.
 \item The embedding leftover scale gets the same kind of step, together with
-all the leftovers.
+all the leftovers. With no cap they share one factor. Under a cap each
+embedding column's leftovers are rescaled by the change in their own
+capped prior scale, so the columns get different factors.
 \item The scale of the measured covariates' species leftovers (\code{sigma_b}) gets
 the same kind of step, together with those leftovers, twice in each
 iteration: once with a step tuned during burn-in and once with a large
@@ -292,11 +309,22 @@ check found the old default far too wide. The check looks at the prior
 alone, before any data. What it measures is the spread across sites, as a
 standard deviation, of the embedding's contribution to a species' linear
 predictor, on the logit scale. The design target for the prior median of
-that spread is 1 to 2. Under the present default the prior median is about
-1.4 with 64 embedding columns and about 1.5 with 128, both with 8 latent
-traits. The upper tail is wide: the 95\% point is about 28 at both column
-counts, so one prior draw in twenty gives a spread larger than that. The
-validation study is to examine that tail.
+that spread is 1 to 2. Without the cap (\code{slab_scale = Inf}) the prior
+median is about 1.4 with 64 embedding columns and about 1.5 with 128, both
+with 8 latent traits, but the upper tail is wide: the 95\% point is about 28
+at both column counts, so one prior draw in twenty gives a spread larger
+than that, and the 99\% point is about 160 to 210. The cap was added in
+November 2026 to cut that tail. Under the default cap of 2 the prior median
+is about 1.3 at both column counts, the 95\% point about 5.7 and the 99\%
+point about 9 to 10. In simulations of the size described below (five
+data sets, each with a strongest true embedding column whose coefficients
+have a root mean square across species of 1.1 to 1.4), the cap did not
+shrink the strongest responses more than the earlier prior did: on the five strongest columns of each data
+set, the slope of the estimated coefficients on the true ones was within
+3\% of the slope without the cap, and the error of the embedding's
+contribution to the linear predictor was at most 6\% larger. Whether the cap
+shrinks responses nearer to it, or on real data, is still to be measured in
+the validation study.
 
 The sampler's extra steps for \code{binary} fits were added in November 2026
 and have been tried only on simulated data of one size (256 sites, 48

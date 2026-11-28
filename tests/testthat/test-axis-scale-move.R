@@ -86,7 +86,7 @@ test_that("the scale updates with the axis scale move leave the half-Cauchy prio
   Tr_b <- cbind(1, rnorm(S)); X <- matrix(rnorm(n * p), n, p)
   zero <- matrix(0, n, S)
   cp <- occJSDM:::read_coef_prior(
-    list(sigma_b_scale = 0.8, sigma_emb_scale = 1.3, axis_scale = 0.5),
+    list(sigma_b_scale = 0.8, sigma_emb_scale = 1.3, axis_scale = 0.5, slab_scale = Inf),
     list(embeddingVars = c("e1", "e2")), S, gt,
     data.frame(column = c("m1", "e1", "e2"), variable = c("m1", "e1", "e2"), kind = "numeric"))
   start <- occJSDM:::coef_scales_start(cp, p)
@@ -130,11 +130,12 @@ test_that("the scale updates with the axis scale move leave the half-Cauchy prio
               label = sprintf("error of the share of %s below its prior quartile %d", nm, j))
 })
 
-axis_fit <- function(sim, embedding = TRUE, MCMCparams = FIXTURE_MCMC) {
+axis_fit <- function(sim, embedding = TRUE, MCMCparams = FIXTURE_MCMC, listPriors = list()) {
   dat <- sim$data_list
   suppressMessages(suppressWarnings(runOccJSDM(dat,
     listParams = c(list(n_factors = 1L), if (embedding) list(embeddingVars = dat$embeddingVars)),
-    occCovariates = grouped_occ_covariates(dat), MCMCparams = MCMCparams)))
+    occCovariates = grouped_occ_covariates(dat), MCMCparams = MCMCparams,
+    listPriors = listPriors)))
 }
 
 test_that("a grouped binary fit runs the axis scale move and records its acceptance", {
@@ -191,7 +192,8 @@ test_that("the coefficient update hands the move the current state and keeps its
     out
   }, .package = "occJSDM")
   sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
-  axis_fit(sim, MCMCparams = list(nchain = 1L, nburn = 3L, niter = 3L, nthin = 1L))
+  axis_fit(sim, MCMCparams = list(nchain = 1L, nburn = 3L, niter = 3L, nthin = 1L),
+           listPriors = list(slab_scale = Inf))
   expect_identical(length(seen), 6L)
   expect_identical(length(sweeps), 6L)
   for (i in seq_along(seen)) {
@@ -252,3 +254,143 @@ test_that("the axis scale move takes one step per embedding column", {
 # scale) moves the axis shares by 0.47 to 0.49, and a half-Cauchy scale wrong
 # by a factor of 2 moves them by 0.30 to 0.34. About 88 percent of moves are
 # accepted in this run at a step of 0.5.
+
+# The axis scale move under a cap (slab_scale). Design:
+# dev/superpowers/specs/2026-11-25-axis-slab-design.md, "Mathematics", "The
+# axis scale move". Under a cap the move needs the leftovers of the B it is
+# given and the current sigma_emb.
+
+run_capped_axis_move <- function(x, step = 0.5) with(x, occJSDM:::axis_scale_move(
+  B, G, C, lambda, X, kappa, Omega, eta, cp, step,
+  R = t(B) - Tr_b %*% G - A %*% C, sigma_emb = sigma_emb))
+
+test_that("under a cap the axis scale move accepts on the exact ratio of the target density", {
+  # As the uncapped test above, with a cap of 0.8. Under the cap the move
+  # multiplies column k of G and C by rho_g, the ratio of the effective axis
+  # scales at the proposed and current lambda_k, and the column's leftovers by
+  # rho_e, the same ratio for the leftover's capped standard deviation. The
+  # Jacobian of that scaling is (g_b + q) log(rho_g) + S log(rho_e).
+  n_accept <- 0L; n_reject <- 0L
+  for (seed in 1:20) {
+    x <- axis_move_state(seed); x$cp$slab_scale <- 0.8
+    emb <- which(x$cp$is_emb)
+    seed_both(100L + seed)
+    got <- run_capped_axis_move(x)
+    seed_both(100L + seed)
+    delta <- rnorm(length(emb), 0, 0.5); logu <- log(runif(length(emb)))
+    want <- x; log_ratio <- rep(NA_real_, 5L); accepted <- rep(FALSE, 5L)
+    for (j in seq_along(emb)) {
+      k <- emb[j]
+      prop <- want
+      eff0 <- occJSDM:::coef_effective_scales(want$cp, want$sigma_emb, want$lambda)
+      prop$lambda[k] <- want$lambda[k] * exp(delta[j])
+      eff1 <- occJSDM:::coef_effective_scales(prop$cp, prop$sigma_emb, prop$lambda)
+      rho_g <- eff1$axis[k] / eff0$axis[k]; rho_e <- eff1$leftover[k] / eff0$leftover[k]
+      prop$G[, k] <- want$G[, k] * rho_g; prop$C[, k] <- want$C[, k] * rho_g
+      R <- t(want$B) - want$Tr_b %*% want$G - want$A %*% want$C; R[, k] <- R[, k] * rho_e
+      prop$B <- t(want$Tr_b %*% prop$G + want$A %*% prop$C + R)
+      log_ratio[k] <- axis_move_log_target(prop) - axis_move_log_target(want) +
+        (nrow(want$G) + nrow(want$C)) * log(rho_g) + ncol(want$B) * log(rho_e)
+      if (logu[j] < log_ratio[k]) { want <- prop; accepted[k] <- TRUE }
+    }
+    expect_equal(got$log_ratio, log_ratio, tolerance = 1e-8, info = paste("seed", seed))
+    expect_identical(got$accepted, accepted, info = paste("seed", seed))
+    expect_equal(got[c("B", "G", "C", "lambda")], want[c("B", "G", "C", "lambda")],
+                 info = paste("seed", seed))
+    n_accept <- n_accept + sum(accepted); n_reject <- n_reject + sum(!accepted[emb])
+  }
+  expect_gt(n_accept, 5L); expect_gt(n_reject, 5L)   # both outcomes were exercised
+})
+
+test_that("under a cap an accepted axis move changes its column's parts by the two factors and nothing else", {
+  x <- axis_move_state(3L); x$cp$slab_scale <- 0.8
+  x$kappa[] <- 0; x$Omega[] <- 0                     # a constant likelihood: most moves accepted
+  seed_both(11L)
+  got <- run_capped_axis_move(x)
+  leftovers <- function(B, G, C) t(B) - x$Tr_b %*% G - x$A %*% C
+  R0 <- leftovers(x$B, x$G, x$C); R1 <- leftovers(got$B, got$G, got$C)
+  eff0 <- occJSDM:::coef_effective_scales(x$cp, x$sigma_emb, x$lambda)
+  eff1 <- occJSDM:::coef_effective_scales(x$cp, x$sigma_emb, got$lambda)
+  rho_g <- eff1$axis / eff0$axis; rho_e <- eff1$leftover / eff0$leftover
+  expect_true(any(got$accepted))
+  expect_identical(got$accepted, got$lambda != x$lambda)
+  # Under the cap the two factors differ, so the row of B is not scaled as a whole.
+  expect_true(any(abs(rho_g - rho_e)[got$accepted] > 1e-3))
+  for (k in which(got$accepted)) {
+    expect_equal(got$G[, k], rho_g[k] * x$G[, k], tolerance = 1e-12, info = format(k))
+    expect_equal(got$C[, k], rho_g[k] * x$C[, k], tolerance = 1e-12, info = format(k))
+    expect_equal(R1[, k], rho_e[k] * R0[, k], tolerance = 1e-10, info = format(k))
+    expect_equal(got$B[k, ], rho_g[k] * (x$B[k, ] - R0[, k]) + rho_e[k] * R0[, k],
+                 tolerance = 1e-12, info = format(k))
+  }
+  # Measured columns, and columns whose move was rejected, are returned bit for bit.
+  same <- which(!got$accepted)
+  expect_true(all(1:2 %in% same))
+  expect_identical(got$B[same, ], x$B[same, ])
+  expect_identical(got$G[, same], x$G[, same]); expect_identical(got$C[, same], x$C[, same])
+  expect_identical(got$lambda[same], x$lambda[same])
+})
+
+test_that("under a cap the coefficient update hands each move the current state", {
+  # The spy test above with a cap. The sigma_emb move must be given the
+  # current axis scales; the axis scale move must be given the B and sigma_emb
+  # the sigma_emb move returns, and the leftovers of that B, not those from
+  # before the sigma_emb move. What the axis scale move returns must be what
+  # the sweep returns.
+  original_sigma <- occJSDM:::sigma_emb_move
+  original_move <- occJSDM:::axis_scale_move
+  original_update <- occJSDM:::update_jSDMcoef
+  seen_sigma <- list(); seen <- list(); sweeps <- list()
+  update <- original_update
+  update_env <- new.env(parent = environment(update))
+  update_env$sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step,
+                                        lambda = NULL) {
+    out <- original_sigma(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step, lambda = lambda)
+    seen_sigma[[length(seen_sigma) + 1L]] <<- list(R = R, lambda = lambda, out = out)
+    out
+  }
+  update_env$axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step,
+                                         R = NULL, sigma_emb = NULL) {
+    out <- original_move(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step,
+                         R = R, sigma_emb = sigma_emb)
+    seen[[length(seen) + 1L]] <<- list(B = B, G = G, C = C, lambda = lambda, eta = eta, R = R,
+                                       sigma_emb = sigma_emb, coef_prior = coef_prior, out = out)
+    out
+  }
+  environment(update) <- update_env
+  local_mocked_bindings(update_jSDMcoef = function(list_data, list_params, ...) {
+    out <- update(list_data, list_params, ...)
+    sweeps[[length(sweeps) + 1L]] <<- list(Tr_b = list_data$Tr_b, before = list_params, out = out)
+    out
+  }, .package = "occJSDM")
+  sim <- simulate_grouped_fixture(p_meas = 2L, p_emb = 8L, S = 12L)
+  dat <- sim$data_list
+  suppressMessages(suppressWarnings(runOccJSDM(dat,
+    listParams = list(n_factors = 1L, embeddingVars = dat$embeddingVars),
+    listPriors = list(slab_scale = 0.5),
+    occCovariates = grouped_occ_covariates(dat),
+    MCMCparams = list(nchain = 1L, nburn = 3L, niter = 3L, nthin = 1L))))
+  expect_identical(length(seen_sigma), 6L)
+  expect_identical(length(seen), 6L)
+  expect_identical(length(sweeps), 6L)
+  for (i in seq_along(seen)) {
+    mv <- seen[[i]]; sg <- seen_sigma[[i]]; sw <- sweeps[[i]]; label <- paste("sweep", i)
+    expect_identical(mv$coef_prior$slab_scale, 0.5, info = label)
+    expect_identical(sg$lambda, mv$lambda, info = label)
+    expect_identical(mv$B, sg$out$B, info = label)
+    expect_identical(mv$eta, sg$out$eta, info = label)
+    expect_identical(mv$sigma_emb, sg$out$sigma_emb, info = label)
+    leftovers <- t(mv$B) - sw$Tr_b %*% mv$G - sw$before$A %*% mv$C
+    expect_equal(unname(mv$R), unname(leftovers), tolerance = 1e-10, info = label)
+    expect_identical(sw$out$B, mv$out$B, info = label)
+    expect_identical(sw$out$lambda, mv$out$lambda, info = label)
+    expect_identical(sw$out$sigma_emb, sg$out$sigma_emb, info = label)
+  }
+  # The check of the leftovers means something only if a sigma_emb move was
+  # accepted, so that they differ from the ones it was given.
+  moved <- vapply(seen_sigma, function(s) isTRUE(s$out$accepted), logical(1))
+  expect_true(any(moved))
+  i <- which(moved)[1]
+  emb <- seen[[i]]$coef_prior$is_emb
+  expect_gt(max(abs(seen[[i]]$R[, emb] - seen_sigma[[i]]$R[, emb])), 1e-6)
+})

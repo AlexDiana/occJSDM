@@ -5,7 +5,7 @@
 # them with b_prior = "fixed" is an error. Embedding columns that are in
 # occCovariates but not in embeddingVars are ordinary measured covariates.
 # `columns` has one row per design column: column, variable, kind.
-read_coef_prior <- function(priors, params, S, gt, columns) {
+read_coef_prior <- function(priors, params, S, gt, columns, model = "binary") {
   emb_vars <- get_param(params, "embeddingVars", NULL)
   has_emb <- length(emb_vars) > 0L
   type <- get_param(priors, "b_prior", NULL)
@@ -18,7 +18,7 @@ read_coef_prior <- function(priors, params, S, gt, columns) {
   type <- unname(type)
   if (type == "fixed") {
     if (has_emb) stop("embeddingVars cannot be used with b_prior = 'fixed'")
-    for (nm in c("sigma_b_scale", "sigma_emb_scale", "axis_scale"))
+    for (nm in c("sigma_b_scale", "sigma_emb_scale", "axis_scale", "slab_scale"))
       if (nm %in% names(priors)) stop(nm, " requires the grouped prior")
     return(list(type = "fixed"))
   }
@@ -34,7 +34,7 @@ read_coef_prior <- function(priors, params, S, gt, columns) {
       stop("embeddingVars must be numeric covariates without splines: ",
            paste(bad_kind, collapse = ", "))
   } else {
-    for (nm in c("sigma_emb_scale", "axis_scale"))
+    for (nm in c("sigma_emb_scale", "axis_scale", "slab_scale"))
       if (nm %in% names(priors)) stop(nm, " requires embeddingVars")
   }
   is_emb <- columns$variable %in% emb_vars
@@ -48,18 +48,28 @@ read_coef_prior <- function(priors, params, S, gt, columns) {
   sigma_b_scale <- read_scale("sigma_b_scale", 1)
   sigma_emb_scale <- NA_real_
   axis_scale <- NA_real_
+  slab_scale <- NA_real_
   if (has_emb) {
     sigma_emb_scale <- read_scale("sigma_emb_scale", 1)
     # 0.7 / K, not 1 / sqrt(K): the half-Cauchy tails of K axis scales make
     # the embedding's prior contribution grow in proportion to K times this
     # scale (dev/simstudy/grouped-prior-checks-20261111).
     axis_scale <- read_scale("axis_scale", 0.7 / p_emb)
+    # The cap on the embedding scales (see coef_capped()). Inf is no cap. The
+    # cap is in logits per standard deviation of an embedding column, so a
+    # continuous fit, whose unit is the response's, has none unless set.
+    slab_scale <- get_param(priors, "slab_scale",
+                            if (identical(model, "continuous")) Inf else 2)
+    if (!is.numeric(slab_scale) || length(slab_scale) != 1L || is.na(slab_scale) ||
+        slab_scale <= 0)
+      stop("slab_scale must be a positive number or Inf")
+    slab_scale <- unname(slab_scale)
   }
   c_base <- rep(1, length(is_emb))
   if (gt > 0) c_base[is_emb] <- 1 / sqrt(gt)
   list(type = "grouped", is_emb = is_emb, sigma_b_scale = sigma_b_scale,
        sigma_emb_scale = sigma_emb_scale, axis_scale = axis_scale,
-       c_base = c_base)
+       slab_scale = slab_scale, c_base = c_base)
 }
 
 # One row per column of the occupancy design matrix X: its name, the covariate
@@ -148,8 +158,14 @@ coef_scales_start <- function(coef_prior, p) {
 coef_C_start <- function(coef_prior, C, lambda) {
   if (!identical(coef_prior$type, "grouped") || !any(coef_prior$is_emb)) return(C)
   emb <- which(coef_prior$is_emb)
-  C[, emb] <- C[, emb, drop = FALSE] *
-    rep(coef_prior$c_base[emb] * lambda[emb], each = nrow(C))
+  if (is.infinite(coef_slab(coef_prior))) {
+    C[, emb] <- C[, emb, drop = FALSE] *
+      rep(coef_prior$c_base[emb] * lambda[emb], each = nrow(C))
+  } else {
+    axis <- coef_effective_scales(coef_prior, NA_real_, lambda)$axis
+    C[, emb] <- C[, emb, drop = FALSE] *
+      rep(coef_prior$c_base[emb] * axis[emb], each = nrow(C))
+  }
   C
 }
 
@@ -170,9 +186,51 @@ check_coef_sds <- function(sd_b, p) {
 coef_prior_sds <- function(coef_prior, sigma_b, sigma_emb, lambda, g_b, p) {
   if (coef_prior$type == "fixed")
     return(list(b = rep(sigma_b, p), g = matrix(1, g_b, p), c = rep(1, p)))
-  list(b = ifelse(coef_prior$is_emb, sigma_emb, sigma_b) * lambda,
-       g = matrix(lambda, g_b, p, byrow = TRUE),
-       c = coef_prior$c_base * lambda)
+  if (is.infinite(coef_slab(coef_prior)))
+    return(list(b = ifelse(coef_prior$is_emb, sigma_emb, sigma_b) * lambda,
+                g = matrix(lambda, g_b, p, byrow = TRUE),
+                c = coef_prior$c_base * lambda))
+  eff <- coef_effective_scales(coef_prior, sigma_emb, lambda)
+  list(b = ifelse(coef_prior$is_emb, eff$leftover, sigma_b * lambda),
+       g = matrix(eff$axis, g_b, p, byrow = TRUE),
+       c = coef_prior$c_base * eff$axis)
+}
+
+# The cap on the embedding scales of a grouped prior record: its slab_scale,
+# or Inf (no cap) when the record has none, as the hand-built records of the
+# older tests do, or when it is NA (no embedding columns).
+coef_slab <- function(coef_prior) {
+  slab <- coef_prior$slab_scale
+  if (is.null(slab) || is.na(slab)) Inf else slab
+}
+
+# A standard deviation `s` capped at `slab`: the value whose precision is
+# 1 / s^2 + 1 / slab^2, so s * slab / sqrt(s^2 + slab^2). It is computed from
+# the smaller of the two times a factor between 0.7 and 1, so that nothing
+# overflows or underflows however extreme `s` is. With slab = Inf it is `s`
+# itself.
+coef_capped <- function(s, slab) {
+  if (is.infinite(slab)) return(s)
+  small <- pmin(s, slab)
+  big <- pmax(s, slab)
+  small / sqrt(1 + (small / big)^2)
+}
+
+# The scales the prior actually uses on the embedding columns, once the cap is
+# applied. `axis` is the effective axis scale: lambda on measured columns, the
+# capped lambda on embedding columns. `leftover` is the effective standard
+# deviation of the leftovers of B: NA on measured columns, the capped
+# sigma_emb * lambda on embedding columns. Both have one element per column.
+coef_effective_scales <- function(coef_prior, sigma_emb, lambda) {
+  slab <- coef_slab(coef_prior)
+  is_emb <- coef_prior$is_emb
+  axis <- lambda
+  leftover <- rep(NA_real_, length(lambda))
+  if (any(is_emb)) {
+    axis[is_emb] <- coef_capped(lambda[is_emb], slab)
+    leftover[is_emb] <- coef_capped(sigma_emb * lambda[is_emb], slab)
+  }
+  list(axis = axis, leftover = leftover)
 }
 
 # One draw of a standard deviation with a half-Cauchy(scale) prior, given `n`
@@ -182,6 +240,173 @@ coef_prior_sds <- function(coef_prior, sigma_b, sigma_emb, lambda, g_b, p) {
 sample_scale_half_cauchy <- function(ss, n, sigma, scale) {
   aux <- rinvgamma_cpp(1, 1 / sigma^2 + 1 / scale^2)
   sqrt(rinvgamma_cpp((n + 1) / 2, ss / 2 + 1 / aux))
+}
+
+# One univariate slice draw (Neal 2003, "Slice sampling", Annals of
+# Statistics 31: 705-767; stepping out as in his Figure 3, shrinkage as in his
+# Figure 5) from the density whose log is `f`, started at `u0`, which is
+# returned unchanged only in the degenerate case below. The draw leaves that
+# density exactly invariant and needs no tuning. Used on the log scale of the
+# embedding scales under a cap (sample_coef_scales()).
+#
+# The slice is every u with f(u) above a level drawn below f(u0). An interval
+# of width `w` is placed at random around u0, and its ends step out by `w`
+# while they are inside the slice, for at most `max_steps` steps in all, split
+# at random between the two ends as Neal's Figure 3 does (the random split is
+# what keeps a limited stepping out exact). A point is then drawn uniformly
+# from the interval, and on each rejection the interval shrinks to that point
+# on the side away from u0. A value of f that is not finite (an overflow far
+# out on the log scale, or a density of zero) counts as outside the slice.
+# If the level rounds to f(u0) itself, which can happen only when |f(u0)| is
+# huge, no point may ever be accepted; after 200 rejections the interval has
+# shrunk far below the precision of a double and u0 is returned. Random
+# numbers come from R's generator, all of them uniforms: the level, the
+# placement, the split, then one per proposal.
+slice_sample_log <- function(f, u0, w = 1, max_steps = 50L) {
+  f0 <- f(u0)
+  if (!is.finite(f0))
+    stop("a slice draw must start at a point where the log density is finite")
+  level <- f0 + log(stats::runif(1))
+  inside <- function(u) {
+    fu <- f(u)
+    is.finite(fu) && fu > level
+  }
+  left <- u0 - w * stats::runif(1)
+  right <- left + w
+  steps_left <- floor(max_steps * stats::runif(1))
+  steps_right <- max_steps - 1 - steps_left
+  while (steps_left > 0 && inside(left)) {
+    left <- left - w
+    steps_left <- steps_left - 1
+  }
+  while (steps_right > 0 && inside(right)) {
+    right <- right + w
+    steps_right <- steps_right - 1
+  }
+  for (i in seq_len(200L)) {
+    u <- left + stats::runif(1) * (right - left)
+    if (inside(u)) return(u)
+    if (u < u0) left <- u else right <- u
+  }
+  u0
+}
+
+# K independent slice draws at once, one per element of `u0`: for each element
+# exactly the draw of slice_sample_log(), with the same width, the same limit
+# on stepping out and the same treatment of a value that is not finite, so
+# each element has the same distribution as there. `f(u, idx)` returns the
+# log densities of the elements `idx` at the points `u`, elementwise. Only the
+# order of the random numbers differs: all K levels, then all K placements,
+# then all K splits, then one uniform per element still being drawn in each
+# round of shrinkage. Used for the axis scales under a cap, where a loop of K
+# scalar draws cost about 5 ms a sweep at 64 columns (Task 5 of
+# dev/superpowers/plans/2026-11-25-axis-slab.md).
+slice_sample_log_vec <- function(f, u0, w = 1, max_steps = 50L) {
+  K <- length(u0)
+  every <- seq_len(K)
+  f0 <- f(u0, every)
+  if (!all(is.finite(f0)))
+    stop("a slice draw must start at a point where the log density is finite")
+  level <- f0 + log(stats::runif(K))
+  inside <- function(u, idx) {
+    fu <- f(u, idx)
+    is.finite(fu) & fu > level[idx]
+  }
+  left <- u0 - w * stats::runif(K)
+  right <- left + w
+  steps_left <- floor(max_steps * stats::runif(K))
+  steps_right <- max_steps - 1 - steps_left
+  idx <- every[steps_left > 0]
+  while (length(idx)) {
+    idx <- idx[inside(left[idx], idx)]
+    left[idx] <- left[idx] - w
+    steps_left[idx] <- steps_left[idx] - 1
+    idx <- idx[steps_left[idx] > 0]
+  }
+  idx <- every[steps_right > 0]
+  while (length(idx)) {
+    idx <- idx[inside(right[idx], idx)]
+    right[idx] <- right[idx] + w
+    steps_right[idx] <- steps_right[idx] - 1
+    idx <- idx[steps_right[idx] > 0]
+  }
+  u <- u0
+  active <- every
+  for (i in seq_len(200L)) {
+    if (!length(active)) break
+    prop <- left[active] + stats::runif(length(active)) * (right[active] - left[active])
+    ok <- inside(prop, active)
+    u[active[ok]] <- prop[ok]
+    active <- active[!ok]
+    prop <- prop[!ok]
+    below <- prop < u0[active]
+    left[active[below]] <- prop[below]
+    right[active[!below]] <- prop[!below]
+  }
+  u
+}
+
+# log(exp(x) + exp(y)), elementwise, without overflow: the log of a sum of two
+# precisions given their logs. With y = -Inf (no cap) it is x.
+log_add_exp <- function(x, y) {
+  big <- pmax(x, y)
+  big + log1p(exp(pmin(x, y) - big))
+}
+
+# log(1 + exp(x)), elementwise, without overflow.
+log1p_exp <- function(x) pmax(x, 0) + log1p(exp(-abs(x)))
+
+# The log of the conditional density of u = log(lambda_k), an embedding
+# column's axis scale, under a cap `slab`, up to a constant: f_k of the
+# design's "The draw of an axis scale" (dev/superpowers/specs/
+# 2026-11-25-axis-slab-design.md, section "Mathematics"):
+#
+#   f_k(u) = u - log(1 + e^(2u) / a^2) + (m_gc / 2) log P_g - P_g ss_gc / 2
+#            + (S / 2) log P_e - P_e ss_r / 2,
+#   P_g = e^(-2u) + c^-2,  P_e = e^(-2u) / sigma_emb^2 + c^-2,
+#
+# with a = axis_scale and c = slab. P_g is the precision of column k of G and
+# (divided by c_base[k]^2) of C, and P_e that of column k of the leftovers.
+# ss_gc is the sum of squares of the g_b rows of G[, k] plus sum(C[, k]^2) /
+# c_base[k]^2, and m_gc = g_b + q is their number; ss_r is the sum of squares
+# of the S leftovers of column k. The leading u is the Jacobian of the log.
+# The parts c^-2 ss_gc / 2 and c^-2 ss_r / 2 of the two quadratic terms do
+# not depend on u and are dropped, so the quadratic terms are
+# e^(-2u) ss_gc / 2 and e^(-2u) ss_r / (2 sigma_emb^2); keeping them would
+# only add a large constant that costs precision when a sum of squares is
+# large. The log precisions and the quadratic terms are computed through
+# logs, so that every term stays finite for u from about -350 to 350; beyond
+# that a term overflows to -Inf, which a slice draw treats as outside the
+# slice. A sum of squares of zero gives a term of exactly zero. With
+# slab = Inf this is the uncapped density.
+axis_scale_logdens <- function(u, ss_gc, m_gc, ss_r, S, sigma_emb, axis_scale, slab) {
+  log_cap <- -2 * log(slab)
+  log_pg <- log_add_exp(-2 * u, log_cap)
+  log_pe <- log_add_exp(-2 * u - 2 * log(sigma_emb), log_cap)
+  u - log1p_exp(2 * (u - log(axis_scale))) +
+    m_gc / 2 * log_pg - exp(-2 * u + log(ss_gc)) / 2 +
+    S / 2 * log_pe - exp(-2 * u - 2 * log(sigma_emb) + log(ss_r)) / 2
+}
+
+# The log of the conditional density of v = log(sigma_emb) under a cap
+# `slab`, up to a constant: f_sigma of the design's "The draw of the leftover
+# scale" (same file and section as above):
+#
+#   f_sigma(v) = v - log(1 + e^(2v) / b^2)
+#                + sum over embedding columns k of
+#                  [(S / 2) log P_ek - P_ek ss_rk / 2],
+#   P_ek = e^(-2v) / lambda_k^2 + c^-2,
+#
+# with b = scale and c = slab. `ss_r` and `lambda` have one element per
+# embedding column: the sum of squares of its S leftovers, and its uncapped
+# axis scale. Computed as axis_scale_logdens() is, with the constant parts
+# c^-2 ss_rk / 2 of the quadratic terms dropped, so that each quadratic term
+# is e^(-2v) ss_rk / (2 lambda_k^2).
+sigma_emb_logdens <- function(v, ss_r, S, lambda, scale, slab) {
+  log_lam <- 2 * log(lambda)
+  log_pe <- log_add_exp(-2 * v - log_lam, -2 * log(slab))
+  v - log1p_exp(2 * (v - log(scale))) +
+    sum(S / 2 * log_pe - exp(-2 * v - log_lam + log(ss_r)) / 2)
 }
 
 # Update the scales of the grouped prior. R is the species by covariates
@@ -195,13 +420,39 @@ sample_scale_half_cauchy <- function(ss, n, sigma, scale) {
 # of sigma_emb is skipped (no random number is drawn for it) and the covariate
 # scales are drawn given the value passed in: the staged burn-in of
 # axis_hold_sweeps().
+#
+# Under a finite cap (coef_slab()) the embedding scales no longer have
+# inverse-gamma conditionals. sigma_b is drawn as above, then sigma_emb by one
+# slice draw on the log scale (slice_sample_log()) from sigma_emb_logdens(),
+# then all the axis scales given the new sigma_emb, one independent slice draw
+# each from axis_scale_logdens(), made together (slice_sample_log_vec()); all
+# start at the current values. The three sums of squares per column are the
+# ones the uncapped draw forms. With an infinite cap, or a record without
+# one, the uncapped draws run exactly as before and draw the same random
+# numbers.
 sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda,
                                hold_sigma_emb = FALSE) {
   S <- nrow(R)
   is_emb <- coef_prior$is_emb
   sigma_b <- sample_scale_half_cauchy(sum(R[, !is_emb]^2), S * sum(!is_emb),
                                       sigma_b, coef_prior$sigma_b_scale)
-  if (any(is_emb)) {
+  slab <- coef_slab(coef_prior)
+  if (any(is_emb) && is.finite(slab)) {
+    emb <- which(is_emb)
+    ss_r <- colSums(R[, emb, drop = FALSE]^2)
+    if (!hold_sigma_emb) {
+      lambda_emb <- lambda[emb]
+      f_sigma <- function(v) sigma_emb_logdens(v, ss_r, S, lambda_emb,
+                                               coef_prior$sigma_emb_scale, slab)
+      sigma_emb <- exp(slice_sample_log(f_sigma, log(sigma_emb)))
+    }
+    m_gc <- nrow(G) + nrow(C)
+    ss_gc <- colSums(G[, emb, drop = FALSE]^2) +
+      colSums(C[, emb, drop = FALSE]^2) / coef_prior$c_base[emb]^2
+    f_axis <- function(u, idx) axis_scale_logdens(u, ss_gc[idx], m_gc, ss_r[idx], S,
+                                                  sigma_emb, coef_prior$axis_scale, slab)
+    lambda[emb] <- exp(slice_sample_log_vec(f_axis, log(lambda[emb])))
+  } else if (any(is_emb)) {
     emb <- which(is_emb)
     if (!hold_sigma_emb) {
       ss_emb <- sum(sweep(R[, emb, drop = FALSE], 2, lambda[emb], "/")^2)
@@ -254,12 +505,41 @@ sample_coef_scales <- function(R, G, C, coef_prior, sigma_b, sigma_emb, lambda,
 # visited in order; all proposals are drawn first, then all uniforms. Returns
 # the updated B, G, C and lambda, with `accepted` and `log_ratio` per design
 # column (FALSE and NA on measured columns).
+#
+# Under a finite cap (coef_slab()) the prior standard deviations are no
+# longer proportional to lambda_k: G and C of column k have the effective
+# axis scale (lambda_k capped) and its leftovers lambda_k * sigma_emb capped
+# (coef_effective_scales()). The move is then the design's "The axis scale
+# move" (dev/superpowers/specs/2026-11-25-axis-slab-design.md, section
+# "Mathematics"), in axis_scale_move_capped(): the same proposal on
+# log(lambda_k), but each part of the column is multiplied by the ratio of
+# its own prior standard deviation, new over old. Column k of G and of C is
+# multiplied by rho_g, the ratio of the effective axis scales, and the
+# column's leftovers by rho_e, the ratio of the leftover's capped standard
+# deviations. Each part keeps its value in units of its own prior standard
+# deviation, so the prior densities and the Jacobian cancel as above, and the
+# acceptance ratio is again the likelihood ratio times the half-Cauchy term.
+# Row k of B moves by d = (rho_g - 1) (B[k, ] - e) + (rho_e - 1) e, e being
+# the column's leftovers, and the log likelihood ratio is lin - quad / 2 with
+# lin = sum((kappa - Omega * eta) * X[, k] d) and
+# quad = sum(Omega * (X[, k] d)^2). This needs the leftovers `R` of the `B`
+# given (species by covariates) and the current `sigma_emb`, which are
+# required under a finite cap and not used otherwise. With an infinite cap,
+# or a record without one, rho_g = rho_e = exp(delta) and the code below runs
+# unchanged, drawing the same random numbers, whether or not `R` and
+# `sigma_emb` are given. The random numbers are drawn in the same order under
+# a cap. Returns the same list.
 AXIS_MOVE_STEP <- 0.5
 
 # The acceptance rate a one-dimensional random walk is tuned to.
 AXIS_MOVE_TARGET <- 0.44
 
-axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step) {
+axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step,
+                            R = NULL, sigma_emb = NULL) {
+  slab <- coef_slab(coef_prior)
+  if (is.finite(slab))
+    return(axis_scale_move_capped(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step,
+                                  R, sigma_emb, slab))
   p <- nrow(B)
   accepted <- rep(FALSE, p)
   log_ratio <- rep(NA_real_, p)
@@ -285,6 +565,68 @@ axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, s
         B[k, ] <- b * r
         G[, k] <- G[, k] * r
         C[, k] <- C[, k] * r
+        lambda[k] <- proposed
+        accepted[k] <- TRUE
+      }
+    }
+  }
+  list(B = B, G = G, C = C, lambda = lambda, accepted = accepted, log_ratio = log_ratio)
+}
+
+# The log of capped(s * exp(delta), slab) / capped(s, slab), elementwise,
+# given log(s): how a proposal of delta on the log scale changes a capped
+# standard deviation (coef_capped()). Both capped values are written as in
+# coef_capped(), through the smaller and the larger of s and the cap, so
+# that the log of the cap cancels exactly when s is far above it and the
+# ratio stays finite and accurate for s from far below the cap to far above
+# it. Taking log(s) rather than s keeps a product of two small scales from
+# underflowing.
+coef_capped_log_ratio <- function(log_s, delta, slab) {
+  log_c <- log(slab)
+  lo0 <- pmin(log_s, log_c); hi0 <- pmax(log_s, log_c)
+  lo1 <- pmin(log_s + delta, log_c); hi1 <- pmax(log_s + delta, log_c)
+  (lo1 - lo0) - (log1p(exp(2 * (lo1 - hi1))) - log1p(exp(2 * (lo0 - hi0)))) / 2
+}
+
+# axis_scale_move() under a finite cap `slab`: see the comment above it. The
+# factors rho_g and rho_e are formed on the log scale (coef_capped_log_ratio())
+# and rho - 1 by expm1(), so that a column far above the cap, whose factors
+# are within rounding of 1, moves B by a correspondingly tiny amount rather
+# than by rounding error. `R` is read for column k only when column k is
+# visited, and the move changes no other column's leftovers, so it need not
+# be updated after an acceptance.
+axis_scale_move_capped <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, step,
+                                   R, sigma_emb, slab) {
+  if (is.null(R) || is.null(sigma_emb))
+    stop("under a cap the axis scale move needs the leftovers R and sigma_emb")
+  p <- nrow(B)
+  accepted <- rep(FALSE, p)
+  log_ratio <- rep(NA_real_, p)
+  emb <- which(coef_prior$is_emb)
+  if (length(emb) > 0L) {
+    delta <- stats::rnorm(length(emb), 0, step)
+    logu <- log(stats::runif(length(emb)))
+    grad <- kappa - Omega * eta
+    log_sigma <- log(sigma_emb)
+    for (j in seq_along(emb)) {
+      k <- emb[j]
+      x <- X[, k]
+      b <- B[k, ]
+      e <- R[, k]
+      log_rho_g <- coef_capped_log_ratio(log(lambda[k]), delta[j], slab)
+      log_rho_e <- coef_capped_log_ratio(log_sigma + log(lambda[k]), delta[j], slab)
+      d <- expm1(log_rho_g) * (b - e) + expm1(log_rho_e) * e
+      lin <- sum(crossprod(x, grad) * d)
+      quad <- sum(crossprod(x^2, Omega) * d^2)
+      proposed <- lambda[k] * exp(delta[j])
+      log_ratio[k] <- lin - quad / 2 + delta[j] -
+        log1p((proposed / coef_prior$axis_scale)^2) +
+        log1p((lambda[k] / coef_prior$axis_scale)^2)
+      if (logu[j] < log_ratio[k]) {
+        grad <- grad - Omega * tcrossprod(x, d)
+        B[k, ] <- b + d
+        G[, k] <- G[, k] * exp(log_rho_g)
+        C[, k] <- C[, k] * exp(log_rho_g)
         lambda[k] <- proposed
         accepted[k] <- TRUE
       }
@@ -321,7 +663,30 @@ axis_scale_move <- function(B, G, C, lambda, X, kappa, Omega, eta, coef_prior, s
 # sigma_emb and eta, with `accepted` and `log_ratio` (FALSE and NA, with no
 # random number drawn, when there are no embedding columns). It runs in the
 # same fits as axis_scale_move(), just before it.
-sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step) {
+#
+# Under a finite cap (coef_slab()) a leftover's prior standard deviation is
+# sigma_emb * lambda_k capped, which is not proportional to sigma_emb. The
+# move is then the design's "The leftover scale move" (same file and section
+# as for axis_scale_move()), in sigma_emb_move_capped(): the same proposal,
+# but the leftovers of embedding column k are multiplied by their own factor
+# rho_k, the ratio of the capped standard deviations at the proposed and
+# current sigma_emb, so that each leftover keeps its value in units of its
+# prior standard deviation and the prior and the Jacobian cancel as above.
+# Each embedding row of B moves by (rho_k - 1) times its leftovers, and with
+# D = X[, embedding] %*% diag(rho - 1) %*% t(R[, embedding]) the log
+# likelihood ratio is lin - quad / 2, lin = sum((kappa - Omega * eta) * D)
+# and quad = sum(Omega * D^2). This needs the current axis scales `lambda`
+# (uncapped, one per design column), which are required under a finite cap
+# and not used otherwise. With an infinite cap, or a record without one,
+# every rho_k is exp(delta) and the code below runs unchanged, drawing the
+# same random numbers, whether or not `lambda` is given. Same random numbers
+# in the same order under a cap, and the same return.
+sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step,
+                           lambda = NULL) {
+  slab <- coef_slab(coef_prior)
+  if (is.finite(slab))
+    return(sigma_emb_move_capped(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step,
+                                 lambda, slab))
   emb <- which(coef_prior$is_emb)
   if (length(emb) == 0L)
     return(list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = FALSE,
@@ -340,6 +705,39 @@ sigma_emb_move <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, st
   if (accepted) {
     B[emb, ] <- B[emb, , drop = FALSE] + r1 * t(R[, emb, drop = FALSE])
     eta <- eta + r1 * D
+    sigma_emb <- proposed
+  }
+  list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = accepted, log_ratio = log_ratio)
+}
+
+# sigma_emb_move() under a finite cap `slab`: see the comment above it. The
+# factors are formed on the log scale (coef_capped_log_ratio()) and rho - 1
+# by expm1(), as in axis_scale_move_capped().
+sigma_emb_move_capped <- function(B, R, sigma_emb, X, kappa, Omega, eta, coef_prior, step,
+                                  lambda, slab) {
+  emb <- which(coef_prior$is_emb)
+  if (length(emb) == 0L)
+    return(list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = FALSE,
+                log_ratio = NA_real_))
+  if (is.null(lambda))
+    stop("under a cap the sigma_emb move needs the axis scales lambda")
+  delta <- stats::rnorm(1, 0, step)
+  logu <- log(stats::runif(1))
+  rho1 <- expm1(coef_capped_log_ratio(log(sigma_emb) + log(lambda[emb]), delta, slab))
+  # Row j of dB is rho_j - 1 times the leftovers of embedding column j: the
+  # change of that row of B.
+  dB <- t(R[, emb, drop = FALSE]) * rho1
+  D <- X[, emb, drop = FALSE] %*% dB
+  lin <- sum((kappa - Omega * eta) * D)
+  quad <- sum(Omega * D^2)
+  proposed <- sigma_emb * exp(delta)
+  log_ratio <- lin - quad / 2 + delta -
+    log1p((proposed / coef_prior$sigma_emb_scale)^2) +
+    log1p((sigma_emb / coef_prior$sigma_emb_scale)^2)
+  accepted <- logu < log_ratio
+  if (accepted) {
+    B[emb, ] <- B[emb, , drop = FALSE] + dB
+    eta <- eta + D
     sigma_emb <- proposed
   }
   list(B = B, sigma_emb = sigma_emb, eta = eta, accepted = accepted, log_ratio = log_ratio)
@@ -561,24 +959,36 @@ axis_move_record <- function(parts, columns) {
 #' scale times that column's axis scale for an embedding column. Each embedding
 #' column's axis scale also multiplies that column's community-average, trait
 #' and blend terms, so an axis that no species responds to shrinks out of the
-#' model.
+#' model. Under the cap set by `slab_scale` (see Settings), what multiplies
+#' these terms is the column's effective axis scale, which equals the axis
+#' scale while that is small and levels off at the cap as it grows, and the
+#' leftover's standard deviation levels off at the cap in the same way. The
+#' fit stores and reports the effective axis scale, which cannot exceed the
+#' cap.
 #'
 #' @section Settings:
-#' Set these in `listPriors`. Each is a half-Cauchy scale and must be a finite
-#' positive number.
+#' Set these in `listPriors`. The first three are half-Cauchy scales and must
+#' be finite positive numbers.
 #' * `sigma_b_scale`: scale of the measured-group scale. Default 1.
 #' * `sigma_emb_scale`: scale of the embedding leftover scale. Default 1.
 #' * `axis_scale`: scale of each embedding column's axis scale. Default
 #'   `0.7 / K`, where K is the number of embedding columns.
+#' * `slab_scale`: the cap on the prior standard deviation of every part of an
+#'   embedding column's coefficients (the community average, the trait and
+#'   blend terms, and the leftover), in logits per standard deviation of an
+#'   embedding column. A positive number, or `Inf` for no cap, which gives the
+#'   prior as it was before the cap was added. Default 2. In a `continuous`
+#'   fit the unit would be the response's, not logits, so there is no cap by
+#'   default and one applies only if you set it.
 #'
 #' The number of blends is `listParams$n_lattrait`, the number of latent
 #' traits.
 #'
 #' @section What the fit holds:
-#' In `results_output$jsdm_output`, `lambda_output` holds the axis scales and
-#' `sigmaemb_output` the embedding leftover scale; both are present only when
-#' the fit has embedding columns. `sigmab_output` holds the measured-group
-#' scale. When every occupancy covariate is an embedding column there is
+#' In `results_output$jsdm_output`, `lambda_output` holds the effective axis
+#' scales and `sigmaemb_output` the embedding leftover scale; both are present
+#' only when the fit has embedding columns. `sigmab_output` holds the
+#' measured-group scale. When every occupancy covariate is an embedding column there is
 #' nothing for that scale to learn from, so `sigmab_output` then holds draws
 #' from its prior. They stay in the fit, but [returnCovariateScales()] leaves
 #' the measured-group scale out and [computeDiagnostics()] does not check it.
@@ -702,11 +1112,16 @@ axis_move_record <- function(parts, columns) {
 #' experimental, and they do not change the model: the draws that are kept
 #' come from the same posterior as without them.
 #' * Every iteration, each embedding column's axis scale is proposed a new
-#'   value together with that column's coefficients, rescaled by the same
-#'   factor. Without this step the axis scale of a column that no species
+#'   value together with that column's coefficients, each part rescaled by the
+#'   change in its own prior scale. With no cap that is one factor for the
+#'   whole column. Under a cap the shared part (the community average, the
+#'   traits and the blends) and the leftover are rescaled by different
+#'   factors. Without this step the axis scale of a column that no species
 #'   responds to moved very slowly.
 #' * The embedding leftover scale gets the same kind of step, together with
-#'   all the leftovers.
+#'   all the leftovers. With no cap they share one factor. Under a cap each
+#'   embedding column's leftovers are rescaled by the change in their own
+#'   capped prior scale, so the columns get different factors.
 #' * The scale of the measured covariates' species leftovers (`sigma_b`) gets
 #'   the same kind of step, together with those leftovers, twice in each
 #'   iteration: once with a step tuned during burn-in and once with a large
@@ -778,11 +1193,22 @@ axis_move_record <- function(parts, columns) {
 #' alone, before any data. What it measures is the spread across sites, as a
 #' standard deviation, of the embedding's contribution to a species' linear
 #' predictor, on the logit scale. The design target for the prior median of
-#' that spread is 1 to 2. Under the present default the prior median is about
-#' 1.4 with 64 embedding columns and about 1.5 with 128, both with 8 latent
-#' traits. The upper tail is wide: the 95% point is about 28 at both column
-#' counts, so one prior draw in twenty gives a spread larger than that. The
-#' validation study is to examine that tail.
+#' that spread is 1 to 2. Without the cap (`slab_scale = Inf`) the prior
+#' median is about 1.4 with 64 embedding columns and about 1.5 with 128, both
+#' with 8 latent traits, but the upper tail is wide: the 95% point is about 28
+#' at both column counts, so one prior draw in twenty gives a spread larger
+#' than that, and the 99% point is about 160 to 210. The cap was added in
+#' November 2026 to cut that tail. Under the default cap of 2 the prior median
+#' is about 1.3 at both column counts, the 95% point about 5.7 and the 99%
+#' point about 9 to 10. In simulations of the size described below (five
+#' data sets, each with a strongest true embedding column whose coefficients
+#' have a root mean square across species of 1.1 to 1.4), the cap did not
+#' shrink the strongest responses more than the earlier prior did: on the five strongest columns of each data
+#' set, the slope of the estimated coefficients on the true ones was within
+#' 3% of the slope without the cap, and the error of the embedding's
+#' contribution to the linear predictor was at most 6% larger. Whether the cap
+#' shrinks responses nearer to it, or on real data, is still to be measured in
+#' the validation study.
 #'
 #' The sampler's extra steps for `binary` fits were added in November 2026
 #' and have been tried only on simulated data of one size (256 sites, 48

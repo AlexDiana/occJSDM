@@ -138,7 +138,7 @@ test_that("read_coef_prior rejects settings that do not apply", {
 test_that("coef_prior_sds builds the per-covariate prior scales", {
   f <- occJSDM:::coef_prior_sds(list(type = "fixed"), 0.3, NA, NULL, g_b = 2L, p = 4L)
   expect_identical(f, list(b = rep(0.3, 4), g = matrix(1, 2, 4), c = rep(1, 4)))
-  cp <- rcp(list(b_prior = "grouped"), list(embeddingVars = paste0("e", 1:3)))
+  cp <- rcp(list(b_prior = "grouped", slab_scale = Inf), list(embeddingVars = paste0("e", 1:3)))
   lam <- c(1, 1, 0.5, 2, 0.1)
   s <- occJSDM:::coef_prior_sds(cp, 0.3, 0.2, lam, g_b = 2L, p = 5L)
   expect_equal(s$b, c(0.3, 0.3, 0.2 * 0.5, 0.2 * 2, 0.2 * 0.1))

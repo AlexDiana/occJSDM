@@ -45,10 +45,13 @@ axis_move_log_target <- function(x) {
 }
 
 # A short grouped binary fit, with the scale moves on. Used by
-# test-sigma-emb-move.R and test-sigma-b-move.R.
-sigma_move_fit <- function(sim, MCMCparams = FIXTURE_MCMC) {
+# test-sigma-emb-move.R, test-sigma-b-move.R and test-axis-slab.R.
+# `listPriors` is passed to runOccJSDM(); its default, an empty list, is
+# runOccJSDM()'s own.
+sigma_move_fit <- function(sim, MCMCparams = FIXTURE_MCMC, listPriors = list()) {
   dat <- sim$data_list
   suppressMessages(suppressWarnings(runOccJSDM(dat,
     listParams = list(n_factors = 1L, embeddingVars = dat$embeddingVars),
-    occCovariates = grouped_occ_covariates(dat), MCMCparams = MCMCparams)))
+    occCovariates = grouped_occ_covariates(dat), MCMCparams = MCMCparams,
+    listPriors = listPriors)))
 }

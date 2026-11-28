@@ -831,7 +831,10 @@ run_one_chain <- function(setup, seed_r, seed_cpp, chain) {
             if(community_b0) mu_b0_output_chain[currentIter] <- list_jSDMparams$mu_b0
             if(embedding_b){
               sigmaemb_output_chain[currentIter] <- list_jSDMparams$sigma_emb
-              lambda_output_chain[,currentIter] <- list_jSDMparams$lambda[coef_prior$is_emb]
+              # the effective axis scale: the cap applied, the chain's own lambda is not
+              lambda_output_chain[,currentIter] <-
+                coef_effective_scales(coef_prior, list_jSDMparams$sigma_emb,
+                                      list_jSDMparams$lambda)$axis[coef_prior$is_emb]
             }
 
             varPart_output_chain[,,currentIter] <-

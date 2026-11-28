@@ -223,6 +223,9 @@ quantile_summary <- function(x, confidence){
 #' measured covariates as a group and, when `embeddingVars` was given, a
 #' leftover scale for the embedding columns as a group and one axis scale per
 #' embedding column. This returns the posterior mean and quantiles of each.
+#' The `axis` rows are the effective axis scales, the numbers that multiply
+#' each embedding column's terms, which cannot exceed the cap set by
+#' `slab_scale` (see \link[=grouped-prior]{grouped-prior}).
 #'
 #' @param fitModel Output from the function runOccJSDM, made with the grouped
 #' prior
