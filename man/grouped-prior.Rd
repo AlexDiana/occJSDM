@@ -82,10 +82,15 @@ the measured-group scale out and \code{\link[=computeDiagnostics]{computeDiagnos
 \code{G_output} gains a leading row, the community-average response.
 \code{infos$coef_prior} records the prior and its settings, and
 \code{infos$covariate_group} labels each occupancy design column \code{"measured"} or
-\code{"embedding"}.
+\code{"embedding"}. In a \code{binary} fit with embedding columns, \code{infos$axis_move}
+records the sampler's extra steps for the scales (see Sampling and chain
+length): their step sizes and acceptance rates, and how many burn-in
+iterations the embedding leftover scale was held for.
 
-Four functions summarise these:
+Five functions summarise these:
 \itemize{
+\item \code{\link[=returnGroupedConvergence]{returnGroupedConvergence()}}: the convergence checks for a fit with
+embedding columns (see Checking convergence).
 \item \code{\link[=returnCovariateScales]{returnCovariateScales()}}: posterior summaries of the measured-group,
 embedding leftover and axis scales.
 \item \code{\link[=returnCommunityResponse]{returnCommunityResponse()}}: the community-average response of every
@@ -110,6 +115,80 @@ effect, fit again without the embedding and without other covariates that
 management can change, and compare the two fits on the probability scale.
 }
 
+\section{Sampling and chain length}{
+
+The scales of this prior are hard for the sampler. In a \code{binary} fit with
+embedding columns it takes three extra steps for them. They are
+experimental, and they do not change the model: the draws that are kept
+come from the same posterior as without them.
+\itemize{
+\item Every iteration, each embedding column's axis scale is proposed a new
+value together with that column's coefficients, rescaled by the same
+factor. Without this step the axis scale of a column that no species
+responds to moved very slowly.
+\item The embedding leftover scale gets the same kind of step, together with
+all the leftovers.
+\item With 5,000 or more burn-in iterations, the embedding leftover scale is
+held at a tenth of its prior scale for the first half of burn-in and then
+released.
+}
+
+The reason for the last step is that the species' responses to the
+embedding can be explained in two ways: by the shared part (the community
+average, the traits and the blends), or by the leftovers alone, species by
+species. Early in a chain the leftovers can take up the responses within a
+few iterations, before the blends have formed, and the chain then stays
+there. Such a fit reports almost no shared structure and shrinks the
+embedding coefficients too far, and because its chains agree with each
+other the convergence diagnostics do not show it. Holding the leftovers
+small at first lets the blends form. In simulations in which species shared
+three blends, every chain then found blends in all but one of 21 fits at
+5,000 burn-in and 5,000 kept iterations, and the embedding coefficients
+were recovered much better in two data sets of three and equally well in
+the third. With 1,500 burn-in iterations the blends had too little time to
+settle after the release and the fits were worse, so below 5,000 there is
+no hold and \code{\link[=runOccJSDM]{runOccJSDM()}} prints a note. A fit that short can still end
+with the leftovers carrying the responses.
+
+So use at least 5,000 burn-in and 5,000 kept iterations, which are the
+defaults, and at least four chains. Even then the chains of some fits
+settle on different blends.
+
+The \code{occupancy}, \code{two_stage} and \code{continuous} model types do not have these
+steps yet. There the scales still mix slowly, and nothing guards against
+the leftovers taking the responses.
+}
+
+\section{Checking convergence}{
+
+The usual test, R-hat on every coefficient, misleads for these fits. Single
+blends and single embedding coefficients are not pinned down, and their
+draws are heavy-tailed, so it fails fits that are fine. And chains that all
+ended with the leftovers carrying the responses agree with each other, so
+it passes a fit that found no gradients. \code{\link[=returnGroupedConvergence]{returnGroupedConvergence()}} asks
+instead which state each chain is in, whether the measured coefficients and
+the two scales shared by all columns have converged, whether the chains
+found the same set of gradients, and how far apart their fitted effects of
+the embedding are.
+\code{\link[=runOccJSDM]{runOccJSDM()}} prints its result at the end of a fit made with
+\code{embeddingVars}, and warns when a check is flagged. In the same report the
+embedding coefficients are listed with their R-hat but without a warning.
+
+A flagged fit is marked "review", not failed, because one check can flag a
+fit that is right: where species truly respond independently to the
+embedding, the leftovers should carry the responses.
+
+Two limits of these checks. The comparisons of gradients and of fitted
+effects use each chain's posterior mean, so they say whether the chains
+reached the same answer, not whether each explored its own uncertainty.
+And they are made at the fitted sites. Chains that agree there can differ
+at sites unlike them, such as parts of a map whose habitat was not
+sampled, because the data say little about directions of the embedding in
+which the fitted sites barely vary. The function reports one number for
+that, without a limit. A fit that passes is not thereby safe to
+extrapolate.
+}
+
 \section{Status}{
 
 This prior is experimental and has not been through its validation study.
@@ -125,10 +204,22 @@ traits. The upper tail is wide: the 95\% point is about 28 at both column
 counts, so one prior draw in twenty gives a spread larger than that. The
 validation study is to examine that tail.
 
-The axis scales mix slowly. In a small test with 10 embedding columns they
-had not converged after 1,500 burn-in and 1,500 kept iterations: the two
-chains still disagreed about columns that no species responds to. Expect
-convergence warnings on \code{lambda} from short fits, and run long chains.
+The sampler's extra steps for \code{binary} fits were added in November 2026
+and have been tried only on simulated data of one size (256 sites, 48
+species, 64 embedding columns). In those simulations, when no species
+responded to the embedding, every scale and every measured coefficient
+converged at 5,000 burn-in and 5,000 kept iterations. Before the steps
+were added the axis scales did not converge at either length that was
+tried there (1,500 and 5,000 of each).
+
+Each embedding column has a scale of its own, so the prior does best when
+the species respond to a few of the columns as they are delivered. In the
+same simulations, turning the columns of an embedding (which changes
+nothing in what it encodes) raised the error of the embedding's
+contribution by about a third when the responses had been placed in 10 of
+64 columns, and by little or nothing when they were spread over all of
+them. A real embedding has no such favoured columns, so simulations that
+place the responses in a few columns overstate how well the prior will do.
 
 The prior was built and tested for the \code{binary}, \code{occupancy} and
 \code{two_stage} model types. A \code{continuous} fit runs with it, but that
